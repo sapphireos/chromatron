@@ -36,6 +36,8 @@
 
 #define NTP_SYNC_INTERVAL              600 // in seconds
 
+#define NTP_HARD_SYNC_THRESHOLD_MS     2000 // in ms
+
 // directly attached GPS source:
 #define NTP_SOURCE_GPS                 32
 // network sync to GPS source:
@@ -59,12 +61,12 @@
 void ntp_v_init( void );
 
 void ntp_v_set_master_clock( 
-    ntp_ts_t source_ts, 
-    uint32_t local_system_time,
+    ntp_ts_t source_ntp, 
+    uint64_t local_system_time_ms,
     uint8_t source );
 
 void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time );
-ntp_ts_t ntp_t_from_system_time( uint32_t end_time );
+ntp_ts_t ntp_t_from_system_time( uint64_t sys_time_ms );
 ntp_ts_t ntp_t_now( void );
 ntp_ts_t ntp_t_local_now( void );
 bool ntp_b_is_sync( void );

@@ -34,7 +34,8 @@ static socket_t sock;
 // master clock:
 static uint8_t clock_source;
 static ntp_ts_t master_ntp_time;
-static uint32_t master_sys_time; // system timestamp that correlates to NTP timestamp
+static uint64_t master_sys_time_ms; // system timestamp that correlates to NTP timestamp
+static int16_t master_sync_diff;
 
 // NOTE!
 // tz_offset is in MINUTES, because not all timezones
@@ -45,8 +46,10 @@ static int16_t tz_offset;
 KV_SECTION_META kv_meta_t ntp_time_info_kv[] = {
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, &clock_source,               0, "ntp_master_source" },
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &master_ntp_time.seconds,    0, "ntp_seconds" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &master_sync_diff,           0, "ntp_master_sync_diff" },
     { CATBUS_TYPE_INT16,    0, KV_FLAGS_PERSIST,   &tz_offset,                  0, "datetime_tz_offset" },
 };
+
 
 PT_THREAD( ntp_clock_thread( pt_t *pt, void *state ) );
 PT_THREAD( ntp_server_thread( pt_t *pt, void *state ) );
@@ -207,80 +210,79 @@ void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time ){
 }
 
 void ntp_v_set_master_clock( 
-    ntp_ts_t source_ts, 
-    uint32_t local_system_time,
+    ntp_ts_t source_ntp, 
+    uint64_t local_system_time_ms,
     uint8_t source ){
 
+    // assign clock source:
+    clock_source = source;
 
+    // get current NTP timestamp from the given system timestamp:
+    ntp_ts_t local_ntp = ntp_t_from_system_time( local_system_time_ms );
+    
+    // ok, now we have what time we *think* it is
+    // let's get a delta from the actual time being given to us
+    // from whoever called this function:
 
+    // since the complete NTP timestamp is really a u64, we don't have an easy way to do 
+    // an integer diff (that would need 128 bit signed integers), so we'll do it piecemeal
+    // on the seconds and then the fraction:
+    int64_t delta_ntp_seconds = (int64_t)local_ntp.seconds - 
+                                (int64_t)source_ntp.seconds;
 
-    // if( !is_leader() ){
+    int16_t delta_ntp_fraction_ms = (int16_t)ntp_u16_get_fraction_as_ms( local_ntp ) - 
+                                    (int16_t)ntp_u16_get_fraction_as_ms( source_ntp );
+    
+    // reassemble to a 64 bit millisecond integer:
+    int64_t delta_ms = delta_ntp_seconds * 1000 + delta_ntp_fraction_ms;
 
-    //     // our source isn't as good as the master, don't do anything.
-    //     if( source <= master_source ){
+    if( delta_ms >= NTP_HARD_SYNC_THRESHOLD_MS ){
 
-    //         return;
-    //     }
-    // }
+        // hard sync: just jolt the clock into sync
 
-    // time_v_set_ntp_master_clock_internal( source_ts, local_system_time, local_system_time, source, 0 );
+        master_ntp_time = source_ntp;
+        master_sys_time_ms = local_system_time_ms;
+        master_sync_diff = 0;
+
+        char time_str[ISO8601_STRING_MIN_LEN_MS];
+        ntp_v_to_iso8601( time_str, sizeof(time_str), ntp_t_now() );
+
+        log_v_info_P( PSTR("NTP Time is now: %s"), time_str );
+        log_v_debug_P( PSTR("NTP sync diff: %ld [hard sync] NTP time is now: %s"), delta_ms, time_str );
+
+    }
+    else{
+
+        // soft sync: slowly slew the clock into the correct position
+
+        master_sync_diff = delta_ms;
+
+        log_v_debug_P( PSTR("NTP sync diff: %ld [soft sync]"), delta_ms );
+    }
 }
 
 // this will compute the current NTP time from the current clock
 // information even if the clock has not be synchronized
-ntp_ts_t ntp_t_from_system_time( uint32_t sys_time ){
+ntp_ts_t ntp_t_from_system_time( uint64_t sys_time_ms ){
 
-    // handling rollover and various timestamps is a mess
-    // and we shouldn't really need this API at all....
-    // maybe do something specific to initial SNTP clock sync?
-    
+    // we are using 64 bit millisecond timestamps for the system time,
+    // driven by the hardware system timer.
+    // this timer will never roll over (500+ million years)
+    // and is not reset during runtime.
 
-    // int32_t elapsed_ms = 0;
+    // thus, elapsed time is a simple subtraction from the previous base
+    // time.
 
-    // // requested timestamp is AFTER the clock base time
-    // if( tmr_i8_compare_times( sys_time, master_sys_time ) >= 0 ){
+    ASSERT( sys_time_ms >= master_sys_time_ms );
 
-    //     elapsed_ms = sys_time - master_sys_time;
-    // }
+    uint64_t elapsed_ms = sys_time_ms - master_sys_time_ms;
 
+    // add elapsed time to NTP timestamp - this is easier done by converting
+    // the NTP timestamp to a 64 bit integer
+    uint64_t now = ntp_u64_conv_to_u64( master_ntp_time );
+    now += ( ( (int64_t)elapsed_ms << 32 ) / 1000 ); 
 
-    // int32_t elapsed_ms = tmr_u32_elapsed_times( base_system_time, sys_time );
-
-    
-    // int32_t elapsed_ms = 0;
-
-    // if( end_time > base_system_time ){
-
-    //     elapsed_ms = tmr_u32_elapsed_times( base_system_time, end_time );
-    // }
-    // else{
-
-    //     // end_time is BEFORE base_system_time.
-    //     // this can happen if the base_system_time increments in the clock thread
-    //     // and we are computing from a timestamp with a negative offset applied (such as an RTT)
-    //     // in this case, we can allow negative values for elapsed time.
-    //     uint32_t temp = tmr_u32_elapsed_times( base_system_time, end_time );
-
-    //     // value is, or should be, negative
-    //     if( temp > ( UINT32_MAX / 2 ) ){
-
-    //         elapsed_ms = ( UINT32_MAX - temp ) * -1;
-
-    //         // log_v_debug_P( PSTR("negative elapsed time: %ld"), elapsed_ms ); 
-    //     }
-    // }
-
-    
-
-    // uint64_t now = ntp_u64_conv_to_u64( master_ntp_time );
-
-    // // log_v_debug_P( PSTR("base: %lu now: %lu elapsed: %lu"), base_system_time, end_time, elapsed_ms );
-
-    // now += ( ( (int64_t)elapsed_ms << 32 ) / 1000 ); 
-    
-    // return ntp_ts_from_u64( now ); 
-
-    return ntp_ts_from_u64( 0 );
+    return ntp_ts_from_u64( now );
 }
 
 ntp_ts_t ntp_t_now( void ){
@@ -291,7 +293,7 @@ ntp_ts_t ntp_t_now( void ){
         return ntp_ts_from_u64( 0 );    
     }
 
-    return ntp_t_from_system_time( tmr_u32_get_system_time_ms() );
+    return ntp_t_from_system_time( tmr_u64_get_system_time_ms() );
 }
 
 // get NTP time with timezone correction
@@ -328,7 +330,7 @@ PT_BEGIN( pt );
     THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() );
 
     char time_str[ISO8601_STRING_MIN_LEN_MS];
-    ntp_v_to_iso8601( time_str, sizeof(time_str), network_time );
+    ntp_v_to_iso8601( time_str, sizeof(time_str), ntp_t_now() );
     log_v_info_P( PSTR("NTP Time is now: %s"), time_str );
 
     // set alarm to cover remaining time before next second tick
@@ -340,7 +342,7 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-        master_sys_time += 1000;
+        master_sys_time_ms += 1000;
         master_ntp_time.seconds++;
     }
 

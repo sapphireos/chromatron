@@ -232,11 +232,11 @@ The offset and delay calculations require sums and differences of these raw time
 void process_packet( 
     ntp_packet_t *packet, 
     ntp_ts_t *network_time, 
-    uint32_t *base_system_time ){
+    uint64_t *base_system_time_ms ){
 
     // get destination timestamp (our local network time when we receive the packet)
-    *base_system_time = tmr_u32_get_system_time_ms();
-    ntp_ts_t dest_ts = ntp_t_from_system_time( *base_system_time );
+    *base_system_time_ms = tmr_u64_get_system_time_ms();
+    ntp_ts_t dest_ts = ntp_t_from_system_time( *base_system_time_ms );
 
     uint64_t dest_timestamp = ntp_u64_conv_to_u64( dest_ts );
 
@@ -408,11 +408,11 @@ PT_BEGIN( pt );
 
         // process received packet
         ntp_ts_t network_time;
-        uint32_t sys_time;
-        process_packet( recv_pkt, &network_time, &sys_time );
+        uint64_t sys_time_ms;
+        process_packet( recv_pkt, &network_time, &sys_time_ms );
 
         // sync master clock
-        ntp_v_set_master_clock( network_time, sys_time, NTP_SOURCE_SNTP );
+        ntp_v_set_master_clock( network_time, sys_time_ms, NTP_SOURCE_SNTP );
 
         // parse current time to ISO so we can read it in the log file
         // char time_str2[ISO8601_STRING_MIN_LEN_MS];
