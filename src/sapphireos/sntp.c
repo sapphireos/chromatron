@@ -218,6 +218,14 @@ From the RFC:
 
       d = (T4 - T1) - (T3 - T2)     t = ((T2 - T1) + (T3 - T4)) / 2.
 
+
+From D. Mills' website: https://www.eecis.udel.edu/~mills/time.html
+
+In both the offset and delay equations, the calculations require raw timestamp differences that span no more than 68 years in the future to 68 years in the past. The previous discussion in this document confirms these differences can be computed correctly regardless of whether they span between two eras, as long as the eras are adjacent.
+
+The offset and delay calculations require sums and differences of these raw timestamp differences that can span no more than from 34 years in the future to 34 years in the past without overflow. This is a fundamental limitation in 64-bit integer calculations.
+
+
 */
 
 
