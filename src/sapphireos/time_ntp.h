@@ -61,7 +61,19 @@
 #define NTP_SOURCE_NONE                0
 
 
+typedef struct  __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+} ntp_msg_request_sync_t;
+#define NTP_MSG_REQUEST_SYNC           1
 
+typedef struct  __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+} ntp_msg_reply_sync_t;
+#define NTP_MSG_REPLY_SYNC             2
 
 
 

@@ -508,12 +508,16 @@ PT_BEGIN( pt );
             sock_addr_t raddr;
             sock_v_get_raddr( sock, &raddr );
 
-        //     if( *type == TIME_MSG_REQUEST_SYNC ){
+            if( *type != NTP_MSG_REQUEST_SYNC ){
 
-        //         if( !is_leader() ){
+                // invalid message
+                    
+                log_v_error_P( PSTR("invalid msg") );
 
-        //             continue;
-        //         }
+                goto server_done;                
+            }
+
+            ntp_msg_request_sync_t *req = (ntp_msg_request_sync_t *)magic;
 
         //         time_msg_request_sync_t *req = (time_msg_request_sync_t *)magic;
 
@@ -533,30 +537,7 @@ PT_BEGIN( pt );
         //         msg.id              = req->id;
 
         //         sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
-        //     }
-        //     else if( *type == TIME_MSG_PING ){
 
-        //         if( !is_leader() ){
-
-        //             continue;
-        //         }
-
-        //         time_msg_ping_response_t msg;
-        //         msg.magic           = TIME_PROTOCOL_MAGIC;
-        //         msg.version         = TIME_PROTOCOL_VERSION;
-        //         msg.type            = TIME_MSG_PING_RESPONSE;
-                
-        //         sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
-        //     }
-        //     else if( *type == TIME_MSG_PING_RESPONSE ){
-
-        //         if( is_leader() ){
-
-        //             continue;
-        //         }
-
-        //         transmit_sync_request();
-        //     }
         //     else if( *type == TIME_MSG_SYNC ){
 
         //         if( is_leader() ){
@@ -639,7 +620,9 @@ PT_BEGIN( pt );
         //         }
         //     }
         
-
+server_done:
+            THREAD_YIELD( pt );
+            
         } // /leader
 
         // follower, this runs a client:
@@ -649,12 +632,50 @@ PT_BEGIN( pt );
 
 
             // wait for reply or timeout
+            THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
+
+            if( !is_follower() ){
+
+                THREAD_RESTART( pt );
+            }
 
 
+            uint32_t now = tmr_u32_get_system_time_ms();
+
+            uint32_t *magic = sock_vp_get_data( sock );
+
+            if( *magic != NTP_PROTOCOL_MAGIC ){
+
+                continue;
+            }
+
+            uint8_t *version = (uint8_t *)(magic + 1);
+
+            if( *version != NTP_PROTOCOL_VERSION ){
+
+                continue;
+            }
+
+            uint8_t *type = version + 1;
+
+            sock_addr_t raddr;
+            sock_v_get_raddr( sock, &raddr );
+
+            if( *type != NTP_MSG_REPLY_SYNC ){
+
+                // invalid message
+                    
+                log_v_error_P( PSTR("invalid msg") );
+
+                goto client_done;
+            }
+
+            ntp_msg_request_sync_t *req = (ntp_msg_request_sync_t *)magic;
+            
             // if timeout, backoff delay and retry
 
 
-
+client_done:
             TMR_WAIT( pt, NTP_SYNC_INTERVAL * 1000 );
         } // /follower
     }
