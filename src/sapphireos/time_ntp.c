@@ -35,7 +35,7 @@ static socket_t sock;
 static uint8_t clock_source;
 static ntp_ts_t master_ntp_time;
 static uint64_t master_sys_time_ms; // system timestamp that correlates to NTP timestamp
-static int16_t master_sync_diff;
+static int16_t master_sync_delta;
 
 // NOTE!
 // tz_offset is in MINUTES, because not all timezones
@@ -46,7 +46,7 @@ static int16_t tz_offset;
 KV_SECTION_META kv_meta_t ntp_time_info_kv[] = {
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, &clock_source,               0, "ntp_master_source" },
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &master_ntp_time.seconds,    0, "ntp_seconds" },
-    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &master_sync_diff,           0, "ntp_master_sync_diff" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &master_sync_delta,           0, "ntp_master_sync_delta" },
     { CATBUS_TYPE_INT16,    0, KV_FLAGS_PERSIST,   &tz_offset,                  0, "datetime_tz_offset" },
 };
 
@@ -81,6 +81,15 @@ void ntp_v_init( void ){
                     PSTR("ntp_clock"),
                     0,
                     0 );        
+}
+
+static void reset_clock( void ){
+
+    clock_source = NTP_SOURCE_NONE;
+
+    master_ntp_time = ntp_ts_from_u64( 0 );
+    master_sys_time_ms = 0;
+    master_sync_delta = 0;
 }
 
 static uint8_t get_best_local_source( void ){
@@ -132,76 +141,6 @@ static uint16_t get_priority( void ){
     return priority;
 }
 
-
-
-// static void time_v_set_ntp_master_clock_internal( 
-//     ntp_ts_t source_ts, 
-//     uint32_t source_net_time,
-//     uint32_t local_system_time,
-//     uint8_t source,
-//     uint16_t delay ){    
-
-//     master_source = source;
-
-//     // adjust local time with delay.
-//     // local timestamp now matches when the sync message was transmitted, rather than received.
-//     local_system_time -= delay;
-
-//     ntp_ts_t local_ntp_ts = ntp_t_from_system_time( local_system_time );
-//     uint32_t local_net_time = time_u32_get_network_time_from_local( local_system_time );
-
-//     // get deltas
-//     int64_t delta_ntp_seconds = (int64_t)local_ntp_ts.seconds - (int64_t)source_ts.seconds;
-//     int16_t delta_ntp_ms = (int16_t)ntp_u16_get_fraction_as_ms( local_ntp_ts ) - (int16_t)ntp_u16_get_fraction_as_ms( source_ts );
-//     int32_t delta_master_ms = (int64_t)local_net_time - (int64_t)source_net_time;
-
-//     // char s[ISO8601_STRING_MIN_LEN_MS];
-//     // ntp_v_to_iso8601( s, sizeof(s), local_ntp_ts );
-//     // log_v_debug_P( PSTR("Local:    %s"), s );
-//     // ntp_v_to_iso8601( s, sizeof(s), source_ts );
-//     // log_v_debug_P( PSTR("Remote:   %s"), s );
-
-//     if( ( abs64( delta_master_ms ) > 60000 ) ||
-//         ( abs64( delta_ntp_seconds ) > 60 ) ||
-//         ( !ntp_valid && ( source > TIME_SOURCE_INTERNAL) ) ||
-//         !is_sync ){
-
-//         log_v_debug_P( PSTR("clock synced: prev sync: %d delta_master: %d delta_ntp: %d"), is_sync, (int32_t)delta_master_ms, (int32_t)delta_ntp_seconds );
-        
-//         // hard sync
-//         master_ntp_time         = source_ts;
-//         master_net_time         = source_net_time;
-//         base_system_time        = local_system_time;
-//         last_clock_update       = local_system_time;
-//         ntp_sync_difference     = 0;
-//         master_sync_difference  = 0;
-
-//         is_sync = TRUE;
-
-//         if( source > TIME_SOURCE_INTERNAL ){
-            
-//             ntp_valid = TRUE;
-
-//             char time_str[ISO8601_STRING_MIN_LEN_MS];
-//             ntp_v_to_iso8601( time_str, sizeof(time_str), time_t_now() );
-
-//             log_v_info_P( PSTR("NTP Time is now: %s"), time_str );
-//         }
-
-//         return;
-//     }
-
-//     // gradual adjustment
-
-//     // set difference
-//     ntp_sync_difference = ( delta_ntp_seconds * 1000 ) + delta_ntp_ms;
-//     master_sync_difference = delta_master_ms;
-
-//     // log_v_debug_P( PSTR("ntp_sync_difference: %ld"), ntp_sync_difference );   
-//     // log_v_debug_P( PSTR("dly: %3u diff: %5ld"), delay, master_sync_difference );   
-// }
-
-
 void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time ){
 
     *system_time = tmr_u32_get_system_time_ms();
@@ -236,26 +175,35 @@ void ntp_v_set_master_clock(
     // reassemble to a 64 bit millisecond integer:
     int64_t delta_ms = delta_ntp_seconds * 1000 + delta_ntp_fraction_ms;
 
-    if( delta_ms >= NTP_HARD_SYNC_THRESHOLD_MS ){
+    // delta is local - source
+    // therefore:
+    // if delta is positive, our local clock is ahead of the source clock
+    // if delta is negative, our local clock is behind the source clock
+
+    if( abs64( delta_ms ) >= NTP_HARD_SYNC_THRESHOLD_MS ){
 
         // hard sync: just jolt the clock into sync
 
         master_ntp_time = source_ntp;
         master_sys_time_ms = local_system_time_ms;
-        master_sync_diff = 0;
+        master_sync_delta = 0;
 
         char time_str[ISO8601_STRING_MIN_LEN_MS];
         ntp_v_to_iso8601( time_str, sizeof(time_str), ntp_t_now() );
 
-        log_v_info_P( PSTR("NTP Time is now: %s"), time_str );
-        log_v_debug_P( PSTR("NTP sync diff: %ld [hard sync] NTP time is now: %s"), delta_ms, time_str );
+        if( ntp_b_is_sync() ){
 
+            // log a message for hard syncs if we were previously synced
+            // we can skip the initial clock setting, the main clock
+            // thread will log it already.
+            log_v_info_P( PSTR("NTP Time is now: %s [hard sync]"), time_str );    
+        }
     }
     else{
 
         // soft sync: slowly slew the clock into the correct position
 
-        master_sync_diff = delta_ms;
+        master_sync_delta = delta_ms;
 
         log_v_debug_P( PSTR("NTP sync diff: %ld [soft sync]"), delta_ms );
     }
@@ -331,7 +279,7 @@ PT_BEGIN( pt );
 
     char time_str[ISO8601_STRING_MIN_LEN_MS];
     ntp_v_to_iso8601( time_str, sizeof(time_str), ntp_t_now() );
-    log_v_info_P( PSTR("NTP Time is now: %s"), time_str );
+    log_v_info_P( PSTR("NTP Time is now: %s source: %u"), time_str, clock_source );
 
     // set alarm to cover remaining time before next second tick
 
@@ -342,98 +290,88 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-        master_sys_time_ms += 1000;
-        master_ntp_time.seconds++;
+
+        // get actual current timestamp, since the thread timing
+        // won't be exact:
+
+        uint64_t sys_time_ms = tmr_u64_get_system_time_ms();
+
+        // check for bad timestamps, IE, the current system time
+        // is somehow lower than the master timestamp:
+        if( sys_time_ms < master_sys_time_ms ){
+
+            reset_clock();
+            THREAD_RESTART( pt );            
+        }
+
+        uint64_t elapsed_ms = sys_time_ms - master_sys_time_ms;
+
+        // update base system time:
+        master_sys_time_ms += elapsed_ms;
+
+        // check sync delta:
+        // positive deltas mean our clock is ahead
+        // negative deltas mean out clock is behind
+
+        int16_t clock_adjust = 0;
+
+        if( master_sync_delta > 0 ){
+
+            // local clock is ahead
+            // we need to slow down a bit
+
+            if( master_sync_delta > 500 ){
+
+                clock_adjust = 10;
+            }
+            else if( master_sync_delta > 200 ){
+
+                clock_adjust = 5;
+            }
+            else if( master_sync_delta > 50 ){
+
+                clock_adjust = 2;
+            }
+            else{
+
+                clock_adjust = 1;
+            }
+        }
+        else if( master_sync_delta < 0 ){
+
+            // local clock is behind
+            // we need to speed up a bit
+
+            if( master_sync_delta < -500 ){
+
+                clock_adjust = -10;
+            }
+            else if( master_sync_delta < -200 ){
+
+                clock_adjust = -5;
+            }
+            else if( master_sync_delta < -50 ){
+
+                clock_adjust = -2;
+            }
+            else{
+
+                clock_adjust = -1;
+            }
+        }
+
+        master_sync_delta -= clock_adjust;
+
+        // adjust elapsed ms by clock adjustment:
+        elapsed_ms -= clock_adjust;
+
+        // compute updated NTP timestamp:
+        uint64_t ntp_now_u64 = ntp_u64_conv_to_u64( master_ntp_time );
+        ntp_now_u64 += ( ( (int64_t)elapsed_ms << 32 ) / 1000 ); 
+
+        // update master NTP timestamp:
+        master_ntp_time = ntp_ts_from_u64( ntp_now_u64 );
     }
-
-
-    // last_clock_update = tmr_u32_get_system_time_ms();
-    // thread_v_set_alarm( last_clock_update );
-
-    // while( 1 ){
-
-    //     master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
-    //     local_source = get_best_local_source();
-    
-    //     // update election parameters (in case our source changes)        
-    //     services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
-
-    //     thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
-    //     THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
-
-    //     uint32_t now = tmr_u32_get_system_time_ms();
-    //     uint32_t elapsed_ms = tmr_u32_elapsed_times( last_clock_update, now );
-
-    //     int16_t master_clock_adjust = 0;
-    //     int16_t ntp_clock_adjust = 0;
-
-    //     if( is_sync ){
-
-    //         if( master_sync_difference > 50 ){
-
-    //             // our clock is ahead, so we need to slow down
-    //             master_clock_adjust = 10;
-    //         }
-    //         else if( master_sync_difference > 2 ){
-
-    //             // our clock is ahead, so we need to slow down
-    //             master_clock_adjust = 1;
-    //         }
-    //         else if( master_sync_difference < -50 ){
-
-    //             // our clock is behind, so we need to speed up
-    //             master_clock_adjust = -10;
-    //         }
-    //         else if( master_sync_difference < -2 ){
-
-    //             // our clock is behind, so we need to speed up
-    //             master_clock_adjust = -1;
-    //         }
-
-    //         master_sync_difference -= master_clock_adjust;
-
-    //         // update master clocks
-    //         master_net_time += elapsed_ms - master_clock_adjust;
-
-    //         // update local reference
-    //         base_system_time += elapsed_ms;  
-    //     }
-
-    //     if( ntp_valid ){
-
-    //         uint64_t temp_ntp_master_u64 = ntp_u64_conv_to_u64( master_ntp_time );
-
-    //         if( ntp_sync_difference > 50 ){
-
-    //             // our clock is ahead, so we need to slow down
-    //             ntp_clock_adjust = 10;
-    //         }
-    //         else if( ntp_sync_difference > 2 ){
-
-    //             // our clock is ahead, so we need to slow down
-    //             ntp_clock_adjust = 1;
-    //         }
-    //         else if( ntp_sync_difference < -50 ){
-
-    //             // our clock is behind, so we need to speed up
-    //             ntp_clock_adjust = -10;
-    //         }
-    //         else if( ntp_sync_difference < -2 ){
-
-    //             // our clock is behind, so we need to speed up
-    //             ntp_clock_adjust = -1;
-    //         }
-
-    //         ntp_sync_difference -= ntp_clock_adjust;            
-
-    //         // update master clocks
-    //         temp_ntp_master_u64 += ( ( (uint64_t)( elapsed_ms - ntp_clock_adjust ) << 32 ) / 1000 );
-    //         master_ntp_time = ntp_ts_from_u64( temp_ntp_master_u64 );
-    //     }
-
-    //     last_clock_update = now;
-
-    // }
 
 PT_END( pt );
 }
