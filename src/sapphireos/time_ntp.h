@@ -55,7 +55,14 @@
 // clock setting.
 #define NTP_SOURCE_INTERNAL            8
 
+// manually set clock
+#define NTP_SOURCE_MANUAL              4
+
 #define NTP_SOURCE_NONE                0
+
+
+
+
 
 
 void ntp_v_init( void );

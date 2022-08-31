@@ -51,6 +51,7 @@ import crcmod
 from sapphire.buildtools import firmware_package
 from sapphire.buildtools.firmware_package import FirmwarePackage
 from sapphire.buildtools.core import CHROMATRON_ESP_UPGRADE_FWID
+import sapphire.common.utils
 
 import fnmatch
 
@@ -1479,6 +1480,27 @@ class Device(object):
         ntp_now = timedelta(seconds=ntp_seconds) + NTP_EPOCH
 
         return ntp_now.isoformat()
+
+
+    def cli_ntpset(self, line):
+        ntp_seconds = self.get_key("ntp_seconds")
+
+        if ntp_seconds != 0:
+            print('NTP clock has already been set.')
+            print('Are you sure you wish to proceed?')
+
+            yes = input()
+
+            if yes != "yes":     
+                return 'No changes made'
+
+        now = sapphire.common.utils.now()
+        ntp_seconds, ntp_fraction = sapphire.common.utils.datetime_to_ntp(now)
+
+        self.set_key('ntp_seconds', ntp_seconds)
+
+        fractionless_now = sapphire.common.utils.ntp_to_datetime(ntp_seconds, 0)
+        print(f'NTP time set to: {fractionless_now}')
 
     # def cli_loadwifi(self, line):
     #     def progress(length, filename=None):
