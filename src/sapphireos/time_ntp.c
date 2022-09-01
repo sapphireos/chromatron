@@ -477,6 +477,9 @@ PT_BEGIN( pt );
     // leader loop: run server
     while( is_leader() ){
 
+        // disable timeout
+        sock_v_set_timeout( sock, 0 );
+
         THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_leader() );
 
         if( !is_leader() ){
@@ -486,8 +489,6 @@ PT_BEGIN( pt );
 
         // check if data received
         if( sock_i16_get_bytes_read( sock ) > 0 ){
-
-            uint32_t now = tmr_u32_get_system_time_ms();
 
             uint32_t *magic = sock_vp_get_data( sock );
 
@@ -519,141 +520,74 @@ PT_BEGIN( pt );
 
             ntp_msg_request_sync_t *req = (ntp_msg_request_sync_t *)magic;
 
-        //         time_msg_request_sync_t *req = (time_msg_request_sync_t *)magic;
 
-        //         if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_request_sync_t) ){
+            ntp_msg_reply_sync_t reply = {
+                NTP_PROTOCOL_MAGIC,
+                NTP_PROTOCOL_VERSION,
+                NTP_MSG_REQUEST_SYNC,
+                req->origin_system_time_ms,
+                ntp_t_now()
+            };
 
-        //             log_v_debug_P( PSTR("invalid len") );
-        //         }
+            sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );  
 
-        //         time_msg_sync_t msg;
-        //         msg.magic           = TIME_PROTOCOL_MAGIC;
-        //         msg.version         = TIME_PROTOCOL_VERSION;
-        //         msg.type            = TIME_MSG_SYNC;
-        //         msg.net_time        = time_u32_get_network_time_from_local( now );
-        //         msg.flags           = 0;
-        //         msg.ntp_time        = time_t_from_system_time( now );
-        //         msg.source          = master_source;
-        //         msg.id              = req->id;
-
-        //         sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
-
-        //     else if( *type == TIME_MSG_SYNC ){
-
-        //         if( is_leader() ){
-
-        //             continue;
-        //         }
-
-        //         time_msg_sync_t *msg = (time_msg_sync_t *)magic;
-
-        //         if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_sync_t) ){
-
-        //             log_v_debug_P( PSTR("invalid len") );
-        //         }
-
-        //         // check id
-        //         if( msg->id != sync_id ){
-
-        //             // log_v_debug_P( PSTR("bad sync id: %u != %u"), msg->id, sync_id );
-
-        //             rejected_syncs++;
-        //             continue;
-        //         }
-
-        //         // uint32_t est_net_time = time_u32_get_network_time();
-                
-        //         uint32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
-
-        //         // init filtered RTT if needed
-        //         if( filtered_rtt == 0 ){
-
-        //             filtered_rtt = elapsed_rtt;
-        //         }
-
-        //         if( elapsed_rtt > 500 ){
-
-        //             // a 0.5 second RTT is clearly ridiculous.
-        //             // log_v_debug_P( PSTR("bad: RTT: %u"), elapsed_rtt );
-
-        //             rejected_syncs++;
-
-        //             continue;
-        //         }
-        //         // check quality of RTT sample
-        //         else if( elapsed_rtt > ( filtered_rtt + (uint32_t)RTT_QUALITY_LIMIT ) ){
-
-        //             // log_v_debug_P( PSTR("poor quality: RTT: %u"), elapsed_rtt );
-
-        //             // although we are not using this sync message for our clock,
-        //             // we will bump the filtered RTT up a bit in case the overall RTT is
-        //             // drifting upwards.  this prevents us from losing sync on a busy network.
-                        
-        //             filtered_rtt += RTT_RELAX;
-
-        //             rejected_syncs++;
-
-        //             continue;
-        //         }
-        //         else{
-
-        //             // filter rtt
-        //             filtered_rtt = util_u16_ewma( elapsed_rtt, filtered_rtt, RTT_FILTER );
-        //         }
-
-        //         good_syncs++;
-
-        //         // check sync
-        //         if( msg->source != TIME_SOURCE_NONE ){
-                    
-        //             // log_v_debug_P( PSTR("%4ld %4u"), elapsed_rtt, filtered_rtt );
-
-        //             uint16_t delay = elapsed_rtt / 2;
-
-        //             time_v_set_ntp_master_clock_internal( msg->ntp_time, msg->net_time, now, msg->source, delay );
-
-        //             // each time we get a valid sync, we bump the sync delay up until the max
-        //             if( is_sync && ( sync_delay < TIME_SYNC_RATE_MAX ) ){
-                
-        //                sync_delay++;
-        //             }
-        //         }
-        //     }
-        
 server_done:
             THREAD_YIELD( pt );
             
         } // /leader
+
 
         // follower, this runs a client:
         while( is_follower() ){
 
             // send sync request
 
+            ntp_msg_request_sync_t sync = {
+                NTP_PROTOCOL_MAGIC,
+                NTP_PROTOCOL_VERSION,
+                NTP_MSG_REQUEST_SYNC,
+                tmr_u64_get_system_time_ms(),
+            };
+
+
+            sock_addr_t send_raddr;
+            send_raddr.port = NTP_SERVER_PORT;
+            send_raddr.ipaddr = services_a_get_ip( NTP_ELECTION_SERVICE, 0 );
+
+            sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), &send_raddr );  
+
+            sock_v_set_timeout( sock, 2 );
 
             // wait for reply or timeout
             THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
 
+            // get local receive timestamp
+            uint64_t now = tmr_u64_get_system_time_ms();
+
+            // check if service changed
             if( !is_follower() ){
 
                 THREAD_RESTART( pt );
             }
 
+            // check for timeout
+            if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
-            uint32_t now = tmr_u32_get_system_time_ms();
+                goto client_done;
+            }
 
             uint32_t *magic = sock_vp_get_data( sock );
 
             if( *magic != NTP_PROTOCOL_MAGIC ){
 
-                continue;
+                goto client_done;
             }
 
             uint8_t *version = (uint8_t *)(magic + 1);
 
             if( *version != NTP_PROTOCOL_VERSION ){
 
-                continue;
+                goto client_done;
             }
 
             uint8_t *type = version + 1;
@@ -670,9 +604,11 @@ server_done:
                 goto client_done;
             }
 
-            ntp_msg_request_sync_t *req = (ntp_msg_request_sync_t *)magic;
+            ntp_msg_reply_sync_t *reply = (ntp_msg_reply_sync_t *)magic;
             
-            // if timeout, backoff delay and retry
+            // process reply
+
+            
 
 
 client_done:

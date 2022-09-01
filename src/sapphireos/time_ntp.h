@@ -65,6 +65,7 @@ typedef struct  __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
+    uint64_t origin_system_time_ms;
 } ntp_msg_request_sync_t;
 #define NTP_MSG_REQUEST_SYNC           1
 
@@ -72,6 +73,8 @@ typedef struct  __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
+    uint64_t origin_system_time_ms;
+    ntp_ts_t ntp_timestamp;
 } ntp_msg_reply_sync_t;
 #define NTP_MSG_REPLY_SYNC             2
 
