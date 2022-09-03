@@ -562,7 +562,7 @@ server_done:
             THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
 
             // get local receive timestamp
-            uint64_t now = tmr_u64_get_system_time_ms();
+            uint64_t reply_recv_timestamp = tmr_u64_get_system_time_ms();
 
             // check if service changed
             if( !is_follower() ){
@@ -607,8 +607,31 @@ server_done:
             ntp_msg_reply_sync_t *reply = (ntp_msg_reply_sync_t *)magic;
             
             // process reply
+            uint16_t packet_rtt = reply->origin_system_time_ms - reply_recv_timestamp;
+            uint16_t packet_delay = packet_rtt / 2; // assuming link is symmetrical
 
+            // adjust the transmit NTP timestamp by the packet delay so
+            // it correlates with the packet receive timestamp:
+
+
+            // convert delay milliseconds to NTP fraction:
+            uint64_t delay_fraction = ( (uint32_t)packet_delay << 32 ) / 1000;
+
+            // convert source NTP timestamp to u64:
+            uint64_t source_timestamp = ntp_u64_conv_to_u64( reply->ntp_timestamp );
+
+            // add delay:
+            source_timestamp += delay_fraction;
+
+            // convert back to NTP:
+            ntp_ts_t delay_adjusted_ntp = ntp_ts_from_u64( source_timestamp );
+
+
+            // set master clock with new timestamps
+            ntp_v_set_master_clock( delay_adjusted_ntp, reply_recv_timestamp, NTP_SOURCE_SNTP_NET ); 
             
+
+                        
 
 
 client_done:
