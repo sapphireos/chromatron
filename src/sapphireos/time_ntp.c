@@ -196,9 +196,6 @@ void ntp_v_set_master_clock(
     uint64_t local_system_time_ms,
     uint8_t source ){
 
-    // assign clock source:
-    clock_source = source;
-
     // get current NTP timestamp from the given system timestamp:
     ntp_ts_t local_ntp = ntp_t_from_system_time( local_system_time_ms );
     
@@ -218,12 +215,16 @@ void ntp_v_set_master_clock(
     // reassemble to a 64 bit millisecond integer:
     int64_t delta_ms = delta_ntp_seconds * 1000 + delta_ntp_fraction_ms;
 
+
+    // check if delta exceeds the hard sync threshold,
+    // or the clock has not been previously set:
+
     // delta is local - source
     // therefore:
     // if delta is positive, our local clock is ahead of the source clock
     // if delta is negative, our local clock is behind the source clock
 
-    if( abs64( delta_ms ) >= NTP_HARD_SYNC_THRESHOLD_MS ){
+    if( ( clock_source == NTP_SOURCE_NONE ) || ( abs64( delta_ms ) >= NTP_HARD_SYNC_THRESHOLD_MS ) ){
 
         // hard sync: just jolt the clock into sync
 
@@ -250,6 +251,10 @@ void ntp_v_set_master_clock(
 
         log_v_debug_P( PSTR("NTP sync diff: %ld [soft sync]"), delta_ms );
     }
+
+
+    // assign clock source:
+    clock_source = source;
 }
 
 // this will compute the current NTP time from the current clock
@@ -615,7 +620,7 @@ server_done:
 
 
             // convert delay milliseconds to NTP fraction:
-            uint64_t delay_fraction = ( (uint32_t)packet_delay << 32 ) / 1000;
+            uint64_t delay_fraction = ( (uint64_t)packet_delay << 32 ) / 1000;
 
             // convert source NTP timestamp to u64:
             uint64_t source_timestamp = ntp_u64_conv_to_u64( reply->ntp_timestamp );
@@ -631,7 +636,7 @@ server_done:
             ntp_v_set_master_clock( delay_adjusted_ntp, reply_recv_timestamp, NTP_SOURCE_SNTP_NET ); 
             
 
-                        
+
 
 
 client_done:
