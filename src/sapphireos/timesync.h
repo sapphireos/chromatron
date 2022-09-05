@@ -38,16 +38,6 @@
 
 #define TIME_RTT_THRESHOLD              500
 
-
-// #define TIME_SOURCE_ESP32_PRIORITY      512
-
-// #define TIME_SOURCE_GPS                 64
-// #define TIME_SOURCE_NTP                 32
-// #define TIME_SOURCE_RTC                 16
-// #define TIME_SOURCE_INTERNAL_NTP_SYNC   9 // any source above this level is assumed to have a valid NTP sync
-// #define TIME_SOURCE_INTERNAL            8
-// #define TIME_SOURCE_NONE                1
-
 // #define TIME_SYNC_RATE_BASE             4 // in seconds
 // #define TIME_SYNC_RATE_MAX              64 // in seconds
 
