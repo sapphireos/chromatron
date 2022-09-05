@@ -114,7 +114,7 @@ Followers periodically sync while tracking round trip time.
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 // PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
-// PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
+PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
 static socket_t sock;
 
@@ -123,7 +123,8 @@ static uint32_t base_sys_time;
 static uint32_t net_time;
 static bool is_sync;
 
-// static ip_addr4_t master_ip;
+static ip_addr4_t master_ip;
+
 // static uint8_t master_source;
 // static uint8_t local_source;
 // static bool is_sync;
@@ -159,38 +160,32 @@ static bool is_sync;
 
 
 
-// static int8_t ntp_kv_handler(
-//     kv_op_t8 op,
-//     catbus_hash_t32 hash,
-//     void *data,
-//     uint16_t len )
-// {
+static int8_t net_time_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
 
-//     if( op == KV_OP_GET ){
+    if( op == KV_OP_GET ){
 
-//         uint32_t elapsed = 0;
-//         uint32_t seconds = 0;
+        uint32_t timestamp = net_time + tmr_u32_elapsed_time_ms( base_sys_time );
 
-//         if( ntp_valid ){
-            
-//             elapsed = tmr_u32_elapsed_time_ms( base_system_time );
-//             seconds = master_ntp_time.seconds + ( elapsed / 1000 );
-//         }
+        memcpy( data, &timestamp, len );
 
-//         memcpy( data, &seconds, len );
+        return 0;
+    }
 
-//         return 0;
-//     }
-
-//     return -1;
-// }
+    return -1;
+}
 
 
 KV_SECTION_META kv_meta_t time_info_kv[] = {   
     { CATBUS_TYPE_BOOL,       0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
 
-//     { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &master_net_time,  0,                      "net_time" },
-//     { CATBUS_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
+    { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, 0,                 net_time_kv_handler,    "net_time" },
+    { CATBUS_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
+
 //     { CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
 //     { CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &local_source,     0,                      "net_time_local_source" },
 //     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &filtered_rtt,     0,                      "net_time_filtered_rtt" },
@@ -242,10 +237,10 @@ void time_v_init( void ){
 //                     0,
 //                     0 );    
     
-//     thread_t_create( time_clock_thread,
-//                     PSTR("time_clock"),
-//                     0,
-//                     0 );    
+    thread_t_create( time_clock_thread,
+                    PSTR("time_clock"),
+                    0,
+                    0 );    
 }
 
 bool time_b_is_sync( void ){
@@ -972,107 +967,102 @@ PT_END( pt );
 // }
 
 
-// PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
-    
-//     // wait for network
-//     THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
-    
-//     services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
+PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
 
-//     // wait until we resolve the election
-//     THREAD_WAIT_WHILE( pt, !services_b_is_available( TIME_ELECTION_SERVICE, 0 ) );
+    // wait for sync
+    THREAD_WAIT_WHILE( pt, !is_sync) ;
 
-//     last_clock_update = tmr_u32_get_system_time_ms();
-//     thread_v_set_alarm( last_clock_update );
+    while( 1 ){
 
-//     while( 1 ){
+        thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-//         master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
-//         local_source = get_best_local_source();
-    
-//         // update election parameters (in case our source changes)        
-//         services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
+        master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
 
-//         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
-//         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        // update election parameters (in case our source changes)        
+        services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
 
-//         uint32_t now = tmr_u32_get_system_time_ms();
-//         uint32_t elapsed_ms = tmr_u32_elapsed_times( last_clock_update, now );
+        // get elapsed time
+        uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_sys_time );
 
-//         int16_t master_clock_adjust = 0;
-//         int16_t ntp_clock_adjust = 0;
+        // update base time
+        base_sys_time += elapsed_ms;        
 
-//         if( is_sync ){
 
-//             if( master_sync_difference > 50 ){
+        // check sync delta:
+        // positive deltas mean our clock is ahead
+        // negative deltas mean out clock is behind
 
-//                 // our clock is ahead, so we need to slow down
-//                 master_clock_adjust = 10;
-//             }
-//             else if( master_sync_difference > 2 ){
+        int16_t clock_adjust = 0;
 
-//                 // our clock is ahead, so we need to slow down
-//                 master_clock_adjust = 1;
-//             }
-//             else if( master_sync_difference < -50 ){
+        if( sync_delta > 0 ){
 
-//                 // our clock is behind, so we need to speed up
-//                 master_clock_adjust = -10;
-//             }
-//             else if( master_sync_difference < -2 ){
+            // local clock is ahead
+            // we need to slow down a bit
 
-//                 // our clock is behind, so we need to speed up
-//                 master_clock_adjust = -1;
-//             }
+            if( sync_delta > 500 ){
 
-//             master_sync_difference -= master_clock_adjust;
+                clock_adjust = 10;
+            }
+            else if( sync_delta > 200 ){
 
-//             // update master clocks
-//             master_net_time += elapsed_ms - master_clock_adjust;
+                clock_adjust = 5;
+            }
+            else if( sync_delta > 50 ){
 
-//             // update local reference
-//             base_system_time += elapsed_ms;  
-//         }
+                clock_adjust = 2;
+            }
+            else{
 
-//         if( ntp_valid ){
+                clock_adjust = 1;
+            }
+        }
+        else if( sync_delta < 0 ){
 
-//             uint64_t temp_ntp_master_u64 = ntp_u64_conv_to_u64( master_ntp_time );
+            // local clock is behind
+            // we need to speed up a bit
 
-//             if( ntp_sync_difference > 50 ){
+            if( sync_delta < -500 ){
 
-//                 // our clock is ahead, so we need to slow down
-//                 ntp_clock_adjust = 10;
-//             }
-//             else if( ntp_sync_difference > 2 ){
+                clock_adjust = -10;
+            }
+            else if( sync_delta < -200 ){
 
-//                 // our clock is ahead, so we need to slow down
-//                 ntp_clock_adjust = 1;
-//             }
-//             else if( ntp_sync_difference < -50 ){
+                clock_adjust = -5;
+            }
+            else if( sync_delta < -50 ){
 
-//                 // our clock is behind, so we need to speed up
-//                 ntp_clock_adjust = -10;
-//             }
-//             else if( ntp_sync_difference < -2 ){
+                clock_adjust = -2;
+            }
+            else{
 
-//                 // our clock is behind, so we need to speed up
-//                 ntp_clock_adjust = -1;
-//             }
+                clock_adjust = -1;
+            }
+        }
 
-//             ntp_sync_difference -= ntp_clock_adjust;            
+        sync_delta -= clock_adjust;
 
-//             // update master clocks
-//             temp_ntp_master_u64 += ( ( (uint64_t)( elapsed_ms - ntp_clock_adjust ) << 32 ) / 1000 );
-//             master_ntp_time = ntp_ts_from_u64( temp_ntp_master_u64 );
-//         }
+        // adjust elapsed ms by clock adjustment:
+        elapsed_ms -= clock_adjust;
 
-//         last_clock_update = now;
-//     }
+        // sanity check elapsed time
+        // if we went negative it will rollover
+        // this shouldn't happen unless thread timing is very screwed up
+        if( elapsed_ms > 2000 ){
 
-// PT_END( pt );
-// }
+            log_v_debug_P( PSTR("Net time sync fail, elapsed: %u"), elapsed_ms );
+
+            continue;
+        }  
+
+        // update net time
+        net_time += elapsed_ms;
+    }
+
+PT_END( pt );
+}
 
 
 
