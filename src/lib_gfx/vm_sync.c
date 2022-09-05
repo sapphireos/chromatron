@@ -458,7 +458,7 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 1000 );
 
         // wait until time sync
-        THREAD_WAIT_WHILE( pt, !time_b_is_local_sync() );
+        THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
 
         THREAD_WAIT_WHILE( pt, !vm_b_is_vm_running( 0 ) );
 

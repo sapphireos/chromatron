@@ -97,7 +97,7 @@ PT_BEGIN( pt );
         //     }
 
         //     #ifdef ENABLE_TIME_SYNC
-        //     if( time_b_is_local_sync() ){
+        //     if( time_b_is_sync() ){
 
         //         uint32_t net_time = time_u32_get_network_time();
 
@@ -127,7 +127,7 @@ PT_BEGIN( pt );
         //         }
         //     }
         //     #ifdef ENABLE_TIME_SYNC
-        //     if( time_b_is_local_sync() ){
+        //     if( time_b_is_sync() ){
 
         //         uint32_t net_time = time_u32_get_network_time();
 
