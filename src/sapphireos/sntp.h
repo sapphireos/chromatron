@@ -36,6 +36,8 @@
 
 #define SNTP_TIMEOUT                    4
 
+#define SNTP_SYNC_TIMEOUT               3600
+
 
 // NTP Packet
 typedef struct __attribute__((packed)){

@@ -135,31 +135,6 @@ static void reset_clock( void ){
     master_sync_delta = 0;
 }
 
-static uint8_t get_best_local_source( void ){
-
-    // if( gps_sync ){
-
-    //     return TIME_SOURCE_GPS;
-    // }
-
-    // if( sntp_u8_get_status() == SNTP_STATUS_SYNCHRONIZED ){
-
-    //     return TIME_SOURCE_NTP;
-    // }
-
-    // if( is_sync && ntp_valid ){
-
-    //     return TIME_SOURCE_INTERNAL_NTP_SYNC;
-    // }
-
-    // if( is_sync ){
-
-    //     return TIME_SOURCE_INTERNAL;
-    // }
-
-    return NTP_SOURCE_NONE;
-}
-
 static bool is_leader( void ){
 
     return services_b_is_server( NTP_ELECTION_SERVICE, 0 );
@@ -177,11 +152,7 @@ static bool is_follower( void ){
 
 static uint16_t get_priority( void ){
 
-    uint8_t source = get_best_local_source();
-
-    uint16_t priority = source;
-
-    return priority;
+    return clock_source;
 }
 
 void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time ){
@@ -340,14 +311,32 @@ PT_BEGIN( pt );
 
             THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( clock_source == prev_source ) );
 
+            // update service priorities
+            services_v_join_team( NTP_ELECTION_SERVICE, 0, get_priority(), NTP_SERVER_PORT );
+
             // check if clock source changed
             if( prev_source != clock_source ){
 
-                log_v_info_P( PSTR("NTP clock source changed") );
+                log_v_info_P( PSTR("NTP clock source changed to: %d from: %d"), clock_source, prev_source );
 
                 THREAD_RESTART( pt );
             }
 
+            // check if leader:
+            if( is_leader() ){
+
+                // check clock source quality, if applicable:
+                if( clock_source == NTP_SOURCE_SNTP ){
+
+                    if( sntp_u8_get_status() != SNTP_STATUS_SYNCHRONIZED ){
+
+                        log_v_info_P( PSTR("Lost SNTP sync") );
+
+                        // downgrade the internal clock source
+                        clock_source = NTP_SOURCE_INTERNAL;
+                    }
+                }
+            }
 
             // get actual current timestamp, since the thread timing
             // won't be exact:
@@ -357,6 +346,11 @@ PT_BEGIN( pt );
             // check for bad timestamps, IE, the current system time
             // is somehow lower than the master timestamp:
             if( sys_time_ms < master_sys_time_ms ){
+
+                // something has gone wrong at this point, so log this and then restart
+                // the clock
+
+                log_v_error_P( PSTR("Master system time mismatch: %lu != system clock: %lu"), master_sys_time_ms, sys_time_ms );
 
                 reset_clock();
                 THREAD_RESTART( pt );            
@@ -455,7 +449,7 @@ PT_BEGIN( pt );
     services_v_join_team( NTP_ELECTION_SERVICE, 0, get_priority(), NTP_SERVER_PORT );
 
     // wait until we resolve the election
-    THREAD_WAIT_WHILE( pt, !services_b_is_available( NTP_ELECTION_SERVICE, 0 ) );
+    THREAD_WAIT_WHILE( pt, !is_service_avilable() );
 
 
     // check if we are the leader
@@ -466,18 +460,25 @@ PT_BEGIN( pt );
 
         // start SNTP
         sntp_v_start();
+
+        // wait for NTP sync: we can't run the leader server without a sync
+        // we also set a timeout, if for some reason we can't get an NTP sync
+        // we will reset the thread
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + ( NTP_INITIAL_SNTP_SYNC_TIMEOUT * 1000 ) );
+        THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() && thread_b_alarm_set() );
+
+        // check if we got a sync:
+        if( !ntp_b_is_sync() ){
+
+            log_v_warn_P( PSTR("SNTP initial sync timed out") );
+
+            THREAD_RESTART( pt );
+        }
     }
 
-    THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() && is_service_avilable() );
-
-    if( !is_service_avilable() ){
-
-        THREAD_RESTART( pt );
-    }
-
-    
-    // NTP sync achieved here
-
+    // service is available at this point
+    // if a leader, we should have an NTP sync by now
+    // if a follower, we might not.
 
     // leader loop: run server
     while( is_leader() ){
@@ -493,157 +494,161 @@ PT_BEGIN( pt );
         }
 
         // check if data received
-        if( sock_i16_get_bytes_read( sock ) > 0 ){
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
-            uint32_t *magic = sock_vp_get_data( sock );
+            continue;
+        }
 
-            if( *magic != NTP_PROTOCOL_MAGIC ){
+        uint32_t *magic = sock_vp_get_data( sock );
 
-                continue;
-            }
+        if( *magic != NTP_PROTOCOL_MAGIC ){
 
-            uint8_t *version = (uint8_t *)(magic + 1);
+            continue;
+        }
 
-            if( *version != NTP_PROTOCOL_VERSION ){
+        uint8_t *version = (uint8_t *)(magic + 1);
 
-                continue;
-            }
+        if( *version != NTP_PROTOCOL_VERSION ){
 
-            uint8_t *type = version + 1;
+            continue;
+        }
 
-            sock_addr_t raddr;
-            sock_v_get_raddr( sock, &raddr );
+        uint8_t *type = version + 1;
 
-            if( *type != NTP_MSG_REQUEST_SYNC ){
+        sock_addr_t raddr;
+        sock_v_get_raddr( sock, &raddr );
 
-                // invalid message
-                    
-                log_v_error_P( PSTR("invalid msg") );
+        if( *type != NTP_MSG_REQUEST_SYNC ){
 
-                goto server_done;                
-            }
+            // invalid message
+                
+            log_v_error_P( PSTR("invalid msg") );
 
-            ntp_msg_request_sync_t *req = (ntp_msg_request_sync_t *)magic;
+            goto server_done;                
+        }
+
+        ntp_msg_request_sync_t *req = (ntp_msg_request_sync_t *)magic;
 
 
-            ntp_msg_reply_sync_t reply = {
-                NTP_PROTOCOL_MAGIC,
-                NTP_PROTOCOL_VERSION,
-                NTP_MSG_REQUEST_SYNC,
-                req->origin_system_time_ms,
-                ntp_t_now()
-            };
+        ntp_msg_reply_sync_t reply = {
+            NTP_PROTOCOL_MAGIC,
+            NTP_PROTOCOL_VERSION,
+            NTP_MSG_REQUEST_SYNC,
+            req->origin_system_time_ms,
+            ntp_t_now()
+        };
 
-            sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );  
+        sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );  
 
 server_done:
-            THREAD_YIELD( pt );
-            
-        } // /leader
+        THREAD_YIELD( pt );
+
+    } // /leader
 
 
-        // follower, this runs a client:
-        while( is_follower() ){
 
-            // send sync request
+    // follower, this runs a client:
+    while( is_follower() ){
 
-            ntp_msg_request_sync_t sync = {
-                NTP_PROTOCOL_MAGIC,
-                NTP_PROTOCOL_VERSION,
-                NTP_MSG_REQUEST_SYNC,
-                tmr_u64_get_system_time_ms(),
-            };
+        // send sync request
 
-
-            sock_addr_t send_raddr;
-            send_raddr.port = NTP_SERVER_PORT;
-            send_raddr.ipaddr = services_a_get_ip( NTP_ELECTION_SERVICE, 0 );
-
-            sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), &send_raddr );  
-
-            sock_v_set_timeout( sock, 2 );
-
-            // wait for reply or timeout
-            THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
-
-            // get local receive timestamp
-            uint64_t reply_recv_timestamp = tmr_u64_get_system_time_ms();
-
-            // check if service changed
-            if( !is_follower() ){
-
-                THREAD_RESTART( pt );
-            }
-
-            // check for timeout
-            if( sock_i16_get_bytes_read( sock ) <= 0 ){
-
-                goto client_done;
-            }
-
-            uint32_t *magic = sock_vp_get_data( sock );
-
-            if( *magic != NTP_PROTOCOL_MAGIC ){
-
-                goto client_done;
-            }
-
-            uint8_t *version = (uint8_t *)(magic + 1);
-
-            if( *version != NTP_PROTOCOL_VERSION ){
-
-                goto client_done;
-            }
-
-            uint8_t *type = version + 1;
-
-            sock_addr_t raddr;
-            sock_v_get_raddr( sock, &raddr );
-
-            if( *type != NTP_MSG_REPLY_SYNC ){
-
-                // invalid message
-                    
-                log_v_error_P( PSTR("invalid msg") );
-
-                goto client_done;
-            }
-
-            ntp_msg_reply_sync_t *reply = (ntp_msg_reply_sync_t *)magic;
-            
-            // process reply
-            uint16_t packet_rtt = reply->origin_system_time_ms - reply_recv_timestamp;
-            uint16_t packet_delay = packet_rtt / 2; // assuming link is symmetrical
-
-            // adjust the transmit NTP timestamp by the packet delay so
-            // it correlates with the packet receive timestamp:
+        ntp_msg_request_sync_t sync = {
+            NTP_PROTOCOL_MAGIC,
+            NTP_PROTOCOL_VERSION,
+            NTP_MSG_REQUEST_SYNC,
+            tmr_u64_get_system_time_ms(),
+        };
 
 
-            // convert delay milliseconds to NTP fraction:
-            uint64_t delay_fraction = ( (uint64_t)packet_delay << 32 ) / 1000;
+        sock_addr_t send_raddr;
+        send_raddr.port = NTP_SERVER_PORT;
+        send_raddr.ipaddr = services_a_get_ip( NTP_ELECTION_SERVICE, 0 );
 
-            // convert source NTP timestamp to u64:
-            uint64_t source_timestamp = ntp_u64_conv_to_u64( reply->ntp_timestamp );
+        sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), &send_raddr );  
 
-            // add delay:
-            source_timestamp += delay_fraction;
+        sock_v_set_timeout( sock, 2 );
 
-            // convert back to NTP:
-            ntp_ts_t delay_adjusted_ntp = ntp_ts_from_u64( source_timestamp );
+        // wait for reply or timeout
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
+
+        // get local receive timestamp
+        uint64_t reply_recv_timestamp = tmr_u64_get_system_time_ms();
+
+        // check if service changed
+        if( !is_follower() ){
+
+            THREAD_RESTART( pt );
+        }
+
+        // check for timeout
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+            goto client_done;
+        }
+
+        uint32_t *magic = sock_vp_get_data( sock );
+
+        if( *magic != NTP_PROTOCOL_MAGIC ){
+
+            goto client_done;
+        }
+
+        uint8_t *version = (uint8_t *)(magic + 1);
+
+        if( *version != NTP_PROTOCOL_VERSION ){
+
+            goto client_done;
+        }
+
+        uint8_t *type = version + 1;
+
+        sock_addr_t raddr;
+        sock_v_get_raddr( sock, &raddr );
+
+        if( *type != NTP_MSG_REPLY_SYNC ){
+
+            // invalid message
+                
+            log_v_error_P( PSTR("invalid msg") );
+
+            goto client_done;
+        }
+
+        ntp_msg_reply_sync_t *reply = (ntp_msg_reply_sync_t *)magic;
+        
+        // process reply
+        uint16_t packet_rtt = reply->origin_system_time_ms - reply_recv_timestamp;
+        uint16_t packet_delay = packet_rtt / 2; // assuming link is symmetrical
+
+        // adjust the transmit NTP timestamp by the packet delay so
+        // it correlates with the packet receive timestamp:
 
 
-            // set master clock with new timestamps
-            ntp_v_set_master_clock( delay_adjusted_ntp, reply_recv_timestamp, NTP_SOURCE_SNTP_NET ); 
-            
+        // convert delay milliseconds to NTP fraction:
+        uint64_t delay_fraction = ( (uint64_t)packet_delay << 32 ) / 1000;
+
+        // convert source NTP timestamp to u64:
+        uint64_t source_timestamp = ntp_u64_conv_to_u64( reply->ntp_timestamp );
+
+        // add delay:
+        source_timestamp += delay_fraction;
+
+        // convert back to NTP:
+        ntp_ts_t delay_adjusted_ntp = ntp_ts_from_u64( source_timestamp );
 
 
+        // set master clock with new timestamps
+        ntp_v_set_master_clock( delay_adjusted_ntp, reply_recv_timestamp, NTP_SOURCE_SNTP_NET ); 
+        
 
 
 client_done:
-            TMR_WAIT( pt, NTP_SYNC_INTERVAL * 1000 );
-        } // /follower
-    }
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + ( NTP_SYNC_INTERVAL * 1000 ) );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && is_follower() );
+    } // /follower
 
+
+    THREAD_RESTART( pt );
 
 PT_END( pt );
 }

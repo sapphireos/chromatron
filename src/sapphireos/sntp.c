@@ -66,6 +66,7 @@ static sntp_status_t8 status = SNTP_STATUS_DISABLED;
 
 static uint32_t sntp_syncs;
 static uint32_t sntp_timeouts;
+static uint32_t last_good_sync;
 
 static socket_t sock = -1;
 static thread_t thread = -1;
@@ -340,10 +341,8 @@ PT_BEGIN( pt );
 
         if( ip_b_is_zeroes( ntp_server_addr.ipaddr ) ){
 
-            TMR_WAIT( pt, 1000 );
-
             // that's too bad, we'll have to skip this cycle and try again later
-            continue;
+            goto retry;
         }
             
         // build sntp packet
@@ -396,7 +395,7 @@ PT_BEGIN( pt );
 
             sntp_timeouts++;
 
-            continue;
+            goto retry;
         }
 
         // log_v_debug_P( PSTR("SNTP sync received") );
@@ -418,7 +417,8 @@ PT_BEGIN( pt );
         // char time_str2[ISO8601_STRING_MIN_LEN_MS];
         // ntp_v_to_iso8601( time_str2, sizeof(time_str2), network_time );
         // log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str2, last_offset, last_delay );
-            
+        
+        last_good_sync = tmr_u32_get_system_time_ms();
 
         sntp_syncs++;
 
@@ -426,6 +426,15 @@ PT_BEGIN( pt );
 
 retry:
         TMR_WAIT( pt, 8000 );
+
+        // check for sync timeout
+        if( ( status == SNTP_STATUS_SYNCHRONIZED ) && 
+            ( tmr_u32_elapsed_time_ms( last_good_sync ) > ( SNTP_SYNC_TIMEOUT * 1000 ) ) ){
+
+            log_v_info_P( PSTR("Lost SNTP sync") );
+
+            status = SNTP_STATUS_NO_SYNC;
+        }
 
         continue;
 

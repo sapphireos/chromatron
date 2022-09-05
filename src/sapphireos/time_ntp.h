@@ -38,6 +38,8 @@
 
 #define NTP_HARD_SYNC_THRESHOLD_MS     2000 // in ms
 
+#define NTP_INITIAL_SNTP_SYNC_TIMEOUT  120 // in seconds
+
 // directly attached GPS source:
 #define NTP_SOURCE_GPS                 32
 // network sync to GPS source:
