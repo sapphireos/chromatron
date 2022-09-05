@@ -76,6 +76,30 @@ minimize impact to downstream software (which themselves are complex modules).
 
 */
 
+
+
+
+/*
+
+Millisecond-precision network time service
+
+
+32-bit millisecond clock
+
+Leaders drive network clock from their internal oscillators (so there is no concept of clock source quality)
+
+Followers periodically sync while tracking round trip time.
+
+
+
+*/
+
+
+
+
+
+
+
 // #define NO_LOGGING
 #include "sapphire.h"
 
@@ -88,11 +112,16 @@ minimize impact to downstream software (which themselves are complex modules).
 #include "util.h"
 #include "services.h"
 
-// PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
+PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 // PT_THREAD( time_master_thread( pt_t *pt, void *state ) );
 // PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
-// static socket_t sock;
+static socket_t sock;
+
+static int16_t sync_delta;
+static uint32_t base_sys_time;
+static uint32_t net_time;
+static bool is_sync;
 
 // static ip_addr4_t master_ip;
 // static uint8_t master_source;
@@ -157,8 +186,9 @@ minimize impact to downstream software (which themselves are complex modules).
 // }
 
 
-// KV_SECTION_META kv_meta_t time_info_kv[] = {
-//     { CATBUS_TYPE_BOOL,       0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
+KV_SECTION_META kv_meta_t time_info_kv[] = {   
+    { CATBUS_TYPE_BOOL,       0, 0,  0,                                 cfg_i8_kv_handler,      "enable_time_sync" },
+
 //     { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &master_net_time,  0,                      "net_time" },
 //     { CATBUS_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,        0,                      "net_time_master_ip" },
 //     { CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &master_source,    0,                      "net_time_master_source" },
@@ -171,7 +201,7 @@ minimize impact to downstream software (which themselves are complex modules).
 
 //     { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &good_syncs,       0,                      "net_time_good_syncs" },
 //     { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &rejected_syncs,   0,                      "net_time_rejected_syncs" },
-// };
+};
 
 
 // void hal_rtc_v_irq( void ){
@@ -179,31 +209,33 @@ minimize impact to downstream software (which themselves are complex modules).
 
 // }
 
+static bool is_time_sync_enabled( void ){
+
+    return cfg_b_get_boolean( __KV__enable_time_sync );
+}
+
 void time_v_init( void ){
 
-//     // January 1, 2018, midnight
-//     master_ntp_time.seconds = 1514786400 + 2208988800 - 21600;
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-//     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-//         return;
-//     }
+        return;
+    }
     
-//     // check if time sync is enabled
-//     if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
+    // check if time sync is enabled
+    if( !is_time_sync_enabled() ){
 
-//         return;
-//     }
+        return;
+    }
 
-//     sock = sock_s_create( SOS_SOCK_DGRAM );
+    sock = sock_s_create( SOS_SOCK_DGRAM );
 
-//     sock_v_bind( sock, TIME_SERVER_PORT );
+    sock_v_bind( sock, TIME_SERVER_PORT );
 
 
-//     thread_t_create( time_server_thread,
-//                     PSTR("time_server"),
-//                     0,
-//                     0 );    
+    thread_t_create( time_server_thread,
+                    PSTR("time_server"),
+                    0,
+                    0 );    
 
 //     thread_t_create( time_master_thread,
 //                     PSTR("time_master"),
@@ -216,15 +248,9 @@ void time_v_init( void ){
 //                     0 );    
 }
 
-bool time_b_is_local_sync( void ){
+bool time_b_is_sync( void ){
 
     // return is_sync;
-    return FALSE;
-}
-
-bool time_b_is_ntp_sync( void ){
-
-    // return ntp_valid;
     return FALSE;
 }
 
@@ -509,174 +535,355 @@ uint32_t time_u32_get_network_aligned( uint32_t alignment ){
 //     transmit_ping();
 // }
 
-// PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
+static bool is_leader( void ){
 
-//     while(1){
+    return services_b_is_server( TIME_ELECTION_SERVICE, 0 );
+}
 
-//         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+static bool is_service_avilable( void ){
 
-//         // check if data received
-//         if( sock_i16_get_bytes_read( sock ) > 0 ){
+    return services_b_is_available( TIME_ELECTION_SERVICE, 0 );
+}
 
-//             uint32_t now = tmr_u32_get_system_time_ms();
+static bool is_follower( void ){
 
-//             uint32_t *magic = sock_vp_get_data( sock );
+    return !is_leader() && is_service_avilable();
+}
 
-//             if( *magic != TIME_PROTOCOL_MAGIC ){
+static uint16_t get_priority( void ){
 
-//                 continue;
-//             }
+    return 1;
+}
 
-//             uint8_t *version = (uint8_t *)(magic + 1);
+static uint8_t *decode_msg( uint8_t *msg ){
 
-//             if( *version != TIME_PROTOCOL_VERSION ){
+    uint32_t *magic = (uint32_t *)msg;
 
-//                 continue;
-//             }
+    if( *magic != TIME_PROTOCOL_MAGIC ){
 
-//             uint8_t *type = version + 1;
+        return 0;
+    }
 
-//             sock_addr_t raddr;
-//             sock_v_get_raddr( sock, &raddr );
+    uint8_t *version = (uint8_t *)(magic + 1);
 
-//             if( *type == TIME_MSG_REQUEST_SYNC ){
+    if( *version != TIME_PROTOCOL_VERSION ){
 
-//                 if( !is_leader() ){
+        return 0;
+    }
 
-//                     continue;
-//                 }
+    uint8_t *type = version + 1;    
 
-//                 time_msg_request_sync_t *req = (time_msg_request_sync_t *)magic;
+    return type;
+}
 
-//                 if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_request_sync_t) ){
+PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
 
-//                     log_v_debug_P( PSTR("invalid len") );
-//                 }
+    // wait for network
+    THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+    
+    services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
 
-//                 time_msg_sync_t msg;
-//                 msg.magic           = TIME_PROTOCOL_MAGIC;
-//                 msg.version         = TIME_PROTOCOL_VERSION;
-//                 msg.type            = TIME_MSG_SYNC;
-//                 msg.net_time        = time_u32_get_network_time_from_local( now );
-//                 msg.flags           = 0;
-//                 msg.ntp_time        = time_t_from_system_time( now );
-//                 msg.source          = master_source;
-//                 msg.id              = req->id;
+    // wait until we resolve the election
+    THREAD_WAIT_WHILE( pt, !is_service_avilable() );
 
-//                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
-//             }
-//             else if( *type == TIME_MSG_PING ){
 
-//                 if( !is_leader() ){
+    while( is_leader() ){
 
-//                     continue;
-//                 }
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
-//                 time_msg_ping_response_t msg;
-//                 msg.magic           = TIME_PROTOCOL_MAGIC;
-//                 msg.version         = TIME_PROTOCOL_VERSION;
-//                 msg.type            = TIME_MSG_PING_RESPONSE;
-                
-//                 sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
-//             }
-//             else if( *type == TIME_MSG_PING_RESPONSE ){
+        // check if data received
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
-//                 if( is_leader() ){
+            continue;
+        }
 
-//                     continue;
-//                 }
+        uint32_t now = tmr_u32_get_system_time_ms();
 
-//                 transmit_sync_request();
-//             }
-//             else if( *type == TIME_MSG_SYNC ){
+        uint8_t *type = decode_msg( sock_vp_get_data( sock ) );
 
-//                 if( is_leader() ){
+        if( type == 0 ){
 
-//                     continue;
-//                 }
+            continue;
+        }
 
-//                 time_msg_sync_t *msg = (time_msg_sync_t *)magic;
+        sock_addr_t raddr;
+        sock_v_get_raddr( sock, &raddr );
 
-//                 if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_sync_t) ){
 
-//                     log_v_debug_P( PSTR("invalid len") );
-//                 }
 
-//                 // check id
-//                 if( msg->id != sync_id ){
+        // if( *type == TIME_MSG_REQUEST_SYNC ){
 
-//                     // log_v_debug_P( PSTR("bad sync id: %u != %u"), msg->id, sync_id );
+        //     if( !is_leader() ){
 
-//                     rejected_syncs++;
-//                     continue;
-//                 }
+        //         continue;
+        //     }
 
-//                 // uint32_t est_net_time = time_u32_get_network_time();
-                
-//                 uint32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
+        //     time_msg_request_sync_t *req = (time_msg_request_sync_t *)magic;
 
-//                 // init filtered RTT if needed
-//                 if( filtered_rtt == 0 ){
+        //     if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_request_sync_t) ){
 
-//                     filtered_rtt = elapsed_rtt;
-//                 }
+        //         log_v_debug_P( PSTR("invalid len") );
+        //     }
 
-//                 if( elapsed_rtt > 500 ){
+        //     time_msg_sync_t msg;
+        //     msg.magic           = TIME_PROTOCOL_MAGIC;
+        //     msg.version         = TIME_PROTOCOL_VERSION;
+        //     msg.type            = TIME_MSG_SYNC;
+        //     msg.net_time        = time_u32_get_network_time_from_local( now );
+        //     msg.flags           = 0;
+        //     msg.ntp_time        = time_t_from_system_time( now );
+        //     msg.source          = master_source;
+        //     msg.id              = req->id;
 
-//                     // a 0.5 second RTT is clearly ridiculous.
-//                     // log_v_debug_P( PSTR("bad: RTT: %u"), elapsed_rtt );
+        //     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+        // }
+        // else if( *type == TIME_MSG_PING ){
 
-//                     rejected_syncs++;
+        //     if( !is_leader() ){
 
-//                     continue;
-//                 }
-//                 // check quality of RTT sample
-//                 else if( elapsed_rtt > ( filtered_rtt + (uint32_t)RTT_QUALITY_LIMIT ) ){
+        //         continue;
+        //     }
 
-//                     // log_v_debug_P( PSTR("poor quality: RTT: %u"), elapsed_rtt );
+        //     time_msg_ping_response_t msg;
+        //     msg.magic           = TIME_PROTOCOL_MAGIC;
+        //     msg.version         = TIME_PROTOCOL_VERSION;
+        //     msg.type            = TIME_MSG_PING_RESPONSE;
+            
+        //     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), 0 );
+        // }
+        // else if( *type == TIME_MSG_PING_RESPONSE ){
 
-//                     // although we are not using this sync message for our clock,
-//                     // we will bump the filtered RTT up a bit in case the overall RTT is
-//                     // drifting upwards.  this prevents us from losing sync on a busy network.
-                        
-//                     filtered_rtt += RTT_RELAX;
+        //     if( is_leader() ){
 
-//                     rejected_syncs++;
+        //         continue;
+        //     }
 
-//                     continue;
-//                 }
-//                 else{
+        //     transmit_sync_request();
+        // }
+        // else if( *type == TIME_MSG_SYNC ){
 
-//                     // filter rtt
-//                     filtered_rtt = util_u16_ewma( elapsed_rtt, filtered_rtt, RTT_FILTER );
-//                 }
+        //     if( is_leader() ){
 
-//                 good_syncs++;
+        //         continue;
+        //     }
 
-//                 // check sync
-//                 if( msg->source != TIME_SOURCE_NONE ){
+        //     time_msg_sync_t *msg = (time_msg_sync_t *)magic;
+
+        //     if( sock_i16_get_bytes_read( sock ) != sizeof(time_msg_sync_t) ){
+
+        //         log_v_debug_P( PSTR("invalid len") );
+        //     }
+
+        //     // check id
+        //     if( msg->id != sync_id ){
+
+        //         // log_v_debug_P( PSTR("bad sync id: %u != %u"), msg->id, sync_id );
+
+        //         rejected_syncs++;
+        //         continue;
+        //     }
+
+        //     // uint32_t est_net_time = time_u32_get_network_time();
+            
+        //     uint32_t elapsed_rtt = tmr_u32_elapsed_times( rtt_start, now );
+
+        //     // init filtered RTT if needed
+        //     if( filtered_rtt == 0 ){
+
+        //         filtered_rtt = elapsed_rtt;
+        //     }
+
+        //     if( elapsed_rtt > 500 ){
+
+        //         // a 0.5 second RTT is clearly ridiculous.
+        //         // log_v_debug_P( PSTR("bad: RTT: %u"), elapsed_rtt );
+
+        //         rejected_syncs++;
+
+        //         continue;
+        //     }
+        //     // check quality of RTT sample
+        //     else if( elapsed_rtt > ( filtered_rtt + (uint32_t)RTT_QUALITY_LIMIT ) ){
+
+        //         // log_v_debug_P( PSTR("poor quality: RTT: %u"), elapsed_rtt );
+
+        //         // although we are not using this sync message for our clock,
+        //         // we will bump the filtered RTT up a bit in case the overall RTT is
+        //         // drifting upwards.  this prevents us from losing sync on a busy network.
                     
-//                     // log_v_debug_P( PSTR("%4ld %4u"), elapsed_rtt, filtered_rtt );
+        //         filtered_rtt += RTT_RELAX;
 
-//                     uint16_t delay = elapsed_rtt / 2;
+        //         rejected_syncs++;
 
-//                     time_v_set_ntp_master_clock_internal( msg->ntp_time, msg->net_time, now, msg->source, delay );
+        //         continue;
+        //     }
+        //     else{
 
-//                     // each time we get a valid sync, we bump the sync delay up until the max
-//                     if( is_sync && ( sync_delay < TIME_SYNC_RATE_MAX ) ){
+        //         // filter rtt
+        //         filtered_rtt = util_u16_ewma( elapsed_rtt, filtered_rtt, RTT_FILTER );
+        //     }
+
+        //     good_syncs++;
+
+        //     // check sync
+        //     if( msg->source != TIME_SOURCE_NONE ){
                 
-//                        sync_delay++;
-//                     }
-//                 }
-//             }
-//         }
-//     }
+        //         // log_v_debug_P( PSTR("%4ld %4u"), elapsed_rtt, filtered_rtt );
+
+        //         uint16_t delay = elapsed_rtt / 2;
+
+        //         time_v_set_ntp_master_clock_internal( msg->ntp_time, msg->net_time, now, msg->source, delay );
+
+        //         // each time we get a valid sync, we bump the sync delay up until the max
+        //         if( is_sync && ( sync_delay < TIME_SYNC_RATE_MAX ) ){
+            
+        //            sync_delay++;
+        //         }
+        //     }
+        // }
+    }
+
+    while( is_follower() ){
+
+        // random delay to prevent overloading the server
+        TMR_WAIT( pt, rnd_u16_get_int() >> 3 ); // 0 to 8 seconds        
+
+        // send ping to warm up ARP
+        time_msg_ping_t ping = {
+            TIME_PROTOCOL_MAGIC,
+            TIME_PROTOCOL_VERSION,
+            TIME_MSG_PING,
+        };
+
+        sock_addr_t send_raddr;
+        send_raddr.port = TIME_SERVER_PORT;
+        send_raddr.ipaddr = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
+
+        sock_i16_sendto( sock, (uint8_t *)&ping, sizeof(ping), &send_raddr );  
+
+        sock_v_set_timeout( sock, 2 );
+
+        // wait for reply or timeout
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
+
+        // check if service changed
+        if( !is_follower() ){
+
+            THREAD_RESTART( pt );
+        }
+
+        // check for timeout
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+            TMR_WAIT( pt, 10000 );
+
+            continue;
+        }   
+
+        uint8_t *type = decode_msg( sock_vp_get_data( sock ) );
+
+        if( type == 0 ){
+
+            continue;
+        }
+
+        if( *type != TIME_MSG_PING_RESPONSE ){
+
+            continue;
+        }
+
+        // send sync request
+        time_msg_request_sync_t req = {
+            TIME_PROTOCOL_MAGIC,
+            TIME_PROTOCOL_VERSION,
+            TIME_MSG_REQUEST_SYNC,
+            tmr_u32_get_system_time_ms()   
+        };
+
+        sock_addr_t send_raddr2;
+        send_raddr2.port = TIME_SERVER_PORT;
+        send_raddr2.ipaddr = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
+
+        sock_i16_sendto( sock, (uint8_t *)&req, sizeof(req), &send_raddr2 );  
+
+        // wait for reply or timeout
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
+
+        uint32_t now = tmr_u32_get_system_time_ms();
+
+        // check if service changed
+        if( !is_follower() ){
+
+            THREAD_RESTART( pt );
+        }
+
+        // check for timeout
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+            TMR_WAIT( pt, 10000 );
+
+            continue;
+        }   
+
+        uint8_t *type2 = decode_msg( sock_vp_get_data( sock ) );
+
+        if( type2 == 0 ){
+
+            continue;
+        }
+
+        if( *type2 != TIME_MSG_SYNC ){
+
+            continue;
+        }        
+
+        time_msg_sync_t *sync = ( time_msg_sync_t * )type2;
+
+        // compute elasped time
+        uint32_t elapsed_ms = tmr_u32_elapsed_times( sync->origin_time, now );
+
+        // check for obviously bad RTTs
+        if( elapsed_ms > TIME_RTT_THRESHOLD ){
+
+            log_v_debug_P( PSTR("bad RTT: %u"), elapsed_ms );
+
+            TMR_WAIT( pt, 10000 );
+
+            continue;
+        }
+
+        // assuming link is symmetrical, compute offset
+        uint32_t clock_offset = elapsed_ms / 2;
+
+        // adjust source timestamp for offset
+        sync->net_time += clock_offset;
+        
+        if( is_sync ){
+
+            // compute sync delta
+            sync_delta = (int64_t)now - (int64_t)sync->net_time;
+        }
+        // if not synced, we can immediately jolt the clock into position
+        else{
+
+            sync_delta = 0;
+            net_time = sync->net_time;
+            base_sys_time = now;
+
+            is_sync = TRUE;
+
+            log_v_info_P( PSTR("Net time synced") );
+        }
+
+    }
+
+    THREAD_RESTART( pt );
 
 
-// PT_END( pt );
-// }
+PT_END( pt );
+}
 
 
 // PT_THREAD( time_master_thread( pt_t *pt, void *state ) )
