@@ -38,10 +38,16 @@
 
 #include "coproc_app.h"
 
-static bool boot_esp;
+// static bool boot_esp;
+
+static bool loadfw_enable_1;
+static bool loadfw_enable_2;
+static bool loadfw_request;
+
 
 KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
-    { CATBUS_TYPE_BOOL,      0, 0,  &boot_esp, 0,  "boot_esp" },
+    // { CATBUS_TYPE_BOOL,      0, 0,  &boot_esp, 0,  "boot_esp" },
+    { CATBUS_TYPE_BOOL,      0, 0,  &loadfw_request, 0,  "request_load_wifi_firmware" },
 
     // backup wifi keys.
     // if these aren't present in the KV index, the config module won't find them.
@@ -50,10 +56,6 @@ KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
 };
-
-static bool loadfw_enable_1;
-static bool loadfw_enable_2;
-static bool loadfw_request;
 
 static uint32_t fw_addr;
 static uint32_t pix_transfer_count;
@@ -474,6 +476,31 @@ PT_BEGIN( pt );
         status_led_v_set( 1, STATUS_LED_RED );
 
         TMR_WAIT( pt, 250 );
+
+        if( loadfw_request ){
+
+            wifi_v_start_loader( loadfw_request );
+
+            THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
+
+            if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
+
+                while(1){
+
+                    status_led_v_set( 0, STATUS_LED_RED );
+                    status_led_v_set( 0, STATUS_LED_BLUE );
+
+                    TMR_WAIT( pt, 250 );
+
+                    status_led_v_set( 0, STATUS_LED_BLUE );
+                    status_led_v_set( 1, STATUS_LED_RED );
+
+                    TMR_WAIT( pt, 250 );
+                }
+            }
+
+            sys_reboot();
+        }
     }
  
 PT_END( pt );   
