@@ -351,6 +351,82 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_USART_SET_BAUD ){
 
+        // translate baud rate setting:
+        if( params[0] == 2400 ){
+
+            params[0] = BAUD_2400;
+        }
+        else if( params[0] == 4800 ){
+
+            params[0] = BAUD_4800;
+        }
+        else if( params[0] == 9600 ){
+
+            params[0] = BAUD_9600;
+        }
+        else if( params[0] == 14400 ){
+
+            params[0] = BAUD_14400;
+        }
+        else if( params[0] == 19200 ){
+
+            params[0] = BAUD_19200;
+        }
+        else if( params[0] == 28800 ){
+
+            params[0] = BAUD_28800;
+        }
+        else if( params[0] == 38400 ){
+
+            params[0] = BAUD_38400;
+        }
+        else if( params[0] == 57600 ){
+
+            params[0] = BAUD_57600;
+        }
+        else if( params[0] == 76800 ){
+
+            params[0] = BAUD_76800;
+        }
+        else if( params[0] == 115200 ){
+
+            params[0] = BAUD_115200;
+        }
+        else if( params[0] == 230400 ){
+
+            params[0] = BAUD_230400;
+        }
+        else if( params[0] == 250000 ){
+
+            params[0] = BAUD_250000;
+        }
+        else if( params[0] == 460800 ){
+
+            params[0] = BAUD_460800;
+        }
+        else if( params[0] == 500000 ){
+
+            params[0] = BAUD_500000;
+        }
+        else if( params[0] == 1000000 ){
+
+            params[0] = BAUD_1000000;
+        }
+        else if( params[0] == 2000000 ){
+
+            params[0] = BAUD_2000000;
+        }
+        else if( params[0] == 74880 ){
+
+            params[0] = BAUD_74880;
+        }
+        else{
+
+            // invalid setting, which will assert in the driver,
+            // so just bail out
+            return;
+        }
+
         usart_v_set_baud( USER_USART, params[0] );
     }
     else if( hdr->opcode == OPCODE_IO_I2C_INIT ){

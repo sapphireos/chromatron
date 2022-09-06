@@ -25,33 +25,6 @@
 #ifndef _USART_BAUDS_H
 #define _USART_BAUDS_H
 
-#include "system.h"
-
-#ifdef ENABLE_COPROCESSOR
-
-// copy of baud settings from XMEGA128A4U
-typedef uint8_t baud_t;
-
-#define BAUD_2400       0
-#define BAUD_4800       1
-#define BAUD_9600       2
-#define BAUD_14400      3
-#define BAUD_19200      4
-#define BAUD_28800      5
-#define BAUD_38400      6
-#define BAUD_57600      7
-#define BAUD_76800      8
-#define BAUD_115200     9
-#define BAUD_230400     10
-#define BAUD_250000     11
-#define BAUD_460800     12
-#define BAUD_500000     13
-#define BAUD_1000000    14
-#define BAUD_2000000    15
-#define BAUD_74880      16
-
-#else
-
 typedef uint32_t baud_t;
 
 #define BAUD_2400       2400
@@ -71,7 +44,5 @@ typedef uint32_t baud_t;
 #define BAUD_1000000    1000000
 #define BAUD_2000000    2000000
 #define BAUD_74880      74880
-
-#endif
 
 #endif
