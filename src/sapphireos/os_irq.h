@@ -28,6 +28,8 @@
 
 // #define ENABLE_IRQ_TIMING
 
+#ifdef ENABLE_IRQ_TIMING
+
 // public API
 bool osirq_b_is_irq( void );
 uint32_t osirq_u32_get_irq_addr( void );
@@ -42,6 +44,12 @@ void __osirq_v_exit( void );
 #define OS_IRQ_BEGIN(vector) __osirq_v_enter(vector)
 #define OS_IRQ_END(a) __osirq_v_exit()
 
+#else
+
+#define OS_IRQ_BEGIN(vector)
+#define OS_IRQ_END(a)
+
+#endif
 
 #endif
 

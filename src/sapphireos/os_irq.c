@@ -48,8 +48,6 @@ KV_SECTION_META kv_meta_t os_irq_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &irq_longest_addr2,         0,  "irq_longest_addr2" },
 };
 
-#endif
-
 // are we currently running an interrupt?
 bool osirq_b_is_irq( void ){
 
@@ -146,3 +144,6 @@ void __osirq_v_exit( void ){
     last_irq = current_irq;
     current_irq = 0;
 }
+
+
+#endif

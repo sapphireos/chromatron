@@ -666,6 +666,7 @@ void sos_assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
     // get thread function pointer
     uint32_t thread_addr = thread_u32_get_current_addr();
 
+    #ifdef ENABLE_IRQ_TIMING
     uint32_t irq_addr = osirq_u32_get_irq_addr();
     uint32_t last_irq_addr = osirq_u32_get_last_irq_addr();
 
@@ -677,6 +678,17 @@ void sos_assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
                       thread_addr,
                       irq_addr,
                       last_irq_addr );
+
+    #else
+
+    // write assert data
+    ptr += sprintf_P( ptr,
+                      PSTR("Assert File: %s Line: %u \r\nThread: 0x%lx\r\n"),
+                      filename,
+                      line,
+                      thread_addr );
+
+    #endif
 
     // write sys error code
     ptr += sprintf_P( ptr, PSTR("Error: %u  Warnings: %lu\r\n"), sys_error, warnings );
