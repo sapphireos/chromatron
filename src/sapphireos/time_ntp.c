@@ -546,7 +546,7 @@ PT_BEGIN( pt );
         ntp_msg_reply_sync_t reply = {
             NTP_PROTOCOL_MAGIC,
             NTP_PROTOCOL_VERSION,
-            NTP_MSG_REQUEST_SYNC,
+            NTP_MSG_REPLY_SYNC,
             clock_source,
             req->origin_system_time_ms,
             ntp_t_now()
