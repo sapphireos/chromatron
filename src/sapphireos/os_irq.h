@@ -26,7 +26,7 @@
 
 #include <inttypes.h>
 
-#define ENABLE_IRQ_TIMING
+// #define ENABLE_IRQ_TIMING
 
 // public API
 bool osirq_b_is_irq( void );
