@@ -167,6 +167,13 @@ void ntp_v_set_master_clock(
     uint64_t local_system_time_ms,
     uint8_t source ){
 
+    // check if changing source from SNTP to GPS
+    if( ( clock_source == NTP_SOURCE_SNTP ) &&
+        ( source == NTP_SOURCE_GPS ) ){
+
+        sntp_v_stop();
+    }
+
     // get current NTP timestamp from the given system timestamp:
     ntp_ts_t local_ntp = ntp_t_from_system_time( local_system_time_ms );
     
@@ -322,21 +329,25 @@ PT_BEGIN( pt );
                 THREAD_RESTART( pt );
             }
 
-            // check if leader:
-            if( is_leader() ){
+            prev_source = clock_source;
 
-                // check clock source quality, if applicable:
-                if( clock_source == NTP_SOURCE_SNTP ){
+            // check clock source quality, if applicable:
+            if( clock_source == NTP_SOURCE_SNTP ){
 
-                    if( sntp_u8_get_status() != SNTP_STATUS_SYNCHRONIZED ){
+                if( sntp_u8_get_status() != SNTP_STATUS_SYNCHRONIZED ){
 
-                        log_v_info_P( PSTR("Lost SNTP sync") );
+                    log_v_info_P( PSTR("Lost SNTP sync") );
 
-                        // downgrade the internal clock source
-                        clock_source = NTP_SOURCE_INTERNAL;
-                    }
+                    // downgrade the internal clock source
+                    clock_source = NTP_SOURCE_INTERNAL;
                 }
             }
+            else if( clock_source == NTP_SOURCE_GPS ){
+
+                // we don't have a GPS timeout yet   
+
+            }
+            
 
             // get actual current timestamp, since the thread timing
             // won't be exact:
