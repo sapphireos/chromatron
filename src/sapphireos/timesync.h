@@ -34,7 +34,7 @@
 #define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
 #define TIME_PROTOCOL_VERSION           8
 
-#define TIME_ELECTION_SERVICE           __KV__timesync
+#define TIME_ELECTION_SERVICE           __KV__timesync8
 
 #define TIME_RTT_THRESHOLD              500
 
