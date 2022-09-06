@@ -111,6 +111,8 @@ void ntp_v_init( void ){
         return;
     }    
 
+    clock_source = NTP_SOURCE_NONE;
+
     sock = sock_s_create( SOS_SOCK_DGRAM );
 
     sock_v_bind( sock, NTP_SERVER_PORT );
@@ -545,6 +547,7 @@ PT_BEGIN( pt );
             NTP_PROTOCOL_MAGIC,
             NTP_PROTOCOL_VERSION,
             NTP_MSG_REQUEST_SYNC,
+            clock_source,
             req->origin_system_time_ms,
             ntp_t_now()
         };
@@ -559,7 +562,7 @@ server_done:
 
 
     // follower, this runs a client:
-    while( is_follower() ){
+    while( is_follower() && ( services_u16_get_leader_priority( NTP_ELECTION_SERVICE, 0 ) > 0 ) ){
 
         // send sync request
 
@@ -647,11 +650,33 @@ server_done:
         // convert back to NTP:
         ntp_ts_t delay_adjusted_ntp = ntp_ts_from_u64( source_timestamp );
 
+        uint8_t source = NTP_SOURCE_INVALID;
+
+        if( reply->source == NTP_SOURCE_SNTP ){
+
+            source = NTP_SOURCE_SNTP_NET;
+        }
+        else if( reply->source == NTP_SOURCE_GPS ){
+
+            source = NTP_SOURCE_GPS_NET;
+        }
+        else if( reply->source == NTP_SOURCE_GPS ){
+
+            source = NTP_SOURCE_GPS_NET;
+        }
+        else if( ( reply->source == NTP_SOURCE_NONE ) ||
+                 ( reply->source == NTP_SOURCE_INVALID ) ){
+
+            goto client_done;
+        }
+        else{
+
+            source = reply->source;
+        }
 
         // set master clock with new timestamps
-        ntp_v_set_master_clock( delay_adjusted_ntp, reply_recv_timestamp, NTP_SOURCE_SNTP_NET ); 
+        ntp_v_set_master_clock( delay_adjusted_ntp, reply_recv_timestamp, source ); 
         
-
 
 client_done:
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + ( NTP_SYNC_INTERVAL * 1000 ) );

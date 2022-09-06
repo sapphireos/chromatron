@@ -743,6 +743,29 @@ uint16_t services_u16_get_port( uint32_t id, uint64_t group ){
     return addr.port;
 }
 
+
+uint16_t services_u16_get_leader_priority( uint32_t id, uint64_t group ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
+    service_state_t *service = get_service( id, group );
+
+    if( service == 0 ){
+
+        return 0;
+    }
+
+    if( service->state == STATE_LISTEN ){
+
+        return 0;
+    }
+
+    return service->server_priority;
+}
+
 static void init_header( service_msg_header_t *header, uint8_t type ){
 
     header->magic       = SERVICES_MAGIC;

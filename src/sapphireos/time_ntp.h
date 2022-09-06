@@ -60,7 +60,8 @@
 // manually set clock
 #define NTP_SOURCE_MANUAL              4
 
-#define NTP_SOURCE_NONE                0
+#define NTP_SOURCE_NONE                1
+#define NTP_SOURCE_INVALID             0
 
 
 typedef struct  __attribute__((packed)){
@@ -75,6 +76,7 @@ typedef struct  __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
+    uint8_t source;
     uint64_t origin_system_time_ms;
     ntp_ts_t ntp_timestamp;
 } ntp_msg_reply_sync_t;
