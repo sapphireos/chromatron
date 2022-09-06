@@ -68,6 +68,7 @@
 
 #ifdef ENABLE_TIME_SYNC
 #include "timesync.h"
+#include "time_ntp.h"
 #endif
 
 #ifdef ENABLE_MSGFLOW
@@ -203,6 +204,7 @@ int8_t sapphire_i8_init( void ){
 
     #ifdef ENABLE_TIME_SYNC
     time_v_init();
+    ntp_v_init();
     sntp_v_init();
     #endif
 
