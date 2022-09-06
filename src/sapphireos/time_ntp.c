@@ -38,6 +38,8 @@ static ntp_ts_t master_ntp_time;
 static uint64_t master_sys_time_ms; // system timestamp that correlates to NTP timestamp
 static int16_t master_sync_delta;
 
+static ip_addr4_t master_ip;
+
 // NOTE!
 // tz_offset is in MINUTES, because not all timezones
 // are aligned on the hour.
@@ -91,6 +93,7 @@ KV_SECTION_META kv_meta_t ntp_time_info_kv[] = {
     { CATBUS_TYPE_UINT32,   0, 0,                  &master_ntp_time.seconds,    _ntp_kv_handler, "ntp_seconds" },
     { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &master_sync_delta,          0,               "ntp_master_sync_delta" },
     { CATBUS_TYPE_INT16,    0, KV_FLAGS_PERSIST,   &tz_offset,                  0,               "datetime_tz_offset" },
+    { CATBUS_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,                  0,               "ntp_master_ip" },
 };
 
 
@@ -319,6 +322,8 @@ PT_BEGIN( pt );
             thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
 
             THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( clock_source == prev_source ) );
+
+            master_ip = services_a_get_ip( NTP_ELECTION_SERVICE, 0 );
 
             // update service priorities
             services_v_join_team( NTP_ELECTION_SERVICE, 0, get_priority(), NTP_SERVER_PORT );
