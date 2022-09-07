@@ -115,6 +115,12 @@ void usart_v_init( uint8_t channel ){
 
     USART_t *usart = get_channel( channel );
 
+    COMPILER_ASSERT( cnt_of_array(bsel_table) == cnt_of_array(bscale_table) );
+
+    usart->CTRLA = 0;
+    usart->CTRLB = USART_RXEN_bm | USART_TXEN_bm;
+    usart->CTRLC = 0x03; // datasheet reset default
+
     if( channel == USER_USART ){
 
         usart_fifo_v_init( &fifo, fifo_buf, sizeof(fifo_buf) );
@@ -125,12 +131,6 @@ void usart_v_init( uint8_t channel ){
         // enable RX interrupt
         USER_USART_CH.CTRLA |= USART_RXCINTLVL_HI_gc;
     }
-
-    COMPILER_ASSERT( cnt_of_array(bsel_table) == cnt_of_array(bscale_table) );
-
-    usart->CTRLA = 0;
-    usart->CTRLB = USART_RXEN_bm | USART_TXEN_bm;
-    usart->CTRLC = 0x03; // datasheet reset default
 }
 
 void usart_v_set_baud( uint8_t channel, baud_t baud ){
