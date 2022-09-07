@@ -23,6 +23,7 @@
 #include "system.h"
 #include "timers.h"
 #include "hal_usart.h"
+#include "usart_fifo.h"
 
 
 // tables for CLK2X = 0
@@ -87,14 +88,42 @@ static USART_t* get_channel( uint8_t channel ){
     return 0;
 }
 
+static usart_fifo_t fifo;
+static uint8_t fifo_buf[128];
+
+static int16_t get_byte( uint8_t channel ){
+
+    USART_t *usart = get_channel( channel );
+
+    if( ( usart->STATUS & USART_RXCIF_bm ) == 0 ){
+
+        return -1;
+    }
+
+    return usart->DATA;
+}
+
+ISR(USER_USART_RX_VECT){
+
+    uint8_t byte = get_byte( USER_USART );
+
+    usart_fifo_i8_insert( &fifo, byte );
+}
+
+
 void usart_v_init( uint8_t channel ){
 
     USART_t *usart = get_channel( channel );
 
     if( channel == USER_USART ){
 
+        usart_fifo_v_init( &fifo, fifo_buf, sizeof(fifo_buf) );
+
         io_v_set_mode( IO_PIN_2_TXD, IO_MODE_OUTPUT );
         io_v_set_mode( IO_PIN_3_RXD, IO_MODE_INPUT );
+
+        // enable RX interrupt
+        USER_USART_CH.CTRLA |= USART_RXCINTLVL_HI_gc;
     }
 
     COMPILER_ASSERT( cnt_of_array(bsel_table) == cnt_of_array(bscale_table) );
@@ -156,17 +185,20 @@ void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len ){
 
 int16_t usart_i16_get_byte( uint8_t channel ){
 
-    USART_t *usart = get_channel( channel );
+    if( channel == USER_USART ){
 
-    if( ( usart->STATUS & USART_RXCIF_bm ) == 0 ){
-
-        return -1;
+        return usart_fifo_i16_extract( &fifo );
     }
 
-    return usart->DATA;
+    return get_byte( channel );
 }
 
 uint8_t usart_u8_bytes_available( uint8_t channel ){
+
+    if( channel == USER_USART ){
+
+        return usart_fifo_u16_get_count( &fifo );
+    }
 
     USART_t *usart = get_channel( channel );
 
