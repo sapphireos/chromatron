@@ -28,10 +28,11 @@
 
 #include "os_irq.h"
 
+#ifdef ENABLE_IRQ_TIMING
+
 static uint16_t current_irq;
 static uint16_t last_irq;
 
-#ifdef ENABLE_IRQ_TIMING
 
 static uint32_t irq_start_time;
 static uint16_t irq_longest_time;
