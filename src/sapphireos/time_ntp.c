@@ -207,7 +207,7 @@ void ntp_v_set_master_clock(
     // if delta is positive, our local clock is ahead of the source clock
     // if delta is negative, our local clock is behind the source clock
 
-    if( ( clock_source == NTP_SOURCE_NONE ) || ( abs64( delta_ms ) >= NTP_HARD_SYNC_THRESHOLD_MS ) ){
+    if( ( clock_source <= NTP_SOURCE_NONE ) || ( abs64( delta_ms ) >= NTP_HARD_SYNC_THRESHOLD_MS ) ){
 
         // hard sync: just jolt the clock into sync
 
@@ -215,16 +215,17 @@ void ntp_v_set_master_clock(
         master_sys_time_ms = local_system_time_ms;
         master_sync_delta = 0;
 
+        // assign clock source:
+        clock_source = source;
+
         char time_str[ISO8601_STRING_MIN_LEN_MS];
         ntp_v_to_iso8601( time_str, sizeof(time_str), ntp_t_now() );
 
-        if( ntp_b_is_sync() ){
-
-            // log a message for hard syncs if we were previously synced
-            // we can skip the initial clock setting, the main clock
-            // thread will log it already.
-            log_v_info_P( PSTR("NTP Time is now: %s [hard sync]"), time_str );    
-        }
+    
+        // log a message for hard syncs if we were previously synced
+        // we can skip the initial clock setting, the main clock
+        // thread will log it already.
+        log_v_info_P( PSTR("NTP Time is now: %s [hard sync]"), time_str );    
     }
     else{
 
@@ -234,7 +235,6 @@ void ntp_v_set_master_clock(
 
         log_v_debug_P( PSTR("NTP sync diff: %ld [soft sync]"), delta_ms );
     }
-
 
     // assign clock source:
     clock_source = source;
@@ -297,7 +297,7 @@ ntp_ts_t ntp_t_local_now( void ){
 
 bool ntp_b_is_sync( void ){
 
-    return clock_source != NTP_SOURCE_NONE;
+    return clock_source > NTP_SOURCE_NONE;
 }
 
 
@@ -473,11 +473,12 @@ PT_BEGIN( pt );
     // check if we are the leader
     if( is_leader() ){
 
-        // later:
-        // check if we have GPS here
+        // check if we have GPS or some other source here
+        if( clock_source < NTP_SOURCE_SNTP ){
 
-        // start SNTP
-        sntp_v_start();
+            // start SNTP
+            sntp_v_start();    
+        }
 
         // wait for NTP sync: we can't run the leader server without a sync
         // we also set a timeout, if for some reason we can't get an NTP sync
