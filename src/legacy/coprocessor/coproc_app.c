@@ -343,8 +343,7 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_IO_USART_GET_CHAR ){
 
-        // *retval = usart_i16_get_byte( USER_USART );
-        *retval = 0;
+        *retval = usart_i16_get_byte( USER_USART );
     }
     else if( hdr->opcode == OPCODE_IO_USART_GET_CHUNK ){
 
