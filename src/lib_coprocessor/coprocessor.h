@@ -94,6 +94,7 @@ typedef struct __attribute__((packed)){
 #define OPCODE_IO_USART_GET_CHAR	0x52
 #define OPCODE_IO_USART_RX_SIZE		0x53
 #define OPCODE_IO_USART_SET_BAUD	0x54
+#define OPCODE_IO_USART_GET_CHUNK	0x55
 
 // I2C
 #define OPCODE_IO_I2C_INIT			0x60

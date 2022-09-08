@@ -209,3 +209,26 @@ uint8_t usart_u8_bytes_available( uint8_t channel ){
 
     return 1;
 }
+
+uint8_t usart_u8_get_bytes( uint8_t channel, uint8_t *ptr, uint8_t len ){
+
+    uint8_t available = usart_u8_bytes_available( channel );
+
+    // limit len to amount of bytes actually present
+    if( len > available ){
+
+        len = available;
+    }
+
+    uint8_t count = len;
+
+    while( count > 0 ){
+
+        count--;
+
+        *ptr++ = usart_i16_get_byte( channel );
+    }   
+
+    return len;
+}
+

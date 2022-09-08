@@ -344,12 +344,16 @@ void coproc_v_dispatch(
     else if( hdr->opcode == OPCODE_IO_USART_GET_CHAR ){
 
         // *retval = usart_i16_get_byte( USER_USART );
-        *ret_val = 0;
+        *retval = 0;
+    }
+    else if( hdr->opcode == OPCODE_IO_USART_GET_CHUNK ){
+
+        *response_len = usart_u8_get_bytes( USER_USART, response, params[0] );
     }
     else if( hdr->opcode == OPCODE_IO_USART_RX_SIZE ){
 
-        // *retval = usart_u8_bytes_available( USER_USART );
-        *ret_val = 1;
+        *retval = usart_u8_bytes_available( USER_USART );
+        // *retval = 1;
     }
     else if( hdr->opcode == OPCODE_IO_USART_SET_BAUD ){
 
