@@ -190,7 +190,7 @@ uint8_t usart_u8_get_bytes( uint8_t channel, uint8_t *ptr, uint8_t len ){
 
     #ifdef ENABLE_COPROCESSOR
 
-    coproc_i32_callp( OPCODE_IO_USART_GET_CHUNK, ptr, len );
+    coproc_i32_callp1( OPCODE_IO_USART_GET_CHUNK, len, ptr, len );
 
     #else
 

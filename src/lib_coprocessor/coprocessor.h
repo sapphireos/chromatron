@@ -166,6 +166,7 @@ int32_t coproc_i32_call3( uint8_t opcode, int32_t param0, int32_t param1, int32_
 int32_t coproc_i32_callv( uint8_t opcode, const uint8_t *data, uint16_t len );
 
 int32_t coproc_i32_callp( uint8_t opcode, uint8_t *data, uint16_t len );
+int32_t coproc_i32_callp1( uint8_t opcode, int32_t param0, uint8_t *data, uint16_t len );
 int32_t coproc_i32_callp2( uint8_t opcode, int32_t param0, int32_t param1, uint8_t *data, uint16_t len );
 
 #endif
