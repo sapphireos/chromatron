@@ -56,6 +56,7 @@
 // reference clock, but still retains the prior
 // clock setting.
 #define NTP_SOURCE_INTERNAL            8
+#define NTP_SOURCE_INTERNAL_NET        6
 
 // manually set clock
 #define NTP_SOURCE_MANUAL              4

@@ -566,6 +566,8 @@ server_done:
     } // /leader
 
 
+    sntp_v_stop();
+
 
     // follower, this runs a client:
     while( is_follower() && ( services_u16_get_leader_priority( NTP_ELECTION_SERVICE, 0 ) > 0 ) ){
@@ -666,9 +668,9 @@ server_done:
 
             source = NTP_SOURCE_GPS_NET;
         }
-        else if( reply->source == NTP_SOURCE_GPS ){
+        else if( reply->source == NTP_SOURCE_INTERNAL ){
 
-            source = NTP_SOURCE_GPS_NET;
+            source = NTP_SOURCE_INTERNAL_NET;
         }
         else if( ( reply->source == NTP_SOURCE_NONE ) ||
                  ( reply->source == NTP_SOURCE_INVALID ) ){

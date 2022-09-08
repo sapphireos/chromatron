@@ -163,6 +163,8 @@ static bool is_time_sync_enabled( void ){
 
 void time_v_init( void ){
 
+    return;
+
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         return;
@@ -293,15 +295,15 @@ PT_BEGIN( pt );
 
     while( is_leader() ){
 
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_leader() );
 
-        // check if data received
-        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+        if( !is_leader() ){
 
             continue;
         }
 
-        if( !is_leader() ){
+        // check if data received
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
             continue;
         }
