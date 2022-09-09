@@ -328,11 +328,14 @@ PT_BEGIN( pt );
             // this is a slow process
             uint64_t delta_ms = tmr_u64_get_system_time_ms() - master_sys_time_ms;
 
-            if( delta_ms > ( NTP_MASTER_CLOCK_TIMEOUT * 1000 ) ){
+            if( ntp_b_is_sync() ){
 
-                log_v_info_P( PSTR("NTP master clock desync, changing source to internal") );
+                if( delta_ms > ( NTP_MASTER_CLOCK_TIMEOUT * 1000 ) ){
 
-                clock_source = NTP_SOURCE_INTERNAL;           
+                    log_v_info_P( PSTR("NTP master clock desync, changing source to internal") );
+
+                    clock_source = NTP_SOURCE_INTERNAL;           
+                }
             }
 
             master_ip = services_a_get_ip( NTP_ELECTION_SERVICE, 0 );
@@ -352,7 +355,7 @@ PT_BEGIN( pt );
 
             // we probably don't need this stuff with a general master sync
             // timeout:
-            
+
             // // check clock source quality, if applicable:
             // if( clock_source == NTP_SOURCE_SNTP ){
 
