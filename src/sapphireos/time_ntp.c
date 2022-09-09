@@ -172,10 +172,10 @@ void ntp_v_set_master_clock(
     uint64_t local_system_time_ms,
     uint8_t source ){
 
-    // check if changing source from SNTP to GPS
-    if( ( clock_source == NTP_SOURCE_SNTP ) &&
-        ( source == NTP_SOURCE_GPS ) ){
+    // check if incoming source is better than SNTP:
+    if( source > NTP_SOURCE_SNTP ){
 
+        // make sure sntp service is stopped
         sntp_v_stop();
     }
 
@@ -225,7 +225,7 @@ void ntp_v_set_master_clock(
         // log a message for hard syncs if we were previously synced
         // we can skip the initial clock setting, the main clock
         // thread will log it already.
-        log_v_info_P( PSTR("NTP Time is now: %s [hard sync]"), time_str );    
+        log_v_info_P( PSTR("NTP Time is now: %s [hard sync] source: %d"), time_str, source );    
     }
     else{
 
@@ -233,7 +233,7 @@ void ntp_v_set_master_clock(
 
         master_sync_delta = delta_ms;
 
-        log_v_debug_P( PSTR("NTP sync diff: %ld [soft sync]"), delta_ms );
+        log_v_debug_P( PSTR("NTP sync diff: %ld [soft sync] source: %d"), delta_ms, source );
     }
 
     // assign clock source:
