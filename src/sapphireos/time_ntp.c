@@ -323,6 +323,18 @@ PT_BEGIN( pt );
 
             THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( clock_source == prev_source ) );
 
+
+            // check for master clock timeout
+            // this is a slow process
+            uint64_t delta_ms = tmr_u64_get_system_time_ms() - master_sys_time_ms;
+
+            if( delta_ms > ( NTP_MASTER_CLOCK_TIMEOUT * 1000 ) ){
+
+                log_v_info_P( PSTR("NTP master clock desync, changing source to internal") );
+
+                clock_source = NTP_SOURCE_INTERNAL;           
+            }
+
             master_ip = services_a_get_ip( NTP_ELECTION_SERVICE, 0 );
 
             // update service priorities
@@ -338,22 +350,24 @@ PT_BEGIN( pt );
 
             prev_source = clock_source;
 
-            // check clock source quality, if applicable:
-            if( clock_source == NTP_SOURCE_SNTP ){
+            // we probably don't need this stuff with a general master sync
+            // timeout:
+            
+            // // check clock source quality, if applicable:
+            // if( clock_source == NTP_SOURCE_SNTP ){
 
-                if( sntp_u8_get_status() != SNTP_STATUS_SYNCHRONIZED ){
+            //     if( sntp_u8_get_status() != SNTP_STATUS_SYNCHRONIZED ){
 
-                    log_v_info_P( PSTR("Lost SNTP sync") );
+            //         log_v_info_P( PSTR("Lost SNTP sync") );
 
-                    // downgrade the internal clock source
-                    clock_source = NTP_SOURCE_INTERNAL;
-                }
-            }
-            else if( clock_source == NTP_SOURCE_GPS ){
+            //         // downgrade the internal clock source
+            //         clock_source = NTP_SOURCE_INTERNAL;
+            //     }
+            // }
+            // else if( clock_source == NTP_SOURCE_GPS ){
 
-                // we don't have a GPS timeout yet   
 
-            }
+            // }
             
 
             // get actual current timestamp, since the thread timing

@@ -36,6 +36,8 @@
 
 #define NTP_SYNC_INTERVAL              600 // in seconds
 
+#define NTP_MASTER_CLOCK_TIMEOUT       3600 // in seconds
+
 #define NTP_HARD_SYNC_THRESHOLD_MS     2000 // in ms
 
 #define NTP_INITIAL_SNTP_SYNC_TIMEOUT  120 // in seconds
