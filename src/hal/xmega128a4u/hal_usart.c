@@ -90,7 +90,7 @@ static USART_t* get_channel( uint8_t channel ){
 static volatile uint8_t fifo_ins;
 static volatile uint8_t fifo_ext;
 static volatile uint8_t fifo_count;
-static uint8_t fifo_buf[128];
+static uint8_t fifo_buf[255];
 
 static int16_t get_byte( uint8_t channel ){
 
@@ -108,7 +108,7 @@ ISR(USER_USART_RX_VECT){
 
     uint8_t byte = get_byte( USER_USART );
 
-    if( fifo_count >= cnt_of_array( fifo_buf) ){
+    if( fifo_count >= cnt_of_array(fifo_buf) ){
 
         // overrun!
         return;
