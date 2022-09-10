@@ -223,6 +223,8 @@ static void set_hostname( void ){
 
 void hal_wifi_v_init( void ){
 
+    log_v_info_P( PSTR("ESP32 SDK version:%s"), esp_get_idf_version() );
+
     // log reset reason for ESP32
     log_v_info_P( PSTR("ESP reset reason: %d"), esp_reset_reason() );
 
