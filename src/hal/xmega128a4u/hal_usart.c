@@ -87,10 +87,9 @@ static USART_t* get_channel( uint8_t channel ){
     return 0;
 }
 
-static volatile usart_fifo_t fifo;
-static volatile fifo_ins;
-static volatile fifo_ext;
-static volatile fifo_count;
+static volatile uint8_t fifo_ins;
+static volatile uint8_t fifo_ext;
+static volatile uint8_t fifo_count;
 static uint8_t fifo_buf[128];
 
 static int16_t get_byte( uint8_t channel ){
