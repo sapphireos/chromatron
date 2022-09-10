@@ -106,7 +106,7 @@ static int16_t get_byte( uint8_t channel ){
 
 ISR(USER_USART_RX_VECT){
 
-    uint8_t byte = get_byte( USER_USART );
+    uint8_t byte = USER_USART_CH->DATA;
 
     if( fifo_count >= cnt_of_array(fifo_buf) ){
 

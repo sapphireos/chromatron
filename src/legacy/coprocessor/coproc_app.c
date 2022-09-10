@@ -352,7 +352,6 @@ void coproc_v_dispatch(
     else if( hdr->opcode == OPCODE_IO_USART_RX_SIZE ){
 
         *retval = usart_u8_bytes_available( USER_USART );
-        // *retval = 1;
     }
     else if( hdr->opcode == OPCODE_IO_USART_SET_BAUD ){
 
