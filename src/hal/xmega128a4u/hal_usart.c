@@ -23,7 +23,6 @@
 #include "system.h"
 #include "timers.h"
 #include "hal_usart.h"
-#include "usart_fifo.h"
 
 
 // tables for CLK2X = 0
@@ -89,6 +88,9 @@ static USART_t* get_channel( uint8_t channel ){
 }
 
 static volatile usart_fifo_t fifo;
+static volatile fifo_ins;
+static volatile fifo_ext;
+static volatile fifo_count;
 static uint8_t fifo_buf[128];
 
 static int16_t get_byte( uint8_t channel ){
@@ -107,7 +109,22 @@ ISR(USER_USART_RX_VECT){
 
     uint8_t byte = get_byte( USER_USART );
 
-    usart_fifo_i8_insert( &fifo, byte );
+    if( fifo_count >= cnt_of_array( fifo_buf) ){
+
+        // overrun!
+        return;
+    }
+
+    fifo_buf[fifo_ins] = byte;
+    
+    fifo_ins++;
+
+    if( fifo_ins >= cnt_of_array(fifo_buf) ){
+    
+        fifo_ins = 0;
+    }
+
+    fifo_count++;
 }
 
 
@@ -122,8 +139,6 @@ void usart_v_init( uint8_t channel ){
     usart->CTRLC = 0x03; // datasheet reset default
 
     if( channel == USER_USART ){
-
-        usart_fifo_v_init( &fifo, fifo_buf, sizeof(fifo_buf) );
 
         io_v_set_mode( IO_PIN_2_TXD, IO_MODE_OUTPUT );
         io_v_set_mode( IO_PIN_3_RXD, IO_MODE_INPUT );
@@ -187,7 +202,31 @@ int16_t usart_i16_get_byte( uint8_t channel ){
 
     if( channel == USER_USART ){
 
-        return usart_fifo_i16_extract( &fifo );
+        int16_t temp;
+
+        ATOMIC;
+
+        if( fifo_count == 0 ){
+
+            temp = -1;
+        }
+        else{
+
+            temp = fifo_buf[fifo_ext];
+
+            fifo_ext++;
+
+            if( fifo_ext >= cnt_of_array(fifo_buf) ){
+
+                fifo_ext = 0;
+            }
+
+            fifo_count--;
+        }
+
+        END_ATOMIC;
+
+        return temp;
     }
 
     return get_byte( channel );
@@ -197,7 +236,15 @@ uint8_t usart_u8_bytes_available( uint8_t channel ){
 
     if( channel == USER_USART ){
 
-        return usart_fifo_u16_get_count( &fifo );
+        uint8_t count;
+
+        ATOMIC;
+
+        count = fifo_count;
+
+        END_ATOMIC;
+
+        return count;
     }
 
     USART_t *usart = get_channel( channel );
