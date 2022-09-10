@@ -72,6 +72,7 @@ static uint8_t current_scan_backoff;
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
 static uint8_t wifi_power_mode;
+static bool disable_modem_sleep;
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
@@ -106,7 +107,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_hits,                    0,   "wifi_arp_hits" },
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
 
-    { CATBUS_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_power_mode,                  0,  "wifi_power_mode" },
+    { CATBUS_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_power_mode,                  0,   "wifi_power_mode" },
+    { CATBUS_TYPE_BOOL,          0, KV_FLAGS_PERSIST,     &disable_modem_sleep,              0,   "wifi_disable_modem_sleep" },
 };
 
 // this lives in the wifi driver because it is the easiest place to get to hardware specific code
@@ -955,17 +957,12 @@ static bool is_low_power_mode( void ){
         return FALSE;
     }
 
+    if( disable_modem_sleep ){
+
+        return FALSE;
+    }
+
     return TRUE;
-
-    // bool batt_enabled = kv_b_get_boolean( __KV__batt_enable );
-
-    // if( batt_enabled ){
-
-    //     return TRUE;
-    // }
-
-
-    // return FALSE;
 }
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
