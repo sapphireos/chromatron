@@ -150,6 +150,7 @@ KV_SECTION_META kv_meta_t time_info_kv[] = {
     { CATBUS_TYPE_BOOL,       0, 0,  0,                            cfg_i8_kv_handler,      "enable_time_sync" },
 
     { CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, 0,            net_time_kv_handler,    "net_time" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_READ_ONLY, &is_sync,     0,                      "net_time_is_sync" },
     { CATBUS_TYPE_IPv4,       0, KV_FLAGS_READ_ONLY, &master_ip,   0,                      "net_time_master_ip" },
 
     { CATBUS_TYPE_INT16,      0, KV_FLAGS_READ_ONLY, &sync_delta,  0,                      "net_master_sync_diff" },
@@ -163,7 +164,7 @@ static bool is_time_sync_enabled( void ){
 
 void time_v_init( void ){
 
-    return;
+    // return;
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -199,6 +200,11 @@ bool time_b_is_sync( void ){
 
 uint32_t time_u32_get_network_time( void ){
     
+    if( !time_b_is_sync() ){
+        
+        return 0;        
+    }
+
     uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_sys_time );
 
     return master_net_time + elapsed_ms;
