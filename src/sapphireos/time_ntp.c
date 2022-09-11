@@ -342,24 +342,6 @@ PT_BEGIN( pt );
                 }
             }
 
-            ip_addr4_t prev_ip = master_ip;
-
-            master_ip = services_a_get_ip( NTP_ELECTION_SERVICE, 0 );
-
-            if( !ip_b_addr_compare( prev_ip, master_ip ) ){
-
-                log_v_info_P( PSTR("NTP clock master IP changed from %d.%d.%d.%d to %d.%d.%d.%d"),
-                    prev_ip.ip3,
-                    prev_ip.ip1,
-                    prev_ip.ip2,
-                    prev_ip.ip0,
-                    master_ip.ip3,
-                    master_ip.ip1,
-                    master_ip.ip2,
-                    master_ip.ip0 
-                );
-            }
-
             // update service priorities
             services_v_join_team( NTP_ELECTION_SERVICE, 0, get_priority(), NTP_SERVER_PORT );
 
@@ -372,27 +354,7 @@ PT_BEGIN( pt );
             }
 
             prev_source = clock_source;
-
-            // we probably don't need this stuff with a general master sync
-            // timeout:
-
-            // // check clock source quality, if applicable:
-            // if( clock_source == NTP_SOURCE_SNTP ){
-
-            //     if( sntp_u8_get_status() != SNTP_STATUS_SYNCHRONIZED ){
-
-            //         log_v_info_P( PSTR("Lost SNTP sync") );
-
-            //         // downgrade the internal clock source
-            //         clock_source = NTP_SOURCE_INTERNAL;
-            //     }
-            // }
-            // else if( clock_source == NTP_SOURCE_GPS ){
-
-
-            // }
             
-
             // get actual current timestamp, since the thread timing
             // won't be exact:
 
