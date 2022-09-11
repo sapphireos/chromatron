@@ -1481,6 +1481,14 @@ class Device(object):
 
         return ntp_now.isoformat()
 
+    def cli_ntpcheck(self, line):
+        ntp_seconds = self.get_key("ntp_seconds")
+
+        now = sapphire.common.util.now()
+        actual_ntp_seconds, actual_ntp_fraction = sapphire.common.util.datetime_to_ntp(now)
+
+        return f'Device NTP is within {ntp_seconds - actual_ntp_seconds} seconds of this machine'
+
 
     def cli_ntpset(self, line):
         ntp_seconds = self.get_key("ntp_seconds")
