@@ -35,7 +35,7 @@ static socket_t sock;
 static uint8_t prev_source;
 static uint8_t clock_source;
 static ntp_ts_t master_ntp_time;
-static uint64_t master_sys_time_ms; // system timestamp that correlates to NTP timestamp
+uint64_t master_sys_time_ms; // system timestamp that correlates to NTP timestamp
 static int16_t master_sync_delta;
 
 static uint32_t last_sync_time;
@@ -49,7 +49,7 @@ static int16_t tz_offset;
 
 static bool is_time_sync_enabled( void ){
 
-    return cfg_b_get_boolean( __KV__enable_time_sync );
+    return cfg_b_get_boolean( __KV__enable_ntp_sync );
 }
 
 int8_t _ntp_kv_handler(
@@ -102,14 +102,15 @@ int8_t _ntp_kv_handler(
 
 
 KV_SECTION_META kv_meta_t ntp_time_info_kv[] = {
-    { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, &clock_source,               0,               "ntp_master_source" },
-    { CATBUS_TYPE_UINT32,   0, 0,                  &master_ntp_time.seconds,    _ntp_kv_handler, "ntp_seconds" },
-    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &master_sync_delta,          0,               "ntp_master_sync_delta" },
-    { CATBUS_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,                  0,               "ntp_master_ip" },
-    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, 0,                           _ntp_kv_handler, "ntp_elapsed_last_sync" },
+    { CATBUS_TYPE_BOOL,     0, 0,                  0,                           cfg_i8_kv_handler,  "enable_ntp_sync" },
 
+    { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, &clock_source,               0,                  "ntp_master_source" },
+    { CATBUS_TYPE_UINT32,   0, 0,                  &master_ntp_time.seconds,    _ntp_kv_handler,    "ntp_seconds" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &master_sync_delta,          0,                  "ntp_master_sync_delta" },
+    { CATBUS_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,                  0,                  "ntp_master_ip" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, 0,                           _ntp_kv_handler,    "ntp_elapsed_last_sync" },
 
-    { CATBUS_TYPE_INT16,    0, KV_FLAGS_PERSIST,   &tz_offset,                  0,               "datetime_tz_offset" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_PERSIST,   &tz_offset,                  0,                  "datetime_tz_offset" },
 };
 
 
