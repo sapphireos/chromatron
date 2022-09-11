@@ -290,6 +290,8 @@ PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    is_sync = FALSE;
+
     // wait for network
     THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
     
@@ -300,6 +302,8 @@ PT_BEGIN( pt );
 
 
     while( is_leader() ){
+
+        is_sync = TRUE;
 
         THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_leader() );
 
@@ -316,7 +320,8 @@ PT_BEGIN( pt );
 
         uint32_t now = tmr_u32_get_system_time_ms();
 
-        uint8_t *type = decode_msg( sock_vp_get_data( sock ) );
+        uint8_t *data = sock_vp_get_data( sock );
+        uint8_t *type = decode_msg( data );
 
         if( type == 0 ){
 
@@ -328,7 +333,7 @@ PT_BEGIN( pt );
 
         if( *type == TIME_MSG_REQUEST_SYNC ){
 
-            time_msg_request_sync_t *req = (time_msg_request_sync_t *)type;
+            time_msg_request_sync_t *req = (time_msg_request_sync_t *)data;
 
             time_msg_sync_t sync = {
                 TIME_PROTOCOL_MAGIC,
@@ -351,6 +356,8 @@ PT_BEGIN( pt );
             sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );  
         }
     }
+
+    is_sync = FALSE;
 
     while( is_follower() ){
 
@@ -434,7 +441,8 @@ PT_BEGIN( pt );
             continue;
         }   
 
-        uint8_t *type2 = decode_msg( sock_vp_get_data( sock ) );
+        uint8_t *data = sock_vp_get_data( sock );
+        uint8_t *type2 = decode_msg( data );
 
         if( type2 == 0 ){
 
@@ -446,7 +454,7 @@ PT_BEGIN( pt );
             continue;
         }        
 
-        time_msg_sync_t *sync = ( time_msg_sync_t * )type2;
+        time_msg_sync_t *sync = ( time_msg_sync_t * )data;
 
         // compute elasped time
         uint32_t elapsed_ms = tmr_u32_elapsed_times( sync->origin_time, now );
@@ -454,7 +462,7 @@ PT_BEGIN( pt );
         // check for obviously bad RTTs
         if( elapsed_ms > TIME_RTT_THRESHOLD ){
 
-            log_v_debug_P( PSTR("bad RTT: %u"), elapsed_ms );
+            log_v_debug_P( PSTR("bad RTT: %u origin: %u now: %u"), elapsed_ms, sync->origin_time, now );
 
             TMR_WAIT( pt, 10000 );
 
@@ -504,6 +512,8 @@ PT_BEGIN( pt );
     // wait for sync
     THREAD_WAIT_WHILE( pt, !is_sync) ;
 
+    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+
     while( 1 ){
 
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
@@ -511,84 +521,90 @@ PT_BEGIN( pt );
 
         master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
 
-        // update election parameters (in case our source changes)        
-        services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), TIME_SERVER_PORT );
+        // if( is_leader() ){
 
-        // get elapsed time
-        uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_sys_time );
+        //     base_sys_time = tmr_u32_get_system_time_ms();
+        //     master_net_time = base_sys_time;
+        //     sync_delta = 0;
+        // }
+        // else{
 
-        // update base time
-        base_sys_time += elapsed_ms;        
+            // get elapsed time
+            uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_sys_time );
 
+            // update base time
+            base_sys_time += elapsed_ms;            
+            
 
-        // check sync delta:
-        // positive deltas mean our clock is ahead
-        // negative deltas mean out clock is behind
+            // check sync delta:
+            // positive deltas mean our clock is ahead
+            // negative deltas mean out clock is behind
 
-        int16_t clock_adjust = 0;
+            int16_t clock_adjust = 0;
 
-        if( sync_delta > 0 ){
+            if( sync_delta > 0 ){
 
-            // local clock is ahead
-            // we need to slow down a bit
+                // local clock is ahead
+                // we need to slow down a bit
 
-            if( sync_delta > 500 ){
+                if( sync_delta > 500 ){
 
-                clock_adjust = 10;
+                    clock_adjust = 10;
+                }
+                else if( sync_delta > 200 ){
+
+                    clock_adjust = 5;
+                }
+                else if( sync_delta > 50 ){
+
+                    clock_adjust = 2;
+                }
+                else{
+
+                    clock_adjust = 1;
+                }
             }
-            else if( sync_delta > 200 ){
+            else if( sync_delta < 0 ){
 
-                clock_adjust = 5;
+                // local clock is behind
+                // we need to speed up a bit
+
+                if( sync_delta < -500 ){
+
+                    clock_adjust = -10;
+                }
+                else if( sync_delta < -200 ){
+
+                    clock_adjust = -5;
+                }
+                else if( sync_delta < -50 ){
+
+                    clock_adjust = -2;
+                }
+                else{
+
+                    clock_adjust = -1;
+                }
             }
-            else if( sync_delta > 50 ){
 
-                clock_adjust = 2;
-            }
-            else{
+            sync_delta -= clock_adjust;
 
-                clock_adjust = 1;
-            }
-        }
-        else if( sync_delta < 0 ){
+            // adjust elapsed ms by clock adjustment:
+            elapsed_ms -= clock_adjust;
 
-            // local clock is behind
-            // we need to speed up a bit
+            // sanity check elapsed time
+            // if we went negative it will rollover
+            // this shouldn't happen unless thread timing is very screwed up
+            if( elapsed_ms > 2000 ){
 
-            if( sync_delta < -500 ){
+                log_v_debug_P( PSTR("Net time sync fail, elapsed: %u"), elapsed_ms );
 
-                clock_adjust = -10;
-            }
-            else if( sync_delta < -200 ){
+                continue;
+            }  
 
-                clock_adjust = -5;
-            }
-            else if( sync_delta < -50 ){
-
-                clock_adjust = -2;
-            }
-            else{
-
-                clock_adjust = -1;
-            }
-        }
-
-        sync_delta -= clock_adjust;
-
-        // adjust elapsed ms by clock adjustment:
-        elapsed_ms -= clock_adjust;
-
-        // sanity check elapsed time
-        // if we went negative it will rollover
-        // this shouldn't happen unless thread timing is very screwed up
-        if( elapsed_ms > 2000 ){
-
-            log_v_debug_P( PSTR("Net time sync fail, elapsed: %u"), elapsed_ms );
-
-            continue;
-        }  
-
-        // update net time
-        master_net_time += elapsed_ms;
+            // update net time
+            master_net_time += elapsed_ms;
+        // }
     }
 
 PT_END( pt );
