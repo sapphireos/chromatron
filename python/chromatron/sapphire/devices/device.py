@@ -660,6 +660,14 @@ class Device(object):
 
         return info
 
+    def get_port_monitor(self):
+        data = self.get_file("portinfo")
+
+        info = sapphiredata.PortMonitorArray()
+        info.unpack(data)
+
+        return info
+
     def get_batt_records(self):
         data = self.get_file("batt_recorder")
 
@@ -1698,6 +1706,19 @@ class Device(object):
             data.append(entry)
 
         self.put_file('datalog_config', data.pack())
+
+    def cli_portinfo(self, line):
+        data = self.get_port_monitor()
+        
+        s = '\nIP           rport lport      tx      rx  timeout\n'
+
+        for item in data:
+            if item.timeout == 0:
+                continue
+
+            s += f'{item.ipaddr:12} {item.rport:5} {item.lport:5} {item.tx_count:7} {item.rx_count:7}  {item.timeout:3}\n'
+
+        return s
 
     def cli_batt_recorder_info(self, line):
         try:

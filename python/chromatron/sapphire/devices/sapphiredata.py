@@ -387,6 +387,24 @@ class DatalogEntryArray(ArrayField):
         super().__init__(_field=field, **kwargs)
 
 
+class PortMonitor(StructField):
+    def __init__(self, **kwargs):
+        fields = [Ipv4Field(_name="ipaddr"),
+                  Uint16Field(_name="rport"),
+                  Uint16Field(_name="lport"),
+                  Uint32Field(_name="tx_count"),
+                  Uint32Field(_name="rx_count"),
+                  Uint8Field(_name="timeout")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class PortMonitorArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = PortMonitor
+
+        super().__init__(_field=field, **kwargs)
+
+
 class BattRecordStart(StructField):
     def __init__(self, **kwargs):
         fields = [Uint8Field(_name="flags"),

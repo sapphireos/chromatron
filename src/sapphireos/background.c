@@ -48,6 +48,7 @@ PT_BEGIN( pt );
         
         #ifdef ENABLE_NETWORK
         sock_v_process_timeouts();
+        netmsg_v_tick();
         #endif
 
         #ifdef ENABLE_MSGFLOW

@@ -29,6 +29,7 @@
 #include "udp.h"
 #include "sockets.h"
 #include "keyvalue.h"
+#include "fs.h"
 
 #include "netmsg.h"
 
@@ -64,6 +65,52 @@ KV_SECTION_META kv_meta_t netmsg_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &longest_rx_delta,    0,   "netmsg_max_rx_delta" },
 };
 
+
+static netmsg_port_monitor_t port_monitors[NETMSG_N_PORT_MONITORS];
+
+static netmsg_port_monitor_t* get_port_monitor( netmsg_state_t *state ){
+
+    netmsg_port_monitor_t *ptr = 0;
+    netmsg_port_monitor_t *free_ptr = 0;
+
+    for( uint16_t i = 0; i < cnt_of_array(port_monitors); i++ ){
+
+        if( ( free_ptr == 0 ) && ( port_monitors[i].timeout == 0 ) ){
+
+            free_ptr = &port_monitors[i];
+
+            continue;
+        }
+
+        if( port_monitors[i].timeout == 0 ){
+
+            continue;
+        }
+
+        if( ip_b_addr_compare( port_monitors[i].ipaddr, state->raddr.ipaddr ) &&
+            ( port_monitors[i].rport == state->raddr.port ) &&
+            ( port_monitors[i].lport == state->laddr.port ) ){
+
+            // match
+            ptr = &port_monitors[i];
+
+            break;
+        }
+    }
+
+    // if existing record not found, but there is a free slot:
+    if( ( ptr == 0 ) && ( free_ptr != 0 ) ){
+
+        ptr = free_ptr;
+
+        ptr->timeout = 60;
+        ptr->ipaddr = state->raddr.ipaddr;
+        ptr->rport = state->raddr.port;
+        ptr->lport = state->laddr.port;
+    }
+
+    return ptr;
+}
 
 void ( *netmsg_v_receive_msg )( netmsg_t msg );
 
@@ -102,8 +149,43 @@ ROUTING_TABLE_START routing_table_entry_t route_start = {
 
 ROUTING_TABLE_END routing_table_entry_t route_end[] = {};
 
+
+static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    uint32_t ret_val = len;
+    uint8_t *data;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+
+            data = (uint8_t *)port_monitors;
+
+            memcpy( ptr, &data[pos], len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            ret_val = sizeof(port_monitors);
+            break;
+
+        default:
+            ret_val = 0;
+            break;
+    }
+
+    return ret_val;
+}
+
+
 // initialize netmsg
 void netmsg_v_init( void ){
+
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+        fs_f_create_virtual( PSTR("portinfo"), vfile );
+    }
 
     netmsg_v_receive_msg = netmsg_v_receive;
 }
@@ -176,6 +258,23 @@ void netmsg_v_receive( netmsg_t netmsg ){
     netmsg_state_t *state = netmsg_vp_get_state( netmsg );
 
     if( state->type == NETMSG_TYPE_UDP ){
+
+        if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+        
+            // update port monitor
+            netmsg_port_monitor_t *port_monitor = get_port_monitor( state );
+
+            if( port_monitor != 0 ){
+
+                port_monitor->timeout = 60;
+
+                if( port_monitor->rx_count < UINT32_MAX){
+
+                    port_monitor->rx_count++;    
+                }    
+            }
+        }
+
 
         #ifdef ENABLE_IP
 
@@ -342,6 +441,23 @@ void netmsg_v_open_close_port( uint8_t protocol, uint16_t port, bool open ){
 int8_t netmsg_i8_transmit_msg( netmsg_t msg ){
 
     netmsg_state_t *state = netmsg_vp_get_state( msg );    
+
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+        
+        // update port monitor
+        netmsg_port_monitor_t *port_monitor = get_port_monitor( state );
+
+        if( port_monitor != 0 ){
+
+            port_monitor->timeout = 60;
+
+            if( port_monitor->tx_count < UINT32_MAX){
+
+                port_monitor->tx_count++;    
+            }
+        }
+    }
+    
 
     routing_table_entry_t *ptr = &route_start;
     routing_table_entry_t route;    
@@ -546,3 +662,27 @@ void *netmsg_vp_get_state( netmsg_t netmsg ){
     // get state pointer
     return list_vp_get_data( netmsg );
 }
+
+
+void netmsg_v_tick( void ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
+    for( uint16_t i = 0; i < cnt_of_array(port_monitors); i++ ){
+
+        if( port_monitors[i].timeout > 0 ){
+
+            port_monitors[i].timeout--;
+
+            // timeout
+            if( port_monitors[i].timeout == 0 ){
+
+                memset( &port_monitors[i], 0, sizeof(port_monitors[i]) );
+            }
+        }
+    }
+}
+
