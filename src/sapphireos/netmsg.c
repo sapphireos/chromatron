@@ -259,122 +259,105 @@ void netmsg_v_receive( netmsg_t netmsg ){
 
     if( state->type == NETMSG_TYPE_UDP ){
 
-        if( sys_u8_get_mode() != SYS_MODE_SAFE ){
-        
-            // update port monitor
-            netmsg_port_monitor_t *port_monitor = get_port_monitor( state );
+        // #ifdef ENABLE_IP
 
-            if( port_monitor != 0 ){
+        // // get data
+        // uint8_t *data = mem2_vp_get_ptr( state->data_handle );
 
-                port_monitor->timeout = 60;
+        // // get headers
+        // ip_hdr_t *ip_hdr = (ip_hdr_t *)data;
+        // data += sizeof(ip_hdr_t);
+        // state->header_len += sizeof(ip_hdr_t);
 
-                if( port_monitor->rx_count < UINT32_MAX){
+        // // check the IP header
+        // if( ip_b_verify_header( ip_hdr ) != TRUE ){
 
-                    port_monitor->rx_count++;    
-                }    
-            }
-        }
+        //     log_v_debug_P( PSTR("IPv4 header fail: %d.%d.%d.%d -> %d.%d.%d.%d"),
+        //         ip_hdr->source_addr.ip3,
+        //         ip_hdr->source_addr.ip2,
+        //         ip_hdr->source_addr.ip1,
+        //         ip_hdr->source_addr.ip0,
+        //         ip_hdr->dest_addr.ip3,
+        //         ip_hdr->dest_addr.ip2,
+        //         ip_hdr->dest_addr.ip1,
+        //         ip_hdr->dest_addr.ip0 );
 
+        //     goto clean_up;
+        // }
 
-        #ifdef ENABLE_IP
+        // // check data length matches ipv4 header
+        // if( mem2_u16_get_size( state->data_handle ) != HTONS( ip_hdr->total_length ) ){
 
-        // get data
-        uint8_t *data = mem2_vp_get_ptr( state->data_handle );
+        //     log_v_debug_P( PSTR("IPv4 len mismatch: %u != %u"), mem2_u16_get_size( state->data_handle ), HTONS( ip_hdr->total_length ) );
 
-        // get headers
-        ip_hdr_t *ip_hdr = (ip_hdr_t *)data;
-        data += sizeof(ip_hdr_t);
-        state->header_len += sizeof(ip_hdr_t);
+        //     goto clean_up;
+        // }
 
-        // check the IP header
-        if( ip_b_verify_header( ip_hdr ) != TRUE ){
+        // bool ip_broadcast = ip_b_check_broadcast( ip_hdr->dest_addr );
+        // bool ip_receive = ip_b_check_dest( ip_hdr->dest_addr );
 
-            log_v_debug_P( PSTR("IPv4 header fail: %d.%d.%d.%d -> %d.%d.%d.%d"),
-                ip_hdr->source_addr.ip3,
-                ip_hdr->source_addr.ip2,
-                ip_hdr->source_addr.ip1,
-                ip_hdr->source_addr.ip0,
-                ip_hdr->dest_addr.ip3,
-                ip_hdr->dest_addr.ip2,
-                ip_hdr->dest_addr.ip1,
-                ip_hdr->dest_addr.ip0 );
-
-            goto clean_up;
-        }
-
-        // check data length matches ipv4 header
-        if( mem2_u16_get_size( state->data_handle ) != HTONS( ip_hdr->total_length ) ){
-
-            log_v_debug_P( PSTR("IPv4 len mismatch: %u != %u"), mem2_u16_get_size( state->data_handle ), HTONS( ip_hdr->total_length ) );
-
-            goto clean_up;
-        }
-
-        bool ip_broadcast = ip_b_check_broadcast( ip_hdr->dest_addr );
-        bool ip_receive = ip_b_check_dest( ip_hdr->dest_addr );
-
-        // log_v_debug_P( PSTR("IPv4 header: %d.%d.%d.%d -> %d.%d.%d.%d %d"),
-        //     ip_hdr->source_addr.ip3,
-        //     ip_hdr->source_addr.ip2,
-        //     ip_hdr->source_addr.ip1,
-        //     ip_hdr->source_addr.ip0,
-        //     ip_hdr->dest_addr.ip3,
-        //     ip_hdr->dest_addr.ip2,
-        //     ip_hdr->dest_addr.ip1,
-        //     ip_hdr->dest_addr.ip0,
-        //     ip_receive );
-        //
+        // // log_v_debug_P( PSTR("IPv4 header: %d.%d.%d.%d -> %d.%d.%d.%d %d"),
+        // //     ip_hdr->source_addr.ip3,
+        // //     ip_hdr->source_addr.ip2,
+        // //     ip_hdr->source_addr.ip1,
+        // //     ip_hdr->source_addr.ip0,
+        // //     ip_hdr->dest_addr.ip3,
+        // //     ip_hdr->dest_addr.ip2,
+        // //     ip_hdr->dest_addr.ip1,
+        // //     ip_hdr->dest_addr.ip0,
+        // //     ip_receive );
+        // //
 
 
-        // check destination address
-        // check if packet is for this node
-        if( ( ip_receive == TRUE ) || ( ip_broadcast == TRUE ) ){
+        // // check destination address
+        // // check if packet is for this node
+        // if( ( ip_receive == TRUE ) || ( ip_broadcast == TRUE ) ){
 
-            // set addresses
-            state->raddr.ipaddr = ip_hdr->source_addr;
-            state->laddr.ipaddr = ip_hdr->dest_addr;
+        //     // set addresses
+        //     state->raddr.ipaddr = ip_hdr->source_addr;
+        //     state->laddr.ipaddr = ip_hdr->dest_addr;
 
 
-            // does this make sense?  should we have an IP packet instead
-            // of UDP for this?
+        //     // does this make sense?  should we have an IP packet instead
+        //     // of UDP for this?
 
-            // set the netmsg protocol for the message router
-            if( ip_hdr->protocol == IP_PROTO_ICMP ){
+        //     // set the netmsg protocol for the message router
+        //     if( ip_hdr->protocol == IP_PROTO_ICMP ){
 
-                // call the icmp receive handler
-                icmp_v_recv( netmsg );
-            }
-            else if( ip_hdr->protocol == IP_PROTO_UDP ){
+        //         // call the icmp receive handler
+        //         icmp_v_recv( netmsg );
+        //     }
+        //     else if( ip_hdr->protocol == IP_PROTO_UDP ){
 
-                udp_header_t *udp_hdr = (udp_header_t *)data;
-                data += sizeof(udp_header_t);
-                state->header_len += sizeof(udp_header_t);
+        //         udp_header_t *udp_hdr = (udp_header_t *)data;
+        //         data += sizeof(udp_header_t);
+        //         state->header_len += sizeof(udp_header_t);
 
-                // log_v_debug_P( PSTR("header_len %d size: %d"), state->header_len, mem2_u16_get_size( state->data_handle ) );
+        //         // log_v_debug_P( PSTR("header_len %d size: %d"), state->header_len, mem2_u16_get_size( state->data_handle ) );
 
-                // check UDP checksum, if checksum is enabled
-                // if( ( udp_hdr->checksum != 0 ) &&
-                //     ( udp_u16_checksum( ip_hdr ) != HTONS(udp_hdr->checksum) ) ){
-                //
-                //     goto clean_up;
-                // }
+        //         // check UDP checksum, if checksum is enabled
+        //         // if( ( udp_hdr->checksum != 0 ) &&
+        //         //     ( udp_u16_checksum( ip_hdr ) != HTONS(udp_hdr->checksum) ) ){
+        //         //
+        //         //     goto clean_up;
+        //         // }
 
-                // set ports
-                state->raddr.port = HTONS(udp_hdr->source_port);
-                state->laddr.port = HTONS(udp_hdr->dest_port);
+        //         // set ports
+        //         state->raddr.port = HTONS(udp_hdr->source_port);
+        //         state->laddr.port = HTONS(udp_hdr->dest_port);
 
-                sock_v_recv( netmsg );
-            }
-            else{
+        //         int8_t status = sock_i8_recv( netmsg );
+        //     }
+        //     else{
 
-                goto clean_up;
-            }
-        }
-        else{
+        //         goto clean_up;
+        //     }
+        // }
+        // else{
 
-            goto clean_up;
-        }
-        #else
+        //     goto clean_up;
+        // }
+        // #else
 
         // easy mode!
 
@@ -398,11 +381,31 @@ void netmsg_v_receive( netmsg_t netmsg ){
             }
         }
 
+        int8_t status = sock_i8_recv( netmsg );
+
+        if( sys_u8_get_mode() != SYS_MODE_SAFE ){
         
+            // update port monitor
+            netmsg_port_monitor_t *port_monitor = get_port_monitor( state );
 
-        sock_v_recv( netmsg );
+            if( port_monitor != 0 ){
 
-        #endif
+                port_monitor->timeout = 60;
+
+                if( port_monitor->rx_count < UINT32_MAX){
+
+                    port_monitor->rx_count++;    
+                }    
+
+                if( ( status < 0 ) && ( port_monitor->dropped < UINT32_MAX ) ){
+
+                    port_monitor->dropped++;                    
+                }
+            }
+        }
+
+
+        // #endif
 
         netmsg_udp_recv++;
     }

@@ -95,7 +95,7 @@ int8_t sock_i8_recvfrom( socket_t sock );
 int16_t sock_i16_sendto( socket_t sock, void *buf, uint16_t bufsize, sock_addr_t *raddr );
 int16_t sock_i16_sendto_m( socket_t sock, mem_handle_t handle, sock_addr_t *raddr );
 
-void sock_v_recv( netmsg_t netmsg );
+int8_t sock_i8_recv( netmsg_t netmsg );
 
 void sock_v_init( void );
 uint8_t sock_u8_count( void );

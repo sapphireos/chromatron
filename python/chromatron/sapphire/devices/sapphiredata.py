@@ -394,6 +394,7 @@ class PortMonitor(StructField):
                   Uint16Field(_name="lport"),
                   Uint32Field(_name="tx_count"),
                   Uint32Field(_name="rx_count"),
+                  Uint32Field(_name="dropped"),
                   Uint8Field(_name="timeout")]
 
         super().__init__(_fields=fields, **kwargs)

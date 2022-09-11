@@ -67,6 +67,7 @@ typedef struct __attribute__((packed)){
     uint16_t lport;
     uint32_t tx_count;
     uint32_t rx_count;
+    uint32_t dropped;
     uint8_t timeout;
 } netmsg_port_monitor_t;
 

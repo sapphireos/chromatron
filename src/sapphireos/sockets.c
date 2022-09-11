@@ -838,7 +838,7 @@ int16_t sock_i16_sendto_m( socket_t sock, mem_handle_t handle, sock_addr_t *radd
 
 
 // receive a UDP datagram
-void sock_v_recv( netmsg_t netmsg ){
+int8_t sock_i8_recv( netmsg_t netmsg ){
 
     netmsg_state_t *state = netmsg_vp_get_state( netmsg );
 
@@ -864,7 +864,7 @@ void sock_v_recv( netmsg_t netmsg ){
     // check if we got a matching socket
     if( sock < 0 ){
 
-        return;
+        return -1;
     }
 
     // if we got here, we have the appropriate socket
@@ -874,13 +874,13 @@ void sock_v_recv( netmsg_t netmsg ){
     // with multicasting we could receive our own messages.
     if( ip_b_addr_compare( state->raddr.ipaddr, cfg_ip_get_ipaddr() ) ){
 
-        return;
+        return -15;
     }
 
     // check if send only
     if( dgram->raw.options & SOCK_OPTIONS_SEND_ONLY ){
 
-        return;
+        return -20;
     }
 
     // check security flags
@@ -892,7 +892,7 @@ void sock_v_recv( netmsg_t netmsg ){
 
             // socket requires secure messages
 
-            return;
+            return -21;
         }
     }
 
@@ -922,7 +922,7 @@ void sock_v_recv( netmsg_t netmsg ){
 
             log_v_debug_P( PSTR("dropped to: %u from %u"), dgram->lport, state->raddr.port );
 
-            return;
+            return -2;
         }
     }
     #else
@@ -950,7 +950,7 @@ void sock_v_recv( netmsg_t netmsg ){
 
             log_v_debug_P( PSTR("dropped to: %u from %u"), dgram->lport, state->raddr.port );
 
-            return;
+            return -2;
         }
     }
     #endif
@@ -966,7 +966,7 @@ void sock_v_recv( netmsg_t netmsg ){
 
         log_v_debug_P( PSTR("rx_handle was pending, dropped to: %u from %u"), dgram->lport, state->raddr.port );
 
-        return;
+        return -3;
     }   
     
     rx_header_len   = state->header_len;
@@ -998,6 +998,8 @@ void sock_v_recv( netmsg_t netmsg ){
 
     // set state
     dgram->state = SOCK_UDP_STATE_RX_DATA_PENDING;
+
+    return 0;
 }
 
 void sock_v_init( void ){
