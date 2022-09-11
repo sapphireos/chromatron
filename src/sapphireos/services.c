@@ -265,7 +265,7 @@ static void cache_service( uint32_t id, uint64_t group, ip_addr4_t ip, uint16_t 
 
     f = fs_f_close( f );
 
-    log_v_debug_P( PSTR( "cached service") );
+    // log_v_debug_P( PSTR( "cached service") );
 }
 
 static void delete_cached_service( uint32_t id, uint64_t group ){
