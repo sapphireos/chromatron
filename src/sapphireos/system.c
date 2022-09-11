@@ -762,7 +762,7 @@ void sos_assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
     }
     #endif
     // reboot
-    reboot( FALSE );
+    reboot( TRUE );
 #endif
 }
 #endif
