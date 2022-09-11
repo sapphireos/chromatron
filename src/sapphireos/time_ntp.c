@@ -60,6 +60,17 @@ int8_t _ntp_kv_handler(
 {
     if( op == KV_OP_GET ){
 
+        if( hash == __KV__ntp_elapsed_last_sync ){
+
+            uint32_t elapsed = 0;
+
+            if( ntp_b_is_sync() ){
+
+                elapsed = tmr_u32_elapsed_time_ms( last_sync_time );
+            }
+
+            STORE32(data, elapsed);
+        }
     }
     else if( op == KV_OP_SET ){
 
@@ -94,8 +105,11 @@ KV_SECTION_META kv_meta_t ntp_time_info_kv[] = {
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, &clock_source,               0,               "ntp_master_source" },
     { CATBUS_TYPE_UINT32,   0, 0,                  &master_ntp_time.seconds,    _ntp_kv_handler, "ntp_seconds" },
     { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &master_sync_delta,          0,               "ntp_master_sync_delta" },
-    { CATBUS_TYPE_INT16,    0, KV_FLAGS_PERSIST,   &tz_offset,                  0,               "datetime_tz_offset" },
     { CATBUS_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,                  0,               "ntp_master_ip" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, 0,                           _ntp_kv_handler, "ntp_elapsed_last_sync" },
+
+
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_PERSIST,   &tz_offset,                  0,               "datetime_tz_offset" },
 };
 
 
