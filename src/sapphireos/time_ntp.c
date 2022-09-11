@@ -327,6 +327,7 @@ PT_BEGIN( pt );
 
             THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( clock_source == prev_source ) );
 
+            master_ip = services_a_get_ip( NTP_ELECTION_SERVICE, 0 );
 
             // check for master clock timeout
             // this is a slow process
