@@ -263,7 +263,7 @@ ntp_ts_t ntp_t_from_system_time( uint64_t sys_time_ms ){
     // add elapsed time to NTP timestamp - this is easier done by converting
     // the NTP timestamp to a 64 bit integer
     uint64_t now = ntp_u64_conv_to_u64( master_ntp_time );
-    now += ( ( (int64_t)elapsed_ms << 32 ) / 1000 ); 
+    now += ( ( (uint64_t)elapsed_ms << 32 ) / 1000 ); 
 
     return ntp_ts_from_u64( now );
 }
@@ -688,7 +688,15 @@ server_done:
         ntp_msg_reply_sync_t *reply = (ntp_msg_reply_sync_t *)magic;
         
         // process reply
-        uint16_t packet_rtt = reply->origin_system_time_ms - reply_recv_timestamp;
+        int16_t packet_rtt = reply_recv_timestamp - reply->origin_system_time_ms;
+
+        if( packet_rtt < 0 ){
+
+            log_v_error_P( PSTR("NTP packet time traveled, giving up") );
+
+            goto client_done;
+        }
+
         uint16_t packet_delay = packet_rtt / 2; // assuming link is symmetrical
 
         // adjust the transmit NTP timestamp by the packet delay so
