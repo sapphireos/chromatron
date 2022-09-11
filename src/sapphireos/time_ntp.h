@@ -36,6 +36,7 @@
 
 #define NTP_SYNC_INTERVAL              600 // in seconds
 
+// #define NTP_MASTER_CLOCK_TIMEOUT       60 // for debug
 #define NTP_MASTER_CLOCK_TIMEOUT       3600 // in seconds
 
 #define NTP_HARD_SYNC_THRESHOLD_MS     2000 // in ms

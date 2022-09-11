@@ -38,6 +38,8 @@ static ntp_ts_t master_ntp_time;
 static uint64_t master_sys_time_ms; // system timestamp that correlates to NTP timestamp
 static int16_t master_sync_delta;
 
+static uint32_t last_sync_time;
+
 static ip_addr4_t master_ip;
 
 // NOTE!
@@ -238,6 +240,8 @@ void ntp_v_set_master_clock(
 
     // assign clock source:
     clock_source = source;
+
+    last_sync_time = tmr_u32_get_system_time_ms();
 }
 
 // this will compute the current NTP time from the current clock
@@ -326,11 +330,11 @@ PT_BEGIN( pt );
 
             // check for master clock timeout
             // this is a slow process
-            uint64_t delta_ms = tmr_u64_get_system_time_ms() - master_sys_time_ms;
-
             if( ntp_b_is_sync() ){
 
-                if( delta_ms > ( NTP_MASTER_CLOCK_TIMEOUT * 1000 ) ){
+                uint32_t delta_ms = tmr_u32_elapsed_time_ms( last_sync_time );
+
+                if( ( clock_source > NTP_SOURCE_INTERNAL ) && ( delta_ms > ( NTP_MASTER_CLOCK_TIMEOUT * 1000 ) ) ){
 
                     log_v_info_P( PSTR("NTP master clock desync, changing source to internal") );
 
@@ -338,7 +342,23 @@ PT_BEGIN( pt );
                 }
             }
 
+            ip_addr4_t prev_ip = master_ip;
+
             master_ip = services_a_get_ip( NTP_ELECTION_SERVICE, 0 );
+
+            if( !ip_b_addr_compare( prev_ip, master_ip ) ){
+
+                log_v_info_P( PSTR("NTP clock master IP changed from %d.%d.%d.%d to %d.%d.%d.%d"),
+                    prev_ip.ip3,
+                    prev_ip.ip1,
+                    prev_ip.ip2,
+                    prev_ip.ip0,
+                    master_ip.ip3,
+                    master_ip.ip1,
+                    master_ip.ip2,
+                    master_ip.ip0 
+                );
+            }
 
             // update service priorities
             services_v_join_team( NTP_ELECTION_SERVICE, 0, get_priority(), NTP_SERVER_PORT );
@@ -490,7 +510,7 @@ PT_BEGIN( pt );
     // check if we are the leader
     if( is_leader() ){
 
-        // check if we have GPS or some other source here
+        // check if we should enable SNTP
         if( clock_source < NTP_SOURCE_SNTP ){
 
             // start SNTP
@@ -511,6 +531,11 @@ PT_BEGIN( pt );
             THREAD_RESTART( pt );
         }
     }
+    else if( is_follower() ){
+
+        // wait until leader has a clock source:
+        THREAD_WAIT_WHILE( pt, is_follower() && services_u16_get_leader_priority( NTP_ELECTION_SERVICE, 0 ) <= NTP_SOURCE_NONE );
+    }
 
     // service is available at this point
     // if a leader, we should have an NTP sync by now
@@ -519,14 +544,21 @@ PT_BEGIN( pt );
     // leader loop: run server
     while( is_leader() ){
 
-        // disable timeout
-        sock_v_set_timeout( sock, 0 );
+        // enable timeout
+        sock_v_set_timeout( sock, 1 );
 
         THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_leader() );
 
         if( !is_leader() ){
 
             THREAD_RESTART( pt );
+        }
+
+        // check if we should enable SNTP
+        if( clock_source < NTP_SOURCE_SNTP ){
+
+            // start SNTP
+            sntp_v_start();    
         }
 
         // check if data received
@@ -587,7 +619,7 @@ server_done:
 
 
     // follower, this runs a client:
-    while( is_follower() && ( services_u16_get_leader_priority( NTP_ELECTION_SERVICE, 0 ) > 0 ) ){
+    while( is_follower() && ( services_u16_get_leader_priority( NTP_ELECTION_SERVICE, 0 ) > NTP_SOURCE_NONE ) ){
 
         // send sync request
 
