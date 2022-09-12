@@ -29,7 +29,9 @@ from catbus import CatbusService, Client, NoResponseFromHost
 from sapphire.common import util, Ribbon, run_all
 
 class ConnectionMonitor(Ribbon):
-    def initialize(self, settings={}):
+    def __init__(self, settings={}):
+        super().__init__()
+
         self.name = 'connection_monitor'
         self.settings = settings
         
@@ -38,7 +40,9 @@ class ConnectionMonitor(Ribbon):
         self.client = Client()
         self.directory = {}
 
-    def loop(self):
+        self.start()
+
+    def _process(self):
         self.directory = self.client.get_directory()
 
         if self.directory == None:
@@ -50,15 +54,21 @@ class ConnectionMonitor(Ribbon):
         for device_id, device in self.directory.items():
             self.client.connect(device['host'])
 
-            try:
-                elapsed = self.client.ping()
+            N_PINGS = 5
 
-                logging.info(f"{device['name']} @ {device['host']}: {elapsed * 1000}")
+            try:
+                times = []
+                for i in range(N_PINGS):
+                    times.append(self.client.ping())
+
+                time_str = ' '.join([f'{int(t * 1000):3}' for t in times])
+
+                logging.info(f"{str(device['name']):24} @ {str(device['host']):24}: {time_str}")
             
             except NoResponseFromHost:
-                logging.warn(f"{device['name']} @ {device['host']}: no response")
+                logging.warn(f"{str(device['name']):24} @ {str(device['host']):24}: no response")
 
-        self.wait(30.0)
+        self.wait(10.0)
 
     def clean_up(self):
         self.kv.stop()
