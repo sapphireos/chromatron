@@ -56,17 +56,26 @@ class ConnectionMonitor(Ribbon):
 
             N_PINGS = 5
 
-            try:
-                times = []
-                for i in range(N_PINGS):
+            times = []
+            for i in range(N_PINGS):
+                try:
+                    
                     times.append(self.client.ping())
 
-                time_str = ' '.join([f'{int(t * 1000):3}' for t in times])
+                    
+                except NoResponseFromHost:
+                    times.append('x')
 
-                logging.info(f"{str(device['name']):24} @ {str(device['host']):24}: {time_str}")
-            
-            except NoResponseFromHost:
-                logging.warn(f"{str(device['name']):24} @ {str(device['host']):24}: no response")
+
+            time_str = ''
+            for t in times:
+                if isinstance(t, str):
+                    time_str += t + ' '
+
+                else:
+                    time_str += f' {int(t * 1000):3}'
+
+            logging.info(f"{str(device['name']):24} @ {str(device['host']):24}: {time_str}")
 
         self.wait(10.0)
 
