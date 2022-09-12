@@ -164,8 +164,6 @@ static bool is_time_sync_enabled( void ){
 
 void time_v_init( void ){
 
-    // return;
-
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         return;
@@ -290,8 +288,6 @@ PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    is_sync = FALSE;
-
     // wait for network
     THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
     
@@ -303,7 +299,14 @@ PT_BEGIN( pt );
 
     while( is_leader() ){
 
-        is_sync = TRUE;
+        if( !is_sync ){
+
+            sync_delta = 0;
+            master_net_time = tmr_u32_get_system_time_ms();
+            base_sys_time = master_net_time;            
+
+            is_sync = TRUE;
+        }
 
         THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_leader() );
 
@@ -357,12 +360,10 @@ PT_BEGIN( pt );
         }
     }
 
-    is_sync = FALSE;
-
     while( is_follower() ){
 
         // random delay to prevent overloading the server
-        TMR_WAIT( pt, rnd_u16_get_int() >> 3 ); // 0 to 8 seconds        
+        TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 4 ) ); // 1 to 5 seconds        
 
         // send ping to warm up ARP
         time_msg_ping_t ping = {
@@ -477,19 +478,24 @@ PT_BEGIN( pt );
         
         if( is_sync ){
 
-            // compute sync delta
-            sync_delta = (int64_t)now - (int64_t)sync->net_time;
-        }
-        // if not synced, we can immediately jolt the clock into position
-        else{
+            uint32_t net_time = time_u32_get_network_time_from_local( now );
 
-            sync_delta = 0;
+            // compute sync delta
+            sync_delta = (int64_t)net_time - (int64_t)sync->net_time;
+        }
+
+        // if not synced or sync is too far off, we can immediately jolt the clock into position
+        if( !is_sync || ( abs16( sync_delta ) > 200 ) ){
+
+            
             master_net_time = sync->net_time;
             base_sys_time = now;
 
             is_sync = TRUE;
 
-            log_v_info_P( PSTR("Net time synced") );
+            log_v_info_P( PSTR("Net time hard sync delta: %d"), sync_delta );
+
+            sync_delta = 0;
         }
 
 
@@ -510,7 +516,7 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
     // wait for sync
-    THREAD_WAIT_WHILE( pt, !is_sync) ;
+    THREAD_WAIT_WHILE( pt, !is_sync);
 
     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
