@@ -70,10 +70,10 @@ class ConnectionMonitor(Ribbon):
             time_str = ''
             for t in times:
                 if isinstance(t, str):
-                    time_str += t + ' '
+                    time_str += f'{t:4}'
 
                 else:
-                    time_str += f' {int(t * 1000):3}'
+                    time_str += f' {int(t * 1000):4}'
 
             logging.info(f"{str(device['name']):24} @ {str(device['host']):24}: {time_str}")
 
