@@ -101,42 +101,42 @@ void ldr_run_app( void ){
 
 void ldr_v_set_green_led( void ){
     
-    LDR_LED_GREEN_PORT |= _BV(LDR_LED_GREEN_PIN);
+    // LDR_LED_GREEN_PORT |= _BV(LDR_LED_GREEN_PIN);
 }
 
 void ldr_v_clear_green_led( void ){
     
-    LDR_LED_GREEN_PORT &= ~_BV(LDR_LED_GREEN_PIN);
+    // LDR_LED_GREEN_PORT &= ~_BV(LDR_LED_GREEN_PIN);
 }
 
 void ldr_v_set_yellow_led( void ){
     
-    LDR_LED_YELLOW_PORT |= _BV(LDR_LED_YELLOW_PIN);
+    // LDR_LED_YELLOW_PORT |= _BV(LDR_LED_YELLOW_PIN);
 }
 
 void ldr_v_clear_yellow_led( void ){
     
-    LDR_LED_YELLOW_PORT &= ~_BV(LDR_LED_YELLOW_PIN);
+    // LDR_LED_YELLOW_PORT &= ~_BV(LDR_LED_YELLOW_PIN);
 }
 
 void ldr_v_set_red_led( void ){
 
-    LDR_LED_RED_PORT |= _BV(LDR_LED_RED_PIN);
+    // LDR_LED_RED_PORT |= _BV(LDR_LED_RED_PIN);
 }
 
 void ldr_v_clear_red_led( void ){
 
-    LDR_LED_RED_PORT &= ~_BV(LDR_LED_RED_PIN);
+    // LDR_LED_RED_PORT &= ~_BV(LDR_LED_RED_PIN);
 }
 
 // set the system clock prescaler.
-void ldr_v_set_clock_prescaler( sys_clock_t8 prescaler ){
+// void ldr_v_set_clock_prescaler( sys_clock_t8 prescaler ){
 	
-    #ifndef LOADER_MODULE_TEST
-	CLKPR = 0b10000000; // enable the prescaler change
-	CLKPR = prescaler; // set the prescaler
-    #endif
-}
+//     #ifndef LOADER_MODULE_TEST
+// 	CLKPR = 0b10000000; // enable the prescaler change
+// 	CLKPR = prescaler; // set the prescaler
+//     #endif
+// }
 
 
 // read data from an external partition

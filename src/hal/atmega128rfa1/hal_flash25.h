@@ -39,6 +39,7 @@
 
 
 // #define AAI_STATUS() ( SPI_MISO_PORT.IN & ( 1 << SPI_MISO_PIN ) )
+#define AAI_STATUS() ( 0 )
 
 
 void hal_flash25_v_init( void );

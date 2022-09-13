@@ -2327,7 +2327,9 @@ int8_t vm_i8_run(
 
         if( !type_b_is_string( publish->type ) ){
 
+            #ifdef VM_ENABLE_KV
             kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+            #endif
         }
 
         publish++;
@@ -2385,7 +2387,9 @@ int8_t vm_i8_run(
             ptr = (int32_t *)buf;
         }
         
+        #ifdef VM_ENABLE_KV      
         kvdb_i8_set( publish->hash, publish->type, ptr, len );
+        #endif
 
         publish++;
         count--;
@@ -2473,7 +2477,7 @@ int8_t vm_i8_run_tick(
 
     int8_t status = VM_STATUS_DID_NOT_RUN;
 
-    while( elapsed_us < ( VM_MAX_RUN_TIME * 1000 ) ){
+    while( elapsed_us < ( (uint32_t)VM_MAX_RUN_TIME * 1000 ) ){
 
         uint64_t next_tick;
         uint8_t event = _get_next_event( stream, state, &next_tick );
@@ -2780,31 +2784,32 @@ int8_t vm_i8_load_program(
 
         return VM_STATUS_ERR_BAD_LENGTH;        
     }
-
-    int32_t *data_table = (int32_t *)( stream + state->data_start );
-
     // init RNG seed
     state->rng_seed = 1;
 
     state->tick = 0;
     state->loop_tick = 10; // start loop tick with a slight delay
 
-
+    
+    #ifdef VM_ENABLE_KV
     // init database entries for published var default values
     vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
 
     uint32_t count = state->publish_count;
 
+    int32_t *data_table = (int32_t *)( stream + state->data_start );
+
     while( count > 0 ){
 
         if( !type_b_is_string( publish->type ) ){
-
+            
             kvdb_i8_set( publish->hash, publish->type, &data_table[publish->addr], sizeof(data_table[publish->addr]) );
         }
 
         publish++;
         count--;
     }
+    #endif
 
     return VM_STATUS_OK;
 }
@@ -2851,7 +2856,9 @@ int8_t vm_i8_load_program(
 
 void vm_v_clear_db( uint8_t tag ){
 
+    #ifdef VM_ENABLE_KV
     // delete existing entries
     kvdb_v_clear_tag( 0, tag );
+    #endif
 }
 

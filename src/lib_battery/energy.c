@@ -52,7 +52,7 @@ static uint64_t energy_pix;
 // convert raw energy counter to milliwatt-hours
 static uint64_t convert_to_mwh( uint64_t value ){
 
-    return value / ( 1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) );
+    return value / ( (uint32_t)1000 * 3600 * ( 1000 / ENERGY_MONITOR_RATE ) );
 }
 
 

@@ -1,0 +1,1 @@
+../../hal/atmega128rfa1/hal_flash25.h

@@ -1059,7 +1059,11 @@ PT_BEGIN( pt );
 
     // alignment check
     vm_state_t temp;
+    #ifndef AVR
     if( ( (uint32_t)&temp.rng_seed % 4 ) != 0 ){
+    #else
+    if( ( (uint16_t)&temp.rng_seed % 4 ) != 0 ){
+    #endif
 
         log_v_critical_P( PSTR("VM state alignment failure!") );
 

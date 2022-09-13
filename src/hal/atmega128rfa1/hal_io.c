@@ -197,72 +197,73 @@ uint8_t io_u8_get_board_rev( void ){
 
 uint8_t io_u8_get_pin( uint8_t pin ){
 
-    switch( pin ){
+    // switch( pin ){
 
-        case IO_PIN_0_GPIO:
-            return IO_PIN0_PIN;
-            break;
+        // case IO_PIN_0_GPIO:
+        //     return IO_PIN0_PIN;
+        //     break;
 
-        case IO_PIN_1_XCK:
-            return IO_PIN1_PIN;
-            break;
+        // case IO_PIN_1_XCK:
+        //     return IO_PIN1_PIN;
+        //     break;
 
-        case IO_PIN_2_TXD:
-            return IO_PIN2_PIN;
-            break;
+        // case IO_PIN_2_TXD:
+        //     return IO_PIN2_PIN;
+        //     break;
 
-        case IO_PIN_3_RXD:
-            return IO_PIN3_PIN;
-            break;
+        // case IO_PIN_3_RXD:
+        //     return IO_PIN3_PIN;
+        //     break;
 
-        case IO_PIN_4_ADC0:
-            return IO_PIN4_PIN;
-            break;
+        // case IO_PIN_4_ADC0:
+        //     return IO_PIN4_PIN;
+        //     break;
 
-        case IO_PIN_5_ADC1:
-            return IO_PIN5_PIN;
-            break;
+        // case IO_PIN_5_ADC1:
+        //     return IO_PIN5_PIN;
+        //     break;
 
-        case IO_PIN_6_DAC0:
-            return IO_PIN6_PIN;
-            break;
+        // case IO_PIN_6_DAC0:
+        //     return IO_PIN6_PIN;
+        //     break;
 
-        case IO_PIN_7_DAC1:
-            return IO_PIN7_PIN;
-            break;
+        // case IO_PIN_7_DAC1:
+        //     return IO_PIN7_PIN;
+        //     break;
 
-        case IO_PIN_PWM_0:
-            return IO_PWM0_PIN;
-            break;
+        // case IO_PIN_PWM_0:
+        //     return IO_PWM0_PIN;
+        //     break;
 
-        case IO_PIN_PWM_1:
-            return IO_PWM1_PIN;
-            break;
+        // case IO_PIN_PWM_1:
+        //     return IO_PWM1_PIN;
+        //     break;
 
-        case IO_PIN_PWM_2:
-            return IO_PWM2_PIN;
-            break;
+        // case IO_PIN_PWM_2:
+        //     return IO_PWM2_PIN;
+        //     break;
 
-        case IO_PIN_PWM_3:
-            return IO_PWM3_PIN;
-            break;
+        // case IO_PIN_PWM_3:
+        //     return IO_PWM3_PIN;
+        //     break;
 
-        case IO_PIN_LED_RED:
-            return IO_LED_RED_PIN;
-            break;
+        // case IO_PIN_LED_RED:
+        //     return IO_LED_RED_PIN;
+        //     break;
 
-        case IO_PIN_LED_GREEN:
-            return IO_LED_GREEN_PIN;
-            break;
+        // case IO_PIN_LED_GREEN:
+        //     return IO_LED_GREEN_PIN;
+        //     break;
 
-        case IO_PIN_LED_BLUE:
-            return IO_LED_BLUE_PIN;
-            break;
+        // case IO_PIN_LED_BLUE:
+        //     return IO_LED_BLUE_PIN;
+        //     break;
 
-        default:
-            return IO_PIN0_PIN;
-            break;
-    }
+        // default:
+        //     return IO_PIN0_PIN;
+        //     break;
+    // }
+    return 0;
 }
 
 void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){

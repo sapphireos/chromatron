@@ -35,6 +35,12 @@
     #define MCP73831_IO_MCU_PWR     IO_PIN_25_A1
     #define MCP73831_IO_PIXEL       IO_PIN_16_RX
     #define MCP73831_IO_VBUS_MON    IO_PIN_34_A2
+#elif defined(BLUE_SAPPHIRE)
+
+    // placeholders!
+    #define MCP73831_IO_MCU_PWR     IO_PIN_ADC0
+    #define MCP73831_IO_PIXEL       IO_PIN_ADC1
+    #define MCP73831_IO_VBUS_MON    IO_PIN_ADC2
 #else
 
 #endif

@@ -91,12 +91,12 @@ restart:
 	cli();
     
     // set status LED pins to outputs
-    LDR_LED_GREEN_DDR |= _BV(LDR_LED_GREEN_PIN);
-    LDR_LED_YELLOW_DDR |= _BV(LDR_LED_YELLOW_PIN);
-    LDR_LED_RED_DDR |= _BV(LDR_LED_RED_PIN);
+    // LDR_LED_GREEN_DDR |= _BV(LDR_LED_GREEN_PIN);
+    // LDR_LED_YELLOW_DDR |= _BV(LDR_LED_YELLOW_PIN);
+    // LDR_LED_RED_DDR |= _BV(LDR_LED_RED_PIN);
 	
 	// system clock is at 16 MHz
-	ldr_v_set_clock_prescaler( CLK_DIV_1 );
+	// ldr_v_set_clock_prescaler( CLK_DIV_1 );
 	
 	// disable watchdog timer
 	wdt_reset();
@@ -171,7 +171,7 @@ restart:
         }
         
         // initialize spi
-        spi_v_init();
+        spi_v_init( 0, 0, 0 );
         
         // initialize external flash
         flash25_v_init();

@@ -352,11 +352,7 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
         for( uint16_t i = 0; i < info->count; i++ ){
 
             #ifdef AVR
-            memcpy_PF( &opt_meta, meta_ptr, sizeof(opt_meta) );
-
-            #elif defined(ESP32)
-
-            memcpy_PF( &opt_meta, meta_ptr, sizeof(opt_meta) );
+            memcpy_PF( &opt_meta, (uint16_t)meta_ptr, sizeof(opt_meta) );
 
             #else
 
@@ -412,7 +408,12 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
         // GCC is getting a bit *too* smart about looking for array bounds issues.
         // so we will workaround that here, since this is not actually out of bounds, GCC
         // just doesn't understand this is a prefilled array in .text from the linker.
+        #ifdef AVR
+        volatile uint16_t start_addr = (uint16_t)&kv_start;
+        #else
         volatile uint32_t start_addr = (uint32_t)&kv_start;
+        #endif
+
         kv_meta_t *start = (kv_meta_t *)start_addr;
         kv_meta_t *ptr = (kv_meta_t *)( start + 1 ) + index;
 
