@@ -1,0 +1,88 @@
+
+{
+    "LOG_FILENAME": "build.log",
+
+    "C_FLAGS": [
+        "-mmcu=atmega128rfa1",
+        "-g",
+        "-DF_CPU=16000000UL",
+        "-D__DELAY_BACKWARD_COMPATIBLE__",
+        "-DAVR",
+        "-DBLUE_SAPPHIRE",
+        "-Os",
+        "-funsigned-char",
+        "-funsigned-bitfields",
+        "-fpack-struct",
+        "-fshort-enums",
+        "-finline-limit=3",
+        "-ffunction-sections",
+        "-fno-strict-aliasing",
+        "-fdata-sections",
+        "-fconserve-stack",
+        "-mcall-prologues",
+        "-ffreestanding",
+        "-fstack-usage",
+        "-Wall",
+        "-Wsizeof-pointer-memaccess",
+        "-Wsign-compare",
+        "-Wtype-limits",
+        "-Wstrict-prototypes",
+        "-Wno-uninitialized",
+        "-Wno-unused-but-set-variable",
+        "-Wa,-adhlns=%(OBJ_DIR)/%(SOURCE_FNAME).lst",
+        "-std=gnu99",
+        "-MD",
+        "-MP",
+        "-MF"
+    ],
+
+    "AR_FLAGS": [
+        "-rcs"
+    ],
+
+    "LINK_FLAGS": [
+        "--output %(TARGET_DIR)/main.elf",
+        "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
+        "-lm",
+        "-Wl,-u,vfprintf -lprintf_flt",
+        "-Wl,--section-start=.noinit=0x802000",
+        "-Wl,--section-start=.data=0x802008",
+        "-Wl,--section-start=.fwinfo=0x1FC",
+        "-T %(LINKER_SCRIPT)",
+        "-Wl,--gc-sections",
+        "-Wl,--relax"
+    ],
+
+    "OBJ_DIR": "obj",
+    "DEP_DIR": "dep",
+
+    "CLEAN_FILES": [
+        ".hex",
+        ".bin",
+        ".eep",
+        ".cof",
+        ".elf",
+        ".map",
+        ".sym",
+        ".lss",
+        ".a"
+    ],
+
+    "CLEAN_DIRS": [
+        "obj",
+        "dep"
+    ],
+
+    "__STACKUSAGE_C_FLAG": "-fstack-usage",
+
+    "OS_PROJECT": "sapphire",
+    "LOADER_PROJECT": "loader_atmega128rfa1",
+    "LOADER_ADDRESS": "0x1E000",
+
+    "FW_INFO_ADDR": "0x1FC",
+
+    "BUILD_NUMBER_FILE": "buildnumber.txt",
+
+    "_comment": "Additional libraries to include with the build",
+    "LIBRARIES": ["hal_atmega128rfa1"]
+}
