@@ -133,13 +133,21 @@
 #define INCLUDE_ASSERTS
 
 
-// usartd0 spi
-#define SPI_MOSI_PORT PORTD
-#define SPI_MISO_PORT PORTD
-#define SPI_SCK_PIN 1
-#define SPI_MISO_PIN 2
-#define SPI_MOSI_PIN 3
-#define SPI_IO_PORT PORTD
-#define SPI_PORT USARTD0
+// portb spi
+#define SPI_DDR DDRB
+#define SPI_PORT PORTB
+#define SPI_PIN PINB
+#define SPI_SS PINB0
+#define SPI_MOSI PINB2
+#define SPI_MISO PINB3
+#define SPI_SCK PINB1
+
+#define FLASH_CS_DDR DDRB
+#define FLASH_CS_PORT PORTB
+#define FLASH_CS_PIN 5
+
+#define FLASH_WP_DDR DDRB
+#define FLASH_WP_PORT PORTB
+#define FLASH_WP_PIN 4
 
 #endif

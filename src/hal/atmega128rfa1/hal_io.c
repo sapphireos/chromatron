@@ -31,75 +31,63 @@
 
 #include "hal_io.h"
 
-// static io_int_handler_t int_handlers[IO_N_INT_HANDLERS];
+typedef struct{
+    volatile uint8_t *port_reg;
+    volatile uint8_t *pin_reg;
+    volatile uint8_t *ddr_reg;
+    uint8_t pin;
+    uint8_t type;
+} pin_map_t;
 
 
-// used by ESP8266
-// ISR(PORTA_INT0_vect){
-// OS_IRQ_BEGIN(PORTA_INT0_vect);
+static const PROGMEM pin_map_t pin_map[] = {
+    //{0, 0, 0, 0, 0},                                                                                  // 1 - V+
+    //{0, 0, 0, 0, 0},                                                                                  // 2 - G
+    {&PORTE, &PINE, &DDRE, 0, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 3 - RX
+    {&PORTE, &PINE, &DDRE, 1, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 4 - TX
+    {&PORTE, &PINE, &DDRE, 3, IO_TYPE_INPUT | IO_TYPE_OUTPUT | IO_TYPE_ANALOG_OUT},                     // 5 - P0
+    {&PORTE, &PINE, &DDRE, 4, IO_TYPE_INPUT | IO_TYPE_OUTPUT | IO_TYPE_ANALOG_OUT},                     // 6 - P1
+    {&PORTE, &PINE, &DDRE, 5, IO_TYPE_INPUT | IO_TYPE_OUTPUT | IO_TYPE_ANALOG_OUT},                     // 7 - P2
+    //{0, 0, 0, 0, 0},                                                                                  // 8 - G
+    {&PORTF, &PINF, &DDRF, 0, IO_TYPE_INPUT | IO_TYPE_OUTPUT | IO_TYPE_ANALOG_IN},                      // 9 - A0
+    {&PORTF, &PINF, &DDRF, 1, IO_TYPE_INPUT | IO_TYPE_OUTPUT | IO_TYPE_ANALOG_IN},                      // 10 - A1
+    {&PORTF, &PINF, &DDRF, 2, IO_TYPE_INPUT | IO_TYPE_OUTPUT | IO_TYPE_ANALOG_IN},                      // 11 - A2
+    {&PORTF, &PINF, &DDRF, 3, IO_TYPE_INPUT | IO_TYPE_OUTPUT | IO_TYPE_ANALOG_IN},                      // 12 - A3
+    {&PORTF, &PINF, &DDRF, 4, IO_TYPE_INPUT | IO_TYPE_OUTPUT | IO_TYPE_ANALOG_IN},                      // 13 - A4
+    {&PORTF, &PINF, &DDRF, 5, IO_TYPE_INPUT | IO_TYPE_OUTPUT | IO_TYPE_ANALOG_IN},                      // 14 - A5
+    {&PORTF, &PINF, &DDRF, 6, IO_TYPE_INPUT | IO_TYPE_OUTPUT | IO_TYPE_ANALOG_IN},                      // 15 - A6
+    {&PORTF, &PINF, &DDRF, 7, IO_TYPE_INPUT | IO_TYPE_OUTPUT | IO_TYPE_ANALOG_IN},                      // 16 - A7
     
+    {&PORTG, &PING, &DDRG, 0, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 17 - D0
+    {&PORTG, &PING, &DDRG, 1, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 18 - D1
+    {&PORTG, &PING, &DDRG, 2, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 19 - D2
+    {&PORTG, &PING, &DDRG, 5, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 20 - D3
+    {&PORTD, &PIND, &DDRD, 0, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 21 - D4
+    {&PORTD, &PIND, &DDRD, 1, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 22 - D5
+    {&PORTD, &PIND, &DDRD, 2, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 23 - D6
+    {&PORTD, &PIND, &DDRD, 3, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 24 - D7
+    //{0, 0, 0, 0},                                                                                     // 25 - G
+    {&PORTB, &PINB, &DDRB, 0, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 26 - S0
+    {&PORTB, &PINB, &DDRB, 1, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 27 - S1
+    {&PORTB, &PINB, &DDRB, 2, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 28 - S2
+    {&PORTB, &PINB, &DDRB, 3, IO_TYPE_INPUT | IO_TYPE_OUTPUT},                                          // 29 - S3
+    //{0, 0, 0, 0, 0},                                                                                  // 30 - RST
+    //{0, 0, 0, 0, 0},                                                                                  // 31 - G
+    //{0, 0, 0, 0, 0},                                                                                  // 32 - VCC
+    {&PORTD, &PIND, &DDRD, 5, IO_TYPE_OUTPUT},                                                          // 33 - LED0
+    {&PORTD, &PIND, &DDRD, 6, IO_TYPE_OUTPUT},                                                          // 34 - LED1
+    {&PORTD, &PIND, &DDRD, 7, IO_TYPE_OUTPUT},                                                          // 35 - LED2
     
-// OS_IRQ_END();
-// }
-
-// ISR(PORTA_INT1_vect){
-// OS_IRQ_BEGIN(PORTA_INT1_vect);
-    
-//     if( int_handlers[0] != 0 ){
-        
-//         int_handlers[0]();
-//     } 
-    
-// OS_IRQ_END();
-// }
-
-// ISR(PORTB_INT0_vect){
-// OS_IRQ_BEGIN(PORTB_INT0_vect);
-
-//     if( int_handlers[1] != 0 ){
-        
-//         int_handlers[1]();
-//     } 
-        
-// OS_IRQ_END();
-// }
-
-// ISR(PORTC_INT0_vect){
-// OS_IRQ_BEGIN(PORTC_INT0_vect);
-    
-//     if( int_handlers[2] != 0 ){
-        
-//         int_handlers[2]();
-//     } 
-    
-// OS_IRQ_END();
-// }
-
-// ISR(PORTC_INT1_vect){
-// OS_IRQ_BEGIN(PORTC_INT1_vect);
-
-//     if( int_handlers[3] != 0 ){
-        
-//         int_handlers[3]();
-//     } 
-        
-// OS_IRQ_END();
-// }
-
-
-
-
+    {&PORTE, &PINE, &DDRE, 2, IO_TYPE_INPUT},                                                           // 36 - HW ID
+};
 
 
 void io_v_init( void ){
 
-    // init hw rev pins
-    // HW_REV0_PORT.DIRCLR = ( 1 << HW_REV0_PIN );
-    // HW_REV1_PORT.DIRCLR = ( 1 << HW_REV1_PIN );
-    
-    // // enable pullups
-    // HW_REV0_PORT.HW_REV0_PINCTRL = PORT_OPC_PULLUP_gc;
-    // HW_REV1_PORT.HW_REV1_PINCTRL = PORT_OPC_PULLUP_gc;
+    // set all LEDs to outputs
+    io_v_set_mode( IO_PIN_LED0, IO_MODE_OUTPUT );
+    io_v_set_mode( IO_PIN_LED1, IO_MODE_OUTPUT );
+    io_v_set_mode( IO_PIN_LED2, IO_MODE_OUTPUT );
 
     // set all other pins to inputs pulled down
     for( uint8_t i = 0; i < IO_PIN_COUNT; i++ ){
@@ -110,19 +98,16 @@ void io_v_init( void ){
 
 uint8_t io_u8_get_board_rev( void ){
 
-    uint8_t rev = 0;
-
-    // if( HW_REV0_PORT.IN & ( 1 << HW_REV0_PIN ) ){
-
-    //     rev |= 1;
-    // }
-
-    // if( HW_REV1_PORT.IN & ( 1 << HW_REV1_PIN ) ){
-
-    //     rev |= 2;
-    // }
-
-    return rev;
+    // enable id pin is input
+    io_v_set_mode( IO_PIN_HW_ID, IO_MODE_INPUT_PULLUP );
+    
+    // read hw id pin strapping
+    if( io_b_digital_read( IO_PIN_HW_ID ) == LOW ){
+        
+        return 1;
+    }
+    
+    return 0;
 }
 
 // io_port_t* io_p_get_port( uint8_t pin ){
@@ -268,502 +253,88 @@ uint8_t io_u8_get_pin( uint8_t pin ){
 
 void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
 
-    // PORT_t *port;
-    // uint8_t pin_mask = 0;
-
-    // switch( pin ){
-
-    //     case IO_PIN_0_GPIO:
-    //         port = &IO_PIN0_PORT;
-    //         pin_mask = IO_PIN0_PIN;
-    //         break;
-
-    //     case IO_PIN_1_XCK:
-    //         port = &IO_PIN1_PORT;
-    //         pin_mask = IO_PIN1_PIN;
-    //         break;
-
-    //     case IO_PIN_2_TXD:
-    //         port = &IO_PIN2_PORT;
-    //         pin_mask = IO_PIN2_PIN;
-    //         break;
-
-    //     case IO_PIN_3_RXD:
-    //         port = &IO_PIN3_PORT;
-    //         pin_mask = IO_PIN3_PIN;
-    //         break;
-
-    //     case IO_PIN_4_ADC0:
-    //         port = &IO_PIN4_PORT;
-    //         pin_mask = IO_PIN4_PIN;
-    //         break;
-
-    //     case IO_PIN_5_ADC1:
-    //         port = &IO_PIN5_PORT;
-    //         pin_mask = IO_PIN5_PIN;
-    //         break;
-
-    //     case IO_PIN_6_DAC0:
-    //         port = &IO_PIN6_PORT;
-    //         pin_mask = IO_PIN6_PIN;
-    //         break;
-
-    //     case IO_PIN_7_DAC1:
-    //         port = &IO_PIN7_PORT;
-    //         pin_mask = IO_PIN7_PIN;
-    //         break;
-
-    //     case IO_PIN_PWM_0:
-    //         port = &IO_PWM0_PORT;
-    //         pin_mask = IO_PWM0_PIN;
-    //         break;
-
-    //     case IO_PIN_PWM_1:
-    //         port = &IO_PWM1_PORT;
-    //         pin_mask = IO_PWM1_PIN;
-    //         break;
+    pin_map_t mapping;
+    memcpy_P( &mapping, &pin_map[pin], sizeof(mapping) );
+    
+    // check current mode
+    // see section 14.2.4 of the ATMega128RFA1 data sheet:
+    // switching from input states to output states requires
+    // an intermediate transition.
+    // Note we're actually covering additional transistions for simplicity,
+    // we only need to cover high Z to output 1 and pull up to output 0.
+    // However, we're always going to transition through the alternate input
+    // state before switching, it makes the code much simpler.
+    // input tristate:
+    if( ( ( *mapping.ddr_reg & _BV(mapping.pin) ) == 0 ) &&
+        ( ( *mapping.port_reg & _BV(mapping.pin) ) == 0 ) ){
         
-    //     case IO_PIN_PWM_2:
-    //         port = &IO_PWM2_PORT;
-    //         pin_mask = IO_PWM2_PIN;
-    //         break;
+        // set to input pull up
+        *mapping.port_reg |= _BV(mapping.pin);
+    }
+    // input pull up:
+    else if( ( ( *mapping.ddr_reg & _BV(mapping.pin) ) == 0 ) &&
+             ( ( *mapping.port_reg & _BV(mapping.pin) ) != 0 ) ){
         
-    //     case IO_PIN_PWM_3:
-    //         port = &IO_PWM3_PORT;
-    //         pin_mask = IO_PWM3_PIN;
-    //         break;
+        // set to input high Z
+        *mapping.port_reg &= ~_BV(mapping.pin);
+    }
 
-    //     case IO_PIN_LED_RED:
-    //         port = &IO_LED_RED_PORT;
-    //         pin_mask = IO_LED_RED_PIN;
-    //         break;
+    if( mode == IO_MODE_INPUT ){
+        
+        // DDR to input
+        *mapping.ddr_reg &= ~_BV(mapping.pin);
 
-    //     case IO_PIN_LED_GREEN:
-    //         port = &IO_LED_GREEN_PORT;
-    //         pin_mask = IO_LED_GREEN_PIN;
-    //         break;
-
-    //     case IO_PIN_LED_BLUE:
-    //         port = &IO_LED_BLUE_PORT;
-    //         pin_mask = IO_LED_BLUE_PIN;
-    //         break;
-
-    //     default:
-    //         return;
-    //         break;
-    // }
-
-    // uint8_t pinctrl = 0;
-
-    // if( mode >= IO_MODE_OUTPUT ){
-
-    //     if( mode == IO_MODE_OUTPUT_OPEN_DRAIN ){
-
-    //         pinctrl = PORT_OPC_WIREDAND_gc;
-    //     }
-    // }
-    // else{
-
-    //     if( mode == IO_MODE_INPUT_PULLUP ){
-
-    //         pinctrl = PORT_OPC_PULLUP_gc;
-    //     }
-    //     else if( mode == IO_MODE_INPUT_PULLDOWN ){
-
-    //         pinctrl = PORT_OPC_PULLDOWN_gc;
-    //     }
-    // }
-
-    // switch( pin_mask ){
-    //     case 0:
-    //         port->PIN0CTRL = pinctrl;
-    //         break;
-
-    //     case 1:
-    //         port->PIN1CTRL = pinctrl;
-    //         break;
-
-    //     case 2:
-    //         port->PIN2CTRL = pinctrl;
-    //         break;
-
-    //     case 3:
-    //         port->PIN3CTRL = pinctrl;
-    //         break;
-
-    //     case 4:
-    //         port->PIN4CTRL = pinctrl;
-    //         break;
-
-    //     case 5:
-    //         port->PIN5CTRL = pinctrl;
-    //         break;
-
-    //     case 6:
-    //         port->PIN6CTRL = pinctrl;
-    //         break;
-
-    //     case 7:
-    //         port->PIN7CTRL = pinctrl;
-    //         break;
-
-    //     default:
-    //         break;
-    // }
-
-    // if( mode >= IO_MODE_OUTPUT ){
-
-    //     port->DIRSET = ( 1 << pin_mask );
-    // }
-    // else{
-
-    //     port->DIRCLR = ( 1 << pin_mask );
-    // }
+        // PORT to High Z
+        *mapping.port_reg &= ~_BV(mapping.pin);
+    }
+    else if( mode == IO_MODE_INPUT_PULLUP ){
+        
+        // DDR to input
+        *mapping.ddr_reg &= ~_BV(mapping.pin);
+        
+        // PORT to pull up
+        *mapping.port_reg |= _BV(mapping.pin);
+    }
+    else if( mode == IO_MODE_OUTPUT ){
+        
+        // DDR to output
+        *mapping.ddr_reg |= _BV(mapping.pin);
+        
+        // set pin to output low
+        *mapping.port_reg &= ~_BV(mapping.pin);
+    }
+    else{
+        
+        ASSERT( FALSE );
+    }
 }
 
-
 io_mode_t8 io_u8_get_mode( uint8_t pin ){
-
-    // PORT_t *port;
-    // uint8_t pin_mask = 0;
-
-    // switch( pin ){
-
-    //     case IO_PIN_0_GPIO:
-    //         port = &IO_PIN0_PORT;
-    //         pin_mask = IO_PIN0_PIN;
-    //         break;
-
-    //     case IO_PIN_1_XCK:
-    //         port = &IO_PIN1_PORT;
-    //         pin_mask = IO_PIN1_PIN;
-    //         break;
-
-    //     case IO_PIN_2_TXD:
-    //         port = &IO_PIN2_PORT;
-    //         pin_mask = IO_PIN2_PIN;
-    //         break;
-
-    //     case IO_PIN_3_RXD:
-    //         port = &IO_PIN3_PORT;
-    //         pin_mask = IO_PIN3_PIN;
-    //         break;
-
-    //     case IO_PIN_4_ADC0:
-    //         port = &IO_PIN4_PORT;
-    //         pin_mask = IO_PIN4_PIN;
-    //         break;
-
-    //     case IO_PIN_5_ADC1:
-    //         port = &IO_PIN5_PORT;
-    //         pin_mask = IO_PIN5_PIN;
-    //         break;
-
-    //     case IO_PIN_6_DAC0:
-    //         port = &IO_PIN6_PORT;
-    //         pin_mask = IO_PIN6_PIN;
-    //         break;
-
-    //     case IO_PIN_7_DAC1:
-    //         port = &IO_PIN7_PORT;
-    //         pin_mask = IO_PIN7_PIN;
-    //         break;
-
-    //     case IO_PIN_PWM_0:
-    //         port = &IO_PWM0_PORT;
-    //         pin_mask = IO_PWM0_PIN;
-    //         break;
-
-    //     case IO_PIN_PWM_1:
-    //         port = &IO_PWM1_PORT;
-    //         pin_mask = IO_PWM1_PIN;
-    //         break;
-        
-    //     case IO_PIN_PWM_2:
-    //         port = &IO_PWM2_PORT;
-    //         pin_mask = IO_PWM2_PIN;
-    //         break;
-        
-    //     case IO_PIN_PWM_3:
-    //         port = &IO_PWM3_PORT;
-    //         pin_mask = IO_PWM3_PIN;
-    //         break;
-
-    //     case IO_PIN_LED_RED:
-    //         port = &IO_LED_RED_PORT;
-    //         pin_mask = IO_LED_RED_PIN;
-    //         break;
-
-    //     case IO_PIN_LED_GREEN:
-    //         port = &IO_LED_GREEN_PORT;
-    //         pin_mask = IO_LED_GREEN_PIN;
-    //         break;
-
-    //     case IO_PIN_LED_BLUE:
-    //         port = &IO_LED_BLUE_PORT;
-    //         pin_mask = IO_LED_BLUE_PIN;
-    //         break;
-
-        
-    //     default:
-    //         return 0;
-    //         break;
-    // }
-
-    // uint8_t pinctrl = 0;
-
-    // switch( pin_mask ){
-    //     case 0:
-    //         pinctrl = port->PIN0CTRL;
-    //         break;
-
-    //     case 1:
-    //         pinctrl = port->PIN1CTRL;
-    //         break;
-
-    //     case 2:
-    //         pinctrl = port->PIN2CTRL;
-    //         break;
-
-    //     case 3:
-    //         pinctrl = port->PIN3CTRL;
-    //         break;
-
-    //     case 4:
-    //         pinctrl = port->PIN4CTRL;
-    //         break;
-
-    //     case 5:
-    //         pinctrl = port->PIN5CTRL;
-    //         break;
-
-    //     case 6:
-    //         pinctrl = port->PIN6CTRL;
-    //         break;
-
-    //     case 7:
-    //         pinctrl = port->PIN7CTRL;
-    //         break;
-
-    //     default:
-    //         break;
-    // }
-
-    // // check if output
-    // if( port->DIR & ( 1 << pin_mask ) ){
-
-    //     if( ( pinctrl & PORT_OPC_gm ) ==PORT_OPC_WIREDAND_gc ){
-
-    //         return IO_MODE_OUTPUT_OPEN_DRAIN;
-    //     }
-
-    //     return IO_MODE_OUTPUT;
-    // }
-    // // input
-    // else{
-
-    //     if( ( pinctrl & PORT_OPC_gm ) == PORT_OPC_PULLUP_gc ){
-
-    //         return IO_MODE_INPUT_PULLUP;            
-    //     }
-    //     else if( ( pinctrl & PORT_OPC_gm ) == PORT_OPC_PULLDOWN_gc ){
-
-    //         return IO_MODE_INPUT_PULLDOWN;            
-    //     }
-
-    //     return IO_MODE_INPUT;
-    // }
 
     return 0;
 }
 
 void io_v_digital_write( uint8_t pin, bool state ){
 
-    // PORT_t *port;
-    // uint8_t pin_mask = 0;
-
-    // switch( pin ){
-
-    //     case IO_PIN_0_GPIO:
-    //         port = &IO_PIN0_PORT;
-    //         pin_mask = IO_PIN0_PIN;
-    //         break;
-
-    //     case IO_PIN_1_XCK:
-    //         port = &IO_PIN1_PORT;
-    //         pin_mask = IO_PIN1_PIN;
-    //         break;
-
-    //     case IO_PIN_2_TXD:
-    //         port = &IO_PIN2_PORT;
-    //         pin_mask = IO_PIN2_PIN;
-    //         break;
-
-    //     case IO_PIN_3_RXD:
-    //         port = &IO_PIN3_PORT;
-    //         pin_mask = IO_PIN3_PIN;
-    //         break;
-
-    //     case IO_PIN_4_ADC0:
-    //         port = &IO_PIN4_PORT;
-    //         pin_mask = IO_PIN4_PIN;
-    //         break;
-
-    //     case IO_PIN_5_ADC1:
-    //         port = &IO_PIN5_PORT;
-    //         pin_mask = IO_PIN5_PIN;
-    //         break;
-
-    //     case IO_PIN_6_DAC0:
-    //         port = &IO_PIN6_PORT;
-    //         pin_mask = IO_PIN6_PIN;
-    //         break;
-
-    //     case IO_PIN_7_DAC1:
-    //         port = &IO_PIN7_PORT;
-    //         pin_mask = IO_PIN7_PIN;
-    //         break;
-
-    //     case IO_PIN_PWM_0:
-    //         port = &IO_PWM0_PORT;
-    //         pin_mask = IO_PWM0_PIN;
-    //         break;
-
-    //     case IO_PIN_PWM_1:
-    //         port = &IO_PWM1_PORT;
-    //         pin_mask = IO_PWM1_PIN;
-    //         break;
-
-    //     case IO_PIN_PWM_2:
-    //         port = &IO_PWM2_PORT;
-    //         pin_mask = IO_PWM2_PIN;
-    //         break;
-
-    //     case IO_PIN_PWM_3:
-    //         port = &IO_PWM3_PORT;
-    //         pin_mask = IO_PWM3_PIN;
-    //         break;
-
-    //     case IO_PIN_LED_RED:
-    //         port = &IO_LED_RED_PORT;
-    //         pin_mask = IO_LED_RED_PIN;
-    //         break;
-
-    //     case IO_PIN_LED_GREEN:
-    //         port = &IO_LED_GREEN_PORT;
-    //         pin_mask = IO_LED_GREEN_PIN;
-    //         break;
-
-    //     case IO_PIN_LED_BLUE:
-    //         port = &IO_LED_BLUE_PORT;
-    //         pin_mask = IO_LED_BLUE_PIN;
-    //         break;
-
-
-    //     default:
-    //         return;
-    //         break;
-    // }
-
-    // if( state ){
-
-    //     port->OUTSET = ( 1 << pin_mask );
-    // }
-    // else{
-
-    //     port->OUTCLR = ( 1 << pin_mask );
-    // }
+    pin_map_t mapping;
+    memcpy_P( &mapping, &pin_map[pin], sizeof(mapping) );
+    
+    if( state ){
+        
+        *mapping.port_reg |= _BV(mapping.pin);
+    }
+    else{
+        
+        *mapping.port_reg &= ~_BV(mapping.pin);
+    }
 }
 
 bool io_b_digital_read( uint8_t pin ){
 
-    // PORT_t *port;
-    // uint8_t pin_mask = 0;
-
-    // switch( pin ){
-
-    //     case IO_PIN_0_GPIO:
-    //         port = &IO_PIN0_PORT;
-    //         pin_mask = IO_PIN0_PIN;
-    //         break;
-
-    //     case IO_PIN_1_XCK:
-    //         port = &IO_PIN1_PORT;
-    //         pin_mask = IO_PIN1_PIN;
-    //         break;
-
-    //     case IO_PIN_2_TXD:
-    //         port = &IO_PIN2_PORT;
-    //         pin_mask = IO_PIN2_PIN;
-    //         break;
-
-    //     case IO_PIN_3_RXD:
-    //         port = &IO_PIN3_PORT;
-    //         pin_mask = IO_PIN3_PIN;
-    //         break;
-
-    //     case IO_PIN_4_ADC0:
-    //         port = &IO_PIN4_PORT;
-    //         pin_mask = IO_PIN4_PIN;
-    //         break;
-
-    //     case IO_PIN_5_ADC1:
-    //         port = &IO_PIN5_PORT;
-    //         pin_mask = IO_PIN5_PIN;
-    //         break;
-
-    //     case IO_PIN_6_DAC0:
-    //         port = &IO_PIN6_PORT;
-    //         pin_mask = IO_PIN6_PIN;
-    //         break;
-
-    //     case IO_PIN_7_DAC1:
-    //         port = &IO_PIN7_PORT;
-    //         pin_mask = IO_PIN7_PIN;
-    //         break;
-
-    //     case IO_PIN_PWM_0:
-    //         port = &IO_PWM0_PORT;
-    //         pin_mask = IO_PWM0_PIN;
-    //         break;
-
-    //     case IO_PIN_PWM_1:
-    //         port = &IO_PWM1_PORT;
-    //         pin_mask = IO_PWM1_PIN;
-    //         break;
-
-    //     case IO_PIN_PWM_2:
-    //         port = &IO_PWM2_PORT;
-    //         pin_mask = IO_PWM2_PIN;
-    //         break;
-
-    //     case IO_PIN_PWM_3:
-    //         port = &IO_PWM3_PORT;
-    //         pin_mask = IO_PWM3_PIN;
-    //         break;
-
-    //     case IO_PIN_LED_RED:
-    //         port = &IO_LED_RED_PORT;
-    //         pin_mask = IO_LED_RED_PIN;
-    //         break;
-
-    //     case IO_PIN_LED_GREEN:
-    //         port = &IO_LED_GREEN_PORT;
-    //         pin_mask = IO_LED_GREEN_PIN;
-    //         break;
-
-    //     case IO_PIN_LED_BLUE:
-    //         port = &IO_LED_BLUE_PORT;
-    //         pin_mask = IO_LED_BLUE_PIN;
-    //         break;
-
-
-    //     default:
-    //         return FALSE;
-    //         break;
-    // }
-
-    // return ( port->IN & ( 1 << pin_mask ) ) != 0;
+    pin_map_t mapping;
+    memcpy_P( &mapping, &pin_map[pin], sizeof(mapping) );
+    
+    return ( *mapping.pin_reg & _BV(mapping.pin) ) != 0;
 }
 
 bool io_b_button_down( void ){
@@ -773,6 +344,13 @@ bool io_b_button_down( void ){
 
 void io_v_disable_jtag( void ){
 
+    ATOMIC;
+    
+    // disable JTAG
+    MCUCR |= ( 1 << JTD );
+    MCUCR |= ( 1 << JTD );
+    
+    END_ATOMIC;
 }
 
 void io_v_enable_interrupt(
@@ -781,134 +359,6 @@ void io_v_enable_interrupt(
     io_int_mode_t8 mode )
 {
 
-    // ASSERT( int_number < IO_N_INT_HANDLERS );
-
-    // ATOMIC;
-    
-    // // set interrupt handler
-    // int_handlers[int_number] = handler;
-    
-    // PORT_t *port;
-    // uint8_t pin_mask = 0;
-
-    // switch( pin ){
-
-    //     case IO_PIN_0_GPIO:
-    //         port = &IO_PIN0_PORT;
-    //         pin_mask = IO_PIN0_PIN;
-    //         break;
-
-    //     case IO_PIN_1_XCK:
-    //         port = &IO_PIN1_PORT;
-    //         pin_mask = IO_PIN1_PIN;
-    //         break;
-
-    //     case IO_PIN_2_TXD:
-    //         port = &IO_PIN2_PORT;
-    //         pin_mask = IO_PIN2_PIN;
-    //         break;
-
-    //     case IO_PIN_3_RXD:
-    //         port = &IO_PIN3_PORT;
-    //         pin_mask = IO_PIN3_PIN;
-    //         break;
-
-    //     case IO_PIN_4_ADC0:
-    //         port = &IO_PIN4_PORT;
-    //         pin_mask = IO_PIN4_PIN;
-    //         break;
-
-    //     case IO_PIN_5_ADC1:
-    //         port = &IO_PIN5_PORT;
-    //         pin_mask = IO_PIN5_PIN;
-    //         break;
-
-    //     case IO_PIN_6_DAC0:
-    //         port = &IO_PIN6_PORT;
-    //         pin_mask = IO_PIN6_PIN;
-    //         break;
-
-    //     case IO_PIN_7_DAC1:
-    //         port = &IO_PIN7_PORT;
-    //         pin_mask = IO_PIN7_PIN;
-    //         break;
-
-    //     default:
-    //         return;
-    //         break;
-    // }
-
-    // uint8_t pinctrl = 0;
-        
-    // switch( mode ){
-    //     case IO_INT_LOW:
-    //         pinctrl = PORT_ISC_LEVEL_gc;
-    //         break;
-
-    //     case IO_INT_CHANGE:
-    //         pinctrl = PORT_ISC_BOTHEDGES_gc;
-    //         break;
-
-    //     case IO_INT_FALLING:
-    //         pinctrl = PORT_ISC_FALLING_gc;
-    //         break;
-
-    //     case IO_INT_RISING:
-    //         pinctrl = PORT_ISC_RISING_gc;
-    //         break;
-        
-    //     default:
-    //         break;
-    // }
-
-    // switch( pin_mask ){
-    //     case 0:
-    //         port->PIN0CTRL &= ~PORT_ISC_INPUT_DISABLE_gc;
-    //         port->PIN0CTRL |= pinctrl;
-    //         break;
-
-    //     case 1:
-    //         port->PIN0CTRL &= ~PORT_ISC_INPUT_DISABLE_gc;
-    //         port->PIN1CTRL |= pinctrl;
-    //         break;
-
-    //     case 2:
-    //         port->PIN0CTRL &= ~PORT_ISC_INPUT_DISABLE_gc;
-    //         port->PIN2CTRL |= pinctrl;
-    //         break;
-
-    //     case 3:
-    //         port->PIN0CTRL &= ~PORT_ISC_INPUT_DISABLE_gc;
-    //         port->PIN3CTRL |= pinctrl;
-    //         break;
-
-    //     case 4:
-    //         port->PIN0CTRL &= ~PORT_ISC_INPUT_DISABLE_gc;
-    //         port->PIN4CTRL |= pinctrl;
-    //         break;
-
-    //     case 5:
-    //         port->PIN0CTRL &= ~PORT_ISC_INPUT_DISABLE_gc;
-    //         port->PIN5CTRL |= pinctrl;
-    //         break;
-
-    //     case 6:
-    //         port->PIN0CTRL &= ~PORT_ISC_INPUT_DISABLE_gc;
-    //         port->PIN6CTRL |= pinctrl;
-    //         break;
-
-    //     case 7:
-    //         port->PIN0CTRL &= ~PORT_ISC_INPUT_DISABLE_gc;
-    //         port->PIN7CTRL |= pinctrl;
-    //         break;
-
-    //     default:
-    //         break;
-    // }
-
-    
-
-    // END_ATOMIC;
 }
 
 void io_v_disable_interrupt( uint8_t int_number )

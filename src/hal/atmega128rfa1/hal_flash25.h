@@ -24,22 +24,13 @@
 #define _HAL_FLASH25_H
 
 
-// #define FLASH_CS_DDR PORTD.DIR
-// #define FLASH_CS_PORT PORTD.OUT
-// #define FLASH_CS_PIN 0
+#define CHIP_ENABLE()       FLASH_CS_PORT &= ~_BV( FLASH_CS_PIN )
+#define CHIP_DISABLE()      FLASH_CS_PORT |= _BV( FLASH_CS_PIN )
 
-// #define CHIP_ENABLE() FLASH_CS_PORT &= ~( 1 << FLASH_CS_PIN )
-// #define CHIP_DISABLE() FLASH_CS_PORT |= ( 1 << FLASH_CS_PIN )
+#define WRITE_PROTECT()     FLASH_WP_PORT &= ~_BV( FLASH_WP_PIN )
+#define WRITE_UNPROTECT()   FLASH_WP_PORT |= _BV( FLASH_WP_PIN )
 
-#define CHIP_ENABLE()
-#define CHIP_DISABLE()
-
-#define WRITE_PROTECT()
-#define WRITE_UNPROTECT()
-
-
-// #define AAI_STATUS() ( SPI_MISO_PORT.IN & ( 1 << SPI_MISO_PIN ) )
-#define AAI_STATUS() ( 0 )
+#define AAI_STATUS()        ( SPI_PIN & _BV(SPI_MISO) )
 
 
 void hal_flash25_v_init( void );

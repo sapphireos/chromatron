@@ -26,7 +26,7 @@
 #include <avr/pgmspace.h>
 
 #define TRACE_BUF_SIZE 256
-#define trace_printf(format, ...) _trace_printf(PSTR(format), ##__VA_ARGS__)
+#define trace_printf(format, ...) //_trace_printf(PSTR(format), ##__VA_ARGS__)
 
 int _trace_printf(PGM_P format, ...);
 int trace_printf_ram(const char* format, ...);

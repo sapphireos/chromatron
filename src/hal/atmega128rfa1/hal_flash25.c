@@ -35,12 +35,6 @@ This module provides a low level SPI driver for 25 series flash memory.
 
 */
 
-// this driver is set up to use the USART in master SPI mode
-
-// these bits in USART.CTRLC seem to be missing from the IO header
-// #define UDORD 2
-// #define UCPHA 1
-
 static inline void flash_spi_v_init( void );
 static inline uint8_t flash_spi_u8_send( uint8_t data ) __attribute__((always_inline));
 static inline void flash_spi_v_write_block( const uint8_t *data, uint16_t length ) __attribute__((always_inline));
@@ -49,112 +43,76 @@ static inline void flash_spi_v_read_block( uint8_t *data, uint16_t length ) __at
 
 static inline void flash_spi_v_init( void ){
 
-    // // set TX and XCK pins to output
-    // SPI_IO_PORT.DIR |= ( 1 << SPI_SCK_PIN ) | ( 1 << SPI_MOSI_PIN );
+    // set CS to output
+    FLASH_CS_DDR |= _BV(FLASH_CS_PIN);
+    
+    // set WP to output
+    FLASH_WP_DDR |= _BV(FLASH_WP_PIN);
 
-    // // set RXD to input
-    // SPI_IO_PORT.DIR &= ~( 1 << SPI_MISO_PIN );
-
-    // // set USART to master SPI mode 0
-    // SPI_PORT.CTRLC = USART_CMODE_MSPI_gc | ( 0 << UDORD ) | ( 0 << UCPHA );
-
-    // // BAUDCTRLA is low byte of BSEL
-    // // SPI clock = Fper / ( 2 * ( BSEL + 1 ) )
-    // // Fper will generally be 32 MHz
-
-    // // set rate to 16 MHz
-    // SPI_PORT.BAUDCTRLA = 0;
-    // SPI_PORT.BAUDCTRLB = 0;
-
-    // // 4 MHz
-    // // SPI_PORT.BAUDCTRLA = 3;
-
-    // // enable TX and RX
-    // SPI_PORT.CTRLB = USART_RXEN_bm | USART_TXEN_bm;
+    // init spi port
+    SPI_DDR |= (1<<SPI_MOSI)|(1<<SPI_SCK)|(1<<SPI_SS);
+    SPSR |= _BV(SPI2X); // set double speed bit
+    SPCR = (0<<SPIE)|(1<<SPE)|(0<<DORD)|(1<<MSTR)|(0<<CPOL)|(0<<CPHA)|(0<<SPR1)|(0<<SPR0); // SCK / 2
 }
 
 static inline uint8_t flash_spi_u8_send( uint8_t data ){
 
-    // SPI_PORT.DATA = data;
+    uint8_t returnvar;
+    
+    ATOMIC;
+    SPDR = data;
+    END_ATOMIC;
+    
+    loop_until_bit_is_set(SPSR,SPIF);
+    returnvar = SPDR;
 
-    // BUSY_WAIT( ( SPI_PORT.STATUS & USART_TXCIF_bm ) == 0 );
-    // SPI_PORT.STATUS = USART_TXCIF_bm;
-
-    // return SPI_PORT.DATA;
+    return returnvar;
 }
 
 static inline void flash_spi_v_write_block( const uint8_t *data, uint16_t length ){
 
-/*    uint8_t dummy;
-
     while( length > 0 ){
-
+        
         // send the data
-        SPI_PORT.DATA = *data;
-
+        SPDR = *data;
+        
         // while the data is being sent, update the data pointer,
-        // length counter, and then wait for transmission to complete
+        // length counter, and then wait for transmission to complete   
         data++;
         length--;
-
-        BUSY_WAIT( ( SPI_PORT.STATUS & USART_TXCIF_bm ) == 0 );
-        SPI_PORT.STATUS = USART_TXCIF_bm;
-
-
-        // because there is a FIFO in the UART, we need to read data
-        // (and throw away), otherwise the next read will be corrupted.
-        dummy = SPI_PORT.DATA;
-    }*/
+        loop_until_bit_is_set(SPSR,SPIF);
+    }
 }
 
 // read a block of data from the SPI port.
 static inline void flash_spi_v_read_block( uint8_t *data, uint16_t length ){
 
     // start initial transfer
-    // SPI_PORT.DATA = 0;
-
-    // while( length > 1 ){
-
-    //     // wait until transfer is complete
-    //     BUSY_WAIT( ( SPI_PORT.STATUS & USART_TXCIF_bm ) == 0 );
-    //     SPI_PORT.STATUS = USART_TXCIF_bm;
-
-    //     // read the data byte
-    //     *data = SPI_PORT.DATA;
-
-    //     // start the next transfer
-    //     SPI_PORT.DATA = 0;
-
-    //     // decrement length and advance pointer
-    //     length--;
-    //     data++;
-    // }
-    // // loop terminates with one byte left
-
-    // // wait until transfer is complete
-    // BUSY_WAIT( ( SPI_PORT.STATUS & USART_TXCIF_bm ) == 0 );
-    // SPI_PORT.STATUS = USART_TXCIF_bm;
-
-    // // read last data byte
-    // *data = SPI_PORT.DATA;
+    SPDR = 0;
+    
+    while( length > 1 ){
+        
+        // wait until transfer is complete
+        loop_until_bit_is_set(SPSR,SPIF);
+        
+        // read the data byte
+        *data = SPDR;
+        
+        // start the next transfer
+        SPDR = 0;
+        
+        // decrement length and advance pointer
+        length--;
+        data++;
+    }
+    // loop terminates with one byte left
+    
+    // wait until transfer is complete
+    loop_until_bit_is_set(SPSR,SPIF);
+    
+    // read last data byte
+    *data = SPDR;
 }
-
-#ifdef __SIM__
-    #define FLASH_FS_N_ERASE_BLOCKS			128
-    // array size is the size of the entire flash memory array
-    #define FLASH_FS_ARRAY_SIZE				( (uint32_t)FLASH_FS_N_ERASE_BLOCKS * (uint32_t)FLASH_FS_ERASE_BLOCK_SIZE )
-
-
-    #define CHIP_ENABLE()
-    #define CHIP_DISABLE()
-
-    #define WRITE_PROTECT()
-    #define WRITE_UNPROTECT()
-
-    #define AAI_STATUS()        ( 1 )
-
-    static uint8_t array[524288];
-#endif
 
 extern uint16_t block0_unlock;
 static bool aai_write_enabled;
@@ -163,51 +121,49 @@ static uint32_t max_address;
 
 void hal_flash25_v_init( void ){
 
-    // // init SPI port
-    // flash_spi_v_init();
-
-    // // set CS to output
-    // FLASH_CS_DDR |= ( 1 << FLASH_CS_PIN );
-
-    // CHIP_DISABLE();
+    // init SPI port
+    flash_spi_v_init();
 
 
-    // // enable the write protect
-    // WRITE_PROTECT();
+    CHIP_DISABLE();
 
-    // // set the CS line to inactive
-    // CHIP_DISABLE();
 
-    // // send write disable
-    // flash25_v_write_disable();
+    // enable the write protect
+    WRITE_PROTECT();
 
-    // flash25_device_info_t info;
-    // flash25_v_read_device_info( &info );
+    // set the CS line to inactive
+    CHIP_DISABLE();
 
-    // if( info.mfg_id == FLASH_MFG_SST ){
+    // send write disable
+    flash25_v_write_disable();
 
-    //     aai_write_enabled = TRUE;
-    // }
+    flash25_device_info_t info;
+    flash25_v_read_device_info( &info );
 
-    // if( aai_write_enabled ){
+    if( info.mfg_id == FLASH_MFG_SST ){
 
-    //     // disable busy status output on SO line
-    //     CHIP_ENABLE();
-    //     flash_spi_u8_send( FLASH_CMD_DBUSY );
-    //     CHIP_DISABLE();
-    // }
+        aai_write_enabled = TRUE;
+    }
 
-    // // read max address
-    // max_address = flash25_u32_read_capacity_from_info();
+    if( aai_write_enabled ){
 
-    // // enable writes
-    // flash25_v_write_enable();
+        // disable busy status output on SO line
+        CHIP_ENABLE();
+        flash_spi_u8_send( FLASH_CMD_DBUSY );
+        CHIP_DISABLE();
+    }
 
-    // // clear block protection bits
-    // flash25_v_write_status( 0x00 );
+    // read max address
+    max_address = flash25_u32_read_capacity_from_info();
 
-    // // disable writes
-    // flash25_v_write_disable();
+    // enable writes
+    flash25_v_write_enable();
+
+    // clear block protection bits
+    flash25_v_write_status( 0x00 );
+
+    // disable writes
+    flash25_v_write_disable();
 }
 
 uint8_t flash25_u8_read_status( void ){
@@ -575,8 +531,6 @@ void flash25_v_erase_chip( void ){
 
     #else
 
-	// #ifndef FLASH_ENABLE_BLOCK_0
-
     uint32_t array_size = flash25_u32_capacity();
 
 	// block 0 disabled, skip block 0
@@ -586,19 +540,6 @@ void flash25_v_erase_chip( void ){
         flash25_v_write_enable();
         flash25_v_erase_4k( i );
     }
- //    #else
-	// // block 0 enabled, we can use chip erase command
-
-	// BUSY_WAIT( flash25_b_busy() );
-
-	// CHIP_ENABLE();
-
-	// flash_spi_u8_send( FLASH_CMD_CHIP_ERASE );
-
-	// CHIP_DISABLE();
-
-	// #endif
-
     #endif
 }
 
