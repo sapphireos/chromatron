@@ -202,6 +202,15 @@ void sock_v_clear_rx_pending( void ){
     #ifdef SOCK_SINGLE_BUF
     if( rx_handle > 0 ){
 
+        log_v_debug_P( PSTR("dropping RX from: %d.%d.%d.%d:%u to %u"),
+            rx_raddr.ipaddr.ip3,
+            rx_raddr.ipaddr.ip1,
+            rx_raddr.ipaddr.ip2,
+            rx_raddr.ipaddr.ip0,
+            rx_raddr.port,
+            rx_port 
+        );
+
         // free the receive buffer
         mem2_v_free( rx_handle );
 
