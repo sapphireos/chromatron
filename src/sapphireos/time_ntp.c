@@ -268,17 +268,25 @@ ntp_ts_t ntp_t_from_system_time( uint64_t sys_time_ms ){
     // this timer will never roll over (500+ million years)
     // and is not reset during runtime.
 
-    // thus, elapsed time is a simple subtraction from the previous base
-    // time.
+    // however, we still convert to a signed int64, since
+    // we might request an NTP timestamp from before the current
+    // master system time setting.
 
-    ASSERT( sys_time_ms >= master_sys_time_ms );
-
-    uint64_t elapsed_ms = sys_time_ms - master_sys_time_ms;
+    int64_t elapsed_ms = (int64_t)sys_time_ms - (int64_t)master_sys_time_ms;
 
     // add elapsed time to NTP timestamp - this is easier done by converting
     // the NTP timestamp to a 64 bit integer
     uint64_t now = ntp_u64_conv_to_u64( master_ntp_time );
-    now += ( ( (uint64_t)elapsed_ms << 32 ) / 1000 ); 
+
+
+    if( elapsed_ms > 0 ){
+
+        now += ( ( (uint64_t)elapsed_ms << 32 ) / 1000 ); 
+    }
+    else if( elapsed_ms < 0 ){
+
+        now -= ( ( (uint64_t)( -1 * elapsed_ms ) << 32 ) / 1000 ); 
+    }
 
     return ntp_ts_from_u64( now );
 }
