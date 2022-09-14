@@ -35,38 +35,37 @@ void cmd_usart_v_set_baud( baud_t baud ){
 
 bool cmd_usart_b_received_char( void ){
 
-    #ifdef ENABLE_USB
-    if( usb_u16_rx_size() > 0 ){
-
-        return TRUE;
-    }
-    #endif
-
-    return FALSE;
+    return ( UCSR0A & ( 1 << RXC0 ) );
 }
 
 void cmd_usart_v_send_char( uint8_t data ){
-
-    #ifdef ENABLE_USB
-    usb_v_send_char( data );
-    #endif
+    
+    // wait for data register empty
+    while( ( UCSR0A & ( 1 << UDRE0 ) ) == 0 );
+    
+    UDR0 = data;
 }
 
 void cmd_usart_v_send_data( const uint8_t *data, uint16_t len ){
 
-    #ifdef ENABLE_USB
-    usb_v_send_data( data, len );
-    #endif
+    while( len > 0 ){
+        
+        cmd_usart_v_send_char( *data );
+
+        data++;
+        len--;
+    }
 }
 
 
 int16_t cmd_usart_i16_get_char( void ){
 
-    #ifdef ENABLE_USB
-    return usb_i16_get_char();
-    #else
+    if( UCSR0A & ( 1 << RXC0 ) ){
+    
+        return UDR0;
+    }
+
     return -1;
-    #endif
 }
 
 uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
@@ -93,21 +92,25 @@ uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
 
 uint16_t cmd_usart_u16_rx_size( void ){
 
-    #ifdef ENABLE_USB
-    return usb_u16_rx_size();
-    #else
+    if( UCSR0A & ( 1 << RXC0 ) ){
+
+        return 1;
+    }
+
     return 0;
-    #endif
 }
 
 void cmd_usart_v_flush( void ){
 
-    #ifdef ENABLE_USB
-    usb_v_flush();
-    #endif
 }
 
 
 void hal_cmd_usart_v_init( void ){
 
+    UCSR0A = ( 1 << U2X0 ); // enable double speed mode
+    UCSR0B = ( 1 << RXEN0 ) | ( 1 << TXEN0 ); // receive interrupt enabled, rx and tx enabled
+    UCSR0C = ( 1 << UCSZ01 ) | ( 1 << UCSZ00 ); // select 8 bit characters
+
+    // 115200 bps
+    UBRR0 = 16;
 }

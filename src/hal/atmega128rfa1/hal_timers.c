@@ -29,30 +29,33 @@
 
 /*
 
-Base clock 32 MHz
-Prescaler /64
-Timer: 500 KHz (2 uS resolution)
-
-Overflow rate: 7.63 Hz
-
-
-On overflow: increment microseconds counter by 131072.
-
 
 */
 
-#define OVERFLOW_MICROSECONDS ( 65536 * 2 )
+// number of timer ticks per ms
+#define TICKS_PER_MS 2000
+
+// milliseconds per timer IRQ tick (for keeping system time)
+#define TIMER_MS_PER_TICK 10
+
+#define TIMER_TOP   ( TICKS_PER_MS * 10 )
+
 
 static volatile uint64_t microseconds;
 
 
 void hal_timer_v_init( void ){
 
-    // enable overflow interrupt and set priority level to high
-    // TCC1.INTCTRLA |= TC_OVFINTLVL_HI_gc;
-
-    // start timer, prescaler /64
-    // TCC1.CTRLA |= TC_CLKSEL_DIV64_gc;
+    // compare match timing:
+    // 16,000,000 / 8 = 2,000,000
+    // 2,000,000 / 2000 = 1000 hz.
+    OCR1A = TIMER_TOP - 1;
+    
+    TCCR1A = 0b00000000;
+    TCCR1B = 0b00000010; // prescaler / 8
+    TCCR1C = 0;
+    
+    TIMSK1 = 0b00000010; // compare match A interrupt enabled
 }
 
 // Return TRUE if any timers on the IO clock are running.
@@ -75,9 +78,9 @@ uint64_t tmr_u64_get_system_time_us( void ){
     // manually increment microseconds by the overflow value.
     
 
-    // uint32_t timer1, timer2;
-    // uint64_t current_microseconds;
-    // bool overflow;
+    uint32_t timer1, timer2;
+    uint64_t current_microseconds;
+    bool overflow;
 
     /*
     Overflow scenario 1:
@@ -119,43 +122,44 @@ uint64_t tmr_u64_get_system_time_us( void ){
     
     */
 
-    // ATOMIC;
+    ATOMIC;
 
-    // // first read from timer
-    // timer1 = TCC1.CNT;
+    // first read from timer
+    timer1 = TCNT1;
 
-    // // check for overflow
-    // overflow = ( TCC1.INTFLAGS & TC1_OVFIF_bm ) != 0;
+    // check for overflow
+    overflow = ( TIFR1 & _BV(OCF1A) ) != 0;
 
-    // // second read from timer
-    // timer2 = TCC1.CNT;
+    // second read from timer
+    timer2 = TCNT1;
 
 
-    // // get copy of microsecond counter
-    // current_microseconds = microseconds;
+    // get copy of microsecond counter
+    current_microseconds = microseconds;
     
-    // END_ATOMIC;
+    END_ATOMIC;
 
-    // // check for overflow while we read microseconds.
-    // // if so, we need to manually compensate.
-    // if( ( timer1 > timer2 ) || overflow ){
+    // check for overflow while we read microseconds.
+    // if so, we need to manually compensate.
+    if( ( timer1 > timer2 ) || overflow ){
 
-    //     current_microseconds += OVERFLOW_MICROSECONDS;
-    // }
+        current_microseconds += 10000;
+    }
 
-    // return current_microseconds + ( timer2 * 2 );
+    return current_microseconds + ( timer2 * 2 );
 }
 
 
-// ISR(TCC1_OVF_vect){
-// OS_IRQ_BEGIN(TCC1_OVF_vect);
-// ^^^ Do not use the OS_IRQ macros in this interrupt.
-// This is because the IRQ timing will call into
-// the system time functions, and the timer rollover
-// will yield an incorrect timing update.
 
-    // microseconds += OVERFLOW_MICROSECONDS;
+// Timer 1 compare match interrupt:
+ISR(TIMER1_COMPA_vect){
+    
+    while( TCNT1 > TIMER_TOP ){
 
-// OS_IRQ_END();
-// }
-
+        // increment system time
+        microseconds += 10000;
+        
+        // subtract timer max
+        TCNT1 -= TIMER_TOP;
+    }
+}
