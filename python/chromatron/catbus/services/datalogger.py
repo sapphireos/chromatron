@@ -257,6 +257,40 @@ class Datalogger(MsgFlowReceiver):
             logging.warning(f"Unknown message version: {header.version}")
 
 
+class DataloggerClient(MsgflowClient):
+    def __init__(self):
+        super().__init__("datalogger")
+
+        self.start()
+
+    def log(self, name, location, key, data):
+        now = util.now()
+
+        header = DatalogHeader(magic=DATALOG_MAGIC, version=3)
+
+        hashed_key = catbus_string_hash(key)
+
+        if isinstance(data, int):
+            data_type = get_type_id('int64')
+
+        elif isinstance(data, float):
+            data_type = get_type_id('float')
+
+        else:
+            raise Exception('invalid type')
+
+        catbus_meta = CatbusMeta(hash=hashed_key, type=data_type)
+
+        catbus_data = CatbusData(meta=catbus_meta, value=data)
+
+        seconds, fraction = util.datetime_to_ntp(now)
+        ntp_timestamp = NTPTimestampField(seconds=seconds, fraction=fraction)
+            
+        v3 = DatalogDataV3(ntp_timestamp=ntp_timestamp, data=catbus_data, key=key, name=name, location=location)
+
+        self.send(header.pack() + v3.pack())
+
+
 def main():
     util.setup_basic_logging(console=True, level=logging.INFO)
 
