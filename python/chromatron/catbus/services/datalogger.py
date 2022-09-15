@@ -39,6 +39,18 @@ from influxdb import InfluxDBClient
 DATALOG_MAGIC = 0x41544144
 DATALOG_FLAGS_NTP_SYNC = 0x01
 
+"""
+
+Version notes:
+
+v1 is the most basic protocol and is no longer used (but should still work)
+v2 is a device format optimized to hold a small time series in a single packet.
+v3 is a flexible single point format that contains name and location tags.
+
+
+"""
+
+
 class DatalogHeader(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="magic"),
@@ -47,6 +59,17 @@ class DatalogHeader(StructField):
                   ArrayField(_name="padding", _field=Uint8Field, _length=2)]
 
         super().__init__(_fields=fields, **kwargs)
+
+class DatalogDataV3(StructField):
+    def __init__(self, **kwargs):
+        fields = [NTPTimestampField(_name="ntp_timestamp"),
+                  CatbusData(_name="data"),
+                  String32Field(_name="key"),
+                  String32Field(_name="name"),
+                  String32Field(_name="location")]
+
+        super().__init__(_fields=fields, **kwargs)
+
 
 class DatalogMetaV2(StructField):
     def __init__(self, **kwargs):
