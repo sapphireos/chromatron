@@ -59,6 +59,8 @@ typedef struct __attribute__((packed, aligned(4))){
 
 
 #define MSGFLOW_ARQ_TRIES               8
+#define MSGFLOW_ARQ_WAIT_TIME           500
+
 
 typedef struct __attribute__((packed)){
     uint16_t max_data_len; // set maximum data for each message.  useful to limit mem usage for parity.
