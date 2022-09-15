@@ -47,7 +47,7 @@ class MQTTChromatron(MQTTClient):
         self.name = f'{ct.name}.{self.location}'
         self.last_update = time.time()
 
-        logging.info(f'Chromatron {self.name} running on catbus port: {self.ct._client.local_port}')
+        logging.info(f'Chromatron {self.name} running on catbus port: {self.ct._device._client.local_port}')
             
         self.start()
 
