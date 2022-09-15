@@ -115,7 +115,7 @@ class ConnectionMonitor(Ribbon):
 
             # logging.info(f"{str(device['name']):24} @ {str(device['host']):24}: {time_str}")
 
-        self.wait(10.0)
+        self.wait(30.0)
 
     def clean_up(self):
         pass
