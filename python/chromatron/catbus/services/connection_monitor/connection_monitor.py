@@ -69,13 +69,17 @@ class ConnectionMonitor(Ribbon):
             if host[1] != CATBUS_MAIN_PORT:
                 continue
 
-            self.client.connect(host)
-
             name = device['name']
+
+            if len(name)== 0:
+                continue
+
             # location = device['location']
             location = ''
 
             icmp_ping = self.icmp_ping(host[0])
+
+            self.client.connect(host)
             client_ping = self.client.ping()
 
             # print(host, client_ping, icmp_ping)
