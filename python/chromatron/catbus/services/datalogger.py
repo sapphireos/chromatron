@@ -314,14 +314,14 @@ class DataloggerClient(MsgflowClient):
 def main():
     util.setup_basic_logging(console=True, level=logging.INFO)
 
-    # d = Datalogger()
-    client = DataloggerClient()
+    d = Datalogger()
+    # client = DataloggerClient()
 
 
-    while not client.connected:
-        time.sleep(0.1)
+    # while not client.connected:
+    #     time.sleep(0.1)
 
-    client.log('name', 'location', 'stuff', 123)
+    # client.log('name', 'location', 'stuff', 123)
 
     run_all()
 
