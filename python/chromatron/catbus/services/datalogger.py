@@ -39,34 +39,12 @@ from influxdb import InfluxDBClient
 DATALOG_MAGIC = 0x41544144
 DATALOG_FLAGS_NTP_SYNC = 0x01
 
-"""
-
-Version notes:
-
-v1 is the most basic protocol and is no longer used (but should still work)
-v2 is a device format optimized to hold a small time series in a single packet.
-v3 is a flexible single point format that contains name and location tags.
-
-
-"""
-
-
 class DatalogHeader(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="magic"),
                   Uint8Field(_name="version"),
                   Uint8Field(_name="flags"),
                   ArrayField(_name="padding", _field=Uint8Field, _length=2)]
-
-        super().__init__(_fields=fields, **kwargs)
-
-class DatalogDataV3(StructField):
-    def __init__(self, **kwargs):
-        fields = [NTPTimestampField(_name="ntp_timestamp"),
-                  CatbusData(_name="data"),
-                  String32Field(_name="key"),
-                  String32Field(_name="name"),
-                  String32Field(_name="location")]
 
         super().__init__(_fields=fields, **kwargs)
 
@@ -259,7 +237,7 @@ class Datalogger(MsgFlowReceiver):
             msg = DatalogDataV3().unpack(data)
             value = msg.data.value
 
-            ntp_timestamp = msg.ntp_timestamp
+            ntp_timestamp = util.ntp_to_datetime(msg.ntp_timestamp.seconds, msg.ntp_timestamp.fraction)
 
             tags = {'name': msg.name,
                     'location': msg.location}
@@ -279,49 +257,17 @@ class Datalogger(MsgFlowReceiver):
             logging.warning(f"Unknown message version: {header.version}")
 
 
-class DataloggerClient(MsgflowClient):
-    def __init__(self):
-        super().__init__("datalogger")
-
-        self.start()
-
-    def log(self, name, location, key, data):
-        now = util.now()
-
-        header = DatalogHeader(magic=DATALOG_MAGIC, version=3)
-
-        hashed_key = catbus_string_hash(key)
-
-        if isinstance(data, int):
-            data_type = get_type_id('int64')
-
-        elif isinstance(data, float):
-            data_type = get_type_id('float')
-
-        else:
-            raise Exception('invalid type')
-
-        catbus_meta = CatbusMeta(hash=hashed_key, type=data_type)
-
-        catbus_data = CatbusData(meta=catbus_meta, value=data)
-            
-        v3 = DatalogDataV3(ntp_timestamp=now, data=catbus_data, key=key, name=name, location=location)
-
-        self.send(header.pack() + v3.pack())
-
-
-
 def main():
     util.setup_basic_logging(console=True, level=logging.INFO)
 
-    # d = Datalogger()
-    client = DataloggerClient()
+    d = Datalogger()
+    # client = DataloggerClient()
 
 
-    while not client.connected:
-        time.sleep(0.1)
+    # while not client.connected:
+    #     time.sleep(0.1)
 
-    client.log('name', 'location', 'stuff', 123)
+    # client.log('name', 'location', 'stuff', 123)
 
     run_all()
 

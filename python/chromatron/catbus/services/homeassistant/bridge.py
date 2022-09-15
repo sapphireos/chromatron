@@ -28,7 +28,7 @@ import time
 import json
 import socket
 
-from catbus import CatbusService, Directory, Client
+from catbus import CatbusService, Client
 from catbus.services.mqtt_client import MQTTClient
 
 from sapphire.common import util, Ribbon, run_all
@@ -47,7 +47,7 @@ class MQTTChromatron(MQTTClient):
         self.name = f'{ct.name}.{self.location}'
         self.last_update = time.time()
 
-        logging.info(f'Chromatron {self.name} running on catbus port: {self.ct._client.local_port}')
+        logging.info(f'Chromatron {self.name} running on catbus port: {self.ct._device._client.local_port}')
             
         self.start()
 

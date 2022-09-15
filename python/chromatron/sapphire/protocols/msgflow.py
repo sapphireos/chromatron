@@ -460,22 +460,21 @@ class MsgflowClient(Ribbon):
 def main():
     util.setup_basic_logging(console=True)
 
-    def on_receive(host, data):
-        print('received msg:', host, data)
+    # def on_receive(host, data):
+    #     print('received msg:', host, data)
 
-    m = MsgFlowReceiver(port=12345, service='test', on_receive=on_receive)
-    c = MsgflowClient('test')
+    # m = MsgFlowReceiver(port=12345, service='test', on_receive=on_receive)
+    # c = MsgflowClient('test')
 
-    while not c.connected:
-        time.sleep(0.1)
+    # while not c.connected:
+    #     time.sleep(0.1)
 
-    c.send('meow')
-    c.send('woof')
-    c.send('bark')
+    # c.send('meow')
+    # c.send('woof')
+    # c.send('bark')
 
     run_all()
 
 if __name__ == '__main__':
     main()
-
 
