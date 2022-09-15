@@ -304,8 +304,11 @@ class DataloggerClient(MsgflowClient):
         catbus_meta = CatbusMeta(hash=hashed_key, type=data_type)
 
         catbus_data = CatbusData(meta=catbus_meta, value=data)
+
+        seconds, fraction = util.datetime_to_ntp(now)
+        ntp_timestamp = NTPTimestampField(seconds=seconds, fraction=fraction)
             
-        v3 = DatalogDataV3(ntp_timestamp=now, data=catbus_data, key=key, name=name, location=location)
+        v3 = DatalogDataV3(ntp_timestamp=ntp_timestamp, data=catbus_data, key=key, name=name, location=location)
 
         self.send(header.pack() + v3.pack())
 
