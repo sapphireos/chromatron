@@ -208,6 +208,8 @@ PT_BEGIN( pt );
     calc_pixel_power();
     pixel_v_signal();
 
+    THREAD_WAIT_WHILE( pt, gfx_u16_get_pix_count() == 0 );
+
     thread_v_create_timed_signal( GFX_SIGNAL_0, 20 );
 
     static uint32_t start;
