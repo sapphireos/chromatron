@@ -28,7 +28,7 @@ import time
 import json
 import socket
 
-from catbus import CatbusService, Directory, Client
+from catbus import CatbusService, Client
 from catbus.services.mqtt_client import MQTTClient
 
 from sapphire.common import util, Ribbon, run_all
