@@ -259,7 +259,7 @@ class Datalogger(MsgFlowReceiver):
             msg = DatalogDataV3().unpack(data)
             value = msg.data.value
 
-            ntp_timestamp = msg.ntp_timestamp
+            ntp_timestamp = util.ntp_to_datetime(msg.ntp_timestamp.seconds, msg.ntp_timestamp.fraction)
 
             tags = {'name': msg.name,
                     'location': msg.location}
