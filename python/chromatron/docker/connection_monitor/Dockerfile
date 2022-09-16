@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 
 USER root
 RUN apt update
-RUN apt install -y python3 python3-pip
+RUN apt install -y python3 python3-pip iputils-ping
 
 RUN useradd -ms /bin/bash sapphire
 
