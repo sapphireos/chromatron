@@ -48,7 +48,6 @@ int sae_set_group(struct sae_data *sae, int group)
 		tmp->prime_len = tmp->dh->prime_len;
 		if (tmp->prime_len > SAE_MAX_PRIME_LEN) {
 			sae_clear_data(sae);
-			os_free(tmp);
 			return ESP_FAIL;
 		}
 
@@ -56,7 +55,6 @@ int sae_set_group(struct sae_data *sae, int group)
 							tmp->prime_len);
 		if (tmp->prime_buf == NULL) {
 			sae_clear_data(sae);
-			os_free(tmp);
 			return ESP_FAIL;
 		}
 		tmp->prime = tmp->prime_buf;
@@ -65,7 +63,6 @@ int sae_set_group(struct sae_data *sae, int group)
 							tmp->dh->order_len);
 		if (tmp->order_buf == NULL) {
 			sae_clear_data(sae);
-			os_free(tmp);
 			return ESP_FAIL;
 		}
 		tmp->order = tmp->order_buf;
@@ -147,7 +144,7 @@ static struct crypto_bignum * sae_get_rand(struct sae_data *sae)
 		break;
 	}
 
-	os_memset(val, 0, order_len);
+	forced_memzero(val, order_len);
 	return bn;
 }
 
@@ -830,11 +827,11 @@ static int sae_derive_keys(struct sae_data *sae, const u8 *k)
 	if (sha256_prf(keyseed, sizeof(keyseed), "SAE KCK and PMK",
 		       val, sae->tmp->prime_len, keys, sizeof(keys)) < 0)
 		goto fail;
-	os_memset(keyseed, 0, sizeof(keyseed));
+	forced_memzero(keyseed, sizeof(keyseed));
 	os_memcpy(sae->tmp->kck, keys, SAE_KCK_LEN);
 	os_memcpy(sae->pmk, keys + SAE_KCK_LEN, SAE_PMK_LEN);
 	os_memcpy(sae->pmkid, val, SAE_PMKID_LEN);
-	os_memset(keys, 0, sizeof(keys));
+	forced_memzero(keys, sizeof(keys));
 	wpa_hexdump_key(MSG_DEBUG, "SAE: KCK", sae->tmp->kck, SAE_KCK_LEN);
 	wpa_hexdump_key(MSG_DEBUG, "SAE: PMK", sae->pmk, SAE_PMK_LEN);
 
@@ -846,7 +843,7 @@ fail:
 
 int sae_process_commit(struct sae_data *sae)
 {
-	u8 k[SAE_MAX_PRIME_LEN];
+	u8 k[SAE_MAX_PRIME_LEN] = {0};
 	if (sae->tmp == NULL ||
 	    (sae->tmp->ec && sae_derive_k_ecc(sae, k) < 0) ||
 	    (sae->tmp->dh && sae_derive_k_ffc(sae, k) < 0) ||
@@ -1181,8 +1178,6 @@ static int sae_parse_password_identifier(struct sae_data *sae,
 				   sae->tmp->pw_id);
 			return WLAN_STATUS_UNKNOWN_PASSWORD_IDENTIFIER;
 		}
-		os_free(sae->tmp->pw_id);
-		sae->tmp->pw_id = NULL;
 		return WLAN_STATUS_SUCCESS; /* No Password Identifier */
 	}
 

@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 #include <string.h>
+#include <sys/param.h>
 #include "esp_types.h"
 #include "esp_attr.h"
 #include "esp_intr_alloc.h"
@@ -64,6 +65,9 @@ static const char *UART_TAG = "uart";
                             | (UART_INTR_BRK_DET) \
                             | (UART_INTR_PARITY_ERR))
 
+
+#define UART_ENTER_CRITICAL_SAFE(mux)   portENTER_CRITICAL_SAFE(mux)
+#define UART_EXIT_CRITICAL_SAFE(mux)    portEXIT_CRITICAL_SAFE(mux)
 #define UART_ENTER_CRITICAL_ISR(mux)    portENTER_CRITICAL_ISR(mux)
 #define UART_EXIT_CRITICAL_ISR(mux)     portEXIT_CRITICAL_ISR(mux)
 #define UART_ENTER_CRITICAL(mux)    portENTER_CRITICAL(mux)
@@ -601,29 +605,35 @@ esp_err_t uart_disable_tx_intr(uart_port_t uart_num)
 
 esp_err_t uart_enable_tx_intr(uart_port_t uart_num, int enable, int thresh)
 {
-    if (enable == 0) {
-        return uart_disable_tx_intr(uart_num);
-    }
     ESP_RETURN_ON_FALSE((uart_num < UART_NUM_MAX), ESP_FAIL, UART_TAG, "uart_num error");
     ESP_RETURN_ON_FALSE((thresh < SOC_UART_FIFO_LEN), ESP_FAIL, UART_TAG, "empty intr threshold error");
-    uart_hal_clr_intsts_mask(&(uart_context[uart_num].hal), UART_INTR_TXFIFO_EMPTY);
-    UART_ENTER_CRITICAL(&(uart_context[uart_num].spinlock));
-    uart_hal_set_txfifo_empty_thr(&(uart_context[uart_num].hal), thresh);
-    uart_hal_ena_intr_mask(&(uart_context[uart_num].hal), UART_INTR_TXFIFO_EMPTY);
-    UART_EXIT_CRITICAL(&(uart_context[uart_num].spinlock));
+    if (enable == 0) {
+        UART_ENTER_CRITICAL(&(uart_context[uart_num].spinlock));
+        uart_hal_disable_intr_mask(&(uart_context[uart_num].hal), UART_INTR_TXFIFO_EMPTY);
+        UART_EXIT_CRITICAL(&(uart_context[uart_num].spinlock));
+    } else {
+        uart_hal_clr_intsts_mask(&(uart_context[uart_num].hal), UART_INTR_TXFIFO_EMPTY);
+        UART_ENTER_CRITICAL(&(uart_context[uart_num].spinlock));
+        uart_hal_set_txfifo_empty_thr(&(uart_context[uart_num].hal), thresh);
+        uart_hal_ena_intr_mask(&(uart_context[uart_num].hal), UART_INTR_TXFIFO_EMPTY);
+        UART_EXIT_CRITICAL(&(uart_context[uart_num].spinlock));
+    }
     return ESP_OK;
 }
 
 esp_err_t uart_isr_register(uart_port_t uart_num, void (*fn)(void *), void *arg, int intr_alloc_flags,  uart_isr_handle_t *handle)
 {
     int ret;
+    uart_isr_handle_t rethandle;
     ESP_RETURN_ON_FALSE((uart_num < UART_NUM_MAX), ESP_FAIL, UART_TAG, "uart_num error");
-    UART_ENTER_CRITICAL(&(uart_context[uart_num].spinlock));
-    ret = esp_intr_alloc(uart_periph_signal[uart_num].irq, intr_alloc_flags, fn, arg, handle);
+    ret = esp_intr_alloc(uart_periph_signal[uart_num].irq, intr_alloc_flags, fn, arg, &rethandle);
     if (ret == ESP_OK) {
-        p_uart_obj[uart_num]->intr_handle = *handle;
+        p_uart_obj[uart_num]->intr_handle = rethandle;
+
+        if (handle != NULL) {
+            *handle = rethandle;
+        }
     }
-    UART_EXIT_CRITICAL(&(uart_context[uart_num].spinlock));
     return ret;
 }
 
@@ -803,6 +813,19 @@ static int UART_ISR_ATTR uart_find_pattern_from_last(uint8_t *buf, int length, u
     return len;
 }
 
+static uint32_t UART_ISR_ATTR uart_enable_tx_write_fifo(uart_port_t uart_num, const uint8_t *pbuf, uint32_t len)
+{
+    uint32_t sent_len = 0;
+    UART_ENTER_CRITICAL_SAFE(&(uart_context[uart_num].spinlock));
+    if (UART_IS_MODE_SET(uart_num, UART_MODE_RS485_HALF_DUPLEX)) {
+        uart_hal_set_rts(&(uart_context[uart_num].hal), 0);
+        uart_hal_ena_intr_mask(&(uart_context[uart_num].hal), UART_INTR_TX_DONE);
+    }
+    uart_hal_write_txfifo(&(uart_context[uart_num].hal), pbuf, len, &sent_len);
+    UART_EXIT_CRITICAL_SAFE(&(uart_context[uart_num].spinlock));
+    return sent_len;
+}
+
 //internal isr handler for default driver code.
 static void UART_ISR_ATTR uart_rx_intr_handler_default(void *param)
 {
@@ -872,19 +895,9 @@ static void UART_ISR_ATTR uart_rx_intr_handler_default(void *param)
                         }
                     }
                     if (p_uart->tx_len_tot > 0 && p_uart->tx_ptr && p_uart->tx_len_cur > 0) {
-                        //To fill the TX FIFO.
-                        uint32_t send_len = 0;
-                        // Set RS485 RTS pin before transmission if the half duplex mode is enabled
-                        if (UART_IS_MODE_SET(uart_num, UART_MODE_RS485_HALF_DUPLEX)) {
-                            UART_ENTER_CRITICAL_ISR(&(uart_context[uart_num].spinlock));
-                            uart_hal_set_rts(&(uart_context[uart_num].hal), 0);
-                            uart_hal_ena_intr_mask(&(uart_context[uart_num].hal), UART_INTR_TX_DONE);
-                            UART_EXIT_CRITICAL_ISR(&(uart_context[uart_num].spinlock));
-                        }
-                        uart_hal_write_txfifo(&(uart_context[uart_num].hal),
-                                              (const uint8_t *)p_uart->tx_ptr,
-                                              (p_uart->tx_len_cur > tx_fifo_rem) ? tx_fifo_rem : p_uart->tx_len_cur,
-                                              &send_len);
+                        // To fill the TX FIFO.
+                        uint32_t send_len = uart_enable_tx_write_fifo(uart_num, (const uint8_t *) p_uart->tx_ptr,
+                                                                      MIN(p_uart->tx_len_cur, tx_fifo_rem));
                         p_uart->tx_ptr += send_len;
                         p_uart->tx_len_tot -= send_len;
                         p_uart->tx_len_cur -= send_len;
@@ -1088,6 +1101,7 @@ static void UART_ISR_ATTR uart_rx_intr_handler_default(void *param)
                 // Workaround for RS485: If the RS485 half duplex mode is active
                 // and transmitter is in idle state then reset received buffer and reset RTS pin
                 // skip this behavior for other UART modes
+                uart_hal_clr_intsts_mask(&(uart_context[uart_num].hal), UART_INTR_TX_DONE);
                 UART_ENTER_CRITICAL_ISR(&(uart_context[uart_num].spinlock));
                 uart_hal_disable_intr_mask(&(uart_context[uart_num].hal), UART_INTR_TX_DONE);
                 if (UART_IS_MODE_SET(uart_num, UART_MODE_RS485_HALF_DUPLEX)) {
@@ -1095,7 +1109,6 @@ static void UART_ISR_ATTR uart_rx_intr_handler_default(void *param)
                     uart_hal_set_rts(&(uart_context[uart_num].hal), 1);
                 }
                 UART_EXIT_CRITICAL_ISR(&(uart_context[uart_num].spinlock));
-                uart_hal_clr_intsts_mask(&(uart_context[uart_num].hal), UART_INTR_TX_DONE);
                 xSemaphoreGiveFromISR(p_uart_obj[uart_num]->tx_done_sem, &HPTaskAwoken);
             }
         } else {
@@ -1164,13 +1177,7 @@ int uart_tx_chars(uart_port_t uart_num, const char *buffer, uint32_t len)
     }
     int tx_len = 0;
     xSemaphoreTake(p_uart_obj[uart_num]->tx_mux, (portTickType)portMAX_DELAY);
-    if (UART_IS_MODE_SET(uart_num, UART_MODE_RS485_HALF_DUPLEX)) {
-        UART_ENTER_CRITICAL(&(uart_context[uart_num].spinlock));
-        uart_hal_set_rts(&(uart_context[uart_num].hal), 0);
-        uart_hal_ena_intr_mask(&(uart_context[uart_num].hal), UART_INTR_TX_DONE);
-        UART_EXIT_CRITICAL(&(uart_context[uart_num].spinlock));
-    }
-    uart_hal_write_txfifo(&(uart_context[uart_num].hal), (const uint8_t *) buffer, len, (uint32_t *)&tx_len);
+    tx_len = (int)uart_enable_tx_write_fifo(uart_num, (const uint8_t *) buffer, len);
     xSemaphoreGive(p_uart_obj[uart_num]->tx_mux);
     return tx_len;
 }
@@ -1208,14 +1215,7 @@ static int uart_tx_all(uart_port_t uart_num, const char *src, size_t size, bool 
         while (size) {
             //semaphore for tx_fifo available
             if (pdTRUE == xSemaphoreTake(p_uart_obj[uart_num]->tx_fifo_sem, (portTickType)portMAX_DELAY)) {
-                uint32_t sent = 0;
-                if (UART_IS_MODE_SET(uart_num, UART_MODE_RS485_HALF_DUPLEX)) {
-                    UART_ENTER_CRITICAL(&(uart_context[uart_num].spinlock));
-                    uart_hal_set_rts(&(uart_context[uart_num].hal), 0);
-                    uart_hal_ena_intr_mask(&(uart_context[uart_num].hal), UART_INTR_TX_DONE);
-                    UART_EXIT_CRITICAL(&(uart_context[uart_num].spinlock));
-                }
-                uart_hal_write_txfifo(&(uart_context[uart_num].hal), (const uint8_t *)src, size, &sent);
+                uint32_t sent = uart_enable_tx_write_fifo(uart_num, (const uint8_t *) src, size);
                 if (sent < size) {
                     p_uart_obj[uart_num]->tx_waiting_fifo = true;
                     uart_enable_tx_intr(uart_num, 1, UART_EMPTY_THRESH_DEFAULT);
@@ -1340,6 +1340,15 @@ esp_err_t uart_get_buffered_data_len(uart_port_t uart_num, size_t *size)
     UART_ENTER_CRITICAL(&(uart_context[uart_num].spinlock));
     *size = p_uart_obj[uart_num]->rx_buffered_len;
     UART_EXIT_CRITICAL(&(uart_context[uart_num].spinlock));
+    return ESP_OK;
+}
+
+esp_err_t uart_get_tx_buffer_free_size(uart_port_t uart_num, size_t *size)
+{
+    ESP_RETURN_ON_FALSE((uart_num < UART_NUM_MAX), ESP_ERR_INVALID_ARG, UART_TAG, "uart_num error");
+    ESP_RETURN_ON_FALSE((p_uart_obj[uart_num]), ESP_ERR_INVALID_ARG, UART_TAG, "uart driver error");
+    ESP_RETURN_ON_FALSE((size != NULL), ESP_ERR_INVALID_ARG, UART_TAG, "arg pointer is NULL");
+    *size = p_uart_obj[uart_num]->tx_buf_size - p_uart_obj[uart_num]->tx_len_tot;
     return ESP_OK;
 }
 

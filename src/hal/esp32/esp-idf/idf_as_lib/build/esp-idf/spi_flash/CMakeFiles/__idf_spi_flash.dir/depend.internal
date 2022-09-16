@@ -519,6 +519,7 @@ esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/flash_mmap.c.obj
  config/sdkconfig.h
 esp-idf/spi_flash/CMakeFiles/__idf_spi_flash.dir/flash_ops.c.obj
  ../../components/bootloader_support/include/bootloader_flash.h
+ ../../components/bootloader_support/include/bootloader_flash_override.h
  ../../components/bootloader_support/include/esp_flash_partitions.h
  ../../components/esp_common/include/esp_assert.h
  ../../components/esp_common/include/esp_attr.h

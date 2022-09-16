@@ -35,12 +35,20 @@ sdkconfig.h
 ../../components/bootloader_support/include/sdkconfig.h
 soc/soc_caps.h
 ../../components/bootloader_support/include/soc/soc_caps.h
+bootloader_flash_override.h
+../../components/bootloader_support/include/bootloader_flash_override.h
 
 ../../components/bootloader_support/include/bootloader_flash_config.h
 sdkconfig.h
 ../../components/bootloader_support/include/sdkconfig.h
 esp_image_format.h
 ../../components/bootloader_support/include/esp_image_format.h
+
+../../components/bootloader_support/include/bootloader_flash_override.h
+esp_err.h
+../../components/bootloader_support/include/esp_err.h
+esp_attr.h
+../../components/bootloader_support/include/esp_attr.h
 
 ../../components/bootloader_support/include/bootloader_mem.h
 
@@ -1371,6 +1379,8 @@ soc/efuse_reg.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader_support/src/soc/efuse_reg.h
 soc/syscon_reg.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader_support/src/soc/syscon_reg.h
+esp_attr.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader_support/src/esp_attr.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/bootloader_support/src/bootloader_flash.c
 stddef.h

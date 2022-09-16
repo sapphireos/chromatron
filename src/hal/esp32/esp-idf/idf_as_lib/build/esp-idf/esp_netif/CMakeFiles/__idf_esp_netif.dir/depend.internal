@@ -23,6 +23,8 @@ esp-idf/esp_netif/CMakeFiles/__idf_esp_netif.dir/esp_netif_defaults.c.obj
  ../../components/esp_netif/include/esp_netif_sta_list.h
  ../../components/esp_netif/include/esp_netif_types.h
  ../../components/esp_rom/include/esp32/rom/ets_sys.h
+ ../../components/esp_rom/include/esp32c3/rom/ets_sys.h
+ ../../components/esp_rom/include/esp32h2/rom/ets_sys.h
  ../../components/esp_rom/include/esp32s2/rom/ets_sys.h
  ../../components/esp_rom/include/esp32s3/rom/ets_sys.h
  ../../components/esp_rom/include/esp_rom_sys.h
@@ -57,6 +59,8 @@ esp-idf/esp_netif/CMakeFiles/__idf_esp_netif.dir/esp_netif_defaults.c.obj
  ../../components/heap/include/heap_memory_layout.h
  ../../components/heap/include/multi_heap.h
  ../../components/heap/include/soc/soc_memory_layout.h
+ ../../components/log/include/esp_log.h
+ ../../components/log/include/esp_log_internal.h
  ../../components/lwip/include/apps/dhcpserver/dhcpserver.h
  ../../components/lwip/lwip/src/include/lwip/arch.h
  ../../components/lwip/lwip/src/include/lwip/debug.h
@@ -619,6 +623,8 @@ esp-idf/esp_netif/CMakeFiles/__idf_esp_netif.dir/lwip/esp_netif_lwip_defaults.c.
  ../../components/esp_netif/include/esp_netif_sta_list.h
  ../../components/esp_netif/include/esp_netif_types.h
  ../../components/esp_rom/include/esp32/rom/ets_sys.h
+ ../../components/esp_rom/include/esp32c3/rom/ets_sys.h
+ ../../components/esp_rom/include/esp32h2/rom/ets_sys.h
  ../../components/esp_rom/include/esp32s2/rom/ets_sys.h
  ../../components/esp_rom/include/esp32s3/rom/ets_sys.h
  ../../components/esp_rom/include/esp_rom_sys.h
@@ -656,6 +662,8 @@ esp-idf/esp_netif/CMakeFiles/__idf_esp_netif.dir/lwip/esp_netif_lwip_defaults.c.
  ../../components/heap/include/heap_memory_layout.h
  ../../components/heap/include/multi_heap.h
  ../../components/heap/include/soc/soc_memory_layout.h
+ ../../components/log/include/esp_log.h
+ ../../components/log/include/esp_log_internal.h
  ../../components/lwip/include/apps/dhcpserver/dhcpserver.h
  ../../components/lwip/lwip/src/include/lwip/arch.h
  ../../components/lwip/lwip/src/include/lwip/debug.h

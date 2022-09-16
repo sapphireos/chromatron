@@ -889,6 +889,7 @@ esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/brownout.c.obj
 esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/cpu_start.c.obj
  ../../components/bootloader_support/include/bootloader_flash.h
  ../../components/bootloader_support/include/bootloader_flash_config.h
+ ../../components/bootloader_support/include/bootloader_flash_override.h
  ../../components/bootloader_support/include/bootloader_mem.h
  ../../components/bootloader_support/include/esp_app_format.h
  ../../components/bootloader_support/include/esp_flash_encrypt.h

@@ -1,5 +1,4 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_dpp.c.obj"
   "CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_hostap.c.obj"
   "CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa2.c.obj"
   "CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa3.c.obj"
@@ -11,7 +10,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/__idf_wpa_supplicant.dir/src/ap/ieee802_1x.c.obj"
   "CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth.c.obj"
   "CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth_ie.c.obj"
-  "CMakeFiles/__idf_wpa_supplicant.dir/src/common/dpp.c.obj"
   "CMakeFiles/__idf_wpa_supplicant.dir/src/common/sae.c.obj"
   "CMakeFiles/__idf_wpa_supplicant.dir/src/common/wpa_common.c.obj"
   "CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-ccm.c.obj"

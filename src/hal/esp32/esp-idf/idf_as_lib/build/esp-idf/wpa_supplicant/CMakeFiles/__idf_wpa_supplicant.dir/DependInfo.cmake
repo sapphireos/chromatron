@@ -4,7 +4,6 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_C
-  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_dpp.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_dpp.c.obj"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_hostap.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_hostap.c.obj"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_wpa2.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa2.c.obj"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_wpa3.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_wpa3.c.obj"
@@ -16,7 +15,6 @@ set(CMAKE_DEPENDS_CHECK_C
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/ap/ieee802_1x.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/ieee802_1x.c.obj"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/ap/wpa_auth.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth.c.obj"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/ap/wpa_auth_ie.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth_ie.c.obj"
-  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/dpp.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/dpp.c.obj"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/sae.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/sae.c.obj"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/wpa_common.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/wpa_common.c.obj"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/crypto/aes-ccm.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/crypto/aes-ccm.c.obj"
@@ -82,7 +80,6 @@ set(CMAKE_C_COMPILER_ID "GNU")
 
 # Preprocessor definitions for this target.
 set(CMAKE_TARGET_DEFINITIONS_C
-  "CONFIG_DPP"
   "CONFIG_ECC"
   "CONFIG_IEEE80211W"
   "CONFIG_SHA256"

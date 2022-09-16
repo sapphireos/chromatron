@@ -1927,6 +1927,8 @@ arch/sys_arch.h
 ../../components/lwip/port/esp32/include/arch/arch/sys_arch.h
 stdio.h
 -
+esp_log.h
+../../components/lwip/port/esp32/include/arch/esp_log.h
 
 ../../components/lwip/port/esp32/include/arch/perf.h
 
@@ -2040,6 +2042,8 @@ sys/features.h
 stddef.h
 -
 stdint.h
+-
+sys/types.h
 -
 
 ../../components/newlib/platform_include/sys/ioctl.h

@@ -250,7 +250,11 @@ esp_err_t bootloader_load_image(const esp_partition_pos_t *part, esp_image_metad
 #if CONFIG_BOOTLOADER_SKIP_VALIDATE_ALWAYS
     mode = ESP_IMAGE_LOAD_NO_VALIDATE;
 #elif CONFIG_BOOTLOADER_SKIP_VALIDATE_ON_POWER_ON
-    if (esp_rom_get_reset_reason(0) == RESET_REASON_CHIP_POWER_ON) {
+    if (esp_rom_get_reset_reason(0) == RESET_REASON_CHIP_POWER_ON
+#if SOC_EFUSE_HAS_EFUSE_RST_BUG
+        || esp_rom_get_reset_reason(0) == RESET_REASON_CORE_EFUSE_CRC
+#endif
+        ) {
         mode = ESP_IMAGE_LOAD_NO_VALIDATE;
     }
 #endif // CONFIG_BOOTLOADER_SKIP_...
@@ -901,6 +905,12 @@ int esp_image_get_flash_size(esp_image_flash_size_t app_flash_size)
         return 8 * 1024 * 1024;
     case ESP_IMAGE_FLASH_SIZE_16MB:
         return 16 * 1024 * 1024;
+    case ESP_IMAGE_FLASH_SIZE_32MB:
+        return 32 * 1024 * 1024;
+    case ESP_IMAGE_FLASH_SIZE_64MB:
+        return 64 * 1024 * 1024;
+    case ESP_IMAGE_FLASH_SIZE_128MB:
+        return 128 * 1024 * 1024;
     default:
         return 0;
     }

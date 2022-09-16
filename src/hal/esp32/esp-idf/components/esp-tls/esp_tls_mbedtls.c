@@ -23,10 +23,6 @@
 #endif
 
 #ifdef CONFIG_ESP_TLS_USE_SECURE_ELEMENT
-
-#define ATECC608A_TNG_SLAVE_ADDR        0x6A
-#define ATECC608A_TFLEX_SLAVE_ADDR      0x6C
-#define ATECC608A_TCUSTOM_SLAVE_ADDR    0xC0
 /* cryptoauthlib includes */
 #include "mbedtls/atca_mbedtls_wrap.h"
 #include "tng_atca.h"
@@ -154,6 +150,14 @@ esp_tls_client_session_t *esp_mbedtls_get_client_session(esp_tls_t *tls)
     }
 
     return client_session;
+}
+
+void esp_mbedtls_free_client_session(esp_tls_client_session_t *client_session)
+{
+    if (client_session) {
+        mbedtls_ssl_session_free(&(client_session->saved_session));
+        free(client_session);
+    }
 }
 #endif /* CONFIG_ESP_TLS_CLIENT_SESSION_TICKETS */
 
@@ -500,7 +504,11 @@ esp_err_t set_server_config(esp_tls_cfg_server_t *cfg, esp_tls_t *tls)
             return esp_ret;
         }
     } else {
+#ifdef CONFIG_ESP_TLS_SERVER_MIN_AUTH_MODE_OPTIONAL
         mbedtls_ssl_conf_authmode(&tls->conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
+#else
+        mbedtls_ssl_conf_authmode(&tls->conf, MBEDTLS_SSL_VERIFY_NONE);
+#endif
     }
 
     if (cfg->servercert_buf != NULL && cfg->serverkey_buf != NULL) {
@@ -837,12 +845,12 @@ static esp_err_t esp_set_atecc608a_pki_context(esp_tls_t *tls, esp_tls_cfg_t *cf
     (void)cert_def;
 #if defined(CONFIG_ATECC608A_TNG) || defined(CONFIG_ATECC608A_TFLEX)
 #ifdef CONFIG_ATECC608A_TNG
-    esp_ret = esp_init_atecc608a(ATECC608A_TNG_SLAVE_ADDR);
+    esp_ret = esp_init_atecc608a(CONFIG_ATCA_I2C_ADDRESS);
     if (ret != ESP_OK) {
         return ESP_ERR_ESP_TLS_SE_FAILED;
     }
 #elif CONFIG_ATECC608A_TFLEX /* CONFIG_ATECC608A_TNG */
-    esp_ret = esp_init_atecc608a(ATECC608A_TFLEX_SLAVE_ADDR);
+    esp_ret = esp_init_atecc608a(CONFIG_ATCA_I2C_ADDRESS);
     if (ret != ESP_OK) {
         return ESP_ERR_ESP_TLS_SE_FAILED;
     }
@@ -862,7 +870,7 @@ static esp_err_t esp_set_atecc608a_pki_context(esp_tls_t *tls, esp_tls_cfg_t *cf
         return ESP_ERR_ESP_TLS_SE_FAILED;
     }
 #elif CONFIG_ATECC608A_TCUSTOM
-    esp_ret = esp_init_atecc608a(ATECC608A_TCUSTOM_SLAVE_ADDR);
+    esp_ret = esp_init_atecc608a(CONFIG_ATCA_I2C_ADDRESS);
     if (ret != ESP_OK) {
         return ESP_ERR_ESP_TLS_SE_FAILED;
     }

@@ -293,6 +293,7 @@ esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/freert
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/freertos/port/xtensa/include/freertos/portmacro.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/freertos/port/xtensa/include/freertos/portmacro_deprecated.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/freertos/port/xtensa/include/freertos/xtensa_config.h
+esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/freertos/port/xtensa/include/freertos/xtensa_context.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/hal/esp32/include/hal/cpu_ll.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/hal/include/hal/cpu_hal.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/hal/include/hal/cpu_types.h
@@ -326,12 +327,14 @@ esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/xtensa
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/xtensa/include/xtensa/coreasm.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/xtensa/include/xtensa/corebits.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/xtensa/include/xtensa/hal.h
+esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/xtensa/include/xtensa/semihosting.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/xtensa/include/xtensa/xtensa-versions.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/xtensa/include/xtensa/xtensa_api.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/xtensa/include/xtensa/xtensa_context.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/xtensa/include/xtensa/xtruntime-core-state.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/xtensa/include/xtensa/xtruntime-frames.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/xtensa/include/xtensa/xtruntime.h
+esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/vfs/openocd_semihosting.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: ../../components/vfs/vfs_semihost.c
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj: config/sdkconfig.h
 

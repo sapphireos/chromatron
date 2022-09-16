@@ -200,6 +200,8 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../compo
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/esp_netif/include/esp_netif_sta_list.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/esp_netif/include/esp_netif_types.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/esp_rom/include/esp32/rom/ets_sys.h
+esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/esp_rom/include/esp32c3/rom/ets_sys.h
+esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/esp_rom/include/esp32h2/rom/ets_sys.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/esp_rom/include/esp32s2/rom/ets_sys.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/esp_rom/include/esp32s3/rom/ets_sys.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/esp_rom/include/esp_rom_sys.h
@@ -232,6 +234,8 @@ esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../compo
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/heap/include/heap_memory_layout.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/heap/include/multi_heap.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/heap/include/soc/soc_memory_layout.h
+esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/log/include/esp_log.h
+esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/log/include/esp_log_internal.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/lwip/include/apps/dhcpserver/dhcpserver.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/lwip/lwip/src/include/lwip/arch.h
 esp-idf/esp_wifi/CMakeFiles/__idf_esp_wifi.dir/src/mesh_event.c.obj: ../../components/lwip/lwip/src/include/lwip/debug.h

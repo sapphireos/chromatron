@@ -28,6 +28,7 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "config"
   "../../components/nvs_flash/include"
+  "../../components/nvs_flash/private_include"
   "../../components/newlib/platform_include"
   "../../components/freertos/include"
   "../../components/freertos/include/esp_additions/freertos"

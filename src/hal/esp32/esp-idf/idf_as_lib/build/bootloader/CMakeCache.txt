@@ -28,8 +28,8 @@ CMAKE_ASM_COMPILER_AR:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/es
 // for the GCC compiler
 CMAKE_ASM_COMPILER_RANLIB:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ranlib
 
-//Flags used by the ASM compiler during all build types.
-CMAKE_ASM_FLAGS:STRING=
+//ASM Compiler Base Flags
+CMAKE_ASM_FLAGS:STRING='-mlongcalls '
 
 //Flags used by the ASM compiler during DEBUG builds.
 CMAKE_ASM_FLAGS_DEBUG:STRING=-g
@@ -59,7 +59,7 @@ CMAKE_CXX_COMPILER_AR:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/es
 CMAKE_CXX_COMPILER_RANLIB:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ranlib
 
 //C++ Compiler Base Flags
-CMAKE_CXX_FLAGS:STRING=-mlongcalls -Wno-frame-address
+CMAKE_CXX_FLAGS:STRING='-mlongcalls -Wno-frame-address '
 
 //Flags used by the CXX compiler during DEBUG builds.
 CMAKE_CXX_FLAGS_DEBUG:STRING=-g
@@ -82,7 +82,7 @@ CMAKE_C_COMPILER_AR:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-
 CMAKE_C_COMPILER_RANLIB:FILEPATH=/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc-ranlib
 
 //C Compiler Base Flags
-CMAKE_C_FLAGS:STRING=-mlongcalls -Wno-frame-address
+CMAKE_C_FLAGS:STRING='-mlongcalls -Wno-frame-address '
 
 //Flags used by the C compiler during DEBUG builds.
 CMAKE_C_FLAGS_DEBUG:STRING=-g

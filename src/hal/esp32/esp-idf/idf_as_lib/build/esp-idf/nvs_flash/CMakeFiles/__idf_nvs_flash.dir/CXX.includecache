@@ -684,6 +684,8 @@ type_traits
 nvs.h
 ../../components/nvs_flash/include/nvs.h
 
+../../components/nvs_flash/private_include/nvs_internal.h
+
 ../../components/soc/esp32/include/soc/reset_reasons.h
 
 ../../components/soc/esp32/include/soc/soc.h
@@ -873,11 +875,17 @@ cassert
 -
 type_traits
 -
+nvs_internal.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_internal.h
+esp_err.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/esp_err.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/intrusive_list.h
 cassert
 -
 unordered_map
+-
+cstddef
 -
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs.hpp
@@ -893,6 +901,8 @@ nvs_pagemanager.hpp
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_pagemanager.hpp
 nvs_storage.hpp
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_storage.hpp
+nvs_internal.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_internal.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_api.cpp
 sdkconfig.h
@@ -919,6 +929,8 @@ esp_err.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/esp_err.h
 esp_rom_crc.h
 -
+nvs_internal.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_internal.h
 esp_log.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/esp_log.h
 
@@ -989,6 +1001,8 @@ cstdio
 -
 cstring
 -
+nvs_internal.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_internal.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_page.hpp
 nvs.h
@@ -1069,6 +1083,8 @@ nvs_partition_manager.hpp
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_partition_manager.hpp
 nvs_partition_lookup.hpp
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_partition_lookup.hpp
+nvs_internal.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_internal.h
 nvs_encrypted_partition.hpp
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_encrypted_partition.hpp
 

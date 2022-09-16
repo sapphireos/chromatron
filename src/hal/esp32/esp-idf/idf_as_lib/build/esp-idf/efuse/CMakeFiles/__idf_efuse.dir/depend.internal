@@ -247,10 +247,12 @@ esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_fields.c.obj
  config/sdkconfig.h
 esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj
  ../../components/bootloader_support/include/bootloader_flash.h
+ ../../components/bootloader_support/include/bootloader_flash_override.h
  ../../components/bootloader_support/include_bootloader/bootloader_flash_priv.h
  ../../components/efuse/include/esp_efuse.h
  ../../components/efuse/private_include/esp_efuse_utility.h
  ../../components/esp_common/include/esp_assert.h
+ ../../components/esp_common/include/esp_attr.h
  ../../components/esp_common/include/esp_bit_defs.h
  ../../components/esp_common/include/esp_compiler.h
  ../../components/esp_common/include/esp_err.h

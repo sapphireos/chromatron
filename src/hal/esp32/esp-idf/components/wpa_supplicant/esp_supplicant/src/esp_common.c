@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2020-2022 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -23,7 +23,7 @@
 
 struct wpa_supplicant g_wpa_supp;
 
-static void *s_supplicant_task_hdl = NULL;
+static TaskHandle_t s_supplicant_task_hdl = NULL;
 static void *s_supplicant_evt_queue = NULL;
 static void *s_supplicant_api_lock = NULL;
 
@@ -214,9 +214,15 @@ static void supplicant_sta_disconn_handler(void* arg, esp_event_base_t event_bas
 					   int32_t event_id, void* event_data)
 {
 	struct wpa_supplicant *wpa_s = &g_wpa_supp;
+	wifi_event_sta_disconnected_t *disconn = event_data;
+
 	wpas_rrm_reset(wpa_s);
 	if (wpa_s->current_bss) {
 		wpa_s->current_bss = NULL;
+	}
+
+	if (disconn->reason != WIFI_REASON_ROAMING) {
+		clear_bssid_flag(wpa_s);
 	}
 }
 
@@ -262,18 +268,25 @@ int esp_supplicant_common_init(struct wpa_funcs *wpa_cb)
 	struct wpa_supplicant *wpa_s = &g_wpa_supp;
 	int ret;
 
-	s_supplicant_evt_queue = xQueueCreate(3, sizeof(supplicant_event_t));
-	ret = xTaskCreate(btm_rrm_task, "btm_rrm_t", SUPPLICANT_TASK_STACK_SIZE, NULL, 2, s_supplicant_task_hdl);
-	if (ret != pdPASS) {
-		wpa_printf(MSG_ERROR, "btm: failed to create task");
-		return ret;
-	}
-
 	s_supplicant_api_lock = xSemaphoreCreateRecursiveMutex();
 	if (!s_supplicant_api_lock) {
-		esp_supplicant_common_deinit();
 		wpa_printf(MSG_ERROR, "%s: failed to create Supplicant API lock", __func__);
-		return ret;
+		ret = -1;
+		goto err;
+	}
+
+	s_supplicant_evt_queue = xQueueCreate(3, sizeof(supplicant_event_t));
+
+	if (!s_supplicant_evt_queue) {
+		wpa_printf(MSG_ERROR, "%s: failed to create Supplicant event queue", __func__);
+		ret = -1;
+		goto err;
+	}
+	ret = xTaskCreate(btm_rrm_task, "btm_rrm_t", SUPPLICANT_TASK_STACK_SIZE, NULL, 2, &s_supplicant_task_hdl);
+	if (ret != pdPASS) {
+		wpa_printf(MSG_ERROR, "btm: failed to create task");
+		ret = -1;
+		goto err;
 	}
 
 	esp_scan_init(wpa_s);
@@ -287,7 +300,6 @@ int esp_supplicant_common_init(struct wpa_funcs *wpa_cb)
 
 	wpa_s->type = 0;
 	wpa_s->subtype = 0;
-	wpa_s->type |= (1 << WLAN_FC_STYPE_BEACON) | (1 << WLAN_FC_STYPE_PROBE_RESP);
 	esp_wifi_register_mgmt_frame_internal(wpa_s->type, wpa_s->subtype);
 	wpa_cb->wpa_sta_rx_mgmt = ieee80211_handle_rx_frm;
 	/* Matching is done only for MBO at the moment, this can be extended for other features*/
@@ -298,15 +310,15 @@ int esp_supplicant_common_init(struct wpa_funcs *wpa_cb)
 	wpa_cb->wpa_sta_profile_match = NULL;
 #endif
 	return 0;
+err:
+	esp_supplicant_common_deinit();
+	return ret;
 }
 
 void esp_supplicant_common_deinit(void)
 {
 	struct wpa_supplicant *wpa_s = &g_wpa_supp;
 
-	if (esp_supplicant_post_evt(SIG_SUPPLICANT_DEL_TASK, 0) != 0) {
-		wpa_printf(MSG_ERROR, "failed to send task delete event");
-	}
 	esp_scan_deinit(wpa_s);
 	wpas_rrm_reset(wpa_s);
 	wpas_clear_beacon_rep_data(wpa_s);
@@ -314,25 +326,100 @@ void esp_supplicant_common_deinit(void)
 			&supplicant_sta_conn_handler);
 	esp_event_handler_unregister(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED,
 			&supplicant_sta_disconn_handler);
+	if (wpa_s->type) {
+		wpa_s->type = 0;
+		esp_wifi_register_mgmt_frame_internal(wpa_s->type, wpa_s->subtype);
+	}
+	if (!s_supplicant_task_hdl && esp_supplicant_post_evt(SIG_SUPPLICANT_DEL_TASK, 0) != 0) {
+		if (s_supplicant_evt_queue) {
+			vQueueDelete(s_supplicant_evt_queue);
+			s_supplicant_evt_queue = NULL;
+		}
+		if (s_supplicant_api_lock) {
+			vSemaphoreDelete(s_supplicant_api_lock);
+			s_supplicant_api_lock = NULL;
+		}
+		wpa_printf(MSG_ERROR, "failed to send task delete event");
+	}
+}
+
+bool esp_rrm_is_rrm_supported_connection(void)
+{
+	struct wpa_supplicant *wpa_s = &g_wpa_supp;
+
+	if (!wpa_s->current_bss) {
+		wpa_printf(MSG_DEBUG, "STA not associated, return");
+		return false;
+	}
+
+	if (!(wpa_s->rrm_ie[0] & WLAN_RRM_CAPS_NEIGHBOR_REPORT)) {
+		wpa_printf(MSG_DEBUG,
+			"RRM: No network support for Neighbor Report.");
+		return false;
+	}
+
+	return true;
 }
 
 int esp_rrm_send_neighbor_rep_request(neighbor_rep_request_cb cb,
 				      void *cb_ctx)
 {
+	struct wpa_supplicant *wpa_s = &g_wpa_supp;
 	struct wpa_ssid_value wpa_ssid = {0};
-	struct wifi_ssid *ssid = esp_wifi_sta_get_prof_ssid_internal();
+	struct wifi_ssid *ssid;
+
+	if (!wpa_s->current_bss) {
+		wpa_printf(MSG_ERROR, "STA not associated, return");
+		return -2;
+	}
+
+	if (!(wpa_s->rrm_ie[0] & WLAN_RRM_CAPS_NEIGHBOR_REPORT)) {
+		wpa_printf(MSG_ERROR,
+			"RRM: No network support for Neighbor Report.");
+		return -1;
+	}
+
+	ssid = esp_wifi_sta_get_prof_ssid_internal();
 
 	os_memcpy(wpa_ssid.ssid, ssid->ssid, ssid->len);
 	wpa_ssid.ssid_len = ssid->len;
 
-	return wpas_rrm_send_neighbor_rep_request(&g_wpa_supp, &wpa_ssid, 0, 0, cb, cb_ctx);
+	return wpas_rrm_send_neighbor_rep_request(wpa_s, &wpa_ssid, 0, 0, cb, cb_ctx);
+}
+
+bool esp_wnm_is_btm_supported_connection(void)
+{
+	struct wpa_supplicant *wpa_s = &g_wpa_supp;
+
+	if (!wpa_s->current_bss) {
+		wpa_printf(MSG_DEBUG, "STA not associated, return");
+		return false;
+	}
+
+	if (!wpa_bss_ext_capab(wpa_s->current_bss, WLAN_EXT_CAPAB_BSS_TRANSITION)) {
+		wpa_printf(MSG_DEBUG, "AP doesn't support BTM, return");
+		return false;
+	}
+
+	return true;
 }
 
 int esp_wnm_send_bss_transition_mgmt_query(enum btm_query_reason query_reason,
 					   const char *btm_candidates,
 					   int cand_list)
 {
-	return wnm_send_bss_transition_mgmt_query(&g_wpa_supp, query_reason, btm_candidates, cand_list);
+	struct wpa_supplicant *wpa_s = &g_wpa_supp;
+
+	if (!wpa_s->current_bss) {
+		wpa_printf(MSG_ERROR, "STA not associated, return");
+		return -2;
+	}
+
+	if (!wpa_bss_ext_capab(wpa_s->current_bss, WLAN_EXT_CAPAB_BSS_TRANSITION)) {
+		wpa_printf(MSG_ERROR, "AP doesn't support BTM, return");
+		return -1;
+	}
+	return wnm_send_bss_transition_mgmt_query(wpa_s, query_reason, btm_candidates, cand_list);
 }
 
 int esp_mbo_update_non_pref_chan(struct non_pref_chan_s *non_pref_chan)
@@ -444,9 +531,9 @@ static uint8_t get_extended_caps_ie(uint8_t *ie, size_t len)
 	*pos++ = ext_caps_ie_len;
 	*pos++ = 0;
 	*pos++ = 0;
-#define WLAN_EXT_CAPAB_BSS_TRANSITION BIT(3)
-	*pos |= WLAN_EXT_CAPAB_BSS_TRANSITION;
-#undef WLAN_EXT_CAPAB_BSS_TRANSITION
+#define CAPAB_BSS_TRANSITION BIT(3)
+	*pos |= CAPAB_BSS_TRANSITION;
+#undef CAPAB_BSS_TRANSITION
 	os_memcpy(ie, ext_caps_ie, sizeof(ext_caps_ie));
 
 	return ext_caps_ie_len + 2;
@@ -587,12 +674,20 @@ int esp_supplicant_post_evt(uint32_t evt_id, uint32_t data)
 	evt->id = evt_id;
 	evt->data = data;
 
-	SUPPLICANT_API_LOCK();
+	/* Make sure lock exists before taking it */
+	if (s_supplicant_api_lock) {
+		SUPPLICANT_API_LOCK();
+	} else {
+		os_free(evt);
+		return -1;
+	}
 	if (xQueueSend(s_supplicant_evt_queue, &evt, 10 / portTICK_PERIOD_MS ) != pdPASS) {
 		SUPPLICANT_API_UNLOCK();
 		os_free(evt);
 		return -1;
 	}
-	SUPPLICANT_API_UNLOCK();
+	if (evt_id != SIG_SUPPLICANT_DEL_TASK) {
+	    SUPPLICANT_API_UNLOCK();
+	}
 	return 0;
 }

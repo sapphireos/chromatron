@@ -643,6 +643,8 @@ stddef.h
 -
 stdint.h
 -
+sys/types.h
+-
 
 ../../components/newlib/platform_include/sys/ioctl.h
 
@@ -878,6 +880,8 @@ stdint.h
 stddef.h
 -
 
+../../components/xtensa/include/xtensa/semihosting.h
+
 ../../components/xtensa/include/xtensa/xtensa-versions.h
 
 ../../components/xtensa/include/xtensa/xtensa_api.h
@@ -921,6 +925,16 @@ xtensa/config/specreg.h
 -
 xtensa/xtruntime-core-state.h
 -
+
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/openocd_semihosting.h
+string.h
+-
+sys/errno.h
+-
+xtensa/semihosting.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/xtensa/semihosting.h
+riscv/semihosting.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/riscv/semihosting.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/vfs.c
 stdlib.h
@@ -1009,12 +1023,6 @@ soc/spinlock.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/soc/spinlock.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/vfs_semihost.c
-esp_vfs.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/esp_vfs.h
-freertos/FreeRTOS.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/freertos/FreeRTOS.h
-freertos/task.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/freertos/task.h
 soc/cpu.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/soc/cpu.h
 stdarg.h
@@ -1031,6 +1039,12 @@ fcntl.h
 -
 esp_log.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/esp_log.h
+esp_vfs.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/esp_vfs.h
+hal/cpu_hal.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/hal/cpu_hal.h
+openocd_semihosting.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/openocd_semihosting.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/vfs_uart.c
 string.h
