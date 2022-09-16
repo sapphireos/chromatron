@@ -54,6 +54,14 @@ services:
     restart: always
     network_mode: host
 
+  connection_monitor:
+    container_name: connection_monitor
+    build:
+      context: ../
+      dockerfile: docker/connection_monitor/Dockerfile
+    restart: always
+    network_mode: host
+
   mqtt:
     container_name: mqtt
     image: eclipse-mosquitto:2.0.7
