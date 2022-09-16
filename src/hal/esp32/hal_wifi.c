@@ -967,6 +967,21 @@ static bool is_low_power_mode( void ){
     return TRUE;
 }
 
+static void apply_power_save_mode( void ){
+
+    // set power state
+    if( is_low_power_mode() ){
+
+        wifi_power_mode = WIFI_PS_MIN_MODEM;
+    }
+    else{
+
+        wifi_power_mode = WIFI_PS_NONE;
+    }
+
+    esp_wifi_set_ps( wifi_power_mode );
+}
+
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -1028,17 +1043,7 @@ station_mode:
 
             esp_wifi_start();
 
-            // set power state
-            if( is_low_power_mode() ){
-
-                wifi_power_mode = WIFI_PS_MIN_MODEM;
-            }
-            else{
-
-                wifi_power_mode = WIFI_PS_NONE;
-            }
-
-            esp_wifi_set_ps( wifi_power_mode );
+            apply_power_save_mode();
             
             // check if we can try a fast connect with the last connected router
             if( wifi_router >= 0 ){
@@ -1342,6 +1347,8 @@ PT_BEGIN( pt );
 
                 wifi_rssi = wifi_info.rssi;
             }
+
+            apply_power_save_mode();
         }
         else{
 
