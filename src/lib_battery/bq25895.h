@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -24,13 +24,6 @@
 
 #ifndef _BQ25895_H_
 #define _BQ25895_H_
-
-
-#define BQ25895_MAX_FLOAT_VOLTAGE	4100
-#define BQ25895_CUTOFF_VOLTAGE		3100
-
-#define BQ25895_LION_MAX_VOLTAGE    4200
-#define BQ25895_LION_MIN_VOLTAGE    2900
 
 #define BQ25895_MIN_BOOST_VOLTAGE   4550
 #define BQ25895_MAX_BOOST_VOLTAGE   5510
@@ -243,7 +236,6 @@ void bq25895_v_set_watchdog( uint8_t setting );
 void bq25895_v_kick_watchdog( void );
 void bq25895_v_set_charger( bool enable );
 void bq25895_v_set_charge_timer( uint8_t setting );
-uint8_t bq25895_u8_get_soc( void );
 uint8_t bq25895_u8_get_device_id( void );
 void bq25895_v_print_regs( void );
 void bq25895_v_set_vindpm( int16_t mv );

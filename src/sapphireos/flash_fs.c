@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,86 @@
 // 
 // </license>
  */
+
+
+/*
+
+
+Flash FS File Layer Caching:
+
+Add a per-file cache, with an overall cache controller to limit memory usage.
+
+Cache for the file should start at the multiple of the page size of the 
+requested file address.  Depending on availability of free cache pages,
+additional flash pages can be read ahead and stored for access.
+
+This scheme most likely helps with write heavy loads that would write
+chunks of data large enough to span multiple pages and offset enough that
+multiple pages are rewritten on each write.  The cache layer would dramatically
+reduce the write load.
+
+Sequential reads that are not page aligned should also be accelerated.
+
+This read ahead cache could change the maximum cache size based on usage:
+files opened for read only would only receive up to a single cached page,
+or some other limit that makes sense.
+Read-ahead caching might be useful because it can increase the hit rate
+on the block index cache.
+
+Files opened for write would be allowed up to N (maybe 4 for starters).
+These pages would not be allocated until an actual write was performed.
+
+
+This should likely be simpler than the previously attempted but
+uncompleted flash fs page cache layer that operated
+at the flash translation system level.
+
+The API surface is much simpler: the process to write a flash 
+layer page is *dramatically* more complex than the file level.
+
+Additionally, that layer does already have a single page cache 
+layer - the difficulty was in increasing the size of that cache.
+The addition of a file layer cache should perform the same
+optimization, while possibly offering improvements due
+to the increased context information available at the
+file level.
+
+
+Something to avoid:
+It is tempting to try to integrate with the memory
+manager - allocate all unused space for fs caching
+and the memory manager can force a partial flush and
+reclaim as much space as it needs on an allocation
+failure.
+
+The problem is that this can be tricky to get right
+and catastrophic if it doesn't work perfectly.
+
+Memory allocations that force a cache flush invoke
+a very complex pathway of behavior.  All of that 
+behavior must occur synchronously, must ultimately
+succeed and in no way fail, and without touching 
+the memory manager in any way.
+
+
+The cache must be flushable at any time.  Since the
+system can lose power at any time without a clean
+shutdown, the cache should flush to hardware every
+few seconds.
+
+Per-file and overall statistics could be kept - and
+stored in a special file perhaps.
+
+The per-file stats are especially interesting, as
+this would also record usage patterns in addition
+to cache performance.
+
+NOTE:
+Flushes must write cached pages from a given file
+in sequential order!
+
+
+*/
 
 
 #include "cpu.h"
@@ -91,7 +171,7 @@ void ffs_v_init( void ){
 
     ffs_gc_v_init();
 
-    trace_printf("FlashFS files: %d free space: %d ver: %d\r\n", ffs_u32_get_file_count(), ffs_u32_get_free_space(), fs_version );
+    trace_printf("FlashFS files: %u free space: %u ver: %d\r\n", ffs_u32_get_file_count(), ffs_u32_get_free_space(), fs_version );
 
     #else
 

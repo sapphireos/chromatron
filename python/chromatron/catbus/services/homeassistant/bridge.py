@@ -3,7 +3,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2021  Jeremy Billheimer
+#     Copyright (C) 2013-2022  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ import time
 import json
 import socket
 
-from catbus import CatbusService, Directory, Client
+from catbus import CatbusService, Client
 from catbus.services.mqtt_client import MQTTClient
 
 from sapphire.common import util, Ribbon, run_all
@@ -46,6 +46,8 @@ class MQTTChromatron(MQTTClient):
         self.location = ct.get_key('meta_tag_location')
         self.name = f'{ct.name}.{self.location}'
         self.last_update = time.time()
+
+        logging.info(f'Chromatron {self.name} running on catbus port: {self.ct._device._client.local_port}')
             
         self.start()
 

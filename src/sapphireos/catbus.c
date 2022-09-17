@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -920,7 +920,7 @@ PT_BEGIN( pt );
                     reply_count++;
                 }       
                 else{
-
+                    
                     // this error message is *extremely* annoying
                     // log_v_warn_P( PSTR("%lu not found from: %d.%d.%d.%d:%d"), LOAD32(hash), raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0, raddr.port );
                 }

@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -50,8 +50,6 @@ static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_run_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
 static uint8_t vm_timing_status;
-
-static uint8_t vm_pause;
 
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
@@ -128,6 +126,19 @@ static const char* vm_names[VM_MAX_VMS] = {
     #if VM_MAX_VMS >= 4
     "vm_3",
     #endif
+};
+
+// keys that we really don't want the VM be to be able to write to.
+// generally, these are going to be things that would allow it to 
+// brick hardware, mess up the wifi connection, or mess up the pixel 
+// array.
+static const PROGMEM uint32_t restricted_keys[] = {
+    __KV__reboot,
+    __KV__wifi_enable_ap,
+    __KV__wifi_router,
+    __KV__pix_clock,
+    __KV__pix_count,
+    __KV__pix_mode,    
 };
 
 #ifdef ENABLE_CATBUS_LINK
@@ -211,108 +222,109 @@ static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle 
 
     uint32_t start_time = tmr_u32_get_system_time_ms();
     
-    // *handle = -1;
+    *handle = -1;
+    
 
-    // // open file
-    // file_t f = fs_f_open( program_fname, FS_MODE_READ_ONLY );
+    // open file
+    file_t f = fs_f_open( program_fname, FS_MODE_READ_ONLY );
 
-    // if( f < 0 ){
+    if( f < 0 ){
 
-    //     // try again, adding .fxb extension
-    //     char s[FFS_FILENAME_LEN];
-    //     memset( s, 0, sizeof(s) );
-    //     strlcpy( s, program_fname, sizeof(s) );
-    //     strlcat( s, ".fxb", sizeof(s) );
+        // try again, adding .fxb extension
+        char s[FFS_FILENAME_LEN];
+        memset( s, 0, sizeof(s) );
+        strlcpy( s, program_fname, sizeof(s) );
+        strlcat( s, ".fxb", sizeof(s) );
 
-    //     f = fs_f_open( s, FS_MODE_READ_ONLY );
+        f = fs_f_open( s, FS_MODE_READ_ONLY );
 
-    //     if( f < 0 ){
+        if( f < 0 ){
 
-    //         log_v_debug_P( PSTR("VM file not found") );
+            log_v_debug_P( PSTR("VM file not found") );
 
-    //         return -1;
-    //     }
-    // }
+            return -1;
+        }
+    }
 
     log_v_debug_P( PSTR("Loading VM: %d"), vm_id );
 
     // file found, get program size from file header
-    // int32_t vm_size;
-    // fs_i16_read( f, (uint8_t *)&vm_size, sizeof(vm_size) );
+    int32_t vm_size;
+    fs_i16_read( f, (uint8_t *)&vm_size, sizeof(vm_size) );
 
-    // // sanity check
-    // if( vm_size > VM_MAX_IMAGE_SIZE ){
+    // sanity check
+    if( vm_size > VM_MAX_IMAGE_SIZE ){
 
-    //     goto error;
-    // }
+        goto error;
+    }
 
-    // fs_v_seek( f, 0 );    
-    // int32_t check_len = fs_i32_get_size( f ) - sizeof(uint32_t);
+    fs_v_seek( f, 0 );    
+    int32_t check_len = fs_i32_get_size( f ) - sizeof(uint32_t);
 
-    // uint32_t computed_file_hash = hash_u32_start();
+    uint32_t computed_file_hash = hash_u32_start();
 
-    // // check file hash
-    // while( check_len > 0 ){
+    // check file hash
+    while( check_len > 0 ){
 
-    //     uint8_t chunk[512];
+        uint8_t chunk[512];
 
-    //     uint16_t copy_len = sizeof(chunk);
+        uint16_t copy_len = sizeof(chunk);
 
-    //     if( copy_len > check_len ){
+        if( copy_len > check_len ){
 
-    //         copy_len = check_len;
-    //     }
+            copy_len = check_len;
+        }
 
-    //     int16_t read = fs_i16_read( f, chunk, copy_len );
+        int16_t read = fs_i16_read( f, chunk, copy_len );
 
-    //     if( read < 0 ){
+        if( read < 0 ){
 
-    //         // this should not happen. famous last words.
-    //         goto error;
-    //     }
+            // this should not happen. famous last words.
+            goto error;
+        }
 
-    //     // update hash
-    //     computed_file_hash = hash_u32_partial( computed_file_hash, chunk, copy_len );
+        // update hash
+        computed_file_hash = hash_u32_partial( computed_file_hash, chunk, copy_len );
         
-    //     check_len -= read;
-    // }
+        check_len -= read;
+    }
 
-    // // read file hash
-    // uint32_t file_hash = 0;
-    // fs_i16_read( f, (uint8_t *)&file_hash, sizeof(file_hash) );
+    // read file hash
+    uint32_t file_hash = 0;
+    fs_i16_read( f, (uint8_t *)&file_hash, sizeof(file_hash) );
 
-    // // check hashes
-    // if( file_hash != computed_file_hash ){
+    // check hashes
+    if( file_hash != computed_file_hash ){
 
-    //     log_v_debug_P( PSTR("VM load error: %d"), VM_STATUS_ERR_BAD_FILE_HASH );
-    //     goto error;
-    // }
+        log_v_debug_P( PSTR("VM load error: %d"), VM_STATUS_ERR_BAD_FILE_HASH );
+        goto error;
+    }
 
-    // // read header
-    // // fs_v_seek( f, sizeof(vm_size) );    
-    // fs_v_seek( f, 0 );
-    // vm_program_header_t header;
-    // fs_i16_read( f, (uint8_t *)&header, sizeof(header) );
+    // read header
+    fs_v_seek( f, sizeof(vm_size) );    
+    vm_program_header_t header;
+    fs_i16_read( f, (uint8_t *)&header, sizeof(header) );
 
-    // int8_t status = vm_i8_check_header( (uint8_t *)&header );
+    vm_state_t state;
 
-    // if( status < 0 ){
+    int8_t status = vm_i8_load_program( VM_LOAD_FLAGS_CHECK_HEADER, (uint8_t *)&header, sizeof(header), &state );
 
-    //     log_v_debug_P( PSTR("VM load error: %d"), status );
-    //     goto error;
-    // }
+    if( status < 0 ){
 
-    // // seek back to program start
-    // // fs_v_seek( f, sizeof(vm_size) );
-    // fs_v_seek( f, 0 );
+        log_v_debug_P( PSTR("VM load error: %d"), status );
+        goto error;
+    }
 
-    // // allocate memory
-    // *handle = mem2_h_alloc2( vm_size, MEM_TYPE_VM_DATA );
+    // seek back to program start
+    fs_v_seek( f, sizeof(vm_size) );
 
-    // if( *handle < 0 ){
+    // allocate memory
+    *handle = mem2_h_alloc2( vm_size, MEM_TYPE_VM_DATA );
 
-    //     goto error;
-    // }
+    if( *handle < 0 ){
+
+        goto error;
+    }
 
     // read file
     int16_t read = fs_i16_read( f, mem2_vp_get_ptr( *handle ), vm_size );
@@ -603,6 +615,36 @@ vm_state_t* vm_p_get_state( void ){
 }
 
 
+static void kill_vm( uint8_t vm_id ){
+
+    vm_run[vm_id] = FALSE;
+    vm_reset[vm_id] = FALSE;
+
+    // retain halt status, otherwise reset
+    if( vm_status[vm_id] != VM_STATUS_HALT ){
+
+        vm_status[vm_id] = VM_STATUS_NOT_RUNNING;    
+    }
+    
+    if( vm_threads[vm_id] <= 0 ){
+
+        return;
+    }
+
+    vm_thread_state_t *state = thread_vp_get_data( vm_threads[vm_id] );
+
+    if( state->handle > 0 ){
+
+        mem2_v_free( state->handle );
+    }
+
+    // reset VM data
+    reset_published_data( state->vm_id );
+    
+    // clear thread handle
+    vm_threads[state->vm_id] = -1;
+}
+
 PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
@@ -665,8 +707,6 @@ PT_BEGIN( pt );
 
     // main VM timing loop
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
-
-        THREAD_WAIT_WHILE( pt, vm_pause & ( 1 << state->vm_id ) );
 
         state->delay_adjust = 0;
         
@@ -890,6 +930,7 @@ PT_BEGIN( pt );
 
             vm_status[state->vm_id] = VM_STATUS_HALT;
             trace_printf( "VM %d halted\r\n", state->vm_id );
+            goto exit;
         }
         else if( state->vm_return < 0 ){
 
@@ -902,17 +943,8 @@ PT_BEGIN( pt );
     
 exit:
     trace_printf( "Stopping VM thread: %s\r\n", state->program_fname );
-
-    if( state->handle > 0 ){
-
-        mem2_v_free( state->handle );
-    }
-
-    // reset VM data
-    reset_published_data( state->vm_id );
-
-    // clear thread handle
-    vm_threads[state->vm_id] = -1;
+    
+    kill_vm( state->vm_id );
     
 PT_END( pt );
 }
@@ -932,6 +964,78 @@ static bool vm_loader_wait( void ){
     }
 
     return TRUE;
+}
+
+static void reset_vm( uint8_t vm_id ){
+
+    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
+
+    // verify thread exists
+    if( vm_threads[vm_id] > 0 ){
+
+        thread_v_restart( vm_threads[vm_id] );
+    }   
+}
+
+static int8_t start_vm( uint8_t vm_id ){
+
+    if( vm_threads[vm_id] > 0 ){
+
+        // already running
+        return 0;
+    }
+
+    if( is_vm_running( vm_id ) ){
+
+        return 0;
+    }
+
+    // must set vm_run externally!
+    if( !vm_run[vm_id] ){
+
+        // not set to run state:
+        return -2;
+    }
+
+    vm_thread_state_t thread_state;
+    memset( &thread_state, 0, sizeof(thread_state) );
+    thread_state.vm_id = vm_id;
+
+    vm_threads[vm_id] = thread_t_create( THREAD_CAST(vm_thread),
+                                     vm_names[vm_id],
+                                     &thread_state,
+                                     sizeof(thread_state) );
+
+    if( vm_threads[vm_id] < 0 ){
+
+        vm_run[vm_id] = FALSE;
+
+        log_v_debug_P( PSTR("VM start thread failed: %d"), vm_id );
+
+        return -1;
+    }
+
+    vm_status[vm_id] = VM_STATUS_OK;   
+
+    return 0;
+}
+
+static void stop_vm( uint8_t vm_id ){
+
+    thread_t thread = vm_threads[vm_id];
+    
+    kill_vm( vm_id );
+
+    if( thread > 0 ){
+
+        // kill thread
+        thread_v_kill( thread );
+    }
+
+    vm_run[vm_id] = FALSE;
+
+    vm_run_time[vm_id]      = 0;
+    vm_max_cycles[vm_id]    = 0;
 }
 
 
@@ -969,7 +1073,6 @@ PT_BEGIN( pt );
                 ( vm_status[i] != 0 ) ){
 
                 vm_run[i] = FALSE;
-                vm_reset[i] = FALSE;
 
                 if( vm_status[i] == VM_STATUS_HALT ){
 
@@ -988,69 +1091,43 @@ PT_BEGIN( pt );
 
                 trace_printf( PSTR("Resetting VM: %d\r\n"), i );
 
-                vm_status[i] = VM_STATUS_NOT_RUNNING;
-
-                // verify thread exists
-                if( vm_threads[i] > 0 ){
-
-                    thread_v_restart( vm_threads[i] );
-                }
+                reset_vm( i );
             }
 
             // Did VM that was not running just get told to start?
             // This will also occur if we've triggered a reset
             if( vm_run[i] && !is_vm_running( i ) && ( vm_threads[i] <= 0 ) ){
 
-                vm_thread_state_t thread_state;
-                memset( &thread_state, 0, sizeof(thread_state) );
-                thread_state.vm_id = i;
+                if( start_vm( i ) < 0 ){
 
-                vm_threads[i] = thread_t_create( THREAD_CAST(vm_thread),
-                                                 vm_names[i],
-                                                 &thread_state,
-                                                 sizeof(thread_state) );
+                    // this means a thread creation failed.
 
-                if( vm_threads[i] < 0 ){
-
-                    vm_run[i] = FALSE;
-
-                    log_v_debug_P( PSTR("VM load fail: %d err: %d"), i, vm_status[i] );
-
-                    goto error; 
+                    // generally, the system is pretty screwed if that
+                    // happens.
+                    // rebooting into safe mode is probably the best option:
+                    sys_v_reboot_delay( SYS_MODE_SAFE );
                 }
-
-                vm_status[i] = VM_STATUS_OK;
             }
             // Did VM that was running just get told to stop?
             else if( !vm_run[i] && is_vm_running( i ) ){
 
                 trace_printf( PSTR("Stopping VM: %d\r\n"), i );
-                vm_status[i] = VM_STATUS_NOT_RUNNING;
-
-                vm_run_time[i]      = 0;
-                vm_max_cycles[i]    = 0;
+                
+                stop_vm( i );
             }
             
             // always reset the reset
             vm_reset[i] = FALSE;
         }
 
-        TMR_WAIT( pt, 100 );
-        continue;
-
-
-    error:
-
-        // longish delay after error to prevent swamping CPU trying
-        // to reload a bad file.
-        TMR_WAIT( pt, 1000 );
+        // TMR_WAIT( pt, 100 );
+        THREAD_YIELD( pt );
     }
 
 PT_END( pt );
 }
 
 
-// these are legacy controls from when we only had 1 VM
 void vm_v_start( uint8_t vm_id ){
 
     ASSERT( vm_id < VM_MAX_VMS );
@@ -1062,28 +1139,21 @@ void vm_v_stop( uint8_t vm_id ){
 
     ASSERT( vm_id < VM_MAX_VMS );
 
-    vm_run[vm_id] = FALSE;
+    stop_vm( vm_id );
 }
 
 void vm_v_reset( uint8_t vm_id ){
 
     ASSERT( vm_id < VM_MAX_VMS );
 
-    vm_reset[vm_id] = TRUE;
+    reset_vm( vm_id );
 }
 
-void vm_v_pause( uint8_t vm_id ){
+bool vm_b_halted( uint8_t vm_id ){
 
     ASSERT( vm_id < VM_MAX_VMS );
 
-    vm_pause |= ( 1 << vm_id );
-}
-
-void vm_v_resume( uint8_t vm_id ){
-
-    ASSERT( vm_id < VM_MAX_VMS );
-
-    vm_pause &= ~( 1 << vm_id );
+    return vm_status[vm_id] == VM_STATUS_HALT;
 }
 
 void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){

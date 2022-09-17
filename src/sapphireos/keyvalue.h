@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -46,6 +46,12 @@
     #define KV_SECTION_META
 #else
     #define KV_SECTION_META              __attribute__ ((section (".kv_meta"), used))
+#endif
+
+#if defined(__SIM__) || defined(BOOTLOADER)
+    #define KV_SECTION_OPT
+#else
+    #define KV_SECTION_OPT               __attribute__ ((section (".kv_opt"), used))
 #endif
 
 #if defined(__SIM__) || defined(BOOTLOADER)
@@ -107,17 +113,13 @@ typedef struct  __attribute__((packed, aligned(4))){
     uint8_t padding;
 } kv_meta_t;
 
-typedef struct  __attribute__((packed)){
-    catbus_hash_t32 hash;
-    uint16_t index;
-} kv_hash_index_t;
-
-
 
 
 // prototypes:
 
 void kv_v_init( void );
+
+void kv_v_add_db_info( kv_meta_t *meta, uint16_t len );
 
 int16_t kv_i16_len( catbus_hash_t32 hash );
 catbus_type_t8 kv_i8_type( catbus_hash_t32 hash );

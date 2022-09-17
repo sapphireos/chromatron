@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -247,6 +247,9 @@ int8_t kvdb_i8_add(
 
         return KVDB_STATUS_NOT_ENOUGH_SPACE;
     }
+
+    // reset cache!
+    kv_v_reset_cache();
 
     db_entry_t *entry = list_vp_get_data( ln );
 

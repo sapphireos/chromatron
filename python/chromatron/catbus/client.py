@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2021  Jeremy Billheimer
+#     Copyright (C) 2013-2022  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -70,6 +70,10 @@ class BaseClient(object):
 
     def __str__(self):
         return f'BaseClient({self._connected_host})'
+
+    @property
+    def local_port(self):
+        return self._sock.getsockname()[1]
 
     def _exchange(self, msg, host=None, timeout=0.5, tries=16):
         msg.header.universe = self.universe

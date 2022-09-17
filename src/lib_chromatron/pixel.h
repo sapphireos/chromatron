@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -31,6 +31,7 @@
 
 void pixel_v_init( void );
 void pixel_v_signal( void );
+void pixel_v_reconfigure( void );
 uint8_t pixel_u8_bytes_per_pixel( uint8_t mode );
 
 #endif

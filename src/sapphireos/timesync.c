@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,61 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+
+
+
+/*
+
+Time Sync Version 8:
+
+Separate time synchonization between the millisecond accurate "network time"
+and a less accurate, fraction of a second NTP time.
+
+The two use cases are pretty different:
+
+the millisecond clock is mostly used to synchronize the frame clocks on 
+VMs across the network.  it doesn't care about the absolute time of day or date,
+it just needs to do relative timing with millisecond precision.
+
+The NTP clock is generally used for either logging or for scheduled time of day
+and calendar date based events.  Achieving a high accuracy sync with a remote
+NTP server across a wireless network and public Internet is difficult to achieve
+even with high end equipment, thus, nobody using the NTP subsystem is planning
+on millisecond precision anyway - anything within a few seconds is usable, within
+1 - 2 seconds quite acceptable, and a fraction of a second phenomenal,
+
+Since both systems have different input requirements:
+
+ms net time: 
+    - a high precision internal clock source
+    - local wifi connection
+    - no internet needed
+    - can tolerate high bandwidth usage
+    - relatively high bandwidth tolerance can eliminate need for drift compensation
+    - GPS millisecond sync requirement - interrupt signal on PPS
+    - prefer to avoid hard syncs after initial sync to minimize VM frame skipping
+
+ntp time:
+    - internet access
+    - ntp server access (DNS)
+    - "low quality" sync (1 second level) is trivial
+    - remote NTP sync system must be low bandwidth to minimize load on external NTP servers
+    - local NTP sync can use much higher contact rates
+    - can operate with no drift compensation
+    - "hard syncs" - just jolting the clock forward or backward,
+        is fair game.
+    - soft GPS sync - timestamp on message receive, no PPS interrupt
+
+
+
+Additionally, both systems can be internally separated almost entirely into different
+OS modules.  The existing high level time sync API could be maintained to 
+minimize impact to downstream software (which themselves are complex modules).
+
+
+
+
+*/
 
 // #define NO_LOGGING
 #include "sapphire.h"

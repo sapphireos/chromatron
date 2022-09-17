@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -53,5 +53,6 @@ typedef uint8_t mem_type_t8;
 #define MEM_TYPE_LINK_CONSUMER      27
 #define MEM_TYPE_LINK_PRODUCER      28
 #define MEM_TYPE_LINK_REMOTE        29
+#define MEM_TYPE_KV_OPT             30
 
 #endif

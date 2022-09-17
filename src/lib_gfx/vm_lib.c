@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -31,6 +31,8 @@
 #include "io.h"
 #include "gfx_lib.h"
 #include "pixel_mapper.h"
+#include "vm.h"
+#include "battery.h"
 
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
@@ -42,13 +44,11 @@ int8_t vm_lib_i8_libcall_built_in(
     // result is assumed to have been initialized to a default value
     // by the caller.
 
-	int32_t temp0, temp1;
+	int32_t temp0, temp1, array_len, vm_id;
 
     #ifdef ENABLE_PIXEL_MAPPER
     int32_t x, y, z, index, h, s, v, size;
     #endif
-
-    *result = 0;
 
 	switch( func_hash ){
         case __KV__rand:
@@ -305,6 +305,162 @@ int8_t vm_lib_i8_libcall_built_in(
             }
 
             break;
+
+        case __KV__vm_start:
+            if( param_len == 0 ){
+
+                vm_id = 0;
+            }
+            else{
+
+                vm_id = params[0];
+            }
+
+            if( ( vm_id < 0 ) || ( vm_id >= VM_MAX_VMS ) ){
+
+                break;
+            }
+
+            vm_v_start( vm_id );
+
+            break;
+
+        case __KV__vm_stop:
+            if( param_len == 0 ){
+
+                vm_id = 0;
+            }
+            else{
+
+                vm_id = params[0];
+            }
+
+            if( ( vm_id < 0 ) || ( vm_id >= VM_MAX_VMS ) ){
+
+                break;
+            }
+
+            vm_v_stop( vm_id );
+
+            break;
+
+        case __KV__vm_reset:
+            if( param_len == 0 ){
+
+                vm_id = 0;
+            }
+            else{
+
+                vm_id = params[0];
+            }
+
+            if( ( vm_id < 0 ) || ( vm_id >= VM_MAX_VMS ) ){
+
+                break;
+            }
+
+            vm_v_reset( vm_id );
+
+            break;
+
+        case __KV__vm_halted:
+            if( param_len == 0 ){
+
+                vm_id = 0;
+            }
+            else{
+
+                vm_id = params[0];
+            }
+
+            if( ( vm_id < 0 ) || ( vm_id >= VM_MAX_VMS ) ){
+
+                break;
+            }
+
+            *result = vm_b_halted( vm_id );
+
+            break;
+
+
+        #ifdef ENABLE_BATTERY
+        case __KV__button_pressed:
+            if( param_len == 0 ){
+
+                temp0 = 0;
+            }
+            else{
+
+                temp0 = params[0];
+            }
+
+            if( temp0 < 0 ){
+
+                break;
+            }
+
+            *result = batt_b_is_button_pressed( temp0 );
+
+            break;
+
+        case __KV__button_held:
+            if( param_len == 0 ){
+
+                temp0 = 0;
+            }
+            else{
+
+                temp0 = params[0];
+            }
+
+            if( temp0 < 0 ){
+
+                break;
+            }
+
+            *result = batt_b_is_button_hold( temp0 );
+
+            break;
+
+        case __KV__button_released:
+            if( param_len == 0 ){
+
+                temp0 = 0;
+            }
+            else{
+
+                temp0 = params[0];
+            }
+
+            if( temp0 < 0 ){
+
+                break;
+            }
+
+            *result = batt_b_is_button_released( temp0 );
+
+            break;
+
+        case __KV__button_hold_released:
+            if( param_len == 0 ){
+
+                temp0 = 0;
+            }
+            else{
+
+                temp0 = params[0];
+            }
+
+            if( temp0 < 0 ){
+
+                break;
+            }
+
+            *result = batt_b_is_button_hold_released( temp0 );
+
+            break;
+
+        #endif
 
         // perform a short strobe on the debug pin
         // this should not be used unless debugging the VM.

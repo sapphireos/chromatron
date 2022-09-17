@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -59,6 +59,8 @@ typedef struct __attribute__((packed, aligned(4))){
 
 
 #define MSGFLOW_ARQ_TRIES               8
+#define MSGFLOW_ARQ_WAIT_TIME           500
+
 
 typedef struct __attribute__((packed)){
     uint16_t max_data_len; // set maximum data for each message.  useful to limit mem usage for parity.

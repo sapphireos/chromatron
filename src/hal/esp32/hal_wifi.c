@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -210,7 +210,7 @@ static void set_hostname( void ){
 
     esp_netif_t *esp_netif = NULL;
     esp_netif = esp_netif_next( esp_netif );
-    esp_err_t err = esp_netif_set_hostname( esp_netif, "meow" );
+    esp_err_t err = esp_netif_set_hostname( esp_netif, hostname );
 
     if( err != ESP_OK ){
 
@@ -241,6 +241,8 @@ void hal_wifi_v_init( void ){
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     esp_netif_create_default_wifi_sta();
     
+    esp_read_mac( wifi_mac, ESP_MAC_WIFI_STA );
+    
     // hostname must be set before esp_wifi_init in IDF 4.x
     set_hostname();
 
@@ -259,9 +261,7 @@ void hal_wifi_v_init( void ){
         },
     };
     esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config);
-	
-    esp_read_mac( wifi_mac, ESP_MAC_WIFI_STA );
-
+    
     uint64_t current_device_id = 0;
     cfg_i8_get( CFG_PARAM_DEVICE_ID, &current_device_id );
     uint64_t device_id = 0;

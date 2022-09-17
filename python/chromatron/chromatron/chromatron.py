@@ -2,7 +2,7 @@
 # 
 #     This file is part of the Sapphire Operating System.
 # 
-#     Copyright (C) 2013-2021  Jeremy Billheimer
+#     Copyright (C) 2013-2022  Jeremy Billheimer
 # 
 # 
 #     This program is free software: you can redistribute it and/or modify
@@ -227,7 +227,8 @@ class Chromatron(object):
         self._device = Device(host=host, port=port)
         self.host = self._device.host
 
-        self.client = catbus.Client()
+        # self.client = catbus.Client()
+        self.client = self._device._client
 
         self.streamer = streamer.Streamer()
 

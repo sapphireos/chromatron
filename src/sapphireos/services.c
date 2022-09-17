@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,22 @@
 // 
 // </license>
  */
+
+/*
+
+Possible improvements?
+
+
+- firstly - figure out if this module is behaving correctly,
+Re: weird time desync behavior usually on power outages.
+
+
+Run each service in its own thread?
+Might make state management much simpler, and this
+ptotocol has a ton of state.
+
+
+*/
 
 #include "system.h"
 #include "wifi.h"

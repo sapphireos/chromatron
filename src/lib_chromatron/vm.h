@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -31,12 +31,11 @@
 #define VM_LAST_VM ( VM_MAX_VMS - 1 )
 
 void vm_v_init( void );
+
 void vm_v_start( uint8_t vm_id );
 void vm_v_stop( uint8_t vm_id );
 void vm_v_reset( uint8_t vm_id );
-
-void vm_v_pause( uint8_t vm_id );
-void vm_v_resume( uint8_t vm_id );
+bool vm_b_halted( uint8_t vm_id );
 
 void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t slot );
 

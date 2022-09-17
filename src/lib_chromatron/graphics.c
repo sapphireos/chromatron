@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -120,9 +120,23 @@ bool gfx_b_pixels_enabled( void ){
     return TRUE;
 }
 
+// in microwatts
 uint32_t gfx_u32_get_pixel_power( void ){
 
     return pixel_power;
+}
+
+// in milliwatts, limited to 65.535 watts
+uint16_t gfx_u16_get_pixel_power_mw( void ){
+
+    uint32_t mw = pixel_power / 1000;
+
+    if( mw > 65535 ){
+
+        mw = 65535;
+    }
+
+    return mw;
 }
 
 static void calc_pixel_power( void ){

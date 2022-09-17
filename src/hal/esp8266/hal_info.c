@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 
 #include "sapphire.h"
 
+#include "flash_fs.h"
 #include "hal_info.h"
 #include "cpu.h"
 
@@ -40,6 +41,10 @@ static int8_t hal_info_kv_handler(
 
             strlcpy_P( data, PSTR("ChromatronESP8266"), len );
     	}
+        else if( hash == __KV__hw_board_type ){
+            
+            *(uint8_t *)data = ffs_u8_read_board_type();
+        }
     	else if( hash == __KV__cpu_clock ){
 
             STORE32(data, cpu_u32_get_clock_speed());
@@ -78,6 +83,7 @@ static int8_t hal_info_kv_handler(
 
 KV_SECTION_META kv_meta_t hal_info_kv[] = {
     { CATBUS_TYPE_STRING32,     0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "hw_type" },
+    { CATBUS_TYPE_UINT8,        0, 0,                   0, hal_info_kv_handler,  "hw_board_type" },
     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "cpu_clock" },
     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "esp_heap_free" },
     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  0, hal_info_kv_handler,  "vm_max_image_size" },

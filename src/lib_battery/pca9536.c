@@ -3,7 +3,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2020  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -29,6 +29,8 @@
 // PCA9536 I2C GPIO driver
 
 int8_t pca9536_i8_init( void ){
+
+    i2c_v_init( I2C_BAUD_400K );
 
     // write test pattern and then check
     i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_INVERT, 0x0f );

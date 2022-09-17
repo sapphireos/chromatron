@@ -2,7 +2,7 @@
 // 
 //     This file is part of the Sapphire Operating System.
 // 
-//     Copyright (C) 2013-2021  Jeremy Billheimer
+//     Copyright (C) 2013-2022  Jeremy Billheimer
 // 
 // 
 //     This program is free software: you can redistribute it and/or modify
@@ -71,6 +71,9 @@ static thread_t thread = -1;
 KV_SECTION_META kv_meta_t sntp_cfg_kv[] = {
     { CATBUS_TYPE_STRING64,     0, 0,  0,                  cfg_i8_kv_handler,  "sntp_server" },
     { CATBUS_TYPE_INT8,         0, KV_FLAGS_READ_ONLY,  &status, 0,            "sntp_status" },
+
+    { CATBUS_TYPE_UINT16,       0, KV_FLAGS_READ_ONLY,  &last_delay,  0,       "sntp_delay" },
+    { CATBUS_TYPE_INT16,        0, KV_FLAGS_READ_ONLY,  &last_offset, 0,       "sntp_offset" },
 };
 
 
