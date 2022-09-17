@@ -135,7 +135,7 @@ void ntp_v_init( void ){
 
     sock = sock_s_create( SOS_SOCK_DGRAM );
 
-    sock_v_bind( sock, NTP_SERVER_PORT );
+    // sock_v_bind( sock, NTP_SERVER_PORT );
 
     thread_t_create( ntp_server_thread,
                     PSTR("ntp_server"),
@@ -367,7 +367,7 @@ PT_BEGIN( pt );
             }
 
             // update service priorities
-            services_v_join_team( NTP_ELECTION_SERVICE, 0, get_priority(), NTP_SERVER_PORT );
+            services_v_join_team( NTP_ELECTION_SERVICE, 0, get_priority(), sock_u16_get_lport( sock ) );
 
             // check if clock source changed
             if( prev_source != clock_source ){
@@ -487,7 +487,7 @@ PT_BEGIN( pt );
     // wait for network
     THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
     
-    services_v_join_team( NTP_ELECTION_SERVICE, 0, get_priority(), NTP_SERVER_PORT );
+    services_v_join_team( NTP_ELECTION_SERVICE, 0, get_priority(), sock_u16_get_lport( sock ) );
 
     // wait until we resolve the election
     THREAD_WAIT_WHILE( pt, !is_service_avilable() );
@@ -617,10 +617,8 @@ server_done:
         };
 
 
-        sock_addr_t send_raddr;
-        send_raddr.port = NTP_SERVER_PORT;
-        send_raddr.ipaddr = services_a_get_ip( NTP_ELECTION_SERVICE, 0 );
-
+        sock_addr_t send_raddr = services_a_get( NTP_ELECTION_SERVICE, 0 );
+        
         sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), &send_raddr );  
 
         sock_v_set_timeout( sock, 2 );

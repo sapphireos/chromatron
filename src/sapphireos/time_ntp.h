@@ -30,7 +30,7 @@
 #define NTP_PROTOCOL_MAGIC             0x50544e53 // 'SNTP' in ASCII
 #define NTP_PROTOCOL_VERSION           1
 
-#define NTP_SERVER_PORT                32038
+// #define NTP_SERVER_PORT                32038
 
 #define NTP_ELECTION_SERVICE           __KV__ntpclock
 
