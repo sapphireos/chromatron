@@ -482,6 +482,8 @@ PT_BEGIN( pt );
 
             // compute sync delta
             sync_delta = (int64_t)net_time - (int64_t)sync->net_time;
+
+            log_v_info_P( PSTR("sync delta: %d"), sync_delta );
         }
 
         // if not synced or sync is too far off, we can immediately jolt the clock into position

@@ -873,7 +873,7 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
     // check if we got a matching socket
     if( sock < 0 ){
 
-        return -1;
+        return SOCK_STATUS_NO_SOCK;
     }
 
     // if we got here, we have the appropriate socket
@@ -883,13 +883,13 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
     // with multicasting we could receive our own messages.
     if( ip_b_addr_compare( state->raddr.ipaddr, cfg_ip_get_ipaddr() ) ){
 
-        return -15;
+        return SOCK_STATUS_MCAST_SELF;
     }
 
     // check if send only
     if( dgram->raw.options & SOCK_OPTIONS_SEND_ONLY ){
 
-        return -20;
+        return SOCK_STATUS_SEND_ONLY;
     }
 
     // check security flags
@@ -901,7 +901,7 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
 
             // socket requires secure messages
 
-            return -21;
+            return SOCK_STATUS_NO_SEC;
         }
     }
 
@@ -931,7 +931,7 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
 
             log_v_debug_P( PSTR("dropped to: %u from %u"), dgram->lport, state->raddr.port );
 
-            return -2;
+            return SOCK_STATUS_PORT_BUF_FULL;
         }
     }
     #else
@@ -959,7 +959,7 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
 
             log_v_debug_P( PSTR("dropped to: %u from %u"), dgram->lport, state->raddr.port );
 
-            return -2;
+            return SOCK_STATUS_PORT_BUF_FULL;
         }
     }
     #endif
@@ -1008,7 +1008,7 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
     // set state
     dgram->state = SOCK_UDP_STATE_RX_DATA_PENDING;
 
-    return 0;
+    return SOCK_STATUS_OK;
 }
 
 void sock_v_init( void ){

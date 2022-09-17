@@ -61,6 +61,13 @@ typedef int8_t sock_type_t8;
 
 
 
+#define SOCK_STATUS_OK              0
+#define SOCK_STATUS_NO_SOCK         -1
+#define SOCK_STATUS_PORT_BUF_FULL   -2
+#define SOCK_STATUS_MCAST_SELF      -15
+#define SOCK_STATUS_SEND_ONLY       -20
+#define SOCK_STATUS_NO_SEC          -21
+
 
 // options flags
 typedef uint8_t sock_options_t8;

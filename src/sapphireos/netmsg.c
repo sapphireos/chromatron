@@ -392,15 +392,16 @@ void netmsg_v_receive( netmsg_t netmsg ){
 
                 port_monitor->timeout = 60;
 
-                if( port_monitor->rx_count < UINT32_MAX){
-
-                    port_monitor->rx_count++;    
-                }    
-
-                if( ( status < 0 ) && ( port_monitor->dropped < UINT32_MAX ) ){
+                if( ( status < 0 ) && 
+                    ( status != SOCK_STATUS_MCAST_SELF ) && 
+                    ( port_monitor->dropped < UINT32_MAX ) ){
 
                     port_monitor->dropped++;                    
                 }
+                else if( port_monitor->rx_count < UINT32_MAX){
+
+                    port_monitor->rx_count++;    
+                }    
             }
         }
 
