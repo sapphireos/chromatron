@@ -125,10 +125,8 @@ int8_t sapphire_i8_init( void ){
         status_led_v_set( 1, STATUS_LED_RED );
     }
 
-    #ifndef SKIP_CMD_USART_INIT
     // init serial command port
     cmd_usart_v_init();
-    #endif
 
     // init user file system
     fs_v_init();
@@ -238,7 +236,7 @@ int8_t sapphire_i8_init( void ){
 
 
 void sapphire_run( void ){
-
+    
     // enable global interrupts
     sys_v_enable_interrupts();
 
@@ -253,6 +251,8 @@ void sapphire_run( void ){
 
     // enable watchdog timer
     sys_v_init_watchdog();
+
+    status_led_v_set( 1, STATUS_LED_YELLOW );
 
 	// start the thread scheduler
 	thread_start();

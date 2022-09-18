@@ -38,7 +38,7 @@
 
 // #define ENABLE_WIFI
 #define ENABLE_GFX
-#define ENABLE_FFS
+// #define ENABLE_FFS
 // #define ENABLE_IP
 // #define ENABLE_POWER
 // #define ENABLE_WIFI_USB_LOADER
