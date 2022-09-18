@@ -80,7 +80,7 @@
     "LOADER_PROJECT": "loader_atmega128rfa1",
     "LOADER_ADDRESS": "0x1F000",
 
-    "FW_INFO_ADDR": "0x1FC",
+    "FW_INFO_ADDR": "0x120",
 
     "BUILD_NUMBER_FILE": "buildnumber.txt",
 
