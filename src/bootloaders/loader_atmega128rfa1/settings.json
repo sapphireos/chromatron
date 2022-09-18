@@ -39,7 +39,7 @@
         "-Wl,--section-start=.data=0x800208", 
         "-Wl,--section-start=.fwinfo=0x120",
         "-T %(LINKER_SCRIPT)",
-        "-Wl,--section-start=.text=0x1E000",
+        "-Wl,--section-start=.text=0x1F000",
         "-Wl,--gc-sections"
     ]
 }

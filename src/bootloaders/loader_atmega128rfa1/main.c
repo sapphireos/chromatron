@@ -91,7 +91,7 @@ restart:
 	cli();
     
     ldr_v_set_yellow_led();
-	
+
 	// system clock is at 16 MHz
 	ldr_v_set_clock_prescaler( CLK_DIV_1 );
 	
@@ -191,7 +191,7 @@ restart:
     boot_data.loader_command = LDR_CMD_NONE;
 
     ldr_v_set_green_led();
-    
+
     // run application
     ldr_run_app();
 
