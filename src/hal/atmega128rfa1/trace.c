@@ -53,7 +53,7 @@ int _trace_printf(PGM_P format, ...){
   // return 0;
 }
 
-int trace_printf_ram(const char* format, ...){
+int _trace_printf_ram(const char* format, ...){
   int ret;
   va_list ap;
 

@@ -29,11 +29,18 @@
 
 #ifdef BOOTLOADER
 #define trace_printf(format, ...)
+#define trace_printf_ram(format, ...)
 #else
-#define trace_printf(format, ...) _trace_printf(PSTR(format), ##__VA_ARGS__)
+    #ifdef TRACE
+    #define trace_printf(format, ...) _trace_printf(PSTR(format), ##__VA_ARGS__)
+    #define trace_printf_ram(format, ...) _trace_printf_ram(format, ##__VA_ARGS__)
+    #else
+    #define trace_printf(format, ...)
+    #define trace_printf_ram(format, ...)
+    #endif
 #endif
 
 int _trace_printf(PGM_P format, ...);
-int trace_printf_ram(const char* format, ...);
+int _trace_printf_ram(const char* format, ...);
 
 #endif

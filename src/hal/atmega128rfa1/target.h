@@ -26,8 +26,8 @@
         
 #define _TARGET_H
 
-#define TRACE
-#define ENABLE_LOG_TO_TRACE_PRINT
+// #define TRACE
+// #define ENABLE_LOG_TO_TRACE_PRINT
 
 // modules
 // #define ENABLE_CATBUS_LINK
