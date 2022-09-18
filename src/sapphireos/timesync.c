@@ -288,6 +288,9 @@ PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    static uint16_t backoff;
+    backoff = TIME_SYNC_RATE_BASE;
+
     // wait for network
     THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
     
@@ -485,7 +488,6 @@ PT_BEGIN( pt );
         // if not synced or sync is too far off, we can immediately jolt the clock into position
         if( !is_sync || ( abs16( sync_delta ) > 200 ) ){
 
-            
             master_net_time = sync->net_time;
             base_sys_time = now;
 
@@ -494,12 +496,20 @@ PT_BEGIN( pt );
             log_v_info_P( PSTR("Net time hard sync delta: %d"), sync_delta );
 
             sync_delta = 0;
+
+            // reset backoff
+            backoff = TIME_SYNC_RATE_BASE;
         }
 
 
         // change to backoff after we verify everything works
-        TMR_WAIT( pt, 60000 );
+        TMR_WAIT( pt, (uint32_t)backoff * 1000 );
 
+        // increment backoff
+        if( backoff < TIME_SYNC_RATE_MAX ){
+
+            backoff *= 2;
+        }
     }
 
     THREAD_RESTART( pt );
@@ -525,90 +535,81 @@ PT_BEGIN( pt );
 
         master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
 
-        // if( is_leader() ){
+        // get elapsed time
+        uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_sys_time );
 
-        //     base_sys_time = tmr_u32_get_system_time_ms();
-        //     master_net_time = base_sys_time;
-        //     sync_delta = 0;
-        // }
-        // else{
+        // update base time
+        base_sys_time += elapsed_ms;            
+        
 
-            // get elapsed time
-            uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_sys_time );
+        // check sync delta:
+        // positive deltas mean our clock is ahead
+        // negative deltas mean out clock is behind
 
-            // update base time
-            base_sys_time += elapsed_ms;            
-            
+        int16_t clock_adjust = 0;
 
-            // check sync delta:
-            // positive deltas mean our clock is ahead
-            // negative deltas mean out clock is behind
+        if( sync_delta > 0 ){
 
-            int16_t clock_adjust = 0;
+            // local clock is ahead
+            // we need to slow down a bit
 
-            if( sync_delta > 0 ){
+            if( sync_delta > 500 ){
 
-                // local clock is ahead
-                // we need to slow down a bit
-
-                if( sync_delta > 500 ){
-
-                    clock_adjust = 10;
-                }
-                else if( sync_delta > 200 ){
-
-                    clock_adjust = 5;
-                }
-                else if( sync_delta > 50 ){
-
-                    clock_adjust = 2;
-                }
-                else{
-
-                    clock_adjust = 1;
-                }
+                clock_adjust = 10;
             }
-            else if( sync_delta < 0 ){
+            else if( sync_delta > 200 ){
 
-                // local clock is behind
-                // we need to speed up a bit
-
-                if( sync_delta < -500 ){
-
-                    clock_adjust = -10;
-                }
-                else if( sync_delta < -200 ){
-
-                    clock_adjust = -5;
-                }
-                else if( sync_delta < -50 ){
-
-                    clock_adjust = -2;
-                }
-                else{
-
-                    clock_adjust = -1;
-                }
+                clock_adjust = 5;
             }
+            else if( sync_delta > 50 ){
 
-            sync_delta -= clock_adjust;
+                clock_adjust = 2;
+            }
+            else{
 
-            // adjust elapsed ms by clock adjustment:
-            elapsed_ms -= clock_adjust;
+                clock_adjust = 1;
+            }
+        }
+        else if( sync_delta < 0 ){
 
-            // sanity check elapsed time
-            // if we went negative it will rollover
-            // this shouldn't happen unless thread timing is very screwed up
-            if( elapsed_ms > 2000 ){
+            // local clock is behind
+            // we need to speed up a bit
 
-                log_v_debug_P( PSTR("Net time sync fail, elapsed: %u"), elapsed_ms );
+            if( sync_delta < -500 ){
 
-                continue;
-            }  
+                clock_adjust = -10;
+            }
+            else if( sync_delta < -200 ){
 
-            // update net time
-            master_net_time += elapsed_ms;
-        // }
+                clock_adjust = -5;
+            }
+            else if( sync_delta < -50 ){
+
+                clock_adjust = -2;
+            }
+            else{
+
+                clock_adjust = -1;
+            }
+        }
+
+        sync_delta -= clock_adjust;
+
+        // adjust elapsed ms by clock adjustment:
+        elapsed_ms -= clock_adjust;
+
+        // sanity check elapsed time
+        // if we went negative it will rollover
+        // this shouldn't happen unless thread timing is very screwed up
+        if( elapsed_ms > 2000 ){
+
+            log_v_debug_P( PSTR("Net time sync fail, elapsed: %u"), elapsed_ms );
+
+            continue;
+        }  
+
+        // update net time
+        master_net_time += elapsed_ms;
     }
 
 PT_END( pt );
