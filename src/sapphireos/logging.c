@@ -127,7 +127,7 @@ static void append_log( char *buf ){
     #endif
     
     // check if file is not open
-    if( f < 0 ){
+    if( f <= 0 ){
 
         return;
     }

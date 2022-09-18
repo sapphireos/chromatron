@@ -195,8 +195,13 @@ int8_t ffs_fw_i8_init( void ){
         fw_size = ext_fw_length;
     }
 
+    #ifdef AVR
+    trace_printf("internal  len: %ld\r\n", sys_fw_length);
+    trace_printf("partition len: %ld\r\n", ext_fw_length);
+    #else
     trace_printf("internal  len: %d\r\n", sys_fw_length);
     trace_printf("partition len: %d\r\n", ext_fw_length);
+    #endif
 
     // bounds check
     if( fw_size > FLASH_FS_FIRMWARE_0_PARTITION_SIZE ){

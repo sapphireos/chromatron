@@ -26,19 +26,19 @@
         
 #define _TARGET_H
 
-// #define TRACE
-// #define ENABLE_LOG_TO_TRACE_PRINT
+#define TRACE
+#define ENABLE_LOG_TO_TRACE_PRINT
 
 // modules
 // #define ENABLE_CATBUS_LINK
 // #define ENABLE_TIME_SYNC
 
-// #define ENABLE_USB_UDP_TRANSPORT
-// #define ENABLE_NETWORK
+#define ENABLE_USB_UDP_TRANSPORT
+#define ENABLE_NETWORK
 
 // #define ENABLE_WIFI
-#define ENABLE_GFX
-// #define ENABLE_FFS
+// #define ENABLE_GFX
+#define ENABLE_FFS
 // #define ENABLE_IP
 // #define ENABLE_POWER
 // #define ENABLE_WIFI_USB_LOADER
@@ -101,8 +101,8 @@
 #define FS_MAX_VIRTUAL_FILES 16
 
 #define FLASH_FS_FIRMWARE_0_SIZE_KB     128
-#define FLASH_FS_FIRMWARE_1_SIZE_KB     128
-#define FLASH_FS_FIRMWARE_2_SIZE_KB     384
+#define FLASH_FS_FIRMWARE_1_SIZE_KB     0
+#define FLASH_FS_FIRMWARE_2_SIZE_KB     0
 #define FLASH_FS_EEPROM_SIZE_KB     	0 // MUST be 0 on the Xmega target!
 
 // logging

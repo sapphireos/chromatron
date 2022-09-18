@@ -508,7 +508,11 @@ static int8_t read_param( catbus_hash_t32 parameter, void *value ){
     // parameter not found
     if( len < 0 ){
 
+        #ifdef AVR
+        trace_printf("PARAM NOT FOUND: 0x%0lx (read)\n", parameter);
+        #else
         trace_printf("PARAM NOT FOUND: 0x%0x (read)\n", parameter);
+        #endif
 
         return -1;
     }
@@ -905,10 +909,14 @@ void cfg_v_default_all( void ){
     cfg_v_set_u16( CFG_PARAM_MAX_LOG_SIZE, 65535 );
 
     cfg_v_set_u16( CFG_PARAM_VERSION, CFG_VERSION );
+
+    trace_printf("Done setting defaults.\r\n");
 }
 
 // init config module
 void cfg_v_init( void ){
+
+    trace_printf( "Config init. Total blocks: %u\r\n", CFG_TOTAL_BLOCKS );
 
     COMPILER_ASSERT( CFG_TOTAL_BLOCKS < 256 );
 

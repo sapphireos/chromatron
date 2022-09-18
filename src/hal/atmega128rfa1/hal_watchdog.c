@@ -27,19 +27,11 @@
 #include "hal_watchdog.h"
 #include "watchdog.h"
 
-// system timer at 500 khz (see hal_timers.c).
-
-#define WDG_TIMER_STEP 50000 // interrupt at 10 Hz
-
-#define WDG_TIMEOUT 40 // 4 second timeout
-
-static volatile uint8_t wdg_timer;
-
 
 void wdg_v_reset( void ){
 
     ATOMIC;
-    wdg_timer = WDG_TIMEOUT;
+    wdt_reset();
     END_ATOMIC;
 }
 

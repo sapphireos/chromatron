@@ -27,8 +27,7 @@
 #include "target.h"
 #include "eeprom.h"
 
-// ???? FIX ME!
-#define EE_ARRAY_SIZE 1024 // size of eeprom storage area in bytes
+#define EE_ARRAY_SIZE 4096 // size of eeprom storage area in bytes
 
 
 #endif

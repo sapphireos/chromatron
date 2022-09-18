@@ -24,53 +24,53 @@
 #include "trace.h"
 
 #include "system.h"
-#include "hal_usb.h"
+#include "cmd_usart.h"
 
 #include <stdarg.h>
 
 #ifndef BOOTLOADER
 
+static char buf[TRACE_BUF_SIZE];
+
 int _trace_printf(PGM_P format, ...){
-  // int ret;
-  // va_list ap;
+  int ret;
+  va_list ap;
 
-  // va_start (ap, format);
+  va_start (ap, format);
 
-  // static char buf[TRACE_BUF_SIZE];
-  // memset( buf, 0, sizeof(buf) );
+  memset( buf, 0, sizeof(buf) );
 
-  // // Print to the local buffer
-  // ret = vsnprintf_P (buf, sizeof(buf), format, ap);
-  // if (ret > 0)
-  //   {
-  //     // Transfer the buffer to the device
-  //     usb_v_send_data( (uint8_t *)buf, ret );
-  //   }
+  // Print to the local buffer
+  ret = vsnprintf_P (buf, sizeof(buf), format, ap);
+  if (ret > 0)
+    {
+      // Transfer the buffer to the device
+      cmd_usart_v_send_data( (uint8_t *)buf, ret );
+    }
 
-  // va_end (ap);
-  // return ret;
-  return 0;
+  va_end (ap);
+  return ret;
+  // return 0;
 }
 
 int trace_printf_ram(const char* format, ...){
-  // int ret;
-  // va_list ap;
+  int ret;
+  va_list ap;
 
-  // va_start (ap, format);
+  va_start (ap, format);
 
-  // static char buf[TRACE_BUF_SIZE];
-  // memset( buf, 0, sizeof(buf) );
+  memset( buf, 0, sizeof(buf) );
 
-  // // Print to the local buffer
-  // ret = vsnprintf (buf, sizeof(buf), format, ap);
-  // if (ret > 0)
-  //   {
-  //     // Transfer the buffer to the device
-  //     usb_v_send_data( (uint8_t *)buf, ret );
-  //   }
+  // Print to the local buffer
+  ret = vsnprintf (buf, sizeof(buf), format, ap);
+  if (ret > 0)
+    {
+      // Transfer the buffer to the device
+      cmd_usart_v_send_data( (uint8_t *)buf, ret );
+    }
 
-  // va_end (ap);
-  // return ret;
-  return 0;
+  va_end (ap);
+  return ret;
+  // return 0;
 }
 #endif
