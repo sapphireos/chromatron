@@ -202,6 +202,7 @@ SECTIONS
     *(.bss*)
     *(COMMON)
      PROVIDE (__bss_end = .) ;
+     PROVIDE (__heap_start = .) ;
   }  > data
    __data_load_start = LOADADDR(.data);
    __data_load_end = __data_load_start + SIZEOF(.data);
@@ -212,7 +213,6 @@ SECTIONS
     *(.noinit*)
      PROVIDE (__noinit_end = .) ;
      _end = . ;
-     PROVIDE (__heap_start = .) ;
   }  > data
   .eeprom  :
   {

@@ -199,7 +199,6 @@ int8_t sapphire_i8_init( void ){
     services_v_init();
     #endif
 
-
     catbus_v_init();
 
     #ifdef ENABLE_TIME_SYNC

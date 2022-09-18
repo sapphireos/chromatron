@@ -724,9 +724,9 @@ void sos_assert(FLASH_STRING_T str_expr, FLASH_STRING_T file, int line){
     }
     #endif
 
-    #ifndef AVR
-    trace_printf( error_log.log );
-    #endif
+    // #ifndef AVR
+    trace_printf_ram( error_log.log );
+    // #endif
 
     // write error log
     cfg_v_write_error_log( &error_log );
