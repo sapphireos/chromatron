@@ -29,6 +29,35 @@
 #include "cmd_usart.h"
 
 
+static volatile uint16_t fifo_ins;
+static volatile uint16_t fifo_ext;
+static volatile uint16_t fifo_count;
+static uint8_t fifo_buf[CMD_USART_MAX_PACKET_LEN];
+
+
+ISR(USART0_RX_vect){
+
+    uint8_t byte = UDR0;
+
+    if( fifo_count >= cnt_of_array(fifo_buf) ){
+
+        // overrun!
+        return;
+    }
+
+    fifo_buf[fifo_ins] = byte;
+    
+    fifo_ins++;
+
+    if( fifo_ins >= cnt_of_array(fifo_buf) ){
+    
+        fifo_ins = 0;
+    }
+
+    fifo_count++;
+}
+
+
 void cmd_usart_v_set_baud( baud_t baud ){
 
 }
@@ -57,20 +86,38 @@ void cmd_usart_v_send_data( const uint8_t *data, uint16_t len ){
     }
 }
 
-
 int16_t cmd_usart_i16_get_char( void ){
-
-    if( UCSR0A & ( 1 << RXC0 ) ){
     
-        return UDR0;
+    int16_t temp;
+
+    ATOMIC;
+
+    if( fifo_count == 0 ){
+
+        temp = -1;
+    }
+    else{
+
+        temp = fifo_buf[fifo_ext];
+
+        fifo_ext++;
+
+        if( fifo_ext >= cnt_of_array(fifo_buf) ){
+
+            fifo_ext = 0;
+        }
+
+        fifo_count--;
     }
 
-    return -1;
+    END_ATOMIC;
+
+    return temp;
 }
 
 uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
     
-    uint8_t rx_size = cmd_usart_u16_rx_size();
+    uint16_t rx_size = cmd_usart_u16_rx_size();
 
     if( len > rx_size ){
 
@@ -91,24 +138,34 @@ uint8_t cmd_usart_u8_get_data( uint8_t *data, uint8_t len ){
 }
 
 uint16_t cmd_usart_u16_rx_size( void ){
+    
+    uint16_t count;
 
-    if( UCSR0A & ( 1 << RXC0 ) ){
+    ATOMIC;
 
-        return 1;
-    }
+    count = fifo_count;
 
-    return 0;
+    END_ATOMIC;
+
+    return count;
 }
 
 void cmd_usart_v_flush( void ){
 
+    ATOMIC;
+
+    fifo_ext = 0;
+    fifo_ins = 0;
+    fifo_count = 0;
+
+    END_ATOMIC;
 }
 
 
 void hal_cmd_usart_v_init( void ){
 
     UCSR0A = ( 1 << U2X0 ); // enable double speed mode
-    UCSR0B = ( 1 << RXEN0 ) | ( 1 << TXEN0 ); // receive interrupt enabled, rx and tx enabled
+    UCSR0B = ( 1 << RXCIE0 ) |( 1 << RXEN0 ) | ( 1 << TXEN0 ); // receive interrupt enabled, rx and tx enabled
     UCSR0C = ( 1 << UCSZ01 ) | ( 1 << UCSZ00 ); // select 8 bit characters
 
     // 115200 bps
