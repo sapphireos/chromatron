@@ -47,22 +47,22 @@ SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"
 
 void app_v_init( void ){
 
-    gfx_v_init();
+    // gfx_v_init();
 
-    vm_v_init();
+    // vm_v_init();
 
-    #ifdef ENABLE_BATTERY
-    batt_v_init();
-    #endif
+    // #ifdef ENABLE_BATTERY
+    // batt_v_init();
+    // #endif
 
-    #ifdef ESP32
+    // #ifdef ESP32
 
-    pwm_v_init();
+    // pwm_v_init();
 
-    veml7700_v_init();
+    // veml7700_v_init();
 
-    telemetry_v_init();
+    // telemetry_v_init();
 
-    #endif
+    // #endif
 }
 

@@ -85,15 +85,15 @@ static const PROGMEM pin_map_t pin_map[] = {
 void io_v_init( void ){
 
     // set all LEDs to outputs
-    io_v_set_mode( IO_PIN_LED0, IO_MODE_OUTPUT );
-    io_v_set_mode( IO_PIN_LED1, IO_MODE_OUTPUT );
-    io_v_set_mode( IO_PIN_LED2, IO_MODE_OUTPUT );
+    // io_v_set_mode( IO_PIN_LED0, IO_MODE_OUTPUT );
+    // io_v_set_mode( IO_PIN_LED1, IO_MODE_OUTPUT );
+    // io_v_set_mode( IO_PIN_LED2, IO_MODE_OUTPUT );
 
-    // set all other pins to inputs pulled down
-    for( uint8_t i = 0; i < IO_PIN_COUNT; i++ ){
+    // // // set all other pins to inputs pulled down
+    // for( uint8_t i = 0; i < IO_PIN_COUNT; i++ ){
 
-        io_v_set_mode( i, IO_MODE_INPUT_PULLDOWN );
-    }
+    //     io_v_set_mode( i, IO_MODE_INPUT_PULLDOWN );
+    // }
 }
 
 uint8_t io_u8_get_board_rev( void ){
