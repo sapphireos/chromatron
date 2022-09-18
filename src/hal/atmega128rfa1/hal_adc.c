@@ -49,16 +49,16 @@ static int8_t adc_kv_handler(
         if( hash == __KV__vcc ){
 
             uint16_t mv = adc_u16_read_vcc();
-            memcpy( data, &mv, sizeof(mv) );
+            STORE16( data, mv );
         }
     }
 
     return 0;
 }
 
-KV_SECTION_META kv_meta_t hal_adc_kv[] = {
-    { CATBUS_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, adc_kv_handler,   "vcc" },
-};
+// KV_SECTION_META kv_meta_t hal_adc_kv[] = {
+//     { CATBUS_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, adc_kv_handler,   "vcc" },
+// };
 
 
 
@@ -202,6 +202,8 @@ uint16_t adc_u16_read_supply_voltage( void ){
 }
 
 uint16_t adc_u16_read_vcc( void ){
+
+    // this will crash:
 
     uint16_t mv = adc_u16_convert_to_millivolts( adc_u16_read_raw( ADC_CHANNEL_VCC ) * 10 );
 

@@ -29,10 +29,10 @@
 #include "cmd_usart.h"
 
 
-static volatile uint16_t fifo_ins;
-static volatile uint16_t fifo_ext;
-static volatile uint16_t fifo_count;
-static uint8_t fifo_buf[CMD_USART_MAX_PACKET_LEN];
+static volatile uint8_t fifo_ins;
+static volatile uint8_t fifo_ext;
+static volatile uint8_t fifo_count;
+static uint8_t fifo_buf[128];
 
 
 ISR(USART0_RX_vect){
