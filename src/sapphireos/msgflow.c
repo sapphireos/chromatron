@@ -718,7 +718,7 @@ PT_BEGIN( pt );
                 state->tx_sequence = msg->sequence;
 
                 // transmit successful, wait for response
-                thread_v_set_alarm( tmr_u32_get_system_time_ms() + 100 );
+                thread_v_set_alarm( tmr_u32_get_system_time_ms() + MSGFLOW_ARQ_WAIT_TIME );
                 THREAD_WAIT_WHILE( pt, ( state->rx_sequence < state->tx_sequence ) &&
                                         thread_b_alarm_set() );           
 
