@@ -25,6 +25,24 @@
 #include "catbus_types.h"
 
 
+/*
+
+AVR notes:
+
+
+See:
+https://gcc.gnu.org/bugzilla/show_bug.cgi?id=49857
+https://www.avrfreaks.net/forum/switch-bug-avr-gcc-453
+
+There is a longstanding GCC bug that breaks switch statements if 
+ftree-switch-conversion is enabled.
+
+type_u16_size will fail returning only 0 on the AVR if this optimizer is enabled.
+
+So, just disable it on AVR builds.
+
+*/
+
 uint16_t type_u16_size( catbus_type_t8 type ){
 
     uint16_t size = CATBUS_TYPE_SIZE_INVALID;

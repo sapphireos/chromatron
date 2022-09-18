@@ -22,6 +22,7 @@
         "-mcall-prologues",
         "-ffreestanding",
         "-fstack-usage",
+        "-fno-tree-switch-conversion",
         "-Wall",
         "-Wsizeof-pointer-memaccess",
         "-Wsign-compare",
