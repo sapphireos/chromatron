@@ -404,7 +404,11 @@ static void write_param( catbus_hash_t32 parameter, void *value ){
     // parameter not found
     if( type < 0 ){
 
+        #ifdef AVR
+        trace_printf("PARAM NOT FOUND: 0x%0lx (write)\n", parameter);
+        #else
         trace_printf("PARAM NOT FOUND: 0x%0x (write)\n", parameter);
+        #endif
 
         // bail out
         return;
