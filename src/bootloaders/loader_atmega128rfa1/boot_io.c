@@ -1,4 +1,3 @@
-/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,23 +19,37 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
 
-#ifndef _HAL_STATUS_LED_H
-#define _HAL_STATUS_LED_H
 
+#include "system.h"
 #include "status_led.h"
 
-#define LED_GREEN_DDR       DDRD
-#define LED_GREEN_PORT      PORTD
-#define LED_GREEN_PIN       5
-#define LED_YELLOW_DDR      DDRD
-#define LED_YELLOW_PORT     PORTD
-#define LED_YELLOW_PIN      6
-#define LED_RED_DDR         DDRD
-#define LED_RED_PORT        PORTD
-#define LED_RED_PIN         7
+void ldr_v_set_green_led( void ){
 
-#define LED_TIME_SYNC_INTERVAL 512
+    status_led_v_set( 1, STATUS_LED_GREEN );
+}
 
-#endif
+void ldr_v_clear_green_led( void ){
+
+    status_led_v_set( 0, STATUS_LED_GREEN );
+}
+
+void ldr_v_set_yellow_led( void ){
+
+    status_led_v_set( 1, STATUS_LED_YELLOW );
+}
+
+void ldr_v_clear_yellow_led( void ){
+
+    status_led_v_set( 0, STATUS_LED_YELLOW );
+}
+
+void ldr_v_set_red_led( void ){
+
+    status_led_v_set( 1, STATUS_LED_RED );
+}
+
+void ldr_v_clear_red_led( void ){
+
+    status_led_v_set( 0, STATUS_LED_RED );
+}

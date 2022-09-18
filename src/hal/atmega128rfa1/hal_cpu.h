@@ -60,6 +60,8 @@
 
 #define CPU_FREQ_PER 16000000
 
+typedef uint8_t sys_clock_t8;
+
 #define CLK_DIV_1   0b00000000
 #define CLK_DIV_2   0b00000001
 #define CLK_DIV_4   0b00000010

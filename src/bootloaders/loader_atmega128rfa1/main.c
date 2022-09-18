@@ -90,13 +90,10 @@ restart:
 
 	cli();
     
-    // set status LED pins to outputs
-    // LDR_LED_GREEN_DDR |= _BV(LDR_LED_GREEN_PIN);
-    // LDR_LED_YELLOW_DDR |= _BV(LDR_LED_YELLOW_PIN);
-    // LDR_LED_RED_DDR |= _BV(LDR_LED_RED_PIN);
+    ldr_v_set_yellow_led();
 	
 	// system clock is at 16 MHz
-	// ldr_v_set_clock_prescaler( CLK_DIV_1 );
+	ldr_v_set_clock_prescaler( CLK_DIV_1 );
 	
 	// disable watchdog timer
 	wdt_reset();
@@ -106,8 +103,6 @@ restart:
 
 	//WDTCSR |= (1<<WDCE) | (1<<WDE); // enable watchdog change
 	//WDTCSR = (1<<WDE) | (1<<WDP2) | (0<<WDP1) | (0<<WDP0); // set watchdog timer to 0.25 seconds
-    
-    ldr_v_set_yellow_led();
 
     // check reset source
     uint8_t reset_source = MCUSR;
@@ -123,15 +118,16 @@ restart:
     
     boot_data.loader_status = LDR_STATUS_NORMAL;
 
-    // check if button is held down, or if the serial boot command was set
-    if( ( button_b_is_pressed() ) || ( boot_data.loader_command == LDR_CMD_SERIAL_BOOT ) ){
+    // // check if button is held down, or if the serial boot command was set
+    // if( ( button_b_is_pressed() ) || ( boot_data.loader_command == LDR_CMD_SERIAL_BOOT ) ){
         
-        serial_v_loop( TRUE );
-    }
+    //     serial_v_loop( TRUE );
+    // }
     
     // initialize spi
     spi_v_init( 0, 0, 0 );
-    
+
+
     // initialize external flash
     flash25_v_init();
 
@@ -193,6 +189,8 @@ restart:
 
     // clear loader command
     boot_data.loader_command = LDR_CMD_NONE;
+
+    ldr_v_set_green_led();
     
     // run application
     ldr_run_app();
@@ -202,9 +200,10 @@ fatal_error:
     
     ldr_v_set_red_led();
 
-    serial_v_loop( FALSE );
+    // serial_v_loop( FALSE );
     
     // if the serial processor exits, we restart the loader
-    goto restart;
+    // goto restart;
+    while(1);
 }
 

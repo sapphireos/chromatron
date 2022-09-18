@@ -1,0 +1,30 @@
+
+efuse: 0xff
+    brownout disabled
+    
+
+hfuse: 0x12
+    OCDEN
+    JTAGEN
+    SPIEN
+    no WDTON
+
+    EESAVE
+    BOOTSZ1 = 0
+    BOOTSZ0 = 1
+    BOOTRST
+
+lfuse: 0xe6
+
+    TRX clock, 1K cycle startup, 0 delay
+
+
+
+READ fuses:
+
+avrdude -p atmega128rfa1 -P usb -c jtag2 -U lfuse:r:-:h -U hfuse:r:-:h -U efuse:r:-:h
+
+
+SET fuses:
+
+avrdude -p atmega128rfa1 -P usb -c jtag2 -U lfuse:w:0xe6:m -U hfuse:w:0x12:m -U efuse:w:0xff:m
