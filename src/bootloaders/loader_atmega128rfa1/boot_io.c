@@ -22,34 +22,34 @@
 
 
 #include "system.h"
-#include "status_led.h"
+#include "hal_status_led.h"
 
 void ldr_v_set_green_led( void ){
 
-    status_led_v_set( 1, STATUS_LED_GREEN );
+    LED_GREEN_PORT |= ( 1 << LED_GREEN_PIN );
 }
 
 void ldr_v_clear_green_led( void ){
 
-    status_led_v_set( 0, STATUS_LED_GREEN );
+    LED_GREEN_PORT &= ~( 1 << LED_GREEN_PIN );
 }
 
 void ldr_v_set_yellow_led( void ){
 
-    status_led_v_set( 1, STATUS_LED_YELLOW );
+    LED_YELLOW_PORT |= ( 1 << LED_YELLOW_PIN );
 }
 
 void ldr_v_clear_yellow_led( void ){
 
-    status_led_v_set( 0, STATUS_LED_YELLOW );
+    LED_YELLOW_PORT &= ~( 1 << LED_YELLOW_PIN );
 }
 
 void ldr_v_set_red_led( void ){
 
-    status_led_v_set( 1, STATUS_LED_RED );
+    LED_RED_PORT |= ( 1 << LED_RED_PIN );
 }
 
 void ldr_v_clear_red_led( void ){
 
-    status_led_v_set( 0, STATUS_LED_RED );
+    LED_RED_PORT &= ~( 1 << LED_RED_PIN );
 }

@@ -112,9 +112,9 @@
 // page size in bytes
 #define PAGE_SIZE 256
 // number of pages in app section
-#define N_APP_PAGES 512
+#define N_APP_PAGES 496
 // total pages
-#define TOTAL_PAGES ( 512 + 32 )
+#define TOTAL_PAGES 512
 
 #define FLASH_START 	0x00
 #define FW_INFO_ADDRESS 0x1FC // this must match the offset in the makefile!

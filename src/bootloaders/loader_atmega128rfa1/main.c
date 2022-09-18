@@ -71,13 +71,8 @@ Generic mode:
 #include "loader.h"
 #include "flash25.h"
 #include "button.h"
+#include "hal_status_led.h"
 
-
-static uint8_t mode;
-#define MODE_SAPPHIRE   0
-#define MODE_GENERIC    1
-
-char sw_id[7];
 
 // bootloader shared memory
 volatile boot_data_t BOOTDATA boot_data;
@@ -86,10 +81,12 @@ volatile boot_data_t BOOTDATA boot_data;
 
 void main( void ){
 
-restart:
-
 	cli();
     
+    LED_GREEN_DDR |= ( 1 << LED_GREEN_PIN );
+    LED_YELLOW_DDR |= ( 1 << LED_YELLOW_PIN );
+    LED_RED_DDR |= ( 1 << LED_RED_PIN );
+
     ldr_v_set_yellow_led();
 
 	// system clock is at 16 MHz
