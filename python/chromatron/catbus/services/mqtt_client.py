@@ -56,6 +56,9 @@ class MQTTClient(Ribbon):
 
         self.mqtt.connect(host)
 
+    def clean_up(self):
+        self.mqtt.disconnect()
+
     def on_connect(self, client, userdata, flags, rc):
         logging.info("Connected with result code "+str(rc))
 
