@@ -23,6 +23,7 @@
 #ifndef _TRACE_H	
 #define _TRACE_H
 
+#include "target.h"
 #include <avr/pgmspace.h>
 
 #define TRACE_BUF_SIZE 256
