@@ -29,6 +29,20 @@
 #include "time_ntp.h"
 #include "sntp.h"
 
+/*
+
+Track long term sync delay and elapsed differences.
+Try to average to a long term average sync accuracy.
+
+It would be cool to see the difference in oscillator
+speeds between devices, which over a long enough
+averaging period, should be discernible.
+
+
+
+*/
+
+
 static socket_t sock;
 
 // master clock:
