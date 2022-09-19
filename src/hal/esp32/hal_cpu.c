@@ -238,7 +238,7 @@ void cpu_v_sleep( void ){
 
         #ifdef CONFIG_FREERTOS_UNICORE
         // in single core mode, we must still yield
-        vTaskDelay( 0 );
+        vTaskDelay( 1 / portTICK_PERIOD_MS );
         #endif
 
         return;
@@ -263,7 +263,7 @@ void cpu_v_sleep( void ){
 
         #ifdef CONFIG_FREERTOS_UNICORE
         // in single core mode, we must still yield
-        vTaskDelay( 0 );
+        vTaskDelay( 1 / portTICK_PERIOD_MS );
         #endif
     }
 }
