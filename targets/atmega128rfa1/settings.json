@@ -48,7 +48,7 @@
         "-Wl,-u,vfprintf -lprintf_flt",
         "-Wl,--section-start=.noinit=0x802000",
         "-Wl,--section-start=.data=0x802008",
-        "-Wl,--section-start=.fwinfo=0x1FC",
+        "-Wl,--section-start=.fwinfo=0x120",
         "-T %(LINKER_SCRIPT)",
         "-Wl,--gc-sections",
         "-Wl,--relax"
