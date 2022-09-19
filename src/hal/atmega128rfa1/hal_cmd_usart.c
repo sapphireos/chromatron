@@ -29,10 +29,10 @@
 #include "cmd_usart.h"
 
 
-static volatile uint8_t fifo_ins;
-static volatile uint8_t fifo_ext;
-static volatile uint8_t fifo_count;
-static uint8_t fifo_buf[128];
+static volatile uint16_t fifo_ins;
+static volatile uint16_t fifo_ext;
+static volatile uint16_t fifo_count;
+static uint8_t fifo_buf[CMD_USART_MAX_PACKET_LEN];
 
 
 ISR(USART0_RX_vect){
@@ -64,7 +64,7 @@ void cmd_usart_v_set_baud( baud_t baud ){
 
 bool cmd_usart_b_received_char( void ){
 
-    return ( UCSR0A & ( 1 << RXC0 ) );
+    return cmd_usart_u16_rx_size() > 0;
 }
 
 void cmd_usart_v_send_char( uint8_t data ){
