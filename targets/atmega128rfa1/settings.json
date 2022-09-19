@@ -46,9 +46,9 @@
         "-Wl,-Map=%(TARGET_DIR)/main.map,--cref",
         "-lm",
         "-Wl,-u,vfprintf -lprintf_flt",
-        "-Wl,--section-start=.noinit=0x800100",
-        "-Wl,--section-start=.data=0x800108",
-        "-Wl,--section-start=.fwinfo=0x120",
+        "-Wl,--section-start=.noinit=0x802000",
+        "-Wl,--section-start=.data=0x802008",
+        "-Wl,--section-start=.fwinfo=0x1FC",
         "-T %(LINKER_SCRIPT)",
         "-Wl,--gc-sections",
         "-Wl,--relax"
