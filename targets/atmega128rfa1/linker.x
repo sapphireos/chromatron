@@ -183,6 +183,13 @@ SECTIONS
     KEEP (*(.fini0))
      _etext = . ;
   }  > text
+  /* Global data not cleared after reset.  */
+  .noinit  :
+  {
+     PROVIDE (__noinit_start = .) ;
+    *(.noinit*)
+     PROVIDE (__noinit_end = .) ;
+  }  > data
   .data	  : AT (ADDR (.text) + SIZEOF (.text))
   {
      PROVIDE (__data_start = .) ;
@@ -203,17 +210,10 @@ SECTIONS
     *(COMMON)
      PROVIDE (__bss_end = .) ;
      PROVIDE (__heap_start = .) ;
+     _end = . ;
   }  > data
    __data_load_start = LOADADDR(.data);
    __data_load_end = __data_load_start + SIZEOF(.data);
-  /* Global data not cleared after reset.  */
-  .noinit  :
-  {
-     PROVIDE (__noinit_start = .) ;
-    *(.noinit*)
-     PROVIDE (__noinit_end = .) ;
-     _end = . ;
-  }  > data
   .eeprom  :
   {
     *(.eeprom*)
