@@ -49,7 +49,7 @@ ptotocol has a ton of state.
 
 #include "services.h"
 
-#define TEST_MODE
+// #define TEST_MODE
 
 #if defined(ENABLE_NETWORK) && defined(ENABLE_SERVICES)
 
