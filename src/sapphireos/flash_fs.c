@@ -100,6 +100,20 @@ Flushes must write cached pages from a given file
 in sequential order!
 
 
+
+
+Additional notes:
+
+It would be nice to cache file names.  A file listing is an expensive operation:
+each file requires a page seek, index scan, and then a page read.  A file list
+operation would likely result in invalidating all cached pages from the above 
+caching scheme.
+
+This feature should be optional: low memory targets are better off taking the 
+speed hit, but the ESP based devices have enough memory.
+
+
+
 */
 
 
