@@ -553,7 +553,7 @@ class ServiceManager(MsgServer):
         assert service.is_server
         assert service.key not in self._services
 
-        logging.info(f"Added OFFER for {hex(service_id)}/{hex(group)}")
+        logging.info(f"Added OFFER for {hex(service_id)}/{hex(group)} port: {port}")
         
         self._services[service.key] = service
 
