@@ -75,7 +75,7 @@ class BaseClient(object):
     def local_port(self):
         return self._sock.getsockname()[1]
 
-    def _exchange(self, msg, host=None, timeout=0.5, tries=16):
+    def _exchange(self, msg, host=None, timeout=0.3, tries=16):
         msg.header.universe = self.universe
 
         self._sock.settimeout(timeout)
