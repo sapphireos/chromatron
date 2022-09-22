@@ -51,7 +51,7 @@
 #include "keyvalue.h"
 
 #include "sntp.h"
-#include "timesync.h"
+#include "time_ntp.h"
 
 // #define NO_LOGGING
 #include "logging.h"
@@ -64,6 +64,10 @@ static uint16_t last_delay;
 
 static sntp_status_t8 status = SNTP_STATUS_DISABLED;
 
+static uint32_t sntp_syncs;
+static uint32_t sntp_timeouts;
+static uint32_t last_good_sync;
+
 static socket_t sock = -1;
 static thread_t thread = -1;
 
@@ -71,6 +75,9 @@ static thread_t thread = -1;
 KV_SECTION_META kv_meta_t sntp_cfg_kv[] = {
     { CATBUS_TYPE_STRING64,     0, 0,  0,                  cfg_i8_kv_handler,  "sntp_server" },
     { CATBUS_TYPE_INT8,         0, KV_FLAGS_READ_ONLY,  &status, 0,            "sntp_status" },
+
+    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  &sntp_syncs,  0,       "sntp_syncs" },
+    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY,  &sntp_timeouts,  0,    "sntp_timeouts" },
 
     { CATBUS_TYPE_UINT16,       0, KV_FLAGS_READ_ONLY,  &last_delay,  0,       "sntp_delay" },
     { CATBUS_TYPE_INT16,        0, KV_FLAGS_READ_ONLY,  &last_offset, 0,       "sntp_offset" },
@@ -212,17 +219,25 @@ From the RFC:
 
       d = (T4 - T1) - (T3 - T2)     t = ((T2 - T1) + (T3 - T4)) / 2.
 
+
+From D. Mills' website: https://www.eecis.udel.edu/~mills/time.html
+
+In both the offset and delay equations, the calculations require raw timestamp differences that span no more than 68 years in the future to 68 years in the past. The previous discussion in this document confirms these differences can be computed correctly regardless of whether they span between two eras, as long as the eras are adjacent.
+
+The offset and delay calculations require sums and differences of these raw timestamp differences that can span no more than from 34 years in the future to 34 years in the past without overflow. This is a fundamental limitation in 64-bit integer calculations.
+
+
 */
 
 
 void process_packet( 
     ntp_packet_t *packet, 
     ntp_ts_t *network_time, 
-    uint32_t *base_system_time ){
+    uint64_t *base_system_time_ms ){
 
     // get destination timestamp (our local network time when we receive the packet)
-    *base_system_time = tmr_u32_get_system_time_ms();
-    ntp_ts_t dest_ts = time_t_from_system_time( *base_system_time );
+    *base_system_time_ms = tmr_u64_get_system_time_ms();
+    ntp_ts_t dest_ts = ntp_t_from_system_time( *base_system_time_ms );
 
     uint64_t dest_timestamp = ntp_u64_conv_to_u64( dest_ts );
 
@@ -286,8 +301,6 @@ void process_packet(
 }
 
 
-
-
 PT_THREAD( sntp_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -328,10 +341,8 @@ PT_BEGIN( pt );
 
         if( ip_b_is_zeroes( ntp_server_addr.ipaddr ) ){
 
-            TMR_WAIT( pt, 1000 );
-
             // that's too bad, we'll have to skip this cycle and try again later
-            continue;
+            goto retry;
         }
             
         // build sntp packet
@@ -344,7 +355,7 @@ PT_BEGIN( pt );
         pkt.li_vn_mode = SNTP_VERSION_4 | SNTP_MODE_CLIENT | SNTP_LI_ALARM;
 
         // get our current network time with the maximum available precision
-        ntp_ts_t transmit_ts = time_t_now();
+        ntp_ts_t transmit_ts = ntp_t_from_system_time( tmr_u32_get_system_time_ms() );
 
         // set transmit timestamp (converting from little endian to big endian)
         pkt.transmit_timestamp.seconds = HTONL(transmit_ts.seconds);
@@ -359,6 +370,8 @@ PT_BEGIN( pt );
         // send packet
         // if packet transmission fails, we'll try again on the next polling cycle
         if( sock_i16_sendto( sock, &pkt, sizeof(pkt), &ntp_server_addr ) < 0 ){
+
+            log_v_warn_P( PSTR("SNTP transmission failed") );
 
             goto retry;
         }
@@ -380,7 +393,9 @@ PT_BEGIN( pt );
 
             // log_v_debug_P( PSTR("SNTP sync timed out") );
 
-            continue;
+            sntp_timeouts++;
+
+            goto retry;
         }
 
         // log_v_debug_P( PSTR("SNTP sync received") );
@@ -392,22 +407,34 @@ PT_BEGIN( pt );
 
         // process received packet
         ntp_ts_t network_time;
-        uint32_t sys_time;
-        process_packet( recv_pkt, &network_time, &sys_time );
+        uint64_t sys_time_ms;
+        process_packet( recv_pkt, &network_time, &sys_time_ms );
 
         // sync master clock
-        time_v_set_ntp_master_clock( network_time, sys_time, TIME_SOURCE_NTP );
+        ntp_v_set_master_clock( network_time, sys_time_ms, NTP_SOURCE_SNTP );
 
         // parse current time to ISO so we can read it in the log file
-        char time_str2[ISO8601_STRING_MIN_LEN_MS];
-        ntp_v_to_iso8601( time_str2, sizeof(time_str2), network_time );
-        log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str2, last_offset, last_delay );
-    
+        // char time_str2[ISO8601_STRING_MIN_LEN_MS];
+        // ntp_v_to_iso8601( time_str2, sizeof(time_str2), network_time );
+        // log_v_info_P( PSTR("NTP Time is now: %s Offset: %d Delay: %d"), time_str2, last_offset, last_delay );
+        
+        last_good_sync = tmr_u32_get_system_time_ms();
+
+        sntp_syncs++;
 
         goto clean_up;
 
 retry:
         TMR_WAIT( pt, 8000 );
+
+        // check for sync timeout
+        if( ( status == SNTP_STATUS_SYNCHRONIZED ) && 
+            ( tmr_u32_elapsed_time_ms( last_good_sync ) > ( SNTP_SYNC_TIMEOUT * 1000 ) ) ){
+
+            log_v_info_P( PSTR("Lost SNTP sync") );
+
+            status = SNTP_STATUS_NO_SYNC;
+        }
 
         continue;
 

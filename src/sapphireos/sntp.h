@@ -36,6 +36,8 @@
 
 #define SNTP_TIMEOUT                    4
 
+#define SNTP_SYNC_TIMEOUT               3600
+
 
 // NTP Packet
 typedef struct __attribute__((packed)){
@@ -83,9 +85,6 @@ void sntp_v_start( void );
 void sntp_v_stop( void );
 
 sntp_status_t8 sntp_u8_get_status( void );
-
-// ntp_ts_t sntp_t_now( void );
-// ntp_ts_t sntp_t_last_sync( void );
 
 int16_t sntp_i16_get_offset( void );
 uint16_t sntp_u16_get_delay( void );

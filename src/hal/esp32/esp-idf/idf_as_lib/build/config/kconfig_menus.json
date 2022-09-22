@@ -602,6 +602,16 @@
                 "type": "int"
             },
             {
+                "children": [],
+                "depends_on": null,
+                "help": "Protects the unmapped memory regions of the entire address space from unintended accesses.\nThis will ensure that an exception will be triggered whenever the CPU performs a memory\noperation on unmapped regions of the address space.",
+                "id": "BOOTLOADER_REGION_PROTECTION_ENABLE",
+                "name": "BOOTLOADER_REGION_PROTECTION_ENABLE",
+                "range": null,
+                "title": "Enable protection for unmapped memory regions",
+                "type": "bool"
+            },
+            {
                 "children": [
                     {
                         "children": [],
@@ -909,7 +919,7 @@
                         "type": "choice"
                     }
                 ],
-                "depends_on": "IDF_TARGET_ESP32 || IDF_TARGET_ESP32S2 || ESP32C3_REV_MIN_3 || IDF_TARGET_ESP32S3",
+                "depends_on": "IDF_TARGET_ESP32 || IDF_TARGET_ESP32S2 || ESP32C3_REV_MIN >= 3 || IDF_TARGET_ESP32S3",
                 "help": "Build a bootloader which enables Secure Boot on first boot.\n\nOnce enabled, Secure Boot will not boot a modified bootloader. The bootloader will only load a partition\ntable or boot an app if the data has a verified digital signature. There are implications for reflashing\nupdated apps once secure boot is enabled.\n\nWhen enabling secure boot, JTAG and ROM BASIC Interpreter are permanently disabled by default.",
                 "id": "SECURE_BOOT",
                 "name": "SECURE_BOOT",
@@ -1653,6 +1663,36 @@
                         "name": "ESPTOOLPY_FLASHSIZE_16MB",
                         "range": null,
                         "title": "16 MB",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": "<choice ESPTOOLPY_FLASHSIZE>",
+                        "help": null,
+                        "id": "ESPTOOLPY_FLASHSIZE_32MB",
+                        "name": "ESPTOOLPY_FLASHSIZE_32MB",
+                        "range": null,
+                        "title": "32 MB",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": "<choice ESPTOOLPY_FLASHSIZE>",
+                        "help": null,
+                        "id": "ESPTOOLPY_FLASHSIZE_64MB",
+                        "name": "ESPTOOLPY_FLASHSIZE_64MB",
+                        "range": null,
+                        "title": "64 MB",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": "<choice ESPTOOLPY_FLASHSIZE>",
+                        "help": null,
+                        "id": "ESPTOOLPY_FLASHSIZE_128MB",
+                        "name": "ESPTOOLPY_FLASHSIZE_128MB",
+                        "range": null,
+                        "title": "128 MB",
                         "type": "bool"
                     }
                 ],
@@ -7537,7 +7577,7 @@
                         "id": "LWIP_TCPIP_CORE_LOCKING",
                         "name": "LWIP_TCPIP_CORE_LOCKING",
                         "range": null,
-                        "title": "Enable tcpip\u3000core locking",
+                        "title": "Enable tcpip core locking",
                         "type": "bool"
                     },
                     {
@@ -8841,6 +8881,16 @@
                             {
                                 "children": [],
                                 "depends_on": "LWIP_DEBUG",
+                                "help": "Enabling this option routes all enabled LWIP debugs through ESP_LOGD.",
+                                "id": "LWIP_DEBUG_ESP_LOG",
+                                "name": "LWIP_DEBUG_ESP_LOG",
+                                "range": null,
+                                "title": "Route LWIP debugs through ESP_LOG interface",
+                                "type": "bool"
+                            },
+                            {
+                                "children": [],
+                                "depends_on": "LWIP_DEBUG",
                                 "help": null,
                                 "id": "LWIP_NETIF_DEBUG",
                                 "name": "LWIP_NETIF_DEBUG",
@@ -9387,6 +9437,16 @@
                                         "range": null,
                                         "title": "Add custom certificates to the default bundle",
                                         "type": "bool"
+                                    },
+                                    {
+                                        "children": [],
+                                        "depends_on": "MBEDTLS_CERTIFICATE_BUNDLE",
+                                        "help": null,
+                                        "id": "MBEDTLS_CERTIFICATE_BUNDLE_MAX_CERTS",
+                                        "name": "MBEDTLS_CERTIFICATE_BUNDLE_MAX_CERTS",
+                                        "range": null,
+                                        "title": "Maximum no of certificates allowed in certificate bundle",
+                                        "type": "int"
                                     }
                                 ],
                                 "depends_on": null,
@@ -10473,6 +10533,16 @@
                         "range": null,
                         "title": "NVS partition encrypted flag compatible with ESP-IDF before v4.3",
                         "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "This option switches error checking type between assertions (y) or return codes (n).",
+                        "id": "NVS_ASSERT_ERROR_CHECK",
+                        "name": "NVS_ASSERT_ERROR_CHECK",
+                        "range": null,
+                        "title": "Use assertions for error checking",
+                        "type": "bool"
                     }
                 ],
                 "depends_on": null,
@@ -11107,16 +11177,6 @@
                                         "range": null,
                                         "title": "Host FS: Maximum number of the host filesystem mount points",
                                         "type": "int"
-                                    },
-                                    {
-                                        "children": [],
-                                        "depends_on": "VFS_SUPPORT_IO",
-                                        "help": "Define maximum path length for the host base directory which is to be mounted.\nIf host path passed to esp_vfs_semihost_register() is longer than this value\nit will be truncated.",
-                                        "id": "VFS_SEMIHOSTFS_HOST_PATH_MAX_LEN",
-                                        "name": "VFS_SEMIHOSTFS_HOST_PATH_MAX_LEN",
-                                        "range": null,
-                                        "title": "Host FS: Maximum path length for the host base directory",
-                                        "type": "int"
                                     }
                                 ],
                                 "depends_on": "VFS_SUPPORT_IO",
@@ -11208,32 +11268,39 @@
                                 "depends_on": "WPA_11KV_SUPPORT",
                                 "help": "Keep scan results in cache, if not enabled, those\nwill be flushed immediately.",
                                 "id": "WPA_SCAN_CACHE",
-                                "is_menuconfig": true,
                                 "name": "WPA_SCAN_CACHE",
                                 "range": null,
                                 "title": "Keep scan results in cache",
-                                "type": "menu"
-                            },
-                            {
-                                "children": [],
-                                "depends_on": "WPA_11KV_SUPPORT",
-                                "help": "Select this option to enable WiFi Multiband operation certification support.",
-                                "id": "WPA_MBO_SUPPORT",
-                                "is_menuconfig": true,
-                                "name": "WPA_MBO_SUPPORT",
-                                "range": null,
-                                "title": "Enable MBO support in supplicant",
-                                "type": "menu"
+                                "type": "bool"
                             }
                         ],
                         "depends_on": null,
                         "help": "Select this option to enable 802.11k 802.11v APIs(RRM and BTM support).\nOnly APIs which are helpful for network assisted roaming\nare supported for now.\nEnable this option with BTM and RRM enabled in sta config\nto make device ready for network assisted roaming.\nBTM: BSS transition management enables an AP to request a station to transition\nto a specific AP, or to indicate to a station a set of preferred APs.\nRRM: Radio measurements enable STAs to understand the radio environment,\nit enables STAs to observe and gather data on radio link performance\nand on the radio environment. Current implementation adds beacon report,\nlink measurement, neighbor report.",
                         "id": "WPA_11KV_SUPPORT",
-                        "is_menuconfig": true,
                         "name": "WPA_11KV_SUPPORT",
                         "range": null,
-                        "title": "Enable 802.11k, 802.11v APIs handling in supplicant",
-                        "type": "menu"
+                        "title": "Enable 802.11k, 802.11v APIs handling",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "Select this option to enable WiFi Multiband operation certification support.",
+                        "id": "WPA_MBO_SUPPORT",
+                        "name": "WPA_MBO_SUPPORT",
+                        "range": null,
+                        "title": "Enable MBO support",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "Select this option to enable WiFi Easy Connect Support.",
+                        "id": "WPA_DPP_SUPPORT",
+                        "name": "WPA_DPP_SUPPORT",
+                        "range": null,
+                        "title": "Enable DPP support",
+                        "type": "bool"
                     }
                 ],
                 "depends_on": null,

@@ -615,6 +615,8 @@ stddef.h
 -
 stdint.h
 -
+sys/types.h
+-
 
 ../../components/newlib/platform_include/sys/poll.h
 

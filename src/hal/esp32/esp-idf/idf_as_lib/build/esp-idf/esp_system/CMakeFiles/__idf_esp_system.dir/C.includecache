@@ -51,12 +51,20 @@ sdkconfig.h
 ../../components/bootloader_support/include/sdkconfig.h
 soc/soc_caps.h
 ../../components/bootloader_support/include/soc/soc_caps.h
+bootloader_flash_override.h
+../../components/bootloader_support/include/bootloader_flash_override.h
 
 ../../components/bootloader_support/include/bootloader_flash_config.h
 sdkconfig.h
 ../../components/bootloader_support/include/sdkconfig.h
 esp_image_format.h
 ../../components/bootloader_support/include/esp_image_format.h
+
+../../components/bootloader_support/include/bootloader_flash_override.h
+esp_err.h
+../../components/bootloader_support/include/esp_err.h
+esp_attr.h
+../../components/bootloader_support/include/esp_attr.h
 
 ../../components/bootloader_support/include/bootloader_mem.h
 
@@ -1736,6 +1744,8 @@ sys/reent.h
 stddef.h
 -
 stdint.h
+-
+sys/types.h
 -
 
 ../../components/newlib/platform_include/sys/poll.h

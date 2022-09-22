@@ -29,6 +29,7 @@
 #include "udp.h"
 #include "sockets.h"
 #include "keyvalue.h"
+#include "fs.h"
 
 #include "netmsg.h"
 
@@ -64,6 +65,52 @@ KV_SECTION_META kv_meta_t netmsg_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &longest_rx_delta,    0,   "netmsg_max_rx_delta" },
 };
 
+
+static netmsg_port_monitor_t port_monitors[NETMSG_N_PORT_MONITORS];
+
+static netmsg_port_monitor_t* get_port_monitor( netmsg_state_t *state ){
+
+    netmsg_port_monitor_t *ptr = 0;
+    netmsg_port_monitor_t *free_ptr = 0;
+
+    for( uint16_t i = 0; i < cnt_of_array(port_monitors); i++ ){
+
+        if( ( free_ptr == 0 ) && ( port_monitors[i].timeout == 0 ) ){
+
+            free_ptr = &port_monitors[i];
+
+            continue;
+        }
+
+        if( port_monitors[i].timeout == 0 ){
+
+            continue;
+        }
+
+        if( ip_b_addr_compare( port_monitors[i].ipaddr, state->raddr.ipaddr ) &&
+            ( port_monitors[i].rport == state->raddr.port ) &&
+            ( port_monitors[i].lport == state->laddr.port ) ){
+
+            // match
+            ptr = &port_monitors[i];
+
+            break;
+        }
+    }
+
+    // if existing record not found, but there is a free slot:
+    if( ( ptr == 0 ) && ( free_ptr != 0 ) ){
+
+        ptr = free_ptr;
+
+        ptr->timeout = 60;
+        ptr->ipaddr = state->raddr.ipaddr;
+        ptr->rport = state->raddr.port;
+        ptr->lport = state->laddr.port;
+    }
+
+    return ptr;
+}
 
 void ( *netmsg_v_receive_msg )( netmsg_t msg );
 
@@ -102,8 +149,43 @@ ROUTING_TABLE_START routing_table_entry_t route_start = {
 
 ROUTING_TABLE_END routing_table_entry_t route_end[] = {};
 
+
+static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    uint32_t ret_val = len;
+    uint8_t *data;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+
+            data = (uint8_t *)port_monitors;
+
+            memcpy( ptr, &data[pos], len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            ret_val = sizeof(port_monitors);
+            break;
+
+        default:
+            ret_val = 0;
+            break;
+    }
+
+    return ret_val;
+}
+
+
 // initialize netmsg
 void netmsg_v_init( void ){
+
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+
+        fs_f_create_virtual( PSTR("portinfo"), vfile );
+    }
 
     netmsg_v_receive_msg = netmsg_v_receive;
 }
@@ -177,105 +259,105 @@ void netmsg_v_receive( netmsg_t netmsg ){
 
     if( state->type == NETMSG_TYPE_UDP ){
 
-        #ifdef ENABLE_IP
+        // #ifdef ENABLE_IP
 
-        // get data
-        uint8_t *data = mem2_vp_get_ptr( state->data_handle );
+        // // get data
+        // uint8_t *data = mem2_vp_get_ptr( state->data_handle );
 
-        // get headers
-        ip_hdr_t *ip_hdr = (ip_hdr_t *)data;
-        data += sizeof(ip_hdr_t);
-        state->header_len += sizeof(ip_hdr_t);
+        // // get headers
+        // ip_hdr_t *ip_hdr = (ip_hdr_t *)data;
+        // data += sizeof(ip_hdr_t);
+        // state->header_len += sizeof(ip_hdr_t);
 
-        // check the IP header
-        if( ip_b_verify_header( ip_hdr ) != TRUE ){
+        // // check the IP header
+        // if( ip_b_verify_header( ip_hdr ) != TRUE ){
 
-            log_v_debug_P( PSTR("IPv4 header fail: %d.%d.%d.%d -> %d.%d.%d.%d"),
-                ip_hdr->source_addr.ip3,
-                ip_hdr->source_addr.ip2,
-                ip_hdr->source_addr.ip1,
-                ip_hdr->source_addr.ip0,
-                ip_hdr->dest_addr.ip3,
-                ip_hdr->dest_addr.ip2,
-                ip_hdr->dest_addr.ip1,
-                ip_hdr->dest_addr.ip0 );
+        //     log_v_debug_P( PSTR("IPv4 header fail: %d.%d.%d.%d -> %d.%d.%d.%d"),
+        //         ip_hdr->source_addr.ip3,
+        //         ip_hdr->source_addr.ip2,
+        //         ip_hdr->source_addr.ip1,
+        //         ip_hdr->source_addr.ip0,
+        //         ip_hdr->dest_addr.ip3,
+        //         ip_hdr->dest_addr.ip2,
+        //         ip_hdr->dest_addr.ip1,
+        //         ip_hdr->dest_addr.ip0 );
 
-            goto clean_up;
-        }
+        //     goto clean_up;
+        // }
 
-        // check data length matches ipv4 header
-        if( mem2_u16_get_size( state->data_handle ) != HTONS( ip_hdr->total_length ) ){
+        // // check data length matches ipv4 header
+        // if( mem2_u16_get_size( state->data_handle ) != HTONS( ip_hdr->total_length ) ){
 
-            log_v_debug_P( PSTR("IPv4 len mismatch: %u != %u"), mem2_u16_get_size( state->data_handle ), HTONS( ip_hdr->total_length ) );
+        //     log_v_debug_P( PSTR("IPv4 len mismatch: %u != %u"), mem2_u16_get_size( state->data_handle ), HTONS( ip_hdr->total_length ) );
 
-            goto clean_up;
-        }
+        //     goto clean_up;
+        // }
 
-        bool ip_broadcast = ip_b_check_broadcast( ip_hdr->dest_addr );
-        bool ip_receive = ip_b_check_dest( ip_hdr->dest_addr );
+        // bool ip_broadcast = ip_b_check_broadcast( ip_hdr->dest_addr );
+        // bool ip_receive = ip_b_check_dest( ip_hdr->dest_addr );
 
-        // log_v_debug_P( PSTR("IPv4 header: %d.%d.%d.%d -> %d.%d.%d.%d %d"),
-        //     ip_hdr->source_addr.ip3,
-        //     ip_hdr->source_addr.ip2,
-        //     ip_hdr->source_addr.ip1,
-        //     ip_hdr->source_addr.ip0,
-        //     ip_hdr->dest_addr.ip3,
-        //     ip_hdr->dest_addr.ip2,
-        //     ip_hdr->dest_addr.ip1,
-        //     ip_hdr->dest_addr.ip0,
-        //     ip_receive );
-        //
-
-
-        // check destination address
-        // check if packet is for this node
-        if( ( ip_receive == TRUE ) || ( ip_broadcast == TRUE ) ){
-
-            // set addresses
-            state->raddr.ipaddr = ip_hdr->source_addr;
-            state->laddr.ipaddr = ip_hdr->dest_addr;
+        // // log_v_debug_P( PSTR("IPv4 header: %d.%d.%d.%d -> %d.%d.%d.%d %d"),
+        // //     ip_hdr->source_addr.ip3,
+        // //     ip_hdr->source_addr.ip2,
+        // //     ip_hdr->source_addr.ip1,
+        // //     ip_hdr->source_addr.ip0,
+        // //     ip_hdr->dest_addr.ip3,
+        // //     ip_hdr->dest_addr.ip2,
+        // //     ip_hdr->dest_addr.ip1,
+        // //     ip_hdr->dest_addr.ip0,
+        // //     ip_receive );
+        // //
 
 
-            // does this make sense?  should we have an IP packet instead
-            // of UDP for this?
+        // // check destination address
+        // // check if packet is for this node
+        // if( ( ip_receive == TRUE ) || ( ip_broadcast == TRUE ) ){
 
-            // set the netmsg protocol for the message router
-            if( ip_hdr->protocol == IP_PROTO_ICMP ){
+        //     // set addresses
+        //     state->raddr.ipaddr = ip_hdr->source_addr;
+        //     state->laddr.ipaddr = ip_hdr->dest_addr;
 
-                // call the icmp receive handler
-                icmp_v_recv( netmsg );
-            }
-            else if( ip_hdr->protocol == IP_PROTO_UDP ){
 
-                udp_header_t *udp_hdr = (udp_header_t *)data;
-                data += sizeof(udp_header_t);
-                state->header_len += sizeof(udp_header_t);
+        //     // does this make sense?  should we have an IP packet instead
+        //     // of UDP for this?
 
-                // log_v_debug_P( PSTR("header_len %d size: %d"), state->header_len, mem2_u16_get_size( state->data_handle ) );
+        //     // set the netmsg protocol for the message router
+        //     if( ip_hdr->protocol == IP_PROTO_ICMP ){
 
-                // check UDP checksum, if checksum is enabled
-                // if( ( udp_hdr->checksum != 0 ) &&
-                //     ( udp_u16_checksum( ip_hdr ) != HTONS(udp_hdr->checksum) ) ){
-                //
-                //     goto clean_up;
-                // }
+        //         // call the icmp receive handler
+        //         icmp_v_recv( netmsg );
+        //     }
+        //     else if( ip_hdr->protocol == IP_PROTO_UDP ){
 
-                // set ports
-                state->raddr.port = HTONS(udp_hdr->source_port);
-                state->laddr.port = HTONS(udp_hdr->dest_port);
+        //         udp_header_t *udp_hdr = (udp_header_t *)data;
+        //         data += sizeof(udp_header_t);
+        //         state->header_len += sizeof(udp_header_t);
 
-                sock_v_recv( netmsg );
-            }
-            else{
+        //         // log_v_debug_P( PSTR("header_len %d size: %d"), state->header_len, mem2_u16_get_size( state->data_handle ) );
 
-                goto clean_up;
-            }
-        }
-        else{
+        //         // check UDP checksum, if checksum is enabled
+        //         // if( ( udp_hdr->checksum != 0 ) &&
+        //         //     ( udp_u16_checksum( ip_hdr ) != HTONS(udp_hdr->checksum) ) ){
+        //         //
+        //         //     goto clean_up;
+        //         // }
 
-            goto clean_up;
-        }
-        #else
+        //         // set ports
+        //         state->raddr.port = HTONS(udp_hdr->source_port);
+        //         state->laddr.port = HTONS(udp_hdr->dest_port);
+
+        //         int8_t status = sock_i8_recv( netmsg );
+        //     }
+        //     else{
+
+        //         goto clean_up;
+        //     }
+        // }
+        // else{
+
+        //     goto clean_up;
+        // }
+        // #else
 
         // easy mode!
 
@@ -299,11 +381,32 @@ void netmsg_v_receive( netmsg_t netmsg ){
             }
         }
 
+        int8_t status = sock_i8_recv( netmsg );
+
+        if( sys_u8_get_mode() != SYS_MODE_SAFE ){
         
+            // update port monitor
+            netmsg_port_monitor_t *port_monitor = get_port_monitor( state );
 
-        sock_v_recv( netmsg );
+            if( port_monitor != 0 ){
 
-        #endif
+                port_monitor->timeout = 60;
+
+                if( ( status < 0 ) && 
+                    ( status != SOCK_STATUS_MCAST_SELF ) && 
+                    ( port_monitor->dropped < UINT32_MAX ) ){
+
+                    port_monitor->dropped++;                    
+                }
+                else if( port_monitor->rx_count < UINT32_MAX){
+
+                    port_monitor->rx_count++;    
+                }    
+            }
+        }
+
+
+        // #endif
 
         netmsg_udp_recv++;
     }
@@ -342,6 +445,23 @@ void netmsg_v_open_close_port( uint8_t protocol, uint16_t port, bool open ){
 int8_t netmsg_i8_transmit_msg( netmsg_t msg ){
 
     netmsg_state_t *state = netmsg_vp_get_state( msg );    
+
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+        
+        // update port monitor
+        netmsg_port_monitor_t *port_monitor = get_port_monitor( state );
+
+        if( port_monitor != 0 ){
+
+            port_monitor->timeout = 60;
+
+            if( port_monitor->tx_count < UINT32_MAX){
+
+                port_monitor->tx_count++;    
+            }
+        }
+    }
+    
 
     routing_table_entry_t *ptr = &route_start;
     routing_table_entry_t route;    
@@ -546,3 +666,27 @@ void *netmsg_vp_get_state( netmsg_t netmsg ){
     // get state pointer
     return list_vp_get_data( netmsg );
 }
+
+
+void netmsg_v_tick( void ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
+    for( uint16_t i = 0; i < cnt_of_array(port_monitors); i++ ){
+
+        if( port_monitors[i].timeout > 0 ){
+
+            port_monitors[i].timeout--;
+
+            // timeout
+            if( port_monitors[i].timeout == 0 ){
+
+                memset( &port_monitors[i], 0, sizeof(port_monitors[i]) );
+            }
+        }
+    }
+}
+

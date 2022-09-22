@@ -40,6 +40,8 @@
 
 #ifdef ENABLE_GFX
 
+#define DIMMER_ZERO_REMAP
+
 #ifdef PIXEL_USE_MALLOC
 static uint8_t *array_red __attribute__((aligned(4)));
 static uint8_t *array_green __attribute__((aligned(4)));
@@ -108,6 +110,11 @@ static uint16_t gfx_frame_rate = 100;
 static uint8_t dimmer_curve = GFX_DIMMER_CURVE_DEFAULT;
 static uint8_t sat_curve = GFX_SAT_CURVE_DEFAULT;
 
+#ifdef DIMMER_ZERO_REMAP
+static uint16_t zero_mapped_dimmer = 0;
+static uint16_t dimmer_zero;
+#endif
+
 // #define ENABLE_CHANNEL_MASK
 
 #ifdef ENABLE_CHANNEL_MASK
@@ -118,6 +125,7 @@ static uint8_t channel_mask;
 #define DIMMER_LOOKUP_SIZE 256
 static uint16_t dimmer_lookup[DIMMER_LOOKUP_SIZE];
 static uint16_t sat_lookup[DIMMER_LOOKUP_SIZE];
+
 
 
 // smootherstep is an 8 bit lookup table for the function:
@@ -145,6 +153,69 @@ static void update_pix_count( void ){
     }
 }
 
+static uint16_t linterp_table_lookup( uint16_t x, uint16_t *table ){
+
+    uint8_t index = x >> 8;
+
+    uint16_t y0 = table[index];
+    uint16_t y1;
+    uint16_t x0 = index << 8;
+    uint16_t x1;
+
+    if( index < 255 ){
+
+        y1 = table[index + 1];
+        x1 = ( index + 1 ) << 8;
+    }
+    else{
+
+        y1 = 65535;
+        x1 = 65535;
+    }
+
+    uint16_t y = util_u16_linear_interp( x, x0, y0, x1, y1 );
+
+    return y;
+}
+
+#ifdef DIMMER_ZERO_REMAP
+static void compute_dimmer_zero_point( void ){
+
+    // start search at bottom
+    uint16_t dimmer = 0;
+
+    // basic linear search.  we only need to do this when we change the dimmer curve
+    // (so, not very often).
+
+    while( dimmer < 65535 ){
+
+        uint16_t r, g, b;
+
+        // compute RGB for this dimmer point, after running the setting
+        // through the dimmer lookup table:
+        uint16_t curved_dimmer = linterp_table_lookup( dimmer, dimmer_lookup );
+
+        // assume no saturation, so computing RGB white
+        gfx_v_hsv_to_rgb( 0, 0, curved_dimmer, &r, &g, &b );
+
+        // crunch down to 8 bit values
+        r /= 256;
+        g /= 256;
+        b /= 256;
+
+        if( ( r != 0 ) || ( g != 0 ) || ( b != 0 ) ){
+
+            // apply previous value as the zero point
+            dimmer_zero = dimmer - 1;
+
+            break;
+        }
+
+        dimmer++;
+    }
+}
+#endif
+
 static void compute_dimmer_lookup( void ){
 
     float curve_exp = (float)dimmer_curve / 64.0;
@@ -155,6 +226,10 @@ static void compute_dimmer_lookup( void ){
 
         dimmer_lookup[i] = (uint16_t)( pow( input, curve_exp ) * 65535.0 );
     }
+
+    #ifdef DIMMER_ZERO_REMAP
+    compute_dimmer_zero_point();
+    #endif
 }
 
 static void compute_sat_lookup( void ){
@@ -168,7 +243,6 @@ static void compute_sat_lookup( void ){
         sat_lookup[i] = (uint16_t)( pow( input, curve_exp ) * 65535.0 );
     }
 }
-
 
 static void param_error_check( void ){
 
@@ -386,7 +460,13 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &dimmer_fade,                 gfx_i8_kv_handler,   "gfx_dimmer_fade" },
     { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                gfx_i8_kv_handler,   "gfx_dimmer_curve" },
     { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   gfx_i8_kv_handler,   "gfx_sat_curve" },
-        
+    
+    // #ifdef DIMMER_ZERO_REMAP
+    // these are only used for debug:
+    // { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &dimmer_zero,               0,                   "gfx_dimmer_zero_level" },
+    // { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &zero_mapped_dimmer,        0,                   "gfx_dimmer_zero_mapped" },
+    // #endif
+
     #ifdef ENABLE_VIRTUAL_ARRAY
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,                   "gfx_varray_start" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,                   "gfx_varray_length" },
@@ -1657,34 +1737,20 @@ void gfx_v_delete_pixel_arrays( void ){
     pix_array_count = 0;
 }
 
-static uint16_t linterp_table_lookup( uint16_t x, uint16_t *table ){
-
-    uint8_t index = x >> 8;
-
-    uint16_t y0 = table[index];
-    uint16_t y1;
-    uint16_t x0 = index << 8;
-    uint16_t x1;
-
-    if( index < 255 ){
-
-        y1 = table[index + 1];
-        x1 = ( index + 1 ) << 8;
-    }
-    else{
-
-        y1 = 65535;
-        x1 = 65535;
-    }
-
-    uint16_t y = util_u16_linear_interp( x, x0, y0, x1, y1 );
-
-    return y;
+#ifdef DIMMER_ZERO_REMAP
+static uint16_t remap_dimmer_to_zero_point( uint16_t dimmer ){
+    
+    return ( ( (uint32_t)dimmer * ( 65535 - dimmer_zero ) ) / 65536 ) + dimmer_zero;
 }
+#endif
 
 uint16_t gfx_u16_get_dimmed_val( uint16_t _val ){
 
+    #ifdef DIMMER_ZERO_REMAP
+    uint16_t x = ( (uint32_t)_val * zero_mapped_dimmer ) / 65536;
+    #else
     uint16_t x = ( (uint32_t)_val * current_dimmer ) / 65536;
+    #endif
 
     return linterp_table_lookup( x, dimmer_lookup );
 }
@@ -1723,6 +1789,11 @@ void gfx_v_process_faders( void ){
             current_dimmer += dimmer_step;
         }
     }
+
+    #ifdef DIMMER_ZERO_REMAP
+    // compute remapped dimmer
+    zero_mapped_dimmer = remap_dimmer_to_zero_point( current_dimmer );
+    #endif
 
     for( uint16_t i = 0; i < pix_count; i++ ){
 

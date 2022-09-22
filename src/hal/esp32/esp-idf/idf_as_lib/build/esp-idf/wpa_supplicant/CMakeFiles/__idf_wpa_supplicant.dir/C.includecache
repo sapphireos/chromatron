@@ -921,6 +921,8 @@ arch/sys_arch.h
 ../../components/lwip/port/esp32/include/arch/arch/sys_arch.h
 stdio.h
 -
+esp_log.h
+../../components/lwip/port/esp32/include/arch/esp_log.h
 
 ../../components/lwip/port/esp32/include/arch/perf.h
 
@@ -1726,12 +1728,6 @@ dhcpserver/dhcpserver.h
 esp_netif_sta_list.h
 ../../components/tcpip_adapter/include/esp_netif_sta_list.h
 
-../../components/wpa_supplicant/esp_supplicant/include/esp_dpp.h
-stdbool.h
--
-esp_err.h
-../../components/wpa_supplicant/esp_supplicant/include/esp_err.h
-
 ../../components/wpa_supplicant/esp_supplicant/include/esp_mbo.h
 stdbool.h
 -
@@ -1852,20 +1848,6 @@ common/wpa_common.h
 
 ../../components/wpa_supplicant/src/common/defs.h
 
-../../components/wpa_supplicant/src/common/dpp.h
-utils/list.h
-../../components/wpa_supplicant/src/common/utils/list.h
-crypto/sha256.h
-../../components/wpa_supplicant/src/common/crypto/sha256.h
-utils/includes.h
-../../components/wpa_supplicant/src/common/utils/includes.h
-utils/common.h
-../../components/wpa_supplicant/src/common/utils/common.h
-esp_err.h
-../../components/wpa_supplicant/src/common/esp_err.h
-esp_dpp.h
-../../components/wpa_supplicant/src/common/esp_dpp.h
-
 ../../components/wpa_supplicant/src/common/eapol_common.h
 
 ../../components/wpa_supplicant/src/common/ieee802_11_defs.h
@@ -1891,8 +1873,6 @@ esp_wifi_driver.h
 ../../components/wpa_supplicant/src/common/wpa_ctrl.h
 
 ../../components/wpa_supplicant/src/crypto/aes.h
-
-../../components/wpa_supplicant/src/crypto/aes_siv.h
 
 ../../components/wpa_supplicant/src/crypto/aes_wrap.h
 
@@ -2058,8 +2038,6 @@ esp32/rom/ets_sys.h
 esp32s2/rom/ets_sys.h
 ../../components/wpa_supplicant/src/utils/esp32s2/rom/ets_sys.h
 
-../../components/wpa_supplicant/src/utils/json.h
-
 ../../components/wpa_supplicant/src/utils/list.h
 stddef.h
 -
@@ -2209,36 +2187,6 @@ esp_wnm.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_wnm.h
 esp_mbo.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_mbo.h
-
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_dpp.c
-esp_dpp_i.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_dpp_i.h
-esp_dpp.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_dpp.h
-esp_wpa.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_wpa.h
-esp_timer.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_timer.h
-esp_event.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_event.h
-esp_wifi.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_wifi.h
-common/ieee802_11_defs.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/common/ieee802_11_defs.h
-
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_dpp_i.h
-esp_err.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_err.h
-utils/includes.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/utils/includes.h
-utils/common.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/utils/common.h
-common/dpp.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/common/dpp.h
-esp_dpp.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_dpp.h
-esp_wifi_driver.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_wifi_driver.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/esp_supplicant/src/esp_hostap.c
 sdkconfig.h
@@ -2573,46 +2521,6 @@ common/wpa_common.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/ap/common/wpa_common.h
 utils/wpa_debug.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/ap/utils/wpa_debug.h
-
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/dpp.c
-utils/includes.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/utils/includes.h
-fcntl.h
--
-utils/common.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/utils/common.h
-common/defs.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/common/defs.h
-utils/base64.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/utils/base64.h
-utils/json.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/utils/json.h
-crypto/crypto.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/crypto/crypto.h
-crypto/random.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/crypto/random.h
-crypto/aes.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/crypto/aes.h
-crypto/aes_siv.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/crypto/aes_siv.h
-crypto/sha256.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/crypto/sha256.h
-dpp.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/dpp.h
-
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/dpp.h
-utils/list.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/utils/list.h
-crypto/sha256.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/crypto/sha256.h
-utils/includes.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/utils/includes.h
-utils/common.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/utils/common.h
-esp_err.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/esp_err.h
-esp_dpp.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/esp_dpp.h
 
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/wpa_supplicant/src/common/ieee802_11_defs.h
 utils/common.h

@@ -24,6 +24,9 @@ void libs_v_init( void ) __attribute__((weak));
 
 void sapphire_main();
 
+// #define SAPPHIRE_TASK_PRIO ESP_TASK_MAIN_PRIO
+#define SAPPHIRE_TASK_PRIO ESP_TASK_PRIO_MIN
+
 void app_main()
 {
     #ifdef CONFIG_FREERTOS_UNICORE
@@ -36,7 +39,7 @@ void app_main()
 
     xTaskCreatePinnedToCore(&sapphire_main, "sapphire",
                             MEM_MAX_STACK, NULL,
-                            ESP_TASK_MAIN_PRIO, NULL, core);    
+                            SAPPHIRE_TASK_PRIO, NULL, core);    
 }
 
 void sapphire_main()

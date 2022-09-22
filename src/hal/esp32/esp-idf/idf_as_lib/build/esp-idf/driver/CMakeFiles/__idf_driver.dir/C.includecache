@@ -3545,6 +3545,8 @@ esp_rom_gpio.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/uart.c
 string.h
 -
+sys/param.h
+-
 esp_types.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/driver/esp_types.h
 esp_attr.h

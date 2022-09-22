@@ -68,6 +68,10 @@
 #define LWIP_MDNS_RESPONDER             1
 #define LWIP_NUM_NETIF_CLIENT_DATA      (LWIP_MDNS_RESPONDER)
 
+/* Enable PPP and PPPOS support for PPPOS test suites */
+#define PPP_SUPPORT                     1
+#define PPPOS_SUPPORT                   1
+
 /* Minimal changes to opt.h required for etharp unit tests: */
 #define ETHARP_SUPPORT_STATIC_ENTRIES   1
 
@@ -106,6 +110,8 @@
 #define ESP_THREAD_PROTECTION                   0
 #define ESP_DHCP_DISABLE_CLIENT_ID              0
 #define ESP_DHCP_DISABLE_VENDOR_CLASS_IDENTIFIER 0
+#define ESP_IP_FORWARD                          1
+
 
 #ifdef IP_NAPT
 #define IP_NAPT_MAX                     16

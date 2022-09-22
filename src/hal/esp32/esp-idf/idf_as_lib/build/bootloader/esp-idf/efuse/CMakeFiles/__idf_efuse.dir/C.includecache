@@ -15,6 +15,14 @@ sdkconfig.h
 ../../../components/bootloader_support/include/sdkconfig.h
 soc/soc_caps.h
 ../../../components/bootloader_support/include/soc/soc_caps.h
+bootloader_flash_override.h
+../../../components/bootloader_support/include/bootloader_flash_override.h
+
+../../../components/bootloader_support/include/bootloader_flash_override.h
+esp_err.h
+../../../components/bootloader_support/include/esp_err.h
+esp_attr.h
+../../../components/bootloader_support/include/esp_attr.h
 
 ../../../components/bootloader_support/include/bootloader_random.h
 stddef.h
@@ -77,6 +85,10 @@ sdkconfig.h
 ../../../components/esp_common/include/esp_assert.h
 assert.h
 ../../../components/esp_common/include/assert.h
+
+../../../components/esp_common/include/esp_attr.h
+sdkconfig.h
+../../../components/esp_common/include/sdkconfig.h
 
 ../../../components/esp_common/include/esp_bit_defs.h
 

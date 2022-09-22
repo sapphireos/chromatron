@@ -64,7 +64,7 @@ static int wpa2_start_eapol_internal(void);
 int wpa2_post(uint32_t sig, uint32_t par);
 
 #ifdef USE_WPA2_TASK
-static void *s_wpa2_task_hdl = NULL;
+static TaskHandle_t s_wpa2_task_hdl = NULL;
 static void *s_wpa2_queue = NULL;
 static wpa2_state_t s_wpa2_state = WPA2_STATE_DISABLED;
 static void *s_wpa2_api_lock = NULL;
@@ -452,6 +452,15 @@ int eap_sm_process_request(struct eap_sm *sm, struct wpabuf *reqData)
         if (m == NULL) {
             goto build_nak;
         }
+
+        if (!eap_sm_allowMethod(sm, reqVendor, reqVendorMethod)) {
+            wpa_printf(MSG_DEBUG, "EAP: vendor %u method %u not allowed",
+                    reqVendor, reqVendorMethod);
+            wpa_msg(sm->msg_ctx, MSG_INFO, WPA_EVENT_EAP_PROPOSED_METHOD
+                    "vendor=%u method=%u -> NAK",
+                    reqVendor, reqVendorMethod);
+            goto build_nak;
+        }
         if (sm->m) {
             eap_deinit_prev_method(sm, "GET_METHOD");
         }
@@ -784,7 +793,7 @@ static int eap_peer_sm_init(void)
     gEapSm = sm;
 #ifdef USE_WPA2_TASK
     s_wpa2_queue = xQueueCreate(SIG_WPA2_MAX, sizeof(s_wpa2_queue));
-    ret = xTaskCreate(wpa2_task, "wpa2T", WPA2_TASK_STACK_SIZE, NULL, 2, s_wpa2_task_hdl);
+    ret = xTaskCreate(wpa2_task, "wpa2T", WPA2_TASK_STACK_SIZE, NULL, 2, &s_wpa2_task_hdl);
     if (ret != pdPASS) {
         wpa_printf(MSG_ERROR, "wps enable: failed to create task");
         ret = ESP_FAIL;

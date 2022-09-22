@@ -192,10 +192,12 @@ esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_fields.c.obj: ../../../co
 esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_fields.c.obj: config/sdkconfig.h
 
 esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj: ../../../components/bootloader_support/include/bootloader_flash.h
+esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj: ../../../components/bootloader_support/include/bootloader_flash_override.h
 esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj: ../../../components/bootloader_support/include_bootloader/bootloader_flash_priv.h
 esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj: ../../../components/efuse/include/esp_efuse.h
 esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj: ../../../components/efuse/private_include/esp_efuse_utility.h
 esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj: ../../../components/esp_common/include/esp_assert.h
+esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj: ../../../components/esp_common/include/esp_attr.h
 esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj: ../../../components/esp_common/include/esp_bit_defs.h
 esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj: ../../../components/esp_common/include/esp_compiler.h
 esp-idf/efuse/CMakeFiles/__idf_efuse.dir/src/esp_efuse_utility.c.obj: ../../../components/esp_common/include/esp_err.h

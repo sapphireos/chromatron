@@ -60,6 +60,7 @@ esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_api.cpp.obj
  ../../components/nvs_flash/include/nvs.h
  ../../components/nvs_flash/include/nvs_flash.h
  ../../components/nvs_flash/include/nvs_handle.hpp
+ ../../components/nvs_flash/private_include/nvs_internal.h
  ../../components/soc/esp32/include/soc/reset_reasons.h
  ../../components/soc/esp32/include/soc/soc.h
  ../../components/soc/esp32/include/soc/soc_caps.h
@@ -155,6 +156,7 @@ esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_cxx_api.cpp.obj
  ../../components/nvs_flash/include/nvs.h
  ../../components/nvs_flash/include/nvs_flash.h
  ../../components/nvs_flash/include/nvs_handle.hpp
+ ../../components/nvs_flash/private_include/nvs_internal.h
  ../../components/soc/esp32/include/soc/reset_reasons.h
  ../../components/soc/esp32/include/soc/soc.h
  ../../components/soc/esp32/include/soc/soc_caps.h
@@ -247,6 +249,7 @@ esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_handle_locked.cpp.obj
  ../../components/newlib/platform_include/sys/reent.h
  ../../components/nvs_flash/include/nvs.h
  ../../components/nvs_flash/include/nvs_handle.hpp
+ ../../components/nvs_flash/private_include/nvs_internal.h
  ../../components/soc/esp32/include/soc/reset_reasons.h
  ../../components/soc/esp32/include/soc/soc.h
  ../../components/soc/esp32/include/soc/soc_caps.h
@@ -339,6 +342,7 @@ esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_handle_simple.cpp.obj
  ../../components/nvs_flash/include/nvs.h
  ../../components/nvs_flash/include/nvs_flash.h
  ../../components/nvs_flash/include/nvs_handle.hpp
+ ../../components/nvs_flash/private_include/nvs_internal.h
  ../../components/soc/esp32/include/soc/reset_reasons.h
  ../../components/soc/esp32/include/soc/soc.h
  ../../components/soc/esp32/include/soc/soc_caps.h
@@ -387,6 +391,7 @@ esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_item_hash_list.cpp.obj
  ../../components/newlib/platform_include/assert.h
  ../../components/nvs_flash/include/nvs.h
  ../../components/nvs_flash/include/nvs_handle.hpp
+ ../../components/nvs_flash/private_include/nvs_internal.h
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/compressed_enum_table.hpp
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/intrusive_list.h
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_item_hash_list.cpp
@@ -401,6 +406,7 @@ esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_page.cpp.obj
  ../../components/newlib/platform_include/assert.h
  ../../components/nvs_flash/include/nvs.h
  ../../components/nvs_flash/include/nvs_handle.hpp
+ ../../components/nvs_flash/private_include/nvs_internal.h
  ../../components/spi_flash/include/esp_spi_flash.h
  ../../components/spi_flash/include/esp_spi_flash_counters.h
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/compressed_enum_table.hpp
@@ -418,6 +424,7 @@ esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_pagemanager.cpp.obj
  ../../components/newlib/platform_include/assert.h
  ../../components/nvs_flash/include/nvs.h
  ../../components/nvs_flash/include/nvs_handle.hpp
+ ../../components/nvs_flash/private_include/nvs_internal.h
  ../../components/spi_flash/include/esp_spi_flash.h
  ../../components/spi_flash/include/esp_spi_flash_counters.h
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/compressed_enum_table.hpp
@@ -544,6 +551,7 @@ esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_partition_manager.cpp.o
  ../../components/nvs_flash/include/nvs.h
  ../../components/nvs_flash/include/nvs_flash.h
  ../../components/nvs_flash/include/nvs_handle.hpp
+ ../../components/nvs_flash/private_include/nvs_internal.h
  ../../components/soc/esp32/include/soc/reset_reasons.h
  ../../components/soc/esp32/include/soc/soc.h
  ../../components/soc/esp32/include/soc/soc_caps.h
@@ -594,6 +602,7 @@ esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_storage.cpp.obj
  ../../components/newlib/platform_include/assert.h
  ../../components/nvs_flash/include/nvs.h
  ../../components/nvs_flash/include/nvs_handle.hpp
+ ../../components/nvs_flash/private_include/nvs_internal.h
  ../../components/spi_flash/include/esp_spi_flash.h
  ../../components/spi_flash/include/esp_spi_flash_counters.h
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/compressed_enum_table.hpp
@@ -615,6 +624,7 @@ esp-idf/nvs_flash/CMakeFiles/__idf_nvs_flash.dir/src/nvs_types.cpp.obj
  ../../components/newlib/platform_include/assert.h
  ../../components/nvs_flash/include/nvs.h
  ../../components/nvs_flash/include/nvs_handle.hpp
+ ../../components/nvs_flash/private_include/nvs_internal.h
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/compressed_enum_table.hpp
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_types.cpp
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/nvs_flash/src/nvs_types.hpp

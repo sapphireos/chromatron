@@ -34,6 +34,7 @@
 #include "vm_sync.h"
 #include "superconductor.h"
 
+
 #ifdef ENABLE_GFX
 
 
@@ -207,6 +208,8 @@ PT_BEGIN( pt );
     gfx_v_sync_array();
     calc_pixel_power();
     pixel_v_signal();
+
+    THREAD_WAIT_WHILE( pt, pix_u8_get_mode() == 0 );
 
     thread_v_create_timed_signal( GFX_SIGNAL_0, 20 );
 

@@ -247,6 +247,8 @@ esp_log_internal.h
 ../../components/log/include/esp_log_internal.h
 
 ../../components/mbedtls/esp_crt_bundle/include/esp_crt_bundle.h
+esp_err.h
+../../components/mbedtls/esp_crt_bundle/include/esp_err.h
 mbedtls/ssl.h
 ../../components/mbedtls/esp_crt_bundle/include/mbedtls/ssl.h
 
@@ -753,8 +755,6 @@ esp_crt_bundle.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/esp_crt_bundle/esp_crt_bundle.h
 esp_log.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/esp_crt_bundle/esp_log.h
-esp_err.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/mbedtls/esp_crt_bundle/esp_err.h
 
 config/sdkconfig.h
 

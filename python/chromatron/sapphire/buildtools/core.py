@@ -489,8 +489,15 @@ class Builder(object):
             return {}
 
     def get_buildnumber(self):
-        return runcmd('git rev-parse --short HEAD', tolog=False).strip()
+        cwd = os.getcwd()
 
+        os.chdir(self.target_dir)
+
+        build_number = runcmd('git rev-parse --short HEAD', tolog=False).strip()
+
+        os.chdir(cwd)
+
+        return build_number
 
     def set_buildnumber(self, value):
         pass

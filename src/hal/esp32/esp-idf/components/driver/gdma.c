@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020-2021 Espressif Systems (Shanghai) CO LTD
+ * SPDX-FileCopyrightText: 2020-2022 Espressif Systems (Shanghai) CO LTD
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -26,19 +26,17 @@
 
 static const char *TAG = "gdma";
 
-#if CONFIG_GDMA_ISR_IRAM_SAFE
-#define GDMA_INTR_ALLOC_FLAGS  (ESP_INTR_FLAG_IRAM | ESP_INTR_FLAG_INTRDISABLED)
+#if CONFIG_GDMA_ISR_IRAM_SAFE || CONFIG_GDMA_CTRL_FUNC_IN_IRAM
 #define GDMA_MEM_ALLOC_CAPS    (MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)
 #else
-#define GDMA_INTR_ALLOC_FLAGS  ESP_INTR_FLAG_INTRDISABLED
 #define GDMA_MEM_ALLOC_CAPS    MALLOC_CAP_DEFAULT
-#endif  // CONFIG_GDMA_ISR_IRAM_SAFE
+#endif
 
-#if CONFIG_GDMA_CTRL_FUNC_IN_IRAM
-#define GDMA_CTRL_FUNC_ATTR    IRAM_ATTR
+#if CONFIG_GDMA_ISR_IRAM_SAFE
+#define GDMA_INTR_ALLOC_FLAGS  (ESP_INTR_FLAG_IRAM | ESP_INTR_FLAG_INTRDISABLED)
 #else
-#define GDMA_CTRL_FUNC_ATTR
-#endif // CONFIG_GDMA_CTRL_FUNC_IN_IRAM
+#define GDMA_INTR_ALLOC_FLAGS  ESP_INTR_FLAG_INTRDISABLED
+#endif
 
 #define GDMA_INVALID_PERIPH_TRIG  (0x3F)
 #define SEARCH_REQUEST_RX_CHANNEL (1 << 0)
@@ -89,6 +87,7 @@ struct gdma_pair_t {
 struct gdma_channel_t {
     gdma_pair_t *pair;  // which pair the channel belongs to
     intr_handle_t intr; // per-channel interrupt handle
+    portMUX_TYPE spinlock;  // channel level spinlock
     gdma_channel_direction_t direction; // channel direction
     int periph_id; // Peripheral instance ID, indicates which peripheral is connected to this GDMA channel
     size_t sram_alignment;  // alignment for memory in SRAM
@@ -109,11 +108,9 @@ struct gdma_rx_channel_t {
 };
 
 static gdma_group_t *gdma_acquire_group_handle(int group_id);
-static void gdma_release_group_handle(gdma_group_t *group);
 static gdma_pair_t *gdma_acquire_pair_handle(gdma_group_t *group, int pair_id);
+static void gdma_release_group_handle(gdma_group_t *group);
 static void gdma_release_pair_handle(gdma_pair_t *pair);
-static void gdma_uninstall_group(gdma_group_t *group);
-static void gdma_uninstall_pair(gdma_pair_t *pair);
 static esp_err_t gdma_del_tx_channel(gdma_channel_t *dma_channel);
 static esp_err_t gdma_del_rx_channel(gdma_channel_t *dma_channel);
 static esp_err_t gdma_install_rx_interrupt(gdma_rx_channel_t *rx_chan);
@@ -161,27 +158,28 @@ esp_err_t gdma_new_channel(const gdma_channel_alloc_config_t *config, gdma_chann
 
     for (int i = 0; i < SOC_GDMA_GROUPS && search_code; i++) { // loop to search group
         group = gdma_acquire_group_handle(i);
-        for (int j = 0; j < SOC_GDMA_PAIRS_PER_GROUP && search_code && group; j++) { // loop to search pair
+        ESP_GOTO_ON_FALSE(group, ESP_ERR_NO_MEM, err, TAG, "no mem for group(%d)", i);
+        for (int j = 0; j < SOC_GDMA_PAIRS_PER_GROUP && search_code; j++) { // loop to search pair
             pair = gdma_acquire_pair_handle(group, j);
-            if (pair) {
-                portENTER_CRITICAL(&pair->spinlock);
-                if (!(search_code & pair->occupy_code)) { // pair has suitable position for acquired channel(s)
-                    pair->occupy_code |= search_code;
-                    search_code = 0; // exit search loop
-                }
-                portEXIT_CRITICAL(&pair->spinlock);
-                if (!search_code) {
-                    portENTER_CRITICAL(&group->spinlock);
-                    group->pair_ref_counts[j]++; // channel obtains a reference to pair
-                    portEXIT_CRITICAL(&group->spinlock);
-                }
+            ESP_GOTO_ON_FALSE(pair, ESP_ERR_NO_MEM, err, TAG, "no mem for pair(%d,%d)", i, j);
+            portENTER_CRITICAL(&pair->spinlock);
+            if (!(search_code & pair->occupy_code)) { // pair has suitable position for acquired channel(s)
+                pair->occupy_code |= search_code;
+                search_code = 0; // exit search loop
             }
-            gdma_release_pair_handle(pair);
+            portEXIT_CRITICAL(&pair->spinlock);
+            if (search_code) {
+                gdma_release_pair_handle(pair);
+                pair = NULL;
+            }
         } // loop used to search pair
-        gdma_release_group_handle(group);
+        if (search_code) {
+            gdma_release_group_handle(group);
+            group = NULL;
+        }
     } // loop used to search group
     ESP_GOTO_ON_FALSE(search_code == 0, ESP_ERR_NOT_FOUND, err, TAG, "no free gdma channel, search code=%d", search_code);
-
+    assert(pair && group); // pair and group handle shouldn't be NULL
 search_done:
     // register TX channel
     if (alloc_tx_channel) {
@@ -203,6 +201,7 @@ search_done:
         *ret_chan = &alloc_rx_channel->base; // return the installed channel
     }
 
+    (*ret_chan)->spinlock = (portMUX_TYPE)portMUX_INITIALIZER_UNLOCKED;
     ESP_LOGD(TAG, "new %s channel (%d,%d) at %p", (config->direction == GDMA_CHANNEL_DIRECTION_TX) ? "tx" : "rx",
              group->group_id, pair->pair_id, *ret_chan);
     return ESP_OK;
@@ -213,6 +212,12 @@ err:
     }
     if (alloc_rx_channel) {
         free(alloc_rx_channel);
+    }
+    if (pair) {
+        gdma_release_pair_handle(pair);
+    }
+    if (group) {
+        gdma_release_group_handle(group);
     }
     return ret;
 }
@@ -386,9 +391,7 @@ esp_err_t gdma_register_tx_event_callbacks(gdma_channel_handle_t dma_chan, gdma_
         ESP_GOTO_ON_FALSE(esp_ptr_in_iram(cbs->on_trans_eof), ESP_ERR_INVALID_ARG, err, TAG, "on_trans_eof not in IRAM");
     }
     if (user_data) {
-        ESP_GOTO_ON_FALSE(esp_ptr_in_dram(user_data) ||
-                          esp_ptr_in_diram_dram(user_data) ||
-                          esp_ptr_in_rtc_dram_fast(user_data), ESP_ERR_INVALID_ARG, err, TAG, "user context not in DRAM");
+        ESP_GOTO_ON_FALSE(esp_ptr_internal(user_data), ESP_ERR_INVALID_ARG, err, TAG, "user context not in internal RAM");
     }
 #endif // CONFIG_GDMA_ISR_IRAM_SAFE
 
@@ -424,9 +427,7 @@ esp_err_t gdma_register_rx_event_callbacks(gdma_channel_handle_t dma_chan, gdma_
         ESP_GOTO_ON_FALSE(esp_ptr_in_iram(cbs->on_recv_eof), ESP_ERR_INVALID_ARG, err, TAG, "on_recv_eof not in IRAM");
     }
     if (user_data) {
-        ESP_GOTO_ON_FALSE(esp_ptr_in_dram(user_data) ||
-                          esp_ptr_in_diram_dram(user_data) ||
-                          esp_ptr_in_rtc_dram_fast(user_data), ESP_ERR_INVALID_ARG, err, TAG, "user context not in DRAM");
+        ESP_GOTO_ON_FALSE(esp_ptr_internal(user_data), ESP_ERR_INVALID_ARG, err, TAG, "user context not in internal RAM");
     }
 #endif // CONFIG_GDMA_ISR_IRAM_SAFE
 
@@ -447,15 +448,16 @@ err:
     return ret;
 }
 
-GDMA_CTRL_FUNC_ATTR esp_err_t gdma_start(gdma_channel_handle_t dma_chan, intptr_t desc_base_addr)
+esp_err_t gdma_start(gdma_channel_handle_t dma_chan, intptr_t desc_base_addr)
 {
     esp_err_t ret = ESP_OK;
     gdma_pair_t *pair = NULL;
     gdma_group_t *group = NULL;
-    ESP_GOTO_ON_FALSE(dma_chan, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
+    ESP_GOTO_ON_FALSE_ISR(dma_chan, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
     pair = dma_chan->pair;
     group = pair->group;
 
+    portENTER_CRITICAL_SAFE(&dma_chan->spinlock);
     if (dma_chan->direction == GDMA_CHANNEL_DIRECTION_RX) {
         gdma_ll_rx_set_desc_addr(group->hal.dev, pair->pair_id, desc_base_addr);
         gdma_ll_rx_start(group->hal.dev, pair->pair_id);
@@ -463,69 +465,76 @@ GDMA_CTRL_FUNC_ATTR esp_err_t gdma_start(gdma_channel_handle_t dma_chan, intptr_
         gdma_ll_tx_set_desc_addr(group->hal.dev, pair->pair_id, desc_base_addr);
         gdma_ll_tx_start(group->hal.dev, pair->pair_id);
     }
+    portEXIT_CRITICAL_SAFE(&dma_chan->spinlock);
 
 err:
     return ret;
 }
 
-GDMA_CTRL_FUNC_ATTR esp_err_t gdma_stop(gdma_channel_handle_t dma_chan)
+esp_err_t gdma_stop(gdma_channel_handle_t dma_chan)
 {
     esp_err_t ret = ESP_OK;
     gdma_pair_t *pair = NULL;
     gdma_group_t *group = NULL;
-    ESP_GOTO_ON_FALSE(dma_chan, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
+    ESP_GOTO_ON_FALSE_ISR(dma_chan, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
     pair = dma_chan->pair;
     group = pair->group;
 
+    portENTER_CRITICAL_SAFE(&dma_chan->spinlock);
     if (dma_chan->direction == GDMA_CHANNEL_DIRECTION_RX) {
         gdma_ll_rx_stop(group->hal.dev, pair->pair_id);
     } else {
         gdma_ll_tx_stop(group->hal.dev, pair->pair_id);
     }
+    portEXIT_CRITICAL_SAFE(&dma_chan->spinlock);
 
 err:
     return ret;
 }
 
-GDMA_CTRL_FUNC_ATTR esp_err_t gdma_append(gdma_channel_handle_t dma_chan)
+esp_err_t gdma_append(gdma_channel_handle_t dma_chan)
 {
     esp_err_t ret = ESP_OK;
     gdma_pair_t *pair = NULL;
     gdma_group_t *group = NULL;
-    ESP_GOTO_ON_FALSE(dma_chan, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
+    ESP_GOTO_ON_FALSE_ISR(dma_chan, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
     pair = dma_chan->pair;
     group = pair->group;
 
+    portENTER_CRITICAL_SAFE(&dma_chan->spinlock);
     if (dma_chan->direction == GDMA_CHANNEL_DIRECTION_RX) {
         gdma_ll_rx_restart(group->hal.dev, pair->pair_id);
     } else {
         gdma_ll_tx_restart(group->hal.dev, pair->pair_id);
     }
+    portEXIT_CRITICAL_SAFE(&dma_chan->spinlock);
 
 err:
     return ret;
 }
 
-GDMA_CTRL_FUNC_ATTR esp_err_t gdma_reset(gdma_channel_handle_t dma_chan)
+esp_err_t gdma_reset(gdma_channel_handle_t dma_chan)
 {
     esp_err_t ret = ESP_OK;
     gdma_pair_t *pair = NULL;
     gdma_group_t *group = NULL;
-    ESP_GOTO_ON_FALSE(dma_chan, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
+    ESP_GOTO_ON_FALSE_ISR(dma_chan, ESP_ERR_INVALID_ARG, err, TAG, "invalid argument");
     pair = dma_chan->pair;
     group = pair->group;
 
+    portENTER_CRITICAL_SAFE(&dma_chan->spinlock);
     if (dma_chan->direction == GDMA_CHANNEL_DIRECTION_RX) {
         gdma_ll_rx_reset_channel(group->hal.dev, pair->pair_id);
     } else {
         gdma_ll_tx_reset_channel(group->hal.dev, pair->pair_id);
     }
+    portEXIT_CRITICAL_SAFE(&dma_chan->spinlock);
 
 err:
     return ret;
 }
 
-static void gdma_uninstall_group(gdma_group_t *group)
+static void gdma_release_group_handle(gdma_group_t *group)
 {
     int group_id = group->group_id;
     bool do_deinitialize = false;
@@ -581,14 +590,7 @@ out:
     return group;
 }
 
-static void gdma_release_group_handle(gdma_group_t *group)
-{
-    if (group) {
-        gdma_uninstall_group(group);
-    }
-}
-
-static void gdma_uninstall_pair(gdma_pair_t *pair)
+static void gdma_release_pair_handle(gdma_pair_t *pair)
 {
     gdma_group_t *group = pair->group;
     int pair_id = pair->pair_id;
@@ -606,8 +608,7 @@ static void gdma_uninstall_pair(gdma_pair_t *pair)
     if (do_deinitialize) {
         free(pair);
         ESP_LOGD(TAG, "del pair (%d,%d)", group->group_id, pair_id);
-
-        gdma_uninstall_group(group);
+        gdma_release_group_handle(group);
     }
 }
 
@@ -646,17 +647,12 @@ out:
     return pair;
 }
 
-static void gdma_release_pair_handle(gdma_pair_t *pair)
-{
-    if (pair) {
-        gdma_uninstall_pair(pair);
-    }
-}
-
 static esp_err_t gdma_del_tx_channel(gdma_channel_t *dma_channel)
 {
     gdma_pair_t *pair = dma_channel->pair;
     gdma_group_t *group = pair->group;
+    int pair_id = pair->pair_id;
+    int group_id = group->group_id;
     gdma_tx_channel_t *tx_chan = __containerof(dma_channel, gdma_tx_channel_t, base);
     portENTER_CRITICAL(&pair->spinlock);
     pair->tx_chan = NULL;
@@ -666,15 +662,16 @@ static esp_err_t gdma_del_tx_channel(gdma_channel_t *dma_channel)
     if (dma_channel->intr) {
         esp_intr_free(dma_channel->intr);
         portENTER_CRITICAL(&pair->spinlock);
-        gdma_ll_tx_enable_interrupt(group->hal.dev, pair->pair_id, UINT32_MAX, false); // disable all interupt events
-        gdma_ll_tx_clear_interrupt_status(group->hal.dev, pair->pair_id, UINT32_MAX);  // clear all pending events
+        gdma_ll_tx_enable_interrupt(group->hal.dev, pair_id, UINT32_MAX, false); // disable all interupt events
+        gdma_ll_tx_clear_interrupt_status(group->hal.dev, pair_id, UINT32_MAX);  // clear all pending events
         portEXIT_CRITICAL(&pair->spinlock);
-        ESP_LOGD(TAG, "uninstall interrupt service for tx channel (%d,%d)", group->group_id, pair->pair_id);
+        ESP_LOGD(TAG, "uninstall interrupt service for tx channel (%d,%d)", group_id, pair_id);
     }
 
-    ESP_LOGD(TAG, "del tx channel (%d,%d)", group->group_id, pair->pair_id);
     free(tx_chan);
-    gdma_uninstall_pair(pair);
+    ESP_LOGD(TAG, "del tx channel (%d,%d)", group_id, pair_id);
+    // channel has a reference on pair, release it now
+    gdma_release_pair_handle(pair);
     return ESP_OK;
 }
 
@@ -682,6 +679,8 @@ static esp_err_t gdma_del_rx_channel(gdma_channel_t *dma_channel)
 {
     gdma_pair_t *pair = dma_channel->pair;
     gdma_group_t *group = pair->group;
+    int pair_id = pair->pair_id;
+    int group_id = group->group_id;
     gdma_rx_channel_t *rx_chan = __containerof(dma_channel, gdma_rx_channel_t, base);
     portENTER_CRITICAL(&pair->spinlock);
     pair->rx_chan = NULL;
@@ -691,15 +690,15 @@ static esp_err_t gdma_del_rx_channel(gdma_channel_t *dma_channel)
     if (dma_channel->intr) {
         esp_intr_free(dma_channel->intr);
         portENTER_CRITICAL(&pair->spinlock);
-        gdma_ll_rx_enable_interrupt(group->hal.dev, pair->pair_id, UINT32_MAX, false); // disable all interupt events
-        gdma_ll_rx_clear_interrupt_status(group->hal.dev, pair->pair_id, UINT32_MAX);  // clear all pending events
+        gdma_ll_rx_enable_interrupt(group->hal.dev, pair_id, UINT32_MAX, false); // disable all interupt events
+        gdma_ll_rx_clear_interrupt_status(group->hal.dev, pair_id, UINT32_MAX);  // clear all pending events
         portEXIT_CRITICAL(&pair->spinlock);
-        ESP_LOGD(TAG, "uninstall interrupt service for rx channel (%d,%d)", group->group_id, pair->pair_id);
+        ESP_LOGD(TAG, "uninstall interrupt service for rx channel (%d,%d)", group_id, pair_id);
     }
 
-    ESP_LOGD(TAG, "del rx channel (%d,%d)", group->group_id, pair->pair_id);
     free(rx_chan);
-    gdma_uninstall_pair(pair);
+    ESP_LOGD(TAG, "del rx channel (%d,%d)", group_id, pair_id);
+    gdma_release_pair_handle(pair);
     return ESP_OK;
 }
 

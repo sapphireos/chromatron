@@ -574,6 +574,7 @@ esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_common.c.obj: ../../com
 esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_common.c.obj: ../../components/esp_rom/include/esp32s2/rom/ets_sys.h
 esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_common.c.obj: ../../components/esp_rom/include/esp32s3/rom/ets_sys.h
 esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_common.c.obj: ../../components/esp_rom/include/esp_rom_sys.h
+esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_common.c.obj: ../../components/esp_system/include/esp_freertos_hooks.h
 esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_common.c.obj: ../../components/esp_system/include/esp_int_wdt.h
 esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_common.c.obj: ../../components/esp_system/include/esp_private/crosscore_int.h
 esp-idf/freertos/CMakeFiles/__idf_freertos.dir/port/port_common.c.obj: ../../components/esp_system/include/esp_private/startup_internal.h

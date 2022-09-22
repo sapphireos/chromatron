@@ -108,8 +108,10 @@ esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/esp_rom/include/esp32/rom/ets_sys.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/esp_rom/include/esp32/rom/lldesc.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/esp_rom/include/esp32/rom/sha.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/esp_rom/include/esp32c3/rom/ets_sys.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/esp_rom/include/esp32c3/rom/lldesc.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/esp_rom/include/esp32c3/rom/sha.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/esp_rom/include/esp32h2/rom/ets_sys.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/esp_rom/include/esp32h2/rom/lldesc.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/esp_rom/include/esp32h2/rom/sha.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/esp_rom/include/esp32s2/rom/ets_sys.h
@@ -150,6 +152,8 @@ esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/heap/include/heap_memory_layout.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/heap/include/multi_heap.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/heap/include/soc/soc_memory_layout.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/log/include/esp_log.h
+esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/log/include/esp_log_internal.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/lwip/lwip/src/include/lwip/arch.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/lwip/lwip/src/include/lwip/debug.h
 esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.obj: ../../components/lwip/lwip/src/include/lwip/def.h

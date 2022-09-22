@@ -202,6 +202,15 @@ void sock_v_clear_rx_pending( void ){
     #ifdef SOCK_SINGLE_BUF
     if( rx_handle > 0 ){
 
+        log_v_debug_P( PSTR("dropping RX from: %d.%d.%d.%d:%u to %u"),
+            rx_raddr.ipaddr.ip3,
+            rx_raddr.ipaddr.ip1,
+            rx_raddr.ipaddr.ip2,
+            rx_raddr.ipaddr.ip0,
+            rx_raddr.port,
+            rx_port 
+        );
+
         // free the receive buffer
         mem2_v_free( rx_handle );
 
@@ -838,7 +847,7 @@ int16_t sock_i16_sendto_m( socket_t sock, mem_handle_t handle, sock_addr_t *radd
 
 
 // receive a UDP datagram
-void sock_v_recv( netmsg_t netmsg ){
+int8_t sock_i8_recv( netmsg_t netmsg ){
 
     netmsg_state_t *state = netmsg_vp_get_state( netmsg );
 
@@ -864,7 +873,7 @@ void sock_v_recv( netmsg_t netmsg ){
     // check if we got a matching socket
     if( sock < 0 ){
 
-        return;
+        return SOCK_STATUS_NO_SOCK;
     }
 
     // if we got here, we have the appropriate socket
@@ -874,13 +883,13 @@ void sock_v_recv( netmsg_t netmsg ){
     // with multicasting we could receive our own messages.
     if( ip_b_addr_compare( state->raddr.ipaddr, cfg_ip_get_ipaddr() ) ){
 
-        return;
+        return SOCK_STATUS_MCAST_SELF;
     }
 
     // check if send only
     if( dgram->raw.options & SOCK_OPTIONS_SEND_ONLY ){
 
-        return;
+        return SOCK_STATUS_SEND_ONLY;
     }
 
     // check security flags
@@ -892,7 +901,7 @@ void sock_v_recv( netmsg_t netmsg ){
 
             // socket requires secure messages
 
-            return;
+            return SOCK_STATUS_NO_SEC;
         }
     }
 
@@ -922,7 +931,7 @@ void sock_v_recv( netmsg_t netmsg ){
 
             log_v_debug_P( PSTR("dropped to: %u from %u"), dgram->lport, state->raddr.port );
 
-            return;
+            return SOCK_STATUS_PORT_BUF_FULL;
         }
     }
     #else
@@ -950,7 +959,7 @@ void sock_v_recv( netmsg_t netmsg ){
 
             log_v_debug_P( PSTR("dropped to: %u from %u"), dgram->lport, state->raddr.port );
 
-            return;
+            return SOCK_STATUS_PORT_BUF_FULL;
         }
     }
     #endif
@@ -966,7 +975,7 @@ void sock_v_recv( netmsg_t netmsg ){
 
         log_v_debug_P( PSTR("rx_handle was pending, dropped to: %u from %u"), dgram->lport, state->raddr.port );
 
-        return;
+        return -3;
     }   
     
     rx_header_len   = state->header_len;
@@ -998,6 +1007,8 @@ void sock_v_recv( netmsg_t netmsg ){
 
     // set state
     dgram->state = SOCK_UDP_STATE_RX_DATA_PENDING;
+
+    return SOCK_STATUS_OK;
 }
 
 void sock_v_init( void ){

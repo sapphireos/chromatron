@@ -888,6 +888,7 @@ esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/brownout.c.obj: config/s
 
 esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/cpu_start.c.obj: ../../components/bootloader_support/include/bootloader_flash.h
 esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/cpu_start.c.obj: ../../components/bootloader_support/include/bootloader_flash_config.h
+esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/cpu_start.c.obj: ../../components/bootloader_support/include/bootloader_flash_override.h
 esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/cpu_start.c.obj: ../../components/bootloader_support/include/bootloader_mem.h
 esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/cpu_start.c.obj: ../../components/bootloader_support/include/esp_app_format.h
 esp-idf/esp_system/CMakeFiles/__idf_esp_system.dir/port/cpu_start.c.obj: ../../components/bootloader_support/include/esp_flash_encrypt.h

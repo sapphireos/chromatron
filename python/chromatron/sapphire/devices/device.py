@@ -51,6 +51,7 @@ import crcmod
 from sapphire.buildtools import firmware_package
 from sapphire.buildtools.firmware_package import FirmwarePackage
 from sapphire.buildtools.core import CHROMATRON_ESP_UPGRADE_FWID
+import sapphire.common.util
 
 import fnmatch
 
@@ -655,6 +656,14 @@ class Device(object):
         data = self.get_file("datalog_config")
 
         info = sapphiredata.DatalogEntryArray()
+        info.unpack(data)
+
+        return info
+
+    def get_port_monitor(self):
+        data = self.get_file("portinfo")
+
+        info = sapphiredata.PortMonitorArray()
         info.unpack(data)
 
         return info
@@ -1480,6 +1489,35 @@ class Device(object):
 
         return ntp_now.isoformat()
 
+    def cli_ntpcheck(self, line):
+        ntp_seconds = self.get_key("ntp_seconds")
+
+        now = sapphire.common.util.now()
+        actual_ntp_seconds, actual_ntp_fraction = sapphire.common.util.datetime_to_ntp(now)
+
+        return f'Device NTP is within {ntp_seconds - actual_ntp_seconds} seconds of this machine'
+
+
+    def cli_ntpset(self, line):
+        ntp_seconds = self.get_key("ntp_seconds")
+
+        if ntp_seconds != 0:
+            print('NTP clock has already been set.')
+            print('Are you sure you wish to proceed?')
+
+            yes = input()
+
+            if yes != "yes":     
+                return 'No changes made'
+
+        now = sapphire.common.util.now()
+        ntp_seconds, ntp_fraction = sapphire.common.util.datetime_to_ntp(now)
+
+        self.set_key('ntp_seconds', ntp_seconds)
+
+        fractionless_now = sapphire.common.util.ntp_to_datetime(ntp_seconds, 0)
+        print(f'NTP time set to: {fractionless_now}')
+
     # def cli_loadwifi(self, line):
     #     def progress(length, filename=None):
     #         sys.stdout.write("\rWrite: %5d bytes" % (length))
@@ -1668,6 +1706,19 @@ class Device(object):
             data.append(entry)
 
         self.put_file('datalog_config', data.pack())
+
+    def cli_portinfo(self, line):
+        data = self.get_port_monitor()
+        
+        s = '\nIP           rport lport      tx      rx     drop  timeout\n'
+
+        for item in data:
+            if item.timeout == 0:
+                continue
+
+            s += f'{item.ipaddr:12} {item.rport:5} {item.lport:5} {item.tx_count:7} {item.rx_count:7} {item.dropped:5}    {item.timeout:3}\n'
+
+        return s
 
     def cli_batt_recorder_info(self, line):
         try:

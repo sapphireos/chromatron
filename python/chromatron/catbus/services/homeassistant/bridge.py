@@ -60,6 +60,11 @@ class MQTTChromatron(MQTTClient):
             self.stop()
 
             raise
+
+    def clean_up(self):
+        super().clean_up()
+
+        logging.info(f'Chromatron {self.name} running on catbus port: {self.ct._device._client.local_port} has shut down.')
         
     @property
     def device_name(self):
@@ -229,7 +234,19 @@ class MQTTBridge(Ribbon):
                 logging.info(f'Added device: {info["name"]}')
 
         # prune devices
-        self.devices = {k: v for k, v in self.devices.items() if k in [d['device_id'] for d in self.directory.values()]}
+        remove = []
+        device_ids = [d['device_id'] for d in self.directory.values()]
+
+        for k, v in self.devices.items():
+            if k not in device_ids:
+                remove.append(k)
+
+                v.stop()
+
+
+        for k in remove:
+            del self.devices[k]
+
 
 def main():
     util.setup_basic_logging(console=True)

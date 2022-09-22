@@ -244,6 +244,14 @@ stdint.h
 soc/reset_reasons.h
 ../../components/esp_rom/include/soc/reset_reasons.h
 
+../../components/esp_system/include/esp_freertos_hooks.h
+stdbool.h
+-
+freertos/portmacro.h
+../../components/esp_system/include/freertos/portmacro.h
+esp_err.h
+../../components/esp_system/include/esp_err.h
+
 ../../components/esp_system/include/esp_int_wdt.h
 
 ../../components/esp_system/include/esp_private/crosscore_int.h
@@ -985,6 +993,8 @@ soc/dport_access.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/freertos/port/soc/dport_access.h
 sdkconfig.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/freertos/port/sdkconfig.h
+esp_freertos_hooks.h
+/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/freertos/port/esp_freertos_hooks.h
 esp32/spiram.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/freertos/port/esp32/spiram.h
 esp32s2/spiram.h

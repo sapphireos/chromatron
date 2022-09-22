@@ -54,7 +54,7 @@ void wdg_v_enable( wdg_timeout_t8 timeout, wdg_flags_t8 flags ){
 
     ENABLE_CONFIG_CHANGE;
 
-    WDT.CTRL = timeout | WDT_ENABLE_bm | WDT_CEN_bm;
+    WDT.CTRL = WATCHDOG_TIMEOUT_2048MS | WDT_ENABLE_bm | WDT_CEN_bm;
 
     // set timer compare match B
     // TCC1.CCB = TCC1.CNT + WDG_TIMER_STEP;

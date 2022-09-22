@@ -49,7 +49,7 @@ ptotocol has a ton of state.
 
 #include "services.h"
 
-#define TEST_MODE
+// #define TEST_MODE
 
 #if defined(ENABLE_NETWORK) && defined(ENABLE_SERVICES)
 
@@ -265,7 +265,7 @@ static void cache_service( uint32_t id, uint64_t group, ip_addr4_t ip, uint16_t 
 
     f = fs_f_close( f );
 
-    log_v_debug_P( PSTR( "cached service") );
+    // log_v_debug_P( PSTR( "cached service") );
 }
 
 static void delete_cached_service( uint32_t id, uint64_t group ){
@@ -743,6 +743,29 @@ uint16_t services_u16_get_port( uint32_t id, uint64_t group ){
     return addr.port;
 }
 
+
+uint16_t services_u16_get_leader_priority( uint32_t id, uint64_t group ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
+    service_state_t *service = get_service( id, group );
+
+    if( service == 0 ){
+
+        return 0;
+    }
+
+    if( service->state == STATE_LISTEN ){
+
+        return 0;
+    }
+
+    return service->server_priority;
+}
+
 static void init_header( service_msg_header_t *header, uint8_t type ){
 
     header->magic       = SERVICES_MAGIC;
@@ -1192,10 +1215,10 @@ static void track_node( service_state_t *service, service_msg_offer_hdr_t *heade
     service->server_origin     = origin_id;
 }
 
-static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t *pkt, ip_addr4_t *ip, uint64_t origin ){
+static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t *offer, ip_addr4_t *ip, uint64_t origin ){
 
     // look up matching service
-    service_state_t *service = get_service( pkt->id, pkt->group );
+    service_state_t *service = get_service( offer->id, offer->group );
 
     if( service == 0 ){
 
@@ -1211,21 +1234,22 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
             ( service->state == STATE_CONNECTED ) ){
 
             // ensure packet indicates server, and also is not a team
-            if( pkt->flags != SERVICE_OFFER_FLAGS_SERVER ){
+            if( offer->flags != SERVICE_OFFER_FLAGS_SERVER ){
 
                 return;
             }
 
             // check if connected to this server
             if( ( service->state == STATE_CONNECTED ) &&
-                ( ip_b_addr_compare( *ip, service->server_ip ) ) ){
+                ( ip_b_addr_compare( *ip, service->server_ip ) &&
+                ( offer->port == service->server_port ) ) ){
 
                 service->timeout   = SERVICE_CONNECTED_TIMEOUT;
             }
             // check priorities
-            else if( compare_server( service, header, pkt, origin ) ){
+            else if( compare_server( service, header, offer, origin ) ){
 
-                track_node( service, header, pkt, ip, origin );
+                track_node( service, header, offer, ip, origin );
 
                 log_v_debug_P( PSTR("service switched to %d.%d.%d.%d for %x"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, service->id );
             }
@@ -1240,7 +1264,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
         bool valid = service->server_valid;
 
-        track_node( service, header, pkt, ip, origin );
+        track_node( service, header, offer, ip, origin );
 
         if( !valid && service->server_valid ){
 
@@ -1255,8 +1279,8 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
             // did the server reboot and we didn't notice?
             // OR did the server change to invalid?
-            if( ( ( (int64_t)service->server_uptime - (int64_t)pkt->uptime ) > SERVICE_UPTIME_MIN_DIFF ) ||
-                ( ( pkt->flags & SERVICE_OFFER_FLAGS_SERVER ) == 0 ) ){
+            if( ( ( (int64_t)service->server_uptime - (int64_t)offer->uptime ) > SERVICE_UPTIME_MIN_DIFF ) ||
+                ( ( offer->flags & SERVICE_OFFER_FLAGS_SERVER ) == 0 ) ){
 
                 // reset, maybe there is a better server available
 
@@ -1282,27 +1306,27 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
     // TEAM state machine
     else{
 
-        // log_v_debug_P( PSTR("offer from %d.%d.%d.%d flags: 0x%02x pri: %d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, pkt->flags, pkt->priority );
+        // log_v_debug_P( PSTR("offer from %d.%d.%d.%d flags: 0x%02x pri: %d"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, offer->flags, offer->priority );
 
         if( service->state == STATE_LISTEN ){
 
             // check if server in packet is better than current tracking
-            if( compare_server( service, header, pkt, origin ) ){
+            if( compare_server( service, header, offer, origin ) ){
 
                 log_v_debug_P( PSTR("%x state: LISTEN"), service->id );
 
-                track_node( service, header, pkt, ip, origin );    
+                track_node( service, header, offer, ip, origin );    
             }
         }
         else if( service->state == STATE_CONNECTED ){
 
             // check if packet is a better server than current tracking (and this packet is not from the current server)
             if( ( service->server_origin != origin ) && 
-                compare_server( service, header, pkt, origin ) ){
+                compare_server( service, header, offer, origin ) ){
                 
                 log_v_debug_P( PSTR("%x state: CONNECTED"), service->id );
 
-                track_node( service, header, pkt, ip, origin );
+                track_node( service, header, offer, ip, origin );
 
                 // if tracking is a server
                 if( service->server_valid ){
@@ -1321,13 +1345,13 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
         else if( service->state == STATE_SERVER ){
 
             // check if this packet is better than current tracking
-            if( compare_server( service, header, pkt, origin ) ){
+            if( compare_server( service, header, offer, origin ) ){
 
                 // check if server is valid - we will only consider
                 // other valid servers, not candidates
-                if( ( pkt->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
+                if( ( offer->flags & SERVICE_OFFER_FLAGS_SERVER ) != 0 ){
 
-                    track_node( service, header, pkt, ip, origin );
+                    track_node( service, header, offer, ip, origin );
 
                     // now that we've updated tracking
                     // check if the tracked server is better than us

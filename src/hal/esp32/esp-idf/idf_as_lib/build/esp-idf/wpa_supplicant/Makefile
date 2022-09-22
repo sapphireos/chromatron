@@ -171,33 +171,6 @@ __idf_wpa_supplicant/fast:
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build
 .PHONY : __idf_wpa_supplicant/fast
 
-esp_supplicant/src/esp_dpp.obj: esp_supplicant/src/esp_dpp.c.obj
-
-.PHONY : esp_supplicant/src/esp_dpp.obj
-
-# target to build an object file
-esp_supplicant/src/esp_dpp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_dpp.c.obj
-.PHONY : esp_supplicant/src/esp_dpp.c.obj
-
-esp_supplicant/src/esp_dpp.i: esp_supplicant/src/esp_dpp.c.i
-
-.PHONY : esp_supplicant/src/esp_dpp.i
-
-# target to preprocess a source file
-esp_supplicant/src/esp_dpp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_dpp.c.i
-.PHONY : esp_supplicant/src/esp_dpp.c.i
-
-esp_supplicant/src/esp_dpp.s: esp_supplicant/src/esp_dpp.c.s
-
-.PHONY : esp_supplicant/src/esp_dpp.s
-
-# target to generate assembly for a file
-esp_supplicant/src/esp_dpp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/esp_supplicant/src/esp_dpp.c.s
-.PHONY : esp_supplicant/src/esp_dpp.c.s
-
 esp_supplicant/src/esp_hostap.obj: esp_supplicant/src/esp_hostap.c.obj
 
 .PHONY : esp_supplicant/src/esp_hostap.obj
@@ -494,33 +467,6 @@ src/ap/wpa_auth_ie.s: src/ap/wpa_auth_ie.c.s
 src/ap/wpa_auth_ie.c.s:
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/ap/wpa_auth_ie.c.s
 .PHONY : src/ap/wpa_auth_ie.c.s
-
-src/common/dpp.obj: src/common/dpp.c.obj
-
-.PHONY : src/common/dpp.obj
-
-# target to build an object file
-src/common/dpp.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/dpp.c.obj
-.PHONY : src/common/dpp.c.obj
-
-src/common/dpp.i: src/common/dpp.c.i
-
-.PHONY : src/common/dpp.i
-
-# target to preprocess a source file
-src/common/dpp.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/dpp.c.i
-.PHONY : src/common/dpp.c.i
-
-src/common/dpp.s: src/common/dpp.c.s
-
-.PHONY : src/common/dpp.s
-
-# target to generate assembly for a file
-src/common/dpp.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/build.make esp-idf/wpa_supplicant/CMakeFiles/__idf_wpa_supplicant.dir/src/common/dpp.c.s
-.PHONY : src/common/dpp.c.s
 
 src/common/sae.obj: src/common/sae.c.obj
 
@@ -2155,9 +2101,6 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... __idf_wpa_supplicant"
-	@echo "... esp_supplicant/src/esp_dpp.obj"
-	@echo "... esp_supplicant/src/esp_dpp.i"
-	@echo "... esp_supplicant/src/esp_dpp.s"
 	@echo "... esp_supplicant/src/esp_hostap.obj"
 	@echo "... esp_supplicant/src/esp_hostap.i"
 	@echo "... esp_supplicant/src/esp_hostap.s"
@@ -2191,9 +2134,6 @@ help:
 	@echo "... src/ap/wpa_auth_ie.obj"
 	@echo "... src/ap/wpa_auth_ie.i"
 	@echo "... src/ap/wpa_auth_ie.s"
-	@echo "... src/common/dpp.obj"
-	@echo "... src/common/dpp.i"
-	@echo "... src/common/dpp.s"
 	@echo "... src/common/sae.obj"
 	@echo "... src/common/sae.i"
 	@echo "... src/common/sae.s"

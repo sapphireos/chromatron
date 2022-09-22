@@ -277,9 +277,9 @@ int wps_post(uint32_t sig, uint32_t par)
 }
 #endif
 
-static void wps_sendto_wrapper(void *buffer, uint16_t len)
+static int wps_sendto_wrapper(void *buffer, uint16_t len)
 {
-    esp_wifi_internal_tx(WIFI_IF_STA, buffer, len);
+    return esp_wifi_internal_tx(WIFI_IF_STA, buffer, len);
 }
 
 /*
@@ -301,9 +301,7 @@ static inline int wps_sm_ether_send(struct wps_sm *sm, const u8 *dest, u16 proto
     os_memcpy(eth->h_source, sm->ownaddr, ETH_ALEN);
     eth->h_proto = host_to_be16(proto);
 
-    wps_sendto_wrapper(buffer, sizeof(struct l2_ethhdr) + data_len);
-
-    return ESP_OK;
+    return wps_sendto_wrapper(buffer, sizeof(struct l2_ethhdr) + data_len);
 }
 
 
@@ -648,6 +646,7 @@ int wps_send_eap_identity_rsp(u8 id)
     eap_buf = eap_msg_alloc(EAP_VENDOR_IETF, EAP_TYPE_IDENTITY, sm->identity_len,
                             EAP_CODE_RESPONSE, id);
     if (!eap_buf) {
+        wpa_printf(MSG_ERROR, "eap buf allocation failed");
         ret = ESP_FAIL;
         goto _err;
     }
@@ -663,12 +662,14 @@ int wps_send_eap_identity_rsp(u8 id)
 
     buf = wps_sm_alloc_eapol(sm, IEEE802_1X_TYPE_EAP_PACKET, wpabuf_head_u8(eap_buf), wpabuf_len(eap_buf), (size_t *)&len, NULL);
     if (!buf) {
+        wpa_printf(MSG_ERROR, "buf allocation failed");
         ret = ESP_ERR_NO_MEM;
         goto _err;
     }
 
     ret = wps_sm_ether_send(sm, bssid, ETH_P_EAPOL, buf, len);
     if (ret) {
+        wpa_printf(MSG_ERROR, "wps sm ether send failed ret=%d", ret);
         ret = ESP_FAIL;
         goto _err;
     }
@@ -804,6 +805,10 @@ int wps_process_wps_mX_req(u8 *ubuf, int len, enum wps_process_res *res)
     }
 
     if ((flag & WPS_MSG_FLAG_MORE) || wps_buf != NULL) {//frag msg
+        if (tlen > 50000) {
+            wpa_printf(MSG_ERROR, "EAP-WSC: Invalid Message Length");
+            return ESP_FAIL;
+	}
         wpa_printf(MSG_DEBUG, "rx frag msg id:%d, flag:%d, frag_len: %d, tot_len: %d, be_tot_len:%d", sm->current_identifier, flag, frag_len, tlen, be_tot_len);
         if (ESP_OK != wps_enrollee_process_msg_frag(&wps_buf, tlen, tbuf, frag_len, flag)) {
             if (wps_buf) {
@@ -2148,6 +2153,7 @@ int wifi_wps_disable_internal(void)
 int esp_wifi_wps_disable(void)
 {
     int ret = 0;
+    int wps_status;
 
     if (ESP_OK != wps_check_wifi_mode()) {
         return ESP_ERR_WIFI_MODE;
@@ -2161,7 +2167,8 @@ int esp_wifi_wps_disable(void)
         return ESP_OK;
     }
 
-    wpa_printf(MSG_INFO, "wifi_wps_disable\n");
+    wps_status = wps_get_status();
+    wpa_printf(MSG_INFO, "wifi_wps_disable");
     wps_set_type(WPS_TYPE_DISABLE); /* Notify WiFi task */
 
     /* Call wps_delete_timer to delete all WPS timer, no timer will call wps_post()
@@ -2179,7 +2186,10 @@ int esp_wifi_wps_disable(void)
         wpa_printf(MSG_ERROR, "wps disable: failed to disable wps, ret=%d", ret);
     }
 
-    esp_wifi_disconnect();
+    /* Only disconnect in case of WPS pending */
+    if (wps_status == WPS_STATUS_PENDING) {
+        esp_wifi_disconnect();
+    }
     esp_wifi_set_wps_start_flag_internal(false);
     wps_task_deinit();
     s_wps_enabled = false;

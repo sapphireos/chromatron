@@ -41,7 +41,6 @@ uint32_t tmr_u32_get_system_time_ms( void );
 uint64_t tmr_u64_get_system_time_ms( void );
 uint32_t tmr_u32_get_system_time_us( void );
 uint64_t tmr_u64_get_system_time_us( void );
-uint32_t tmr_u32_get_system_time( void );
 
 uint32_t tmr_u32_elapsed_time_ms( uint32_t start_time );
 uint32_t tmr_u32_elapsed_times( uint32_t start_time, uint32_t end_time );

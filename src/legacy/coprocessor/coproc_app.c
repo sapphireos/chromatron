@@ -38,10 +38,16 @@
 
 #include "coproc_app.h"
 
-static bool boot_esp;
+// static bool boot_esp;
+
+static bool loadfw_enable_1;
+static bool loadfw_enable_2;
+static bool loadfw_request;
+
 
 KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
-    { CATBUS_TYPE_BOOL,      0, 0,  &boot_esp, 0,  "boot_esp" },
+    // { CATBUS_TYPE_BOOL,      0, 0,  &boot_esp, 0,  "boot_esp" },
+    { CATBUS_TYPE_BOOL,      0, 0,  &loadfw_request, 0,  "request_load_wifi_firmware" },
 
     // backup wifi keys.
     // if these aren't present in the KV index, the config module won't find them.
@@ -50,10 +56,6 @@ KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
 };
-
-static bool loadfw_enable_1;
-static bool loadfw_enable_2;
-static bool loadfw_request;
 
 static uint32_t fw_addr;
 static uint32_t pix_transfer_count;
@@ -343,11 +345,91 @@ void coproc_v_dispatch(
 
         *retval = usart_i16_get_byte( USER_USART );
     }
+    else if( hdr->opcode == OPCODE_IO_USART_GET_CHUNK ){
+
+        *response_len = usart_u8_get_bytes( USER_USART, response, params[0] );
+    }
     else if( hdr->opcode == OPCODE_IO_USART_RX_SIZE ){
 
         *retval = usart_u8_bytes_available( USER_USART );
     }
     else if( hdr->opcode == OPCODE_IO_USART_SET_BAUD ){
+
+        // translate baud rate setting:
+        if( params[0] == 2400 ){
+
+            params[0] = BAUD_2400;
+        }
+        else if( params[0] == 4800 ){
+
+            params[0] = BAUD_4800;
+        }
+        else if( params[0] == 9600 ){
+
+            params[0] = BAUD_9600;
+        }
+        else if( params[0] == 14400 ){
+
+            params[0] = BAUD_14400;
+        }
+        else if( params[0] == 19200 ){
+
+            params[0] = BAUD_19200;
+        }
+        else if( params[0] == 28800 ){
+
+            params[0] = BAUD_28800;
+        }
+        else if( params[0] == 38400 ){
+
+            params[0] = BAUD_38400;
+        }
+        else if( params[0] == 57600 ){
+
+            params[0] = BAUD_57600;
+        }
+        else if( params[0] == 76800 ){
+
+            params[0] = BAUD_76800;
+        }
+        else if( params[0] == 115200 ){
+
+            params[0] = BAUD_115200;
+        }
+        else if( params[0] == 230400 ){
+
+            params[0] = BAUD_230400;
+        }
+        else if( params[0] == 250000 ){
+
+            params[0] = BAUD_250000;
+        }
+        else if( params[0] == 460800 ){
+
+            params[0] = BAUD_460800;
+        }
+        else if( params[0] == 500000 ){
+
+            params[0] = BAUD_500000;
+        }
+        else if( params[0] == 1000000 ){
+
+            params[0] = BAUD_1000000;
+        }
+        else if( params[0] == 2000000 ){
+
+            params[0] = BAUD_2000000;
+        }
+        else if( params[0] == 74880 ){
+
+            params[0] = BAUD_74880;
+        }
+        else{
+
+            // invalid setting, which will assert in the driver,
+            // so just bail out
+            return;
+        }
 
         usart_v_set_baud( USER_USART, params[0] );
     }
@@ -474,6 +556,31 @@ PT_BEGIN( pt );
         status_led_v_set( 1, STATUS_LED_RED );
 
         TMR_WAIT( pt, 250 );
+
+        if( loadfw_request ){
+
+            wifi_v_start_loader( loadfw_request );
+
+            THREAD_WAIT_WHILE( pt, wifi_i8_loader_status() == ESP_LOADER_STATUS_BUSY );
+
+            if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
+
+                while(1){
+
+                    status_led_v_set( 0, STATUS_LED_RED );
+                    status_led_v_set( 0, STATUS_LED_BLUE );
+
+                    TMR_WAIT( pt, 250 );
+
+                    status_led_v_set( 0, STATUS_LED_BLUE );
+                    status_led_v_set( 1, STATUS_LED_RED );
+
+                    TMR_WAIT( pt, 250 );
+                }
+            }
+
+            sys_reboot();
+        }
     }
  
 PT_END( pt );   

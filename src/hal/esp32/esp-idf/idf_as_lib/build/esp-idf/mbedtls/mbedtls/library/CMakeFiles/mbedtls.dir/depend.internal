@@ -109,8 +109,10 @@ esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.
  ../../components/esp_rom/include/esp32/rom/ets_sys.h
  ../../components/esp_rom/include/esp32/rom/lldesc.h
  ../../components/esp_rom/include/esp32/rom/sha.h
+ ../../components/esp_rom/include/esp32c3/rom/ets_sys.h
  ../../components/esp_rom/include/esp32c3/rom/lldesc.h
  ../../components/esp_rom/include/esp32c3/rom/sha.h
+ ../../components/esp_rom/include/esp32h2/rom/ets_sys.h
  ../../components/esp_rom/include/esp32h2/rom/lldesc.h
  ../../components/esp_rom/include/esp32h2/rom/sha.h
  ../../components/esp_rom/include/esp32s2/rom/ets_sys.h
@@ -151,6 +153,8 @@ esp-idf/mbedtls/mbedtls/library/CMakeFiles/mbedtls.dir/__/__/port/net_sockets.c.
  ../../components/heap/include/heap_memory_layout.h
  ../../components/heap/include/multi_heap.h
  ../../components/heap/include/soc/soc_memory_layout.h
+ ../../components/log/include/esp_log.h
+ ../../components/log/include/esp_log_internal.h
  ../../components/lwip/lwip/src/include/lwip/arch.h
  ../../components/lwip/lwip/src/include/lwip/debug.h
  ../../components/lwip/lwip/src/include/lwip/def.h

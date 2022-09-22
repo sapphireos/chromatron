@@ -530,6 +530,16 @@
                 "type": "int"
             },
             {
+                "children": [],
+                "depends_on": null,
+                "help": "Protects the unmapped memory regions of the entire address space from unintended accesses.\nThis will ensure that an exception will be triggered whenever the CPU performs a memory\noperation on unmapped regions of the address space.",
+                "id": "BOOTLOADER_REGION_PROTECTION_ENABLE",
+                "name": "BOOTLOADER_REGION_PROTECTION_ENABLE",
+                "range": null,
+                "title": "Enable protection for unmapped memory regions",
+                "type": "bool"
+            },
+            {
                 "children": [
                     {
                         "children": [],
@@ -837,7 +847,7 @@
                         "type": "choice"
                     }
                 ],
-                "depends_on": "IDF_TARGET_ESP32 || IDF_TARGET_ESP32S2 || ESP32C3_REV_MIN_3 || IDF_TARGET_ESP32S3",
+                "depends_on": "IDF_TARGET_ESP32 || IDF_TARGET_ESP32S2 || ESP32C3_REV_MIN >= 3 || IDF_TARGET_ESP32S3",
                 "help": "Build a bootloader which enables Secure Boot on first boot.\n\nOnce enabled, Secure Boot will not boot a modified bootloader. The bootloader will only load a partition\ntable or boot an app if the data has a verified digital signature. There are implications for reflashing\nupdated apps once secure boot is enabled.\n\nWhen enabling secure boot, JTAG and ROM BASIC Interpreter are permanently disabled by default.",
                 "id": "SECURE_BOOT",
                 "name": "SECURE_BOOT",
@@ -1581,6 +1591,36 @@
                         "name": "ESPTOOLPY_FLASHSIZE_16MB",
                         "range": null,
                         "title": "16 MB",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": "<choice ESPTOOLPY_FLASHSIZE>",
+                        "help": null,
+                        "id": "ESPTOOLPY_FLASHSIZE_32MB",
+                        "name": "ESPTOOLPY_FLASHSIZE_32MB",
+                        "range": null,
+                        "title": "32 MB",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": "<choice ESPTOOLPY_FLASHSIZE>",
+                        "help": null,
+                        "id": "ESPTOOLPY_FLASHSIZE_64MB",
+                        "name": "ESPTOOLPY_FLASHSIZE_64MB",
+                        "range": null,
+                        "title": "64 MB",
+                        "type": "bool"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": "<choice ESPTOOLPY_FLASHSIZE>",
+                        "help": null,
+                        "id": "ESPTOOLPY_FLASHSIZE_128MB",
+                        "name": "ESPTOOLPY_FLASHSIZE_128MB",
+                        "range": null,
+                        "title": "128 MB",
                         "type": "bool"
                     }
                 ],

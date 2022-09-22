@@ -520,6 +520,16 @@ static esp_err_t esp_http_client_prepare(esp_http_client_handle_t client)
     client->process_again = 0;
     client->response->data_process = 0;
     client->first_line_prepared = false;
+    /**
+     * Clear location field before making a new HTTP request. Location
+     * field should not be cleared in http_on_header* callbacks because
+     * callbacks can be invoked multiple times for same header, and
+     * hence can lead to data corruption.
+     */
+    if (client->location != NULL) {
+        free(client->location);
+        client->location = NULL;
+    }
     http_parser_init(client->parser, HTTP_RESPONSE);
     if (client->connection_info.username) {
         char *auth_response = NULL;
@@ -824,7 +834,9 @@ static esp_err_t esp_http_check_response(esp_http_client_handle_t client)
     switch (client->response->status_code) {
         case HttpStatus_MovedPermanently:
         case HttpStatus_Found:
+        case HttpStatus_SeeOther:
         case HttpStatus_TemporaryRedirect:
+        case HttpStatus_PermanentRedirect:
             esp_http_client_set_redirection(client);
             client->redirect_counter ++;
             client->process_again = 1;

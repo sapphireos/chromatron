@@ -1289,6 +1289,8 @@ arch/sys_arch.h
 ../../components/lwip/port/esp32/include/arch/arch/sys_arch.h
 stdio.h
 -
+esp_log.h
+../../components/lwip/port/esp32/include/arch/esp_log.h
 
 ../../components/lwip/port/esp32/include/arch/perf.h
 

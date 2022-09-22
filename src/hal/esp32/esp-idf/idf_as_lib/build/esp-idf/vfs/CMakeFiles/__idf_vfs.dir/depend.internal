@@ -294,6 +294,7 @@ esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj
  ../../components/freertos/port/xtensa/include/freertos/portmacro.h
  ../../components/freertos/port/xtensa/include/freertos/portmacro_deprecated.h
  ../../components/freertos/port/xtensa/include/freertos/xtensa_config.h
+ ../../components/freertos/port/xtensa/include/freertos/xtensa_context.h
  ../../components/hal/esp32/include/hal/cpu_ll.h
  ../../components/hal/include/hal/cpu_hal.h
  ../../components/hal/include/hal/cpu_types.h
@@ -327,12 +328,14 @@ esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_semihost.c.obj
  ../../components/xtensa/include/xtensa/coreasm.h
  ../../components/xtensa/include/xtensa/corebits.h
  ../../components/xtensa/include/xtensa/hal.h
+ ../../components/xtensa/include/xtensa/semihosting.h
  ../../components/xtensa/include/xtensa/xtensa-versions.h
  ../../components/xtensa/include/xtensa/xtensa_api.h
  ../../components/xtensa/include/xtensa/xtensa_context.h
  ../../components/xtensa/include/xtensa/xtruntime-core-state.h
  ../../components/xtensa/include/xtensa/xtruntime-frames.h
  ../../components/xtensa/include/xtensa/xtruntime.h
+ /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/openocd_semihosting.h
  /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/vfs/vfs_semihost.c
  config/sdkconfig.h
 esp-idf/vfs/CMakeFiles/__idf_vfs.dir/vfs_uart.c.obj

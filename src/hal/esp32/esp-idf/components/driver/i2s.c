@@ -100,8 +100,9 @@ typedef struct {
 #ifdef CONFIG_PM_ENABLE
     esp_pm_lock_handle_t pm_lock;
 #endif
-    i2s_hal_context_t hal;       /*!< I2S hal context*/
-    i2s_hal_config_t hal_cfg; /*!< I2S hal configurations*/
+    i2s_hal_context_t hal;      /*!< I2S hal context*/
+    i2s_channel_fmt_t   init_chan_fmt;  /*!< The initial channel format while installing, used for keep left or right mono when switch between mono and stereo */
+    i2s_hal_config_t hal_cfg;   /*!< I2S hal configurations*/
 } i2s_obj_t;
 
 static i2s_obj_t *p_i2s[SOC_I2S_NUM];
@@ -1402,6 +1403,14 @@ esp_err_t i2s_pcm_config(i2s_port_t i2s_num, const i2s_pcm_cfg_t *pcm_cfg)
     ESP_RETURN_ON_FALSE(p_i2s[i2s_num], ESP_FAIL, TAG, "i2s has not installed yet");
     ESP_RETURN_ON_FALSE((p_i2s[i2s_num]->hal_cfg.comm_fmt & I2S_COMM_FORMAT_STAND_PCM_SHORT),
                         ESP_ERR_INVALID_ARG, TAG, "i2s communication mode is not PCM mode");
+
+    if (p_i2s[i2s_num]->hal_cfg.mode & I2S_MODE_TX) {
+        xSemaphoreTake(p_i2s[i2s_num]->tx->mux, (portTickType)portMAX_DELAY);
+    }
+    if (p_i2s[i2s_num]->hal_cfg.mode & I2S_MODE_RX) {
+        xSemaphoreTake(p_i2s[i2s_num]->rx->mux, (portTickType)portMAX_DELAY);
+    }
+
     i2s_stop(i2s_num);
     I2S_ENTER_CRITICAL(i2s_num);
     if (p_i2s[i2s_num]->hal_cfg.mode & I2S_MODE_TX) {
@@ -1411,6 +1420,14 @@ esp_err_t i2s_pcm_config(i2s_port_t i2s_num, const i2s_pcm_cfg_t *pcm_cfg)
     }
     I2S_EXIT_CRITICAL(i2s_num);
     i2s_start(i2s_num);
+
+    if (p_i2s[i2s_num]->hal_cfg.mode & I2S_MODE_TX) {
+        xSemaphoreGive(p_i2s[i2s_num]->tx->mux);
+    }
+    if (p_i2s[i2s_num]->hal_cfg.mode & I2S_MODE_RX) {
+        xSemaphoreGive(p_i2s[i2s_num]->rx->mux);
+    }
+
     return ESP_OK;
 }
 #endif
@@ -1436,9 +1453,12 @@ esp_err_t i2s_set_pdm_rx_down_sample(i2s_port_t i2s_num, i2s_pdm_dsr_t downsampl
 {
     ESP_RETURN_ON_FALSE(p_i2s[i2s_num], ESP_FAIL, TAG, "i2s has not installed yet");
     ESP_RETURN_ON_FALSE((p_i2s[i2s_num]->hal_cfg.mode & I2S_MODE_PDM), ESP_ERR_INVALID_ARG, TAG, "i2s mode is not PDM mode");
+
+    xSemaphoreTake(p_i2s[i2s_num]->rx->mux, (portTickType)portMAX_DELAY);
     i2s_stop(i2s_num);
     i2s_hal_set_rx_pdm_dsr(&(p_i2s[i2s_num]->hal), downsample);
-    // i2s will start in 'i2s_set_clk'
+    i2s_start(i2s_num);
+    xSemaphoreGive(p_i2s[i2s_num]->rx->mux);
     return i2s_set_clk(i2s_num, p_i2s[i2s_num]->hal_cfg.sample_rate, p_i2s[i2s_num]->hal_cfg.sample_bits, p_i2s[i2s_num]->hal_cfg.active_chan);
 }
 #endif
@@ -1461,9 +1481,12 @@ esp_err_t i2s_set_pdm_tx_up_sample(i2s_port_t i2s_num, const i2s_pdm_tx_upsample
 {
     ESP_RETURN_ON_FALSE(p_i2s[i2s_num], ESP_FAIL, TAG, "i2s has not installed yet");
     ESP_RETURN_ON_FALSE((p_i2s[i2s_num]->hal_cfg.mode & I2S_MODE_PDM), ESP_ERR_INVALID_ARG, TAG, "i2s mode is not PDM mode");
+
+    xSemaphoreTake(p_i2s[i2s_num]->tx->mux, (portTickType)portMAX_DELAY);
     i2s_stop(i2s_num);
     i2s_hal_set_tx_pdm_fpfs(&(p_i2s[i2s_num]->hal), upsample_cfg->fp, upsample_cfg->fs);
-    // i2s will start in 'i2s_set_clk'
+    i2s_start(i2s_num);
+    xSemaphoreGive(p_i2s[i2s_num]->rx->mux);
     return i2s_set_clk(i2s_num, upsample_cfg->sample_rate, p_i2s[i2s_num]->hal_cfg.sample_bits, p_i2s[i2s_num]->hal_cfg.active_chan);
 }
 #endif
@@ -1567,6 +1590,14 @@ esp_err_t i2s_set_clk(i2s_port_t i2s_num, uint32_t rate, uint32_t bits_cfg, i2s_
 
     i2s_hal_config_t *cfg = &p_i2s[i2s_num]->hal_cfg;
 
+    /* Acquire the lock before stop i2s, otherwise reading/writing operation will stuck on receiving the message queue from interrupt */
+    if (cfg->mode & I2S_MODE_TX) {
+        xSemaphoreTake(p_i2s[i2s_num]->tx->mux, (portTickType)portMAX_DELAY);
+    }
+    if (cfg->mode & I2S_MODE_RX) {
+        xSemaphoreTake(p_i2s[i2s_num]->rx->mux, (portTickType)portMAX_DELAY);
+    }
+
     /* Stop I2S */
     i2s_stop(i2s_num);
 
@@ -1577,11 +1608,18 @@ esp_err_t i2s_set_clk(i2s_port_t i2s_num, uint32_t rate, uint32_t bits_cfg, i2s_
         cfg->chan_bits = (bits_cfg >> 16) > cfg->sample_bits ? (bits_cfg >> 16) : cfg->sample_bits;
 #if SOC_I2S_SUPPORTS_TDM
         if (ch & I2S_CHANNEL_MONO) {
-            cfg->chan_fmt = I2S_CHANNEL_FMT_ONLY_RIGHT;
-            cfg->chan_mask = I2S_TDM_ACTIVE_CH0; // Only activate one channel in mono
             if (ch >> 16) {
+                cfg->chan_fmt = I2S_CHANNEL_FMT_MULTIPLE;
+                cfg->chan_mask = 1 << __builtin_ctz(ch & 0xFFFF0000); // mono the minimun actived slot
                 cfg->total_chan = i2s_get_max_channel_num(ch);
             } else {
+                if (p_i2s[i2s_num]->init_chan_fmt == I2S_CHANNEL_FMT_ONLY_LEFT) {
+                    cfg->chan_mask = I2S_TDM_ACTIVE_CH1; // left slot mono
+                    cfg->chan_fmt = I2S_CHANNEL_FMT_ONLY_LEFT;
+                } else {
+                    cfg->chan_mask = I2S_TDM_ACTIVE_CH0; // right slot mono
+                    cfg->chan_fmt = I2S_CHANNEL_FMT_ONLY_RIGHT;
+                }
                 cfg->total_chan = 2;
             }
         } else {
@@ -1598,19 +1636,23 @@ esp_err_t i2s_set_clk(i2s_port_t i2s_num, uint32_t rate, uint32_t bits_cfg, i2s_
         }
 #else
         /* Default */
-        cfg->chan_fmt = ch == I2S_CHANNEL_MONO ? I2S_CHANNEL_FMT_ONLY_RIGHT : cfg->chan_fmt;
+        if (ch & I2S_CHANNEL_MONO) {
+            if (p_i2s[i2s_num]->init_chan_fmt == I2S_CHANNEL_FMT_ONLY_LEFT) {
+                cfg->chan_fmt = I2S_CHANNEL_FMT_ONLY_LEFT;
+            } else {
+                cfg->chan_fmt = I2S_CHANNEL_FMT_ONLY_RIGHT;
+            }
+        } else {
+            cfg->chan_fmt = I2S_CHANNEL_FMT_RIGHT_LEFT;
+        }
         cfg->active_chan = i2s_get_active_channel_num(cfg);
         cfg->total_chan = 2;
 #endif
         if (cfg->mode & I2S_MODE_TX) {
-            xSemaphoreTake(p_i2s[i2s_num]->tx->mux, (portTickType)portMAX_DELAY);
             i2s_hal_tx_set_channel_style(&(p_i2s[i2s_num]->hal), cfg);
-            xSemaphoreGive(p_i2s[i2s_num]->tx->mux);
         }
         if (cfg->mode & I2S_MODE_RX) {
-            xSemaphoreTake(p_i2s[i2s_num]->rx->mux, (portTickType)portMAX_DELAY);
             i2s_hal_rx_set_channel_style(&(p_i2s[i2s_num]->hal), cfg);
-            xSemaphoreGive(p_i2s[i2s_num]->rx->mux);
         }
     }
     uint32_t data_bits = cfg->sample_bits;
@@ -1630,7 +1672,6 @@ esp_err_t i2s_set_clk(i2s_port_t i2s_num, uint32_t rate, uint32_t bits_cfg, i2s_
     if (cfg->mode & I2S_MODE_TX) {
         ESP_RETURN_ON_FALSE(p_i2s[i2s_num]->tx, ESP_ERR_INVALID_ARG, TAG, "I2S TX DMA object has not initialized yet");
         /* Waiting for transmit finish */
-        xSemaphoreTake(p_i2s[i2s_num]->tx->mux, (portTickType)portMAX_DELAY);
         i2s_tx_set_clk_and_channel(i2s_num, &clk_cfg);
         /* If buffer size changed, the DMA buffer need realloc */
         if (need_realloc) {
@@ -1643,14 +1684,12 @@ esp_err_t i2s_set_clk(i2s_port_t i2s_num, uint32_t rate, uint32_t bits_cfg, i2s_
         }
         /* Reset the queue to avoid receive invalid data */
         xQueueReset(p_i2s[i2s_num]->tx->queue);
-        xSemaphoreGive(p_i2s[i2s_num]->tx->mux);
         ESP_RETURN_ON_ERROR(ret, TAG, "I2S%d tx DMA buffer malloc failed", i2s_num);
     }
     /* RX mode clock reset */
     if (cfg->mode & I2S_MODE_RX) {
         ESP_RETURN_ON_FALSE(p_i2s[i2s_num]->rx, ESP_ERR_INVALID_ARG, TAG, "I2S TX DMA object has not initialized yet");
         /* Waiting for receive finish */
-        xSemaphoreTake(p_i2s[i2s_num]->rx->mux, (portTickType)portMAX_DELAY);
         i2s_rx_set_clk_and_channel(i2s_num, &clk_cfg);
         /* If buffer size changed, the DMA buffer need realloc */
         if (need_realloc) {
@@ -1665,7 +1704,6 @@ esp_err_t i2s_set_clk(i2s_port_t i2s_num, uint32_t rate, uint32_t bits_cfg, i2s_
         }
         /* Reset the queue to avoid receiving invalid data */
         xQueueReset(p_i2s[i2s_num]->rx->queue);
-        xSemaphoreGive(p_i2s[i2s_num]->rx->mux);
         ESP_RETURN_ON_ERROR(ret, TAG, "I2S%d rx DMA buffer malloc failed", i2s_num);
     }
     /* Update last buffer size */
@@ -1673,6 +1711,13 @@ esp_err_t i2s_set_clk(i2s_port_t i2s_num, uint32_t rate, uint32_t bits_cfg, i2s_
 
     /* I2S start */
     i2s_start(i2s_num);
+
+    if (cfg->mode & I2S_MODE_TX) {
+        xSemaphoreGive(p_i2s[i2s_num]->tx->mux);
+    }
+    if (cfg->mode & I2S_MODE_RX) {
+        xSemaphoreGive(p_i2s[i2s_num]->rx->mux);
+    }
 
     return ESP_OK;
 }
@@ -1763,6 +1808,7 @@ static esp_err_t i2s_driver_init(i2s_port_t i2s_num, const i2s_config_t *i2s_con
     p_i2s[i2s_num]->fixed_mclk = i2s_config->fixed_mclk;
     p_i2s[i2s_num]->mclk_multiple = i2s_config->mclk_multiple;
     p_i2s[i2s_num]->tx_desc_auto_clear = i2s_config->tx_desc_auto_clear;
+    p_i2s[i2s_num]->init_chan_fmt = i2s_config->channel_format;
 
     /* I2S HAL configuration assignment */
     p_i2s[i2s_num]->hal_cfg.mode = i2s_config->mode;
@@ -1788,7 +1834,10 @@ static esp_err_t i2s_driver_init(i2s_port_t i2s_num, const i2s_config_t *i2s_con
         p_i2s[i2s_num]->hal_cfg.chan_mask = I2S_TDM_ACTIVE_CH0 | I2S_TDM_ACTIVE_CH1;
         p_i2s[i2s_num]->hal_cfg.total_chan = 2;
         break;
-    case I2S_CHANNEL_FMT_ONLY_RIGHT:    // fall through
+    case I2S_CHANNEL_FMT_ONLY_RIGHT:
+        p_i2s[i2s_num]->hal_cfg.chan_mask = I2S_TDM_ACTIVE_CH1;
+        p_i2s[i2s_num]->hal_cfg.total_chan = 2;
+        break;
     case I2S_CHANNEL_FMT_ONLY_LEFT:
         p_i2s[i2s_num]->hal_cfg.chan_mask = I2S_TDM_ACTIVE_CH0;
         p_i2s[i2s_num]->hal_cfg.total_chan = 2;

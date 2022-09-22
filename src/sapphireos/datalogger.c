@@ -31,7 +31,7 @@
 #include "logging.h"
 #include "hash.h"
 #include "keyvalue.h"
-#include "timesync.h"
+#include "time_ntp.h"
 #include "datalogger.h"
 
 #ifdef ENABLE_MSGFLOW
@@ -309,7 +309,7 @@ static void flush( void ){
     header->magic = DATALOG_MAGIC;
     header->version = DATALOG_VERSION;
 
-    if( time_b_is_ntp_sync() ){
+    if( ntp_b_is_sync() ){
 
         header->flags |= DATALOG_FLAGS_NTP_SYNC;
     }
@@ -396,7 +396,7 @@ PT_BEGIN( pt );
                     // memset( buf_meta_ptr, 0, mem2_u16_get_size( datalog_buffer_handle ) );
 
                     // get NTP time
-                    time_v_get_timestamp( &ntp_base, &systime_base );
+                    ntp_v_get_timestamp( &ntp_base, &systime_base );
 
                     buf_meta_ptr->ntp_base = ntp_base;
 

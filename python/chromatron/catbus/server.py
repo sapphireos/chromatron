@@ -42,7 +42,7 @@ class Server(MsgServer):
 
         self.visible = visible
 
-        logging.info(f"Data server {self.name} on port {self._port}")
+        logging.info(f"Catbus data server {self.name} on port {self._port}")
 
         self._hash_lookup = {}
 
