@@ -2551,31 +2551,6 @@ int8_t gfx_i8_get_pixel_array( uint8_t obj, gfx_pixel_array_t **array_ptr ){
    return 0;
 }
 
-
-static uint16_t linterp_table_lookup( uint16_t x, uint16_t *table ){
-
-    uint8_t index = x >> 8;
-
-    uint16_t y0 = table[index];
-    uint16_t y1;
-    uint16_t x0 = index << 8;
-    uint16_t x1;
-
-    if( index < 255 ){
-
-        y1 = table[index + 1];
-        x1 = ( index + 1 ) << 8;
-    }
-    else{
-
-        y1 = 65535;
-        x1 = 65535;
-    }
-
-    uint16_t y = util_u16_linear_interp( x, x0, y0, x1, y1 );
-
-    return y;
-
 #ifdef DIMMER_ZERO_REMAP
 static uint16_t remap_dimmer_to_zero_point( uint16_t dimmer ){
     
