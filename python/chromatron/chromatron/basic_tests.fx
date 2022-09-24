@@ -936,6 +936,7 @@ def redundant_assign():
 
 sbuf1 = StringBuf('test_string')
 sbuf2 = StringBuf(32)
+ref = String("meow")
 
 def stringbuf_init():
     assert sbuf1 == 'test_string'
@@ -950,7 +951,14 @@ def stringbuf_assign():
     assert sbuf2 == 'test_string'    
     assert sbuf1 == sbuf2
 
+def stringref():
+    assert ref == 'meow'
 
+    ref = sbuf1
+    assert ref == sbuf1
+    assert ref == 'test_string'
+
+    
 
 def init():
     var_init()
@@ -1028,6 +1036,6 @@ def init():
 
     stringbuf_init()
     stringbuf_assign()
-
+    stringref()
 
     

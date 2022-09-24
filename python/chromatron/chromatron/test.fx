@@ -2,13 +2,16 @@ a = StringBuf(32, publish=True)
 b = StringBuf('test2', publish=True)
 c = StringBuf(32, publish=True)
 
+ref = String("meow")
+
 def init():
     a = 'test3'
     c = a
     a = 'test'
 
+    assert ref == 'meow'
 
-    assert a == 'test'
+    # assert a == 'test'
 
 # # sbuf = StringBuf('meow')
 # s = StringBuf(32)
