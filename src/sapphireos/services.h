@@ -94,6 +94,7 @@ bool services_b_is_server( uint32_t id, uint64_t group );
 sock_addr_t services_a_get( uint32_t id, uint64_t group );
 ip_addr4_t services_a_get_ip( uint32_t id, uint64_t group );
 uint16_t services_u16_get_port( uint32_t id, uint64_t group );
+uint16_t services_u16_get_leader_priority( uint32_t id, uint64_t group );
 
 
 #endif

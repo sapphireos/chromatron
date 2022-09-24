@@ -43,5 +43,6 @@ void usart_v_send_byte( uint8_t channel, uint8_t data );
 void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len );
 int16_t usart_i16_get_byte( uint8_t channel );
 uint8_t usart_u8_bytes_available( uint8_t channel );
+uint8_t usart_u8_get_bytes( uint8_t channel, uint8_t *ptr, uint8_t len );
 
 #endif

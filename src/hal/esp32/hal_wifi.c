@@ -72,6 +72,7 @@ static uint8_t current_scan_backoff;
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
 static uint8_t wifi_power_mode;
+static bool disable_modem_sleep;
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
@@ -106,7 +107,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_hits,                    0,   "wifi_arp_hits" },
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
 
-    { CATBUS_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_power_mode,                  0,  "wifi_power_mode" },
+    { CATBUS_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_power_mode,                  0,   "wifi_power_mode" },
+    { CATBUS_TYPE_BOOL,          0, KV_FLAGS_PERSIST,     &disable_modem_sleep,              0,   "wifi_disable_modem_sleep" },
 };
 
 // this lives in the wifi driver because it is the easiest place to get to hardware specific code
@@ -220,6 +222,8 @@ static void set_hostname( void ){
 
 
 void hal_wifi_v_init( void ){
+
+    log_v_info_P( PSTR("ESP32 SDK version:%s"), esp_get_idf_version() );
 
     // log reset reason for ESP32
     log_v_info_P( PSTR("ESP reset reason: %d"), esp_reset_reason() );
@@ -955,17 +959,27 @@ static bool is_low_power_mode( void ){
         return FALSE;
     }
 
+    if( disable_modem_sleep ){
+
+        return FALSE;
+    }
+
     return TRUE;
+}
 
-    // bool batt_enabled = kv_b_get_boolean( __KV__batt_enable );
+static void apply_power_save_mode( void ){
 
-    // if( batt_enabled ){
+    // set power state
+    if( is_low_power_mode() ){
 
-    //     return TRUE;
-    // }
+        wifi_power_mode = WIFI_PS_MIN_MODEM;
+    }
+    else{
 
+        wifi_power_mode = WIFI_PS_NONE;
+    }
 
-    // return FALSE;
+    esp_wifi_set_ps( wifi_power_mode );
 }
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
@@ -1029,17 +1043,7 @@ station_mode:
 
             esp_wifi_start();
 
-            // set power state
-            if( is_low_power_mode() ){
-
-                wifi_power_mode = WIFI_PS_MIN_MODEM;
-            }
-            else{
-
-                wifi_power_mode = WIFI_PS_NONE;
-            }
-
-            esp_wifi_set_ps( wifi_power_mode );
+            apply_power_save_mode();
             
             // check if we can try a fast connect with the last connected router
             if( wifi_router >= 0 ){
@@ -1343,6 +1347,8 @@ PT_BEGIN( pt );
 
                 wifi_rssi = wifi_info.rssi;
             }
+
+            apply_power_save_mode();
         }
         else{
 

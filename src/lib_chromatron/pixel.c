@@ -116,4 +116,9 @@ uint8_t pixel_u8_bytes_per_pixel( uint8_t mode ){
     return 3; // WS2801 and others
 }
 
+uint8_t pix_u8_get_mode( void ){
+
+    return pix_mode;
+}
+
 #endif

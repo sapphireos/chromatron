@@ -181,6 +181,8 @@ class MsgFlowReceiver(MsgServer):
         if on_disconnect is not None:
             self.on_disconnect = on_disconnect
 
+        logging.info(f'Starting msgflow receiver on port: {port}')
+
         self.services_manager = ServiceManager()
         self.services_manager.offer("msgflow", self.service, self._port)
 
@@ -477,5 +479,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-
 

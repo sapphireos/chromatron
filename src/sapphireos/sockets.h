@@ -61,6 +61,13 @@ typedef int8_t sock_type_t8;
 
 
 
+#define SOCK_STATUS_OK              0
+#define SOCK_STATUS_NO_SOCK         -1
+#define SOCK_STATUS_PORT_BUF_FULL   -2
+#define SOCK_STATUS_MCAST_SELF      -15
+#define SOCK_STATUS_SEND_ONLY       -20
+#define SOCK_STATUS_NO_SEC          -21
+
 
 // options flags
 typedef uint8_t sock_options_t8;
@@ -95,7 +102,7 @@ int8_t sock_i8_recvfrom( socket_t sock );
 int16_t sock_i16_sendto( socket_t sock, void *buf, uint16_t bufsize, sock_addr_t *raddr );
 int16_t sock_i16_sendto_m( socket_t sock, mem_handle_t handle, sock_addr_t *raddr );
 
-void sock_v_recv( netmsg_t netmsg );
+int8_t sock_i8_recv( netmsg_t netmsg );
 
 void sock_v_init( void );
 uint8_t sock_u8_count( void );

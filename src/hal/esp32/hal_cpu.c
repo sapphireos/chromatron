@@ -234,12 +234,12 @@ void cpu_v_sleep( void ){
     // only yield the RTOS task (so auto light sleep can operate)
     // if we are not in safe mode and pixels are not enabled.
 
-    if( gfx_b_pixels_enabled() ){
+    if( gfx_b_pixels_enabled() || ( sys_u8_get_mode() == SYS_MODE_SAFE ) ){
 
-        return;
-    }
-
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+        #ifdef CONFIG_FREERTOS_UNICORE
+        // in single core mode, we must still yield
+        vTaskDelay( 1 / portTICK_PERIOD_MS );
+        #endif
 
         return;
     }
@@ -257,8 +257,15 @@ void cpu_v_sleep( void ){
             sleep_time = MAX_SLEEP_PERIOD;
         }
 
-        vTaskDelay( sleep_time );    
+        vTaskDelay( sleep_time / portTICK_PERIOD_MS );    
     }   
+    else{
+
+        #ifdef CONFIG_FREERTOS_UNICORE
+        // in single core mode, we must still yield
+        vTaskDelay( 1 / portTICK_PERIOD_MS );
+        #endif
+    }
 }
 
 bool cpu_b_osc_fail( void ){

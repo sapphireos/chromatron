@@ -59,6 +59,19 @@ typedef struct{
     sock_addr_t     laddr;
 } netmsg_state_t;
 
+#define NETMSG_N_PORT_MONITORS              64
+
+typedef struct __attribute__((packed)){
+    ip_addr4_t ipaddr;
+    uint16_t rport;
+    uint16_t lport;
+    uint32_t tx_count;
+    uint32_t rx_count;
+    uint32_t dropped;
+    uint8_t timeout;
+} netmsg_port_monitor_t;
+
+
 #if defined(__SIM__) || defined(BOOTLOADER)
     #define ROUTING_TABLE
 #else
@@ -110,5 +123,7 @@ netmsg_flags_t netmsg_u8_get_flags( netmsg_t netmsg );
 void netmsg_v_receive( netmsg_t netmsg );
 
 int8_t netmsg_i8_send( netmsg_t netmsg );
+
+void netmsg_v_tick( void );
 
 #endif

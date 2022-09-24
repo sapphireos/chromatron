@@ -73,22 +73,27 @@ end:
 
 int16_t usart_fifo_i16_extract( volatile usart_fifo_t *fifo ){
 
-	uint8_t temp = fifo->buf[fifo->ext];
+    int16_t byte = -1;
 
-    fifo->ext++;
+    ATOMIC;
 
-    if( fifo->ext >= fifo->len ){
+    if( fifo->count > 0 ){
 
-        fifo->ext = 0;
+    	byte = fifo->buf[fifo->ext];
+
+        fifo->ext++;
+
+        if( fifo->ext >= fifo->len ){
+
+            fifo->ext = 0;
+        }
+
+        fifo->count--;
     }
-
-	ATOMIC;
-
-    fifo->count--;
 
 	END_ATOMIC;
 
-	return temp;
+	return byte;
 }
 
 

@@ -70,6 +70,7 @@ class DatalogDataV3(StructField):
 
         super().__init__(_fields=fields, **kwargs)
 
+
 class DatalogMetaV2(StructField):
     def __init__(self, **kwargs):
         fields = [NTPTimestampField(_name="ntp_base")]
@@ -311,7 +312,6 @@ class DataloggerClient(MsgflowClient):
         v3 = DatalogDataV3(ntp_timestamp=ntp_timestamp, data=catbus_data, key=key, name=name, location=location)
 
         self.send(header.pack() + v3.pack())
-
 
 
 def main():

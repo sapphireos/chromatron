@@ -27,6 +27,7 @@
 #include "user_interface.h"
 #include "flash25.h"
 #include "system.h"
+#include "keyvalue.h"
 
 #ifdef ENABLE_COPROCESSOR
 #include "coprocessor.h"
@@ -34,6 +35,13 @@
 
 extern boot_data_t BOOTDATA boot_data;
 //#define RTC_MEM ((volatile uint32_t*)0x60001200)
+
+static uint8_t esp_reset;
+
+KV_SECTION_META kv_meta_t hal_cpu_kv[] = {
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &esp_reset,                       0,  "esp_reset_reason" }
+};
+
 
 void cpu_v_init( void ){
 
@@ -52,6 +60,10 @@ void cpu_v_init( void ){
     #ifdef ENABLE_COPROCESSOR
     boot_data.boot_mode = coproc_i32_call0( OPCODE_GET_BOOT_MODE );
     #endif
+
+    struct rst_info *info = system_get_rst_info();
+
+    esp_reset = info->reason;
 }
 
 uint8_t cpu_u8_get_reset_source( void ){

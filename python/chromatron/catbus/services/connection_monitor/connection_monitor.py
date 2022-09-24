@@ -25,20 +25,36 @@
 import sys
 import time
 import logging
-from catbus import CatbusService, Client, NoResponseFromHost
+import subprocess
+from catbus import Client, NoResponseFromHost, CATBUS_MAIN_PORT
+from catbus.services.datalogger import DataloggerClient
 from sapphire.common import util, Ribbon, run_all
 
 class ConnectionMonitor(Ribbon):
-    def initialize(self, settings={}):
+    def __init__(self, settings={}):
+        super().__init__()
+
         self.name = 'connection_monitor'
         self.settings = settings
         
-        self.kv = CatbusService(name=self.name, visible=True, tags=[])
-
+        self.datalogger = DataloggerClient()
         self.client = Client()
         self.directory = {}
 
-    def loop(self):
+        self.start()
+
+    def icmp_ping(self, address):
+        try:
+            start = time.time()
+            subprocess.check_output(['ping','-c1', address])
+            elapsed = time.time() - start
+
+            return elapsed
+
+        except subprocess.CalledProcessError:
+            return None
+
+    def _process(self):
         self.directory = self.client.get_directory()
 
         if self.directory == None:
@@ -48,20 +64,65 @@ class ConnectionMonitor(Ribbon):
         logging.info(f"Pinging {len(self.directory)} devices")
 
         for device_id, device in self.directory.items():
-            self.client.connect(device['host'])
+            host = device['host']
 
-            try:
-                elapsed = self.client.ping()
+            if host[1] != CATBUS_MAIN_PORT:
+                continue
 
-                logging.info(f"{device['name']} @ {device['host']}: {elapsed * 1000}")
-            
-            except NoResponseFromHost:
-                logging.warn(f"{device['name']} @ {device['host']}: no response")
+            name = device['name']
+
+            if len(name)== 0:
+                continue
+
+            # location = device['location']
+            location = ''
+
+            icmp_ping = self.icmp_ping(host[0])
+
+            self.client.connect(host)
+            client_ping = self.client.ping()
+
+            # print(host, client_ping, icmp_ping)
+
+            if icmp_ping is None:
+                icmp_ping = -1
+
+            else:
+                icmp_ping = int(icmp_ping * 1000)
+
+            client_ping = int(client_ping * 1000)
+
+            self.datalogger.log(name, location, 'icmp_ping', icmp_ping)
+            self.datalogger.log(name, location, 'client_ping', client_ping)
+
+
+            # N_PINGS = 5
+
+            # times = []
+            # for i in range(N_PINGS):
+            #     try:
+                    
+            #         times.append(self.client.ping())
+
+                    
+            #     except NoResponseFromHost:
+            #         times.append('x')
+
+
+            # time_str = ''
+            # for t in times:
+            #     if isinstance(t, str):
+            #         time_str += f'{t:4}'
+
+            #     else:
+            #         time_str += f' {int(t * 1000):4}'
+
+            # logging.info(f"{str(device['name']):24} @ {str(device['host']):24}: {time_str}")
 
         self.wait(30.0)
 
     def clean_up(self):
-        self.kv.stop()
+        pass
 
 
 def main():

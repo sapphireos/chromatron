@@ -87,21 +87,64 @@ static USART_t* get_channel( uint8_t channel ){
     return 0;
 }
 
-void usart_v_init( uint8_t channel ){
+static volatile uint8_t fifo_ins;
+static volatile uint8_t fifo_ext;
+static volatile uint8_t fifo_count;
+static uint8_t fifo_buf[255];
+
+static int16_t get_byte( uint8_t channel ){
 
     USART_t *usart = get_channel( channel );
 
-    if( channel == USER_USART ){
+    if( ( usart->STATUS & USART_RXCIF_bm ) == 0 ){
 
-        io_v_set_mode( IO_PIN_2_TXD, IO_MODE_OUTPUT );
-        io_v_set_mode( IO_PIN_3_RXD, IO_MODE_INPUT );
+        return -1;
     }
+
+    return usart->DATA;
+}
+
+ISR(USER_USART_RX_VECT){
+
+    uint8_t byte = USER_USART_CH.DATA;
+
+    if( fifo_count >= cnt_of_array(fifo_buf) ){
+
+        // overrun!
+        return;
+    }
+
+    fifo_buf[fifo_ins] = byte;
+    
+    fifo_ins++;
+
+    if( fifo_ins >= cnt_of_array(fifo_buf) ){
+    
+        fifo_ins = 0;
+    }
+
+    fifo_count++;
+}
+
+
+void usart_v_init( uint8_t channel ){
+
+    USART_t *usart = get_channel( channel );
 
     COMPILER_ASSERT( cnt_of_array(bsel_table) == cnt_of_array(bscale_table) );
 
     usart->CTRLA = 0;
     usart->CTRLB = USART_RXEN_bm | USART_TXEN_bm;
     usart->CTRLC = 0x03; // datasheet reset default
+
+    if( channel == USER_USART ){
+
+        io_v_set_mode( IO_PIN_2_TXD, IO_MODE_OUTPUT );
+        io_v_set_mode( IO_PIN_3_RXD, IO_MODE_INPUT );
+
+        // enable RX interrupt
+        USER_USART_CH.CTRLA |= USART_RXCINTLVL_HI_gc;
+    }
 }
 
 void usart_v_set_baud( uint8_t channel, baud_t baud ){
@@ -156,17 +199,52 @@ void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len ){
 
 int16_t usart_i16_get_byte( uint8_t channel ){
 
-    USART_t *usart = get_channel( channel );
+    if( channel == USER_USART ){
 
-    if( ( usart->STATUS & USART_RXCIF_bm ) == 0 ){
+        int16_t temp;
 
-        return -1;
+        ATOMIC;
+
+        if( fifo_count == 0 ){
+
+            temp = -1;
+        }
+        else{
+
+            temp = fifo_buf[fifo_ext];
+
+            fifo_ext++;
+
+            if( fifo_ext >= cnt_of_array(fifo_buf) ){
+
+                fifo_ext = 0;
+            }
+
+            fifo_count--;
+        }
+
+        END_ATOMIC;
+
+        return temp;
     }
 
-    return usart->DATA;
+    return get_byte( channel );
 }
 
 uint8_t usart_u8_bytes_available( uint8_t channel ){
+
+    if( channel == USER_USART ){
+
+        uint8_t count;
+
+        ATOMIC;
+
+        count = fifo_count;
+
+        END_ATOMIC;
+
+        return count;
+    }
 
     USART_t *usart = get_channel( channel );
 
@@ -177,3 +255,26 @@ uint8_t usart_u8_bytes_available( uint8_t channel ){
 
     return 1;
 }
+
+uint8_t usart_u8_get_bytes( uint8_t channel, uint8_t *ptr, uint8_t len ){
+
+    uint8_t available = usart_u8_bytes_available( channel );
+
+    // limit len to amount of bytes actually present
+    if( len > available ){
+
+        len = available;
+    }
+
+    uint8_t count = len;
+
+    while( count > 0 ){
+
+        count--;
+
+        *ptr++ = usart_i16_get_byte( channel );
+    }   
+
+    return len;
+}
+

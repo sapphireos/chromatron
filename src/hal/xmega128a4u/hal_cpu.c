@@ -203,7 +203,7 @@ void cpu_reboot( void ){
     // backup wdt in case the reset doesn't work:
 
     // enable watchdog timer:
-    wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );    
+    wdg_v_enable( 0, 0 );    
 }
 
 ISR(OSC_OSCF_vect){

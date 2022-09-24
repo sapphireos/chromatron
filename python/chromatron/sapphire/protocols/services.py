@@ -198,6 +198,10 @@ class Service(object):
         self._init_server()
 
     @property
+    def origin(self):
+        return self._origin
+
+    @property
     @synchronized
     def key(self):
         return (self._service_id << 64) + self._group
@@ -549,7 +553,7 @@ class ServiceManager(MsgServer):
         assert service.is_server
         assert service.key not in self._services
 
-        logging.info(f"Added OFFER for {hex(service_id)}/{hex(group)}")
+        logging.info(f"Added OFFER for {hex(service_id)}/{hex(group)} port: {port}")
         
         self._services[service.key] = service
 
@@ -628,8 +632,8 @@ class ServiceManager(MsgServer):
 
                 try:
                     # check if host that is shutting down is a server
-                    if svc.origin == origin:
-                        logging.debug(f'{svc} server {svc.host} shutdown')
+                    if svc.origin == msg.header.origin:
+                        logging.debug(f'{svc} server {host} shutdown')
                         svc._reset()
 
                 except ServiceNotConnected:
