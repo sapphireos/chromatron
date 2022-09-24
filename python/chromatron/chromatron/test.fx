@@ -7,6 +7,9 @@ def init():
     c = a
     a = 'test'
 
+
+    assert a == 'test'
+
 # # sbuf = StringBuf('meow')
 # s = StringBuf(32)
 

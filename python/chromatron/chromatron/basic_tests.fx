@@ -885,30 +885,6 @@ def rainbow_loop():
         
         a += 1.0 / pixels.count
 
-
-
-# string = String("hello!")
-# string2 = String(32)
-
-# def load_string():
-#     s = String()
-#     s = string
-
-#     return s
-
-# def load_string2():
-#     s = String()
-#     s = string2
-    
-#     return s
-
-# def load_string_literal():
-#     s = String()
-#     s = "meow"
-    
-#     return s
-
-
 # optimizer tests
 def opt_constant_fold():
 
@@ -935,6 +911,44 @@ def redundant_assign():
     a = b
 
     assert a == 4
+
+
+# string = String("hello!")
+# string2 = String(32)
+
+# def load_string():
+#     s = String()
+#     s = string
+
+#     return s
+
+# def load_string2():
+#     s = String()
+#     s = string2
+    
+#     return s
+
+# def load_string_literal():
+#     s = String()
+#     s = "meow"
+    
+#     return s
+
+sbuf1 = StringBuf('test_string')
+sbuf2 = StringBuf(32)
+
+def stringbuf_init():
+    assert sbuf1 == 'test_string'
+
+def stringbuf_assign():
+    sbuf2 = 'test_string2'
+
+    assert sbuf2 == 'test_string2'    
+    assert sbuf1 != sbuf2
+
+    sbuf2 = 'test_string'
+    assert sbuf2 == 'test_string'    
+    assert sbuf1 == sbuf2
 
 
 
@@ -1011,6 +1025,9 @@ def init():
 
     opt_constant_fold()
     redundant_assign()
+
+    stringbuf_init()
+    stringbuf_assign()
 
 
     
