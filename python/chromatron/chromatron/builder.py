@@ -1011,6 +1011,11 @@ class Builder(object):
         if op == 'eq':
             return self.call('strcmp', [left, right], lineno=lineno)
 
+        elif op == 'neq':
+            result = self.call('strcmp', [left, right], lineno=lineno)
+
+            return self.unary_not(result, lineno=lineno)
+
         else:
             raise SyntaxError(f'Invalid binary operation for strings: {op}', lineno=lineno)
 
