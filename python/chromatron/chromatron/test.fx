@@ -1,17 +1,33 @@
-a = StringBuf(32, publish=True)
-b = StringBuf('test2', publish=True)
-c = StringBuf(32, publish=True)
-
-ref = String("meow")
+a = String(publish=True)
+b = String(publish=True)
+c = String(publish=True)
+d = String("test3", publish=True)
+e = String(publish=True)
 
 def init():
-    a = 'test3'
-    c = a
-    a = 'test'
+    a = "test"
+    # s = String('test2')
+    # b = s
+    # c = a
+    # e = d
 
-    assert ref == 'meow'
+    print(len(a))
 
-    # assert a == 'test'
+
+# a = StringBuf(32, publish=True)
+# b = StringBuf('test2', publish=True)
+# c = StringBuf(32, publish=True)
+
+# ref = String("meow")
+
+# def init():
+#     a = 'test3'
+#     c = a
+#     a = 'test'
+
+#     assert ref == 'meow'
+
+#     # assert a == 'test'
 
 # # sbuf = StringBuf('meow')
 # s = StringBuf(32)

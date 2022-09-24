@@ -49,10 +49,10 @@ class ProgramHeader(StructField):
                   CatbusHash(_name="program_name_hash"),
                   Uint16Field(_name="code_len"),
                   Uint16Field(_name="func_len"),
-                  Uint16Field(_name="padding"),
                   Uint16Field(_name="local_data_len"),
                   Uint16Field(_name="global_data_len"),
                   Uint16Field(_name="constant_len"),
+                  Uint16Field(_name="stringlit_len"),
                   Uint16Field(_name="read_keys_len"),
                   Uint16Field(_name="write_keys_len"),
                   Uint16Field(_name="publish_len"),
@@ -131,6 +131,7 @@ class FXImage(object):
         self.funcs = program.funcs
         self.func_bytecode = func_bytecode
         self.constants = program.constants
+        self.string_pool = program.string_pool
 
         self.stream = None
         self.header = None
@@ -251,8 +252,24 @@ class FXImage(object):
 
         func_table_len = len(function_table) * DATA_LEN
 
-        # set up constant pool and init data
+        # set up constant poo
         constant_len = len(constant_pool) * DATA_LEN
+
+        # setup string literal pool
+        stringlit_len = 0
+        string_pool = bytes()
+
+        # print(self.string_pool)
+
+        for string in self.string_pool:
+            string_pool += string.encode('utf-8')
+            string_pool += bytes([0])
+
+        # print(string_pool)
+
+        stringlit_len = len(string_pool)
+
+        # raise Exception
 
         # set up pixel arrays
         packed_pixel_arrays = bytes()
@@ -339,6 +356,7 @@ class FXImage(object):
                     local_data_len=local_data_len,
                     global_data_len=global_data_len,
                     constant_len=constant_len,
+                    stringlit_len=stringlit_len,
                     pix_obj_len=pix_obj_len,
                     read_keys_len=len(packed_read_keys),
                     write_keys_len=len(packed_write_keys),

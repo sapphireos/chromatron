@@ -139,10 +139,10 @@ typedef struct __attribute__((packed)){
     uint32_t program_name_hash;
     uint16_t code_len;
     uint16_t func_info_len;
-    uint16_t padding;
     uint16_t local_data_len;
     uint16_t global_data_len;
     uint16_t constant_len;
+    uint16_t stringlit_len;     // length in BYTES, not number of objects!
     uint16_t read_keys_len;     // length in BYTES, not number of objects!
     uint16_t write_keys_len;    // length in BYTES, not number of objects!
     uint16_t publish_len;       // length in BYTES, not number of objects!
@@ -155,6 +155,7 @@ typedef struct __attribute__((packed)){
     // variable length data:
     // - init data
     // - constant pool
+    // - string literal pool (placed after constant pool)
     // - read keys
     // - write keys
     // - publish vars
