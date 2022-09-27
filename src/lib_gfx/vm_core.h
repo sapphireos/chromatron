@@ -141,7 +141,7 @@ typedef struct __attribute__((packed)){
     uint16_t func_info_len;
     uint16_t local_data_len;
     uint16_t global_data_len;
-    uint16_t constant_len;
+    uint16_t constant_len;      // length in BYTES, not number of objects!
     uint16_t stringlit_len;     // length in BYTES, not number of objects!
     uint16_t read_keys_len;     // length in BYTES, not number of objects!
     uint16_t write_keys_len;    // length in BYTES, not number of objects!

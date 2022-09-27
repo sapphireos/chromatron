@@ -257,17 +257,28 @@ class FXImage(object):
 
         # setup string literal pool
         stringlit_len = 0
-        string_pool = bytes()
+        # string_pool = bytes()
+        # string_ref_mapping = dict()
 
-        # print(self.string_pool)
+        # string_index = 0
+        # string_pool_addr = 0
+        # for string in self.string_pool:
+        #     str_bytes = string.encode('utf-8') + bytes([0])
 
-        for string in self.string_pool:
-            string_pool += string.encode('utf-8')
-            string_pool += bytes([0])
+        #     # add zero padding to strings to align on 32 bits
+        #     str_padding = 4 - (len(str_bytes) % 4)
 
-        # print(string_pool)
+        #     str_bytes += bytes([0] * str_padding)
 
-        stringlit_len = len(string_pool)
+        #     string_pool += str_bytes
+
+        #     string_ref_mapping[string_index] = string_pool_addr
+
+        #     string_index += 1
+
+        #     string_pool_addr += len(str_bytes)
+
+        #     stringlit_len += len(str_bytes)
 
         # raise Exception
 
@@ -395,6 +406,11 @@ class FXImage(object):
         # ensure alignment is correct
         assert len(stream) % 4 == 0
 
+        # add string pool
+        # stream += string_pool
+
+        # ensure alignment is correct
+        assert len(stream) % 4 == 0
 
         # add code stream
         stream += struct.pack('<L', CODE_MAGIC)
