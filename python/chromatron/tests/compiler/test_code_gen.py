@@ -2063,7 +2063,7 @@ class CompilerTests(object):
                 'b': 0,
                 'c': 0
             })
-
+    
     def test_basic_string(self, opt_passes):
         self.run_test(test_basic_string,
             opt_passes=opt_passes,

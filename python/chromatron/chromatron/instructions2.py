@@ -125,7 +125,7 @@ class insProgram(object):
         addr = 0
         index = 0
         string_pool = bytes()
-        str_pool_mapping = dict()
+        # str_pool_mapping = dict()
 
         for string in strings.values():
             str_bytes = string.init_val.encode('utf-8') + bytes([0])
@@ -137,17 +137,17 @@ class insProgram(object):
 
             string_pool += str_bytes
 
-            str_pool_mapping[index] = addr
+            # str_pool_mapping[index] = addr
 
             addr += len(str_bytes)
             index += 1
 
-        self.string_pool_mapping = str_pool_mapping
+        # self.string_pool_mapping = str_pool_mapping
         self.string_pool = StoragePool('_strings', string_pool)
 
         # fix up string pool reference mappings:
-        for func in funcs.values():
-            func.fixup_refs(str_pool_mapping)
+        # for func in funcs.values():
+            # func.fixup_refs(str_pool_mapping)
 
 
 
@@ -696,7 +696,7 @@ class insFunc(object):
         
         self.locals = StoragePool(f'_local_{self.name}', [0] * self.register_count)
         for l in self.local_vars:
-            self.locals.extend(l.assemble())
+            self.locals.extend([0] * l.length)
 
         # registers and locals are mirrored
         self.registers = self.locals

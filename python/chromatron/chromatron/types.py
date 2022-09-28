@@ -205,6 +205,9 @@ class Var(object):
 
         return self.addr.generate()
 
+    def assemble(self):
+        raise NotImplementedError
+
     # def assemble(self):
     #     return [0]
 
@@ -266,8 +269,8 @@ class varObject(Var):
     # def generate(self):
         # return self
 
-    def assemble(self):
-        return OpcodeObject(self, lineno=self.lineno)
+    # def assemble(self):
+        # return OpcodeObject(self, lineno=self.lineno)
 
 class varPixelArray(varObject):
     def __init__(self, *args, **kwargs):
@@ -278,8 +281,8 @@ class varFunction(varObject):
         super().__init__(*args, data_type='func', **kwargs)
         self.func = func
 
-    def assemble(self):
-        return OpcodeFunc(self, lineno=self.lineno)
+    # def assemble(self):
+        # return OpcodeFunc(self, lineno=self.lineno)
 
 class varRef(varRegister):
     def __init__(self, *args, target=None, data_type='ref', **kwargs):
@@ -408,8 +411,8 @@ class varArray(varComposite):
 
         return self
 
-    def assemble(self):
-        return [0] * self.size
+    # def assemble(self):
+        # return [0] * self.size
 
 class varStruct(varComposite):
     def __init__(self, *args, fields={}, **kwargs):
@@ -584,8 +587,8 @@ class varStringBuf(varComposite):
     def size(self):
         return self.length
 
-    def assemble(self):
-        return [0] * self.size
+    # def assemble(self):
+        # return [0] * self.size
 
 class varStringRef(varRef):
     def __init__(self, *args, **kwargs):

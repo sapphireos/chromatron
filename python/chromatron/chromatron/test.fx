@@ -14,24 +14,55 @@
 #     print(len(a))
 
 
-# a = StringBuf(32, publish=True)
-b = StringBuf('test2', publish=True)
-# c = StringBuf(32, publish=True)
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
 
-# ref = String("meow")
+
+def test():
+    n = Number()
+    a = n
+
+    n += 1
+
+def test2():
+    ary = Number()[3]
+    ary = 0
+
+    b = ary[0]
+    c = ary[1]
+    d = ary[2]
+
+    ary += 1
 
 def init():
-    # a = 'test3'
-    # c = a
-    # a = 'test'
 
-    # assert ref == 'meow'
+    test()
+    test()
+
+    test2()
+    test2()
 
 
-    return len(b)
-    # return len('meow')
+# # a = StringBuf(32, publish=True)
+# b = StringBuf('test2', publish=True)
+# # c = StringBuf(32, publish=True)
 
-    # assert a == 'test'
+# # ref = String("meow")
+
+# def init():
+#     # a = 'test3'
+#     # c = a
+#     # a = 'test'
+
+#     # assert ref == 'meow'
+
+
+#     return len(b)
+#     # return len('meow')
+
+#     # assert a == 'test'
 
 # # sbuf = StringBuf('meow')
 # s = StringBuf(32)

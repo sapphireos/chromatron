@@ -485,7 +485,7 @@ class irProgram(IR):
         str_addr = 0
         for s in [g for g in self.global_symbols.symbols.values() if isinstance(g, varStringLiteral)]:
             s.addr = irAddr(s, str_addr, StorageType.STRING_LITERALS)
-            str_addr += 1
+            str_addr += s.size
 
     def generate(self):
         self.analyze_call_graph()
