@@ -1,24 +1,25 @@
-# a = String(publish=True)
-# b = String(publish=True)
-# c = String(publish=True)
-# d = String("test3", publish=True)
-# e = String(publish=True)
-
-# def init():
-#     a = "test"
-#     # s = String('test2')
-#     # b = s
-#     # c = a
-#     # e = d
-
-#     print(len(a))
-
+# s1 = StringBuf(32)
+# s2 = StringBuf('test2')
+# s3 = String('test')
 
 # a = Number(publish=True)
 # b = Number(publish=True)
 # c = Number(publish=True)
-# d = Number(publish=True)
 
+# def init():
+#     a = len(s1)
+#     b = len(s2)
+#     c = len(s3)
+a = StringBuf(32, publish=True)
+# b = StringBuf('test2', publish=True)
+c = StringBuf(32, publish=True)
+
+def init():
+    a = 'test3'
+    # c = a
+    # a = 'test'
+
+    print(a)
 
 # def test():
 #     n = Number()
@@ -45,23 +46,23 @@
 #     test2()
 
 
-a = StringBuf(32, publish=True)
-b = StringBuf('test2', publish=True)
-c = StringBuf(32, publish=True)
+# a = StringBuf(32, publish=True)
+# b = StringBuf('test2', publish=True)
+# c = StringBuf(32, publish=True)
 
-ref = String("meow")
+# ref = String("meow")
 
-def init():
-    # a = 'test3'
-    # c = a
-    # a = 'test'
+# def init():
+#     # a = 'test3'
+#     # c = a
+#     # a = 'test'
 
-    # assert ref == 'meow'
+#     # assert ref == 'meow'
 
 
-    # return len(b)
-    return len('meow')
-    return len(ref)
+#     # return len(b)
+#     return len('meow')
+#     return len(ref)
 
     # assert a == 'test'
 

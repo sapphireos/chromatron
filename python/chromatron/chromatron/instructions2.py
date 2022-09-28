@@ -113,6 +113,29 @@ class StoragePool(list):
 
         raise CompilerFatal
 
+    def write_string(self, addr, s):
+        # create a null terminated c string
+        c_string = s.encode('utf-8') + bytes([0])
+
+        # # add zero padding to strings to align on 32 bits
+        padding_len = 4 - (len(c_string) % 4)
+
+        c_string += bytes([0] * padding_len)
+
+        # break the byte string into 32 bit words
+        words = []
+
+        while len(c_string) > 0:
+            chunk = c_string[:4]
+            c_string = c_string[4:]
+
+            words.append(struct.pack('BBBB', *chunk))
+
+        for word in words:
+            self[addr] = word
+            addr += 1
+
+
 class insProgram(object):
     def __init__(self, name, funcs={}, global_vars=[], objects=[], strings={}, call_graph={}):
         self.name = name
@@ -860,7 +883,7 @@ class insRef(BaseInstruction):
         return self.pool[self.addr]
     
     def assemble(self):
-        return Reference(self.addr, self.pool).pack()
+        raise CompilerFatal
 
 
 class insNop(BaseInstruction):
@@ -1147,8 +1170,8 @@ class insLoadString(BaseInstruction):
         dest = vm.registers[self.dest.reg]
         src = vm.registers[self.src.reg]
 
-        value = src.pool[src.addr]
-        dest.pool[dest.addr] = value        
+        value = src.pool.load_string(src.addr)
+        dest.pool.write_string(dest.addr, value)
 
     def assemble(self):
         dest_global = self.dest.var.is_global

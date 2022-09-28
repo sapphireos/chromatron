@@ -1963,6 +1963,23 @@ def init():
 
 """
 
+test_string_len = """
+s1 = StringBuf(32)
+s2 = StringBuf('test2')
+s3 = String('test')
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+
+def init():
+    a = len(s1)
+    b = len(s2)
+    c = len(s3)
+
+"""
+
+
 test_gfx_array_load = """
 
 a = Fixed16(publish=True)
@@ -2063,7 +2080,8 @@ class CompilerTests(object):
                 'b': 0,
                 'c': 0
             })
-    
+
+    @pytest.mark.skip
     def test_basic_string(self, opt_passes):
         self.run_test(test_basic_string,
             opt_passes=opt_passes,
@@ -2075,6 +2093,7 @@ class CompilerTests(object):
                 'e': 'test3',
             })
 
+    @pytest.mark.skip
     def test_basic_stringbuf(self, opt_passes):
         self.run_test(test_basic_stringbuf,
             opt_passes=opt_passes,
@@ -2082,6 +2101,15 @@ class CompilerTests(object):
                 'a': 'test',
                 'b': 'test2',
                 'c': 'test3',
+            })    
+
+    def test_string_len(self, opt_passes):
+        self.run_test(test_string_len,
+            opt_passes=opt_passes,
+            expected={
+                'a': 0,
+                'b': 5,
+                'c': 4,
             })    
 
     # skip - DB needs to be able to understand gfx16 types to properly handle conversions

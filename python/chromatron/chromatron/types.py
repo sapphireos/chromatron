@@ -506,31 +506,6 @@ class varStringLiteral(varStringBuf):
 
         return words
 
-    # @property
-    # def init_val(self):
-    #     return super().init_val
-
-    # @init_val.setter
-    # def init_val(self, value):
-    #     if value is None:
-    #         self._init_val = None
-
-    #         return
-
-    #     # ensure string literal ends with at least one null byte.
-    #     # since we will eventually be processing strings in a C library, we want
-    #     # to ensure we have null termination.
-    #     if not value.endswith('\0'):
-    #         value += '\0'
-
-    #     # pad to 32 bits:
-    #     self.padding = 4 - len(value) % 4
-    #     if self.padding == 4:
-    #         self.padding = 0
-
-    #     self._init_val = value + '\0' * self.padding
-
-
 
 _BASE_TYPES = {
     'var': varScalar(), 
