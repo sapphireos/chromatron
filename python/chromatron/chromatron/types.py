@@ -205,12 +205,6 @@ class Var(object):
 
         return self.addr.generate()
 
-    def assemble(self):
-        raise NotImplementedError
-
-    # def assemble(self):
-    #     return [0]
-
 class varRegister(Var):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -250,10 +244,8 @@ class varOffset(varRegister):
         super().__init__(*args, data_type='offset', **kwargs)
         self.offset = offset
         self.target = None
-        # self.lookups = []
-
+        
     def __str__(self):
-        # return f'{super().__str__()} -> {self.offset}'
         return f'{super().__str__()}'
 
 class varComposite(Var):
@@ -266,12 +258,6 @@ class varObject(Var):
 
         self.is_allocatable = False
 
-    # def generate(self):
-        # return self
-
-    # def assemble(self):
-        # return OpcodeObject(self, lineno=self.lineno)
-
 class varPixelArray(varObject):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -280,9 +266,6 @@ class varFunction(varObject):
     def __init__(self, *args, func=None, **kwargs):
         super().__init__(*args, data_type='func', **kwargs)
         self.func = func
-
-    # def assemble(self):
-        # return OpcodeFunc(self, lineno=self.lineno)
 
 class varRef(varRegister):
     def __init__(self, *args, target=None, data_type='ref', **kwargs):
@@ -411,9 +394,6 @@ class varArray(varComposite):
 
         return self
 
-    # def assemble(self):
-        # return [0] * self.size
-
 class varStruct(varComposite):
     def __init__(self, *args, fields={}, **kwargs):
         super().__init__(*args, **kwargs)
@@ -460,101 +440,6 @@ class varStruct(varComposite):
 
         return 0, self
 
-# class varString(varComposite):
-#     def __init__(self, *args, data_type='str', **kwargs):
-#         super().__init__(*args, data_type=data_type, **kwargs)
-
-#         self._init_val = None
-#         self._buffer_length = 0
-#         self.padding = None
-
-#     @property
-#     def init_val(self):
-#         return self._init_val
-
-#     @init_val.setter
-#     def init_val(self, value):
-#         if value is None:
-#             self._init_val = None
-
-#         elif isinstance(value, VarContainer) and value.data_type == 'strlit':
-#             # value = value.init_val
-#             self._init_val = value.var
-
-#             # return
-
-#         elif isinstance(value, varString):
-#             self._init_val = value
-
-#             # return
-
-#         else:
-#             raise CompilerFatal
-
-#     def __str__(self):
-#         init_val = self.init_val
-
-#         if isinstance(init_val, varStringLiteral):
-#             init_val = init_val.init_val
-
-
-#         if init_val is None:
-#             s_val = f'<{self._buffer_length} chars>'
-
-#         elif init_val[0] == '\0':
-#             s_val = f'<{len(init_val)} chars>'
-
-#         else:
-#             s_val = init_val
-
-#         if self.addr is None:
-#             return f'{self.ssa_name}("{s_val}")'
-
-#         else:
-#             return f'{self.ssa_name}("{s_val}")@0x{self.addr}'
-
-#     @property
-#     def strlen(self):
-#         if self.init_val is None:
-#             return self._buffer_length
-
-#         if isinstance(self.init_val, varStringLiteral):
-#             return self.init_val.strlen
-
-#         return len(self.init_val)
-
-#     @property
-#     def size(self):
-#         return int(((self.strlen - 1) / 4) + 2) # space for characters + 32 bit length
-
-#     @property
-#     def length(self):
-#         return self.size
-
-#     @length.setter
-#     def length(self, value):
-#         if self.init_val is not None:
-#             raise CompilerFatal
-
-#         self._buffer_length = value
-
-#     # def assemble(self):
-#     #     return [0] * self.size
-
-#     def assemble(self):
-#         a = [self.strlen]
-
-#         i = 0
-#         while i < self.strlen:
-#             s = self.init_val[i:i + 4].encode()
-                
-#             v = struct.pack('4s', s)
-#             a.append(v)
-
-#             i += 4
-
-#         return a
-
 class varStringBuf(varComposite):
     def __init__(self, *args, strlen=1, data_type='strbuf', **kwargs):
         super().__init__(*args, data_type=data_type, **kwargs)
@@ -587,9 +472,6 @@ class varStringBuf(varComposite):
     def size(self):
         return self.length
 
-    # def assemble(self):
-        # return [0] * self.size
-
 class varStringRef(varRef):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='strref', **kwargs)
@@ -603,6 +485,26 @@ class varStringRef(varRef):
 class varStringLiteral(varStringBuf):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, data_type='strlit', **kwargs)    
+
+    def assemble(self):
+        # create a null terminated c string
+        c_string = self.init_val.encode('utf-8') + bytes([0])
+
+        # # add zero padding to strings to align on 32 bits
+        padding_len = 4 - (len(c_string) % 4)
+
+        c_string += bytes([0] * padding_len)
+
+        # break the byte string into 32 bit words
+        words = []
+
+        while len(c_string) > 0:
+            chunk = c_string[:4]
+            c_string = c_string[4:]
+
+            words.append(struct.pack('BBBB', *chunk))
+
+        return words
 
     # @property
     # def init_val(self):

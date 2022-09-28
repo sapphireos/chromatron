@@ -96,17 +96,22 @@ class StoragePool(list):
 
     def load_string(self, addr):
         chars = []
-        c = None
 
-        while c != 0:
-            c = self[addr]
+        while True:
+            chunk = self[addr]
 
-            if c != 0:
+            # unpack chunk to characters:
+            chunk_chars = struct.unpack('BBBB', chunk)
+
+            for c in chunk_chars:
+                if c == 0:
+                    return ''.join([chr(c) for c in chars])
+
                 chars.append(c)
 
             addr += 1
 
-        return ''.join([chr(c) for c in chars])
+        raise CompilerFatal
 
 class insProgram(object):
     def __init__(self, name, funcs={}, global_vars=[], objects=[], strings={}, call_graph={}):
@@ -122,34 +127,15 @@ class insProgram(object):
         self.global_memory = StoragePool('_global', [0] * self.global_memory_size)
 
         # create the string pool
-        addr = 0
-        index = 0
-        string_pool = bytes()
-        # str_pool_mapping = dict()
+        string_pool = list()
 
         for string in strings.values():
-            str_bytes = string.init_val.encode('utf-8') + bytes([0])
 
-            # add zero padding to strings to align on 32 bits
-            str_padding = 4 - (len(str_bytes) % 4)
+            assembled_string = string.assemble()
 
-            str_bytes += bytes([0] * str_padding)
+            string_pool.extend(assembled_string)
 
-            string_pool += str_bytes
-
-            # str_pool_mapping[index] = addr
-
-            addr += len(str_bytes)
-            index += 1
-
-        # self.string_pool_mapping = str_pool_mapping
         self.string_pool = StoragePool('_strings', string_pool)
-
-        # fix up string pool reference mappings:
-        # for func in funcs.values():
-            # func.fixup_refs(str_pool_mapping)
-
-
 
         for func in funcs.values():
             func.program = self
@@ -570,10 +556,6 @@ class insFunc(object):
     def pixel_arrays(self):
         return self.program.pixel_arrays
 
-    def fixup_refs(self, string_pool_mapping):
-        for ins in self.code:
-            ins.fixup_refs(string_pool_mapping)
-
     def get_pool(self, pool_type: StorageType) -> StoragePool:
         if pool_type == StorageType.LOCAL:
             return self.locals
@@ -816,9 +798,6 @@ class BaseInstruction(object):
     def len(self):
         return len(self.assemble())
 
-    def fixup_refs(self, string_pool_mapping):
-        pass
-
 # pseudo instruction - does not actually produce an opcode
 class insReg(BaseInstruction):
     mnemonic = '_REG'
@@ -1035,11 +1014,6 @@ class insLoadRef(BaseInstruction):
 
     def __str__(self):
         return "%s %s <-R %s" % (self.mnemonic, self.dest, self.src)
-
-    def fixup_refs(self, string_pool_mapping):
-        # adjust string pool addresses
-        if self.src.storage == StorageType.STRING_LITERALS:
-            self.src.addr = string_pool_mapping[self.src.addr]
 
     def execute(self, vm):
         pool = vm.get_pool(self.src.storage)
