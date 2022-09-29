@@ -58,6 +58,12 @@ PT_BEGIN( pt );
             THREAD_EXIT( pt );
         }
     }
+    else{
+
+        // msgflow already initialized
+        THREAD_EXIT( pt );
+
+    }
     
     THREAD_WAIT_WHILE( pt, !msgflow_b_connected( msgflow ) );
 
