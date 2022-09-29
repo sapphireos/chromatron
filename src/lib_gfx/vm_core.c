@@ -5508,8 +5508,13 @@ int8_t vm_i8_load_program(
 
     state->pool_start           = obj_start;
     state->pool_len             = header.constant_len;
+    obj_start += header.constant_len;
 
-    state->code_start           = state->pool_start + state->pool_len;
+    state->string_start         = obj_start;
+    state->string_len           = header.stringlit_len;
+    obj_start += header.stringlit_len;
+
+    state->code_start           = obj_start;
 
     state->local_data_start     = state->code_start + header.code_len;
     state->local_data_len       = header.local_data_len;
