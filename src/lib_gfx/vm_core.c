@@ -1012,6 +1012,8 @@ static int8_t _vm_i8_run_stream(
     reference_t src_ref;
 
     void *ptr_void;
+    char *src_s;
+    char *dest_s;
     uint16_t len;
 
     int32_t *ptr_i32;
@@ -1340,9 +1342,20 @@ opcode_ldstr:
 
     trace_printf("src pool: %d src addr: %d dest pool: %d dest addr: %d\r\n", src_ref.ref.pool, src_ref.ref.addr, dest_ref.ref.pool, dest_ref.ref.addr);
 
+    dest_s = (char *)( pools[dest_ref.ref.pool] + dest_ref.ref.addr );
+    src_s = (char *)( pools[src_ref.ref.pool] + src_ref.ref.addr );
 
-    // registers[opcode_2ac->dest] = *( pools[ref.ref.pool] + ref.ref.addr );
+    // zero out dest buffer
+    // note that we can add 1 to the dest len to account for the null terminator.
+    // the compiler will ensure we have enough space for this.
+    memset( dest_s, 0, dest_str_len + 1 );
 
+    while( ( *src_s != 0 ) && ( dest_str_len > 0 ) ){
+
+        dest_str_len--;
+
+        *dest_s++ = *src_s++;
+    }
 
     DISPATCH;
 
