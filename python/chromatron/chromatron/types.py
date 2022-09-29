@@ -3,7 +3,7 @@ import struct
 from copy import deepcopy
 
 from .exceptions import *
-from .instructions2 import insReg, insAddr
+from .instructions2 import insReg, insAddr, string_to_words
 from .opcode import OpcodeObject, OpcodeFunc, OpcodeString
 
 class VarContainer(object):
@@ -466,11 +466,11 @@ class varStringBuf(varComposite):
 
     @property
     def length(self):
-        slen = self.strlen + 1 # include extra byte for 0 terminator
+        s = 'a' * self.strlen
 
-        word_length = int(slen / 4) + 1
+        words = string_to_words(s)
 
-        return word_length
+        return len(words)
 
     @property
     def size(self):
@@ -491,22 +491,7 @@ class varStringLiteral(varStringBuf):
         super().__init__(*args, data_type='strlit', **kwargs)    
 
     def assemble(self):
-        # create a null terminated c string
-        c_string = self.init_val.encode('utf-8') + bytes([0])
-
-        # # add zero padding to strings to align on 32 bits
-        padding_len = (4 - (len(c_string) % 4)) % 4
-
-        c_string += bytes([0] * padding_len)
-
-        # break the byte string into 32 bit words
-        words = []
-
-        while len(c_string) > 0:
-            chunk = c_string[:4]
-            c_string = c_string[4:]
-
-            words.append(struct.pack('BBBB', *chunk))
+        words = string_to_words(self.init_val)
 
         if len(words) != self.size:
             raise CompilerFatal

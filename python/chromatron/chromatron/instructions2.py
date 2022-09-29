@@ -81,6 +81,45 @@ def convert_to_f16(value):
 def convert_to_i32(value):
     return int(value / 65536.0)
 
+def string_to_words(s):
+    # create a null terminated c string
+    c_string = s.encode('utf-8') + bytes([0])
+
+    # # add zero padding to strings to align on 32 bits
+    padding_len = (4 - (len(c_string) % 4)) % 4
+
+    c_string += bytes([0] * padding_len)
+
+    # break the byte string into 32 bit words
+    words = []
+
+    while len(c_string) > 0:
+        chunk = c_string[:4]
+        c_string = c_string[4:]
+
+        words.append(struct.pack('BBBB', *chunk))
+
+    return words
+
+def words_to_string(words):
+    chars = []
+
+    # check for empty:
+    if words[0] == 0:
+        return ''
+
+    for word in words:
+        # unpack word to characters:
+        chunk = struct.unpack('BBBB', word)
+
+        for c in chunk:
+            if c == 0:
+                return ''.join([chr(c) for c in chars])
+
+            chars.append(c)
+
+    raise CompilerFatal
+
 class StorageType(Enum):
     GLOBAL          = 0
     PIXEL_ARRAY     = 1
@@ -105,45 +144,10 @@ class StoragePool(list):
         return b
 
     def load_string(self, addr):
-        chars = []
-
-        while True:
-            chunk = self[addr]
-
-            # check if string is empty:
-            if chunk == 0:
-                return ''
-
-            # unpack chunk to characters:
-            chunk_chars = struct.unpack('BBBB', chunk)
-
-            for c in chunk_chars:
-                if c == 0:
-                    return ''.join([chr(c) for c in chars])
-
-                chars.append(c)
-
-            addr += 1
-
-        raise CompilerFatal
+        return words_to_string(self[addr:])
 
     def write_string(self, addr, s):
-        # create a null terminated c string
-        c_string = s.encode('utf-8') + bytes([0])
-
-        # # add zero padding to strings to align on 32 bits
-        padding_len = (4 - (len(c_string) % 4)) % 4
-
-        c_string += bytes([0] * padding_len)
-
-        # break the byte string into 32 bit words
-        words = []
-
-        while len(c_string) > 0:
-            chunk = c_string[:4]
-            c_string = c_string[4:]
-
-            words.append(struct.pack('BBBB', *chunk))
+        words = string_to_words(s)
 
         for word in words:
             self[addr] = word

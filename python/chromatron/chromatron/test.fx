@@ -3,8 +3,8 @@
 # c = String(publish=True)
 # d = String("test3", publish=True)
 # e = String(publish=True)
-sbuf1 = StringBuf('test_string')
-# sbuf2 = StringBuf(32)
+# sbuf1 = StringBuf('test_string')
+sbuf2 = StringBuf(4)
 # ref = String("meow")
 
 def init():
