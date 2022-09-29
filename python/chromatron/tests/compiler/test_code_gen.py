@@ -2081,7 +2081,6 @@ class CompilerTests(object):
                 'c': 0
             })
 
-    # @pytest.mark.skip
     def test_basic_string(self, opt_passes):
         self.run_test(test_basic_string,
             opt_passes=opt_passes,
@@ -2093,7 +2092,6 @@ class CompilerTests(object):
                 'e': 'test3',
             })
 
-    # @pytest.mark.skip
     def test_basic_stringbuf(self, opt_passes):
         self.run_test(test_basic_stringbuf,
             opt_passes=opt_passes,
@@ -2102,7 +2100,7 @@ class CompilerTests(object):
                 'b': 'test2',
                 'c': 'test3',
             })    
-    @pytest.mark.skip
+
     def test_string_len(self, opt_passes):
         self.run_test(test_string_len,
             opt_passes=opt_passes,
@@ -2428,42 +2426,53 @@ class CompilerTests(object):
                 'n': 123
             })
 
-    @pytest.mark.skip
-    def test_complex_record_assign3(self, opt_passes):
-        self.run_test(test_complex_record_assign3,
-            opt_passes=opt_passes,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 3,
-                'd': 4,
-            })
+    
+    # @pytest.mark.skip
+    # def test_base_record_assign(self, opt_passes):
+    #     self.run_test(test_base_record_assign,
+    #         opt_passes=opt_passes,
+    #         expected={
+    #             'a': 1,
+    #             'b': 2,
+    #             'c': 3,
+    #         })
 
-    @pytest.mark.skip
-    def test_complex_record_assign2(self, opt_passes):
-        self.run_test(test_complex_record_assign2,
-            opt_passes=opt_passes,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 3,
-                'd': 3,
-                'e': 3,
-                'f': 3,
-            })
+    # @pytest.mark.skip
+    # def test_complex_record_assign3(self, opt_passes):
+    #     self.run_test(test_complex_record_assign3,
+    #         opt_passes=opt_passes,
+    #         expected={
+    #             'a': 1,
+    #             'b': 2,
+    #             'c': 3,
+    #             'd': 4,
+    #         })
 
-    @pytest.mark.skip
-    def test_complex_record_assign(self, opt_passes):
-        self.run_test(test_complex_record_assign,
-            opt_passes=opt_passes,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 0,
-                'd': 0,
-                'e': 3,
-                'f': 0,
-            })
+    # @pytest.mark.skip
+    # def test_complex_record_assign2(self, opt_passes):
+    #     self.run_test(test_complex_record_assign2,
+    #         opt_passes=opt_passes,
+    #         expected={
+    #             'a': 1,
+    #             'b': 2,
+    #             'c': 3,
+    #             'd': 3,
+    #             'e': 3,
+    #             'f': 3,
+    #         })
+
+    # @pytest.mark.skip
+    # def test_complex_record_assign(self, opt_passes):
+    #     self.run_test(test_complex_record_assign,
+    #         opt_passes=opt_passes,
+    #         expected={
+    #             'a': 1,
+    #             'b': 2,
+    #             'c': 0,
+    #             'd': 0,
+    #             'e': 3,
+    #             'f': 0,
+    #         })
 
     def test_array_index_3d_aug(self, opt_passes):
         self.run_test(test_array_index_3d_aug,
@@ -2493,16 +2502,6 @@ class CompilerTests(object):
                 'g': 7,
                 'h': 8,
                 'i': 6,
-            })
-
-    @pytest.mark.skip
-    def test_base_record_assign(self, opt_passes):
-        self.run_test(test_base_record_assign,
-            opt_passes=opt_passes,
-            expected={
-                'a': 1,
-                'b': 2,
-                'c': 3,
             })
 
     def test_array_index_expr(self, opt_passes):

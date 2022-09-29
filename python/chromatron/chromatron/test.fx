@@ -1,16 +1,15 @@
-a = String(publish=True)
-b = String(publish=True)
-c = String(publish=True)
-d = String("test3", publish=True)
-e = String(publish=True)
+s1 = StringBuf(32)
+s2 = StringBuf('test2')
+s3 = String('test')
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
 
 def init():
-    a = "test"
-    s = String('test2')
-    b = s
-    c = a
-    e = d
-
+    a = len(s1)
+    b = len(s2)
+    c = len(s3)
 
 # def test():
 #     n = Number()

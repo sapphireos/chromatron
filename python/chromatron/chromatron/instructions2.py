@@ -102,7 +102,7 @@ class StoragePool(list):
 
             # check if string is empty:
             if chunk == 0:
-                return '\0'
+                return ''
 
             # unpack chunk to characters:
             chunk_chars = struct.unpack('BBBB', chunk)
