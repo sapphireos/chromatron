@@ -1192,7 +1192,7 @@ class insLoadString(BaseInstruction):
         assert src.var.var.data_type == 'strref'
         assert dest.var.var.data_type in ['strref', 'ref']
 
-        assert self.src is not None
+        self.dest_string_size = dest.var.var.target.strlen
 
     def __str__(self):
         return "%s %s <-S %s" % (self.mnemonic, self.dest, self.src)
@@ -1202,12 +1202,14 @@ class insLoadString(BaseInstruction):
         src = vm.registers[self.src.reg]
 
         value = src.pool.load_string(src.addr)
+
+        # truncate length
+        value = value[:self.dest_string_size]
+
         dest.pool.write_string(dest.addr, value)
 
     def assemble(self):
-        flags = 0
-
-        return OpcodeFormat3AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), flags, lineno=self.lineno)
+        return OpcodeFormat3AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), self.dest_string_size, lineno=self.lineno)
 
 class insLoadDB(BaseInstruction):
     mnemonic = 'LDDB'

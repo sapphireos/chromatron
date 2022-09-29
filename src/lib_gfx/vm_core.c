@@ -1006,6 +1006,7 @@ static int8_t _vm_i8_run_stream(
     uint16_t count;
     uint16_t stride;
     int32_t params[8];
+    int32_t dest_str_len;
     reference_t ref;
     reference_t dest_ref;
     reference_t src_ref;
@@ -1335,6 +1336,7 @@ opcode_ldstr:
     
     dest_ref.n = registers[opcode_3ac->dest];
     src_ref.n = registers[opcode_3ac->op1];
+    dest_str_len = registers[opcode_3ac->op2];
 
     trace_printf("src pool: %d src addr: %d dest pool: %d dest addr: %d\r\n", src_ref.ref.pool, src_ref.ref.addr, dest_ref.ref.pool, dest_ref.ref.addr);
 
