@@ -5636,6 +5636,7 @@ int8_t vm_i8_load_program(
         status = VM_STATUS_ERR_BAD_FILE_READ;
         goto error;
     }
+    obj_ptr += read_len;
 
     // load string pool from file
     read_len = fs_i16_read( f, obj_ptr, header.stringlit_len );
@@ -5645,6 +5646,7 @@ int8_t vm_i8_load_program(
         status = VM_STATUS_ERR_BAD_FILE_READ;
         goto error;
     }
+    obj_ptr += read_len;
 
     // ******************
     // load code:
