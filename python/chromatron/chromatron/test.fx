@@ -12,11 +12,15 @@
 #     # c = len(s3)
 #     pass
 
-sbuf1 = StringBuf('test_string')
+# sbuf1 = StringBuf('test_string')
 # ref = String('meow')
 
+s = StringBuf(4)
+
 def init():
-    return len(sbuf1)
+    # return len(sbuf1)
+
+    s = 'test_string'
 
     # return len('meow')
     # return len(ref)

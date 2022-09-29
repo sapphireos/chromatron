@@ -158,7 +158,7 @@ class insProgram(object):
 
         # initialize memory
         self.global_memory_size = 0
-        for v in self.globals:
+        for v in [g for g in self.globals if g.addr.storage == StorageType.GLOBAL]:
             self.global_memory_size += v.size 
 
         self.global_memory = StoragePool('_global', [0] * self.global_memory_size)

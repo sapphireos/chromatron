@@ -1336,7 +1336,10 @@ opcode_ldstr:
     dest_ref.n = registers[opcode_3ac->dest];
     src_ref.n = registers[opcode_3ac->op1];
 
-    trace_printf("0x%0x -> 0x%0x\r\n", src_ref.n, dest_ref.n);
+    trace_printf("src pool: %d src addr: %d dest pool: %d dest addr: %d\r\n", src_ref.ref.pool, src_ref.ref.addr, dest_ref.ref.pool, dest_ref.ref.addr);
+
+
+    // registers[opcode_2ac->dest] = *( pools[ref.ref.pool] + ref.ref.addr );
 
 
     DISPATCH;
