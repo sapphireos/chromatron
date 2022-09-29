@@ -5441,6 +5441,7 @@ int8_t vm_i8_load_program(
                        header.global_data_len + 
                        header.local_data_len + 
                        header.constant_len +
+                       header.stringlit_len +
                        header.read_keys_len + 
                        header.write_keys_len +
                        header.publish_len + 
@@ -5619,10 +5620,19 @@ int8_t vm_i8_load_program(
         goto error;
     }
 
-    // load data from file
+    // load constant pool from file
     read_len = fs_i16_read( f, obj_ptr, header.constant_len );
 
     if( read_len != header.constant_len ){
+
+        status = VM_STATUS_ERR_BAD_FILE_READ;
+        goto error;
+    }
+
+    // load string pool from file
+    read_len = fs_i16_read( f, obj_ptr, header.stringlit_len );
+
+    if( read_len != header.stringlit_len ){
 
         status = VM_STATUS_ERR_BAD_FILE_READ;
         goto error;
