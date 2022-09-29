@@ -453,8 +453,11 @@ class insProgram(object):
 
                 d[g.name] = value
 
-            elif g.data_type in ['strbuf', 'strlit']:
+            elif g.data_type == 'strbuf':
                 d[g.name] = self.global_memory.load_string(g.addr.addr)
+
+            elif g.data_type == 'strlit':
+                d[g.name] = self.string_pool.load_string(g.addr.addr)
 
             else:
                 d[g.name] = []
@@ -713,6 +716,7 @@ class insFunc(object):
         # just makes debugging a bit easier:
         registers = self.registers 
         global_memory = self.program.global_memory
+        string_pool = self.program.string_pool
         local = self.locals
 
         if self in self.return_stack:
