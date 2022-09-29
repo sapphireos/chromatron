@@ -1338,9 +1338,9 @@ opcode_ldstr:
     
     dest_ref.n = registers[opcode_3ac->dest];
     src_ref.n = registers[opcode_3ac->op1];
-    dest_str_len = registers[opcode_3ac->op2];
+    dest_str_len = opcode_3ac->op2;
 
-    trace_printf("src pool: %d src addr: %d dest pool: %d dest addr: %d\r\n", src_ref.ref.pool, src_ref.ref.addr, dest_ref.ref.pool, dest_ref.ref.addr);
+    // trace_printf("src pool: %d src addr: %d dest pool: %d dest addr: %d\r\n", src_ref.ref.pool, src_ref.ref.addr, dest_ref.ref.pool, dest_ref.ref.addr);
 
     dest_s = (char *)( pools[dest_ref.ref.pool] + dest_ref.ref.addr );
     src_s = (char *)( pools[src_ref.ref.pool] + src_ref.ref.addr );
@@ -5048,24 +5048,9 @@ int8_t vm_i8_run(
         int32_t *ptr = &global_data[publish->addr];
         uint32_t len = sizeof(global_data[publish->addr]);
 
-        // check if string
-        // TODO
-        // hack to deal with poor string handling between compiler, VM, and DB
-        if( ( publish->type == CATBUS_TYPE_STRING512 ) ||
-            ( publish->type == CATBUS_TYPE_STRING64 ) ){
+        if( type_b_is_string( publish->type ) ){
 
-            publish->type = CATBUS_TYPE_STRING64;
-
-            ptr = &global_data[*ptr]; // dereference string
-            len = ( *ptr & 0xffff0000 ) >> 16; // second half of first word of string is length
-            ptr++;
-            len++; // add null terminator
-
-            len = 64;
-            char buf[64];
-            memset( buf, 0, sizeof(buf) );
-            strncpy( buf, (char *)ptr, sizeof(buf) );
-            ptr = (int32_t *)buf;
+            len = strnlen( (char *)ptr, type_u16_size( publish->type ) );
         }
         
         kvdb_i8_set( publish->hash, publish->type, ptr, len );
@@ -5767,21 +5752,22 @@ int8_t vm_i8_load_program(
     state->loop_tick = 10; // start loop tick with a slight delay
 
 
+    // removed: we don't init vars on load, it happens in the VM when the init function runs.
     // init database entries for published var default values
-    vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
+    // vm_publish_t *publish = (vm_publish_t *)&stream[state->publish_start];
 
-    uint32_t count = state->publish_count;
+    // uint32_t count = state->publish_count;
 
-    while( count > 0 ){
+    // while( count > 0 ){
 
-        if( !type_b_is_string( publish->type ) ){
+    //     if( !type_b_is_string( publish->type ) ){
 
-            kvdb_i8_set( publish->hash, publish->type, &global_data_ptr[publish->addr], sizeof(global_data_ptr[publish->addr]) );
-        }
+    //         kvdb_i8_set( publish->hash, publish->type, &global_data_ptr[publish->addr], sizeof(global_data_ptr[publish->addr]) );
+    //     }
 
-        publish++;
-        count--;
-    }
+    //     publish++;
+    //     count--;
+    // }
 
     fs_f_close( f );
 

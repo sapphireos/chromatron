@@ -1,8 +1,13 @@
+a = StringBuf(32, publish=True)
+# b = StringBuf('test2', publish=True)
+# c = StringBuf(32, publish=True)
 
-s = StringBuf(12)
+# d = Number(18, publish=True)
 
 def init():
-    s = 'test_string'
+    a = 'test3'
+    # c = a
+    # a = 'test'
 
 
 # def test():
