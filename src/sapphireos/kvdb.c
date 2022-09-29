@@ -410,10 +410,19 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
 
         type = entry->type;
     }
+    uint16_t type_size = type_u16_size( type );
+    uint16_t data_len = type_size * ( (uint16_t)entry->count + 1 );
 
-    uint16_t data_len = type_u16_size( type ) * ( (uint16_t)entry->count + 1 );
+    if( type_b_is_string( type ) ){
 
-    if( len != data_len ){
+        // string types must be truncated to destination length
+        if( len > type_size ){
+
+            len = type_size;
+        }
+    }
+    // scalar types must have a matching data length
+    else if( len != data_len ){
 
         return KVDB_STATUS_LENGTH_MISMATCH;
     }
@@ -432,8 +441,8 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
             changed = TRUE;
         }
 
-        data = (uint8_t *)data + type_u16_size( type );
-        data_ptr = (uint8_t *)data_ptr + type_u16_size( entry->type );
+        data = (uint8_t *)data + type_size;
+        data_ptr = (uint8_t *)data_ptr + type_size;
 
         count--;
     }

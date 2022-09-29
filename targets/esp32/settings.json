@@ -69,7 +69,7 @@
         "-I%(BASE_DIR)/src/hal/esp32/esp-idf/components/esp_adc_cal/include",
         "-I%(BASE_DIR)/src/hal/esp32/esp-idf/components/esp_system/include",
         "-mlongcalls",
-        "-Og",
+        "-Os",
         "-g3",
         "-ffunction-sections",
         "-fdata-sections",

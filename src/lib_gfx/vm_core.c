@@ -5053,7 +5053,12 @@ int8_t vm_i8_run(
             len = strnlen( (char *)ptr, type_u16_size( publish->type ) );
         }
         
-        kvdb_i8_set( publish->hash, publish->type, ptr, len );
+        int8_t kv_status = kvdb_i8_set( publish->hash, publish->type, ptr, len );
+
+        if( kv_status != KVDB_STATUS_OK ){
+
+            log_v_error_P( PSTR("Publish var DB fail: %d"), kv_status );
+        }
 
         publish++;
         count--;
