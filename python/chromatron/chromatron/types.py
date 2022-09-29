@@ -466,7 +466,11 @@ class varStringBuf(varComposite):
 
     @property
     def length(self):
-        return int(self.strlen / 4) + 1
+        slen = self.strlen + 1 # include extra byte for 0 terminator
+
+        word_length = int(slen / 4) + 1
+
+        return word_length
 
     @property
     def size(self):

@@ -15,12 +15,13 @@
 # sbuf1 = StringBuf('test_string')
 # ref = String('meow')
 
-s = StringBuf(4)
+s = StringBuf(3)
 
 def init():
     # return len(sbuf1)
 
-    s = 'test_string'
+    # s = 'test_string'
+    s = 'test'
 
     # return len('meow')
     # return len(ref)
