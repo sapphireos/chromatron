@@ -17,9 +17,9 @@ c = StringBuf(32, publish=True)
 def init():
     a = 'test3'
     # c = a
-    # a = 'test'
+    a = 'test'
 
-    print(a)
+    # print(a)
 
 # def test():
 #     n = Number()

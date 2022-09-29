@@ -100,6 +100,10 @@ class StoragePool(list):
         while True:
             chunk = self[addr]
 
+            # check if string is empty:
+            if chunk == 0:
+                return '\0'
+
             # unpack chunk to characters:
             chunk_chars = struct.unpack('BBBB', chunk)
 
@@ -449,8 +453,8 @@ class insProgram(object):
 
                 d[g.name] = value
 
-            elif g.data_type == 'strbuf':
-                d[g.name] = self.global_memory[g.addr.addr]
+            elif g.data_type in ['strbuf', 'strlit']:
+                d[g.name] = self.global_memory.load_string(g.addr.addr)
 
             else:
                 d[g.name] = []
