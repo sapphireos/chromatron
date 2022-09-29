@@ -636,8 +636,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_halt,              // 248
         &&opcode_assert,            // 249
         &&opcode_print,             // 250
-        &&opcode_trap,              // 251
-        &&opcode_trap,              // 252
+        &&opcode_printref,          // 251
+        &&opcode_printstr,          // 252
         &&opcode_trap,              // 253
         &&opcode_trap,              // 254
         &&opcode_trap,              // 255
@@ -1467,6 +1467,20 @@ opcode_print:
     DECODE_1AC;    
 
     log_v_info_P( PSTR("VM print: %d"), registers[opcode_1ac->op1] );
+    
+    DISPATCH;
+
+opcode_printref:
+    DECODE_1AC;    
+
+    // log_v_info_P( PSTR("VM print: %d"), registers[opcode_1ac->op1] );
+    
+    DISPATCH;
+
+opcode_printstr:
+    DECODE_1AC;    
+
+    // log_v_info_P( PSTR("VM print: %d"), registers[opcode_1ac->op1] );
     
     DISPATCH;
 

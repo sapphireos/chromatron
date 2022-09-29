@@ -7734,7 +7734,10 @@ class irPrint(IR):
         return s   
 
     def generate(self):
-        if isinstance(self.value.var, varRef):
+        if isinstance(self.value.var, varStringRef):
+            return insPrintStr(self.value.generate(), lineno=self.lineno)
+
+        elif isinstance(self.value.var, varRef):
             return insPrintRef(self.value.generate(), lineno=self.lineno)
 
         else:
