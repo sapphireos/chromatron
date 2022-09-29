@@ -1,22 +1,6 @@
-fx_a = StringBuf(32, publish=True)
-# b = StringBuf('test2', publish=True)
-# c = StringBuf(32, publish=True)
-
-# d = Number(18, publish=True)
-
-fx_len = Number(publish=True)
-
-fx_eq = Number(publish=True)
-
+fx_s = String('test', publish=True)
 def init():
-    fx_a = 'test3'
-    # c = a
-    # a = 'test'
-
-    fx_len = len(fx_a)
-
-    fx_eq = fx_a == 'test3'
-
+    pass
 
 
 # def test():

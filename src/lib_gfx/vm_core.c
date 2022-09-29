@@ -5041,8 +5041,19 @@ int8_t vm_i8_run(
 
             len = strnlen( (char *)ptr, type_u16_size( publish->type ) );
         }
+
+        catbus_type_t8 type = publish->type;
+
+        /*if( type == CATBUS_TYPE_STRREF ){
+
+            type = CATBUS_TYPE_STRING64;
+
+            // dereference and copy strrefs to a buffer
+            char buf[64];
+            
+        }*/
         
-        int8_t kv_status = kvdb_i8_set( publish->hash, publish->type, ptr, len );
+        int8_t kv_status = kvdb_i8_set( publish->hash, type, ptr, len );
 
         if( kv_status != KVDB_STATUS_OK ){
 
@@ -5588,7 +5599,15 @@ int8_t vm_i8_load_program(
                 goto error;
             }
 
-            kvdb_i8_add( publish->hash, publish->type, 1, 0, 0 );
+            catbus_type_t8 type = publish->type;
+
+            // convert strref to string64
+            if( publish->type == CATBUS_TYPE_STRREF ){
+
+                type = CATBUS_TYPE_STRING64;
+            }   
+
+            kvdb_i8_add( publish->hash, type, 1, 0, 0 );
             kvdb_v_set_tag( publish->hash, ( 1 << vm_id ) );
 
             obj_ptr += sizeof(vm_publish_t);
