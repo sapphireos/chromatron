@@ -49,6 +49,7 @@ int8_t vm_lib_i8_libcall_built_in(
 	int32_t temp0, temp1, vm_id;
     int32_t *ptr;
     char *str;
+    char *str2;
     vm_reference_t ref;
 
     #ifdef ENABLE_PIXEL_MAPPER
@@ -599,6 +600,11 @@ int8_t vm_lib_i8_libcall_built_in(
             break;
 
         case __KV__strlen:
+            if( param_len != 1 ){
+
+                break;
+            }
+
             ref.n = params[0];
 
             // dereference to pool:
@@ -607,6 +613,25 @@ int8_t vm_lib_i8_libcall_built_in(
             str = (char *)ptr;
 
             *result = strlen( str );
+
+            break;
+
+        case __KV__strcmp:
+            if( param_len != 2 ){
+
+                break;
+            }
+
+            // dereference to pool:
+            ref.n = params[0];
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+            str = (char *)ptr;
+
+            ref.n = params[1];
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+            str2 = (char *)ptr;
+
+            *result = strcmp( str, str2 ) == 0;
 
             break;
 

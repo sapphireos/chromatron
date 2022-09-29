@@ -6,12 +6,17 @@ fx_a = StringBuf(32, publish=True)
 
 fx_len = Number(publish=True)
 
+fx_eq = Number(publish=True)
+
 def init():
     fx_a = 'test3'
     # c = a
     # a = 'test'
 
     fx_len = len(fx_a)
+
+    fx_eq = fx_a == 'test3'
+
 
 
 # def test():
