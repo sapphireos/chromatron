@@ -2081,7 +2081,7 @@ class CompilerTests(object):
                 'c': 0
             })
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_basic_string(self, opt_passes):
         self.run_test(test_basic_string,
             opt_passes=opt_passes,
@@ -2093,7 +2093,7 @@ class CompilerTests(object):
                 'e': 'test3',
             })
 
-    @pytest.mark.skip
+    # @pytest.mark.skip
     def test_basic_stringbuf(self, opt_passes):
         self.run_test(test_basic_stringbuf,
             opt_passes=opt_passes,
@@ -2102,7 +2102,7 @@ class CompilerTests(object):
                 'b': 'test2',
                 'c': 'test3',
             })    
-
+    @pytest.mark.skip
     def test_string_len(self, opt_passes):
         self.run_test(test_string_len,
             opt_passes=opt_passes,
