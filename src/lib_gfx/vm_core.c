@@ -928,6 +928,7 @@ static int8_t _vm_i8_run_stream(
     uint8_t opcode;
     function_info_t *func_table = (function_info_t *)( stream + state->func_info_start );
     int32_t *constant_pool = (int32_t *)( stream + state->pool_start );
+    int32_t *string_pool = (int32_t *)( stream + state->string_start );
     int32_t *locals_start = (int32_t *)( stream + state->local_data_start );
     int32_t *local_memory = locals_start;
     int32_t *registers = local_memory;
@@ -1006,6 +1007,8 @@ static int8_t _vm_i8_run_stream(
     uint16_t stride;
     int32_t params[8];
     reference_t ref;
+    reference_t dest_ref;
+    reference_t src_ref;
 
     void *ptr_void;
     uint16_t len;
@@ -1052,7 +1055,7 @@ static int8_t _vm_i8_run_stream(
     pools[POOL_GLOBAL]                  = global_memory;
     // pools[POOL_PIXEL_ARRAY]             = (int32_t *)pix_array;
     pools[POOL_PIXEL_ARRAY]             = (int32_t *)0;
-    pools[POOL_STRING_LITERALS]         = (int32_t *)0; // not yet implemented
+    pools[POOL_STRING_LITERALS]         = (int32_t *)string_pool;
     pools[POOL_FUNCTIONS]               = (int32_t *)func_table;
     pools[N_STATIC_POOLS + call_depth]  = local_memory;
 
@@ -1330,7 +1333,11 @@ opcode_dbcall:
 opcode_ldstr:
     DECODE_3AC;    
     
-    // not implemented!
+    dest_ref.n = registers[opcode_3ac->dest];
+    src_ref.n = registers[opcode_3ac->op1];
+
+    trace_printf("0x%0x -> 0x%0x\r\n", src_ref.n, dest_ref.n);
+
 
     DISPATCH;
 

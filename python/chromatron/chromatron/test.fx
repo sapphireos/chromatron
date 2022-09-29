@@ -13,11 +13,13 @@
 #     pass
 
 sbuf1 = StringBuf('test_string')
-ref = String('meow')
+# ref = String('meow')
 
 def init():
+    return len(sbuf1)
+
     # return len('meow')
-    return len(ref)
+    # return len(ref)
     # return len(sbuf1)
     # assert len('meow') == 4
 
