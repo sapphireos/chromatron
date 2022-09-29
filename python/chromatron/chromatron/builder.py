@@ -569,11 +569,18 @@ class Builder(object):
                 if params[0].var.scalar_type == 'strlit':
                     raise SyntaxError(f'Thread function: {func_name} requires function reference, not string: "{params[0].target.init_val}".  Try removing quotes.', lineno=lineno)
 
-            hashed_func = string_hash_func(func)
-
-            func_const = self.add_const(hashed_func, lineno=lineno)
-    
             is_str_target = len(params) > 0 and isinstance(params[0].var, varStringRef)
+
+            if func in ARRAY_FUNCS and is_str_target:           
+                # this is a libcall to compute the actual string length in characters
+
+                # we rename to strlen to differentiate internally.
+                if func == 'len':
+                    func = 'strlen'
+
+
+            hashed_func = string_hash_func(func)
+            func_const = self.add_const(hashed_func, lineno=lineno)
 
             if func in ARRAY_FUNCS:
                 if not is_str_target:
@@ -595,17 +602,7 @@ class Builder(object):
                         raise CompilerFatal(f'unknown function: {func}')
 
                 else: 
-                    # string targets
-                    if func == 'len':
-                        # this is a libcall to compute the actual string length in characters
-
-                        # we rename to strlen to differentiate internally.
-                        func = 'strlen'
-
-                        ir = irLibCall(func_const, params, func, lineno=lineno)
-
-                    else:
-                        raise SyntaxError(f'Array function {func} not supported for string target.', lineno=lineno)
+                    raise SyntaxError(f'Array function {func} not supported for string target.', lineno=lineno)
 
             else:
                 ir = irLibCall(func_const, params, func, lineno=lineno)
