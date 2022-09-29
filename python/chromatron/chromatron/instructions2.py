@@ -445,19 +445,25 @@ class insProgram(object):
         d = {}
 
         for g in self.globals:
-            if g.is_scalar or g.length == 1:
+            if g.data_type in ['strbuf', 'strlit']:
+                pool = self.get_pool(g.addr.storage)
+                d[g.name] = pool.load_string(g.addr.addr)
+
+            elif g.data_type == 'strref':
+                value = self.global_memory[g.addr.addr]
+
+                if isinstance(value, insRef):
+                    value = value.pool.load_string(value.addr)
+
+                d[g.name] = value
+
+            elif g.is_scalar or g.length == 1:
                 value = self.global_memory[g.addr.addr]
 
                 if isinstance(value, insRef):
                     value = value.dereference()
 
                 d[g.name] = value
-
-            elif g.data_type == 'strbuf':
-                d[g.name] = self.global_memory.load_string(g.addr.addr)
-
-            elif g.data_type == 'strlit':
-                d[g.name] = self.string_pool.load_string(g.addr.addr)
 
             else:
                 d[g.name] = []
