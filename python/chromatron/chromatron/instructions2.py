@@ -1185,6 +1185,11 @@ class insLoadString(BaseInstruction):
         self.dest = dest
         self.src = src
 
+        # assert isinstance(src.var.var, varStringRef)
+        # assert isinstance(dest.var.var, varStringRef)
+
+        print(type(dest.var.var.target))
+
         assert self.src is not None
 
     def __str__(self):
@@ -1198,16 +1203,7 @@ class insLoadString(BaseInstruction):
         dest.pool.write_string(dest.addr, value)
 
     def assemble(self):
-        dest_global = self.dest.var.is_global
-        src_global = self.src.var.is_global
-
         flags = 0
-
-        if dest_global:
-            flags |= 0x01
-
-        if src_global:
-            flags |= 0x02
 
         return OpcodeFormat3AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), flags, lineno=self.lineno)
 

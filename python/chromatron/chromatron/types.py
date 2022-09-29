@@ -508,6 +508,9 @@ class varStringLiteral(varStringBuf):
 
             words.append(struct.pack('BBBB', *chunk))
 
+        if len(words) != self.size:
+            raise CompilerFatal
+
         return words
 
 

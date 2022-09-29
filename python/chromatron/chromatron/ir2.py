@@ -463,7 +463,7 @@ class irProgram(IR):
     def _allocate_memory(self):
         addr = 0
 
-        for g in self.global_vars:
+        for g in [g for g in self.global_vars if not isinstance(g, varStringLiteral)]:
             assert g.addr is None
             g.addr = irAddr(g, addr, StorageType.GLOBAL)
 
