@@ -1194,6 +1194,9 @@ class Builder(object):
             init_var = init_var.copy()
 
             if var.data_type == 'strbuf':
+                # change data type
+                init_var.data_type = 'strref'
+
                 ir = irLoadRef(init_var, var.init_val, lineno=var.lineno)
                 init_func.body.insert(1, ir)
 
@@ -1207,6 +1210,9 @@ class Builder(object):
                 init_func.body.insert(3, ir)
 
             elif var.data_type == 'strref':
+                # change data type
+                init_var.data_type = 'strref'
+                
                 ir = irLoadRef(init_var, var.init_val, lineno=var.lineno)
                 init_func.body.insert(1, ir)
                 ir = irStore(init_var, var, lineno=var.lineno)

@@ -1189,10 +1189,8 @@ class insLoadString(BaseInstruction):
         self.dest = dest
         self.src = src
 
-        # assert isinstance(src.var.var, varStringRef)
-        # assert isinstance(dest.var.var, varStringRef)
-
-        print(type(dest.var.var.target))
+        assert src.var.var.data_type == 'strref'
+        assert dest.var.var.data_type in ['strref', 'ref']
 
         assert self.src is not None
 

@@ -1,42 +1,17 @@
-# a = String(publish=True)
-# b = String(publish=True)
-# c = String(publish=True)
-# d = String("test3", publish=True)
-# e = String(publish=True)
-# sbuf1 = StringBuf('test_string')
-sbuf2 = StringBuf(4)
-# ref = String("meow")
+# a = StringBuf(32, publish=True)
+b = StringBuf('test2', publish=True)
+# c = StringBuf(32, publish=True)
 
 def init():
-    # a = "test"
-    # pass
-    return len('meow')
-    # s = String('test2')
-    # b = s
+    # a = 'test3'
     # c = a
-    # e = d
+    # a = 'test'
+    pass
 
-
-# ref = String()
 # s = StringBuf(8)
-# # a = Number()
 
 # def init():
-#     # return len(sbuf1)
-
-#     # s = 'test_string'
-#     s = 'test'
-
-    
-#     ref = s
-
-#     ref = 'meow'
-
-#     # return len('meow')
-#     # return len(ref)
-#     # return len(sbuf1)
-#     # assert len('meow') == 4
-
+#     s = 'test_string'
 
 
 # def test():
