@@ -94,6 +94,16 @@ class StoragePool(list):
 
         self.name = name
 
+    def dump_bytes(self):
+        b = bytearray()
+        for word in self:
+            chunk = struct.unpack('BBBB', word)
+
+            for c in chunk:
+                b.append(c)
+
+        return b
+
     def load_string(self, addr):
         chars = []
 
