@@ -104,17 +104,6 @@ static uint32_t cycles;
 // } decodep3_t;
 // #endif
 
-typedef struct __attribute__((packed)){
-    uint16_t pool;
-    uint16_t addr;
-} packed_reference_t;
-
-typedef union{
-    packed_reference_t ref;
-    uint32_t n;
-} reference_t;
-
-
 #define POOL_GLOBAL             0
 #define POOL_PIXEL_ARRAY        1
 #define POOL_STRING_LITERALS    2
@@ -318,7 +307,7 @@ typedef struct __attribute__((packed)){
 #endif
 
 #define LIBCALL(FUNC_HASH, PARAMS_LEN) \
-    if( vm_lib_i8_libcall_built_in( FUNC_HASH, state, &state->return_val, params, PARAMS_LEN ) != 0 ){ \
+    if( vm_lib_i8_libcall_built_in( FUNC_HASH, state, pools, &state->return_val, params, PARAMS_LEN ) != 0 ){ \
         /* try gfx lib */ \
         GFX_LIB_CALL(FUNC_HASH, PARAMS_LEN) \
     } \
@@ -1007,9 +996,9 @@ static int8_t _vm_i8_run_stream(
     uint16_t stride;
     int32_t params[8];
     int32_t dest_str_len;
-    reference_t ref;
-    reference_t dest_ref;
-    reference_t src_ref;
+    vm_reference_t ref;
+    vm_reference_t dest_ref;
+    vm_reference_t src_ref;
 
     void *ptr_void;
     char *src_s;

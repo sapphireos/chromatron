@@ -177,6 +177,16 @@ typedef struct __attribute__((packed)){
     uint16_t length;
 } vm_string_t;
 
+typedef struct __attribute__((packed)){
+    uint16_t pool;
+    uint16_t addr;
+} vm_packed_reference_t;
+
+typedef union{
+    vm_packed_reference_t ref;
+    uint32_t n;
+} vm_reference_t;
+
 typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t vm_id;
     uint16_t code_start;

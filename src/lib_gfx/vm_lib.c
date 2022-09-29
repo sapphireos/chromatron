@@ -32,11 +32,13 @@
 #include "gfx_lib.h"
 #include "pixel_mapper.h"
 #include "vm.h"
+#include "vm_core.h"
 #include "battery.h"
 
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
     vm_state_t *state, 
+    int32_t *pools[],
 	int32_t *result, 
 	int32_t *params, 
 	uint16_t param_len ){
@@ -45,6 +47,9 @@ int8_t vm_lib_i8_libcall_built_in(
     // by the caller.
 
 	int32_t temp0, temp1, vm_id;
+    int32_t *ptr;
+    char *str;
+    vm_reference_t ref;
 
     #ifdef ENABLE_PIXEL_MAPPER
     int32_t x, y, z, index, h, s, v, size;
@@ -593,10 +598,15 @@ int8_t vm_lib_i8_libcall_built_in(
             gfx_v_clear();
             break;
 
-
         case __KV__strlen:
+            ref.n = params[0];
 
-            trace_printf("__KV__strlen 0x%0x\r\n", params[0]);
+            // dereference to pool:
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+
+            str = (char *)ptr;
+
+            *result = strlen( str );
 
             break;
 
