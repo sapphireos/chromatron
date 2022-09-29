@@ -122,7 +122,7 @@ class StoragePool(list):
         c_string = s.encode('utf-8') + bytes([0])
 
         # # add zero padding to strings to align on 32 bits
-        padding_len = 4 - (len(c_string) % 4)
+        padding_len = (4 - (len(c_string) % 4)) % 4
 
         c_string += bytes([0] * padding_len)
 

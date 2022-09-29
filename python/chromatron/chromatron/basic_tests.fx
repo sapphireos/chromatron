@@ -937,6 +937,11 @@ def stringref():
     assert ref == sbuf1
     assert ref == 'test_string'
 
+def stringlen():
+    assert len('meow') == 4
+    assert len(sbuf1) == 11
+    ref = 'stuff'
+    assert len(ref) == 5
 
 
 def init():
@@ -1016,5 +1021,5 @@ def init():
     stringbuf_init()
     stringbuf_assign()
     stringref()
-
+    stringlen()
     

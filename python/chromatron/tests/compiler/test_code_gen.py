@@ -1971,11 +1971,13 @@ s3 = String('test')
 a = Number(publish=True)
 b = Number(publish=True)
 c = Number(publish=True)
+d = Number(publish=True)
 
 def init():
     a = len(s1)
     b = len(s2)
     c = len(s3)
+    d = len('test_string')
 
 """
 
@@ -2108,6 +2110,7 @@ class CompilerTests(object):
                 'a': 0,
                 'b': 5,
                 'c': 4,
+                'd': 11,
             })    
 
     # skip - DB needs to be able to understand gfx16 types to properly handle conversions
@@ -2426,7 +2429,7 @@ class CompilerTests(object):
                 'n': 123
             })
 
-    
+
     # @pytest.mark.skip
     # def test_base_record_assign(self, opt_passes):
     #     self.run_test(test_base_record_assign,

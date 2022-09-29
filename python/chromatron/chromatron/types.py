@@ -491,7 +491,7 @@ class varStringLiteral(varStringBuf):
         c_string = self.init_val.encode('utf-8') + bytes([0])
 
         # # add zero padding to strings to align on 32 bits
-        padding_len = 4 - (len(c_string) % 4)
+        padding_len = (4 - (len(c_string) % 4)) % 4
 
         c_string += bytes([0] * padding_len)
 
@@ -515,7 +515,6 @@ _BASE_TYPES = {
     'f16': varFixed16(),
     'gfx16': varGfx16(),
     'Fixed16': varFixed16(),
-    # 'str': varString(),
     'strlit': varStringLiteral(),
     'strbuf': varStringBuf(),
     'strref': varStringRef(),
