@@ -375,13 +375,24 @@ class irAddr(IR):
         return insAddr(self.addr, self.var, self.storage)
 
 class irProgram(IR):
-    def __init__(self, name, funcs={}, symbols=None, strings={}, **kwargs):
+    def __init__(
+        self, 
+        name, 
+        funcs={}, 
+        symbols=None, 
+        strings={}, 
+        links=[],
+        cron={},
+        **kwargs):
+        
         super().__init__(**kwargs)
 
         self.name = name
         self.funcs = funcs
         self.global_symbols = symbols
         self.strings = strings
+        self.links = links
+        self.cron = cron
         self.constant_pool = []
         self.call_graph = None
 
@@ -504,6 +515,8 @@ class irProgram(IR):
                 global_vars=[g for g in self.global_vars if g.addr is not None], 
                 objects=self.objects,
                 strings=self.strings,
+                links=self.links,
+                cron=self.cron,
                 call_graph=self.call_graph)
 
 class Edge(object):

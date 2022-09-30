@@ -359,7 +359,7 @@ class cg1Func(cg1CodeNode):
         # check decorators
         for dec in self.decorators:
             if dec.target == 'schedule':
-                builder.schedule(self.name, dec.keywords, lineno=self.lineno)
+                builder.schedule(self.name, {k: v.value for k, v in dec.keywords.items()}, lineno=self.lineno)
 
         builder.finish_func(func)
 

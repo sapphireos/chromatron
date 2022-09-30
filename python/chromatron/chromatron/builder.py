@@ -6,6 +6,28 @@ import logging
 
 INIT_TEMP_VAR = '__zero__'
 
+DAY_OF_WEEK = {'sunday':    0,
+               'monday':    1,
+               'tuesday':   2,
+               'wednesday': 3,
+               'thursday':  4,
+               'friday':    5,
+               'saturday':  6}
+
+
+MONTHS =      {'january':   1,
+               'february':  2,
+               'march':     3,
+               'april':     4,
+               'may':       5,
+               'june':      6,
+               'july':      7,
+               'august':    8,
+               'september': 9,
+               'october':   10,
+               'november':  11,
+               'december':  12}
+
 class Builder(object):
     def __init__(self, script_name='fx_script', source=[]):
         self.script_name = script_name
@@ -23,6 +45,7 @@ class Builder(object):
         self.structs = {}
         self.strings = {}
         self.links = []
+        self.cron = {}
 
         self.next_temp = 0
 
@@ -1231,33 +1254,14 @@ class Builder(object):
                     ir = irStore(init_var, var, lineno=var.lineno)
                     init_func.body.insert(2, ir)
 
-        return irProgram(self.script_name, self.funcs, self.global_symbols, self.strings, lineno=0)
-
-    def link(self, mode, source, dest, query, aggregation, rate, lineno=None):
-        aggregations = {
-            'any': LINK_AGG_ANY,
-            'min': LINK_AGG_MIN,
-            'max': LINK_AGG_MAX,
-            'sum': LINK_AGG_SUM,
-            'avg': LINK_AGG_AVG,
-        }
-
-        modes = {
-            'send': LINK_MODE_SEND,
-            'receive': LINK_MODE_RECV,
-            'sync': LINK_MODE_SYNC,
-        }
-
-        new_link = {'mode': modes[mode],
-                    'aggregation': aggregations[aggregation],
-                    'rate': int(rate),
-                    'source': source,
-                    'dest': dest,
-                    'query': query}
-
-        pprint(new_link)
-
-        self.links.append(new_link)
+        return irProgram(
+                self.script_name, 
+                self.funcs, 
+                self.global_symbols, 
+                self.strings, 
+                self.links,
+                self.cron,
+                lineno=0)
 
     def ifelse(self, test, lineno=None):
         body_label = self.label('if.then', lineno=lineno)
@@ -1685,3 +1689,76 @@ class Builder(object):
 
         raise CompilerFatal(f'Invalid lookup for: {target}')
 
+    
+    ###################################
+    # Meta
+    ###################################    
+
+    def schedule(self, func, params, lineno=None):
+        if func not in self.cron:
+            self.cron[func] = {}
+
+        # check parameters
+        if 'seconds' in params:
+            if params['seconds'] < 0 or params['seconds'] > 59:
+                raise SyntaxError("Seconds must be within 0 - 59, got %d" % (params['seconds']), lineno=lineno)
+        
+        if 'minutes' in params:
+            if params['minutes'] < 0 or params['minutes'] > 59:
+                raise SyntaxError("Minutes must be within 0 - 59, got %d" % (params['minutes']), lineno=lineno)
+
+        if 'hours' in params:
+            if params['hours'] < 0 or params['hours'] > 23:
+                raise SyntaxError("Hours must be within 0 - 23, got %d" % (params['hours']), lineno=lineno)
+        
+        if 'day_of_month' in params:
+            if params['day_of_month'] < 0 or params['day_of_month'] > 31:
+                raise SyntaxError("Day of month must be within 0 - 31, got %d" % (params['day_of_month']), lineno=lineno)
+        
+        if 'day_of_week' in params:
+            if isinstance(params['day_of_week'], str):
+                params['day_of_week'] = DAY_OF_WEEK[params['day_of_week'].lower()]
+
+            if params['day_of_week'] < 1 or params['day_of_week'] > 7:
+                raise SyntaxError("Day of week must be within 1 - 7, got %d" % (params['day_of_week']), lineno=lineno)
+        
+        if 'month' in params:
+            if isinstance(params['month'], str):
+                params['month'] = MONTHS[params['month'].lower()]
+
+            if params['month'] < 1 or params['month'] > 12:
+                raise SyntaxError("Month must be within 1 - 12, got %d" % (params['month']), lineno=lineno)
+                        
+
+        for i in ['seconds', 'minutes', 'hours', 'day_of_month', 'day_of_week', 'month']:
+            if i not in params:
+                params[i] = -1
+
+        self.cron[func] = params
+
+
+    def link(self, mode, source, dest, query, aggregation, rate, lineno=None):
+        aggregations = {
+            'any': LINK_AGG_ANY,
+            'min': LINK_AGG_MIN,
+            'max': LINK_AGG_MAX,
+            'sum': LINK_AGG_SUM,
+            'avg': LINK_AGG_AVG,
+        }
+
+        modes = {
+            'send': LINK_MODE_SEND,
+            'receive': LINK_MODE_RECV,
+            'sync': LINK_MODE_SYNC,
+        }
+
+        new_link = {'mode': modes[mode],
+                    'aggregation': aggregations[aggregation],
+                    'rate': int(rate),
+                    'source': source,
+                    'dest': dest,
+                    'query': query}
+
+        pprint(new_link)
+
+        self.links.append(new_link)

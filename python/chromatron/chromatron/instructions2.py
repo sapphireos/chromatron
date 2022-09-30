@@ -155,10 +155,22 @@ class StoragePool(list):
 
 
 class insProgram(object):
-    def __init__(self, name, funcs={}, global_vars=[], objects=[], strings={}, call_graph={}):
+    def __init__(
+        self, 
+        name, 
+        funcs={}, 
+        global_vars=[], 
+        objects=[], 
+        strings={}, 
+        links=[],
+        cron={},
+        call_graph={}):
+
         self.name = name
         self.globals = global_vars
         self.call_graph = call_graph
+        self.links = links
+        self.cron = cron
 
         # initialize memory
         self.global_memory_size = 0

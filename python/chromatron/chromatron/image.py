@@ -158,9 +158,9 @@ class FXImage(object):
         read_keys = []
         write_keys = []
         pixel_arrays = []
-        links = []
+        links = self.program.links
         db_entries = {}
-        cron_tab = {}
+        cron_tab = self.program.cron
         constant_pool = self.constants
 
         if filename is None:
@@ -322,7 +322,7 @@ class FXImage(object):
             
             for entry in entries:
                 item = CronItem(
-                        func=self.function_addrs[func_name],
+                        func=function_addrs[func_name],
                         second=entry['seconds'],
                         minute=entry['minutes'],
                         hour=entry['hours'],
