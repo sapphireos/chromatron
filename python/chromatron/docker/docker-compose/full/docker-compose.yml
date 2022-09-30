@@ -64,11 +64,13 @@ services:
 
   mqtt:
     container_name: mqtt
-    image: eclipse-mosquitto:2.0.7
+    image: eclipse-mosquitto:2.0.15
     restart: always
     ports: 
       - 1883:1883
       - 9001:9001
+    volumes:
+      - mosquitto.conf:/mosquitto/config/mosquitto.conf
   
   homeassistant:
     container_name: homeassistant
