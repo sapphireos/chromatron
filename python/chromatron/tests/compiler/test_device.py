@@ -12,8 +12,14 @@ import time
 @pytest.mark.device
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
 class TestCompilerOnDevice(CompilerTests):
+
+    @pytest.fixture(autouse=True)
+    def _get_network_device(self, network_device):
+        self.network_device = network_device
+
     def run_test(self, source, expected={}, opt_passes=[OptPasses.SSA]):
-        ct = chromatron.Chromatron(host=NETWORK_ADDR)
+        # ct = chromatron.Chromatron(host=NETWORK_ADDR)
+        ct = self.network_device
 
         # ct = chromatron.Chromatron(host='usb', force_network=True)
         # ct = chromatron.Chromatron(host='10.0.0.108')
@@ -31,15 +37,25 @@ class TestCompilerOnDevice(CompilerTests):
 
                 ct.stop_vm()
 
-                # reset test key
-                ct.set_key('kv_test_key', 0)
+                keys = {
+                    'kv_test_key': 0,
+                    'pix_count': 16,
+                    'pix_size_x': 4,
+                    'pix_size_y': 4,
+                    'vm_prog': 'test.fxb',
+                }
 
-                ct.set_key('pix_count', 16)
-                ct.set_key('pix_size_x', 4)                
-                ct.set_key('pix_size_y', 4)                
+                ct.set_keys(**keys)
+
+                # reset test key
+                # ct.set_key('kv_test_key', 0)
+
+                # ct.set_key('pix_count', 16)
+                # ct.set_key('pix_size_x', 4)                
+                # ct.set_key('pix_size_y', 4)                
                 
                 # change vm program
-                ct.set_key('vm_prog', 'test.fxb')
+                # ct.set_key('vm_prog', 'test.fxb')
                 ct.put_file('test.fxb', stream)
                 ct.start_vm()
 
@@ -57,31 +73,44 @@ class TestCompilerOnDevice(CompilerTests):
                 assert vm_status == 0
 
                 ct.init_scan()
+
+
+                actual = ct.get_keys(*expected)
+
+                for reg, expected in expected.items():
+                    try:
+                        assert actual[reg] == expected
+
+                    except AssertionError:
+                        # ct.reset_vm()
+                        # time.sleep(0.2)
+                        raise
+
                 
-                for reg, expected_value in expected.items():
-                    reg_tries = 5
-                    while reg_tries > 0:
-                        reg_tries -= 1
+                # for reg, expected_value in expected.items():
+                #     reg_tries = 5
+                #     while reg_tries > 0:
+                #         reg_tries -= 1
 
-                        if reg == 'kv_test_key':
-                            actual = ct.get_key(reg)
+                #         if reg == 'kv_test_key':
+                #             actual = ct.get_key(reg)
 
-                        else:
-                            actual = ct.get_vm_reg(str(reg))
+                #         else:
+                #             actual = ct.get_vm_reg(str(reg))
 
-                        try:
-                            assert actual == expected_value
+                #         try:
+                #             assert actual == expected_value
 
-                        except AssertionError:
-                            # print "Expected: %s Actual: %s Reg: %s" % (expected_value, actual, reg)
-                            # print "Resetting VM..."
-                            if reg_tries == 0:
-                                raise
+                #         except AssertionError:
+                #             # print "Expected: %s Actual: %s Reg: %s" % (expected_value, actual, reg)
+                #             # print "Resetting VM..."
+                #             if reg_tries == 0:
+                #                 raise
 
-                            ct.reset_vm()
-                            time.sleep(0.2)
+                #             ct.reset_vm()
+                #             time.sleep(0.2)
 
-                return
+                break
 
             except ProtocolErrorException:
                 print("Protocol error, trying again.")
@@ -90,7 +119,7 @@ class TestCompilerOnDevice(CompilerTests):
                 if test_tries < 0:
                     raise
 
-        ct.stop_vm()
+        # ct.stop_vm()
 
 
 
