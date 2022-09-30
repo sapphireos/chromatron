@@ -300,7 +300,7 @@ class DataloggerClient(MsgflowClient):
             data_type = get_type_id('float')
 
         else:
-            raise Exception('invalid type')
+            raise Exception(f'Invalid type: {type(data)}')
 
         catbus_meta = CatbusMeta(hash=hashed_key, type=data_type)
 

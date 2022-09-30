@@ -62,15 +62,23 @@ services:
     restart: always
     network_mode: host
 
+  shelly_logger:
+    container_name: shelly_logger
+    build:
+      context: ../
+      dockerfile: docker/shelly/Dockerfile
+    restart: always
+    network_mode: host
+
   mqtt:
     container_name: mqtt
-    image: eclipse-mosquitto:2.0.7
+    image: eclipse-mosquitto:2.0.15
     restart: always
-    # As configured, MQTT will only accept connections from localhost!
-    # ports: # not needed with host network mode
-      # - 1883:1883
-      # - 9001:9001
-    network_mode: host
+    ports: 
+      - 1883:1883
+      - 9001:9001
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
   
   homeassistant:
     container_name: homeassistant
