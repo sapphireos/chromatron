@@ -443,7 +443,7 @@ class irProgram(IR):
         self.call_graph = call_graph
 
     def is_called(self, func_name, graph={}):
-        if func_name in graph:
+        if func_name in graph or func_name in self.cron:
             return True
 
         for name in graph:
