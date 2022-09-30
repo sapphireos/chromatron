@@ -1358,6 +1358,10 @@ def main():
         # compile and summarize all files
         stats = {}
 
+        success = 0
+        errors = 0
+        error_files = []
+
         for fpath in os.listdir(path):
             fname, ext = os.path.splitext(fpath)
 
@@ -1370,21 +1374,31 @@ def main():
                 print('---------------------------------')
                 text = f.read()
                 try:
-                    builder = compile_text(text, summarize=False)
+                    program = compile_text(text, summarize=False)
+                    image = program.assemble()
+                    image.render()
 
-                    stats[fpath] = {'code': builder.header.code_len,
-                                    'data': builder.header.data_len,
-                                    'stream': len(builder.stream)}
+                    stats[fpath] = {'code': image.header.code_len,
+                                    'local_data': image.header.local_data_len,
+                                    'global_data': image.header.global_data_len,
+                                    'constant': image.header.constant_len,
+                                    'stream': len(image.stream)}
 
+                    success += 1
 
                 except SyntaxError as e:
-                    print("SyntaxError:", e)
+                    errors += 1
+                    # print("SyntaxError:", e)
+                    raise
 
                 except Exception as e:
+                    errors += 1
+                    error_files.append(fpath)
                     print("Exception:", e)
+                    # raise
 
         print('')
-        for param in ['code', 'data', 'stream']:
+        for param in ['code', 'local_data', 'global_data', 'constant', 'stream']:
             highest = 0
             name = ''
             for script in stats:
@@ -1392,8 +1406,14 @@ def main():
                     highest = stats[script][param]
                     name = script
 
-            print("Largest %8s size: %32s %5d bytes" % (param, name, highest))
+            print("Largest %16s size: %32s %5d bytes" % (param, name, highest))
 
+        print(f'\nTotal: {success + errors} Success: {success} Errors: {errors}')
+
+        if errors > 0:
+            print(f'\nFiles with errors:')
+            for file in error_files:
+                print(f'\t{file}')
 
 profile = False
 if __name__ == '__main__':
