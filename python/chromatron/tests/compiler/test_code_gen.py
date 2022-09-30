@@ -2083,6 +2083,7 @@ class CompilerTests(object):
                 'c': 0
             })
 
+    @pytest.mark.skip
     def test_basic_string(self, opt_passes):
         self.run_test(test_basic_string,
             opt_passes=opt_passes,
