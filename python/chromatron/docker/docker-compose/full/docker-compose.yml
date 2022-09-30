@@ -62,6 +62,14 @@ services:
     restart: always
     network_mode: host
 
+  shelly_logger:
+    container_name: shelly_logger
+    build:
+      context: ../
+      dockerfile: docker/shelly/Dockerfile
+    restart: always
+    network_mode: host
+
   mqtt:
     container_name: mqtt
     image: eclipse-mosquitto:2.0.15
