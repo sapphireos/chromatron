@@ -66,11 +66,9 @@ services:
     container_name: mqtt
     image: eclipse-mosquitto:2.0.7
     restart: always
-    # As configured, MQTT will only accept connections from localhost!
-    # ports: # not needed with host network mode
-      # - 1883:1883
-      # - 9001:9001
-    network_mode: host
+    ports: 
+      - 1883:1883
+      - 9001:9001
   
   homeassistant:
     container_name: homeassistant
