@@ -42,8 +42,8 @@ PIXEL_FIELDS = {
 }
 
 PIXEL_SCALARS = [
-    'is_v_fading', 
-    'is_hs_fading',
+    # 'is_v_fading', 
+    # 'is_hs_fading',
     'index',
     'count',
     'size_x',
