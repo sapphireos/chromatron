@@ -1696,7 +1696,7 @@ class Builder(object):
 
     def schedule(self, func, params, lineno=None):
         if func not in self.cron:
-            self.cron[func] = {}
+            self.cron[func] = []
 
         # check parameters
         if 'seconds' in params:
@@ -1734,7 +1734,7 @@ class Builder(object):
             if i not in params:
                 params[i] = -1
 
-        self.cron[func] = params
+        self.cron[func].append(params)
 
 
     def link(self, mode, source, dest, query, aggregation, rate, lineno=None):
