@@ -1440,20 +1440,20 @@ class Device(object):
 
         return s
 
-    def cli_irqinfo(self, line):
-        params = self.get_kv("sys_time_us", "irq_time", "irq_longest_time", "irq_longest_addr")
+    # def cli_irqinfo(self, line):
+    #     params = self.get_kv("sys_time_us", "irq_time", "irq_longest_time", "irq_longest_addr")
 
-        # convert all params to floats
-        params = {k: float(v) for (k, v) in params.items()}
+    #     # convert all params to floats
+    #     params = {k: float(v) for (k, v) in params.items()}
 
-        irq_usage = (params["irq_time"] / params["sys_time_us"]) * 100.0
+    #     irq_usage = (params["irq_time"] / params["sys_time_us"]) * 100.0
 
-        s = "IRQ:%2.1f%% Longest:%6d uS Addr:0x%05x" % \
-            (irq_usage,
-             params["irq_longest_time"],
-             params["irq_longest_addr"])
+    #     s = "IRQ:%2.1f%% Longest:%6d uS Addr:0x%05x" % \
+    #         (irq_usage,
+    #          params["irq_longest_time"],
+    #          params["irq_longest_addr"])
 
-        return s
+    #     return s
 
 
     def cli_meminfo(self, line):
