@@ -51,6 +51,10 @@ void app_main()
         #pragma message "ESP32 Dual Core"
     #endif
 
+    #ifdef CONFIG_FREERTOS_OPTIMIZED_SCHEDULER
+        #pragma message "FreeRTOS optimized scheduler enabled"
+    #endif
+
     xTaskCreatePinnedToCore(&sapphire_main, "sapphire",
                             MEM_MAX_STACK, NULL,
                             SAPPHIRE_TASK_PRIO, NULL, core);    
