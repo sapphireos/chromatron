@@ -622,27 +622,6 @@ bool wifi_b_ap_mode( void ){
 	return connected && ap_mode;
 }
 
-#define WIFI_MICROAMPS_PS_NONE  80000
-#define WIFI_MICROAMPS_PS_MODEM_MIN  25000
-#define WIFI_VOLTS 3.3
-
-#define WIFI_POWER_PS_NONE  ( WIFI_MICROAMPS_PS_NONE * WIFI_VOLTS )
-#define WIFI_POWER_PS_MODEM_MIN  ( WIFI_MICROAMPS_PS_MODEM_MIN * WIFI_VOLTS )
-
-uint32_t wifi_u32_get_power( void ){
-
-    wifi_ps_type_t ps_mode = WIFI_PS_NONE;
-
-    esp_wifi_get_ps( &ps_mode );
-
-    if( ps_mode == WIFI_PS_NONE ){
-
-        return WIFI_PS_NONE;
-    }
-    
-    return WIFI_POWER_PS_MODEM_MIN;
-}
-
 void wifi_v_reset_scan_timeout( void ){
 
     scan_backoff = 0;

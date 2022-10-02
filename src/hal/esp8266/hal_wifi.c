@@ -599,13 +599,6 @@ void wifi_v_powerup( void ){
     wifi_shutdown = FALSE;
 }
 
-uint32_t wifi_u32_get_power( void ){
-
-    // not a real value....
-    
-    return 50000 *  3.3;
-}
-
 void wifi_v_reset_scan_timeout( void ){
 
     scan_backoff = 0;
