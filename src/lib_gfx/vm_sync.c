@@ -155,16 +155,23 @@ bool vm_sync_b_in_progress( void ){
 
 static void send_sync( sock_addr_t *raddr ){
 
+    vm_state_t *state = vm_p_get_state();
+
+    if( state == 0 ){
+
+        return;
+    }
+
+
     vm_sync_msg_sync_t msg;
+
     msg.header.magic            = SYNC_PROTOCOL_MAGIC;
     msg.header.version          = SYNC_PROTOCOL_VERSION;
     msg.header.type             = VM_SYNC_MSG_SYNC;
     msg.header.flags            = 0;
     msg.header.sync_group_hash  = sync_group_hash;
 
-    vm_state_t *state = vm_p_get_state();
-
-    msg.program_name_hash       = state->program_name_hash;
+    msg.header.program_name_hash= state->program_name_hash;
     msg.sync_tick               = vm_u64_get_sync_tick();
     msg.net_time                = vm_u32_get_sync_time();
 
@@ -284,6 +291,13 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
+        vm_state_t *vm_state = vm_p_get_state();
+
+        if( state == 0 ){
+
+            continue;
+        }
+
         if( header->type == VM_SYNC_MSG_SYNC ){
 
             // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC") );
@@ -296,10 +310,8 @@ PT_BEGIN( pt );
 
             vm_sync_msg_sync_t *msg = (vm_sync_msg_sync_t *)header;
 
-            vm_state_t *vm_state = vm_p_get_state();
-
             // confirm program name
-            if( msg->program_name_hash != vm_state->program_name_hash ){
+            if( header->program_name_hash != vm_state->program_name_hash ){
 
                 vm_sync_v_reset();
 
@@ -370,6 +382,12 @@ PT_BEGIN( pt );
 
                 continue;
             }
+
+            // confirm program name
+            if( header->program_name_hash != vm_state->program_name_hash ){
+
+                continue;
+            }
             
             // send sync
             send_sync( &raddr );
@@ -420,6 +438,12 @@ PT_BEGIN( pt );
 
             // are we syncing?
             if( sync_state != STATE_SYNCING ){
+
+                continue;
+            }
+
+            // confirm program name
+            if( header->program_name_hash != vm_state->program_name_hash ){
 
                 continue;
             }
