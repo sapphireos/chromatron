@@ -72,7 +72,7 @@ static uint8_t current_scan_backoff;
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
 static uint8_t wifi_power_mode;
-static bool disable_modem_sleep;
+static bool disable_modem_sleep = TRUE; // default to disable modem sleep, as there is currently a bug in IDF causing it to be very unstable.
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
