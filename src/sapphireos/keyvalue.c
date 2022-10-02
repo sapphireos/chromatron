@@ -142,7 +142,11 @@ static int8_t _kv_i8_dynamic_count_handler(
     
     if( op == KV_OP_GET ){
 
-        if( hash == __KV__kv_dynamic_count ){
+        if( hash == __KV__kv_count ){
+            
+            STORE16(data, kv_u16_count());
+        }
+        else if( hash == __KV__kv_dynamic_count ){
             
             STORE16(data, kvdb_u16_count());
         }
@@ -165,6 +169,7 @@ KV_SECTION_META kv_meta_t kv_cfg[] = {
     { CATBUS_TYPE_UINT32,  0, 0,                   &kv_persist_writes,  0,           "kv_persist_writes" },
     { CATBUS_TYPE_INT32,   0, 0,                   &kv_test_key,        0,           "kv_test_key" },
     { CATBUS_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_count" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_optional_count" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
