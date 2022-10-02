@@ -234,7 +234,8 @@ void cpu_v_sleep( void ){
     // only yield the RTOS task (so auto light sleep can operate)
     // if we are not in safe mode and pixels are not enabled.
 
-    if( gfx_b_pixels_enabled() || ( sys_u8_get_mode() == SYS_MODE_SAFE ) ){
+    // if( gfx_b_pixels_enabled() || ( sys_u8_get_mode() == SYS_MODE_SAFE ) ){
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         #ifdef CONFIG_FREERTOS_UNICORE
         // in single core mode, we must still yield
