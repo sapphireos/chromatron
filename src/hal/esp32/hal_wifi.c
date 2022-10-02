@@ -958,7 +958,13 @@ static void apply_power_save_mode( void ){
         wifi_power_mode = WIFI_PS_NONE;
     }
 
-    esp_wifi_set_ps( wifi_power_mode );
+    wifi_ps_type_t current_mode = 0;
+    esp_wifi_get_ps( &current_mode );
+
+    if( current_mode != wifi_power_mode ){
+
+        esp_wifi_set_ps( wifi_power_mode );    
+    }
 }
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
