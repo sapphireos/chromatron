@@ -1,71 +1,10 @@
 # The set of languages for which implicit dependencies are needed:
 set(CMAKE_DEPENDS_LANGUAGES
-  "ASM"
   "C"
   )
 # The set of files for implicit dependencies of each language:
-set(CMAKE_DEPENDS_CHECK_ASM
-  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr_handler.S" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_handler.S.obj"
-  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr_routines.S" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_routines.S.obj"
-  )
-set(CMAKE_ASM_COMPILER_ID "GNU")
-
-# The include file search paths:
-set(CMAKE_ASM_TARGET_INCLUDE_PATH
-  "config"
-  "../../components/esp_ipc/include"
-  "../../components/newlib/platform_include"
-  "../../components/freertos/include"
-  "../../components/freertos/include/esp_additions/freertos"
-  "../../components/freertos/port/xtensa/include"
-  "../../components/freertos/include/esp_additions"
-  "../../components/esp_hw_support/include"
-  "../../components/esp_hw_support/include/soc"
-  "../../components/esp_hw_support/include/soc/esp32"
-  "../../components/esp_hw_support/port/esp32/."
-  "../../components/esp_hw_support/port/esp32/private_include"
-  "../../components/heap/include"
-  "../../components/log/include"
-  "../../components/lwip/include/apps"
-  "../../components/lwip/include/apps/sntp"
-  "../../components/lwip/lwip/src/include"
-  "../../components/lwip/port/esp32/include"
-  "../../components/lwip/port/esp32/include/arch"
-  "../../components/soc/include"
-  "../../components/soc/esp32/."
-  "../../components/soc/esp32/include"
-  "../../components/hal/esp32/include"
-  "../../components/hal/include"
-  "../../components/hal/platform_port/include"
-  "../../components/esp_rom/include"
-  "../../components/esp_rom/include/esp32"
-  "../../components/esp_rom/esp32"
-  "../../components/esp_common/include"
-  "../../components/esp_system/include"
-  "../../components/esp_system/port/soc"
-  "../../components/esp_system/port/public_compat"
-  "../../components/esp32/include"
-  "../../components/xtensa/include"
-  "../../components/xtensa/esp32/include"
-  "../../components/driver/include"
-  "../../components/driver/esp32/include"
-  "../../components/esp_pm/include"
-  "../../components/esp_ringbuf/include"
-  "../../components/efuse/include"
-  "../../components/efuse/esp32/include"
-  "../../components/vfs/include"
-  "../../components/esp_wifi/include"
-  "../../components/esp_event/include"
-  "../../components/esp_netif/include"
-  "../../components/tcpip_adapter/include"
-  "../../components/esp_phy/include"
-  "../../components/esp_phy/esp32/include"
-  "../../components/app_trace/include"
-  "../../components/esp_timer/include"
-  )
 set(CMAKE_DEPENDS_CHECK_C
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc.c.obj"
-  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr.c" "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.obj"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 

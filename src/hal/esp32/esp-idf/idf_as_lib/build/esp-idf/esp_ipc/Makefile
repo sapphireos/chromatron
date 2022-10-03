@@ -198,51 +198,6 @@ src/esp_ipc.c.s:
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/build.make esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc.c.s
 .PHONY : src/esp_ipc.c.s
 
-src/esp_ipc_isr/esp_ipc_isr.obj: src/esp_ipc_isr/esp_ipc_isr.c.obj
-
-.PHONY : src/esp_ipc_isr/esp_ipc_isr.obj
-
-# target to build an object file
-src/esp_ipc_isr/esp_ipc_isr.c.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/build.make esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.obj
-.PHONY : src/esp_ipc_isr/esp_ipc_isr.c.obj
-
-src/esp_ipc_isr/esp_ipc_isr.i: src/esp_ipc_isr/esp_ipc_isr.c.i
-
-.PHONY : src/esp_ipc_isr/esp_ipc_isr.i
-
-# target to preprocess a source file
-src/esp_ipc_isr/esp_ipc_isr.c.i:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/build.make esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.i
-.PHONY : src/esp_ipc_isr/esp_ipc_isr.c.i
-
-src/esp_ipc_isr/esp_ipc_isr.s: src/esp_ipc_isr/esp_ipc_isr.c.s
-
-.PHONY : src/esp_ipc_isr/esp_ipc_isr.s
-
-# target to generate assembly for a file
-src/esp_ipc_isr/esp_ipc_isr.c.s:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/build.make esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.s
-.PHONY : src/esp_ipc_isr/esp_ipc_isr.c.s
-
-src/esp_ipc_isr/esp_ipc_isr_handler.obj: src/esp_ipc_isr/esp_ipc_isr_handler.S.obj
-
-.PHONY : src/esp_ipc_isr/esp_ipc_isr_handler.obj
-
-# target to build an object file
-src/esp_ipc_isr/esp_ipc_isr_handler.S.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/build.make esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_handler.S.obj
-.PHONY : src/esp_ipc_isr/esp_ipc_isr_handler.S.obj
-
-src/esp_ipc_isr/esp_ipc_isr_routines.obj: src/esp_ipc_isr/esp_ipc_isr_routines.S.obj
-
-.PHONY : src/esp_ipc_isr/esp_ipc_isr_routines.obj
-
-# target to build an object file
-src/esp_ipc_isr/esp_ipc_isr_routines.S.obj:
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build && $(MAKE) -f esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/build.make esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_routines.S.obj
-.PHONY : src/esp_ipc_isr/esp_ipc_isr_routines.S.obj
-
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -259,11 +214,6 @@ help:
 	@echo "... src/esp_ipc.obj"
 	@echo "... src/esp_ipc.i"
 	@echo "... src/esp_ipc.s"
-	@echo "... src/esp_ipc_isr/esp_ipc_isr.obj"
-	@echo "... src/esp_ipc_isr/esp_ipc_isr.i"
-	@echo "... src/esp_ipc_isr/esp_ipc_isr.s"
-	@echo "... src/esp_ipc_isr/esp_ipc_isr_handler.obj"
-	@echo "... src/esp_ipc_isr/esp_ipc_isr_routines.obj"
 .PHONY : help
 
 

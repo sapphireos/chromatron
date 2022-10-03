@@ -393,7 +393,10 @@
                 "help": "The option \"Use custom SPI Flash WP Pin\" must be set or this value is ignored\n\nIf burning a customized set of SPI flash pins in eFuse and using QIO or QOUT mode for flash, set this\nvalue to the GPIO number of the SPI flash WP pin.",
                 "id": "BOOTLOADER_SPI_WP_PIN",
                 "name": "BOOTLOADER_SPI_WP_PIN",
-                "range": null,
+                "range": [
+                    0,
+                    33
+                ],
                 "title": "Custom SPI Flash WP Pin",
                 "type": "int"
             },

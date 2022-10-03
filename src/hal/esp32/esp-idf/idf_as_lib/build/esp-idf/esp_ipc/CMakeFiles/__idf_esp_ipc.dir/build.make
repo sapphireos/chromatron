@@ -70,46 +70,17 @@ esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc.c.s"
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_ipc && /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc.c -o CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc.c.s
 
-esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.obj: esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/flags.make
-esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.obj: ../../components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr.c
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_ipc && /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -o CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.obj   -c /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr.c
-
-esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.i"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_ipc && /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr.c > CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.i
-
-esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.s"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_ipc && /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr.c -o CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.s
-
-esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_handler.S.obj: esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/flags.make
-esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_handler.S.obj: ../../components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr_handler.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building ASM object esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_handler.S.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_ipc && /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_handler.S.obj -c /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr_handler.S
-
-esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_routines.S.obj: esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/flags.make
-esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_routines.S.obj: ../../components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr_routines.S
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building ASM object esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_routines.S.obj"
-	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_ipc && /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-gcc $(ASM_DEFINES) $(ASM_INCLUDES) $(ASM_FLAGS) -o CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_routines.S.obj -c /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr_routines.S
-
 # Object files for target __idf_esp_ipc
 __idf_esp_ipc_OBJECTS = \
-"CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc.c.obj" \
-"CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.obj" \
-"CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_handler.S.obj" \
-"CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_routines.S.obj"
+"CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc.c.obj"
 
 # External object files for target __idf_esp_ipc
 __idf_esp_ipc_EXTERNAL_OBJECTS =
 
 esp-idf/esp_ipc/libesp_ipc.a: esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc.c.obj
-esp-idf/esp_ipc/libesp_ipc.a: esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.obj
-esp-idf/esp_ipc/libesp_ipc.a: esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_handler.S.obj
-esp-idf/esp_ipc/libesp_ipc.a: esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_routines.S.obj
 esp-idf/esp_ipc/libesp_ipc.a: esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/build.make
 esp-idf/esp_ipc/libesp_ipc.a: esp-idf/esp_ipc/CMakeFiles/__idf_esp_ipc.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking C static library libesp_ipc.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking C static library libesp_ipc.a"
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_ipc && $(CMAKE_COMMAND) -P CMakeFiles/__idf_esp_ipc.dir/cmake_clean_target.cmake
 	cd /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/chromatron_lib/build/esp-idf/esp_ipc && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/__idf_esp_ipc.dir/link.txt --verbose=$(VERBOSE)
 

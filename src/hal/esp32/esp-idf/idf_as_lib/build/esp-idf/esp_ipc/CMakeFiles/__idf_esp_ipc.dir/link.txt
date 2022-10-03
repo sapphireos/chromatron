@@ -1,2 +1,2 @@
-/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar qc libesp_ipc.a  CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc.c.obj CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.obj CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_handler.S.obj CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_routines.S.obj
+/home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ar qc libesp_ipc.a  CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc.c.obj
 /home/jeremy/.espressif/tools/xtensa-esp32-elf/esp-2021r2-patch3-8.4.0/xtensa-esp32-elf/bin/xtensa-esp32-elf-ranlib libesp_ipc.a

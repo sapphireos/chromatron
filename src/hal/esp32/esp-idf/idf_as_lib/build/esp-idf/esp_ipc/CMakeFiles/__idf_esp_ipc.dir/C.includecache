@@ -50,14 +50,6 @@ stddef.h
 hal/cpu_hal.h
 ../../components/esp_hw_support/include/hal/cpu_hal.h
 
-../../components/esp_hw_support/include/esp_intr_alloc.h
-stdint.h
--
-stdbool.h
--
-esp_err.h
-../../components/esp_hw_support/include/esp_err.h
-
 ../../components/esp_hw_support/include/esp_mac.h
 esp_err.h
 ../../components/esp_hw_support/include/esp_err.h
@@ -100,16 +92,6 @@ xtensa/config/core.h
 xtensa/config/specreg.h
 ../../components/esp_hw_support/include/soc/xtensa/config/specreg.h
 
-../../components/esp_hw_support/include/soc/esp32/dport_access.h
-stdint.h
--
-sdkconfig.h
--
-xtensa/xtruntime.h
-../../components/esp_hw_support/include/soc/esp32/xtensa/xtruntime.h
-esp_ipc_isr.h
-../../components/esp_hw_support/include/soc/esp32/esp_ipc_isr.h
-
 ../../components/esp_hw_support/include/soc/spinlock.h
 stdint.h
 -
@@ -129,10 +111,6 @@ xtensa/xtruntime.h
 ../../components/esp_ipc/include/esp_ipc.h
 esp_err.h
 -
-
-../../components/esp_ipc/include/esp_ipc_isr.h
-sdkconfig.h
-../../components/esp_ipc/include/sdkconfig.h
 
 ../../components/esp_rom/include/esp32/rom/ets_sys.h
 stdint.h
@@ -556,24 +534,6 @@ sys/reent.h
 
 ../../components/newlib/platform_include/sys/reent.h
 
-../../components/soc/esp32/include/soc/dport_access.h
-stdint.h
--
-esp_attr.h
-../../components/soc/esp32/include/soc/esp_attr.h
-esp32/dport_access.h
-../../components/soc/esp32/include/soc/esp32/dport_access.h
-sdkconfig.h
-../../components/soc/esp32/include/soc/sdkconfig.h
-
-../../components/soc/esp32/include/soc/dport_reg.h
-soc.h
-../../components/soc/esp32/include/soc/soc.h
-dport_access.h
-../../components/soc/esp32/include/soc/dport_access.h
-
-../../components/soc/esp32/include/soc/periph_defs.h
-
 ../../components/soc/esp32/include/soc/reset_reasons.h
 
 ../../components/soc/esp32/include/soc/soc.h
@@ -647,12 +607,6 @@ xtensa/corebits.h
 ../../components/xtensa/esp32/include/xtensa/config/tie.h
 
 ../../components/xtensa/include/xt_instr_macros.h
-
-../../components/xtensa/include/xtensa/core-macros.h
-xtensa/config/core.h
--
-xtensa/tie/xt_datacache.h
--
 
 ../../components/xtensa/include/xtensa/coreasm.h
 xtensa/config/core.h
@@ -737,48 +691,6 @@ freertos/task.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/freertos/task.h
 freertos/semphr.h
 /home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/freertos/semphr.h
-
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr.c
-stddef.h
--
-stdlib.h
--
-string.h
--
-assert.h
--
-esp_err.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_err.h
-esp_attr.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_attr.h
-soc/cpu.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/soc/cpu.h
-soc/soc.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/soc/soc.h
-soc/dport_access.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/soc/dport_access.h
-soc/dport_reg.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/soc/dport_reg.h
-soc/periph_defs.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/soc/periph_defs.h
-soc/system_reg.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/soc/system_reg.h
-freertos/FreeRTOS.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/freertos/FreeRTOS.h
-freertos/task.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/freertos/task.h
-freertos/portmacro.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/freertos/portmacro.h
-esp_intr_alloc.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_intr_alloc.h
-esp_private/esp_ipc_isr.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_private/esp_ipc_isr.h
-esp_ipc_isr.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/esp_ipc_isr.h
-xtensa/core-macros.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/xtensa/core-macros.h
-sdkconfig.h
-/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/components/esp_ipc/src/esp_ipc_isr/sdkconfig.h
 
 config/sdkconfig.h
 
