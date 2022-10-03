@@ -210,12 +210,20 @@ static void send_data( int32_t *data, uint16_t len, uint64_t tick, uint16_t offs
         return;
     }
 
+    vm_state_t *state = vm_p_get_state();
+
+    if( state == 0 ){
+
+        return;
+    }
+
     vm_sync_msg_data_t *msg = (vm_sync_msg_data_t *)mem2_vp_get_ptr( h );
     msg->header.magic            = SYNC_PROTOCOL_MAGIC;
     msg->header.version          = SYNC_PROTOCOL_VERSION;
     msg->header.type             = VM_SYNC_MSG_DATA;
     msg->header.flags            = 0;
     msg->header.sync_group_hash  = sync_group_hash;
+    msg->header.program_name_hash= state->program_name_hash;
 
     msg->tick                    = tick;
     msg->offset                  = offset;
@@ -228,12 +236,20 @@ static void send_data( int32_t *data, uint16_t len, uint64_t tick, uint16_t offs
 
 static void send_request( bool request_data ){
 
+    vm_state_t *state = vm_p_get_state();
+
+    if( state == 0 ){
+
+        return;
+    }
+
     vm_sync_msg_sync_req_t msg;
     msg.header.magic            = SYNC_PROTOCOL_MAGIC;
     msg.header.version          = SYNC_PROTOCOL_VERSION;
     msg.header.type             = VM_SYNC_MSG_SYNC_REQ;
     msg.header.flags            = 0;
     msg.header.sync_group_hash  = sync_group_hash;
+    msg.header.program_name_hash= state->program_name_hash;
 
     msg.request_data            = request_data;
 
