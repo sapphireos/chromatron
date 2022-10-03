@@ -437,4 +437,5 @@ SYSTEM_KEYS = [
     'timesync',
     'timesync8',
     'ntpclock',
+    'vmsync',
 ]
