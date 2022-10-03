@@ -1215,6 +1215,13 @@ static void init_charger( void ){
     bq25895_v_set_vindpm( VINDPM_SOLAR );
 }
 
+static bool is_charging( void ){
+
+    return ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE ) ||
+           ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE );
+
+}
+
 
 static bool read_adc( void ){
 
@@ -1236,6 +1243,7 @@ static bool read_adc( void ){
 
     batt_charge_current = bq25895_u16_get_charge_current();
     charge_status = bq25895_u8_get_charge_status();
+    batt_charging = is_charging();
 
     if( batt_volts != 0 ){
 
@@ -1291,13 +1299,6 @@ static bool is_vbus_good( void ){
     }
 
     return TRUE;
-}
-
-static bool is_charging( void ){
-
-    return ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE ) ||
-           ( charge_status == BQ25895_CHARGE_STATUS_FAST_CHARGE );
-
 }
 
 
