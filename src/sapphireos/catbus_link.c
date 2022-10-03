@@ -43,6 +43,35 @@
 #include "logging.h"
 
 
+/*
+
+SYNC:
+
+
+Synchronize a variable among all nodes in the link group.
+Source and dest key are the same.
+This requires integration with the FX engine: synced variable
+writes are intercepted, only the link leader is passed through.
+Link followers update the variable to match the leader, and ignore
+local writes from the FX engine.
+
+
+Sync is very similar to send.
+
+Sync leader will transmit a consumer query.
+Followers receiving the query will check if they have the matching
+link.  If they do, they will response with a consumer match.
+
+The sync leader will transmit to consumers at the configured rate.
+The transmit_to_consumers function should work without modification.
+
+The link module must provide an API to check if a given key is
+synchronized and if it is the leader.
+
+
+*/
+
+
 // #define TEST_MODE
 
 
@@ -729,6 +758,23 @@ link_handle_t link_l_create2( link_state_t *state ){
         }
     }
     else if( state->mode == LINK_MODE_RECV ){
+
+        if( kv_i8_get_catbus_meta( state->dest_key, &meta ) < 0 ){
+        
+            return -1;
+        }
+    }
+    else if( state->mode == LINK_MODE_SYNV ){
+
+        if( state->source_key != state->dest_key ){
+
+            return -1;
+        }
+
+        if( kv_i8_get_catbus_meta( state->source_key, &meta ) < 0 ){
+        
+            return -1;
+        }
 
         if( kv_i8_get_catbus_meta( state->dest_key, &meta ) < 0 ){
         
