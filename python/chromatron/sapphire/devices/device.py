@@ -1326,6 +1326,9 @@ class Device(object):
 
         return s
 
+    def cli_gektey(self, line):
+        return cli_getkey(line)
+
     def cli_setkey(self, line):
         tokens = line.split(' ', 1)
         param = tokens[0]
@@ -1346,6 +1349,9 @@ class Device(object):
         new_param = self.get_key(param)
 
         return "%s set to: %s" % (param, new_param)
+
+    def cli_sektey(self, line):
+        return cli_setkey(line)
 
 
     def cli_resetcfg(self, line):

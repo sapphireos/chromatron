@@ -1070,7 +1070,7 @@ static bool compare_self( service_state_t *service ){
     // if none, we win by default.
     if( ip_b_is_zeroes( service->server_ip ) ){
 
-        log_v_debug_P( PSTR("no ip") );
+        // log_v_debug_P( PSTR("no ip") );
 
         return TRUE;
     }
@@ -1083,7 +1083,7 @@ static bool compare_self( service_state_t *service ){
     // our priority is better
     else if( service->local_priority > service->server_priority ){
 
-        log_v_debug_P( PSTR("priority win") );
+        // log_v_debug_P( PSTR("priority win") );
 
         return TRUE;
     }
@@ -1098,7 +1098,7 @@ static bool compare_self( service_state_t *service ){
 
         if( diff > SERVICE_UPTIME_MIN_DIFF ){
 
-            log_v_debug_P( PSTR("uptime newer: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
+            // log_v_debug_P( PSTR("uptime newer: %lu %lu"), (uint32_t)service->server_uptime, (uint32_t)service->local_uptime );
 
             return TRUE;
         }
@@ -1120,7 +1120,7 @@ static bool compare_self( service_state_t *service ){
     // compare origins
     if( catbus_u64_get_origin_id() < service->server_origin ){
 
-        log_v_debug_P( PSTR("origin priority") );
+        // log_v_debug_P( PSTR("origin priority") );
 
         return TRUE;
     }
@@ -1166,7 +1166,7 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
 
     if( diff > SERVICE_UPTIME_MIN_DIFF ){
 
-        log_v_debug_P( PSTR("uptime newer: %lu %lu"), (uint32_t)our_uptime, (uint32_t)offer->uptime );
+        // log_v_debug_P( PSTR("uptime newer: %lu %lu"), (uint32_t)our_uptime, (uint32_t)offer->uptime );
 
         return TRUE;
     }
@@ -1174,7 +1174,7 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
 
         // log_v_debug_P( PSTR("older: %lu %lu"), (uint32_t)our_uptime, (uint32_t)offer->uptime );
 
-        log_v_debug_P( PSTR("uptime ***") );
+        // log_v_debug_P( PSTR("uptime ***") );
 
         return FALSE;
     }
@@ -1184,7 +1184,7 @@ static bool compare_server( service_state_t *service, service_msg_offer_hdr_t *h
     // compare  origins
     if( origin < service->server_origin ){
 
-        log_v_debug_P( PSTR("origin priority") );
+        // log_v_debug_P( PSTR("origin priority") );
 
         return TRUE;
     }
