@@ -2161,14 +2161,20 @@ opcode_db_store:
         db_ptr_len = sizeof(data[src]);
     }
 
-    #ifdef VM_ENABLE_KV
-    #ifdef VM_ENABLE_CATBUS
-    catbus_i8_array_set( hash, type, indexes[0], 1, db_ptr, db_ptr_len );
-    #else
-    kvdb_i8_array_set( hash, type, indexes[0], db_ptr, db_ptr_len );
-    #endif
-    #endif
+    // check sync status
+    // if a sync follower, skip the db set
+    if( ( !link_b_is_synced( hash ) ) ||
+        ( link_b_is_synced_leader( hash ) ) ){
     
+        #ifdef VM_ENABLE_KV
+        #ifdef VM_ENABLE_CATBUS
+        catbus_i8_array_set( hash, type, indexes[0], 1, db_ptr, db_ptr_len );
+        #else
+        kvdb_i8_array_set( hash, type, indexes[0], db_ptr, db_ptr_len );
+        #endif
+        #endif
+    }
+
     DISPATCH;
 
 
@@ -2332,7 +2338,7 @@ int8_t vm_i8_run(
 
                 // if sync follower, set in database
                 if( link_b_is_synced_follower( publish->hash ) ){
-                    
+
                     kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
                 }
             }
