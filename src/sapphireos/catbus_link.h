@@ -201,5 +201,8 @@ uint8_t link_u8_count( void );
 void link_v_delete_by_tag( catbus_hash_t32 tag );
 void link_v_delete_by_hash( uint64_t hash );
 
+bool link_b_is_synced( catbus_hash_t32 key );
+bool link_b_is_synced_leader( catbus_hash_t32 key );
+bool link_b_is_synced_follower( catbus_hash_t32 key );
 
 #endif

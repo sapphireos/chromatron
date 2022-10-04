@@ -2327,7 +2327,19 @@ int8_t vm_i8_run(
 
         if( !type_b_is_string( publish->type ) ){
 
-            kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+            // check sync status
+            if( link_b_is_synced( publish->hash) ){
+
+                // if sync follower, set in database
+                if( link_b_is_synced_follower( publish->hash ) ){
+                    
+                    kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+                }
+            }
+            else{
+
+                kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+            }            
         }
 
         publish++;
@@ -2384,8 +2396,21 @@ int8_t vm_i8_run(
             strncpy( buf, (char *)ptr, sizeof(buf) );
             ptr = (int32_t *)buf;
         }
-        
-        kvdb_i8_set( publish->hash, publish->type, ptr, len );
+
+        // check sync status
+        if( link_b_is_synced( publish->hash) ){
+
+            // if sync leader, set in database
+            if( link_b_is_synced_leader( publish->hash ) ){
+
+                kvdb_i8_set( publish->hash, publish->type, ptr, len );
+            }
+        }
+        // normal publish
+        else{
+
+            kvdb_i8_set( publish->hash, publish->type, ptr, len );
+        } 
 
         publish++;
         count--;

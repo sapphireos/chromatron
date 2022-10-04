@@ -993,6 +993,71 @@ void link_v_delete_by_hash( uint64_t hash ){
 }
 
 
+
+static link_handle_t _link_l_lookup_sync( catbus_hash_t32 key ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        link_state_t *state = list_vp_get_data( ln );
+
+        if( ( state->source_key == key ) &&
+            ( state->mode == LINK_MODE_SYNC ) ){
+
+            return ln;
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return -1;
+}
+
+bool link_b_is_synced( catbus_hash_t32 key ){
+
+    link_handle_t link = _link_l_lookup_sync( key );
+
+    if( link < 0 ){
+
+        return FALSE;
+    }
+
+    link_state_t *link_state = list_vp_get_data( link );
+
+    return services_b_is_available( LINK_SERVICE, link_state->hash );
+}
+
+bool link_b_is_synced_leader( catbus_hash_t32 key ){
+
+    link_handle_t link = _link_l_lookup_sync( key );
+
+    if( link < 0 ){
+
+        return FALSE;
+    }
+
+    link_state_t *link_state = list_vp_get_data( link );
+
+    return services_b_is_server( LINK_SERVICE, link_state->hash );
+}
+
+bool link_b_is_synced_follower( catbus_hash_t32 key ){
+
+    link_handle_t link = _link_l_lookup_sync( key );
+
+    if( link < 0 ){
+
+        return FALSE;
+    }
+
+    link_state_t *link_state = list_vp_get_data( link );
+
+    return services_b_is_available( LINK_SERVICE, link_state->hash ) &&
+           !services_b_is_server( LINK_SERVICE, link_state->hash );
+}
+
+
 /***********************************************
                 LINK PROCESSING
 ***********************************************/
