@@ -252,6 +252,23 @@ class cg1Module(cg1Node):
                 if node.target == 'db':
                     builder.db(node.params[0].s, node.params[1].s, node.params[2].name, lineno=node.lineno)
 
+                elif node.target in ['sync']:
+                    src = node.params[0].s
+                    query = [a.s for a in node.params[1].items]
+                    try:
+                        rate = int(node.params[2].s)
+
+                    except AttributeError:
+                        rate = int(node.params[2].name)
+                    
+                    except IndexError:
+                        rate = 1000
+
+                    aggregation = 'any'
+                    dest = src
+
+                    builder.link(node.target, src, dest, query, aggregation, rate, lineno=node.lineno)
+
                 elif node.target in ['send', 'receive']:
                     src = node.params[1].s
                     dest = node.params[0].s

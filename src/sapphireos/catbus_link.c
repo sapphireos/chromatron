@@ -56,14 +56,22 @@ Link followers update the variable to match the leader, and ignore
 local writes from the FX engine.
 
 
-Sync is very similar to send.
+Sync leverages the send and receive machinery.  It shares attributes with 
+both.
 
-Sync leader will transmit a consumer query.
-Followers receiving the query will check if they have the matching
-link.  If they do, they will response with a consumer match.
+A key difference is that all members of the sync group have a copy
+of the link.  Thus some shared context is already available.
 
-The sync leader will transmit to consumers at the configured rate.
-The transmit_to_consumers function should work without modification.
+Sync followers send a consumer match in the discovery process.
+
+The leader will receive the consumer matches, which will create the data
+binding.  The sync leader will transmit to consumers at the configured rate.
+The transmit_to_consumers function should work without modification.  This
+is simliar to the leader on receive.
+
+No aggregation is performed, however, the aggregate function may be used
+since it will retrieve the local data item and format it for 
+transmission.
 
 The link module must provide an API to check if a given key is
 synchronized and if it is the leader.
@@ -764,7 +772,7 @@ link_handle_t link_l_create2( link_state_t *state ){
             return -1;
         }
     }
-    else if( state->mode == LINK_MODE_SYNV ){
+    else if( state->mode == LINK_MODE_SYNC ){
 
         if( state->source_key != state->dest_key ){
 
@@ -780,6 +788,8 @@ link_handle_t link_l_create2( link_state_t *state ){
         
             return -1;
         }
+
+        state->aggregation = LINK_AGG_ANY;
     }
     else{
 
@@ -1811,10 +1821,12 @@ PT_BEGIN( pt );
             // check if we are link leader
             if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
 
+                // send links use consumer query
                 if( link_state->mode == LINK_MODE_SEND ){
 
                     transmit_consumer_query( link_state );
                 }
+                // receiver links used the producer query
                 else if( link_state->mode == LINK_MODE_RECV ){
 
                     transmit_producer_query( link_state );
@@ -1823,8 +1835,9 @@ PT_BEGIN( pt );
             // we are not link leader
             else if( services_b_is_available( LINK_SERVICE, link_state->hash ) ){
 
-                // receive link
-                if( link_state->mode == LINK_MODE_RECV ){
+                // receive and sync link
+                if( ( link_state->mode == LINK_MODE_RECV ) ||
+                    ( link_state->mode == LINK_MODE_SYNC ) ){
 
                     // we need to send consumer match to the leader
                     sock_addr_t raddr = services_a_get( LINK_SERVICE, link_state->hash );
@@ -1878,8 +1891,10 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
 
         return 0;
     }
-    
-    if( link_state->mode == LINK_MODE_SEND ){
+        
+    // send and sync links, get from local database
+    if( ( link_state->mode == LINK_MODE_SEND ) ||
+        ( link_state->mode == LINK_MODE_SYNC ) ){
         
         // get data from database.
         // this will include the full array, for array types
@@ -1910,8 +1925,9 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
 
         int64_t accumulator = 0;
 
-        // load initial data for send link
-        if( link_state->mode == LINK_MODE_SEND ){
+        // load initial data for send and sync link
+        if( ( link_state->mode == LINK_MODE_SEND ) ||
+            ( link_state->mode == LINK_MODE_SYNC ) ){
 
             accumulator = specific_to_i64( meta.type, ptr );
         }
@@ -1935,7 +1951,10 @@ static uint16_t aggregate( link_handle_t link, catbus_hash_t32 hash, link_data_m
         }
 
         // for ANY, we return the first value
-        if( link_state->aggregation == LINK_AGG_ANY ){
+        // sync links should always be ANY since they only hvae
+        // the leader value
+        if( ( link_state->aggregation == LINK_AGG_ANY ) ||
+            ( link_state->mode == LINK_MODE_SYNC ) ){
 
             i64_to_specific( accumulator, meta.type, ptr );
         }
@@ -2180,7 +2199,8 @@ static void process_link( link_handle_t link, uint32_t elapsed_ms ){
             transmit_producer_data( link_state->hash, &meta, msg_buf.buf, data_len, &raddr );
         }
     }
-    else if( link_state->mode == LINK_MODE_RECV ){
+    else if( ( link_state->mode == LINK_MODE_RECV ) ||
+             ( link_state->mode == LINK_MODE_SYNC ) ){
         
         // link leader
         if( services_b_is_server( LINK_SERVICE, link_state->hash ) ){
