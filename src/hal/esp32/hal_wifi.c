@@ -970,8 +970,11 @@ static void apply_power_save_mode( void ){
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    // log_v_debug_P( PSTR("ARP table size: %d"), ARP_TABLE_SIZE );
+    
+    // DEBUG:
+    // don't remove this, we need to confirm we didn't screw up these settings
+    // on an IDF update...
+    log_v_debug_P( PSTR("ARP table size: %d queueing: %d queue len: %d"), ARP_TABLE_SIZE, ARP_QUEUEING, ARP_QUEUE_LEN );
 
     static uint16_t scan_timeout;
 
