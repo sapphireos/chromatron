@@ -30,13 +30,18 @@
 #include "flash_fs.h"
 #include "wifi.h"
 #include "timesync.h"
-
+#include "keyvalue.h"
 #include "hal_boards.h"
 #include "hal_status_led.h"
 
 
 static bool enabled;
 
+static uint8_t identify;
+
+KV_SECTION_META kv_meta_t status_led_kv[] = {
+    { CATBUS_TYPE_UINT8,         0, 0,   &identify,                  0,   "identify" },
+};
 
 
 PT_THREAD( status_led_thread( pt_t *pt, void *state ) )
@@ -74,6 +79,18 @@ PT_BEGIN( pt );
             status_led_v_set( 1, STATUS_LED_RED );
 
             TMR_WAIT( pt, 900 );
+        }
+        else if( identify > 0 ){
+
+            status_led_v_set( 0, STATUS_LED_WHITE );
+
+            TMR_WAIT( pt, 500 );
+
+            status_led_v_set( 1, STATUS_LED_WHITE );
+
+            TMR_WAIT( pt, 500 );
+
+            identify--;
         }
         else if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
