@@ -38,8 +38,11 @@ void libs_v_init( void ) __attribute__((weak));
 
 void sapphire_main();
 
-// #define SAPPHIRE_TASK_PRIO ESP_TASK_MAIN_PRIO
+#ifdef CONFIG_FREERTOS_UNICORE
 #define SAPPHIRE_TASK_PRIO ESP_TASK_PRIO_MIN
+#else
+#define SAPPHIRE_TASK_PRIO ESP_TASK_MAIN_PRIO
+#endif
 
 void app_main()
 {
