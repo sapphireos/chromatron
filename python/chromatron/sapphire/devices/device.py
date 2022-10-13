@@ -1716,13 +1716,13 @@ class Device(object):
     def cli_portinfo(self, line):
         data = self.get_port_monitor()
         
-        s = '\nIP           rport lport      tx      rx     drop  timeout\n'
+        s = '\nIP            rport lport      tx      rx     drop  timeout\n'
 
         for item in data:
             if item.timeout == 0:
                 continue
 
-            s += f'{item.ipaddr:12} {item.rport:5} {item.lport:5} {item.tx_count:7} {item.rx_count:7} {item.dropped:5}    {item.timeout:3}\n'
+            s += f'{item.ipaddr:15} {item.rport:5} {item.lport:5} {item.tx_count:7} {item.rx_count:7} {item.dropped:5}    {item.timeout:3}\n'
 
         return s
 
