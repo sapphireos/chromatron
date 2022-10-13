@@ -30,8 +30,9 @@
 #include "memory.h"
 #include "netmsg.h"
 #include "udp.h"
+#include "target.h"
 
-#define SOCK_SINGLE_BUF
+// #define SOCK_SINGLE_BUF // move this to target specific if needed in the future
 
 #define SOCK_MEM_BUSY_THRESHOLD         1024
 
