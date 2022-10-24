@@ -16,6 +16,10 @@ popd
 
 ./build_chromatron_esp32.sh
 
+pushd ../playground
+sapphiremake -p lib_hx711 -p weight_sensor -t esp32
+popd
+
 # sapphiremake -p chromatron_batt
 # sapphiremake -p pyramid
 # sapphiremake -p printer

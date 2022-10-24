@@ -632,6 +632,9 @@ void sock_v_flush( socket_t sock ){
             // mark handle as empty
             rx_handle = -1;
             rx_port = 0;
+
+            // reset state
+            dgram_state->state = SOCK_UDP_STATE_IDLE;
         }
     }
     
@@ -645,6 +648,9 @@ void sock_v_flush( socket_t sock ){
 
     // mark handle as empty
     dgram_state->handle = -1;
+
+    // reset state
+    dgram_state->state = SOCK_UDP_STATE_IDLE;
     
     #endif
 }
