@@ -278,6 +278,23 @@ bool cpu_b_osc_fail( void ){
 
 NOTE light sleep will break the JTAG connection when debugging!
 
+
+clock notes:
+
+the 240 MHz CPU clock switches the internal PLL to 480 MHz.
+
+the 80/160 MHz speeds will use a 320 MHz PLL clock.
+
+according to Espressif, the PLL switch is very slow.  If DFS is enabled
+and there is a PLL switch, it will throw off system timers and cause large delays.
+this will throw off the timer used for modem sleep.
+
+See: https://github.com/espressif/esp-idf/issues/9766
+
+So, if we want to use DFS, probably we should set a 160 MHz max clock.
+Or just turn off DFS and continue to use light sleep.
+
+
 */
 
 void cpu_v_set_clock_speed_low( void ){
@@ -303,10 +320,10 @@ void cpu_v_set_clock_speed_high( void ){
     esp_pm_config_esp32_t pm_config = { 0 };
     #ifdef ESP32_MAX_CPU_160M
     pm_config.max_freq_mhz = 160;
-    pm_config.min_freq_mhz = 80;
+    pm_config.min_freq_mhz = 160;
     #else
     pm_config.max_freq_mhz = 240;
-    pm_config.min_freq_mhz = 80;
+    pm_config.min_freq_mhz = 240;
     #endif
 
     pm_config.light_sleep_enable = TRUE;
