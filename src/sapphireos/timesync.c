@@ -365,6 +365,8 @@ PT_BEGIN( pt );
 
     while( is_follower() ){
 
+        sock_v_flush( sock );
+
         // random delay to prevent overloading the server
         TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 4 ) ); // 1 to 5 seconds        
 
@@ -376,6 +378,8 @@ PT_BEGIN( pt );
         };
 
         sock_addr_t send_raddr = services_a_get( TIME_ELECTION_SERVICE, 0 );
+
+        sock_v_flush( sock );
         
         sock_i16_sendto( sock, (uint8_t *)&ping, sizeof(ping), &send_raddr );  
 

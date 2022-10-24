@@ -630,6 +630,7 @@ server_done:
             tmr_u64_get_system_time_ms(),
         };
 
+        sock_v_flush( sock );
 
         sock_addr_t send_raddr = services_a_get( NTP_ELECTION_SERVICE, 0 );
         
