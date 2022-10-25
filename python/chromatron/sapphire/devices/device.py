@@ -1489,12 +1489,24 @@ class Device(object):
         return s
 
     def cli_nettime(self, line, targets=None):
+
+        target_modem_sleep = {}
+
+        for target in targets:
+            target_modem_sleep[target] = target.get_key('wifi_disable_modem_sleep')
+            target.set_key('wifi_disable_modem_sleep', True)
+
+        time.sleep(2.0)
+
         nettimes = []
 
         for target in targets:
             nt = target.get_key('net_time')
 
             nettimes.append(nt)
+
+        for target in targets:
+            target.set_key('wifi_disable_modem_sleep', target_modem_sleep[target])
 
         base = nettimes[0]
 
