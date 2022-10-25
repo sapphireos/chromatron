@@ -1488,6 +1488,25 @@ class Device(object):
 
         return s
 
+    def cli_nettime(self, line, targets=None):
+        nettimes = []
+
+        for target in targets:
+            nt = target.get_key('net_time')
+
+            nettimes.append(nt)
+
+        base = nettimes[0]
+
+        print('Base time: {base} ms')
+
+        i = 0
+        for nt in nettimes:
+            print(f'{str(targets[i]):32}: {int(nt - base):5} ms')
+            i += 1
+
+        return ''
+
     def cli_ntptime(self, line):
         ntp_seconds = self.get_key("ntp_seconds")
 
