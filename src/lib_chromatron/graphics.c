@@ -211,14 +211,12 @@ PT_BEGIN( pt );
 
     THREAD_WAIT_WHILE( pt, pix_u8_get_mode() == 0 );
 
-    thread_v_create_timed_signal( GFX_SIGNAL_0, 20 );
-
     static uint32_t start;
     start = tmr_u32_get_system_time_us();
 
     while(1){        
 
-        THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
+        THREAD_RATE( pt, FADER_RATE );
 
         uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
         start = tmr_u32_get_system_time_us();

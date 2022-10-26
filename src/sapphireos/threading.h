@@ -56,6 +56,9 @@
 #define SIGNAL_APP_7        15
 
 
+#define THREAD_RATE_TICK_MS 10
+
+
 // this option will cause the scheduler to check that global interrupts
 // are enabled after each thread returns.  it will assert if the thread
 // has left the interrupts disabled.  this is to check for malfunctioning
@@ -96,14 +99,7 @@ typedef struct __attribute__((packed)){
 #define THREAD_FLAGS_SLEEPING		0b00000100
 #define THREAD_FLAGS_SIGNAL 		0b00001000
 #define THREAD_FLAGS_ALARM          0b00010000
-
-typedef struct{
-    uint8_t signal;
-    int32_t rate; // microseconds
-    int32_t ticks;
-} thread_timed_signal_t;
-
-#define THREAD_MAX_TIMED_SIGNALS    4
+#define THREAD_FLAGS_RATE           0b00100000
 
 #define THREAD_CAST( thread ) (PT_THREAD((*)(pt_t *pt, void *state )))thread
 
@@ -147,9 +143,11 @@ bool thread_b_signalled( uint8_t signum );
 void thread_v_set_signal_flag( void );
 void thread_v_clear_signal_flag( void );
 uint16_t thread_u16_get_signals( void );
-void thread_v_create_timed_signal( uint8_t signum, uint8_t rate );
 
 uint8_t thread_u8_get_run_cause( void );
+
+void thread_v_set_rate( uint16_t rate );
+void thread_v_clear_rate( void );
 
 void thread_v_set_alarm( uint32_t alarm );
 uint32_t thread_u32_get_alarm( void );
@@ -200,5 +198,10 @@ void thread_core( void );
     while( child_thread( &child_context, 0 ) < PT_EXITED ){ \
         THREAD_YIELD( pt ); \
     }
+
+#define THREAD_RATE( pt, rate ) \
+    thread_v_set_rate( rate ); \
+    THREAD_SLEEP( pt );
+
 
 #endif

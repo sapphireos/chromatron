@@ -51,6 +51,7 @@ improve the amount of time the CPU can go to sleep and minimize wakeups while st
 timing.  The same amount of work needs to be done, but it is more efficient if it is coordinated
 to maximize work done on a wake up.  The current system spreads tasks out haphazardly.
 
+This can hopefully replace the "timed signal" feature which is a bit messy.
 
 
 */
@@ -121,13 +122,14 @@ static volatile uint8_t thread_flags;
 #define FLAGS_ACTIVE        0x04
 
 static volatile uint16_t signals;
-static thread_timed_signal_t timed_signals[THREAD_MAX_TIMED_SIGNALS];
-static uint32_t last_timed_signal_check;
 
 #ifdef ENABLE_STACK_LOGGING
 static uint16_t last_stack;
 #endif
 
+static uint32_t last_rate_check;
+static uint32_t late_ticks;
+static uint16_t current_tick;
 
 // KV:
 static int8_t thread_i8_kv_handler(
@@ -156,6 +158,7 @@ KV_SECTION_META kv_meta_t thread_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.task_time,       0,  "thread_task_time" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.sleep_time,      0,  "thread_sleep_time" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.scheduler_loops, 0,  "thread_loops" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &late_ticks,               0,  "thread_late_ticks" },
 };
 
 
@@ -494,33 +497,26 @@ uint16_t thread_u16_get_signals( void ){
     return sig_copy;
 }
 
-void thread_v_create_timed_signal( uint8_t signum, uint8_t rate ){
-
-    // cannot create timed signals in safe mode
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-        return;
-    }
-
-    for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
-
-        if( timed_signals[i].rate == 0 ){
-
-            timed_signals[i].signal = signum;
-            timed_signals[i].rate = rate * 1000; // convert to microseconds
-            timed_signals[i].ticks = timed_signals[i].rate;
-
-            return;
-        }
-    }
-
-    // no signals available
-    ASSERT( FALSE );
-}
-
 uint8_t thread_u8_get_run_cause( void ){
 
     return run_cause;
+}
+
+void thread_v_set_rate( uint16_t rate ){
+
+    thread_state_t *state = list_vp_get_data( thread_t_get_current_thread() );
+
+    rate %= THREAD_RATE_TICK_MS;
+
+    state->alarm = rate;
+    state->flags |= THREAD_FLAGS_RATE;
+}
+
+void thread_v_clear_rate( void ){
+
+    thread_state_t *state = list_vp_get_data( thread_t_get_current_thread() );
+
+    state->flags &= ~THREAD_FLAGS_RATE;
 }
 
 void thread_v_set_alarm( uint32_t alarm ){
@@ -724,32 +720,6 @@ void run_thread( thread_t thread, thread_state_t *state ){
     #endif
 }
 
-
-static void process_timed_signals( void ){
-
-    uint32_t now = tmr_u32_get_system_time_us();
-    uint32_t elapsed = tmr_u32_elapsed_times( last_timed_signal_check, now );
-
-    for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
-
-        if( timed_signals[i].rate <= 0 ){
-
-            continue;
-        }
-
-        timed_signals[i].ticks -= elapsed;
-
-        if( timed_signals[i].ticks <= 0 ){
-
-            timed_signals[i].ticks += timed_signals[i].rate;
-
-            signals |= ( 1 << timed_signals[i].signal );
-        }
-    }
-
-    last_timed_signal_check = now;
-}
-
 static void process_signalled_threads( void ){
 
     uint8_t count = 0;
@@ -783,29 +753,71 @@ static void process_signalled_threads( void ){
 }
 
 
-// void process_alarm_threads( void ){
+#define THREAD_RATE_TICK_US ( THREAD_RATE_TICK_MS * 1000 )
 
-//     // iterate through thread list
-//     list_node_t ln = thread_list.head;
+static void process_rate_threads( void ){
 
-//     while( ln >= 0 ){
+    uint32_t now = tmr_u32_get_system_time_us();
 
-//         list_node_state_t *ln_state = mem2_vp_get_ptr_fast( ln );
-//         thread_state_t *state = (thread_state_t *)&ln_state->data;
+    uint32_t delta_us = tmr_u32_elapsed_times( last_rate_check, now );
 
-//         if( ( ( state->flags & THREAD_FLAGS_ALARM ) != 0 ) &&
-//             ( tmr_i8_compare_time( state->alarm ) < 0 ) ){
+    // check if we hit our tick
+    if( delta_us < THREAD_RATE_TICK_US ) {
 
-//             // clear flags
-//             state->flags &= ~THREAD_FLAGS_ALARM;
-//             state->flags &= ~THREAD_FLAGS_SLEEPING;
+        return;
+    }
 
-//             run_thread( ln, state );
-//         }
+    // tick is triggered
+    // loop and run all ticks to avoid missing ticks, even if running behind
 
-//         ln = ln_state->next;
-//     }
-// }
+    uint16_t tick_count = 0;
+
+    while( delta_us >= THREAD_RATE_TICK_US ){
+
+        list_node_t ln = thread_list.head;
+
+        while( ln >= 0 ){
+
+            list_node_state_t *ln_state = mem2_vp_get_ptr_fast( ln );
+            thread_state_t *state = (thread_state_t *)&ln_state->data;
+
+            if( ( state->flags & THREAD_FLAGS_RATE ) == 0 ){
+
+                goto next;
+            }
+
+            // check if running on this tick
+            if( ( current_tick % ( state->alarm ) ) == 0 ){
+
+                run_cause = THREAD_FLAGS_RATE;
+
+                // clear flags
+                state->flags &= ~THREAD_FLAGS_RATE;
+                state->flags &= ~THREAD_FLAGS_SLEEPING;
+
+                run_thread( ln, state );
+            }            
+
+        next:
+            ln = ln_state->next;
+        }
+
+
+        tick_count++;
+        delta_us -= THREAD_RATE_TICK_US;
+
+        // check if running behind
+        if( tick_count > 1 ){
+
+            late_ticks++;
+        }
+
+        current_tick += THREAD_RATE_TICK_MS;
+    }
+
+
+    last_rate_check = now;
+}
 
 void thread_core( void ){
 
@@ -852,7 +864,7 @@ void thread_core( void ){
 
         ln = ln_state->next;
 
-        process_timed_signals();
+        process_rate_threads();
         process_signalled_threads();
 
         #ifdef ENABLE_USB
