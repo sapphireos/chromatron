@@ -72,7 +72,7 @@ static uint8_t current_scan_backoff;
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
 static uint8_t wifi_power_mode;
-static bool disable_modem_sleep = TRUE; // default to disable modem sleep, as there is currently a bug in IDF causing it to be very unstable.
+static bool enable_modem_sleep = FALSE; // default to disable modem sleep, it can be unstable and lose traffic
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
@@ -108,7 +108,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
 
     { CATBUS_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_power_mode,                  0,   "wifi_power_mode" },
-    { CATBUS_TYPE_BOOL,          0, KV_FLAGS_PERSIST,     &disable_modem_sleep,              0,   "wifi_disable_modem_sleep" },
+    { CATBUS_TYPE_BOOL,          0, KV_FLAGS_PERSIST,     &enable_modem_sleep,               0,   "wifi_enable_modem_sleep" },
 };
 
 // this lives in the wifi driver because it is the easiest place to get to hardware specific code
@@ -938,12 +938,12 @@ static bool is_low_power_mode( void ){
         return FALSE;
     }
 
-    if( disable_modem_sleep ){
+    if( enable_modem_sleep ){
 
-        return FALSE;
+        return TRUE;
     }
 
-    return TRUE;
+    return FALSE;
 }
 
 static void apply_power_save_mode( void ){
