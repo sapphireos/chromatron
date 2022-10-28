@@ -1550,7 +1550,7 @@ KV_SECTION_OPT kv_meta_t bq25895_info_mppt_kv[] = {
 
 };
 
-static reset_mppt( void ){
+static void reset_mppt( void ){
 
     mppt_current_vindpm = BQ25895_MIN_MPPT_VINDPM;
     mppt_index = 0;
@@ -1604,8 +1604,8 @@ static void do_mppt( uint16_t charge_current ){
 
         // select vindpm. this is max of currents stored in mppt_bins, the index representing
         // the vindpm setting that produced it.
-        uint16_t best_current;
-        uint8_t best_index;
+        uint16_t best_current = 0;
+        uint8_t best_index = 0;
 
         for( uint8_t i = 0; i < MPPT_BINS; i++ ){
 
