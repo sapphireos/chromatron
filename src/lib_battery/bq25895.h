@@ -28,6 +28,13 @@
 #define BQ25895_MIN_BOOST_VOLTAGE   4550
 #define BQ25895_MAX_BOOST_VOLTAGE   5510
 
+#define BQ25895_MIN_VINDPM          3900
+#define BQ25895_MAX_VINDPM          15300
+
+#define BQ25895_MIN_MPPT_VINDPM     4900
+#define BQ25895_MAX_MPPT_VINDPM     6200
+#define BQ25895_MPPT_VINDPM_STEP    100
+
 // NOTE! The datasheet lists the address as 0x6B in the serial Interface
 // overview, but then lists it as 0x6A in the register description.
 // the 0x6B is a typo!
