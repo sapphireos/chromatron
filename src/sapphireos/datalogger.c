@@ -204,12 +204,12 @@ static int8_t record_data( datalog_entry_t *entry, uint32_t timestamp ){
 
     if( datalog_buffer_handle < 0 ){
 
-        return -1;
+        return -2;
     }
 
     if( buffer_offset == 0 ){
 
-        return -1;
+        return -3;
     }
 
     uint8_t *ptr = mem2_vp_get_ptr( datalog_buffer_handle );
@@ -241,7 +241,7 @@ static int8_t record_data( datalog_entry_t *entry, uint32_t timestamp ){
 
     if( kv_i8_get( entry->hash, &chunk->data.data, data_size ) != KV_ERR_STATUS_OK ){
 
-        return -1;
+        return -4;
     }
 
     buffer_offset += chunk_size;
@@ -416,7 +416,7 @@ PT_BEGIN( pt );
                 }
                 else if( status < 0 ){
 
-                    log_v_debug_P( PSTR("datalog failed") );
+                    log_v_warn_P( PSTR("datalog failed: %d"), status );
                 }
 
             done:
