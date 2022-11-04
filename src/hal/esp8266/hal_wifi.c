@@ -256,7 +256,8 @@ void hal_wifi_v_init( void ){
     system_phy_set_max_tpw( tx_power * 4 );
 
     // set sleep mode
-    wifi_set_sleep_type( MODEM_SLEEP_T );
+    // wifi_set_sleep_type( MODEM_SLEEP_T );
+    wifi_set_sleep_type( NONE_SLEEP_T );
 
     // disable auto reconnect (we will manage this)
     wifi_station_set_auto_connect( FALSE );
@@ -597,13 +598,6 @@ void wifi_v_shutdown( void ){
 void wifi_v_powerup( void ){
 
     wifi_shutdown = FALSE;
-}
-
-uint32_t wifi_u32_get_power( void ){
-
-    // not a real value....
-    
-    return 50000 *  3.3;
 }
 
 void wifi_v_reset_scan_timeout( void ){

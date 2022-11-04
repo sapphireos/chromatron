@@ -608,6 +608,53 @@ bool sock_b_busy( socket_t sock ){
     return TRUE;
 }
 
+void sock_v_flush( socket_t sock ){
+
+    sock_state_raw_t *raw_state = list_vp_get_data( sock );
+
+    if( !SOCK_IS_DGRAM( raw_state->type ) ){
+
+        return;
+    }
+
+    sock_state_dgram_t *dgram_state = (sock_state_dgram_t *)raw_state;
+
+
+    #ifdef SOCK_SINGLE_BUF
+
+    if( rx_port == dgram_state->lport ){
+
+        if( rx_handle > 0 ){
+
+            // free the receive buffer
+            mem2_v_free( rx_handle );
+
+            // mark handle as empty
+            rx_handle = -1;
+            rx_port = 0;
+
+            // reset state
+            dgram_state->state = SOCK_UDP_STATE_IDLE;
+        }
+    }
+    
+    #else
+
+    if( dgram_state->handle > 0 ){
+
+        // free the receive buffer
+        mem2_v_free( dgram_state->handle );
+    }
+
+    // mark handle as empty
+    dgram_state->handle = -1;
+
+    // reset state
+    dgram_state->state = SOCK_UDP_STATE_IDLE;
+    
+    #endif
+}
+
 // receive data from a socket.
 // returns -1 if socket is busy waiting for data
 // returns 0 if data is available.

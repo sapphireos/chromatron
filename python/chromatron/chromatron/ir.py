@@ -2738,8 +2738,8 @@ class Builder(object):
             if isinstance(params['day_of_week'], str):
                 params['day_of_week'] = DAY_OF_WEEK[params['day_of_week'].lower()]
 
-            if params['day_of_week'] < 1 or params['day_of_week'] > 7:
-                raise SyntaxError("Day of week must be within 1 - 7, got %d" % (params['day_of_week']), lineno=lineno)
+            if params['day_of_week'] < 0 or params['day_of_week'] > 6:
+                raise SyntaxError("Day of week must be within 0 - 6, got %d" % (params['day_of_week']), lineno=lineno)
         
         if 'month' in params:
             if isinstance(params['month'], str):

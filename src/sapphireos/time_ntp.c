@@ -264,7 +264,7 @@ void ntp_v_set_master_clock(
 
         master_sync_delta = delta_ms;
 
-        log_v_debug_P( PSTR("NTP sync diff: %ld [soft sync]"), delta_ms );
+        // log_v_debug_P( PSTR("NTP sync diff: %ld [soft sync]"), delta_ms );
     }
 
     // assign clock source:
@@ -630,6 +630,7 @@ server_done:
             tmr_u64_get_system_time_ms(),
         };
 
+        sock_v_flush( sock );
 
         sock_addr_t send_raddr = services_a_get( NTP_ELECTION_SERVICE, 0 );
         

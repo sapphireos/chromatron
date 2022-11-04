@@ -30,8 +30,9 @@
 #include "memory.h"
 #include "netmsg.h"
 #include "udp.h"
+#include "target.h"
 
-#define SOCK_SINGLE_BUF
+// #define SOCK_SINGLE_BUF // move this to target specific if needed in the future
 
 #define SOCK_MEM_BUSY_THRESHOLD         1024
 
@@ -97,6 +98,7 @@ bool sock_b_rx_pending( void );
 void sock_v_clear_rx_pending( void );
 
 bool sock_b_busy( socket_t sock );
+void sock_v_flush( socket_t sock );
 
 int8_t sock_i8_recvfrom( socket_t sock );
 int16_t sock_i16_sendto( socket_t sock, void *buf, uint16_t bufsize, sock_addr_t *raddr );

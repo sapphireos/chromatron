@@ -24,6 +24,39 @@
 
 
 
+/*
+
+Thread timing improvements:
+
+Rate: run thread at specific multiple of 10 ms.
+The threading system drives a high priority 10 ms clock.
+Any thread with the rate flag set will run when the tick hits its
+modulo of the current clock.
+
+
+Add flag for rate control (similar to current alarm).
+The alarm field becomes the rate field.
+
+There will need to be an accurate 10 ms clock driving the scheduler.
+Rate-driven threads should run at higher priority than others, except signals.
+
+Stats should be collected on rate driven threads: avg and max timings at least.
+
+Rate threads should run in a priority order, with higher rates running first.
+
+
+
+The overall idea is to get better control and accuracy of timed tasks and hopefully
+improve the amount of time the CPU can go to sleep and minimize wakeups while still maintaining
+timing.  The same amount of work needs to be done, but it is more efficient if it is coordinated
+to maximize work done on a wake up.  The current system spreads tasks out haphazardly.
+
+
+
+*/
+
+
+
 #include "cpu.h"
 
 #include "system.h"

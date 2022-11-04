@@ -198,8 +198,3 @@ void hal_cpu_v_delay_ms( uint16_t ms ){
 		os_delay_us( 1000 );
 	}
 }
-
-uint32_t cpu_u32_get_power( void ){
-
-    return 5000 * 3.3;
-}

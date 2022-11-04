@@ -1709,7 +1709,7 @@ def fs_get(ctx, filename):
             data = ct.get_file(filename)
 
             with open(os.path.join(ct.name, filename), 'w+') as f:
-                f.write(data)
+                f.write(data.decode())
 
             click.echo("Received %s" % (click.style(filename, fg=VAL_COLOR)))
 

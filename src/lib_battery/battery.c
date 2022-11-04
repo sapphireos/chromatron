@@ -361,10 +361,10 @@ void batt_v_init( void ){
 
     // if pixels are below the low power threshold,
     // set the CPU to low speed
-    if( gfx_u16_get_pix_count() < BATT_PIX_COUNT_LOW_POWER_THRESHOLD ){
+    // if( gfx_u16_get_pix_count() < BATT_PIX_COUNT_LOW_POWER_THRESHOLD ){
 
-        cpu_v_set_clock_speed_low();
-    }
+    //     cpu_v_set_clock_speed_low();
+    // }
 
     batt_v_enable_pixels();
 

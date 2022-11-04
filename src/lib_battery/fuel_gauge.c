@@ -33,6 +33,32 @@
 /*
 
 
+Another take on this:
+
+We really need a battery cycle counter.  This can just be mV recovered by charge.  Nothing fancy.
+
+Basic SoC on voltage is usable.  Later we can compensate for load, but the cycle count is more valuable.
+
+
+Some knowledge of the day/night cycle for solar charging would be useful.  This could come from light level, if available.
+
+This module might not be the right place for that though.
+
+
+Might turn off the recorder, and just rewrite this module to be more streamlined.  Not sure the filters are useful either.
+
+Just want cycle count and basic Soc!
+
+
+
+
+
+
+
+
+
+
+
 Fuel gauge notes:
 
 

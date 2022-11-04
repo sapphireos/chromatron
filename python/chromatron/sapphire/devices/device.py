@@ -1345,6 +1345,9 @@ class Device(object):
 
         return s
 
+    def cli_gektey(self, line):
+        return cli_getkey(line)
+
     def cli_setkey(self, line):
         tokens = line.split(' ', 1)
         param = tokens[0]
@@ -1365,6 +1368,9 @@ class Device(object):
         new_param = self.get_key(param)
 
         return "%s set to: %s" % (param, new_param)
+
+    def cli_sektey(self, line):
+        return cli_setkey(line)
 
 
     def cli_resetcfg(self, line):
@@ -1459,20 +1465,20 @@ class Device(object):
 
         return s
 
-    def cli_irqinfo(self, line):
-        params = self.get_kv("sys_time_us", "irq_time", "irq_longest_time", "irq_longest_addr")
+    # def cli_irqinfo(self, line):
+    #     params = self.get_kv("sys_time_us", "irq_time", "irq_longest_time", "irq_longest_addr")
 
-        # convert all params to floats
-        params = {k: float(v) for (k, v) in params.items()}
+    #     # convert all params to floats
+    #     params = {k: float(v) for (k, v) in params.items()}
 
-        irq_usage = (params["irq_time"] / params["sys_time_us"]) * 100.0
+    #     irq_usage = (params["irq_time"] / params["sys_time_us"]) * 100.0
 
-        s = "IRQ:%2.1f%% Longest:%6d uS Addr:0x%05x" % \
-            (irq_usage,
-             params["irq_longest_time"],
-             params["irq_longest_addr"])
+    #     s = "IRQ:%2.1f%% Longest:%6d uS Addr:0x%05x" % \
+    #         (irq_usage,
+    #          params["irq_longest_time"],
+    #          params["irq_longest_addr"])
 
-        return s
+    #     return s
 
 
     def cli_meminfo(self, line):
@@ -1500,6 +1506,37 @@ class Device(object):
              params["loader_status"])
 
         return s
+
+    def cli_nettime(self, line, targets=None):
+
+        target_modem_sleep = {}
+
+        for target in targets:
+            target_modem_sleep[target] = target.get_key('wifi_disable_modem_sleep')
+            target.set_key('wifi_disable_modem_sleep', True)
+
+        time.sleep(2.0)
+
+        nettimes = []
+
+        for target in targets:
+            nt = target.get_key('net_time')
+
+            nettimes.append(nt)
+
+        for target in targets:
+            target.set_key('wifi_disable_modem_sleep', target_modem_sleep[target])
+
+        base = nettimes[0]
+
+        print('Base time: {base} ms')
+
+        i = 0
+        for nt in nettimes:
+            print(f'{str(targets[i]):32}: {int(nt - base):5} ms')
+            i += 1
+
+        return ''
 
     def cli_ntptime(self, line):
         ntp_seconds = self.get_key("ntp_seconds")
@@ -1729,13 +1766,13 @@ class Device(object):
     def cli_portinfo(self, line):
         data = self.get_port_monitor()
         
-        s = '\nIP           rport lport      tx      rx     drop  timeout\n'
+        s = '\nIP            rport lport      tx      rx     drop  timeout\n'
 
         for item in data:
             if item.timeout == 0:
                 continue
 
-            s += f'{item.ipaddr:12} {item.rport:5} {item.lport:5} {item.tx_count:7} {item.rx_count:7} {item.dropped:5}    {item.timeout:3}\n'
+            s += f'{item.ipaddr:15} {item.rport:5} {item.lport:5} {item.tx_count:7} {item.rx_count:7} {item.dropped:5}    {item.timeout:3}\n'
 
         return s
 

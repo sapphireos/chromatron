@@ -154,6 +154,20 @@ cli_template = """
 
 """
 
+cli_template_group = """
+    def do_$fname(self, line):
+        try:
+            print(self.targets[0].cli_$fname(line, targets=self.targets))
+
+        except DeviceUnreachableException as e:
+            print('Error:%s from %s' % (e, target.host))
+
+        except Exception as e:
+            print('Error: %s' % (e))
+            traceback.print_exc()
+
+"""
+
 def makeConsole(targets=[], devices=[], device=None):
     if not device:
         try:
@@ -166,8 +180,15 @@ def makeConsole(targets=[], devices=[], device=None):
 
     s = "class aConsole(SapphireConsole):\n"
 
+    group_commands = ['nettime']
+
     for fname in cli_funcs:
-        s += cli_template.replace('$fname', fname)
+        if fname in group_commands:
+
+            s += cli_template_group.replace('$fname', fname)
+
+        else:
+            s += cli_template.replace('$fname', fname)
     
     exec(s)
 

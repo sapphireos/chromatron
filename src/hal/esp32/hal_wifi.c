@@ -72,7 +72,7 @@ static uint8_t current_scan_backoff;
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
 static uint8_t wifi_power_mode;
-static bool disable_modem_sleep;
+static bool enable_modem_sleep = FALSE; // default to disable modem sleep, it can be unstable and lose traffic
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
@@ -108,7 +108,7 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
 
     { CATBUS_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_power_mode,                  0,   "wifi_power_mode" },
-    { CATBUS_TYPE_BOOL,          0, KV_FLAGS_PERSIST,     &disable_modem_sleep,              0,   "wifi_disable_modem_sleep" },
+    { CATBUS_TYPE_BOOL,          0, KV_FLAGS_PERSIST,     &enable_modem_sleep,               0,   "wifi_enable_modem_sleep" },
 };
 
 // this lives in the wifi driver because it is the easiest place to get to hardware specific code
@@ -622,27 +622,6 @@ bool wifi_b_ap_mode( void ){
 	return connected && ap_mode;
 }
 
-#define WIFI_MICROAMPS_PS_NONE  80000
-#define WIFI_MICROAMPS_PS_MODEM_MIN  25000
-#define WIFI_VOLTS 3.3
-
-#define WIFI_POWER_PS_NONE  ( WIFI_MICROAMPS_PS_NONE * WIFI_VOLTS )
-#define WIFI_POWER_PS_MODEM_MIN  ( WIFI_MICROAMPS_PS_MODEM_MIN * WIFI_VOLTS )
-
-uint32_t wifi_u32_get_power( void ){
-
-    wifi_ps_type_t ps_mode = WIFI_PS_NONE;
-
-    esp_wifi_get_ps( &ps_mode );
-
-    if( ps_mode == WIFI_PS_NONE ){
-
-        return WIFI_PS_NONE;
-    }
-    
-    return WIFI_POWER_PS_MODEM_MIN;
-}
-
 void wifi_v_reset_scan_timeout( void ){
 
     scan_backoff = 0;
@@ -959,12 +938,12 @@ static bool is_low_power_mode( void ){
         return FALSE;
     }
 
-    if( disable_modem_sleep ){
+    if( enable_modem_sleep ){
 
-        return FALSE;
+        return TRUE;
     }
 
-    return TRUE;
+    return FALSE;
 }
 
 static void apply_power_save_mode( void ){
@@ -991,8 +970,11 @@ static void apply_power_save_mode( void ){
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    // log_v_debug_P( PSTR("ARP table size: %d"), ARP_TABLE_SIZE );
+    
+    // DEBUG:
+    // don't remove this, we need to confirm we didn't screw up these settings
+    // on an IDF update...
+    log_v_debug_P( PSTR("ARP table size: %d queueing: %d queue len: %d"), ARP_TABLE_SIZE, ARP_QUEUEING, ARP_QUEUE_LEN );
 
     static uint16_t scan_timeout;
 
