@@ -1418,16 +1418,24 @@ opcode_stdb:
         len = sizeof(registers[opcode_1i2rs->reg2]);
     }
 
-    if( catbus_i8_array_set( 
-        registers[opcode_1i2rs->reg1], 
-        opcode_1i2rs->imm1, 
-        0, 
-        1, 
-        ptr_void, 
-        len ) < 0 ){
+    
+     // check sync status
+    // if a sync follower, skip the db set
+    if( ( !link_b_is_synced( hash ) ) ||
+        ( link_b_is_synced_leader( hash ) ) ){
 
-        registers[opcode_1i2rs->reg2] = 0;        
+        if( catbus_i8_array_set( 
+            registers[opcode_1i2rs->reg1], 
+            opcode_1i2rs->imm1, 
+            0, 
+            1, 
+            ptr_void, 
+            len ) < 0 ){
+
+
+        }
     }
+
     #else
     // if( kvdb_i8_array_get( registers[opcode_1i2rs->op2], opcode_1i2rs->op1, 0, &registers[opcode_1i2rs->dest], sizeof(registers[opcode_1is2r->dest]registers[opcode_1is2r->dest]) ) < 0 ){
 
@@ -1443,15 +1451,21 @@ opcode_stdbi:
     
 #ifdef VM_ENABLE_KV
     #ifdef VM_ENABLE_CATBUS
-    if( catbus_i8_array_set( 
-        registers[opcode_1i3r->reg1], 
-        opcode_1i3r->imm1, 
-        registers[opcode_1i3r->reg3], 
-        1, 
-        &registers[opcode_1i3r->reg2], 
-        sizeof(registers[opcode_1i3r->reg2]) ) < 0 ){
 
-        registers[opcode_1i3r->reg2] = 0;        
+    // check sync status
+    // if a sync follower, skip the db set
+    if( ( !link_b_is_synced( hash ) ) ||
+        ( link_b_is_synced_leader( hash ) ) ){
+
+        if( catbus_i8_array_set( 
+            registers[opcode_1i3r->reg1], 
+            opcode_1i3r->imm1, 
+            registers[opcode_1i3r->reg3], 
+            1, 
+            &registers[opcode_1i3r->reg2], 
+            sizeof(registers[opcode_1i3r->reg2]) ) < 0 ){
+
+        }
     }
     #else
     
@@ -4995,10 +5009,19 @@ int8_t vm_i8_run(
 
     while( count > 0 ){
 
-        if( !type_b_is_string( publish->type ) ){
+        // check sync status
+        if( link_b_is_synced( publish->hash) ){
 
-            kvdb_i8_get( publish->hash, publish->type, &global_data[publish->addr], sizeof(global_data[publish->addr]) );
+            // if sync follower, set in database
+            if( link_b_is_synced_follower( publish->hash ) ){
+
+                kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+            }
         }
+        else{
+
+            kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+        }            
 
         publish++;
         count--;
@@ -5052,9 +5075,24 @@ int8_t vm_i8_run(
             char buf[64];
             
         }*/
-        
-        int8_t kv_status = kvdb_i8_set( publish->hash, type, ptr, len );
 
+        int8_t kv_status = KVDB_STATUS_OK;
+
+        // check sync status
+        if( link_b_is_synced( publish->hash) ){
+
+            // if sync leader, set in database
+            if( link_b_is_synced_leader( publish->hash ) ){
+
+                status = kvdb_i8_set( publish->hash, publish->type, ptr, len );
+            }
+        }
+        // normal publish
+        else{
+
+            status = kvdb_i8_set( publish->hash, publish->type, ptr, len );
+        }
+        
         if( kv_status != KVDB_STATUS_OK ){
 
             log_v_error_P( PSTR("Publish var DB fail: %d"), kv_status );
