@@ -1004,6 +1004,7 @@ static int8_t _vm_i8_run_stream(
     char *src_s;
     char *dest_s;
     uint16_t len;
+    catbus_hash_t32 hash;
 
     int32_t *ptr_i32;
     gfx_pixel_array_t *pix_array;
@@ -1418,14 +1419,15 @@ opcode_stdb:
         len = sizeof(registers[opcode_1i2rs->reg2]);
     }
 
-    
+    hash = registers[opcode_1i2rs->reg1];
+
      // check sync status
     // if a sync follower, skip the db set
     if( ( !link_b_is_synced( hash ) ) ||
         ( link_b_is_synced_leader( hash ) ) ){
 
         if( catbus_i8_array_set( 
-            registers[opcode_1i2rs->reg1], 
+            hash, 
             opcode_1i2rs->imm1, 
             0, 
             1, 
@@ -1452,13 +1454,15 @@ opcode_stdbi:
 #ifdef VM_ENABLE_KV
     #ifdef VM_ENABLE_CATBUS
 
+    hash = registers[opcode_1i3r->reg1];
+
     // check sync status
     // if a sync follower, skip the db set
     if( ( !link_b_is_synced( hash ) ) ||
         ( link_b_is_synced_leader( hash ) ) ){
 
         if( catbus_i8_array_set( 
-            registers[opcode_1i3r->reg1], 
+            hash, 
             opcode_1i3r->imm1, 
             registers[opcode_1i3r->reg3], 
             1, 
@@ -5015,12 +5019,12 @@ int8_t vm_i8_run(
             // if sync follower, set in database
             if( link_b_is_synced_follower( publish->hash ) ){
 
-                kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+                kvdb_i8_get( publish->hash, publish->type, &global_data[publish->addr], sizeof(global_data[publish->addr]) );
             }
         }
         else{
 
-            kvdb_i8_get( publish->hash, publish->type, &data[publish->addr], sizeof(data[publish->addr]) );
+            kvdb_i8_get( publish->hash, publish->type, &global_data[publish->addr], sizeof(global_data[publish->addr]) );
         }            
 
         publish++;
@@ -5065,7 +5069,7 @@ int8_t vm_i8_run(
             len = strnlen( (char *)ptr, type_u16_size( publish->type ) );
         }
 
-        catbus_type_t8 type = publish->type;
+        // catbus_type_t8 type = publish->type;
 
         /*if( type == CATBUS_TYPE_STRREF ){
 
