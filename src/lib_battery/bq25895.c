@@ -98,6 +98,7 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                     0,  "batt_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &solar_vindpm,               0,  "batt_solar_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                     0,  "batt_iindpm" },
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_PERSIST,    0,                           0,  "batt_enable_mppt" },
 
     { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                  0,  "batt_dump_regs" },
 
@@ -1534,9 +1535,7 @@ PT_END( pt );
 #endif
 
 
-
-// static uint16_t mppt_best_current;
-// static uint16_t mppt_best_vindpm;
+static bool enable_mppt;
 static uint16_t mppt_current_vindpm;
 static uint8_t mppt_index;
 static uint32_t mppt_time;
@@ -1552,6 +1551,11 @@ KV_SECTION_OPT kv_meta_t bq25895_info_mppt_kv[] = {
 
 static void reset_mppt( void ){
 
+    if( !enable_mppt ){
+
+        return;
+    }
+
     mppt_current_vindpm = BQ25895_MIN_MPPT_VINDPM;
     mppt_index = 0;
     bq25895_v_set_vindpm( mppt_current_vindpm );
@@ -1563,6 +1567,11 @@ static void reset_mppt( void ){
 }
 
 static void do_mppt( uint16_t charge_current ){
+
+    if( !enable_mppt ){
+
+        return;
+    }
 
     int16_t delta_curent = (int16_t)charge_current - (int16_t)mppt_bins[mppt_index];
 
@@ -1658,6 +1667,11 @@ PT_BEGIN( pt );
 
     #endif
 
+    // check if MPPT enabled
+    if( kv_b_get_boolean( __KV__batt_enable_mppt ) ){
+
+        enable_mppt = TRUE;
+    }
 
     reset_mppt();
 

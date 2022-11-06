@@ -484,11 +484,11 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                gfx_i8_kv_handler,   "gfx_dimmer_curve" },
     { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   gfx_i8_kv_handler,   "gfx_sat_curve" },
     
-    // #ifdef DIMMER_ZERO_REMAP
+    #ifdef DIMMER_ZERO_REMAP
     // these are only used for debug:
-    // { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &dimmer_zero,               0,                   "gfx_dimmer_zero_level" },
-    // { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &zero_mapped_dimmer,        0,                   "gfx_dimmer_zero_mapped" },
-    // #endif
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &dimmer_zero,               0,                   "gfx_dimmer_zero_level" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &zero_mapped_dimmer,        0,                   "gfx_dimmer_zero_mapped" },
+    #endif
 
     #ifdef ENABLE_VIRTUAL_ARRAY
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,                   "gfx_varray_start" },
