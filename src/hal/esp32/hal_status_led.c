@@ -35,6 +35,17 @@
 #include "hal_status_led.h"
 
 
+/*
+
+
+Refactor status LED module into a common module with a thin HAL layer here.
+
+
+Add ability for a button press to disable led quiet mode for 10 seconds.
+
+*/
+
+
 static bool enabled;
 
 static uint8_t identify;
