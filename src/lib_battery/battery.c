@@ -27,6 +27,8 @@
 #include "hal_boards.h"
 #include "flash_fs.h"
 
+#include "status_led.h"
+
 #include "gfx_lib.h"
 #include "vm.h"
 #include "pixel.h"
@@ -970,6 +972,9 @@ PT_BEGIN( pt );
             // quick way to force a wifi scan if the device has the wifi powered down
             // if it couldn't find a router.
             wifi_v_reset_scan_timeout();
+
+            // override quiet mode on status LED
+            status_led_v_override();
         }
 
 

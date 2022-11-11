@@ -45,4 +45,6 @@ void status_led_v_set( uint8_t state, uint8_t led );
 
 void hal_status_led_v_init( void );
 
+void status_led_v_override( void );
+
 #endif
