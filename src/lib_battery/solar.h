@@ -20,14 +20,23 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
+*/
 
-#ifndef _HAL_STATUS_LED_H
-#define _HAL_STATUS_LED_H
+#ifndef _SOLAR_H
+#define _SOLAR_H
 
-#include "status_led.h"
+#include "sapphire.h"
 
-#define LED_TIME_SYNC_INTERVAL 512
+#include "adc.h"
 
+#define SOLAR_MOTOR_RATE	10
+
+#define SOLAR_TILT_SENSOR_IO 	IO_PIN_34_A2
+#define SOLAR_TILT_MOTOR_IO_0 	IO_PIN_16_RX
+#define SOLAR_TILT_MOTOR_IO_1 	IO_PIN_17_TX
+
+#define SOLAR_TILT_FILTER	4
+
+void solar_v_init( void );
 
 #endif

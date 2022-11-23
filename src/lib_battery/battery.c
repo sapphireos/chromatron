@@ -27,6 +27,8 @@
 #include "hal_boards.h"
 #include "flash_fs.h"
 
+#include "status_led.h"
+
 #include "gfx_lib.h"
 #include "vm.h"
 #include "pixel.h"
@@ -38,6 +40,8 @@
 #include "bq25895.h"
 #include "pca9536.h"
 #include "mcp73831.h"
+
+#include "solar.h"
 
 #include "hal_pixel.h"
 
@@ -375,6 +379,9 @@ void batt_v_init( void ){
 
     // fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
     // fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
+
+
+    solar_v_init();
 }
 
 uint16_t batt_u16_get_charge_voltage( void ){
@@ -970,6 +977,9 @@ PT_BEGIN( pt );
             // quick way to force a wifi scan if the device has the wifi powered down
             // if it couldn't find a router.
             wifi_v_reset_scan_timeout();
+
+            // override quiet mode on status LED
+            status_led_v_override();
         }
 
 

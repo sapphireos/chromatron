@@ -33,150 +33,18 @@
 #include "adc.h"
 #include "timesync.h"
 
-#include "hal_status_led.h"
-#include "esp8266_loader.h"
-
-static bool enabled;
+#include "status_led.h"
 
 
-PT_THREAD( status_led_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
 
-    while(1){
+// rev 0.2
+#define LED_RED_PORT    PORTC
+#define LED_RED_PIN     4
+#define LED_GREEN_PORT  PORTD
+#define LED_GREEN_PIN   5
+#define LED_BLUE_PORT   PORTD
+#define LED_BLUE_PIN    4
 
-        THREAD_WAIT_WHILE( pt, !enabled );
-
-        if( sys_u32_get_warnings() & SYS_WARN_FLASHFS_FAIL ){
-
-            status_led_v_set( 0, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 1000 );
-
-            status_led_v_set( 1, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 100 );
-
-            status_led_v_set( 0, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 100 );
-
-            status_led_v_set( 1, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 100 );
-        }
-        else if( cpu_b_osc_fail() ){
-
-            status_led_v_set( 0, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 100 );
-
-            status_led_v_set( 1, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 900 );
-        }
-        else if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-            status_led_v_set( 0, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 500 );
-
-            status_led_v_set( 1, STATUS_LED_RED );
-
-            TMR_WAIT( pt, 500 );
-        }
-        else if( wifi_b_connected() ){
-
-            if( wifi_b_ap_mode() ){
-
-                status_led_v_set( 0, STATUS_LED_PURPLE );
-            }
-            else{
-
-                status_led_v_set( 0, STATUS_LED_BLUE );
-            }
-
-            #ifdef ENABLE_TIME_SYNC
-            if( time_b_is_sync() ){
-
-                uint32_t net_time = time_u32_get_network_time();
-
-                if( ( ( net_time / LED_TIME_SYNC_INTERVAL ) & 1 ) == 0 ){
-
-                    TMR_WAIT( pt, LED_TIME_SYNC_INTERVAL - ( net_time % LED_TIME_SYNC_INTERVAL ) );
-                }
-            }
-            else{
-
-                TMR_WAIT( pt, 500 );
-            }
-            #else
-            TMR_WAIT( pt, 500 );
-            #endif
-
-            if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
-                  ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
-
-                if( wifi_b_ap_mode() ){
-
-                    status_led_v_set( 1, STATUS_LED_PURPLE );
-                }
-                else{
-
-                    status_led_v_set( 1, STATUS_LED_BLUE );
-                }
-            }
-            #ifdef ENABLE_TIME_SYNC
-            if( time_b_is_sync() ){
-
-                uint32_t net_time = time_u32_get_network_time();
-
-                if( ( ( net_time / LED_TIME_SYNC_INTERVAL ) & 1 ) != 0 ){
-
-                    TMR_WAIT( pt, LED_TIME_SYNC_INTERVAL - ( net_time % LED_TIME_SYNC_INTERVAL ) );
-                }
-            }
-            else{
-
-                TMR_WAIT( pt, 500 );
-            }
-            #else
-            TMR_WAIT( pt, 500 );
-            #endif
-        }
-        else{
-
-            status_led_v_set( 0, STATUS_LED_GREEN );
-
-            TMR_WAIT( pt, 500 );
-
-            if( !( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) &&
-                  ( tmr_u64_get_system_time_us() > 10000000 ) ) ){
-
-                status_led_v_set( 1, STATUS_LED_GREEN );
-            }
-
-            TMR_WAIT( pt, 500 );
-
-            #ifdef ENABLE_WIFI
-            if( wifi_i8_get_status() == WIFI_STATE_ERROR ){
-            #else
-            if( wifi_i8_loader_status() == ESP_LOADER_STATUS_FAIL ){
-            #endif
-
-                status_led_v_set( 0, STATUS_LED_RED );
-
-                TMR_WAIT( pt, 500 );
-
-                status_led_v_set( 1, STATUS_LED_RED );
-
-                TMR_WAIT( pt, 500 );
-            }
-        }
-    }
-
-PT_END( pt );
-}
 
 void reset_all( void ){
 
@@ -189,28 +57,9 @@ void reset_all( void ){
     LED_RED_PORT.OUTSET = ( 1 << LED_RED_PIN );
 }
 
-void status_led_v_init( void ){
-
-    enabled = TRUE;
-
-    #ifndef ENABLE_COPROCESSOR
-    thread_t_create( status_led_thread,
-                     PSTR("status_led"),
-                     0,
-                     0 );
-    #endif
+void hal_status_led_v_init( void ){f
     
     reset_all();
-}
-
-void status_led_v_enable( void ){
-
-    enabled = TRUE;
-}
-
-void status_led_v_disable( void ){
-
-    enabled = FALSE;
 }
 
 void status_led_v_set( uint8_t state, uint8_t led ){
