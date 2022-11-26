@@ -2551,6 +2551,44 @@ int8_t gfx_i8_get_pixel_array( uint8_t obj, gfx_pixel_array_t **array_ptr ){
    return 0;
 }
 
+int32_t gfx_i32_get_pixel_attr( uint8_t obj, uint8_t attr ){
+
+    gfx_pixel_array_t *array = 0;
+
+    if( gfx_i8_get_pixel_array( obj, &array ) != 0 ){
+
+        return 0;
+    }
+
+    if( attr >= ( sizeof(gfx_pixel_array_t) / sizeof(int32_t) ) ){
+
+        return 0;
+    }
+
+    int32_t *ptr = (int32_t *)array;
+
+    return ptr[attr];
+}
+
+void gfx_v_set_pixel_attr( uint8_t obj, uint8_t attr, int32_t value ){
+
+    gfx_pixel_array_t *array = 0;
+
+    if( gfx_i8_get_pixel_array( obj, &array ) != 0 ){
+
+        return;
+    }
+
+    if( attr >= ( sizeof(gfx_pixel_array_t) / sizeof(int32_t) ) ){
+
+        return;
+    }
+
+    int32_t *ptr = (int32_t *)array;
+
+    ptr[attr] = value;
+}
+
 #ifdef DIMMER_ZERO_REMAP
 static uint16_t remap_dimmer_to_zero_point( uint16_t dimmer ){
     

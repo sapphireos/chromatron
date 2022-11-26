@@ -1007,7 +1007,7 @@ static int8_t _vm_i8_run_stream(
     catbus_hash_t32 hash;
 
     int32_t *ptr_i32;
-    gfx_pixel_array_t *pix_array;
+    // gfx_pixel_array_t *pix_array;
 
     opcode_1ac_t *opcode_1ac;
     opcode_2ac_t *opcode_2ac;
@@ -2080,16 +2080,18 @@ opcode_pload_attr:
 
     ref.n = registers[opcode_1i2rs->reg1];
 
-    if( gfx_i8_get_pixel_array( ref.ref.addr, &pix_array ) == 0 ){
+    registers[opcode_1i2rs->reg2] = gfx_i32_get_pixel_attr( ref.ref.addr, opcode_1i2rs->imm1 );    
 
-        ptr_i32 = (int32_t *)pix_array;
+    // if( gfx_i8_get_pixel_array( ref.ref.addr, &pix_array ) == 0 ){
 
-        registers[opcode_1i2rs->reg2] = ptr_i32[opcode_1i2rs->imm1];
-    }
-    else{
+    //     ptr_i32 = (int32_t *)pix_array;
 
-        registers[opcode_1i2rs->reg2] = 0;
-    }
+    //     registers[opcode_1i2rs->reg2] = ptr_i32[opcode_1i2rs->imm1];
+    // }
+    // else{
+
+    //     registers[opcode_1i2rs->reg2] = 0;
+    // }
 
     DISPATCH;
 
@@ -2098,12 +2100,14 @@ opcode_pstore_attr:
 
     ref.n = registers[opcode_1i2rs->reg1];
 
-    if( gfx_i8_get_pixel_array( ref.ref.addr, &pix_array ) == 0 ){
+    gfx_v_set_pixel_attr( ref.ref.addr, opcode_1i2rs->imm1, registers[opcode_1i2rs->reg2] );
 
-        ptr_i32 = (int32_t *)pix_array;
+    // if( gfx_i8_get_pixel_array( ref.ref.addr, &pix_array ) == 0 ){
 
-        ptr_i32[opcode_1i2rs->imm1] = registers[opcode_1i2rs->reg2];
-    }
+    //     ptr_i32 = (int32_t *)pix_array;
+
+    //     ptr_i32[opcode_1i2rs->imm1] = registers[opcode_1i2rs->reg2];
+    // }
 
     DISPATCH;
 

@@ -187,6 +187,9 @@ void gfx_v_init_pixel_arrays( gfx_pixel_array_t *array_ptr, uint8_t count );
 void gfx_v_delete_pixel_arrays( void );
 int8_t gfx_i8_get_pixel_array( uint8_t obj, gfx_pixel_array_t **array_ptr );
 
+int32_t gfx_i32_get_pixel_attr( uint8_t obj, uint8_t attr );
+void gfx_v_set_pixel_attr( uint8_t obj, uint8_t attr, int32_t value );
+
 void gfx_v_init_noise( void );
 uint16_t gfx_u16_noise( uint16_t x );
 
