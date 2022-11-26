@@ -761,6 +761,7 @@ class Builder(object):
                 ir = irObjectLookup(result, value, lookups=value.lookups, lineno=lineno)
                 self.append_node(ir)
                 
+                result.lookups = value.lookups
                 value.lookups = []
                 ir = irObjectLoad(var, result, value.attr, lineno=lineno)
 
