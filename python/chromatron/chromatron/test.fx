@@ -1,26 +1,13 @@
 
-# def test():
-#     n = Number()
-#     a = n
-
-#     n += 1
-
-# def test2():
-#     ary = Number()[3]
-#     ary = 0
-
-#     b = ary[0]
-#     c = ary[1]
-#     d = ary[2]
-
-#     ary += 1
-
 fx_a = Number()
 fx_b = Number()
 
 def init():
     fx_a = pixels.is_v_fading
     fx_b = pixels[1].is_v_fading
+
+    # fx_a = pixels.hue
+    # fx_b = pixels[1].hue
 
 
 #     test()

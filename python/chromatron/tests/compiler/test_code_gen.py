@@ -2072,13 +2072,13 @@ class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
 
-    def test_is_v_fading(self, opt_passes):
-        self.run_test(test_is_v_fading,
-            opt_passes=opt_passes,
-            expected={
-                'a': 0,
-                'b': 1,
-            })
+    # def test_is_v_fading(self, opt_passes):
+    #     self.run_test(test_is_v_fading,
+    #         opt_passes=opt_passes,
+    #         expected={
+    #             'a': 0,
+    #             'b': 1,
+    #         })
 
     def test_pixels_count_assign(self, opt_passes):
         self.run_test(test_pixels_count_assign,

@@ -6745,6 +6745,19 @@ class irObjectLoad(IR):
         target = self.target.generate()
         value = self.value.generate()
 
+
+        """ 
+        self.value.var.attr will point to attribute if it is am array load,
+        and to None if a point load.
+
+        Lookups are not forwarded, that would probably be useful as it is
+        more clear if this is an array access or a point access.
+
+        target lookups show up in object store, so having them appear
+        in values on load would make it more orthogonal.
+
+        """
+
         if value.var.data_type == 'pixref' or \
            value.var.target.data_type == 'pixref' or \
            value.var.target.data_type == 'PixelArray':
@@ -6765,6 +6778,12 @@ class irObjectLoad(IR):
                 if k not in ins:
                     ins[k] = insPixelLoadAttr
             
+            # check for erroneous array loads
+            if len(self.value.lookups) == 0 and \
+                attr in ['hue', 'sat', 'val', 'v_fade', 'hs_fade']:
+
+                raise SyntaxError(f'Cannot load from array: {attr}', lineno=self.lineno)
+
             try:
                 return ins[attr](target, value.var, attr, lineno=self.lineno)
 
