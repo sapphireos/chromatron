@@ -2879,7 +2879,13 @@ class insPixelLoadVFade(insPixelLoad):
 
 class insPixelLoadAttr(insPixelLoad):
     mnemonic = 'PLOAD_ATTR'
-    
+
+    def __init__(self, target, pixel_ref, attr, **kwargs):
+        super().__init__(target, pixel_ref, attr, **kwargs)
+        
+        if attr not in PIXEL_ATTR_INDEXES:
+            raise SyntaxError(f'Unknown load attribute: {attr}', self.lineno)
+
     def execute(self, vm):
         ref = vm.registers[self.pixel_ref.reg]
 
