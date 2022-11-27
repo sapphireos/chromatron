@@ -749,6 +749,18 @@ class Builder(object):
             else:
                 var = self.add_temp(data_type='var', lineno=lineno)
 
+            # if value.attr.name in ['is_v_fading']:
+            #     print(value)
+            #     print(value.lookups)
+
+            #     func_name = value.attr.name
+            #     value.attr = None
+            #     params = [value]
+
+            #     self.call(func_name, params, lineno=lineno)
+
+            #     return var
+
             if len(value.lookups) > 0 and not is_db:
                 result = self.add_temp(data_type='objref', lineno=lineno)
                     

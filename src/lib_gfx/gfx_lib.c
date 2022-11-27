@@ -1067,23 +1067,23 @@ static uint16_t* _gfx_u16p_get_array_ptr( uint8_t attr ){
 
     uint16_t *ptr = target_val;
 
-    if( attr == PIX_ATTR_HUE ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
         ptr = target_hue;
     }
-    else if( attr == PIX_ATTR_SAT ){
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
 
         ptr = target_sat;
     }
-    else if( attr == PIX_ATTR_VAL ){
+    else if( attr == PIX_ARRAY_ATTR_VAL ){
 
         ptr = target_val;
     }
-    else if( attr == PIX_ATTR_HS_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
 
         ptr = hs_fade;
     }
-    else if( attr == PIX_ATTR_V_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
 
         ptr = v_fade;
     }
@@ -1098,7 +1098,7 @@ void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
         return;
     }
 
-    if( attr == PIX_ATTR_HUE ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1113,7 +1113,7 @@ void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
             _gfx_v_set_hue_1d( a, index );
         }        
     }
-    else if( attr == PIX_ATTR_SAT ){
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1135,7 +1135,7 @@ void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
             _gfx_v_set_sat_1d( a, index );
         }        
     }
-    else if( attr == PIX_ATTR_HS_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1157,7 +1157,7 @@ void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
             _gfx_v_set_hs_fade_1d( a, index );
         }        
     }
-    else if( attr == PIX_ATTR_V_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1212,7 +1212,7 @@ void gfx_v_array_add( uint8_t obj, uint8_t attr, int32_t src ){
 
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
     
-    if( attr == PIX_ATTR_HUE ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1228,7 +1228,7 @@ void gfx_v_array_add( uint8_t obj, uint8_t attr, int32_t src ){
             _gfx_v_set_hue_1d( a, index );
         }        
     }
-    else if( attr == PIX_ATTR_SAT ){
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1251,7 +1251,7 @@ void gfx_v_array_add( uint8_t obj, uint8_t attr, int32_t src ){
             _gfx_v_set_sat_1d( a, index );
         }        
     }
-    else if( attr == PIX_ATTR_HS_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1274,7 +1274,7 @@ void gfx_v_array_add( uint8_t obj, uint8_t attr, int32_t src ){
             _gfx_v_set_hs_fade_1d( a, index );
         }        
     }
-    else if( attr == PIX_ATTR_V_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1332,7 +1332,7 @@ void gfx_v_array_sub( uint8_t obj, uint8_t attr, int32_t src ){
 
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
 
-    if( attr == PIX_ATTR_HUE ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1348,7 +1348,7 @@ void gfx_v_array_sub( uint8_t obj, uint8_t attr, int32_t src ){
             _gfx_v_set_hue_1d( a, index );
         }        
     }
-    else if( attr == PIX_ATTR_SAT ){
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1371,7 +1371,7 @@ void gfx_v_array_sub( uint8_t obj, uint8_t attr, int32_t src ){
             _gfx_v_set_sat_1d( a, index );
         }        
     }
-    else if( attr == PIX_ATTR_HS_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1394,7 +1394,7 @@ void gfx_v_array_sub( uint8_t obj, uint8_t attr, int32_t src ){
             _gfx_v_set_hs_fade_1d( a, index );
         }        
     }
-    else if( attr == PIX_ATTR_V_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1452,7 +1452,7 @@ void gfx_v_array_mul( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
 
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
 
-    if( attr == PIX_ATTR_HUE ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
         if( type == CATBUS_TYPE_FIXED16 ){
             
@@ -1489,7 +1489,7 @@ void gfx_v_array_mul( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
             }    
         }
     }
-    else if( attr == PIX_ATTR_SAT ){
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
 
         if( type == CATBUS_TYPE_FIXED16 ){
 
@@ -1540,7 +1540,7 @@ void gfx_v_array_mul( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
             }    
         }
     }
-    else if( attr == PIX_ATTR_HS_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1564,7 +1564,7 @@ void gfx_v_array_mul( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
             _gfx_v_set_hs_fade_1d( a, index );
         }    
     }
-    else if( attr == PIX_ATTR_V_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1660,7 +1660,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
 
 
-    if( attr == PIX_ATTR_HUE ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
         if( type == CATBUS_TYPE_FIXED16 ){
 
@@ -1697,7 +1697,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
             }    
         }
     }
-    else if( attr == PIX_ATTR_SAT ){
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
 
         if( type == CATBUS_TYPE_FIXED16 ){
 
@@ -1748,7 +1748,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
             }
         }
     }
-    else if( attr == PIX_ATTR_HS_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1772,7 +1772,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
             _gfx_v_set_hs_fade_1d( a, index );
         }    
     }
-    else if( attr == PIX_ATTR_V_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1867,7 +1867,7 @@ void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src ){
 
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
 
-    if( attr == PIX_ATTR_HUE ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1883,7 +1883,7 @@ void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src ){
             _gfx_v_set_hue_1d( a, index );
         }        
     }
-    else if( attr == PIX_ATTR_SAT ){
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1906,7 +1906,7 @@ void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src ){
             _gfx_v_set_sat_1d( a, index );
         }        
     }
-    else if( attr == PIX_ATTR_HS_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
@@ -1929,7 +1929,7 @@ void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src ){
             _gfx_v_set_hs_fade_1d( a, index );
         }        
     }
-    else if( attr == PIX_ATTR_V_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 

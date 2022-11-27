@@ -6783,13 +6783,17 @@ class irObjectLoad(IR):
                 attr in ['hue', 'sat', 'val', 'v_fade', 'hs_fade']:
 
                 raise SyntaxError(f'Cannot load from array: {attr}', lineno=self.lineno)
+            
+            if attr in ['is_v_fading']:
+                return insLibCall1(target, params=[value], func_name=attr, lineno=self.lineno)
 
-            try:
-                return ins[attr](target, value.var, attr, lineno=self.lineno)
+            else:
+                try:
+                    return ins[attr](target, value.var, attr, lineno=self.lineno)
 
-            except KeyError:
-                raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
-        
+                except KeyError:
+                    raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
+    
         # DB reference
         elif value.var.data_type == 'objref' and value.var.target.name == 'db':
             if len(self.lookups) > 0:

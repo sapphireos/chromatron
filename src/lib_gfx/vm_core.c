@@ -104,12 +104,6 @@ static uint32_t cycles;
 // } decodep3_t;
 // #endif
 
-#define POOL_GLOBAL             0
-#define POOL_PIXEL_ARRAY        1
-#define POOL_STRING_LITERALS    2
-#define POOL_FUNCTIONS          3
-#define POOL_LOCAL              4
-
 
 #define REG_ZERO                0
 #define REG_CALL_PARAMS         1
@@ -2225,7 +2219,7 @@ opcode_vstore_hue:
         value = 65535;
     }
 
-    gfx_v_array_move( ref.ref.addr, PIX_ATTR_HUE, value );
+    gfx_v_array_move( ref.ref.addr, PIX_ARRAY_ATTR_HUE, value );
 
     DISPATCH;
 
@@ -2235,7 +2229,7 @@ opcode_vstore_sat:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_move( ref.ref.addr, PIX_ATTR_SAT, value );
+    gfx_v_array_move( ref.ref.addr, PIX_ARRAY_ATTR_SAT, value );
 
     DISPATCH;
 
@@ -2245,7 +2239,7 @@ opcode_vstore_val:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_move( ref.ref.addr, PIX_ATTR_VAL, value );
+    gfx_v_array_move( ref.ref.addr, PIX_ARRAY_ATTR_VAL, value );
 
     DISPATCH;
 
@@ -2255,7 +2249,7 @@ opcode_vstore_hs_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_move( ref.ref.addr, PIX_ATTR_HS_FADE, value );
+    gfx_v_array_move( ref.ref.addr, PIX_ARRAY_ATTR_HS_FADE, value );
 
     DISPATCH;
 
@@ -2265,7 +2259,7 @@ opcode_vstore_v_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_move( ref.ref.addr, PIX_ATTR_V_FADE, value );
+    gfx_v_array_move( ref.ref.addr, PIX_ARRAY_ATTR_V_FADE, value );
 
     DISPATCH;
 
@@ -2361,7 +2355,7 @@ opcode_vadd_hue:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_add( ref.ref.addr, PIX_ATTR_HUE, value );    
+    gfx_v_array_add( ref.ref.addr, PIX_ARRAY_ATTR_HUE, value );    
 
     DISPATCH;
 
@@ -2371,7 +2365,7 @@ opcode_vadd_sat:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_add( ref.ref.addr, PIX_ATTR_SAT, value );    
+    gfx_v_array_add( ref.ref.addr, PIX_ARRAY_ATTR_SAT, value );    
 
     DISPATCH;
 
@@ -2381,7 +2375,7 @@ opcode_vadd_val:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_add( ref.ref.addr, PIX_ATTR_VAL, value );    
+    gfx_v_array_add( ref.ref.addr, PIX_ARRAY_ATTR_VAL, value );    
 
     DISPATCH;
 
@@ -2391,7 +2385,7 @@ opcode_vadd_hs_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_add( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
+    gfx_v_array_add( ref.ref.addr, PIX_ARRAY_ATTR_HS_FADE, value );    
 
     DISPATCH;
 
@@ -2401,7 +2395,7 @@ opcode_vadd_v_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_add( ref.ref.addr, PIX_ATTR_V_FADE, value );    
+    gfx_v_array_add( ref.ref.addr, PIX_ARRAY_ATTR_V_FADE, value );    
 
     DISPATCH;
 
@@ -2476,7 +2470,7 @@ opcode_vsub_hue:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_sub( ref.ref.addr, PIX_ATTR_HUE, value );    
+    gfx_v_array_sub( ref.ref.addr, PIX_ARRAY_ATTR_HUE, value );    
 
     DISPATCH;
 
@@ -2486,7 +2480,7 @@ opcode_vsub_sat:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_sub( ref.ref.addr, PIX_ATTR_SAT, value );    
+    gfx_v_array_sub( ref.ref.addr, PIX_ARRAY_ATTR_SAT, value );    
 
     DISPATCH;
 
@@ -2496,7 +2490,7 @@ opcode_vsub_val:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_sub( ref.ref.addr, PIX_ATTR_VAL, value );    
+    gfx_v_array_sub( ref.ref.addr, PIX_ARRAY_ATTR_VAL, value );    
 
     DISPATCH;
 
@@ -2506,7 +2500,7 @@ opcode_vsub_hs_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_sub( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
+    gfx_v_array_sub( ref.ref.addr, PIX_ARRAY_ATTR_HS_FADE, value );    
 
     DISPATCH;
 
@@ -2516,7 +2510,7 @@ opcode_vsub_v_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_sub( ref.ref.addr, PIX_ATTR_V_FADE, value );    
+    gfx_v_array_sub( ref.ref.addr, PIX_ARRAY_ATTR_V_FADE, value );    
 
     DISPATCH;
 
@@ -2612,7 +2606,7 @@ opcode_vmul_hue:
     value = registers[opcode_1i2rs->reg2];
     ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_HUE, value, opcode_1i2rs->imm1 );    
+    gfx_v_array_mul( ref.ref.addr, PIX_ARRAY_ATTR_HUE, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2622,7 +2616,7 @@ opcode_vmul_sat:
     value = registers[opcode_1i2rs->reg2];
     ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_SAT, value, opcode_1i2rs->imm1 );    
+    gfx_v_array_mul( ref.ref.addr, PIX_ARRAY_ATTR_SAT, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2632,7 +2626,7 @@ opcode_vmul_val:
     value = registers[opcode_1i2rs->reg2];
     ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_VAL, value, opcode_1i2rs->imm1 );    
+    gfx_v_array_mul( ref.ref.addr, PIX_ARRAY_ATTR_VAL, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2642,7 +2636,7 @@ opcode_vmul_hs_fade:
     value = registers[opcode_1i2rs->reg2];
     ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_HS_FADE, value, opcode_1i2rs->imm1 );    
+    gfx_v_array_mul( ref.ref.addr, PIX_ARRAY_ATTR_HS_FADE, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2652,7 +2646,7 @@ opcode_vmul_v_fade:
     value = registers[opcode_1i2rs->reg2];
     ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_mul( ref.ref.addr, PIX_ATTR_V_FADE, value, opcode_1i2rs->imm1 );    
+    gfx_v_array_mul( ref.ref.addr, PIX_ARRAY_ATTR_V_FADE, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2785,7 +2779,7 @@ opcode_vdiv_hue:
     value = registers[opcode_1i2rs->reg2];
     ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_div( ref.ref.addr, PIX_ATTR_HUE, value, opcode_1i2rs->imm1 );    
+    gfx_v_array_div( ref.ref.addr, PIX_ARRAY_ATTR_HUE, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2795,7 +2789,7 @@ opcode_vdiv_sat:
     value = registers[opcode_1i2rs->reg2];
     ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_div( ref.ref.addr, PIX_ATTR_SAT, value, opcode_1i2rs->imm1 );    
+    gfx_v_array_div( ref.ref.addr, PIX_ARRAY_ATTR_SAT, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2805,7 +2799,7 @@ opcode_vdiv_val:
     value = registers[opcode_1i2rs->reg2];
     ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_div( ref.ref.addr, PIX_ATTR_VAL, value, opcode_1i2rs->imm1 );    
+    gfx_v_array_div( ref.ref.addr, PIX_ARRAY_ATTR_VAL, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2815,7 +2809,7 @@ opcode_vdiv_hs_fade:
     value = registers[opcode_1i2rs->reg2];
     ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_div( ref.ref.addr, PIX_ATTR_HS_FADE, value, opcode_1i2rs->imm1 );    
+    gfx_v_array_div( ref.ref.addr, PIX_ARRAY_ATTR_HS_FADE, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2825,7 +2819,7 @@ opcode_vdiv_v_fade:
     value = registers[opcode_1i2rs->reg2];
     ref.n = registers[opcode_1i2rs->reg1];
 
-    gfx_v_array_div( ref.ref.addr, PIX_ATTR_V_FADE, value, opcode_1i2rs->imm1 );    
+    gfx_v_array_div( ref.ref.addr, PIX_ARRAY_ATTR_V_FADE, value, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2900,7 +2894,7 @@ opcode_vmod_hue:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_mod( ref.ref.addr, PIX_ATTR_HUE, value );    
+    gfx_v_array_mod( ref.ref.addr, PIX_ARRAY_ATTR_HUE, value );    
 
     DISPATCH;
 
@@ -2910,7 +2904,7 @@ opcode_vmod_sat:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_mod( ref.ref.addr, PIX_ATTR_SAT, value );    
+    gfx_v_array_mod( ref.ref.addr, PIX_ARRAY_ATTR_SAT, value );    
 
     DISPATCH;
 
@@ -2920,7 +2914,7 @@ opcode_vmod_val:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_mod( ref.ref.addr, PIX_ATTR_VAL, value );    
+    gfx_v_array_mod( ref.ref.addr, PIX_ARRAY_ATTR_VAL, value );    
 
     DISPATCH;
 
@@ -2930,7 +2924,7 @@ opcode_vmod_hs_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_mod( ref.ref.addr, PIX_ATTR_HS_FADE, value );    
+    gfx_v_array_mod( ref.ref.addr, PIX_ARRAY_ATTR_HS_FADE, value );    
 
     DISPATCH;
 
@@ -2940,7 +2934,7 @@ opcode_vmod_v_fade:
     value = registers[opcode_2ac->op1];
     ref.n = registers[opcode_2ac->dest];
 
-    gfx_v_array_mod( ref.ref.addr, PIX_ATTR_V_FADE, value );    
+    gfx_v_array_mod( ref.ref.addr, PIX_ARRAY_ATTR_V_FADE, value );    
 
     DISPATCH;
 

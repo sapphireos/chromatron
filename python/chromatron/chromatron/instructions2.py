@@ -242,6 +242,7 @@ class insProgram(object):
             'start_thread': self.start_thread,
             'strlen': self.strlen,
             'strcmp': self.strcmp,
+            'is_v_fading': self.is_v_fading
             # 'len': self.array_len,
             # 'avg': self.array_avg,
             # 'sum': self.array_sum,
@@ -310,6 +311,10 @@ class insProgram(object):
                 'size_y': pix_size_y,
                 'mirror': pix_mirror,
             }
+
+            for k, v in PIXEL_ATTR_INDEXES.items():
+                if k not in array:
+                    array[k] = 0
 
             pixel_arrays.append(array)
 
@@ -424,6 +429,32 @@ class insProgram(object):
             return 1
 
         return 0
+
+    def is_v_fading(self, vm, param0=0):
+        # we don't have a real fader in the simulator right now,
+        # so we will just check if the attribute is 0. this is enough
+        # for the local test to work and should mirror what the hardware
+        # will actually do.
+
+        if isinstance(param0, insRef):
+            array = vm.get_pixel_array(param0.addr)
+
+            start_index = vm.calc_index(pixel_array=array)
+
+            for i in range(array['count']):
+                if vm.gfx_data['val'][start_index + i] != 0:
+                    return 1
+
+            return 0
+
+        else:
+            index = param0
+
+            if vm.gfx_data['val'][index] == 0:
+                return 0
+
+            else:
+                return 1
 
 
     # def array_len(self, vm, param0, length):

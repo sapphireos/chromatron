@@ -4,7 +4,7 @@ fx_b = Number()
 
 def init():
     fx_a = pixels.is_v_fading
-    fx_b = pixels[1].is_v_fading
+    # fx_b = pixels[1].is_v_fading
 
     # fx_a = pixels.hue
     # fx_b = pixels[1].hue

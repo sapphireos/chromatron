@@ -177,6 +177,14 @@ typedef struct __attribute__((packed)){
     uint16_t length;
 } vm_string_t;
 
+
+
+#define POOL_GLOBAL             0
+#define POOL_PIXEL_ARRAY        1
+#define POOL_STRING_LITERALS    2
+#define POOL_FUNCTIONS          3
+#define POOL_LOCAL              4
+
 typedef struct __attribute__((packed)){
     uint16_t pool;
     uint16_t addr;
@@ -186,6 +194,7 @@ typedef union{
     vm_packed_reference_t ref;
     uint32_t n;
 } vm_reference_t;
+
 
 typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t vm_id;
