@@ -406,7 +406,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_plookup1,          // 56
         &&opcode_plookup2,          // 57
         &&opcode_pload_attr,        // 58
-        &&opcode_pstore_attr,       // 59
+        &&opcode_vstore_attr,       // 59
         &&opcode_vload_attr,        // 60
 
         &&opcode_trap,              // 61
@@ -2089,7 +2089,7 @@ opcode_pload_attr:
 
     DISPATCH;
 
-opcode_pstore_attr:
+opcode_vstore_attr:
     DECODE_1I2RS;
 
     ref.n = registers[opcode_1i2rs->reg1];

@@ -2764,18 +2764,18 @@ class insPixelStoreHSFade(insPixelStore):
 class insPixelStoreVFade(insPixelStore):
     mnemonic = 'PSTORE_V_FADE'
 
-class insPixelStoreAttr(insPixelStore):
-    mnemonic = 'PSTORE_ATTR'
+# class insPixelStoreAttr(insPixelStore):
+#     mnemonic = 'PSTORE_ATTR'
     
-    def execute(self, vm):
-        ref = vm.registers[self.pixel_ref.reg]
+#     def execute(self, vm):
+#         ref = vm.registers[self.pixel_ref.reg]
 
-        pixel_array = vm.get_pixel_array(ref)
+#         pixel_array = vm.get_pixel_array(ref)
 
-        pixel_array[self.attr] = vm.registers[self.value.reg]
+#         pixel_array[self.attr] = vm.registers[self.value.reg]
 
-    def assemble(self):
-        return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+#     def assemble(self):
+#         return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 
 class insVPixelLoad(BaseInstruction):
@@ -2857,6 +2857,18 @@ class insVPixelStore(BaseInstruction):
         # we don't encode attribute, the opcode itself will encode that
         return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
+class insVPixelStoreAttr(insVPixelStore):
+    mnemonic = 'VSTORE_ATTR'
+    
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+
+        pixel_array = vm.get_pixel_array(ref)
+
+        pixel_array[self.attr] = vm.registers[self.value.reg]
+
+    def assemble(self):
+        return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 class insVPixelStoreHue(insVPixelStore):
     mnemonic = 'VSTORE_HUE'

@@ -6678,7 +6678,8 @@ class irObjectStore(IR):
             # add attrs to instruction map:
             for k, v in PIXEL_FIELDS.items():
                 if k not in ins:
-                    ins[k] = insPixelStoreAttr
+                    if len(self.target.lookups) == 0:
+                        ins[k] = insVPixelStoreAttr
 
             try:
                 return ins[attr](target.var, attr, value, lineno=self.lineno)
