@@ -245,7 +245,6 @@ class insProgram(object):
             'start_thread': self.start_thread,
             'strlen': self.strlen,
             'strcmp': self.strcmp,
-            'is_v_fading': self.is_v_fading
             # 'len': self.array_len,
             # 'avg': self.array_avg,
             # 'sum': self.array_sum,
@@ -432,32 +431,6 @@ class insProgram(object):
             return 1
 
         return 0
-
-    def is_v_fading(self, vm, param0=0):
-        # we don't have a real fader in the simulator right now,
-        # so we will just check if the attribute is 0. this is enough
-        # for the local test to work and should mirror what the hardware
-        # will actually do.
-
-        if isinstance(param0, insRef):
-            array = vm.get_pixel_array(param0.addr)
-
-            start_index = vm.calc_index(pixel_array=array)
-
-            for i in range(array['count']):
-                if vm.gfx_data['val'][start_index + i] != 0:
-                    return 1
-
-            return 0
-
-        else:
-            index = param0
-
-            if vm.gfx_data['val'][index] == 0:
-                return 0
-
-            else:
-                return 1
 
 
     # def array_len(self, vm, param0, length):
@@ -2814,7 +2787,18 @@ class insVPixelLoadAttr(insVPixelLoad):
 
         pixel_array = vm.get_pixel_array(ref)
 
-        vm.registers[self.target.reg] = pixel_array[self.attr]
+        value = 0
+
+        if self.attr == 'is_v_fading':
+            for val in vm.gfx_data['val']:
+                if val != 0:
+                    value = 1
+                    break
+
+        else:
+            value = pixel_array[self.attr]
+
+        vm.registers[self.target.reg] = value
 
     def assemble(self):
         return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.target.assemble(), lineno=self.lineno)
@@ -2956,22 +2940,25 @@ class insPixelLoadVFade(insPixelLoad):
 class insPixelLoadAttr(insPixelLoad):
     mnemonic = 'PLOAD_ATTR'
 
-    def __init__(self, target, pixel_ref, attr, **kwargs):
-        super().__init__(target, pixel_ref, attr, **kwargs)
+    def __init__(self, target, pixel_index, attr, **kwargs):
+        super().__init__(target, pixel_index, attr, **kwargs)
         
         if attr not in PIXEL_ATTR_INDEXES:
             raise SyntaxError(f'Unknown load attribute: {attr}', self.lineno)
 
     def execute(self, vm):
-        raise Exception
-        # ref = vm.registers[self.pixel_ref.reg]
+        ref = vm.registers[self.pixel_index.reg]
 
-        # pixel_array = vm.get_pixel_array(ref)
+        value = 0
 
-        # vm.registers[self.target.reg] = pixel_array[self.attr]
+        if self.attr == 'is_v_fading':
+            if vm.gfx_data['val'][ref] != 0:
+                value = 1
+
+        vm.registers[self.target.reg] = value
 
     def assemble(self):
-        return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.target.assemble(), lineno=self.lineno)
+        return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_index.reg, self.target.assemble(), lineno=self.lineno)
 
 
 class insPixelAdd(BaseInstruction):

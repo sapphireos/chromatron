@@ -2068,17 +2068,48 @@ def init():
 """
 
 
+test_is_v_fading2 = """
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+
+def init():
+    a = pixels[1].is_v_fading
+
+    pixels[1].val = 0.5
+
+    b = pixels[1].is_v_fading
+    c = pixels[0].is_v_fading
+
+    pixels.val = 1.0
+    d = pixels[0].is_v_fading
+
+"""
+
+
 class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
 
-    # def test_is_v_fading(self, opt_passes):
-    #     self.run_test(test_is_v_fading,
-    #         opt_passes=opt_passes,
-    #         expected={
-    #             'a': 0,
-    #             'b': 1,
-    #         })
+    def test_is_v_fading2(self, opt_passes):
+        self.run_test(test_is_v_fading2,
+            opt_passes=opt_passes,
+            expected={
+                'a': 0,
+                'b': 1,
+                'c': 0,
+                'd': 1,
+            })
+
+    def test_is_v_fading(self, opt_passes):
+        self.run_test(test_is_v_fading,
+            opt_passes=opt_passes,
+            expected={
+                'a': 0,
+                'b': 1,
+            })
 
     def test_pixels_count_assign(self, opt_passes):
         self.run_test(test_pixels_count_assign,
