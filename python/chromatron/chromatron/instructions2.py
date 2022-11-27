@@ -52,6 +52,9 @@ PIXEL_ATTR_INDEXES = { # this should match gfx_pixel_array_t in gfx_lib.h
     'reverse':  5,
     'size_x':   6,
     'size_y':   7,
+
+    'is_v_fading': 200,
+    'is_hs_fading': 201,
 }
 
 class VMException(Exception):
@@ -2775,6 +2778,47 @@ class insPixelStoreAttr(insPixelStore):
         return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 
+class insVPixelLoad(BaseInstruction):
+    mnemonic = 'VLOAD'
+
+    def __init__(self, target, pixel_ref, attr, **kwargs):
+        super().__init__(**kwargs)
+            
+        self.target = target
+        self.pixel_ref = pixel_ref
+        self.attr = attr
+
+    def __str__(self):
+        return "%s %s = %s.%s" % (self.mnemonic, self.target, self.pixel_ref, self.attr)
+
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+        
+        pixel_array = vm.get_pixel_array(ref)
+
+        vm.registers[self.target.reg] = pixel_array[self.attr]
+
+# load attribute from vector
+# this is similar to PLOAD_ATTR, but retrieves attributes from the entire array.
+class insVPixelLoadAttr(insVPixelLoad):
+    mnemonic = 'VLOAD_ATTR'
+
+    def __init__(self, target, pixel_ref, attr, **kwargs):
+        super().__init__(target, pixel_ref, attr, **kwargs)
+        
+        if attr not in PIXEL_ATTR_INDEXES:
+            raise SyntaxError(f'Unknown load attribute: {attr}', self.lineno)
+
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+
+        pixel_array = vm.get_pixel_array(ref)
+
+        vm.registers[self.target.reg] = pixel_array[self.attr]
+
+    def assemble(self):
+        return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.target.assemble(), lineno=self.lineno)
+
 class insVPixelStore(BaseInstruction):
     mnemonic = 'VSTORE'
 
@@ -2854,43 +2898,32 @@ class insVPixelStoreVFade(insVPixelStore):
 class insPixelLoad(BaseInstruction):
     mnemonic = 'PLOAD'
 
-    def __init__(self, target, pixel_ref, attr, **kwargs):
+    def __init__(self, target, pixel_index, attr, **kwargs):
         super().__init__(**kwargs)
-        self.pixel_ref = pixel_ref
+        self.pixel_index = pixel_index
         self.attr = attr
         self.target = target
 
+        if len(self.pixel_index.lookups) == 0:
+            raise CompilerFatal(f'PLOAD requires index, not array ref')
+
     def __str__(self):
-        return "%s %s = %s.%s" % (self.mnemonic, self.target, self.pixel_ref, self.attr)
+        return "%s %s = %s.%s" % (self.mnemonic, self.target, self.pixel_index, self.attr)
 
     def execute(self, vm):
-        ref = vm.registers[self.pixel_ref.reg]
+        ref = vm.registers[self.pixel_index.reg]
 
-        if self.attr in vm.gfx_data:
-            array = vm.gfx_data[self.attr]
+        if self.attr not in vm.gfx_data:
+            raise CompilerFatal(f'Unknown attribute: {self.attr}')
 
-            if isinstance(ref, int):
-                # if we got an index, this is an indexed access
-                value = array[ref]
+        array = vm.gfx_data[self.attr]
+        value = array[ref]
 
-            else:
-                # array reference, this is an array get
-                
-                # not quite sure how to handle this, or if we should?
-                # could be useful for some things, like, check if entire
-                # array is off (all val == 0), or something like that.
-                raise CompilerFatal(f'Load from entire array!')
-
-            vm.registers[self.target.reg] = value
-
-        
-        else:
-            # pixel attributes not settable in code for now
-            assert False
-
+        vm.registers[self.target.reg] = value
+    
     def assemble(self):
         # we don't encode attribute, the opcode itself will encode that
-        return OpcodeFormat2AC(self.mnemonic, self.target.assemble(), self.pixel_ref.reg, lineno=self.lineno)
+        return OpcodeFormat2AC(self.mnemonic, self.target.assemble(), self.pixel_index.reg, lineno=self.lineno)
 
 
 class insPixelLoadHue(insPixelLoad):
@@ -2918,11 +2951,12 @@ class insPixelLoadAttr(insPixelLoad):
             raise SyntaxError(f'Unknown load attribute: {attr}', self.lineno)
 
     def execute(self, vm):
-        ref = vm.registers[self.pixel_ref.reg]
+        raise Exception
+        # ref = vm.registers[self.pixel_ref.reg]
 
-        pixel_array = vm.get_pixel_array(ref)
+        # pixel_array = vm.get_pixel_array(ref)
 
-        vm.registers[self.target.reg] = pixel_array[self.attr]
+        # vm.registers[self.target.reg] = pixel_array[self.attr]
 
     def assemble(self):
         return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_ref.reg, self.target.assemble(), lineno=self.lineno)

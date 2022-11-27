@@ -6776,7 +6776,11 @@ class irObjectLoad(IR):
             # add attrs to instruction map:
             for k, v in PIXEL_FIELDS.items():
                 if k not in ins:
-                    ins[k] = insPixelLoadAttr
+                    if len(self.value.lookups) == 0:
+                        ins[k] = insVPixelLoadAttr
+
+                    else:
+                        ins[k] = insPixelLoadAttr
             
             # check for erroneous array loads
             if len(self.value.lookups) == 0 and \
@@ -6784,16 +6788,12 @@ class irObjectLoad(IR):
 
                 raise SyntaxError(f'Cannot load from array: {attr}', lineno=self.lineno)
             
-            if attr in ['is_v_fading']:
-                return insLibCall1(target, params=[value], func_name=attr, lineno=self.lineno)
+            try:
+                return ins[attr](target, value.var, attr, lineno=self.lineno)
 
-            else:
-                try:
-                    return ins[attr](target, value.var, attr, lineno=self.lineno)
+            except KeyError:
+                raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
 
-                except KeyError:
-                    raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
-    
         # DB reference
         elif value.var.data_type == 'objref' and value.var.target.name == 'db':
             if len(self.lookups) > 0:

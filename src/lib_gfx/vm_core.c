@@ -407,8 +407,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_plookup2,          // 57
         &&opcode_pload_attr,        // 58
         &&opcode_pstore_attr,       // 59
+        &&opcode_vload_attr,        // 60
 
-        &&opcode_trap,              // 60
         &&opcode_trap,              // 61
         &&opcode_trap,              // 62
         &&opcode_trap,              // 63
@@ -2104,6 +2104,27 @@ opcode_pstore_attr:
     // }
 
     DISPATCH;
+
+opcode_vload_attr:
+    DECODE_1I2RS;
+
+    ref.n = registers[opcode_1i2rs->reg1];
+
+    // registers[opcode_1i2rs->reg2] = gfx_i32_get_pixel_attr( ref.ref.addr, opcode_1i2rs->imm1 );    
+
+    // if( gfx_i8_get_pixel_array( ref.ref.addr, &pix_array ) == 0 ){
+
+    //     ptr_i32 = (int32_t *)pix_array;
+
+    //     registers[opcode_1i2rs->reg2] = ptr_i32[opcode_1i2rs->imm1];
+    // }
+    // else{
+
+    //     registers[opcode_1i2rs->reg2] = 0;
+    // }
+
+    DISPATCH;
+
 
 opcode_pstore_hue:
     DECODE_2AC;

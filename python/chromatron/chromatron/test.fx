@@ -1,13 +1,31 @@
 
-fx_a = Number()
-fx_b = Number()
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+i = Number(publish=True)
 
 def init():
-    fx_a = pixels.is_v_fading
-    # fx_b = pixels[1].is_v_fading
+    # pixels[0].val = 0.1
+    # pixels[1].val = 0.2
+    # pixels[2].val = 0.3
+    # pixels[3].val = 0.4
 
-    # fx_a = pixels.hue
-    # fx_b = pixels[1].hue
+    a = pixels[0].val
+    # b = pixels[1].val
+    # i = 2
+    # c = pixels[2].val
+    # d = pixels[i + 1].val
+
+# fx_a = Number()
+# fx_b = Number()
+
+# def init():
+#     fx_a = pixels.is_v_fading
+#     # fx_b = pixels[1].is_v_fading
+
+#     # fx_a = pixels.hue
+#     # fx_b = pixels[1].hue
 
 
 #     test()
