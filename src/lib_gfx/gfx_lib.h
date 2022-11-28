@@ -88,6 +88,9 @@ typedef struct  __attribute__((packed)){
     int32_t reserved3;
 } gfx_pixel_array_t;
 
+#define PIX_ATTR_IS_V_FADING    200
+#define PIX_ATTR_IS_HS_FADING   201
+
 
 // note this needs to pad to 32 bit alignment!
 typedef struct  __attribute__((packed)){
@@ -166,8 +169,8 @@ uint16_t gfx_u16_get_hs_fade( uint16_t x, uint16_t y, uint8_t obj );
 void gfx_v_set_v_fade( uint16_t a, uint16_t x, uint16_t y, uint8_t obj );
 uint16_t gfx_u16_get_v_fade( uint16_t x, uint16_t y, uint8_t obj );
 
-// uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj );
-// uint16_t gfx_u16_get_is_hs_fading( uint16_t x, uint16_t y, uint8_t obj );
+uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj );
+uint16_t gfx_u16_get_is_hs_fading( uint16_t x, uint16_t y, uint8_t obj );
 
 uint16_t gfx_u16_get_pix0_red( void );
 uint16_t gfx_u16_get_pix0_green( void );
@@ -189,6 +192,7 @@ void gfx_v_delete_pixel_arrays( void );
 int8_t gfx_i8_get_pixel_array( uint8_t obj, gfx_pixel_array_t **array_ptr );
 
 int32_t gfx_i32_get_pixel_attr( uint8_t obj, uint8_t attr );
+int32_t gfx_i32_get_pixel_attr_single( uint16_t index, uint8_t attr );
 void gfx_v_set_pixel_attr( uint8_t obj, uint8_t attr, int32_t value );
 
 void gfx_v_init_noise( void );

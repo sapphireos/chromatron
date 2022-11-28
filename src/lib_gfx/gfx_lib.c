@@ -2340,6 +2340,11 @@ uint16_t gfx_u16_get_v_fade( uint16_t x, uint16_t y, uint8_t obj ){
 
 uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
+    if( obj >= pix_array_count ){
+
+        return 0;
+    }
+
     if( ( x == 65535 ) && ( y == 65535 ) ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
@@ -2374,6 +2379,11 @@ uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
 
 uint16_t gfx_u16_get_is_hs_fading( uint16_t x, uint16_t y, uint8_t obj ){
+
+    if( obj >= pix_array_count ){
+
+        return 0;
+    }
 
     if( ( x == 65535 ) && ( y == 65535 ) ){
 
@@ -2551,7 +2561,30 @@ int8_t gfx_i8_get_pixel_array( uint8_t obj, gfx_pixel_array_t **array_ptr ){
    return 0;
 }
 
+int32_t gfx_i32_get_pixel_attr_single( uint16_t index, uint8_t attr ){
+
+    if( attr == PIX_ATTR_IS_V_FADING ){
+
+        return gfx_u16_get_is_v_fading( index, 65535, 0 );
+    }
+    else if( attr == PIX_ATTR_IS_HS_FADING ){
+
+        return gfx_u16_get_is_hs_fading( index, 65535, 0 );
+    }
+
+    return 0;    
+}
+
 int32_t gfx_i32_get_pixel_attr( uint8_t obj, uint8_t attr ){
+
+    if( attr == PIX_ATTR_IS_V_FADING ){
+
+        return gfx_u16_get_is_v_fading( 65535, 65535, obj );
+    }
+    else if( attr == PIX_ATTR_IS_HS_FADING ){
+
+        return gfx_u16_get_is_hs_fading( 65535, 65535, obj );
+    }
 
     gfx_pixel_array_t *array = 0;
 

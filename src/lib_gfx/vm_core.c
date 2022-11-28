@@ -2069,26 +2069,6 @@ opcode_plookup2:
     
     DISPATCH;
 
-opcode_pload_attr:
-    DECODE_1I2RS;
-
-    ref.n = registers[opcode_1i2rs->reg1];
-
-    registers[opcode_1i2rs->reg2] = gfx_i32_get_pixel_attr( ref.ref.addr, opcode_1i2rs->imm1 );    
-
-    // if( gfx_i8_get_pixel_array( ref.ref.addr, &pix_array ) == 0 ){
-
-    //     ptr_i32 = (int32_t *)pix_array;
-
-    //     registers[opcode_1i2rs->reg2] = ptr_i32[opcode_1i2rs->imm1];
-    // }
-    // else{
-
-    //     registers[opcode_1i2rs->reg2] = 0;
-    // }
-
-    DISPATCH;
-
 opcode_vstore_attr:
     DECODE_1I2RS;
 
@@ -2096,12 +2076,14 @@ opcode_vstore_attr:
 
     gfx_v_set_pixel_attr( ref.ref.addr, opcode_1i2rs->imm1, registers[opcode_1i2rs->reg2] );
 
-    // if( gfx_i8_get_pixel_array( ref.ref.addr, &pix_array ) == 0 ){
+    DISPATCH;
 
-    //     ptr_i32 = (int32_t *)pix_array;
+opcode_pload_attr:
+    DECODE_1I2RS;
 
-    //     ptr_i32[opcode_1i2rs->imm1] = registers[opcode_1i2rs->reg2];
-    // }
+    ref.n = registers[opcode_1i2rs->reg1];
+
+    registers[opcode_1i2rs->reg2] = gfx_i32_get_pixel_attr( ref.ref.addr, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2110,21 +2092,9 @@ opcode_vload_attr:
 
     ref.n = registers[opcode_1i2rs->reg1];
 
-    // registers[opcode_1i2rs->reg2] = gfx_i32_get_pixel_attr( ref.ref.addr, opcode_1i2rs->imm1 );    
-
-    // if( gfx_i8_get_pixel_array( ref.ref.addr, &pix_array ) == 0 ){
-
-    //     ptr_i32 = (int32_t *)pix_array;
-
-    //     registers[opcode_1i2rs->reg2] = ptr_i32[opcode_1i2rs->imm1];
-    // }
-    // else{
-
-    //     registers[opcode_1i2rs->reg2] = 0;
-    // }
+    registers[opcode_1i2rs->reg2] = gfx_i32_get_pixel_attr( ref.ref.addr, opcode_1i2rs->imm1 );    
 
     DISPATCH;
-
 
 opcode_pstore_hue:
     DECODE_2AC;
