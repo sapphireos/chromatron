@@ -23,9 +23,27 @@
  */
 
 #include "sapphire.h"
+#include "onewire.h"
 #include "hal_onewire.h"
+
+#include "driver/rmt.h"
 
 void hal_onewire_v_init( void ){
 
+}
+
+void hal_onewire_v_reset( void ){
+
 
 }
+
+void hal_onewire_v_write_bit( uint8_t bit ){
+
+
+}
+
+uint8_t hal_onewire_u8_read_bit( void ){
+
+    return 0;
+}
+

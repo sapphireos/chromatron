@@ -25,6 +25,21 @@
 #ifndef _ONEWIRE_H
 #define _ONEWIRE_H
 
+
+// 1-wire delays, from Maxim app note AN126:
+// these are all microseconds
+#define ONEWIRE_DELAY_A 6
+#define ONEWIRE_DELAY_B 64
+#define ONEWIRE_DELAY_C 60
+#define ONEWIRE_DELAY_D 10
+#define ONEWIRE_DELAY_E 9
+#define ONEWIRE_DELAY_F 55
+#define ONEWIRE_DELAY_G 0
+#define ONEWIRE_DELAY_H 480
+#define ONEWIRE_DELAY_I 70
+#define ONEWIRE_DELAY_J 410
+
+
 void onewire_v_init( void );
 
 
