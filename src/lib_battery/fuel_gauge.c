@@ -104,6 +104,16 @@ and tilt system disabled.  Solar is a first class always-available citizen in Ch
 
 
 
+
+
+
+
+
+
+
+Old notes:
+
+
 Fuel gauge notes:
 
 
