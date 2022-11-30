@@ -22,26 +22,10 @@
 // </license>
  */
 
-#include "sapphire.h"
-#include "onewire.h"
+#ifndef _HAL_ONEWIRE_H
+#define _HAL_ONEWIRE_H
 
-#if defined(ESP32)
+void hal_onewire_v_init( void );
 
-#include "hal_onewire.h"
-
-void onewire_v_init( void ){
-
-    hal_onewire_v_init();                
-}
-
-
-
-#else
-
-void onewire_v_init( void ){
-
-}
 
 #endif
-
-

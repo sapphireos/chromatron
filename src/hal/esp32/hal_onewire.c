@@ -23,25 +23,9 @@
  */
 
 #include "sapphire.h"
-#include "onewire.h"
-
-#if defined(ESP32)
-
 #include "hal_onewire.h"
 
-void onewire_v_init( void ){
+void hal_onewire_v_init( void ){
 
-    hal_onewire_v_init();                
-}
-
-
-
-#else
-
-void onewire_v_init( void ){
 
 }
-
-#endif
-
-
