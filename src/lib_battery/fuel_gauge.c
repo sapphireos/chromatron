@@ -72,6 +72,34 @@ CHARGE_DC - charging on DC wall power
 CHARGE_SOLAR - charging on solar power
 FULL_CHARGE - system is fully charged and is connected to a valid power source (DC plugged in, or solar is generating enough)
 
+solar KV should have a text system mode name for easy field use.
+
+Solar module controls:
+
+solar panel voltage enable
+solar panel tilt motor
+batt charger config (mppt voltage set point and currents)
+gfx system enable
+
+
+Solar module knows:
+
+batt params (voltage, temp)
+pixel power
+dc input detect
+solar panel voltage
+panel tilt angle
+
+
+
+remember it does not control pixel enable - that is done on zero gfx to make sure we always get clean fade downs.
+
+gfx_v_set_system_enable() API commands gfx system to shut down.  This can be controlled by solar.  The battery control
+loop is handling this now.
+
+Solar and battery control loops can be combined.  The DC only devices are actually just a special case with the solar
+and tilt system disabled.  Solar is a first class always-available citizen in Chromatron.
+
 
 
 
