@@ -42,18 +42,35 @@ Basic SoC on voltage is usable.  Later we can compensate for load, but the cycle
 
 Some knowledge of the day/night cycle for solar charging would be useful.  This could come from light level, if available.
 
-This module might not be the right place for that though.
+This module might not be the right place for that though.  The top level solar charge control loop should do this.
 
 
 Might turn off the recorder, and just rewrite this module to be more streamlined.  Not sure the filters are useful either.
 
 Just want cycle count and basic Soc!
 
+Some kind of very basic lifetime logging would be neat.  Like, ever N cycles (10? 100?) record a data type in a 
+fixed sized buffer.
+
+
+To enhance the accuracy, we need to disable the charger while we take our voltage measurement during a charge cycle.
+(We should also attempt to get a voltage drop estimate from pixels off to on at a given power level - maybe could 
+do a calibration at assembly time, and maybe semi periodically).
+
+Re-enable the charger after the measurement.  This should be driven externally by the overall solar charge control loop.
+The fuel gauge does not need to be updated often.  10 minute intervals is a good start, and on some events such as changing
+from charge to discharge or enabling/disabling the pixel array.
 
 
 
+Solar system modes:
 
-
+IDLE/RESET - this is an unknown state, the system has usually just started.
+DISCHARGE_IDLE - battery discharging, system is running, pixels are OFF
+DISCHARGE_PIXELS - above, but pixels are ON
+CHARGE_DC - charging on DC wall power
+CHARGE_SOLAR - charging on solar power
+FULL_CHARGE - system is fully charged and is connected to a valid power source (DC plugged in, or solar is generating enough)
 
 
 
