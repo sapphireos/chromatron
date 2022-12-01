@@ -34,63 +34,6 @@
 
 static ledc_channel_config_t ledc_channel[HAL_PWM_MAX_CHANNELS];
 
-// static uint16_t pwm;
-// static uint16_t adc;
-
-// int8_t _pwm_kv_handler(
-//     kv_op_t8 op,
-//     catbus_hash_t32 hash,
-//     void *data,
-//     uint16_t len )
-// {
-    
-//     if( op == KV_OP_SET ){
-
-//         ledc_set_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel, pwm);
-//         ledc_update_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel);
-//     }
-
-//     return 0;
-// }
-
-// KV_SECTION_META kv_meta_t pwm_info_kv[] = {
-//     { CATBUS_TYPE_UINT16,  0, 0,    &pwm,              _pwm_kv_handler,        "pwm" },
-//     { CATBUS_TYPE_UINT16,  0, 0,    &adc,              0,        "pwm_adc" },
-// };
-
-
-
-// PT_THREAD( adc_pwm_thread( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
-        
-//     while(1){
-
-//         TMR_WAIT( pt, 100 );
-
-//         adc = adc_u16_read_raw( IO_PIN_17_TX );
-
-//         adc = 4095 - adc;
-
-//         adc = ( 100 * adc ) / 4095;
-        
-//         pwm = 600 + adc * 4;
-
-//         if( pwm < 700 ){
-
-//             pwm = 0;
-//         }
-
-//         ledc_set_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel, pwm);
-//         ledc_update_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel);
-
-//     }
-    
-// PT_END( pt );
-// }
-
-// #define PWM_ENABLED
-
 void pwm_v_init( void ){
 
     for( uint8_t i = 0; i < cnt_of_array(ledc_channel); i++ ){
@@ -99,12 +42,8 @@ void pwm_v_init( void ){
     }
 
 
-    #pragma message "PWM ready for testing!"
-
-
-
-
-    // #pragma message "PWM is not done!"
+    // leaving this example code here for future reference:
+    
 
     // #ifdef PWM_ENABLED
 
