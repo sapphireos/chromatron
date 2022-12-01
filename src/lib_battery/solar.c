@@ -31,9 +31,17 @@
 #include "solar.h"
 #include "battery.h"
 
+#include "bq25895.h"
+
+
+
 static int16_t solar_array_tilt_angle;
 static int16_t solar_array_target_angle;
-static bool pause_motors;
+static int16_t solar_array_target_delta;
+
+
+static bool pause_motors = TRUE; // DEBUG default to paused!
+
 
 KV_SECTION_META kv_meta_t solar_tilt_info_kv[] = {
     
@@ -43,7 +51,8 @@ KV_SECTION_META kv_meta_t solar_tilt_info_kv[] = {
 KV_SECTION_OPT kv_meta_t solar_tilt_opt_kv[] = {
     
     { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &solar_array_tilt_angle,    0,  "solar_tilt_angle" },
-    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &solar_array_target_angle,	0,  "solar_target_angle" },
+    { CATBUS_TYPE_INT16,    0, 0,  &solar_array_target_angle,	0,  "solar_target_angle" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &solar_array_target_delta,	0,  "solar_target_delta" },
     { CATBUS_TYPE_BOOL,     0, 0,  					&pause_motors,              0,  "solar_pause_motors" },
 };
 
@@ -114,12 +123,21 @@ static void motor_down( uint16_t pwm ){
 	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
 }
 
+static void motors_off( void ){
+
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
+}
+
 PT_THREAD( solar_tilt_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-	pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_0, 10000 );
-	pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 10000 );
+	pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_0, 20000 );
+	pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 20000 );
+
+
+	motors_off();	
 
 	// init tilt sensor
 	for( uint8_t i = 0; i < cnt_of_array(tilt_filter); i++ ){
@@ -146,6 +164,8 @@ PT_BEGIN( pt );
         // delta of actual tilt angle from target tilt angle on current iteration
         int16_t target_delta = solar_array_tilt_angle - solar_array_target_angle;
 
+        solar_array_target_delta = target_delta;
+
         /*
 
 		!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -156,18 +176,25 @@ PT_BEGIN( pt );
 
         if( pause_motors ){
 
-        	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
-			set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
+        	motors_off();
+
+			bq25895_v_set_boost_mode( FALSE ); // DEBUG!
         }
         else{
 
-	        if( target_delta < 10 ){
+        	bq25895_v_set_boost_mode( TRUE );
 
-	        	motor_up( 512 );
+	        if( target_delta < 20 ){
+
+	        	motor_up( 768 );
 	        }
-	        else if( target_delta > 10 ){
+	        else if( target_delta > 20 ){
 
-	        	motor_down( 512 );
+	        	motor_down( 768 );
+	        }
+	        else{
+
+	        	motors_off();
 	        }
 	    }
 	}
