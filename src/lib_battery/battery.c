@@ -380,7 +380,6 @@ void batt_v_init( void ){
     // fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
     // fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
 
-
     solar_v_init();
 }
 

@@ -37,7 +37,6 @@
 
 static int16_t solar_array_tilt_angle;
 static int16_t solar_array_target_angle;
-static int16_t solar_array_target_delta;
 
 
 static bool pause_motors = TRUE; // DEBUG default to paused!
@@ -51,8 +50,7 @@ KV_SECTION_META kv_meta_t solar_tilt_info_kv[] = {
 KV_SECTION_OPT kv_meta_t solar_tilt_opt_kv[] = {
     
     { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &solar_array_tilt_angle,    0,  "solar_tilt_angle" },
-    { CATBUS_TYPE_INT16,    0, 0,  &solar_array_target_angle,	0,  "solar_target_angle" },
-    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &solar_array_target_delta,	0,  "solar_target_delta" },
+    { CATBUS_TYPE_INT16,    0, 0, 	 				&solar_array_target_angle,	0,  "solar_target_angle" },
     { CATBUS_TYPE_BOOL,     0, 0,  					&pause_motors,              0,  "solar_pause_motors" },
 };
 
@@ -172,8 +170,7 @@ PT_BEGIN( pt );
         // delta of actual tilt angle from target tilt angle on current iteration
         int16_t target_delta = solar_array_tilt_angle - solar_array_target_angle;
 
-        solar_array_target_delta = target_delta;
-
+        
         /*
 
 		!!!!!!!!!!!!!!!!!!!!!!!!!!

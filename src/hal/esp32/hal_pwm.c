@@ -31,10 +31,17 @@
 #include "sapphire.h"
 
 #include "driver/ledc.h"
+#include "driver/timer.h"
+
+
+static void esp32_timer_init( int group, int timer, int timer_interval_msec );
+
 
 static ledc_channel_config_t ledc_channel[HAL_PWM_MAX_CHANNELS];
 
 void pwm_v_init( void ){
+
+    esp32_timer_init( TIMER_GROUP_0, TIMER_0, 250 );
 
     for( uint8_t i = 0; i < cnt_of_array(ledc_channel); i++ ){
 
@@ -197,3 +204,68 @@ void pwm_v_write( uint8_t channel, uint16_t value ){
     ledc_set_duty( ledc_channel[led_ch].speed_mode, ledc_channel[led_ch].channel, value );
     ledc_update_duty( ledc_channel[led_ch].speed_mode, ledc_channel[led_ch].channel) ;
 }
+
+
+#define TIMER_DIVIDER         (16)  //  Hardware timer clock divider
+#define TIMER_SCALE           (TIMER_BASE_CLK / TIMER_DIVIDER)  // convert counter value to seconds
+
+static bool IRAM_ATTR timer_isr_callback(void *args)
+{
+    // BaseType_t high_task_awoken = pdFALSE;
+    // example_timer_info_t *info = (example_timer_info_t *) args;
+
+    // uint64_t timer_counter_value = timer_group_get_counter_value_in_isr(info->timer_group, info->timer_idx);
+
+    /* Prepare basic event data that will be then sent back to task */
+    // example_timer_event_t evt = {
+    //     .info.timer_group = info->timer_group,
+    //     .info.timer_idx = info->timer_idx,
+    //     .info.auto_reload = info->auto_reload,
+    //     .info.alarm_interval = info->alarm_interval,
+    //     .timer_counter_value = timer_counter_value
+    // };
+
+    // if (!info->auto_reload) {
+    //     timer_counter_value += info->alarm_interval * TIMER_SCALE;
+    //     timer_group_set_alarm_value_in_isr(info->timer_group, info->timer_idx, timer_counter_value);
+    // }
+
+    /* Now just send the event data back to the main program task */
+    // xQueueSendFromISR(s_timer_queue, &evt, &high_task_awoken);
+
+    // return high_task_awoken == pdTRUE; // return whether we need to yield at the end of ISR
+
+    return FALSE;
+}
+
+static void esp32_timer_init( int group, int timer, int timer_interval_msec )
+{
+    /* Select and initialize basic parameters of the timer */
+    timer_config_t config = {
+        .divider = TIMER_DIVIDER,
+        .counter_dir = TIMER_COUNT_UP,
+        .counter_en = TIMER_PAUSE,
+        .alarm_en = TIMER_ALARM_EN,
+        .auto_reload = TRUE,
+    }; // default clock source is APB
+    timer_init(group, timer, &config);
+
+    /* Timer's counter will initially start from value below.
+       Also, if auto_reload is set, this value will be automatically reload on alarm */
+    timer_set_counter_value(group, timer, 0);
+
+    /* Configure the alarm value and the interrupt on alarm. */
+    timer_set_alarm_value(group, timer, timer_interval_msec * ( TIMER_SCALE / 1000 ));
+    timer_enable_intr(group, timer);
+
+    // example_timer_info_t *timer_info = calloc(1, sizeof(example_timer_info_t));
+    // timer_info->timer_group = group;
+    // timer_info->timer_idx = timer;
+    // timer_info->auto_reload = auto_reload;
+    // timer_info->alarm_interval = timer_interval_sec;
+    // timer_isr_callback_add(group, timer, timer_group_isr_callback, timer_info, 0);
+    timer_isr_callback_add(group, timer, timer_isr_callback, 0, 0);
+
+    timer_start(group, timer);
+}
+
