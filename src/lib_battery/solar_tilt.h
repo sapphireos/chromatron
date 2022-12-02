@@ -34,10 +34,11 @@
 #define SOLAR_MOTOR_MOVE_TIMEOUT		2000
 #define SOLAR_MOTOR_LOCK_TIMEOUT		10000
 
-#define SOLAR_TILT_MOVEMENT_THRESHOLD 	3 // degrees
+#define SOLAR_TILT_MOVEMENT_THRESHOLD 	1 // degrees
 
-#define SOLAR_ANGLE_MIN					0 // degrees
-#define SOLAR_ANGLE_MAX					60 // degrees
+#define SOLAR_ANGLE_POS_MIN				0 // degrees
+#define SOLAR_ANGLE_POS_MAX				60 // degrees
+#define SOLAR_ANGLE_DRIVE_MAX           70 // degrees
 
 
 #define SOLAR_TILT_SENSOR_IO 	IO_PIN_34_A2
