@@ -153,9 +153,12 @@ PT_BEGIN( pt );
 	solar_array_tilt_angle = read_tilt_sensor();
 
 	
+	thread_v_set_alarm( tmr_u32_get_system_time_ms() + SOLAR_MOTOR_RATE );
+
+	
 	while( 1 ){
 
-		thread_v_set_alarm( tmr_u32_get_system_time_ms() + SOLAR_MOTOR_RATE );               
+		thread_v_set_alarm( thread_u32_get_alarm() + SOLAR_MOTOR_RATE );               
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
 
@@ -189,15 +192,15 @@ PT_BEGIN( pt );
 
         	bq25895_v_set_boost_mode( TRUE );
 
-	        if( target_delta < -100 ){
+	        if( target_delta < -50 ){
 
-	        	motor_up( 768 );
+	        	motor_up( 1023 );
 
 	        	log_v_debug_P( PSTR("%d"), solar_array_tilt_angle );
 	        }
-	        else if( target_delta > 100 ){
+	        else if( target_delta > 50 ){
 
-	        	motor_down( 768 );
+	        	motor_down( 1023 );
 
 	        	log_v_debug_P( PSTR("%d"), solar_array_tilt_angle );
 	        }

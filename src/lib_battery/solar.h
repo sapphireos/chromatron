@@ -29,7 +29,7 @@
 
 #include "adc.h"
 
-#define SOLAR_MOTOR_RATE	20
+#define SOLAR_MOTOR_RATE	100
 
 #define SOLAR_TILT_SENSOR_IO 	IO_PIN_34_A2
 #define SOLAR_TILT_MOTOR_IO_0 	IO_PIN_16_RX
