@@ -38,10 +38,34 @@
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) );
 
 
+// config parameters:
+static bool patch_board_installed;
+static bool enable_dc_charge = TRUE;
+static bool enable_solar_charge;
+
+
+static uint8_t solar_state;
+#define SOLAR_MODE_UNKNOWN				0
+#define SOLAR_MODE_DISCHARGE_IDLE		1
+#define SOLAR_MODE_DISCHARGE_PIXELS		2
+#define SOLAR_MODE_CHARGE_DC			3
+#define SOLAR_MODE_CHARGE_SOLAR			4
+#define SOLAR_MODE_FULL_CHARGE			5
+
+
+KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
+	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,			0,  "solar_control_state" },
+
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&patch_board_installed, 0,  "solar_enable_patch_board" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 		0,  "solar_enable_dc_charge" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 	0,  "solar_enable_solar_charge" },
+};
 
 void solar_v_init( void ){
 
 	solar_tilt_v_init();
+
+	kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
 
 	thread_t_create( solar_control_thread,
                      PSTR("solar_control"),
@@ -57,10 +81,37 @@ PT_BEGIN( pt );
 
 	while(1){
 
-
 		TMR_WAIT( pt, 1000 );
 
 
+		if( solar_state == SOLAR_MODE_UNKNOWN ){
+
+
+		}
+		else if( solar_state == SOLAR_MODE_DISCHARGE_IDLE ){
+
+			
+		}
+		else if( solar_state == SOLAR_MODE_DISCHARGE_PIXELS ){
+
+			
+		}
+		else if( solar_state == SOLAR_MODE_CHARGE_DC ){
+
+			
+		}
+		else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
+
+			
+		}
+		else if( solar_state == SOLAR_MODE_FULL_CHARGE ){
+
+			
+		}
+		else{
+
+			ASSERT( FALSE );
+		}
 	}
 
 PT_END( pt );
