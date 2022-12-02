@@ -29,7 +29,16 @@
 
 #include "adc.h"
 
-#define SOLAR_MOTOR_RATE	100
+#define SOLAR_MOTOR_RATE				100
+
+#define SOLAR_MOTOR_MOVE_TIMEOUT		2000
+#define SOLAR_MOTOR_LOCK_TIMEOUT		10000
+
+#define SOLAR_TILT_MOVEMENT_THRESHOLD 	3 // degrees
+
+#define SOLAR_ANGLE_MIN					0 // degrees
+#define SOLAR_ANGLE_MAX					60 // degrees
+
 
 #define SOLAR_TILT_SENSOR_IO 	IO_PIN_34_A2
 #define SOLAR_TILT_MOTOR_IO_0 	IO_PIN_16_RX
@@ -39,5 +48,9 @@
 #define SOLAR_TILT_FILTER	        4
 
 void solar_v_init( void );
+
+uint8_t solar_u8_get_tilt_angle( void );
+uint8_t solar_u8_get_target_angle( void );
+void solar_v_set_tilt_angle( uint8_t angle );
 
 #endif
