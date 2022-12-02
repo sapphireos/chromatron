@@ -76,9 +76,14 @@ void solar_v_init( void ){
 
 static uint16_t read_tilt_sensor_raw( void ){
 
-	uint16_t mv = adc_u16_read_mv( SOLAR_TILT_SENSOR_IO );
+	uint16_t mv = 0;
 
-	return mv;
+	for( int i = 0; i < SOLAR_TILT_ADC_SAMPLES; i++ ){
+
+		mv += adc_u16_read_mv( SOLAR_TILT_SENSOR_IO );
+	}
+
+	return mv / SOLAR_TILT_ADC_SAMPLES;
 }
 
 static uint8_t filter_index;
@@ -184,13 +189,17 @@ PT_BEGIN( pt );
 
         	bq25895_v_set_boost_mode( TRUE );
 
-	        if( target_delta < 20 ){
+	        if( target_delta < -100 ){
 
 	        	motor_up( 768 );
+
+	        	log_v_debug_P( PSTR("%d"), solar_array_tilt_angle );
 	        }
-	        else if( target_delta > 20 ){
+	        else if( target_delta > 100 ){
 
 	        	motor_down( 768 );
+
+	        	log_v_debug_P( PSTR("%d"), solar_array_tilt_angle );
 	        }
 	        else{
 
