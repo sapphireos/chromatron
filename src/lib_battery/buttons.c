@@ -50,6 +50,7 @@ static uint8_t button_event[MAX_BUTTONS];
 #define BUTTON_EVENT_RELEASED       2
 #define BUTTON_EVENT_HOLD           3
 #define BUTTON_EVENT_HOLD_RELEASED  4
+
 static uint8_t button_hold_duration[MAX_BUTTONS];
 
 #define BUTTON_CHECK_TIMING         50
@@ -57,12 +58,11 @@ static uint8_t button_hold_duration[MAX_BUTTONS];
 
 #define BUTTON_CHECK_TIMING         50
 
-#define BUTTON_TAP_TIME             8
-#define BUTTON_MIN_TIME             1
+#define BUTTON_HOLD_TIME            ( 750 / BUTTON_CHECK_TIMING )
+#define BUTTON_SHUTDOWN_TIME        ( 3000 / BUTTON_CHECK_TIMING )
+#define BUTTON_WIFI_TIME            ( 1000 / BUTTON_CHECK_TIMING )
 
-#define BUTTON_HOLD_TIME            15
-#define BUTTON_SHUTDOWN_TIME        60
-#define BUTTON_WIFI_TIME            20
+
 
 KV_SECTION_OPT kv_meta_t button_info_kv[] = {
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
@@ -76,6 +76,8 @@ PT_THREAD( button_thread( pt_t *pt, void *state ) );
 
 
 void button_v_init( void ){
+
+    kv_v_add_db_info( button_info_kv, sizeof(button_info_kv) );
 
     #if defined(ESP8266)
     ui_button = IO_PIN_6_DAC0;

@@ -196,7 +196,7 @@ KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
     { CATBUS_TYPE_BOOL,   0, 0,                   &batt_request_shutdown,       0,  "batt_request_shutdown" },
     // { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
     // { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "batt_button_event" },
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &fan_on,                      0,  "batt_fan_on" },
+    // { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &fan_on,                      0,  "batt_fan_on" },
     
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,     batt_kv_handler,  "batt_max_charge_voltage" },
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_min_discharge_voltage,  batt_kv_handler,  "batt_min_discharge_voltage" },
@@ -575,84 +575,84 @@ static void shutdown_power( void ){
 }
 
 
-#if defined(ESP32)
+// #if defined(ESP32)
 
-#define FAN_IO IO_PIN_19_MISO
-#define BOOST_IO IO_PIN_4_A5
+// #define FAN_IO IO_PIN_19_MISO
+// #define BOOST_IO IO_PIN_4_A5
 
-PT_THREAD( fan_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+// PT_THREAD( fan_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
 
-    if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
+//     if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
 
-        THREAD_EXIT( pt );
-    }
+//         THREAD_EXIT( pt );
+//     }
 
-    // BOOST
-    io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
-    io_v_digital_write( ELITE_BOOST_IO, 1 );
+//     // BOOST
+//     io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
+//     io_v_digital_write( ELITE_BOOST_IO, 1 );
 
-    // FAN
-    io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
-    io_v_digital_write( ELITE_FAN_IO, 1 );
+//     // FAN
+//     io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+//     io_v_digital_write( ELITE_FAN_IO, 1 );
 
-    TMR_WAIT( pt, 5000 );
-    // io_v_digital_write( ELITE_BOOST_IO, 0 );
-    io_v_digital_write( ELITE_FAN_IO, 0 );
+//     TMR_WAIT( pt, 5000 );
+//     // io_v_digital_write( ELITE_BOOST_IO, 0 );
+//     io_v_digital_write( ELITE_FAN_IO, 0 );
 
-    fan_on = FALSE;
+//     fan_on = FALSE;
 
 
-    while(1){
+//     while(1){
         
-        while( sys_b_is_shutting_down() ){
+//         while( sys_b_is_shutting_down() ){
 
-            // ensure fan is off when shutting down.
-            // if it is on, it can kick the battery controller back on as it winds down.
+//             // ensure fan is off when shutting down.
+//             // if it is on, it can kick the battery controller back on as it winds down.
 
-            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
-            io_v_digital_write( ELITE_FAN_IO, 0 );            
+//             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+//             io_v_digital_write( ELITE_FAN_IO, 0 );            
 
-            fan_on = FALSE;
+//             fan_on = FALSE;
 
-            TMR_WAIT( pt, 20 );
-        }
-        while( !fan_on && !sys_b_is_shutting_down() ){
+//             TMR_WAIT( pt, 20 );
+//         }
+//         while( !fan_on && !sys_b_is_shutting_down() ){
 
-            TMR_WAIT( pt, 100 );
+//             TMR_WAIT( pt, 100 );
 
-            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
-            io_v_digital_write( ELITE_FAN_IO, 0 );
+//             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+//             io_v_digital_write( ELITE_FAN_IO, 0 );
 
-            if( ( batt_i8_get_batt_temp() >= 38 ) ||
-                // ( get_case_temp() > ( get_ambient_temp() + 2 ) ) ||
-                ( get_case_temp() >= 55 ) ){
+//             if( ( batt_i8_get_batt_temp() >= 38 ) ||
+//                 // ( get_case_temp() > ( get_ambient_temp() + 2 ) ) ||
+//                 ( get_case_temp() >= 55 ) ){
 
-                fan_on = TRUE;
-            }
-        }
+//                 fan_on = TRUE;
+//             }
+//         }
 
-        while( fan_on && !sys_b_is_shutting_down() ){
+//         while( fan_on && !sys_b_is_shutting_down() ){
 
-            TMR_WAIT( pt, 100 );
+//             TMR_WAIT( pt, 100 );
 
-            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
-            io_v_digital_write( ELITE_FAN_IO, 1 );
+//             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+//             io_v_digital_write( ELITE_FAN_IO, 1 );
 
-            if( ( batt_i8_get_batt_temp() <= 37 ) &&
-                // ( get_case_temp() <= ( get_ambient_temp() + 1 ) ) &&
-                ( get_case_temp() <= 52 ) ){
+//             if( ( batt_i8_get_batt_temp() <= 37 ) &&
+//                 // ( get_case_temp() <= ( get_ambient_temp() + 1 ) ) &&
+//                 ( get_case_temp() <= 52 ) ){
 
-                fan_on = FALSE;
-            }
-        }
-    }
+//                 fan_on = FALSE;
+//             }
+//         }
+//     }
 
-PT_END( pt );
-}
+// PT_END( pt );
+// }
 
-#endif
+// #endif
 
 // bool batt_b_is_button_pressed( uint8_t button ){
 
@@ -742,16 +742,16 @@ PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
         
-    #if defined(ESP32)
+    // #if defined(ESP32)
 
-    if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+    // if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
-        thread_t_create( fan_thread,
-                         PSTR("fan_control"),
-                         0,
-                         0 );
-    }
-    #endif
+    //     thread_t_create( fan_thread,
+    //                      PSTR("fan_control"),
+    //                      0,
+    //                      0 );
+    // }
+    // #endif
 
     // wait until battery controller has started and is reporting voltage
     THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );

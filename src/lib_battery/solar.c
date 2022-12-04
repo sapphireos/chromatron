@@ -31,6 +31,7 @@
 #include "solar.h"
 #include "solar_tilt.h"
 #include "buttons.h"
+#include "thermal.h"
 #include "battery.h"
 
 #include "bq25895.h"

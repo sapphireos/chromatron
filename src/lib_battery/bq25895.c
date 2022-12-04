@@ -69,14 +69,15 @@ static uint32_t adc_fail;
 static int8_t batt_temp = -127;
 static int16_t batt_temp_state;
 
-#ifdef ESP32
-static int8_t case_temp = -127;
-static int8_t ambient_temp = -127;
-static int16_t case_temp_state;
-static int16_t ambient_temp_state;
-#endif
-
 static int8_t batt_temp_raw;
+
+// #ifdef ESP32
+// static int8_t case_temp = -127;
+// static int8_t ambient_temp = -127;
+// static int16_t case_temp_state;
+// static int16_t ambient_temp_state;
+// #endif
+
 
 KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp,                  0,  "batt_temp" },
@@ -108,10 +109,10 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_good,                   0,  "batt_adc_reads" },
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_fail,                   0,  "batt_adc_fails" },
 
-    #ifdef ESP32
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                  0,  "batt_case_temp" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,               0,  "batt_ambient_temp" },
-    #endif
+    // #ifdef ESP32
+    // { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                  0,  "batt_case_temp" },
+    // { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,               0,  "batt_ambient_temp" },
+    // #endif
 
 };
 
@@ -125,7 +126,7 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
 
 
 PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) );
-PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
+// PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
 int8_t bq25895_i8_init( void ){
@@ -727,130 +728,130 @@ int8_t bq25895_i8_calc_temp( uint8_t ratio ){
 }
 
 
-// percent * 10
-// IE, the first value is 41.8%
-static const uint16_t temp_table2[] = {
-418 , // -20C
-415 ,
-411 ,
-407 ,
-403 ,
-399 ,
-395 ,
-390 ,
-386 ,
-381 ,
-377 ,
-372 ,
-367 ,
-363 ,
-358 ,
-353 ,
-348 ,
-343 ,
-338 ,
-333 ,
-328 , // 0C
-322 ,
-317 ,
-312 ,
-307 ,
-301 ,
-296 ,
-291 ,
-285 ,
-280 ,
-275 ,
-269 ,
-264 ,
-259 ,
-254 ,
-248 ,
-243 ,
-238 ,
-233 ,
-228 ,
-223 ,
-218 ,
-213 ,
-209 ,
-204 ,
-199 , // 25C
-195 ,
-190 ,
-186 ,
-181 ,
-177 ,
-173 ,
-168 ,
-164 ,
-160 ,
-156 ,
-153 ,
-149 ,
-145 ,
-141 ,
-138 ,
-134 ,
-131 ,
-128 ,
-124 ,
-121 ,
-118 ,
-115 ,
-112 ,
-109 ,
-107 ,
-104 ,
-101 ,
-99  ,
-96  ,
-94  ,
-91  ,
-89  ,
-87  ,
-84  ,
-82  ,
-80  ,
-78  ,
-76  ,
-74  ,
-72  ,
-70  ,
-69  ,
-67  ,
-65  ,
-63  ,
-62  ,
-60  ,
-59  ,
-57  ,
-56  ,
-54  ,
-53  ,
-52  ,
-50  ,
-49  ,
-48  ,
-47  ,
-46  ,
-45  ,
-43  , // 85C
-};
+// // percent * 10
+// // IE, the first value is 41.8%
+// static const uint16_t temp_table2[] = {
+// 418 , // -20C
+// 415 ,
+// 411 ,
+// 407 ,
+// 403 ,
+// 399 ,
+// 395 ,
+// 390 ,
+// 386 ,
+// 381 ,
+// 377 ,
+// 372 ,
+// 367 ,
+// 363 ,
+// 358 ,
+// 353 ,
+// 348 ,
+// 343 ,
+// 338 ,
+// 333 ,
+// 328 , // 0C
+// 322 ,
+// 317 ,
+// 312 ,
+// 307 ,
+// 301 ,
+// 296 ,
+// 291 ,
+// 285 ,
+// 280 ,
+// 275 ,
+// 269 ,
+// 264 ,
+// 259 ,
+// 254 ,
+// 248 ,
+// 243 ,
+// 238 ,
+// 233 ,
+// 228 ,
+// 223 ,
+// 218 ,
+// 213 ,
+// 209 ,
+// 204 ,
+// 199 , // 25C
+// 195 ,
+// 190 ,
+// 186 ,
+// 181 ,
+// 177 ,
+// 173 ,
+// 168 ,
+// 164 ,
+// 160 ,
+// 156 ,
+// 153 ,
+// 149 ,
+// 145 ,
+// 141 ,
+// 138 ,
+// 134 ,
+// 131 ,
+// 128 ,
+// 124 ,
+// 121 ,
+// 118 ,
+// 115 ,
+// 112 ,
+// 109 ,
+// 107 ,
+// 104 ,
+// 101 ,
+// 99  ,
+// 96  ,
+// 94  ,
+// 91  ,
+// 89  ,
+// 87  ,
+// 84  ,
+// 82  ,
+// 80  ,
+// 78  ,
+// 76  ,
+// 74  ,
+// 72  ,
+// 70  ,
+// 69  ,
+// 67  ,
+// 65  ,
+// 63  ,
+// 62  ,
+// 60  ,
+// 59  ,
+// 57  ,
+// 56  ,
+// 54  ,
+// 53  ,
+// 52  ,
+// 50  ,
+// 49  ,
+// 48  ,
+// 47  ,
+// 46  ,
+// 45  ,
+// 43  , // 85C
+// };
 
-// percent * 10, using table 2
-int8_t bq25895_i8_calc_temp2( uint16_t percent ){
+// // percent * 10, using table 2
+// int8_t bq25895_i8_calc_temp2( uint16_t percent ){
 
-    for( uint8_t i = 0; i < cnt_of_array(temp_table2) - 1; i++ ){
+//     for( uint8_t i = 0; i < cnt_of_array(temp_table2) - 1; i++ ){
 
-        if( ( percent <= temp_table2[i] ) && ( percent >= temp_table2[i + 1] ) ){
+//         if( ( percent <= temp_table2[i] ) && ( percent >= temp_table2[i + 1] ) ){
 
-            return (int16_t)i - 20;
-        }
-    }
+//             return (int16_t)i - 20;
+//         }
+//     }
 
-    return -20;
-}
+//     return -20;
+// }
 
 int8_t bq25895_i8_get_therm( void ){
 
@@ -864,23 +865,23 @@ int8_t bq25895_i8_get_temp( void ){
     return batt_temp;
 }
 
-int8_t bq25895_i8_get_case_temp( void ){
+// int8_t bq25895_i8_get_case_temp( void ){
 
-    #ifdef ESP32
-    return case_temp;
-    #else
-    return 0;
-    #endif
-}
+//     #ifdef ESP32
+//     return case_temp;
+//     #else
+//     return 0;
+//     #endif
+// }
 
-int8_t bq25895_i8_get_ambient_temp( void ){
+// int8_t bq25895_i8_get_ambient_temp( void ){
 
-    #ifdef ESP32
-    return ambient_temp;
-    #else
-    return 0;
-    #endif
-}
+//     #ifdef ESP32
+//     return ambient_temp;
+//     #else
+//     return 0;
+//     #endif
+// }
 
 uint16_t bq25895_u16_read_vbus( void ){
 
@@ -1302,7 +1303,7 @@ static bool is_vbus_good( void ){
     return TRUE;
 }
 
-
+#if 0
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -1476,63 +1477,63 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
-
-
-
-#if defined(ESP32)
-
-PT_THREAD( bat_aux_temp_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-    if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
-
-        THREAD_EXIT( pt );
-    }
-
-    io_v_set_mode( ELITE_CASE_ADC_IO, IO_MODE_INPUT );      
-    io_v_set_mode( ELITE_AMBIENT_ADC_IO, IO_MODE_INPUT );      
-
-    while(1){
-
-        THREAD_WAIT_WHILE( pt, sys_volts == 0 ); // avoid divide by zero error
-
-        uint32_t case_adc = adc_u16_read_mv( ELITE_CASE_ADC_IO );
-        uint32_t ambient_adc = adc_u16_read_mv( ELITE_AMBIENT_ADC_IO );
-
-        int8_t temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
-
-        if( case_temp != -127 ){
-
-            case_temp_state = util_i16_ewma( temp * 256, case_temp_state, BQ25895_THERM_FILTER );    
-            case_temp = case_temp_state / 256;
-        }
-        else{
-
-            case_temp_state = temp * 256;
-            case_temp = temp;
-        }
-        
-        temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
-
-        if( ambient_temp != -127 ){
-
-            ambient_temp_state = util_i16_ewma( temp * 256, ambient_temp_state, BQ25895_THERM_FILTER );    
-            ambient_temp = ambient_temp_state / 256;
-        }
-        else{
-
-            ambient_temp_state = temp * 256;
-            ambient_temp = temp;
-        }
-
-        TMR_WAIT( pt, 1000 );
-    }
-
-PT_END( pt );
-}
-
 #endif
+
+
+// #if defined(ESP32)
+
+// PT_THREAD( bat_aux_temp_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
+
+//     if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
+
+//         THREAD_EXIT( pt );
+//     }
+
+//     io_v_set_mode( ELITE_CASE_ADC_IO, IO_MODE_INPUT );      
+//     io_v_set_mode( ELITE_AMBIENT_ADC_IO, IO_MODE_INPUT );      
+
+//     while(1){
+
+//         THREAD_WAIT_WHILE( pt, sys_volts == 0 ); // avoid divide by zero error
+
+//         uint32_t case_adc = adc_u16_read_mv( ELITE_CASE_ADC_IO );
+//         uint32_t ambient_adc = adc_u16_read_mv( ELITE_AMBIENT_ADC_IO );
+
+//         int8_t temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
+
+//         if( case_temp != -127 ){
+
+//             case_temp_state = util_i16_ewma( temp * 256, case_temp_state, BQ25895_THERM_FILTER );    
+//             case_temp = case_temp_state / 256;
+//         }
+//         else{
+
+//             case_temp_state = temp * 256;
+//             case_temp = temp;
+//         }
+        
+//         temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
+
+//         if( ambient_temp != -127 ){
+
+//             ambient_temp_state = util_i16_ewma( temp * 256, ambient_temp_state, BQ25895_THERM_FILTER );    
+//             ambient_temp = ambient_temp_state / 256;
+//         }
+//         else{
+
+//             ambient_temp_state = temp * 256;
+//             ambient_temp = temp;
+//         }
+
+//         TMR_WAIT( pt, 1000 );
+//     }
+
+// PT_END( pt );
+// }
+
+// #endif
 
 
 static bool enable_mppt;
@@ -1653,19 +1654,19 @@ PT_BEGIN( pt );
         init_boost_converter();
     }
 
-    thread_t_create( bat_control_thread,
-                     PSTR("bat_control"),
-                     0,
-                     0 );
+    // thread_t_create( bat_control_thread,
+    //                  PSTR("bat_control"),
+    //                  0,
+    //                  0 );
 
-    #if defined(ESP32)
+    // #if defined(ESP32)
 
-    thread_t_create( bat_aux_temp_thread,
-                     PSTR("bat_aux_temp"),
-                     0,
-                     0 );
+    // thread_t_create( bat_aux_temp_thread,
+    //                  PSTR("bat_aux_temp"),
+    //                  0,
+    //                  0 );
 
-    #endif
+    // #endif
 
     // check if MPPT enabled
     if( kv_b_get_boolean( __KV__batt_enable_mppt ) ){
