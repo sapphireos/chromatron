@@ -82,3 +82,7 @@ void patchboard_v_set_motor2( bool enable ){
     }
 }
 
+uint16_t patchboard_u16_read_solar_volts( void ){
+
+    return 0;
+}

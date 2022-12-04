@@ -33,6 +33,7 @@
 #include "buttons.h"
 #include "thermal.h"
 #include "battery.h"
+#include "patch_board.h"
 #include "pixel_power.h"
 
 #include "bq25895.h"
@@ -49,14 +50,15 @@ static bool enable_solar_charge;
 
 
 static uint8_t solar_state;
-#define SOLAR_MODE_UNKNOWN				0
-#define SOLAR_MODE_DISCHARGE_IDLE		1
-#define SOLAR_MODE_DISCHARGE_PIXELS		2
-#define SOLAR_MODE_CHARGE_DC			3
-#define SOLAR_MODE_CHARGE_SOLAR			4
-#define SOLAR_MODE_FULL_CHARGE			5
+#define SOLAR_MODE_DISCHARGE			0
+#define SOLAR_MODE_CHARGE_DC			1
+#define SOLAR_MODE_CHARGE_SOLAR			2
+#define SOLAR_MODE_FULL_CHARGE			3
 
 static catbus_string_t state_name;
+
+
+#define MIN_CHARGE_VOLTS				4000
 
 
 KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
@@ -96,17 +98,9 @@ bool solar_b_has_charger2_board( void ){
 
 static void apply_state_name( void ){
 
-	if( solar_state == SOLAR_MODE_UNKNOWN ){
+	if( solar_state == SOLAR_MODE_DISCHARGE ){
 
-		strncpy_P( state_name.str, PSTR("unknown"), sizeof(state_name.str) );
-	}
-	else if( solar_state == SOLAR_MODE_DISCHARGE_IDLE ){
-
-		strncpy_P( state_name.str, PSTR("discharge_idle"), sizeof(state_name.str) );	
-	}
-	else if( solar_state == SOLAR_MODE_DISCHARGE_PIXELS ){
-
-		strncpy_P( state_name.str, PSTR("discharge_pixels"), sizeof(state_name.str) );
+		strncpy_P( state_name.str, PSTR("discharge"), sizeof(state_name.str) );	
 	}
 	else if( solar_state == SOLAR_MODE_CHARGE_DC ){
 
@@ -135,23 +129,84 @@ PT_BEGIN( pt );
 
 		uint8_t next_state = solar_state;
 
-		if( solar_state == SOLAR_MODE_UNKNOWN ){
+
+		// check if charging
+		if( ( solar_state == SOLAR_MODE_CHARGE_DC ) ||
+			( solar_state == SOLAR_MODE_CHARGE_SOLAR ) ){
+
+
+
+			// fuel gauge here
+
 
 
 		}
-		else if( solar_state == SOLAR_MODE_DISCHARGE_IDLE ){
 
-			
-		}
-		else if( solar_state == SOLAR_MODE_DISCHARGE_PIXELS ){
 
-			
+		if( solar_state == SOLAR_MODE_DISCHARGE ){
+
+			// check if DC is connected:
+
+			if( patch_board_installed ){
+
+				// patch board has a dedicated DC detect signal:
+				if( patchboard_b_read_dc_detect() ){
+
+					next_state = SOLAR_MODE_CHARGE_DC;
+				}
+				else if( patchboard_u16_read_solar_volts() >= MIN_CHARGE_VOLTS ){
+
+					next_state = SOLAR_MODE_CHARGE_SOLAR;
+				}
+			}
+			else if( charger2_board_installed ){
+
+				// charger2 board is USB powered
+				next_state = SOLAR_MODE_CHARGE_DC;
+			}
+			else{
+
+				// generic board
+				// no dedicated DC detection.
+				// we make an assumption based on configuration here.
+
+				if( batt_u16_get_vbus_volts() >= MIN_CHARGE_VOLTS ){
+
+					if( enable_solar_charge ){
+
+						// if solar is enabled, assume charging on solar power
+						next_state = SOLAR_MODE_CHARGE_SOLAR;
+					}
+					else if( enable_dc_charge ){
+
+						next_state = SOLAR_MODE_CHARGE_DC;	
+					}
+				}
+			}
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_DC ){
 
-			
+			if( !enable_dc_charge ){						
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+
+			// check if no longer charging:
+			if( batt_b_is_charge_complete() ){
+
+				next_state = SOLAR_MODE_FULL_CHARGE;
+			}
+			else if( !batt_b_is_charging() ){
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
+
+			if( !enable_solar_charge ){						
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
 
 			
 		}
@@ -163,6 +218,8 @@ PT_BEGIN( pt );
 
 			ASSERT( FALSE );
 		}
+
+
 
 		if( next_state != solar_state ){
 

@@ -40,4 +40,6 @@ bool patchboard_b_read_io2( void );
 void patchboard_v_set_solar_en( bool enable );
 void patchboard_v_set_motor2( bool enable );
 
+uint16_t patchboard_u16_read_solar_volts( void );
+
 #endif
