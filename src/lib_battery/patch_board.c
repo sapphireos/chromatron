@@ -57,3 +57,28 @@ bool patchboard_b_read_io2( void ){
 
     return pca9536_b_gpio_read( PATCH_PCA9536_IO_IO2 );
 }
+
+void patchboard_v_set_solar_en( bool enable ){
+
+    if( enable ){
+
+        pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 0 );
+    }
+    else{
+
+        pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 1 );
+    }
+}
+
+void patchboard_v_set_motor2( bool enable ){
+
+    if( enable ){
+
+        pca9536_v_gpio_write( PATCH_PCA9536_IO_MOTOR_IN_2, 0 );
+    }
+    else{
+
+        pca9536_v_gpio_write( PATCH_PCA9536_IO_MOTOR_IN_2, 1 );
+    }
+}
+

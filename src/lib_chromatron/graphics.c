@@ -29,11 +29,11 @@
 
 #include "pixel.h"
 #include "graphics.h"
-#include "battery.h"
+#include "pixel_power.h"
 #include "vm.h"
 #include "vm_sync.h"
 #include "superconductor.h"
-
+#include "util.h"
 
 #ifdef ENABLE_GFX
 
@@ -105,8 +105,8 @@ bool gfx_b_pixels_enabled( void ){
     }
 
     #ifdef ENABLE_BATTERY
-    // battery manager indicates power is off
-    if( !batt_b_pixels_enabled() ){
+    // pixel power manager indicates power is off
+    if( !pixelpower_b_pixels_enabled() ){
 
         return FALSE;
     }

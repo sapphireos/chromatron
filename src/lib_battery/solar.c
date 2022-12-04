@@ -33,6 +33,7 @@
 #include "buttons.h"
 #include "thermal.h"
 #include "battery.h"
+#include "pixel_power.h"
 
 #include "bq25895.h"
 
@@ -71,6 +72,7 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 void solar_v_init( void ){
 
 	button_v_init();
+	pixelpower_v_init();
 
 	solar_tilt_v_init();
 

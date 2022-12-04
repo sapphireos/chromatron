@@ -63,3 +63,14 @@ bool charger2_b_read_spare( void ){
     return pca9536_b_gpio_read( CHARGER2_PCA9536_IO_SPARE );
 }
 
+void charger2_v_set_boost( bool enable ){
+
+    if( enable ){
+
+        pca9536_v_gpio_write( CHARGER2_PCA9536_IO_BOOST, 0 );
+    }
+    else{
+
+        pca9536_v_gpio_write( CHARGER2_PCA9536_IO_BOOST, 1 );
+    }
+}

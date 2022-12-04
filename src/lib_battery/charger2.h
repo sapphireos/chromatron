@@ -39,5 +39,6 @@ bool charger2_b_read_qon( void );
 bool charger2_b_read_s2( void );
 bool charger2_b_read_spare( void );
 
+void charger2_v_set_boost( bool enable );
 
 #endif

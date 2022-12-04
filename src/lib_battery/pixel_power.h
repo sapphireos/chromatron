@@ -22,22 +22,20 @@
 // </license>
 */
 
-#ifndef _PATCH_BOARD_H
-#define _PATCH_BOARD_H
+#ifndef _PIXEL_POWER_H
+#define _PIXEL_POWER_H
 
-// PCA9536 connections on Patch Board
-#define PATCH_PCA9536_IO_SOLAR_EN   0
-#define PATCH_PCA9536_IO_DC_DETECT  1
-#define PATCH_PCA9536_IO_IO2        2
-#define PATCH_PCA9536_IO_MOTOR_IN_2 3
+#include "gfx_lib.h"
+// pixelpower_b_pixels_enabled is declared in gfx lib so
+// pixel HAL can get to it
+
+void pixelpower_v_init( void );
+
+void pixelpower_v_enable_pixels( void );
+void pixelpower_v_disable_pixels( void );
+
+// bool pixelpower_b_pixels_enabled( void ); // see note above
 
 
-void patchboard_v_init( void );
-
-bool patchboard_b_read_dc_detect( void );
-bool patchboard_b_read_io2( void );
-
-void patchboard_v_set_solar_en( bool enable );
-void patchboard_v_set_motor2( bool enable );
 
 #endif

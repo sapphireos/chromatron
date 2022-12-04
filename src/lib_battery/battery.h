@@ -35,10 +35,10 @@
 #define BATT_PIX_COUNT_LOW_POWER_THRESHOLD		100
 
 // PCA9536 connections on Charger2
-#define BATT_IO_QON     0
-#define BATT_IO_S2      1
-#define BATT_IO_SPARE   2
-#define BATT_IO_BOOST   3
+// #define BATT_IO_QON     0
+// #define BATT_IO_S2      1
+// #define BATT_IO_SPARE   2
+// #define BATT_IO_BOOST   3
 
 
 void batt_v_init( void );
@@ -48,11 +48,12 @@ uint16_t batt_u16_get_charge_voltage( void );
 uint16_t batt_u16_get_discharge_voltage( void );
 
 // APIs to control pixel strip power switch
-void batt_v_enable_pixels( void );
-void batt_v_disable_pixels( void );
+// void batt_v_enable_pixels( void );
+// void batt_v_disable_pixels( void );
 
-bool batt_b_pixels_enabled( void );
+// bool batt_b_pixels_enabled( void );
 
+bool batt_b_is_mcp73831_enabled( void );
 int8_t batt_i8_get_batt_temp( void );
 uint16_t batt_u16_get_vbus_volts( void );
 uint16_t batt_u16_get_batt_volts( void );
@@ -62,9 +63,9 @@ bool batt_b_is_wall_power( void );
 bool batt_b_is_batt_fault( void );
 uint16_t batt_u16_get_nameplate_capacity( void );
 
-bool batt_b_is_button_pressed( uint8_t button );
-bool batt_b_is_button_hold( uint8_t button );
-bool batt_b_is_button_released( uint8_t button );
-bool batt_b_is_button_hold_released( uint8_t button );
+// bool batt_b_is_button_pressed( uint8_t button );
+// bool batt_b_is_button_hold( uint8_t button );
+// bool batt_b_is_button_released( uint8_t button );
+// bool batt_b_is_button_hold_released( uint8_t button );
 
 #endif

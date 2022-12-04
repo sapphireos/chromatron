@@ -185,6 +185,7 @@ void gfx_vm_v_update_frame_rate( uint16_t new_frame_rate );
 void gfx_v_log_value_curve( void );
 
 // declared here so pixel driver can get to it
-bool batt_b_pixels_enabled( void );
+// see pixel_power.h
+bool pixelpower_b_pixels_enabled( void );
 
 #endif

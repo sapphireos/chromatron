@@ -52,6 +52,7 @@ KV_SECTION_OPT kv_meta_t thermal_info_kv[] = {
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                  0,  "batt_case_temp" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,               0,  "batt_ambient_temp" },
 
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_PERSIST,    0,                           0,  "batt_enable_fan" },
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &fan_on,                     0,  "batt_fan_on" },
     #endif
 
@@ -78,10 +79,13 @@ void thermal_v_init( void ){
                      0,
                      0 );
 
-        thread_t_create( fan_thread,
-                         PSTR("fan_control"),
-                         0,
-                         0 );
+        if( kv_b_get_boolean( __KV__batt_enable_fan ) ){
+            
+            thread_t_create( fan_thread,
+                             PSTR("fan_control"),
+                             0,
+                             0 );
+        }
     }
 
     #endif
@@ -343,7 +347,6 @@ PT_BEGIN( pt );
             io_v_digital_write( ELITE_FAN_IO, 0 );
 
             if( ( batt_i8_get_batt_temp() >= 38 ) ||
-                // ( case_temp > ( get_ambient_temp() + 2 ) ) ||
                 ( case_temp >= 55 ) ){
 
                 fan_on = TRUE;
@@ -358,7 +361,6 @@ PT_BEGIN( pt );
             io_v_digital_write( ELITE_FAN_IO, 1 );
 
             if( ( batt_i8_get_batt_temp() <= 37 ) &&
-                // ( case_temp <= ( get_ambient_temp() + 1 ) ) &&
                 ( case_temp <= 52 ) ){
 
                 fan_on = FALSE;

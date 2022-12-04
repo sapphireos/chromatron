@@ -43,6 +43,9 @@
 
 #include "solar.h"
 
+#include "charger2.h"
+#include "patch_board.h"
+
 #include "hal_pixel.h"
 
 #ifdef ENABLE_BATTERY
@@ -51,9 +54,10 @@ static bool batt_enable;
 static bool batt_enable_mcp73831;
 
 static int8_t batt_ui_state;
-static bool request_pixels_enabled = FALSE;
-static bool request_pixels_disabled = FALSE;
-static bool pixels_enabled = FALSE;
+
+// static bool request_pixels_enabled = FALSE;
+// static bool request_pixels_disabled = FALSE;
+// static bool pixels_enabled = FALSE;
 
 
 
@@ -72,7 +76,7 @@ static bool pixels_enabled = FALSE;
 // #define BUTTON_EVENT_HOLD_RELEASED  4
 // static uint8_t button_hold_duration[MAX_BUTTONS];
 
-static bool pca9536_enabled;
+// static bool pca9536_enabled;
 
 
 // #define BUTTON_IO_CHECKS            4
@@ -88,7 +92,7 @@ static bool pca9536_enabled;
 
 
 
-static bool fan_on;
+// static bool fan_on;
 
 
 static uint16_t batt_max_charge_voltage = BATT_MAX_FLOAT_VOLTAGE;
@@ -191,7 +195,7 @@ KV_SECTION_OPT kv_meta_t battery_enable_mcp73831_kv[] = {
 
 KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
     { CATBUS_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state,               0,  "batt_ui_state" },
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,              0,  "batt_pixel_power" },
+    // { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,              0,  "batt_pixel_power" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,                  0,  "batt_state" },
     { CATBUS_TYPE_BOOL,   0, 0,                   &batt_request_shutdown,       0,  "batt_request_shutdown" },
     // { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
@@ -290,12 +294,12 @@ void batt_v_init( void ){
 
     energy_v_init();
 
-    if( !batt_enable ){
+    // if( !batt_enable ){
 
-        pixels_enabled = TRUE;
+    //     pixels_enabled = TRUE;
 
-        return;
-    }
+    //     return;
+    // }
 
     #ifndef ESP8266
     kv_v_add_db_info( battery_enable_mcp73831_kv, sizeof(battery_enable_mcp73831_kv) );
@@ -366,7 +370,7 @@ void batt_v_init( void ){
     //     cpu_v_set_clock_speed_low();
     // }
 
-    batt_v_enable_pixels();
+    // batt_v_enable_pixels();
 
     thread_t_create( battery_ui_thread,
                      PSTR("batt_ui"),
@@ -446,28 +450,32 @@ uint16_t batt_u16_get_discharge_voltage( void ){
 //     return TRUE;
 // }
 
-void batt_v_enable_pixels( void ){
+// void batt_v_enable_pixels( void ){
 
-    request_pixels_enabled = TRUE;
+//     request_pixels_enabled = TRUE;
+// }
+
+// void batt_v_disable_pixels( void ){
+
+//     request_pixels_disabled = TRUE;
+// }
+
+// bool batt_b_pixels_enabled( void ){
+
+//     if( !batt_enable ){
+
+//         // pixels are always enabled if battery system is not enabled (since we can't turn them off)
+
+//         return TRUE;
+//     }
+
+//     return pixels_enabled;
+// }
+
+bool batt_b_is_mcp73831_enabled( void ){
+
+    return batt_enable_mcp73831;
 }
-
-void batt_v_disable_pixels( void ){
-
-    request_pixels_disabled = TRUE;
-}
-
-bool batt_b_pixels_enabled( void ){
-
-    if( !batt_enable ){
-
-        // pixels are always enabled if battery system is not enabled (since we can't turn them off)
-
-        return TRUE;
-    }
-
-    return pixels_enabled;
-}
-
 
 int8_t batt_i8_get_batt_temp( void ){
 
@@ -760,69 +768,69 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
 
-        // check if pixels should be ENabled:
-        if( request_pixels_enabled ){
+        // // check if pixels should be ENabled:
+        // if( request_pixels_enabled ){
 
-            request_pixels_disabled = FALSE;
+        //     request_pixels_disabled = FALSE;
 
-            if( pca9536_enabled ){
+        //     if( pca9536_enabled ){
 
-                bq25895_v_set_boost_mode( TRUE );
+        //         bq25895_v_set_boost_mode( TRUE );
 
-                // wait for boost to start up
-                TMR_WAIT( pt, 40 );
+        //         // wait for boost to start up
+        //         TMR_WAIT( pt, 40 );
 
-                pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
-            }
-            else if( batt_enable_mcp73831 ){
+        //         pca9536_v_gpio_write( BATT_IO_BOOST, 0 ); // Enable BOOST output
+        //     }
+        //     else if( batt_enable_mcp73831 ){
 
-                mcp73831_v_enable_pixels();
-            }
-            #if defined(ESP32)
-            else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+        //         mcp73831_v_enable_pixels();
+        //     }
+        //     #if defined(ESP32)
+        //     else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
-                bq25895_v_set_boost_mode( TRUE );
+        //         bq25895_v_set_boost_mode( TRUE );
 
-                // wait for boost to start up
-                TMR_WAIT( pt, 40 );
+        //         // wait for boost to start up
+        //         TMR_WAIT( pt, 40 );
 
-                io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
-                io_v_digital_write( ELITE_BOOST_IO, 1 );
+        //         io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
+        //         io_v_digital_write( ELITE_BOOST_IO, 1 );
 
-                TMR_WAIT( pt, 10 );
-            }
-            #endif
+        //         TMR_WAIT( pt, 10 );
+        //     }
+        //     #endif
 
-            pixels_enabled = TRUE;
-            request_pixels_enabled = FALSE;   
-        }
+        //     pixels_enabled = TRUE;
+        //     request_pixels_enabled = FALSE;   
+        // }
 
-        // check if pixels should be DISabled:
-        if( request_pixels_disabled ){
+        // // check if pixels should be DISabled:
+        // if( request_pixels_disabled ){
 
-            if( pca9536_enabled ){
+        //     if( pca9536_enabled ){
 
-                pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // Disable BOOST output
+        //         pca9536_v_gpio_write( BATT_IO_BOOST, 1 ); // Disable BOOST output
 
-                bq25895_v_set_boost_mode( FALSE );
-            }
-            else if( batt_enable_mcp73831 ){
+        //         bq25895_v_set_boost_mode( FALSE );
+        //     }
+        //     else if( batt_enable_mcp73831 ){
 
-                mcp73831_v_disable_pixels();   
-            }
-            #if defined(ESP32)
-            else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+        //         mcp73831_v_disable_pixels();   
+        //     }
+        //     #if defined(ESP32)
+        //     else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
-                io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
-                io_v_digital_write( ELITE_BOOST_IO, 0 );
+        //         io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
+        //         io_v_digital_write( ELITE_BOOST_IO, 0 );
 
-                // bq25895_v_set_boost_mode( FALSE ); // DEBUG!
-            }
-            #endif
+        //         // bq25895_v_set_boost_mode( FALSE ); // DEBUG!
+        //     }
+        //     #endif
 
-            pixels_enabled = FALSE;
-            request_pixels_disabled = FALSE;
-        }
+        //     pixels_enabled = FALSE;
+        //     request_pixels_disabled = FALSE;
+        // }
 
 
 
