@@ -52,9 +52,12 @@ static uint8_t solar_state;
 #define SOLAR_MODE_CHARGE_SOLAR			4
 #define SOLAR_MODE_FULL_CHARGE			5
 
+static catbus_string_t state_name;
+
 
 KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,			0,  "solar_control_state" },
+	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&state_name,			0,  "solar_control_state_text" },
 
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&patch_board_installed, 0,  "solar_enable_patch_board" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 		0,  "solar_enable_dc_charge" },
@@ -73,16 +76,46 @@ void solar_v_init( void ){
                      0 );
 }
 
+static void apply_state_name( void ){
+
+	if( solar_state == SOLAR_MODE_UNKNOWN ){
+
+		strncpy_P( state_name.str, PSTR("unknown"), sizeof(state_name.str) );
+	}
+	else if( solar_state == SOLAR_MODE_DISCHARGE_IDLE ){
+
+		strncpy_P( state_name.str, PSTR("discharge_idle"), sizeof(state_name.str) );	
+	}
+	else if( solar_state == SOLAR_MODE_DISCHARGE_PIXELS ){
+
+		strncpy_P( state_name.str, PSTR("discharge_pixels"), sizeof(state_name.str) );
+	}
+	else if( solar_state == SOLAR_MODE_CHARGE_DC ){
+
+		strncpy_P( state_name.str, PSTR("charge_dc"), sizeof(state_name.str) );
+	}
+	else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
+
+		strncpy_P( state_name.str, PSTR("charge_solar"), sizeof(state_name.str) );
+	}
+	else if( solar_state == SOLAR_MODE_FULL_CHARGE ){
+
+		strncpy_P( state_name.str, PSTR("full_charge"), sizeof(state_name.str) );
+	}
+}
 
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+	apply_state_name();
+
 	while(1){
 
 		TMR_WAIT( pt, 1000 );
 
+		uint8_t next_state = solar_state;
 
 		if( solar_state == SOLAR_MODE_UNKNOWN ){
 
@@ -111,6 +144,13 @@ PT_BEGIN( pt );
 		else{
 
 			ASSERT( FALSE );
+		}
+
+		if( next_state != solar_state ){
+
+			solar_state = next_state;
+
+			apply_state_name();
 		}
 	}
 
