@@ -25,6 +25,12 @@
 #ifndef _PATCH_BOARD_H
 #define _PATCH_BOARD_H
 
+// PCA9536 connections on Patch Board
+#define PATCH_PCA9536_IO_SOLAR_EN   0
+#define PATCH_PCA9536_IO_DC_DETECT  1
+#define PATCH_PCA9536_IO_IO2        2
+#define PATCH_PCA9536_IO_MOTOR_IN_2 3
+
 
 void patchboard_v_init( void );
 

@@ -40,6 +40,7 @@ PT_THREAD( solar_control_thread( pt_t *pt, void *state ) );
 
 // config parameters:
 static bool patch_board_installed;
+static bool charger2_board_installed;
 static bool enable_dc_charge = TRUE;
 static bool enable_solar_charge;
 
@@ -56,12 +57,13 @@ static catbus_string_t state_name;
 
 
 KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
-	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,			0,  "solar_control_state" },
-	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&state_name,			0,  "solar_control_state_text" },
+	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
+	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&state_name,				0,  "solar_control_state_text" },
 
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&patch_board_installed, 0,  "solar_enable_patch_board" },
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 		0,  "solar_enable_dc_charge" },
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 	0,  "solar_enable_solar_charge" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&patch_board_installed, 	0,  "solar_enable_patch_board" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&charger2_board_installed, 	0,  "solar_enable_charger2" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
 };
 
 void solar_v_init( void ){
@@ -74,6 +76,16 @@ void solar_v_init( void ){
                      PSTR("solar_control"),
                      0,
                      0 );
+}
+
+bool solar_b_has_patch_board( void ){
+
+	return patch_board_installed;
+}
+
+bool solar_b_has_charger2_board( void ){
+
+	return charger2_board_installed;
 }
 
 static void apply_state_name( void ){

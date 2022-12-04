@@ -22,15 +22,22 @@
 // </license>
 */
 
-#ifndef _BUTTONS_H
-#define _BUTTONS_H
+#ifndef _CHARGER2_H
+#define _CHARGER2_H
+
+// PCA9536 connections on Charger2
+#define CHARGER2_PCA9536_IO_QON     0
+#define CHARGER2_PCA9536_IO_S2      1
+#define CHARGER2_PCA9536_IO_SPARE   2
+#define CHARGER2_PCA9536_IO_BOOST   3
 
 
-void button_v_init( void );
 
-bool button_b_is_button_pressed( uint8_t button );
-bool button_b_is_button_hold( uint8_t button );
-bool button_b_is_button_released( uint8_t button );
-bool button_b_is_button_hold_released( uint8_t button );
+void charger2_v_init( void );
+
+bool charger2_b_read_qon( void );
+bool charger2_b_read_s2( void );
+bool charger2_b_read_spare( void );
+
 
 #endif

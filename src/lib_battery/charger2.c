@@ -22,15 +22,32 @@
 // </license>
 */
 
-#ifndef _BUTTONS_H
-#define _BUTTONS_H
+
+#include "sapphire.h"
+
+#include "charger2.h"
+
+#include "pca9536.h"
 
 
-void button_v_init( void );
+void charger2_v_init( void ){
 
-bool button_b_is_button_pressed( uint8_t button );
-bool button_b_is_button_hold( uint8_t button );
-bool button_b_is_button_released( uint8_t button );
-bool button_b_is_button_hold_released( uint8_t button );
 
-#endif
+}
+
+
+bool charger2_b_read_qon( void ){
+
+    return pca9536_b_gpio_read( CHARGER2_PCA9536_IO_QON );
+}
+
+bool charger2_b_read_s2( void ){
+
+    return pca9536_b_gpio_read( CHARGER2_PCA9536_IO_S2 );
+}
+
+bool charger2_b_read_spare( void ){
+
+    return pca9536_b_gpio_read( CHARGER2_PCA9536_IO_SPARE );
+}
+
