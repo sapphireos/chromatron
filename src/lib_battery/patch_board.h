@@ -34,5 +34,7 @@
 
 void patchboard_v_init( void );
 
+bool patchboard_b_read_dc_detect( void );
+bool patchboard_b_read_io2( void );
 
 #endif

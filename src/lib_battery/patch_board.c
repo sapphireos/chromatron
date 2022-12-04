@@ -32,8 +32,28 @@
 
 
 void patchboard_v_init( void ){
+    
+    if( pca9536_i8_init() != 0 ){
 
+        log_v_critical_P( PSTR("PCA9536 NOT detected") );
 
+        return;
+    }
+
+    log_v_info_P( PSTR("PCA9536 detected") );
+
+    pca9536_v_set_output( PATCH_PCA9536_IO_SOLAR_EN );
+    pca9536_v_set_input( PATCH_PCA9536_IO_DC_DETECT );
+    pca9536_v_set_input( PATCH_PCA9536_IO_IO2 );
+    pca9536_v_set_output( PATCH_PCA9536_IO_MOTOR_IN_2 );
 }
 
+bool patchboard_b_read_dc_detect( void ){
 
+    return pca9536_b_gpio_read( PATCH_PCA9536_IO_DC_DETECT );
+}
+
+bool patchboard_b_read_io2( void ){
+
+    return pca9536_b_gpio_read( PATCH_PCA9536_IO_IO2 );
+}

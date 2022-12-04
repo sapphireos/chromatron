@@ -40,7 +40,7 @@
 #define MAX_BUTTONS 3
 
 static uint8_t button_state;
-static uint8_t ui_button; // physically installed button for QON and wired direct to MCU
+static int8_t ui_button = -1; // physically installed button for QON and wired direct to MCU
 
 // button events:
 static uint8_t button_event_prev[MAX_BUTTONS];
@@ -63,6 +63,11 @@ static uint8_t button_hold_duration[MAX_BUTTONS];
 #define BUTTON_HOLD_TIME            15
 #define BUTTON_SHUTDOWN_TIME        60
 #define BUTTON_WIFI_TIME            20
+
+KV_SECTION_OPT kv_meta_t button_info_kv[] = {
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "batt_button_event" },
+};
 
 
 
@@ -88,6 +93,10 @@ void button_v_init( void ){
     }
     #endif
 
+    if( ui_button >= 0 ){
+
+        io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );     
+    }
 
 
     thread_t_create( button_thread,
@@ -199,22 +208,18 @@ static bool _button_b_read_button( uint8_t ch ){
         }
         else if( ch == 2 ){
 
-            return charger2_b_read_spare();
+            return charger2_b_read_spare(); // spare has never been connected on actual hardware
         }
     }
     else if( solar_b_has_patch_board() ){
 
         if( ch == 0 ){
 
-            // return charger2_b_read_qon();
+            return io_b_digital_read( ui_button );
         }
         else if( ch == 1 ){
 
-            // return charger2_b_read_s2();
-        }
-        else if( ch == 2 ){
-
-            // return charger2_b_read_spare();
+            return patchboard_b_read_io2();
         }
     }
     else{

@@ -57,34 +57,34 @@ static bool pixels_enabled = FALSE;
 
 
 
-#define MAX_BUTTONS 3
+// #define MAX_BUTTONS 3
 
-static uint8_t button_state;
-static uint8_t ui_button;
+// static uint8_t button_state;
+// static uint8_t ui_button;
 
-// button events:
-static uint8_t button_event_prev[MAX_BUTTONS];
-static uint8_t button_event[MAX_BUTTONS];
-#define BUTTON_EVENT_NONE           0
-#define BUTTON_EVENT_PRESSED        1
-#define BUTTON_EVENT_RELEASED       2
-#define BUTTON_EVENT_HOLD           3
-#define BUTTON_EVENT_HOLD_RELEASED  4
-static uint8_t button_hold_duration[MAX_BUTTONS];
+// // button events:
+// static uint8_t button_event_prev[MAX_BUTTONS];
+// static uint8_t button_event[MAX_BUTTONS];
+// #define BUTTON_EVENT_NONE           0
+// #define BUTTON_EVENT_PRESSED        1
+// #define BUTTON_EVENT_RELEASED       2
+// #define BUTTON_EVENT_HOLD           3
+// #define BUTTON_EVENT_HOLD_RELEASED  4
+// static uint8_t button_hold_duration[MAX_BUTTONS];
 
 static bool pca9536_enabled;
 
 
-#define BUTTON_IO_CHECKS            4
+// #define BUTTON_IO_CHECKS            4
 
 #define BUTTON_CHECK_TIMING         50
 
-#define BUTTON_TAP_TIME             8
-#define BUTTON_MIN_TIME             1
+// #define BUTTON_TAP_TIME             8
+// #define BUTTON_MIN_TIME             1
 
-#define BUTTON_HOLD_TIME            15
-#define BUTTON_SHUTDOWN_TIME        60
-#define BUTTON_WIFI_TIME            20
+// #define BUTTON_HOLD_TIME            15
+// #define BUTTON_SHUTDOWN_TIME        60
+// #define BUTTON_WIFI_TIME            20
 
 
 
@@ -194,8 +194,8 @@ KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,              0,  "batt_pixel_power" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,                  0,  "batt_state" },
     { CATBUS_TYPE_BOOL,   0, 0,                   &batt_request_shutdown,       0,  "batt_request_shutdown" },
-    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
-    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "batt_button_event" },
+    // { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
+    // { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "batt_button_event" },
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &fan_on,                      0,  "batt_fan_on" },
     
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,     batt_kv_handler,  "batt_max_charge_voltage" },
@@ -323,36 +323,36 @@ void batt_v_init( void ){
     }
 
 
-    #if defined(ESP8266)
-    ui_button = IO_PIN_6_DAC0;
-    #elif defined(ESP32)
+    // #if defined(ESP8266)
+    // ui_button = IO_PIN_6_DAC0;
+    // #elif defined(ESP32)
 
-    uint8_t board = ffs_u8_read_board_type();
+    // uint8_t board = ffs_u8_read_board_type();
 
-    if( board == BOARD_TYPE_ELITE ){
+    // if( board == BOARD_TYPE_ELITE ){
 
-        ui_button = IO_PIN_21;
-    }
-    else{
+    //     ui_button = IO_PIN_21;
+    // }
+    // else{
 
-        ui_button = IO_PIN_17_TX;
-    }
-    #endif
+    //     ui_button = IO_PIN_17_TX;
+    // }
+    // #endif
 
-    if( pca9536_i8_init() == 0 ){
+    // if( pca9536_i8_init() == 0 ){
 
-        log_v_info_P( PSTR("PCA9536 detected") );
-        pca9536_enabled = TRUE;
+    //     log_v_info_P( PSTR("PCA9536 detected") );
+    //     pca9536_enabled = TRUE;
 
-        pca9536_v_set_input( BATT_IO_QON );
-        pca9536_v_set_input( BATT_IO_S2 );
-        pca9536_v_set_input( BATT_IO_SPARE );
-        pca9536_v_set_output( BATT_IO_BOOST );
-    }
-    else{
+    //     pca9536_v_set_input( BATT_IO_QON );
+    //     pca9536_v_set_input( BATT_IO_S2 );
+    //     pca9536_v_set_input( BATT_IO_SPARE );
+    //     pca9536_v_set_output( BATT_IO_BOOST );
+    // }
+    // else{
 
-        io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );    
-    }
+    //     io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );    
+    // }
 
     set_batt_capacity();
     fuel_v_init();
@@ -389,62 +389,62 @@ uint16_t batt_u16_get_discharge_voltage( void ){
     return batt_min_discharge_voltage;
 }
 
-static bool _ui_b_button_down( uint8_t ch ){
+// static bool _ui_b_button_down( uint8_t ch ){
 
-    uint8_t btn = 255;
+//     uint8_t btn = 255;
 
-    if( ch == 0 ){
+//     if( ch == 0 ){
 
-        if( pca9536_enabled ){    
+//         if( pca9536_enabled ){    
 
-            btn = BATT_IO_QON;
-        }
-        else{
+//             btn = BATT_IO_QON;
+//         }
+//         else{
 
-            btn = ui_button;
-        }
-    }    
-    else if( ch == 1 ){
+//             btn = ui_button;
+//         }
+//     }    
+//     else if( ch == 1 ){
 
-        if( pca9536_enabled ){    
+//         if( pca9536_enabled ){    
 
-            btn = BATT_IO_S2;
-        }
-    }    
-    else if( ch == 2 ){
+//             btn = BATT_IO_S2;
+//         }
+//     }    
+//     else if( ch == 2 ){
 
-        if( pca9536_enabled ){    
+//         if( pca9536_enabled ){    
 
-            btn = BATT_IO_SPARE;
-        }
-    }    
+//             btn = BATT_IO_SPARE;
+//         }
+//     }    
     
-    if( btn == 255 ){
+//     if( btn == 255 ){
 
-        return FALSE;
-    }
+//         return FALSE;
+//     }
 
-    // some filtering on button pin
-    for( uint8_t i = 0; i < BUTTON_IO_CHECKS; i++){
+//     // some filtering on button pin
+//     for( uint8_t i = 0; i < BUTTON_IO_CHECKS; i++){
 
-        if( pca9536_enabled ){
+//         if( pca9536_enabled ){
 
-            if( pca9536_b_gpio_read( btn ) ){
+//             if( pca9536_b_gpio_read( btn ) ){
 
-                return FALSE;
-            }
-        }
-        else{
+//                 return FALSE;
+//             }
+//         }
+//         else{
 
-            if( io_b_digital_read( btn ) ){
+//             if( io_b_digital_read( btn ) ){
 
-                return FALSE;
-            }
-        }
-    }
+//                 return FALSE;
+//             }
+//         }
+//     }
 
-    return TRUE;
-}
+//     return TRUE;
+// }
 
 void batt_v_enable_pixels( void ){
 
@@ -654,88 +654,88 @@ PT_END( pt );
 
 #endif
 
-bool batt_b_is_button_pressed( uint8_t button ){
+// bool batt_b_is_button_pressed( uint8_t button ){
 
-    if( button >= MAX_BUTTONS ){
+//     if( button >= MAX_BUTTONS ){
 
-        return FALSE;
-    }
+//         return FALSE;
+//     }
 
-    uint8_t event = button_event[button];
+//     uint8_t event = button_event[button];
 
-    if( event == BUTTON_EVENT_PRESSED ){
+//     if( event == BUTTON_EVENT_PRESSED ){
 
-        // clear event
-        button_event[button] = BUTTON_EVENT_NONE;
+//         // clear event
+//         button_event[button] = BUTTON_EVENT_NONE;
 
-        return TRUE;
-    }
+//         return TRUE;
+//     }
 
-    return FALSE;
-}
+//     return FALSE;
+// }
 
 
-bool batt_b_is_button_hold( uint8_t button ){
+// bool batt_b_is_button_hold( uint8_t button ){
 
-    if( button >= MAX_BUTTONS ){
+//     if( button >= MAX_BUTTONS ){
 
-        return FALSE;
-    }
+//         return FALSE;
+//     }
 
-    uint8_t event = button_event[button];
+//     uint8_t event = button_event[button];
 
-    if( event == BUTTON_EVENT_HOLD ){
+//     if( event == BUTTON_EVENT_HOLD ){
 
-        // clear event
-        button_event[button] = BUTTON_EVENT_NONE;
+//         // clear event
+//         button_event[button] = BUTTON_EVENT_NONE;
 
-        return TRUE;
-    }
+//         return TRUE;
+//     }
     
-    return FALSE;
-}
+//     return FALSE;
+// }
 
 
-bool batt_b_is_button_released( uint8_t button ){
+// bool batt_b_is_button_released( uint8_t button ){
 
-    if( button >= MAX_BUTTONS ){
+//     if( button >= MAX_BUTTONS ){
 
-        return FALSE;
-    }
+//         return FALSE;
+//     }
 
-    uint8_t event = button_event[button];
+//     uint8_t event = button_event[button];
 
-    if( event == BUTTON_EVENT_RELEASED ){
+//     if( event == BUTTON_EVENT_RELEASED ){
 
-        // clear event
-        button_event[button] = BUTTON_EVENT_NONE;
+//         // clear event
+//         button_event[button] = BUTTON_EVENT_NONE;
 
-        return TRUE;
-    }
+//         return TRUE;
+//     }
     
-    return FALSE;
-}
+//     return FALSE;
+// }
 
 
-bool batt_b_is_button_hold_released( uint8_t button ){
+// bool batt_b_is_button_hold_released( uint8_t button ){
 
-    if( button >= MAX_BUTTONS ){
+//     if( button >= MAX_BUTTONS ){
 
-        return FALSE;
-    }
+//         return FALSE;
+//     }
 
-    uint8_t event = button_event[button];
+//     uint8_t event = button_event[button];
 
-    if( event == BUTTON_EVENT_HOLD_RELEASED ){
+//     if( event == BUTTON_EVENT_HOLD_RELEASED ){
 
-        // clear event
-        button_event[button] = BUTTON_EVENT_NONE;
+//         // clear event
+//         button_event[button] = BUTTON_EVENT_NONE;
 
-        return TRUE;
-    }
+//         return TRUE;
+//     }
     
-    return FALSE;
-}
+//     return FALSE;
+// }
 
 
 PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) )
@@ -914,95 +914,95 @@ PT_BEGIN( pt );
         }
 
 
-        // sample buttons:
+        // // sample buttons:
 
-        for( uint8_t i = 0; i < MAX_BUTTONS; i++ ){
+        // for( uint8_t i = 0; i < MAX_BUTTONS; i++ ){
 
-            uint8_t button_mask = 1 << i;
+        //     uint8_t button_mask = 1 << i;
 
-            if( _ui_b_button_down( i ) ){
+        //     if( _ui_b_button_down( i ) ){
 
-                if( button_event_prev[i] != BUTTON_EVENT_PRESSED ){
+        //         if( button_event_prev[i] != BUTTON_EVENT_PRESSED ){
 
-                    button_event[i] = BUTTON_EVENT_PRESSED;
-                    button_event_prev[i] = button_event[i];
-                }
+        //             button_event[i] = BUTTON_EVENT_PRESSED;
+        //             button_event_prev[i] = button_event[i];
+        //         }
 
-                button_state |= button_mask;
+        //         button_state |= button_mask;
 
-                if( button_hold_duration[i] < 255 ){
+        //         if( button_hold_duration[i] < 255 ){
 
-                    button_hold_duration[i]++;
+        //             button_hold_duration[i]++;
 
-                    if( button_hold_duration[i] >= BUTTON_HOLD_TIME ){
+        //             if( button_hold_duration[i] >= BUTTON_HOLD_TIME ){
 
-                        if( button_event_prev[i] != BUTTON_EVENT_HOLD ){
+        //                 if( button_event_prev[i] != BUTTON_EVENT_HOLD ){
 
-                            button_event[i] = BUTTON_EVENT_HOLD;
-                            button_event_prev[i] = button_event[i];
-                        }
-                    }
-                }
-            }
-            else{   
+        //                     button_event[i] = BUTTON_EVENT_HOLD;
+        //                     button_event_prev[i] = button_event[i];
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     else{   
 
-                // check if was pressed, now released
-                if( ( button_state & button_mask ) != 0 ){
+        //         // check if was pressed, now released
+        //         if( ( button_state & button_mask ) != 0 ){
 
-                    if( button_event_prev[i] == BUTTON_EVENT_HOLD ){
+        //             if( button_event_prev[i] == BUTTON_EVENT_HOLD ){
 
-                        button_event[i] = BUTTON_EVENT_HOLD_RELEASED;
-                        button_event_prev[i] = button_event[i];
-                    }
-                    else if( button_event_prev[i] != BUTTON_EVENT_RELEASED ){
+        //                 button_event[i] = BUTTON_EVENT_HOLD_RELEASED;
+        //                 button_event_prev[i] = button_event[i];
+        //             }
+        //             else if( button_event_prev[i] != BUTTON_EVENT_RELEASED ){
 
-                        button_event[i] = BUTTON_EVENT_RELEASED;
-                        button_event_prev[i] = button_event[i];
-                    }
-                }
+        //                 button_event[i] = BUTTON_EVENT_RELEASED;
+        //                 button_event_prev[i] = button_event[i];
+        //             }
+        //         }
 
-                button_state &= ~button_mask;
-                button_hold_duration[i] = 0;
-            }
-        }
+        //         button_state &= ~button_mask;
+        //         button_hold_duration[i] = 0;
+        //     }
+        // }
 
-        // if button 0 was pressed:
-        if( button_state & 1 ){
+        // // if button 0 was pressed:
+        // if( button_state & 1 ){
 
-            // quick way to force a wifi scan if the device has the wifi powered down
-            // if it couldn't find a router.
-            wifi_v_reset_scan_timeout();
+        //     // quick way to force a wifi scan if the device has the wifi powered down
+        //     // if it couldn't find a router.
+        //     wifi_v_reset_scan_timeout();
 
-            // override quiet mode on status LED
-            status_led_v_override();
-        }
+        //     // override quiet mode on status LED
+        //     status_led_v_override();
+        // }
 
 
-        // check for shutdown
-        if( button_hold_duration[0] >= BUTTON_SHUTDOWN_TIME ){
+        // // check for shutdown
+        // if( button_hold_duration[0] >= BUTTON_SHUTDOWN_TIME ){
 
-            if( button_hold_duration[1] < BUTTON_WIFI_TIME ){
+        //     if( button_hold_duration[1] < BUTTON_WIFI_TIME ){
 
-                if( !batt_b_is_wall_power() ){
+        //         if( !batt_b_is_wall_power() ){
 
-                    log_v_debug_P( PSTR("Button commanded shutdown") );
+        //             log_v_debug_P( PSTR("Button commanded shutdown") );
 
-                    batt_ui_state = -1;
+        //             batt_ui_state = -1;
 
-                    sys_v_initiate_shutdown( 5 );
+        //             sys_v_initiate_shutdown( 5 );
 
-                    THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+        //             THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
-                    shutdown_power();
+        //             shutdown_power();
 
-                    _delay_ms( 1000 );
-                }
-            }
-            else{
+        //             _delay_ms( 1000 );
+        //         }
+        //     }
+        //     else{
 
-                wifi_v_switch_to_ap();
-            }
-        }
+        //         wifi_v_switch_to_ap();
+        //     }
+        // }
     }
 
 PT_END( pt );

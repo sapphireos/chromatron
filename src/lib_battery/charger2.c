@@ -32,7 +32,19 @@
 
 void charger2_v_init( void ){
 
+    if( pca9536_i8_init() != 0 ){
 
+        log_v_critical_P( PSTR("PCA9536 NOT detected") );
+
+        return;
+    }
+
+    log_v_info_P( PSTR("PCA9536 detected") );
+
+    pca9536_v_set_input( CHARGER2_PCA9536_IO_QON );
+    pca9536_v_set_input( CHARGER2_PCA9536_IO_S2 );
+    pca9536_v_set_input( CHARGER2_PCA9536_IO_SPARE );
+    pca9536_v_set_output( CHARGER2_PCA9536_IO_BOOST );
 }
 
 

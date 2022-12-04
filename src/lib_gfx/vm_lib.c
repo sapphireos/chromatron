@@ -33,6 +33,8 @@
 #include "pixel_mapper.h"
 #include "vm.h"
 #include "battery.h"
+#include "buttons.h"
+
 
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
@@ -369,7 +371,7 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            *result = batt_b_is_button_pressed( temp0 );
+            *result = button_b_is_button_pressed( temp0 );
 
             break;
 
@@ -388,7 +390,7 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            *result = batt_b_is_button_hold( temp0 );
+            *result = button_b_is_button_hold( temp0 );
 
             break;
 
@@ -407,7 +409,7 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            *result = batt_b_is_button_released( temp0 );
+            *result = button_b_is_button_released( temp0 );
 
             break;
 
@@ -426,7 +428,7 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            *result = batt_b_is_button_hold_released( temp0 );
+            *result = button_b_is_button_hold_released( temp0 );
 
             break;
 
