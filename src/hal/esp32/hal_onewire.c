@@ -28,7 +28,16 @@
 
 #include "driver/rmt.h"
 
+// static rmt_channel_t example_tx_channel = RMT_CHANNEL_0;
+// static rmt_channel_t example_rx_channel = RMT_CHANNEL_1;
+
 void hal_onewire_v_init( void ){
+
+    
+    // rmt_config_t rmt_tx_config = RMT_DEFAULT_CONFIG_TX(CONFIG_EXAMPLE_RMT_TX_GPIO, example_tx_channel);
+    // rmt_tx_config.tx_config.carrier_en = true;
+    // rmt_config(&rmt_tx_config);
+    // rmt_driver_install(example_tx_channel, 0, 0);
 
 }
 

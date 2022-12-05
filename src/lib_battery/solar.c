@@ -35,6 +35,7 @@
 #include "battery.h"
 #include "patch_board.h"
 #include "pixel_power.h"
+#include "onewire.h"
 
 #include "bq25895.h"
 
@@ -85,6 +86,17 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 };
 
 void solar_v_init( void ){
+
+
+	// debug!
+	onewire_v_init( IO_PIN_34_A2 );
+
+	uint8_t device_present = onewire_b_reset();
+
+	log_v_debug_P( PSTR("onewire: %d"), device_present );
+
+
+	return;
 
 	button_v_init();
 	pixelpower_v_init();
