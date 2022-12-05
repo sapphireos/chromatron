@@ -27,8 +27,11 @@
 
 #include "sapphire.h"
 
-#define BATT_MAX_FLOAT_VOLTAGE		4100
+#define BATT_MAX_FLOAT_VOLTAGE		4150
 #define BATT_CUTOFF_VOLTAGE			3100
+
+#define BATT_RECHARGE_THRESHOLD		100
+
 
 #define BATT_WALL_POWER_THRESHOLD	3800 // mv
 

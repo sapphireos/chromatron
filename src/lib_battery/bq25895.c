@@ -1217,6 +1217,21 @@ static void init_charger( void ){
     bq25895_v_set_vindpm( VINDPM_SOLAR );
 }
 
+// top level API to enable the charger
+void bq25895_v_enable_charger( void ){
+
+    bq25895_v_set_charger( TRUE );
+
+}
+
+// top level API to disable the charger
+void bq25895_v_disable_charger( void ){
+
+    bq25895_v_set_charger( FALSE );
+
+}
+
+
 static bool is_charging( void ){
 
     return ( charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE ) ||

@@ -485,7 +485,7 @@ void batt_v_enable_charge( void ){
         return;
     }
 
-    bq25895_v_set_charger( TRUE );
+    bq25895_v_enable_charger();
 }
 
 void batt_v_disable_charge( void ){
@@ -496,7 +496,7 @@ void batt_v_disable_charge( void ){
         return;
     }
     
-    bq25895_v_set_charger( FALSE );
+    bq25895_v_disable_charger();   
 }
 
 int8_t batt_i8_get_batt_temp( void ){
@@ -548,10 +548,10 @@ bool batt_b_is_charge_complete( void ){
 
     if( batt_enable_mcp73831 ){
 
-
+        return mcp73831_b_is_charge_complete();
     }
 
-    return FALSE;
+    return bq25895_u8_get_charge_status() == BQ25895_CHARGE_STATUS_CHARGE_DONE;
 }
 
 bool batt_b_is_wall_power( void ){

@@ -68,6 +68,9 @@ static uint16_t fuel_gauge_timer;
 
 #define MIN_CHARGE_VOLTS				4000
 
+static uint16_t filtered_batt_volts;
+#define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
+
 
 KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
@@ -201,7 +204,9 @@ PT_BEGIN( pt );
 			TMR_WAIT( pt, 500 );
 
 
-			// dp fuel gauge here
+			// do fuel gauge here
+
+			// filtered_batt_volts = etc
 
 			uint16_t batt_volts = batt_u16_get_batt_volts();
 
@@ -223,8 +228,9 @@ PT_BEGIN( pt );
 
 
 
-		uint8_t next_state = solar_state;
-		
+		static uint8_t next_state;
+		next_state = solar_state;
+
 
 		if( solar_state == SOLAR_MODE_STOPPED ){
 
@@ -306,11 +312,34 @@ PT_BEGIN( pt );
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
 
-			
+
+			// mppt control
+			// tilt control
+
+
+
+			// check if no longer charging:
+			if( batt_b_is_charge_complete() ){
+
+				next_state = SOLAR_MODE_FULL_CHARGE;
+			}
+			else if( !batt_b_is_charging() ){
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
 		}
 		else if( solar_state == SOLAR_MODE_FULL_CHARGE ){
 
-			
+			// ensure charge hardware is OFF
+			disable_charge();
+
+			// we do not leave full charge state until we start discharging,
+			// IE battery voltage drops below a threshold
+			if( filtered_batt_volts < RECHARGE_THRESHOLD ){
+
+				// switch to discharge state
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
 		}
 		else{
 
@@ -343,16 +372,53 @@ PT_BEGIN( pt );
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_DC ){
 
+				enable_charge();
+
 				charge_timer = 0;
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
 
+				enable_charge();
+
 				charge_timer = 0;
+
+				// starting solar charge
+
+				// if patch board is installed,
+				// enable the solar panel connection
+				if( patch_board_installed ){
+
+					patchboard_v_set_solar_en( TRUE );					
+				}
 			}
+
+
+			// check if leaving solar charge mode
+			if( next_state != SOLAR_MODE_CHARGE_SOLAR ){
+
+				// if patch board is installed:
+				// disable the solar panel connection.
+				if( patch_board_installed ){
+
+					patchboard_v_set_solar_en( FALSE );					
+				}
+
+				TMR_WAIT( pt, 100 );
+
+				disable_charge();
+			}
+			// check if leaving DC charge mode
+			else if( next_state != SOLAR_MODE_CHARGE_DC ){
+
+				disable_charge();	
+			}
+
+
 
 			fuel_gauge_timer = FUEL_SAMPLE_TIME - 2; // want fuel to sample shortly after any state change
 
-			
+			log_v_debug_P( PSTR("Changing states from %s to %s"), get_state_name( solar_state ), get_state_name( next_state ) );
+
 
 			// switch states for next cycle
 			solar_state = next_state;

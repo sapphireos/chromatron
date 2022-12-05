@@ -78,7 +78,7 @@ uint16_t max11645_u16_read( uint8_t channel ){
 
 
     uint16_t data = 0;
-    i2c_v_read( MAX11645_I2C_ADDR, &data, sizeof(data) );
+    i2c_v_read( MAX11645_I2C_ADDR, (uint8_t *)&data, sizeof(data) );
 
     return data;
 }

@@ -253,4 +253,7 @@ uint16_t bq25895_u16_read_vbus( void );
 int8_t bq25895_i8_get_case_temp( void );
 int8_t bq25895_i8_get_ambient_temp( void );
 
+void bq25895_v_enable_charger( void );
+void bq25895_v_disable_charger( void );
+
 #endif
