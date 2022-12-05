@@ -74,7 +74,7 @@ uint16_t max11645_u16_read( uint8_t channel ){
 	}
     
 
-    i2c_v_write( MAX11645_I2C_ADDR, cfg, sizeof(cfg) );
+    i2c_v_write( MAX11645_I2C_ADDR, &cfg, sizeof(cfg) );
 
 
     uint16_t data = 0;
