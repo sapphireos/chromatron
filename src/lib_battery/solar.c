@@ -89,7 +89,7 @@ void solar_v_init( void ){
 
 
 	// debug!
-	onewire_v_init( IO_PIN_34_A2 );
+	onewire_v_init( IO_PIN_25_A1 );
 
 	uint8_t device_present = onewire_b_reset();
 

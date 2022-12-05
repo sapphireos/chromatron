@@ -95,13 +95,13 @@ static void delay_j( void ){
 
 static void drive_low( void ){
 
-    io_v_set_mode( io_pin, IO_MODE_OUTPUT );
+    io_v_set_mode( io_pin, IO_MODE_OUTPUT_OPEN_DRAIN );
     io_v_digital_write( io_pin, 0 );
 }
 
 static void drive_high( void ){
 
-    io_v_set_mode( io_pin, IO_MODE_OUTPUT );
+    io_v_set_mode( io_pin, IO_MODE_OUTPUT_OPEN_DRAIN );
     io_v_digital_write( io_pin, 1 );
 }
 
