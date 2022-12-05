@@ -174,6 +174,40 @@ bool onewire_b_read_bit( void ){
     return bit;
 }
 
+void onewire_v_write_byte( uint8_t byte ){
+
+    for( uint8_t i = 0; i < 8; i++ ){
+
+        if( byte & 0x01 ){
+
+            onewire_v_write_1();
+        }
+        else{
+
+            onewire_v_write_0();
+        }
+
+        byte >>= 1;
+    }
+}
+
+uint8_t onewire_u8_read_byte( void ){
+
+    uint8_t byte = 0;
+
+    for( uint8_t i = 0; i < 8; i++ ){
+
+        if( onewire_b_read_bit() ){
+
+            byte |= 0x80;
+        }
+
+        byte >>= 1;
+    }
+
+    return byte;
+}
+
 #else
 
 void onewire_v_init( void ){

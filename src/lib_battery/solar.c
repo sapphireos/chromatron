@@ -91,10 +91,29 @@ void solar_v_init( void ){
 	// debug!
 	onewire_v_init( IO_PIN_25_A1 );
 
-	uint8_t device_present = onewire_b_reset();
 
-	log_v_debug_P( PSTR("onewire: %d"), device_present );
+	onewire_v_write_1();
+	onewire_v_write_1();
+	onewire_v_write_1();
 
+	onewire_v_write_0();
+	onewire_v_write_0();
+	onewire_v_write_0();
+
+	// uint8_t device_present = onewire_b_reset();
+
+	// log_v_debug_P( PSTR("onewire: %d"), device_present );
+
+	// onewire_v_write_byte( 0x33 );
+
+	// uint8_t id[6];
+
+	// for( uint8_t i = 0; i < 6; i++ ){
+
+	// 	id[i] = onewire_u8_read_byte();
+	// }
+	
+	// log_v_debug_P( PSTR("onewire ID: %02x %02x %02x %02x %02x %02x"), id[0], id[1], id[2], id[3], id[4], id[5] );
 
 	return;
 
