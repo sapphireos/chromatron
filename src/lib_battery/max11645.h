@@ -26,7 +26,20 @@
 #define _MAX11645_H
 
 
+#define MAX11645_I2C_ADDR 		0x36
+
+#define MAX11645_N_CHANNELS		2
+
+#define MAX11645_BIT_SETUP 		0b10000000
+#define MAX11645_BIT_CONFIG 	0b00000000
+
+#define MAX11645_BIT_CFG_CS		0b00000010
+#define MAX11645_BIT_CFG_SE		0b00000001
+
+
+
 void max11645_v_init( void );
 
+uint16_t max11645_u16_read( uint8_t channel );
 
 #endif

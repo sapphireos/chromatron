@@ -27,9 +27,59 @@
 
 #include "max11645.h"
 
+
+/*
+
+12 bits, 2 channels
+
+Default configuration at power up:
+
+Setup byte:
+Reference voltage: VDD
+Internal clock
+Unipolar (positive voltage)
+
+Config byte:
+Scan from AIN0 to CS0
+channel select ch 0
+Single ended
+
+
+*/
+
 void max11645_v_init( void ){
 
+	// reset configuration
+	uint8_t cmd[2];
+    cmd[0] = 0b10000010; // setup byte
+    cmd[1] = 0b00000001; // config byte
 
+    i2c_v_write( MAX11645_I2C_ADDR, cmd, sizeof(cmd) );
 }
 
+
+uint16_t max11645_u16_read( uint8_t channel ){
+
+	if( channel >= MAX11645_N_CHANNELS ){
+
+		return 0;
+	}
+
+	// set channel
+	uint8_t cfg = MAX11645_BIT_CONFIG | MAX11645_BIT_CFG_SE;
+
+	if( channel == 1 ){
+
+		cfg |= MAX11645_BIT_CFG_CS;
+	}
+    
+
+    i2c_v_write( MAX11645_I2C_ADDR, cfg, sizeof(cfg) );
+
+
+    uint16_t data = 0;
+    i2c_v_read( MAX11645_I2C_ADDR, &data, sizeof(data) );
+
+    return data;
+}
 

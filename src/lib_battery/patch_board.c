@@ -82,7 +82,13 @@ void patchboard_v_set_motor2( bool enable ){
     }
 }
 
-uint16_t patchboard_u16_read_solar_volts( void ){
+uint16_t patchboard_u16_read_tilt_volts( void ){
 
-    return 0;
+    return max11645_u16_read( PATCH_ADC_CH_TILT );
 }
+
+uint16_t patchboard_u16_read_solar_volts( void ){
+    // adjust for voltage divider
+    return ( max11645_u16_read( PATCH_ADC_CH_SOLAR_VOLTS ) * ( 10 + 22 ) ) / 10;
+}
+

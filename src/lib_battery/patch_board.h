@@ -31,6 +31,9 @@
 #define PATCH_PCA9536_IO_IO2        2
 #define PATCH_PCA9536_IO_MOTOR_IN_2 3
 
+#define PATCH_ADC_CH_TILT			0
+#define PATCH_ADC_CH_SOLAR_VOLTS	1
+
 
 void patchboard_v_init( void );
 
@@ -40,6 +43,7 @@ bool patchboard_b_read_io2( void );
 void patchboard_v_set_solar_en( bool enable );
 void patchboard_v_set_motor2( bool enable );
 
+uint16_t patchboard_u16_read_tilt_volts( void );
 uint16_t patchboard_u16_read_solar_volts( void );
 
 #endif
