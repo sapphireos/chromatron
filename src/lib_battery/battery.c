@@ -477,6 +477,28 @@ bool batt_b_is_mcp73831_enabled( void ){
     return batt_enable_mcp73831;
 }
 
+void batt_v_enable_charge( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        // MCP73831 has no charge enable control on our boards
+        return;
+    }
+
+    bq25895_v_set_charger( TRUE );
+}
+
+void batt_v_disable_charge( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        // MCP73831 has no charge enable control on our boards
+        return;
+    }
+    
+    bq25895_v_set_charger( FALSE );
+}
+
 int8_t batt_i8_get_batt_temp( void ){
 
     if( batt_enable_mcp73831 ){

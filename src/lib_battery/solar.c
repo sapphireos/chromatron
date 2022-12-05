@@ -50,13 +50,21 @@ static bool enable_solar_charge;
 
 
 static uint8_t solar_state;
-#define SOLAR_MODE_DISCHARGE			0
-#define SOLAR_MODE_CHARGE_DC			1
-#define SOLAR_MODE_CHARGE_SOLAR			2
-#define SOLAR_MODE_FULL_CHARGE			3
+#define SOLAR_MODE_STOPPED				0
+#define SOLAR_MODE_DISCHARGE			1
+#define SOLAR_MODE_CHARGE_DC			2
+#define SOLAR_MODE_CHARGE_SOLAR			3
+#define SOLAR_MODE_FULL_CHARGE			4
 
 static catbus_string_t state_name;
 
+
+static uint16_t charge_timer;
+#define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
+#define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
+
+static uint16_t fuel_gauge_timer;
+#define FUEL_SAMPLE_TIME				( 60 ) // debug! 60 seconds is probably much more than we need
 
 #define MIN_CHARGE_VOLTS				4000
 
@@ -69,6 +77,8 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&charger2_board_installed, 	0,  "solar_enable_charger2" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
+
+	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
 };
 
 void solar_v_init( void ){
@@ -96,24 +106,64 @@ bool solar_b_has_charger2_board( void ){
 	return charger2_board_installed;
 }
 
+
+static PGM_P get_state_name( uint8_t state ){
+
+	if( state == SOLAR_MODE_STOPPED ){
+
+		return PSTR("stopped");
+	}
+	else if( state == SOLAR_MODE_DISCHARGE ){
+
+		return PSTR("discharge");
+	}
+	else if( state == SOLAR_MODE_CHARGE_DC ){
+
+		return PSTR("charge_dc");
+	}
+	else if( state == SOLAR_MODE_CHARGE_SOLAR ){
+
+		return PSTR("charge_solar");
+	}
+	else if( state == SOLAR_MODE_FULL_CHARGE ){
+
+		return PSTR("full_charge");
+	}
+	else{
+
+		return PSTR("unknown");
+	}
+}
+
 static void apply_state_name( void ){
 
-	if( solar_state == SOLAR_MODE_DISCHARGE ){
+	strncpy_P( state_name.str, get_state_name( solar_state ), sizeof(state_name.str) );
+}
 
-		strncpy_P( state_name.str, PSTR("discharge"), sizeof(state_name.str) );	
-	}
-	else if( solar_state == SOLAR_MODE_CHARGE_DC ){
 
-		strncpy_P( state_name.str, PSTR("charge_dc"), sizeof(state_name.str) );
-	}
-	else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
+static bool is_charging( void ){
 
-		strncpy_P( state_name.str, PSTR("charge_solar"), sizeof(state_name.str) );
-	}
-	else if( solar_state == SOLAR_MODE_FULL_CHARGE ){
+	return ( solar_state == SOLAR_MODE_CHARGE_DC ) || 
+		   ( solar_state == SOLAR_MODE_CHARGE_SOLAR );
+}
 
-		strncpy_P( state_name.str, PSTR("full_charge"), sizeof(state_name.str) );
+static void enable_charge( void ){
+
+	// check if state is set to charge
+	if( !is_charging() ){
+
+		// don't physically enable the charger if
+		// we are not in a charge state
+
+		return;
 	}
+
+	batt_v_enable_charge();
+}
+
+static void disable_charge( void ){
+
+	batt_v_disable_charge();	
 }
 
 
@@ -127,23 +177,68 @@ PT_BEGIN( pt );
 
 		TMR_WAIT( pt, 1000 );
 
-		uint8_t next_state = solar_state;
 
 
-		// check if charging
-		if( ( solar_state == SOLAR_MODE_CHARGE_DC ) ||
-			( solar_state == SOLAR_MODE_CHARGE_SOLAR ) ){
+		fuel_gauge_timer++;
+
+		if( fuel_gauge_timer >= FUEL_SAMPLE_TIME ){
+
+			fuel_gauge_timer = 0;
+
+			// disable charge mechanism (includes cutting off solar array)
+			// delay 500 ms or so
+			// read batt voltage
+			// re-enable charge
+
+			// note that the disable/enable charge here does not change the solar
+			// control loop state.  technically we are still charging, but we turn
+			// off the charger when we want to sample the current state of charge.
+			// the charge current will increase the battery voltage according
+			// to the impedance of the cell.
+
+			disable_charge();
+
+			TMR_WAIT( pt, 500 );
+
+
+			// dp fuel gauge here
+
+			uint16_t batt_volts = batt_u16_get_batt_volts();
+
+			enable_charge();
 
 
 
-			// fuel gauge here
+			// // check if charging
+			// if( ( solar_state == SOLAR_MODE_CHARGE_DC ) ||
+			// 	( solar_state == SOLAR_MODE_CHARGE_SOLAR ) ){
 
 
+			// }
+			// else{
 
+
+			// }
 		}
 
 
-		if( solar_state == SOLAR_MODE_DISCHARGE ){
+
+		uint8_t next_state = solar_state;
+		
+
+		if( solar_state == SOLAR_MODE_STOPPED ){
+
+			charge_timer++;
+
+			// charge timer exceeded
+			if( charge_timer >= STOPPED_TIME ){
+
+				// signal charger control to stop
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+		}
+		else if( solar_state == SOLAR_MODE_DISCHARGE ){
 
 			// check if DC is connected:
 
@@ -162,7 +257,10 @@ PT_BEGIN( pt );
 			else if( charger2_board_installed ){
 
 				// charger2 board is USB powered
-				next_state = SOLAR_MODE_CHARGE_DC;
+				if( batt_u16_get_vbus_volts() >= MIN_CHARGE_VOLTS ){
+
+					next_state = SOLAR_MODE_CHARGE_DC;
+				}
 			}
 			else{
 
@@ -221,10 +319,43 @@ PT_BEGIN( pt );
 
 
 
+
+		if( is_charging() ){
+
+			charge_timer++;
+
+			// charge timer exceeded
+			if( charge_timer >= MAX_CHARGE_TIME ){
+
+				// signal charger control to stop
+
+				next_state = SOLAR_MODE_STOPPED;
+			}
+		}
+
+
 		if( next_state != solar_state ){
 
-			solar_state = next_state;
+			// set up any init conditions for entry to next state
+			if( next_state == SOLAR_MODE_STOPPED ){
 
+				charge_timer = STOPPED_TIME;
+			}
+			else if( next_state == SOLAR_MODE_CHARGE_DC ){
+
+				charge_timer = 0;
+			}
+			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
+
+				charge_timer = 0;
+			}
+
+			fuel_gauge_timer = FUEL_SAMPLE_TIME - 2; // want fuel to sample shortly after any state change
+
+			
+
+			// switch states for next cycle
+			solar_state = next_state;
 			apply_state_name();
 		}
 	}
