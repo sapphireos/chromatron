@@ -25,6 +25,24 @@
 #ifndef _LED_DETECT_H
 #define _LED_DETECT_H
 
+
+#define LED_UNIT_TYPE_NONE          0
+#define LED_UNIT_TYPE_STRAND50      1
+
+
+typedef struct{
+    uint8_t unit_type;
+    uint8_t led_type;
+    uint16_t pix_count;
+    uint16_t pix_size_x;
+    uint16_t pix_size_y;
+} led_profile_t;
+
+typedef struct{
+    uint64_t unit_id;
+    uint8_t unit_type;
+} led_unit_t;
+
 void led_detect_v_init( void );
 
 bool led_detect_b_led_connected( void );

@@ -30,17 +30,52 @@
 #include "led_detect.h"
 
 #include "hal_boards.h"
+#include "pix_modes.h"
 
 #if defined(ESP32)
 
 static bool led_detected = TRUE;
 static uint64_t led_id;
+static uint8_t current_profile;
+static uint8_t force_profile;
 
 KV_SECTION_OPT kv_meta_t led_detect_opt_kv[] = {    
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &led_detected,               0,  "led_detected" },
     { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &led_id,                     0,  "led_id"},
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &current_profile,            0,  "led_profile"},
+
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &force_profile,              0,  "led_force_profile" },
 };
 
+
+static const led_profile_t led_profiles[] = {
+    {
+        LED_UNIT_TYPE_NONE,
+        0, // led type
+        0, // pix count
+        0, // pix size x
+        0, // pix size y
+    },
+    {
+        LED_UNIT_TYPE_STRAND50,
+        PIX_MODE_WS2811, // led type
+        50, // pix count
+        50, // pix size x
+        1, // pix size y
+    },
+};
+
+// known units
+static const led_unit_t led_units[] = {
+    {
+        0,
+        LED_UNIT_TYPE_NONE,
+    },
+    {
+        1146042388,
+        LED_UNIT_TYPE_STRAND50,
+    }
+};
 
 PT_THREAD( led_detect_thread( pt_t *pt, void *state ) );
 
@@ -58,7 +93,57 @@ void led_detect_v_init( void ){
 
 bool led_detect_b_led_connected( void ){
 
+    if( force_profile != 0 ){
+
+        return TRUE;
+    }
+
     return led_detected;
+}
+
+static led_profile_t* get_profile_by_type( uint8_t type ){
+
+    // search for profile
+    for( int i = 0; i < cnt_of_array(led_profiles); i++ ){
+
+        if( led_profiles[i].unit_type == type ){
+
+            return &led_profiles[i];
+        }
+    }
+
+    return 0;
+}
+
+static led_profile_t* get_profile_by_id( uint64_t id ){
+
+    // search for unit
+    for( int i = 0; i < cnt_of_array(led_units); i++ ){
+
+        if( led_units[i].unit_id == id ){
+
+            // try to load a matching profile
+            return get_profile_by_type( led_units[i].unit_type );
+        }
+    }
+
+    return 0;
+}
+
+static void load_profile( uint8_t type ){
+
+    led_profile_t *profile = get_profile_by_type( type );
+
+    if( profile == 0 ){
+
+        return;
+    }
+
+    current_profile = profile->unit_type;
+
+
+    // set up pixel profile
+
 }
 
 
@@ -69,6 +154,17 @@ PT_BEGIN( pt );
     while(1){
 
         TMR_WAIT( pt, 2000 );
+
+        if( force_profile ){
+
+            // if a profile is forced, skip detection and load
+
+            load_profile( force_profile );
+
+            continue;
+        }
+
+
 
         onewire_v_init( ELITE_LED_ID_IO );
 
@@ -101,7 +197,21 @@ PT_BEGIN( pt );
             led_id = id;
 
             // changed LED units!
-            log_v_info_P( PSTR("LED unit installed: 0x%08x"), led_id );
+            log_v_info_P( PSTR("LED unit installed: %u"), led_id );
+
+            // get profile
+            led_profile_t *profile = get_profile_by_id( led_id );
+
+            if( profile != 0 ){
+
+                log_v_warn_P( PSTR("Loading profile: %u"), profile->unit_type );
+
+                load_profile( profile->unit_type );
+            }
+            else{
+
+                log_v_warn_P( PSTR("No profile found!") );
+            }
         }
 
         if( !detected ){

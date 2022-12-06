@@ -91,6 +91,8 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 
 void solar_v_init( void ){
 
+	kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
+
 	thermal_v_init();
 
 	if( kv_b_get_boolean( __KV__solar_enable_led_detect ) ){
@@ -104,8 +106,6 @@ void solar_v_init( void ){
 	pixelpower_v_init();
 
 	solar_tilt_v_init();
-
-	kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
 
 	thread_t_create( solar_control_thread,
                      PSTR("solar_control"),
