@@ -24,6 +24,7 @@
                   "lib_chromatron", 
                   "lib_battery", 
                   "lib_veml7700", 
+                  "lib_ssd1306", 
                   "lib_rfm95w"],
 
     "_comment": "The following options are only used for libraries:",

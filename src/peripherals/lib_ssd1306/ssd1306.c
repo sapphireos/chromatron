@@ -32,13 +32,16 @@
 
 #define DEFAULT_CONTRAST 0x8F
 
-static uint8_t current_dimmer = DEFAULT_CONTRAST;
+// static uint8_t current_dimmer = DEFAULT_CONTRAST;
 static uint8_t target_dimmer = DEFAULT_CONTRAST;
 
 static uint16_t debug;
 
 KV_SECTION_META kv_meta_t ssd1306_kv[] = {
     {CATBUS_TYPE_BOOL,      0, KV_FLAGS_PERSIST, 0,    0, "ssd1306_enable"},   
+};
+
+KV_SECTION_OPT kv_meta_t ssd1306_opt_kv[] = {
     {CATBUS_TYPE_UINT8,     0, 0, &target_dimmer,      0, "ssd1306_dimmer"},   
     {CATBUS_TYPE_UINT16,    0, 0, &debug,              0, "ssd1306_debug"},   
 };
@@ -258,11 +261,6 @@ PT_THREAD( ssd1306_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
 
-    if( !kv_b_get_boolean( __KV__ssd1306_enable ) ){
-
-        THREAD_EXIT( pt );
-    }
-    
     // send first command twice, the first write seems to consistently fail
     command(  SSD1306_CMD_DISP_OFF );
     command(  SSD1306_CMD_DISP_OFF );
@@ -398,6 +396,13 @@ PT_END( pt );
 
 
 void ssd1306_v_init( void ){
+
+    if( !kv_b_get_boolean( __KV__ssd1306_enable ) ){
+
+        return;
+    }
+    
+    kv_v_add_db_info( ssd1306_opt_kv, sizeof(ssd1306_opt_kv) );
 
     i2c_v_init( I2C_BAUD_400K );
 
