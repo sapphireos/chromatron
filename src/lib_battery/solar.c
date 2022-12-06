@@ -83,6 +83,7 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&charger2_board_installed, 	0,  "solar_enable_charger2" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
 
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
 };
@@ -91,43 +92,11 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 void solar_v_init( void ){
 
 	thermal_v_init();
-	led_detect_v_init();
 
-	// // debug!
-	// onewire_v_init( IO_PIN_25_A1 );
+	if( kv_b_get_boolean( __KV__solar_enable_led_detect ) ){
 
-	// _delay_ms( 1 ); // delay to charge bus!
-
-	// bool device_present = onewire_b_reset();
-
-	// log_v_debug_P( PSTR("onewire: %d"), device_present );
-
-	// if( device_present ){
-
-	// 	uint8_t family;
-	// 	uint64_t id;
-	// 	bool rom_valid = onewire_b_read_rom_id( &family, &id );
-
-	// 	// onewire_v_write_byte( 0x33 );
-		
-	// 	// uint8_t id[8];
-
-	// 	// for( uint8_t i = 0; i < 8; i++ ){
-
-	// 	// 	id[i] = onewire_u8_read_byte();
-	// 	// }
-
-	// 	// uint8_t crc = onewire_u8_crc( id, sizeof(id) - 1 );
-	// 	if( rom_valid ){
-
-	// 		log_v_debug_P( PSTR("onewire family: %02x"), family );
-	// 		log_v_debug_P( PSTR("onewire ID: %08x"), id );
-	// 	}
-		
-	// 	// log_v_debug_P( PSTR("onewire crc: %02x"), id[7] );
-	// 	// log_v_debug_P( PSTR("onewire calc crc: %02x"), crc );
-	// }
-	
+		led_detect_v_init();
+	}
 
 	return;
 

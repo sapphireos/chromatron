@@ -33,10 +33,10 @@
 
 #if defined(ESP32)
 
-static bool led_detected;
+static bool led_detected = TRUE;
 static uint64_t led_id;
 
-KV_SECTION_OPT kv_meta_t led_detect_opt_kv[] = {
+KV_SECTION_OPT kv_meta_t led_detect_opt_kv[] = {    
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &led_detected,               0,  "led_detected" },
     { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &led_id,                     0,  "led_id"},
 };
@@ -45,6 +45,8 @@ KV_SECTION_OPT kv_meta_t led_detect_opt_kv[] = {
 PT_THREAD( led_detect_thread( pt_t *pt, void *state ) );
 
 void led_detect_v_init( void ){
+
+    led_detected = FALSE;
 
     kv_v_add_db_info( led_detect_opt_kv, sizeof(led_detect_opt_kv) );
 
