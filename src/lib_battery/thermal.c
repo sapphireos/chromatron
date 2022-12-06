@@ -72,6 +72,10 @@ void thermal_v_init( void ){
     
     if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
+        // FAN in it IO
+        io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+        io_v_digital_write( ELITE_FAN_IO, 0 );
+
         kv_v_add_db_info( thermal_info_kv, sizeof(thermal_info_kv) );
 
         thread_t_create( aux_temp_thread,

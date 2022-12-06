@@ -37,6 +37,8 @@
 #include "pixel_power.h"
 #include "onewire.h"
 
+#include "hal_boards.h"
+
 #include "bq25895.h"
 
 
@@ -91,17 +93,12 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 
 void solar_v_init( void ){
 
+	thermal_v_init();
 
 	// debug!
 	onewire_v_init( IO_PIN_25_A1 );
 
-	// onewire_v_write_1();
-	// onewire_v_write_1();
-	// onewire_v_write_1();
-
-	// onewire_v_write_0();
-	// onewire_v_write_0();
-	// onewire_v_write_0();
+	// _delay_ms( 10 ); // delay to charge bus!
 
 	uint8_t device_present = onewire_b_reset();
 
@@ -109,7 +106,7 @@ void solar_v_init( void ){
 
 	onewire_v_write_byte( 0x33 );
 
-	rmt_driver_uninstall(RMT_CHANNEL_0);
+	// rmt_driver_uninstall(RMT_CHANNEL_0);
 
 	// uint8_t id[6];
 

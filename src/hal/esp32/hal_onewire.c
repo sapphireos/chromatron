@@ -110,6 +110,13 @@ void hal_onewire_v_reset( void ){
 
     rmt_item32_t items[1] = {0};
 
+    items[0].duration0 = 0;
+    items[0].level0 = 0;
+    items[0].duration1 = 10000; // charge bus
+    items[0].level1 = 1;
+
+    rmt_write_items(TX_CHANNEL, items, 1, true);
+
     items[0].duration0 = ONEWIRE_DELAY_H;
     items[0].level0 = 0;
     items[0].duration1 = ONEWIRE_DELAY_I;
