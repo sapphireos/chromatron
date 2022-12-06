@@ -85,6 +85,36 @@ uint8_t onewire_u8_read_byte( void ){
     return hal_onewire_u8_read_byte();
 }
 
+// returns TRUE if valid
+bool onewire_b_read_rom_id( uint8_t *family_code, uint64_t *id ){
+
+    *family_code = 0;
+    *id = 0;
+    
+    onewire_v_write_byte( ONEWIRE_CMD_READ_ROM_ID );
+
+    uint8_t data[8] = {0};
+
+    for( uint8_t i = 0; i < 8; i++ ){
+
+        data[i] = onewire_u8_read_byte();
+    }    
+
+    uint8_t crc = onewire_u8_crc( data, sizeof(data) - 1 );
+
+    // check if crc is correct
+    if( crc != data[sizeof(data) - 1] ){
+
+        // nope
+        return FALSE;
+    }
+
+    *family_code = data[0];
+    memcpy( id, &data[1], ONEWIRE_ID_LEN );
+
+    return TRUE;
+}
+
 #else
 
 void onewire_v_init( void ){

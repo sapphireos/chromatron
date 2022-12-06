@@ -25,6 +25,9 @@
 #ifndef _ONEWIRE_H
 #define _ONEWIRE_H
 
+#define ONEWIRE_ID_LEN  6
+
+#define ONEWIRE_CMD_READ_ROM_ID    0x33
 
 // 1-wire delays, from Maxim app note AN126:
 // these are all microseconds
@@ -49,5 +52,7 @@ bool onewire_b_reset( void );
 
 void onewire_v_write_byte( uint8_t byte );
 uint8_t onewire_u8_read_byte( void );
+
+bool onewire_b_read_rom_id( uint8_t *family_code, uint64_t *id );
 
 #endif

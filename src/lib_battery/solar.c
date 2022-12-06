@@ -103,21 +103,28 @@ void solar_v_init( void ){
 
 	if( device_present ){
 
-		onewire_v_write_byte( 0x33 );
+		uint8_t family;
+		uint64_t id;
+		bool rom_valid = onewire_b_read_rom_id( &family, &id );
+
+		// onewire_v_write_byte( 0x33 );
 		
-		uint8_t id[8];
+		// uint8_t id[8];
 
-		for( uint8_t i = 0; i < 8; i++ ){
+		// for( uint8_t i = 0; i < 8; i++ ){
 
-			id[i] = onewire_u8_read_byte();
+		// 	id[i] = onewire_u8_read_byte();
+		// }
+
+		// uint8_t crc = onewire_u8_crc( id, sizeof(id) - 1 );
+		if( rom_valid ){
+
+			log_v_debug_P( PSTR("onewire family: %02x"), family );
+			log_v_debug_P( PSTR("onewire ID: %08x"), id );
 		}
-
-		uint8_t crc = onewire_u8_crc( id, sizeof(id) - 1 );
 		
-		log_v_debug_P( PSTR("onewire family: %02x"), id[0] );
-		log_v_debug_P( PSTR("onewire ID: %02x %02x %02x %02x %02x %02x"), id[1], id[2], id[3], id[4], id[5], id[6] );
-		log_v_debug_P( PSTR("onewire crc: %02x"), id[7] );
-		log_v_debug_P( PSTR("onewire calc crc: %02x"), crc );
+		// log_v_debug_P( PSTR("onewire crc: %02x"), id[7] );
+		// log_v_debug_P( PSTR("onewire calc crc: %02x"), crc );
 	}
 	
 
