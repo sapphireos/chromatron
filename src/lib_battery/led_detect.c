@@ -47,6 +47,11 @@ PT_THREAD( led_detect_thread( pt_t *pt, void *state ) );
 void led_detect_v_init( void ){
 
     kv_v_add_db_info( led_detect_opt_kv, sizeof(led_detect_opt_kv) );
+
+    thread_t_create( led_detect_thread,
+                     PSTR("led_detect"),
+                     0,
+                     0 );
 }
 
 bool led_detect_b_led_connected( void ){
@@ -70,27 +75,16 @@ PT_BEGIN( pt );
         bool device_present = onewire_b_reset();
 
         bool detected = FALSE;
-        uint64_t id;
+        uint64_t id = 0;
+        uint8_t family = 0;
 
-        if( device_present ){
-
-            uint8_t family;
+        if( device_present ){        
             
             bool rom_valid = onewire_b_read_rom_id( &family, &id );
 
             if( rom_valid ){
 
-                led_detected = TRUE;
-
-                if( id == led_id ){
-
-
-                }
-                else{
-
-                    
-
-                }
+                detected = TRUE;
             }    
         }
 

@@ -91,6 +91,7 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 void solar_v_init( void ){
 
 	thermal_v_init();
+	led_detect_v_init();
 
 	// // debug!
 	// onewire_v_init( IO_PIN_25_A1 );
