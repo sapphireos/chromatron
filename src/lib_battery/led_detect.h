@@ -22,39 +22,11 @@
 // </license>
  */
 
-#ifndef _ONEWIRE_H
-#define _ONEWIRE_H
+#ifndef _LED_DETECT_H
+#define _LED_DETECT_H
 
-#define ONEWIRE_ID_LEN  6
+void led_detect_v_init( void );
 
-#define ONEWIRE_CMD_READ_ROM_ID    0x33
-
-// 1-wire delays, from Maxim app note AN126:
-// these are all microseconds
-#define ONEWIRE_DELAY_A 6
-#define ONEWIRE_DELAY_B 64
-#define ONEWIRE_DELAY_C 60
-#define ONEWIRE_DELAY_D 10
-#define ONEWIRE_DELAY_E 9
-#define ONEWIRE_DELAY_F 55
-#define ONEWIRE_DELAY_G 0
-#define ONEWIRE_DELAY_H 480
-#define ONEWIRE_DELAY_I 70
-#define ONEWIRE_DELAY_J 410
-
-#define ONEWIRE_IDLE    150
-
-void onewire_v_init( uint8_t _io_pin );
-
-void onewire_v_deinit( void );
-
-uint8_t onewire_u8_crc( uint8_t *data, uint8_t len );
-
-bool onewire_b_reset( void );
-
-void onewire_v_write_byte( uint8_t byte );
-uint8_t onewire_u8_read_byte( void );
-
-bool onewire_b_read_rom_id( uint8_t *family_code, uint64_t *id );
+bool led_detect_b_led_connected( void );
 
 #endif

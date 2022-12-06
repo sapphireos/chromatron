@@ -96,7 +96,6 @@ void hal_onewire_v_init( uint8_t gpio ){
     GPIO.pin[gpio_num].pad_driver = 1;
 }
 
-
 static void flush_rx( void ){
 
     RingbufHandle_t ringbuf;
@@ -117,6 +116,13 @@ static void flush_rx( void ){
     }
 }
 
+void hal_onewire_v_deinit( void ){
+
+    flush_rx();
+
+    rmt_driver_uninstall(TX_CHANNEL);
+    rmt_driver_uninstall(RX_CHANNEL);
+}
 
 bool hal_onewire_b_reset( void ){
 

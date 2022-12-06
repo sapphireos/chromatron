@@ -35,7 +35,7 @@
 #include "battery.h"
 #include "patch_board.h"
 #include "pixel_power.h"
-#include "onewire.h"
+#include "led_detect.h"
 
 #include "hal_boards.h"
 
@@ -90,42 +90,42 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 
 void solar_v_init( void ){
 
-	// thermal_v_init();
+	thermal_v_init();
 
-	// debug!
-	onewire_v_init( IO_PIN_25_A1 );
+	// // debug!
+	// onewire_v_init( IO_PIN_25_A1 );
 
-	_delay_ms( 1 ); // delay to charge bus!
+	// _delay_ms( 1 ); // delay to charge bus!
 
-	bool device_present = onewire_b_reset();
+	// bool device_present = onewire_b_reset();
 
-	log_v_debug_P( PSTR("onewire: %d"), device_present );
+	// log_v_debug_P( PSTR("onewire: %d"), device_present );
 
-	if( device_present ){
+	// if( device_present ){
 
-		uint8_t family;
-		uint64_t id;
-		bool rom_valid = onewire_b_read_rom_id( &family, &id );
+	// 	uint8_t family;
+	// 	uint64_t id;
+	// 	bool rom_valid = onewire_b_read_rom_id( &family, &id );
 
-		// onewire_v_write_byte( 0x33 );
+	// 	// onewire_v_write_byte( 0x33 );
 		
-		// uint8_t id[8];
+	// 	// uint8_t id[8];
 
-		// for( uint8_t i = 0; i < 8; i++ ){
+	// 	// for( uint8_t i = 0; i < 8; i++ ){
 
-		// 	id[i] = onewire_u8_read_byte();
-		// }
+	// 	// 	id[i] = onewire_u8_read_byte();
+	// 	// }
 
-		// uint8_t crc = onewire_u8_crc( id, sizeof(id) - 1 );
-		if( rom_valid ){
+	// 	// uint8_t crc = onewire_u8_crc( id, sizeof(id) - 1 );
+	// 	if( rom_valid ){
 
-			log_v_debug_P( PSTR("onewire family: %02x"), family );
-			log_v_debug_P( PSTR("onewire ID: %08x"), id );
-		}
+	// 		log_v_debug_P( PSTR("onewire family: %02x"), family );
+	// 		log_v_debug_P( PSTR("onewire ID: %08x"), id );
+	// 	}
 		
-		// log_v_debug_P( PSTR("onewire crc: %02x"), id[7] );
-		// log_v_debug_P( PSTR("onewire calc crc: %02x"), crc );
-	}
+	// 	// log_v_debug_P( PSTR("onewire crc: %02x"), id[7] );
+	// 	// log_v_debug_P( PSTR("onewire calc crc: %02x"), crc );
+	// }
 	
 
 	return;

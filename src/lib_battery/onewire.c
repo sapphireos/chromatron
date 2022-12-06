@@ -53,6 +53,12 @@ void onewire_v_init( uint8_t _io_pin ){
     hal_onewire_v_init( _io_pin );                
 }
 
+
+void onewire_v_deinit( void ){
+
+    hal_onewire_v_deinit();                
+}
+
 uint8_t onewire_u8_crc( uint8_t *data, uint8_t len ){
 
     uint8_t crc = 0;

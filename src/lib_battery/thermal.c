@@ -81,7 +81,7 @@ void thermal_v_init( void ){
 
         if( kv_b_get_boolean( __KV__batt_enable_fan ) ){
 
-            // FAN init IO
+            // FAN init IO to OFF
             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 0 );
             
@@ -319,11 +319,12 @@ PT_BEGIN( pt );
     io_v_digital_write( ELITE_BOOST_IO, 1 );
 
     // FAN
+    // turn on for 5 seconds for easy testing
     io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
     io_v_digital_write( ELITE_FAN_IO, 1 );
 
     TMR_WAIT( pt, 5000 );
-    // io_v_digital_write( ELITE_BOOST_IO, 0 );
+    // turn fan off
     io_v_digital_write( ELITE_FAN_IO, 0 );
 
     fan_on = FALSE;
