@@ -27,9 +27,9 @@
 
 
 void hal_onewire_v_init( uint8_t gpio );
-void hal_onewire_v_reset( void );
-void hal_onewire_v_write_bit( uint8_t bit );
-uint8_t hal_onewire_u8_read_bit( void );
+bool hal_onewire_b_reset( void );
+void hal_onewire_v_write_byte( uint8_t byte );
+uint8_t hal_onewire_u8_read_byte( void );
 
 
 #endif

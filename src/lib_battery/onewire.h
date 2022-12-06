@@ -39,13 +39,13 @@
 #define ONEWIRE_DELAY_I 70
 #define ONEWIRE_DELAY_J 410
 
+#define ONEWIRE_IDLE    150
 
 void onewire_v_init( uint8_t _io_pin );
 
+uint8_t onewire_u8_crc( uint8_t *data, uint8_t len );
+
 bool onewire_b_reset( void );
-// void onewire_v_write_1( void );
-// void onewire_v_write_0( void );
-// bool onewire_b_read_bit( void );
 
 void onewire_v_write_byte( uint8_t byte );
 uint8_t onewire_u8_read_byte( void );

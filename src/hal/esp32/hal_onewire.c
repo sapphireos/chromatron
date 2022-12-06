@@ -59,6 +59,20 @@ void hal_onewire_v_init( uint8_t gpio ){
     rmt_driver_install(TX_CHANNEL, 0, 0);
 
 
+    rmt_rx_config.rmt_mode = RMT_MODE_RX;                
+    rmt_rx_config.channel = RX_CHANNEL;                  
+    rmt_rx_config.gpio_num = gpio_num;                       
+    rmt_rx_config.clk_div = 80;                          
+    rmt_rx_config.mem_block_num = 1;                     
+    rmt_rx_config.flags = 0;                             
+    rmt_rx_config.rx_config.filter_en = true;
+    rmt_rx_config.rx_config.filter_ticks_thresh = 30;
+    rmt_rx_config.rx_config.idle_threshold = ONEWIRE_IDLE;
+    
+    rmt_config(&rmt_rx_config);
+    rmt_driver_install(RX_CHANNEL, 512, 0);
+
+
     // attach GPIO to previous pin
     if (gpio_num < 32)
     {
@@ -70,84 +84,194 @@ void hal_onewire_v_init( uint8_t gpio ){
     }
 
     // attach RMT channels to new gpio pin
-    // ATTENTION: set pin for rx first since gpio_output_disable() will
+    // set pin for rx first since gpio_output_disable() will
     //            remove rmt output signal in matrix!
-    rmt_set_pin(RX_CHANNEL, RMT_MODE_RX, gpio_num);
-    rmt_set_pin(TX_CHANNEL, RMT_MODE_TX, gpio_num);
+    rmt_set_gpio(RX_CHANNEL, RMT_MODE_RX, gpio_num, false);
+    rmt_set_gpio(TX_CHANNEL, RMT_MODE_TX, gpio_num, false);
 
     // force pin direction to input to enable path to RX channel
     PIN_INPUT_ENABLE(GPIO_PIN_MUX_REG[gpio_num]);
 
     // enable open drain
     GPIO.pin[gpio_num].pad_driver = 1;
-
-
-
-
-     // Enable open drain
-    // GPIO.pin[gpio_num].pad_driver = 1;
-
-    // hal_onewire_v_write_bit( 0 );
-    // hal_onewire_v_write_bit( 0 );
-    // hal_onewire_v_write_bit( 0 );
-    // hal_onewire_v_write_bit( 1 );
-    // hal_onewire_v_write_bit( 1 );
-    // hal_onewire_v_write_bit( 1 );
-
-    // rmt_driver_uninstall(TX_CHANNEL);
 }
 
-void hal_onewire_v_reset( void ){
 
-    // delay_g();
-    // drive_low();
-    // delay_h();
-    // release();
-    // delay_i();
-    // bool bit = sample();
-    // delay_j();
+static void flush_rx( void ){
+
+    RingbufHandle_t ringbuf;
+
+    rmt_get_ringbuf_handle( RX_CHANNEL, &ringbuf );
+    uint32_t rx_size = 0;
+
+    while( 1 ){
+
+        void *ptr = xRingbufferReceive( ringbuf, &rx_size, 0 );
+
+        if( ptr == 0 ){
+
+            break;
+        }
+
+        vRingbufferReturnItem( ringbuf, ptr );
+    }
+}
+
+
+bool hal_onewire_b_reset( void ){
+
+    flush_rx();
+
+    bool presence = FALSE;
+
+    rmt_set_rx_idle_thresh(RX_CHANNEL, ONEWIRE_DELAY_H + ONEWIRE_DELAY_I);
 
 
     rmt_item32_t items[1] = {0};
 
     items[0].duration0 = ONEWIRE_DELAY_H;
     items[0].level0 = 0;
-    items[0].duration1 = ONEWIRE_DELAY_I;
+    items[0].duration1 = 0;
     items[0].level1 = 1;
+
+    rmt_rx_start(RX_CHANNEL, true);
 
     rmt_write_items(TX_CHANNEL, items, 1, true);
 
-    // read bit
+    RingbufHandle_t ringbuf;
 
-    _delay_us( ONEWIRE_DELAY_J );
+    rmt_get_ringbuf_handle(RX_CHANNEL, &ringbuf);
+    uint32_t rx_size = 0;
+    rmt_item32_t *rx_items = (rmt_item32_t *)xRingbufferReceive(ringbuf, &rx_size, 20 / portTICK_PERIOD_MS);
 
+    if( rx_items != 0 ){
+
+        uint32_t rx_count = rx_size / sizeof(rmt_item32_t);
+
+        // for (int i = 0; i < count; i++)
+        // {
+        //     log_v_debug_P(PSTR("level0: %d, duration %d"), rx_items[i].level0, rx_items[i].duration0);
+        //     log_v_debug_P(PSTR("level1: %d, duration %d"), rx_items[i].level1, rx_items[i].duration1);
+        // }
+
+        // should have received more than 1 item:
+        if( rx_count > 1 ){
+
+            // verify first item is the reset signal
+            if( ( rx_items[0].level0 == 0 ) && ( rx_items[0].duration0 > ( ONEWIRE_DELAY_H - 10 ) ) &&
+                ( rx_items[0].level1 == 1 ) && ( rx_items[0].duration1 > 0 ) ){
+
+                // verify presence signal in second item
+                if( ( rx_items[1].level0 == 0 ) && ( rx_items[1].duration0 > 20 ) ){
+
+                    presence = TRUE;
+                }
+            }
+        }
+    }
+
+    rmt_rx_stop(RX_CHANNEL);
     
+    return presence;
 }
 
-void hal_onewire_v_write_bit( uint8_t bit ){
+void hal_onewire_v_write_byte( uint8_t byte ){
 
     rmt_item32_t items[1] = {0};
 
-    if( bit == 0 ){
+    for( uint8_t i = 0; i < 8; i++ ){
 
-        items[0].duration0 = ONEWIRE_DELAY_C;
-        items[0].level0 = 0;
-        items[0].duration1 = ONEWIRE_DELAY_D;
-        items[0].level1 = 1;
+        if( byte & 0x01 ){
+
+            items[0].duration0 = ONEWIRE_DELAY_A;
+            items[0].level0 = 0;
+            items[0].duration1 = ONEWIRE_DELAY_B;
+            items[0].level1 = 1;
+        }
+        else{
+
+            items[0].duration0 = ONEWIRE_DELAY_C;
+            items[0].level0 = 0;
+            items[0].duration1 = ONEWIRE_DELAY_D;
+            items[0].level1 = 1;
+        }
+
+        rmt_write_items(TX_CHANNEL, items, 1, true);
+
+        byte >>= 1;
     }
-    else{ // 1
-
-        items[0].duration0 = ONEWIRE_DELAY_A;
-        items[0].level0 = 0;
-        items[0].duration1 = ONEWIRE_DELAY_B;
-        items[0].level1 = 1;
-    }
-
-    rmt_write_items(TX_CHANNEL, items, 1, true);
 }
 
-uint8_t hal_onewire_u8_read_bit( void ){
+uint8_t hal_onewire_u8_read_byte( void ){
 
-    return 0;
+    uint8_t byte = 0;
+
+    RingbufHandle_t ringbuf;
+    rmt_get_ringbuf_handle(RX_CHANNEL, &ringbuf);
+    
+
+    flush_rx();
+
+    rmt_item32_t items[9] = {0};
+
+    for( uint8_t i = 0; i < 8; i++ ){    
+
+        // set up read slot
+        items[i].duration0 = ONEWIRE_DELAY_A;
+        items[i].level0 = 0;
+        items[i].duration1 = ONEWIRE_DELAY_E + ONEWIRE_DELAY_F;
+        items[i].level1 = 1;
+    }
+
+    // end idle condition
+    items[8].duration0 = 0;
+    items[8].level0 = 1;
+    items[8].duration1 = 0;
+    items[8].level1 = 1;
+
+
+    rmt_rx_start(RX_CHANNEL, true);
+
+    rmt_write_items(TX_CHANNEL, items, cnt_of_array(items), true);    
+
+    uint32_t rx_size = 0;
+    rmt_item32_t *rx_items = (rmt_item32_t *)xRingbufferReceive(ringbuf, &rx_size, 20 / portTICK_PERIOD_MS);
+
+    if( rx_items != 0 ){
+
+        uint32_t rx_count = rx_size / sizeof(rmt_item32_t);
+
+        // log_v_debug_P( PSTR("rx: %d"), rx_count );
+
+        // for (int j = 0; j < rx_count; j++)
+        // {
+        //     log_v_debug_P(PSTR("level0: %d, duration %d"), rx_items[j].level0, rx_items[j].duration0);
+        //     log_v_debug_P(PSTR("level1: %d, duration %d"), rx_items[j].level1, rx_items[j].duration1);
+        // }
+        
+        if( rx_count >= 8 ){
+
+            for( uint8_t i = 0; i < 8; i++ ){    
+
+                byte >>= 1;
+
+                // verify presence signal in second item
+                if( ( rx_items[i].level0 == 0 ) && ( rx_items[i].duration0 > ONEWIRE_DELAY_E ) ){
+
+                    // this is a zero
+                }
+                else if( rx_items[i].level0 == 0 ){
+
+                    // this is a one
+                    byte |= 0x80;
+                }
+            }
+        }
+    }
+
+    rmt_rx_stop(RX_CHANNEL);
+
+
+    return byte;
 }
 

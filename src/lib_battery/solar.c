@@ -88,9 +88,6 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 };
 
 
-#include "driver/rmt.h"
-
-
 void solar_v_init( void ){
 
 	// thermal_v_init();
@@ -100,22 +97,29 @@ void solar_v_init( void ){
 
 	_delay_ms( 1 ); // delay to charge bus!
 
-	uint8_t device_present = onewire_b_reset();
+	bool device_present = onewire_b_reset();
 
 	log_v_debug_P( PSTR("onewire: %d"), device_present );
 
-	onewire_v_write_byte( 0x33 );
+	if( device_present ){
 
-	// rmt_driver_uninstall(RMT_CHANNEL_0);
+		onewire_v_write_byte( 0x33 );
+		
+		uint8_t id[8];
 
-	// uint8_t id[6];
+		for( uint8_t i = 0; i < 8; i++ ){
 
-	// for( uint8_t i = 0; i < 6; i++ ){
+			id[i] = onewire_u8_read_byte();
+		}
 
-	// 	id[i] = onewire_u8_read_byte();
-	// }
+		uint8_t crc = onewire_u8_crc( id, sizeof(id) - 1 );
+		
+		log_v_debug_P( PSTR("onewire family: %02x"), id[0] );
+		log_v_debug_P( PSTR("onewire ID: %02x %02x %02x %02x %02x %02x"), id[1], id[2], id[3], id[4], id[5], id[6] );
+		log_v_debug_P( PSTR("onewire crc: %02x"), id[7] );
+		log_v_debug_P( PSTR("onewire calc crc: %02x"), crc );
+	}
 	
-	// log_v_debug_P( PSTR("onewire ID: %02x %02x %02x %02x %02x %02x"), id[0], id[1], id[2], id[3], id[4], id[5] );
 
 	return;
 
