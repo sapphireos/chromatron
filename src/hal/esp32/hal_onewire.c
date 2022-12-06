@@ -44,7 +44,7 @@ void hal_onewire_v_init( uint8_t gpio ){
     rmt_tx_config.channel = TX_CHANNEL;                  
     rmt_tx_config.gpio_num = gpio_num;                       
     rmt_tx_config.clk_div = 80;                          
-    rmt_tx_config.mem_block_num = 8;                     
+    rmt_tx_config.mem_block_num = 1;                     
     rmt_tx_config.flags = 0;                             
                     
     rmt_tx_config.tx_config.carrier_freq_hz = 0;                
@@ -109,13 +109,6 @@ void hal_onewire_v_reset( void ){
 
 
     rmt_item32_t items[1] = {0};
-
-    items[0].duration0 = 0;
-    items[0].level0 = 0;
-    items[0].duration1 = 10000; // charge bus
-    items[0].level1 = 1;
-
-    rmt_write_items(TX_CHANNEL, items, 1, true);
 
     items[0].duration0 = ONEWIRE_DELAY_H;
     items[0].level0 = 0;

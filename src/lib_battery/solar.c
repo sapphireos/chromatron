@@ -93,12 +93,12 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 
 void solar_v_init( void ){
 
-	thermal_v_init();
+	// thermal_v_init();
 
 	// debug!
 	onewire_v_init( IO_PIN_25_A1 );
 
-	// _delay_ms( 10 ); // delay to charge bus!
+	_delay_ms( 1 ); // delay to charge bus!
 
 	uint8_t device_present = onewire_b_reset();
 
