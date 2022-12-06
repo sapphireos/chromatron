@@ -85,26 +85,31 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
 };
 
+
+#include "driver/rmt.h"
+
+
 void solar_v_init( void ){
 
 
 	// debug!
 	onewire_v_init( IO_PIN_25_A1 );
 
+	// onewire_v_write_1();
+	// onewire_v_write_1();
+	// onewire_v_write_1();
 
-	onewire_v_write_1();
-	onewire_v_write_1();
-	onewire_v_write_1();
+	// onewire_v_write_0();
+	// onewire_v_write_0();
+	// onewire_v_write_0();
 
-	onewire_v_write_0();
-	onewire_v_write_0();
-	onewire_v_write_0();
+	uint8_t device_present = onewire_b_reset();
 
-	// uint8_t device_present = onewire_b_reset();
+	log_v_debug_P( PSTR("onewire: %d"), device_present );
 
-	// log_v_debug_P( PSTR("onewire: %d"), device_present );
+	onewire_v_write_byte( 0x33 );
 
-	// onewire_v_write_byte( 0x33 );
+	rmt_driver_uninstall(RMT_CHANNEL_0);
 
 	// uint8_t id[6];
 

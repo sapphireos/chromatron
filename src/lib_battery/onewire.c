@@ -27,20 +27,18 @@
 
 #if defined(ESP32)
 
-// #include "hal_onewire.h"
+#include "hal_onewire.h"
 
 static uint8_t io_pin;
 
 void onewire_v_init( uint8_t _io_pin ){
 
-    io_pin = _io_pin;
+    // io_pin = _io_pin;
 
-    io_v_set_mode( io_pin, IO_MODE_INPUT );
-
-
+    // io_v_set_mode( io_pin, IO_MODE_INPUT );
 
 
-    // hal_onewire_v_init();                
+    hal_onewire_v_init( _io_pin );                
 }
 
 static void delay_a( void ){
@@ -119,6 +117,9 @@ static bool sample( void ){
 // return TRUE if a device is present
 bool onewire_b_reset( void ){
 
+    hal_onewire_v_reset();
+    return FALSE;
+
     ATOMIC;
 
     delay_g();
@@ -180,11 +181,13 @@ void onewire_v_write_byte( uint8_t byte ){
 
         if( byte & 0x01 ){
 
-            onewire_v_write_1();
+            hal_onewire_v_write_bit( 1 );
+            // onewire_v_write_1();   
         }
         else{
 
-            onewire_v_write_0();
+            hal_onewire_v_write_bit( 0 );
+            // onewire_v_write_0();
         }
 
         byte >>= 1;

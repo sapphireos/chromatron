@@ -43,9 +43,9 @@
 void onewire_v_init( uint8_t _io_pin );
 
 bool onewire_b_reset( void );
-void onewire_v_write_1( void );
-void onewire_v_write_0( void );
-bool onewire_b_read_bit( void );
+// void onewire_v_write_1( void );
+// void onewire_v_write_0( void );
+// bool onewire_b_read_bit( void );
 
 void onewire_v_write_byte( uint8_t byte );
 uint8_t onewire_u8_read_byte( void );
