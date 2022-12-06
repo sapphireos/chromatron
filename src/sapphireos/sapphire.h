@@ -37,6 +37,7 @@
 #include "crc.h"
 #include "util.h"
 #include "datetime.h"
+#include "time_ntp.h"
 #include "fs.h"
 #include "ip.h"
 #include "memory.h"

@@ -356,7 +356,7 @@ PT_BEGIN( pt );
         ssd1306_v_clear();
 
         char iso8601[ISO8601_STRING_MIN_LEN];
-        ntp_ts_t ntp = time_t_local_now();
+        ntp_ts_t ntp = ntp_t_local_now();
         datetime_t now;
         datetime_v_seconds_to_datetime( ntp.seconds, &now );
         datetime_v_to_iso8601( iso8601, sizeof(iso8601), &now );
