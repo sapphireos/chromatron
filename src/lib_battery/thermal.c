@@ -226,8 +226,8 @@ static const uint16_t aux_temp_table[] = {
 43  , // 85C
 };
 
-// percent * 10, using table 2
-int8_t _thermal_i8_calc_temp2( uint16_t percent ){
+// percent * 10, using table
+int8_t _thermal_i8_calc_temp( uint16_t percent ){
 
     for( uint8_t i = 0; i < cnt_of_array(aux_temp_table) - 1; i++ ){
 
@@ -245,11 +245,6 @@ int8_t _thermal_i8_calc_temp2( uint16_t percent ){
 PT_THREAD( aux_temp_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
-
-        THREAD_EXIT( pt );
-    }
 
     io_v_set_mode( ELITE_CASE_ADC_IO, IO_MODE_INPUT );      
     io_v_set_mode( ELITE_AMBIENT_ADC_IO, IO_MODE_INPUT );      
@@ -274,7 +269,7 @@ PT_BEGIN( pt );
         uint32_t case_adc = adc_u16_read_mv( ELITE_CASE_ADC_IO );
         uint32_t ambient_adc = adc_u16_read_mv( ELITE_AMBIENT_ADC_IO );
 
-        int8_t temp = _thermal_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
+        int8_t temp = _thermal_i8_calc_temp( ( case_adc * 1000 ) / sys_volts );
 
         if( case_temp != -127 ){
 
@@ -287,7 +282,7 @@ PT_BEGIN( pt );
             case_temp = temp;
         }
         
-        temp = _thermal_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
+        temp = _thermal_i8_calc_temp( ( ambient_adc * 1000 ) / sys_volts );
 
         if( ambient_temp != -127 ){
 
