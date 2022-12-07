@@ -304,7 +304,7 @@ bool bq25895_b_is_boost_1500khz( void ){
     return ( reg & BQ25895_BIT_BOOST_FREQ ) != 0;
 }
 
-void bq25895_v_set_boost_mode( bool enable ){
+static void set_boost_mode( bool enable ){
 
     if( enable ){
 
@@ -314,6 +314,21 @@ void bq25895_v_set_boost_mode( bool enable ){
 
         bq25895_v_clr_reg_bits( BQ25895_REG_BOOST_EN, BQ25895_BIT_BOOST_EN );
     }
+}
+
+void bq25895_v_set_boost_mode( bool enable ){
+
+    // check if MCU power source is PMID and
+    // disabling the boost converter is requested
+    if( mcu_source_pmid && !enable ){
+
+        // leave boost mode enabled in this case,
+        // since turning it off would turn off the MCU power.
+
+        return;
+    }
+
+    set_boost_mode( enable );
 }
 
 // forces input current limit detection
