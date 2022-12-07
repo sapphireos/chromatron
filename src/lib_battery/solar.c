@@ -51,11 +51,11 @@ static bool enable_solar_charge;
 
 
 static uint8_t solar_state;
-#define SOLAR_MODE_STOPPED				0
-#define SOLAR_MODE_DISCHARGE			1
-#define SOLAR_MODE_CHARGE_DC			2
-#define SOLAR_MODE_CHARGE_SOLAR			3
-#define SOLAR_MODE_FULL_CHARGE			4
+#define SOLAR_MODE_DISCHARGE			0
+#define SOLAR_MODE_CHARGE_DC			1
+#define SOLAR_MODE_CHARGE_SOLAR			2
+#define SOLAR_MODE_FULL_CHARGE			3
+#define SOLAR_MODE_STOPPED				4
 #define SOLAR_MODE_SHUTDOWN	  			5
 
 static catbus_string_t state_name;

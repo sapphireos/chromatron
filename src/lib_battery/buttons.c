@@ -249,7 +249,7 @@ static bool _button_b_button_down( uint8_t ch ){
     // some filtering on button pin
     for( uint8_t i = 0; i < BUTTON_IO_CHECKS; i++){
 
-        if( _button_b_read_button( ch ) == FALSE ){
+        if( _button_b_read_button( ch ) ){ // note the inverted logic, unpressed buttons read as high/true
 
             return FALSE;
         }
