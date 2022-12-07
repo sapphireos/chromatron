@@ -25,9 +25,6 @@
 
 #include "sapphire.h"
 
-#include "pwm.h"
-#include "keyvalue.h"
-
 #include "solar.h"
 #include "solar_tilt.h"
 #include "mppt.h"
@@ -37,10 +34,10 @@
 #include "patch_board.h"
 #include "pixel_power.h"
 #include "led_detect.h"
+#include "fuel_gauge.h"
+#include "energy.h"
 
 #include "hal_boards.h"
-
-#include "bq25895.h"
 
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) );
@@ -94,6 +91,10 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 void solar_v_init( void ){
 
 	kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
+
+	energy_v_init();
+
+	fuel_v_init();
 
 	thermal_v_init();
 

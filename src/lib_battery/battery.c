@@ -33,7 +33,6 @@
 #include "vm.h"
 #include "pixel.h"
 
-#include "energy.h"
 #include "battery.h"
 #include "fuel_gauge.h"
 
@@ -292,8 +291,6 @@ void batt_v_init( void ){
 
     set_batt_nameplate_capacity();
 
-    energy_v_init();
-
     // if( !batt_enable ){
 
     //     pixels_enabled = TRUE;
@@ -362,8 +359,6 @@ void batt_v_init( void ){
 
     set_batt_nameplate_capacity();
 
-
-    fuel_v_init();
 
     trace_printf("Battery controller enabled\n");
 
