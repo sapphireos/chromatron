@@ -645,7 +645,8 @@ PT_BEGIN( pt );
 
             // get charge state
             bool is_charging = batt_b_is_charging();
-            bool is_wall_power = batt_b_is_wall_power();
+            // bool is_wall_power = batt_b_is_wall_power();
+            bool is_wall_power = 0;
 
             if( is_charging ){
 

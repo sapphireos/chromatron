@@ -65,9 +65,11 @@ uint16_t batt_u16_get_batt_volts( void );
 uint8_t batt_u8_get_soc( void );
 bool batt_b_is_charging( void );
 bool batt_b_is_charge_complete( void );
-bool batt_b_is_wall_power( void );
+bool batt_b_is_external_power( void );
 bool batt_b_is_batt_fault( void );
 uint16_t batt_u16_get_nameplate_capacity( void );
+
+void batt_v_shutdown_power( void );
 
 // bool batt_b_is_button_pressed( uint8_t button );
 // bool batt_b_is_button_hold( uint8_t button );

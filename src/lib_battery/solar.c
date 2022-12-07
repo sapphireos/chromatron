@@ -56,6 +56,7 @@ static uint8_t solar_state;
 #define SOLAR_MODE_CHARGE_DC			2
 #define SOLAR_MODE_CHARGE_SOLAR			3
 #define SOLAR_MODE_FULL_CHARGE			4
+#define SOLAR_MODE_SHUTDOWN	  			5
 
 static catbus_string_t state_name;
 
@@ -127,6 +128,15 @@ bool solar_b_has_charger2_board( void ){
 	return charger2_board_installed;
 }
 
+// bool solar_b_is_dc_power( void ){
+
+// 	return solar_state == SOLAR_MODE_CHARGE_DC;	
+// }
+
+// bool solar_b_is_solar_power( void ){
+
+// 	return solar_state == SOLAR_MODE_CHARGE_SOLAR;
+// }
 
 static PGM_P get_state_name( uint8_t state ){
 
@@ -149,6 +159,10 @@ static PGM_P get_state_name( uint8_t state ){
 	else if( state == SOLAR_MODE_FULL_CHARGE ){
 
 		return PSTR("full_charge");
+	}
+	else if( state == SOLAR_MODE_SHUTDOWN ){
+
+		return PSTR("shutdown");
 	}
 	else{
 
@@ -330,8 +344,10 @@ PT_BEGIN( pt );
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
 
+			// mppt is running in bq25895 adc loop,
+			// nothing to do here.
 
-			// mppt control
+
 			// tilt control
 
 
@@ -359,15 +375,43 @@ PT_BEGIN( pt );
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
 		}
+		else if( solar_state == SOLAR_MODE_SHUTDOWN ){
+
+			// check tilt angle
+
+			if( solar_tilt_u8_get_tilt_angle() == 0 ){
+				// note that units that do not have the tilt system
+				// will always report 0 angle, so the shutdown
+				// state will take effect immediately.
+
+				// panel is closed
+				sys_v_initiate_shutdown( 5 );
+
+				THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+
+				batt_v_shutdown_power();
+				// if on battery power, this should not return
+				// as the power will be cut off.
+				// if an external power source was plugged in during
+				// the shutdown, then this will return.
+
+				// we will delay here and wait
+				// for the reboot thread to reboot the system.
+				TMR_WAIT( pt, 120000 ); 
+			}
+		}
 		else{
 
 			ASSERT( FALSE );
 		}
 
 
+		// check if a shutdown was requested
+		if( button_b_is_shutdown_requested() ){
 
-
-		if( is_charging() ){
+			next_state = SOLAR_MODE_SHUTDOWN;
+		}
+		else if( is_charging() ){
 
 			charge_timer++;
 
@@ -381,10 +425,17 @@ PT_BEGIN( pt );
 		}
 
 
+		// if state is changing:
+
 		if( next_state != solar_state ){
 
 			// set up any init conditions for entry to next state
-			if( next_state == SOLAR_MODE_STOPPED ){
+			if( next_state == SOLAR_MODE_SHUTDOWN ){
+
+				// set tilt system to close the panel
+				solar_tilt_v_set_tilt_angle( 0 );	
+			}
+			else if( next_state == SOLAR_MODE_STOPPED ){
 
 				charge_timer = STOPPED_TIME;
 			}

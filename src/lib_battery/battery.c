@@ -52,7 +52,7 @@
 static bool batt_enable;
 static bool batt_enable_mcp73831;
 
-static int8_t batt_ui_state;
+// static int8_t batt_ui_state;
 
 // static bool request_pixels_enabled = FALSE;
 // static bool request_pixels_disabled = FALSE;
@@ -80,7 +80,7 @@ static int8_t batt_ui_state;
 
 // #define BUTTON_IO_CHECKS            4
 
-#define BUTTON_CHECK_TIMING         50
+// #define BUTTON_CHECK_TIMING         50
 
 // #define BUTTON_TAP_TIME             8
 // #define BUTTON_MIN_TIME             1
@@ -175,7 +175,7 @@ static uint8_t batt_state;
 #define BATT_STATE_LOW          1
 #define BATT_STATE_CRITICAL     2
 #define BATT_STATE_CUTOFF       3
-static uint8_t batt_request_shutdown;
+// static uint8_t batt_request_shutdown;
 
 
 #define EMERGENCY_CUTOFF_VOLTAGE ( BATT_CUTOFF_VOLTAGE - 100 ) // set 100 mv below the main cutoff, to give a little headroom
@@ -193,10 +193,9 @@ KV_SECTION_OPT kv_meta_t battery_enable_mcp73831_kv[] = {
 #endif
 
 KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
-    { CATBUS_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state,               0,  "batt_ui_state" },
+    // { CATBUS_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state,               0,  "batt_ui_state" },
     // { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,              0,  "batt_pixel_power" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,                  0,  "batt_state" },
-    { CATBUS_TYPE_BOOL,   0, 0,                   &batt_request_shutdown,       0,  "batt_request_shutdown" },
     // { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
     // { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "batt_button_event" },
     // { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &fan_on,                      0,  "batt_fan_on" },
@@ -285,7 +284,7 @@ hold btn 0 for 3 seconds and btn 1 for 6 seconds
 //     return ret_val;
 // }
 
-PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) );
+// PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) );
 
 void batt_v_init( void ){
 
@@ -371,10 +370,10 @@ void batt_v_init( void ){
 
     // batt_v_enable_pixels();
 
-    thread_t_create( battery_ui_thread,
-                     PSTR("batt_ui"),
-                     0,
-                     0 );
+    // thread_t_create( battery_ui_thread,
+    //                  PSTR("batt_ui"),
+    //                  0,
+    //                  0 );
 
     // fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
     // fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
@@ -553,7 +552,7 @@ bool batt_b_is_charge_complete( void ){
     return bq25895_u8_get_charge_status() == BQ25895_CHARGE_STATUS_CHARGE_DONE;
 }
 
-bool batt_b_is_wall_power( void ){
+bool batt_b_is_external_power( void ){
 
     if( batt_u16_get_vbus_volts() >= BATT_WALL_POWER_THRESHOLD ){
 
@@ -599,7 +598,7 @@ uint16_t batt_u16_get_nameplate_capacity( void ){
 //     return bq25895_i8_get_ambient_temp();
 // }
 
-static void shutdown_power( void ){
+void batt_v_shutdown_power( void ){
 
     if( batt_enable_mcp73831 ){
 
@@ -775,7 +774,7 @@ static void shutdown_power( void ){
     
 //     return FALSE;
 // }
-
+/*
 
 PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) )
 {
@@ -1046,5 +1045,7 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+*/
 
 #endif

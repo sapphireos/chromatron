@@ -32,4 +32,7 @@ void solar_v_init( void );
 bool solar_b_has_patch_board( void );
 bool solar_b_has_charger2_board( void );
 
+// bool solar_b_is_dc_power( void );
+// bool solar_b_is_solar_power( void );
+
 #endif

@@ -33,6 +33,7 @@
 #include "charger2.h"
 #include "patch_board.h"
 #include "buttons.h"
+#include "battery.h"
 
 #include "pca9536.h"
 
@@ -62,11 +63,14 @@ static uint8_t button_hold_duration[MAX_BUTTONS];
 #define BUTTON_SHUTDOWN_TIME        ( 3000 / BUTTON_CHECK_TIMING )
 #define BUTTON_WIFI_TIME            ( 1000 / BUTTON_CHECK_TIMING )
 
+static uint8_t batt_request_shutdown;
+
 
 
 KV_SECTION_OPT kv_meta_t button_info_kv[] = {
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "batt_button_event" },
+    { CATBUS_TYPE_BOOL,   0, 0,                   &batt_request_shutdown,       0,  "batt_request_shutdown" },
 };
 
 
@@ -189,6 +193,11 @@ bool button_b_is_button_hold_released( uint8_t button ){
     }
     
     return FALSE;
+}
+
+bool button_b_is_shutdown_requested( void ){
+
+    return batt_request_shutdown;
 }
 
 static bool _button_b_read_button( uint8_t ch ){
@@ -327,22 +336,17 @@ PT_BEGIN( pt );
 
             if( button_hold_duration[1] < BUTTON_WIFI_TIME ){
 
-                // !!!!!! this needs to report up to solar/charger control loop:
+                if( !batt_b_is_external_power() ){
 
-                // if( !batt_b_is_wall_power() ){
+                    log_v_debug_P( PSTR("Button commanded shutdown") );
 
-                //     log_v_debug_P( PSTR("Button commanded shutdown") );
+                    // set shutdown request
+                    batt_request_shutdown = TRUE;
 
-                //     batt_ui_state = -1;
-
-                //     sys_v_initiate_shutdown( 5 );
-
-                //     THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
-
-                //     shutdown_power();
-
-                //     _delay_ms( 1000 );
-                // }
+                    TMR_WAIT( pt, 120000 ); 
+                    // power should be off by now, but if not,
+                    // just carry on?    
+                }
             }
             else{
 
