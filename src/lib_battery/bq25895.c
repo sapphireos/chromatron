@@ -33,6 +33,7 @@
 #include "flash_fs.h"
 #include "hal_boards.h"
 
+#include "mppt.h"
 #include "battery.h"
 
 #ifdef ENABLE_BATTERY
@@ -99,7 +100,6 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                     0,  "batt_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &solar_vindpm,               0,  "batt_solar_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                     0,  "batt_iindpm" },
-    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_PERSIST,    0,                           0,  "batt_enable_mppt" },
 
     { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                  0,  "batt_dump_regs" },
 
@@ -118,14 +118,13 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
 
 #define VOLTS_FILTER    32
 
-#define VINDPM_WALL     0
-#define VINDPM_SOLAR    solar_vindpm
+// #define VINDPM_WALL     0
+// #define VINDPM_SOLAR    solar_vindpm
 
 
 #define BQ25895_THERM_FILTER 32
 
 
-PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) );
 // PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
@@ -1173,9 +1172,9 @@ static void init_charger( void ){
     // default to 0.5C rate:
     uint32_t fast_charge_current = batt_u16_get_nameplate_capacity() / 2;
 
-    if( fast_charge_current > 5000 ){
+    if( fast_charge_current > BQ25895_MAX_FAST_CHARGE_CURRENT ){
 
-        fast_charge_current = 5000;
+        fast_charge_current = BQ25895_MAX_FAST_CHARGE_CURRENT;
     }
 
     // set default max current to the cell count setting
@@ -1191,7 +1190,7 @@ static void init_charger( void ){
 
     bq25895_v_set_fast_charge_current( fast_charge_current );
 
-    bq25895_v_set_termination_current( 65 );
+    bq25895_v_set_termination_current( BQ25895_TERM_CURRENT );
 
     bq25895_v_set_charge_voltage( batt_u16_get_charge_voltage() );
 
@@ -1213,12 +1212,13 @@ static void init_charger( void ){
     // turn off ICO
     // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
 
-    // bq25895_v_set_vindpm( 0 );
-    bq25895_v_set_vindpm( VINDPM_SOLAR );
+    bq25895_v_set_vindpm( 0 );
 }
 
 // top level API to enable the charger
 void bq25895_v_enable_charger( void ){
+
+    init_charger();
 
     bq25895_v_set_charger( TRUE );
 
@@ -1293,30 +1293,30 @@ static bool read_adc( void ){
 }
 
 
-static bool is_recharge_threshold( void ){
+// static bool is_recharge_threshold( void ){
 
-    return batt_volts <= ( batt_u16_get_charge_voltage() - 50 );
-}
+//     return batt_volts <= ( batt_u16_get_charge_voltage() - 50 );
+// }
 
-static bool is_vbus_volts_ok( void ){
+// static bool is_vbus_volts_ok( void ){
 
-    if( vbus_volts < 4200 ){
+//     if( vbus_volts < 4200 ){
 
-        return FALSE;
-    }
+//         return FALSE;
+//     }
 
-    return TRUE;
-}
+//     return TRUE;
+// }
 
-static bool is_vbus_good( void ){
+// static bool is_vbus_good( void ){
 
-    if( !bq25895_b_get_vbus_good() ){
+//     if( !bq25895_b_get_vbus_good() ){
 
-        return FALSE;
-    }
+//         return FALSE;
+//     }
 
-    return TRUE;
-}
+//     return TRUE;
+// }
 
 #if 0
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
@@ -1551,104 +1551,6 @@ PT_END( pt );
 // #endif
 
 
-static bool enable_mppt;
-static uint16_t mppt_current_vindpm;
-static uint8_t mppt_index;
-static uint32_t mppt_time;
-static bool mppt_done;
-
-#define MPPT_BINS ( ( BQ25895_MAX_MPPT_VINDPM - BQ25895_MIN_MPPT_VINDPM ) / BQ25895_MPPT_VINDPM_STEP )
-static uint16_t mppt_bins[MPPT_BINS];
-
-KV_SECTION_OPT kv_meta_t bq25895_info_mppt_kv[] = {
-    { CATBUS_TYPE_UINT16, MPPT_BINS - 1, KV_FLAGS_READ_ONLY,  &mppt_bins,                  0,  "batt_mppt_bins" },
-
-};
-
-static void reset_mppt( void ){
-
-    if( !enable_mppt ){
-
-        return;
-    }
-
-    mppt_current_vindpm = BQ25895_MIN_MPPT_VINDPM;
-    mppt_index = 0;
-    bq25895_v_set_vindpm( mppt_current_vindpm );
-
-    memset( mppt_bins, 0, sizeof(mppt_bins) );
-
-    mppt_time = tmr_u32_get_system_time_ms();
-    mppt_done = FALSE;
-}
-
-static void do_mppt( uint16_t charge_current ){
-
-    if( !enable_mppt ){
-
-        return;
-    }
-
-    int16_t delta_curent = (int16_t)charge_current - (int16_t)mppt_bins[mppt_index];
-
-    // check if algorithm is running:
-    if( mppt_done ){
-
-        // check if time to run
-        if( ( tmr_u32_elapsed_time_ms( mppt_time) > 60000 ) ||
-            ( abs16( delta_curent ) >= 250 ) ){ // sudden change in charge current
-
-            mppt_done = FALSE; // note that mppt will start on the NEXT cycle, not this one.
-
-            log_v_debug_P( PSTR("start mppt: %d"), delta_curent );
-        }
-
-        return;
-    }   
-
-    // MPPT RUNNING
-    
-    // store current in bin
-    mppt_bins[mppt_index] = charge_current;
-    mppt_index++;
-
-    if( mppt_current_vindpm == 0 ){
-
-        mppt_current_vindpm = BQ25895_MIN_MPPT_VINDPM;
-    }
-    else{
-
-        mppt_current_vindpm += BQ25895_MPPT_VINDPM_STEP;
-    }
-
-    if( mppt_current_vindpm >= BQ25895_MAX_MPPT_VINDPM ){
-
-        // MPPT is finished
-        mppt_done = TRUE;
-        mppt_time = tmr_u32_get_system_time_ms();
-
-        // select vindpm. this is max of currents stored in mppt_bins, the index representing
-        // the vindpm setting that produced it.
-        uint16_t best_current = 0;
-        uint8_t best_index = 0;
-
-        for( uint8_t i = 0; i < MPPT_BINS; i++ ){
-
-            if( mppt_bins[i] > best_current ){
-
-                best_current = mppt_bins[i];
-                best_index = i;
-            }
-        }
-
-        mppt_current_vindpm = BQ25895_MIN_MPPT_VINDPM + ( best_index * BQ25895_MPPT_VINDPM_STEP );
-
-        log_v_debug_P( PSTR("mppt done: vindpm %d current: %d"), mppt_current_vindpm, best_current );
-    }
-
-    bq25895_v_set_vindpm( mppt_current_vindpm );
-}
-
 
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
@@ -1683,13 +1585,7 @@ PT_BEGIN( pt );
 
     // #endif
 
-    // check if MPPT enabled
-    if( kv_b_get_boolean( __KV__batt_enable_mppt ) ){
-
-        enable_mppt = TRUE;
-    }
-
-    reset_mppt();
+    mppt_v_reset();
 
     TMR_WAIT( pt, 50 );
 
@@ -1727,7 +1623,7 @@ PT_BEGIN( pt );
 
 
             // run MPPT
-            do_mppt( batt_charge_current );
+            mppt_v_run( batt_charge_current );
         }
         else{
 

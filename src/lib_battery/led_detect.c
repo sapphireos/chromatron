@@ -101,7 +101,7 @@ bool led_detect_b_led_connected( void ){
     return led_detected;
 }
 
-static led_profile_t* get_profile_by_type( uint8_t type ){
+static const led_profile_t* get_profile_by_type( uint8_t type ){
 
     // search for profile
     for( int i = 0; i < cnt_of_array(led_profiles); i++ ){
@@ -115,7 +115,7 @@ static led_profile_t* get_profile_by_type( uint8_t type ){
     return 0;
 }
 
-static led_profile_t* get_profile_by_id( uint64_t id ){
+static const led_profile_t* get_profile_by_id( uint64_t id ){
 
     // search for unit
     for( int i = 0; i < cnt_of_array(led_units); i++ ){
@@ -132,7 +132,7 @@ static led_profile_t* get_profile_by_id( uint64_t id ){
 
 static void load_profile( uint8_t type ){
 
-    led_profile_t *profile = get_profile_by_type( type );
+    const led_profile_t *profile = get_profile_by_type( type );
 
     if( profile == 0 ){
 
@@ -200,7 +200,7 @@ PT_BEGIN( pt );
             log_v_info_P( PSTR("LED unit installed: %u"), led_id );
 
             // get profile
-            led_profile_t *profile = get_profile_by_id( led_id );
+            const led_profile_t *profile = get_profile_by_id( led_id );
 
             if( profile != 0 ){
 

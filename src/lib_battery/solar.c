@@ -30,6 +30,7 @@
 
 #include "solar.h"
 #include "solar_tilt.h"
+#include "mppt.h"
 #include "buttons.h"
 #include "thermal.h"
 #include "battery.h"
@@ -84,6 +85,7 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_mppt" },
 
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
 };
@@ -100,9 +102,10 @@ void solar_v_init( void ){
 		led_detect_v_init();
 	}
 
-	return;
+	mppt_v_init();
 
 	button_v_init();
+
 	pixelpower_v_init();
 
 	solar_tilt_v_init();

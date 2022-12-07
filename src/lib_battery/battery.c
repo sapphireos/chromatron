@@ -104,7 +104,7 @@ static uint32_t total_nameplate_capacity;
 
 
 
-static void set_batt_capacity( void ){
+static void set_batt_nameplate_capacity( void ){
 
     uint8_t n_cells = batt_cells;
 
@@ -159,7 +159,7 @@ int8_t batt_kv_handler(
                  ( hash == __KV__batt_cell_capacity ) ||
                  ( hash == __KV__batt_nameplate_capacity ) ){
 
-            set_batt_capacity();
+            set_batt_nameplate_capacity();
         }
     }
     else{
@@ -290,7 +290,7 @@ PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) );
 
 void batt_v_init( void ){
 
-    set_batt_capacity();
+    set_batt_nameplate_capacity();
 
     energy_v_init();
 
@@ -310,6 +310,8 @@ void batt_v_init( void ){
         mcp73831_v_init();
     }
     else if( bq25895_i8_init() < 0 ){
+
+        log_v_warn_P( PSTR("No battery controlled enabled or detected") );
 
         return;
     }
@@ -358,7 +360,9 @@ void batt_v_init( void ){
     //     io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );    
     // }
 
-    set_batt_capacity();
+    set_batt_nameplate_capacity();
+
+
     fuel_v_init();
 
     trace_printf("Battery controller enabled\n");
@@ -580,15 +584,15 @@ uint16_t batt_u16_get_nameplate_capacity( void ){
 }
 
 
-static int8_t get_case_temp( void ){
+// static int8_t get_case_temp( void ){
 
-    if( batt_enable_mcp73831 ){
+//     if( batt_enable_mcp73831 ){
 
-        return -127;
-    }
+//         return -127;
+//     }
 
-    return bq25895_i8_get_case_temp();
-}
+//     return bq25895_i8_get_case_temp();
+// }
 
 // static int8_t get_ambient_temp( void ){
 
