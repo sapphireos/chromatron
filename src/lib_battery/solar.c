@@ -68,8 +68,6 @@ static uint16_t charge_timer;
 static uint16_t fuel_gauge_timer;
 #define FUEL_SAMPLE_TIME				( 60 ) // debug! 60 seconds is probably much more than we need
 
-#define MIN_CHARGE_VOLTS				4000
-
 static uint16_t filtered_batt_volts;
 #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
 
@@ -287,7 +285,7 @@ PT_BEGIN( pt );
 
 					next_state = SOLAR_MODE_CHARGE_DC;
 				}
-				else if( patchboard_u16_read_solar_volts() >= MIN_CHARGE_VOLTS ){
+				else if( patchboard_u16_read_solar_volts() >= BATT_MIN_CHARGE_VBUS_VOLTS ){
 
 					next_state = SOLAR_MODE_CHARGE_SOLAR;
 				}
@@ -295,7 +293,7 @@ PT_BEGIN( pt );
 			else if( charger2_board_installed ){
 
 				// charger2 board is USB powered
-				if( batt_u16_get_vbus_volts() >= MIN_CHARGE_VOLTS ){
+				if( batt_u16_get_vbus_volts() >= BATT_MIN_CHARGE_VBUS_VOLTS ){
 
 					next_state = SOLAR_MODE_CHARGE_DC;
 				}
@@ -306,7 +304,7 @@ PT_BEGIN( pt );
 				// no dedicated DC detection.
 				// we make an assumption based on configuration here.
 
-				if( batt_u16_get_vbus_volts() >= MIN_CHARGE_VOLTS ){
+				if( batt_u16_get_vbus_volts() >= BATT_MIN_CHARGE_VBUS_VOLTS ){
 
 					if( enable_solar_charge ){
 
@@ -434,18 +432,45 @@ PT_BEGIN( pt );
 
 				// set tilt system to close the panel
 				solar_tilt_v_set_tilt_angle( 0 );	
+
+				// don't change GFX state, just leave it
+				// on whatever it was set to when shutting down.
+				// if it was off, there is no reason to turn
+				// graphics back on for a few seconds.
+				// gfx_v_set_system_enable( TRUE );
 			}
 			else if( next_state == SOLAR_MODE_STOPPED ){
 
 				charge_timer = STOPPED_TIME;
+
+				gfx_v_set_system_enable( TRUE );
+			}
+			else if( next_state == SOLAR_MODE_DISCHARGE ){
+
+				gfx_v_set_system_enable( TRUE );	
+			}
+			else if( next_state == SOLAR_MODE_FULL_CHARGE ){
+
+				gfx_v_set_system_enable( TRUE );	
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_DC ){
+
+				// !!!
+				// on DC charge, might want to leave gfx enabled
+				// so FX patterns can display charge status.
+				gfx_v_set_system_enable( FALSE );
+
+
 
 				enable_charge();
 
 				charge_timer = 0;
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
+
+				// disable graphics when on solar charging.
+				// can't really see them anyway!
+				gfx_v_set_system_enable( FALSE );
 
 				enable_charge();
 
@@ -475,6 +500,9 @@ PT_BEGIN( pt );
 				TMR_WAIT( pt, 100 );
 
 				disable_charge();
+
+				// set tilt system to close the panel
+				solar_tilt_v_set_tilt_angle( 0 );	
 			}
 			// check if leaving DC charge mode
 			else if( next_state != SOLAR_MODE_CHARGE_DC ){

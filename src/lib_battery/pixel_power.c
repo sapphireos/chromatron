@@ -82,7 +82,7 @@ PT_BEGIN( pt );
 
             if( solar_b_has_charger2_board() ){
 
-                bq25895_v_set_boost_mode( TRUE );
+                // bq25895_v_set_boost_mode( TRUE );
 
                 // wait for boost to start up
                 TMR_WAIT( pt, 40 );
@@ -96,7 +96,7 @@ PT_BEGIN( pt );
             #if defined(ESP32)
             else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
-                bq25895_v_set_boost_mode( TRUE );
+                // bq25895_v_set_boost_mode( TRUE );
 
                 // wait for boost to start up
                 TMR_WAIT( pt, 40 );
@@ -119,7 +119,7 @@ PT_BEGIN( pt );
 
                 charger2_v_set_boost( FALSE );
 
-                bq25895_v_set_boost_mode( FALSE );
+                // bq25895_v_set_boost_mode( FALSE );
             }
             else if( batt_b_is_mcp73831_enabled() ){
 

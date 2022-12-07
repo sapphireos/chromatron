@@ -554,7 +554,7 @@ bool batt_b_is_charge_complete( void ){
 
 bool batt_b_is_external_power( void ){
 
-    if( batt_u16_get_vbus_volts() >= BATT_WALL_POWER_THRESHOLD ){
+    if( batt_u16_get_vbus_volts() >= BATT_MIN_CHARGE_VBUS_VOLTS ){
 
         return TRUE;
     }
