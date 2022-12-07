@@ -1222,6 +1222,12 @@ void bq25895_v_enable_charger( void ){
 
     bq25895_v_set_charger( TRUE );
 
+    if( mcu_source_pmid ){
+            
+        // re-init boost
+        init_boost_converter();
+    }
+
 }
 
 // top level API to disable the charger
