@@ -166,11 +166,44 @@ Discharge rate at a given load.
 
 
 
-
-
-
-
 */
+
+
+
+static uint8_t batt_soc = 50; // state of charge in percent
+static uint16_t soc_state;
+#define SOC_MAX_VOLTS   ( batt_u16_get_charge_voltage() - 100 )
+#define SOC_MIN_VOLTS   ( batt_u16_get_discharge_voltage() )
+#define SOC_FILTER      64
+
+
+KV_SECTION_OPT kv_meta_t fuel_gauge_info_kv[] = {
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_soc,                    0,  "batt_soc" },
+};
+
+
+void fuel_v_init( void ){
+
+    kv_v_add_db_info( fuel_gauge_info_kv, sizeof(fuel_gauge_info_kv) );
+}
+
+uint8_t fuel_u8_get_soc( void ){
+
+    return batt_soc;
+}
+
+void fuel_v_do_soc( void ){
+
+
+}
+
+
+
+
+
+#if 0
+
+
 
 #define MODE_UNKNOWN        0
 #define MODE_DISCHARGE      1 // discharging on battery power
@@ -761,3 +794,16 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+
+#endif
+
+
+
+
+
+
+
+
+
+

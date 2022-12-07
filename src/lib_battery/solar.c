@@ -236,24 +236,15 @@ PT_BEGIN( pt );
 
 			// do fuel gauge here
 
+			fuel_v_do_soc();
+
+
 			// filtered_batt_volts = etc
 
-			uint16_t batt_volts = batt_u16_get_batt_volts();
+			// uint16_t batt_volts = batt_u16_get_batt_volts();
 
+			// re-enable charge
 			enable_charge();
-
-
-
-			// // check if charging
-			// if( ( solar_state == SOLAR_MODE_CHARGE_DC ) ||
-			// 	( solar_state == SOLAR_MODE_CHARGE_SOLAR ) ){
-
-
-			// }
-			// else{
-
-
-			// }
 		}
 
 
@@ -346,7 +337,8 @@ PT_BEGIN( pt );
 			// nothing to do here.
 
 
-			// tilt control
+			// tilt control loop goes here
+			// (not the motion control, but target angle selection)
 
 
 

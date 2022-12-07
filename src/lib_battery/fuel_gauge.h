@@ -30,32 +30,34 @@
 #define LION_MIN_VOLTAGE    2900
 
 
-#define FUEL_MAX_DISCHARGE_FILE_SIZE        65536
+// #define FUEL_MAX_DISCHARGE_FILE_SIZE        65536
 
-#define BATT_RECORDER_RATE                  300
+// #define BATT_RECORDER_RATE                  300
 
-typedef struct __attribute__((packed)){
-    uint8_t flags;
-    uint8_t batt_volts;
-    uint8_t pix_power;
-    int8_t batt_temp;
-} fuel_gauge_data_t;
-#define FUEL_RECORD_TYPE_BLANK              0b00000000
-#define FUEL_RECORD_TYPE_IDLE               0b00100000
-#define FUEL_RECORD_TYPE_DISCHARGE          0b10000000
-#define FUEL_RECORD_TYPE_CHARGE             0b01000000
+// typedef struct __attribute__((packed)){
+//     uint8_t flags;
+//     uint8_t batt_volts;
+//     uint8_t pix_power;
+//     int8_t batt_temp;
+// } fuel_gauge_data_t;
+// #define FUEL_RECORD_TYPE_BLANK              0b00000000
+// #define FUEL_RECORD_TYPE_IDLE               0b00100000
+// #define FUEL_RECORD_TYPE_DISCHARGE          0b10000000
+// #define FUEL_RECORD_TYPE_CHARGE             0b01000000
 
-typedef struct __attribute__((packed)){
-    uint8_t flags;
-    uint16_t record_id;
-    uint8_t rate;
-} fuel_gauge_record_start_t;
-#define FUEL_RECORD_TYPE_RECORD_START       0b11000000
+// typedef struct __attribute__((packed)){
+//     uint8_t flags;
+//     uint16_t record_id;
+//     uint8_t rate;
+// } fuel_gauge_record_start_t;
+// #define FUEL_RECORD_TYPE_RECORD_START       0b11000000
 
 
 void fuel_v_init( void );
 
 uint8_t fuel_u8_get_soc( void );
+
+void fuel_v_do_soc( void );
 
 #endif
 
