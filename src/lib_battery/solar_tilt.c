@@ -73,10 +73,13 @@ KV_SECTION_OPT kv_meta_t solar_tilt_opt_kv[] = {
 
 PT_THREAD( solar_tilt_thread( pt_t *pt, void *state ) );
 
+static void motors_off( void );
 
 void solar_tilt_v_init( void ){
 
 	if( kv_b_get_boolean( __KV__solar_enable_tilt ) ){
+
+		motors_off();
 
 		kv_v_add_db_info( solar_tilt_opt_kv, sizeof(solar_tilt_opt_kv) );
 
