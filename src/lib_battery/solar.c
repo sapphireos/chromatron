@@ -108,7 +108,25 @@ void solar_v_init( void ){
 
 	pixelpower_v_init();
 
-	solar_tilt_v_init();
+	if( patch_board_installed && charger2_board_installed ){
+
+		log_v_error_P( PSTR("Cannot enable patch board and charger2 on the same system") );
+
+		patch_board_installed = FALSE;
+		charger2_board_installed = FALSE;
+	}
+
+	if( patch_board_installed ){
+		
+		patchboard_v_init();
+
+		solar_tilt_v_init(); // tilt system requires patch board
+	}
+
+	if( charger2_board_installed ){
+		
+		patchboard_v_init();
+	}
 
 	thread_t_create( solar_control_thread,
                      PSTR("solar_control"),

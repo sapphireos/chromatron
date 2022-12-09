@@ -66,7 +66,7 @@ uint16_t max11645_u16_read( uint8_t channel ){
 	}
 
 	// set channel
-	uint8_t cfg = MAX11645_BIT_CONFIG | MAX11645_BIT_CFG_SE;
+	uint8_t cfg = MAX11645_BIT_CONFIG | MAX11645_BIT_CFG_SE | MAX11645_BIT_CFG_SCAN0 | MAX11645_BIT_CFG_SCAN1; // scan CS0
 
 	if( channel == 1 ){
 
@@ -77,9 +77,9 @@ uint16_t max11645_u16_read( uint8_t channel ){
     i2c_v_write( MAX11645_I2C_ADDR, &cfg, sizeof(cfg) );
 
 
-    uint16_t data = 0;
-    i2c_v_read( MAX11645_I2C_ADDR, (uint8_t *)&data, sizeof(data) );
+    uint8_t data[2] = {0};
+    i2c_v_read( MAX11645_I2C_ADDR, (uint8_t *)data, sizeof(data) );
 
-    return data;
+    return ( (uint16_t)( data[0] & 0x0F ) << 8 ) | data[1];
 }
 

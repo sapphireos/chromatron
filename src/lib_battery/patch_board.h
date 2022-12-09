@@ -34,6 +34,8 @@
 #define PATCH_ADC_CH_TILT			0
 #define PATCH_ADC_CH_SOLAR_VOLTS	1
 
+#define PATCH_ADC_VREF              3300
+
 
 void patchboard_v_init( void );
 

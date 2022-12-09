@@ -29,6 +29,7 @@
 #include "keyvalue.h"
 
 #include "solar_tilt.h"
+#include "patch_board.h"
 #include "battery.h"
 
 #include "bq25895.h"
@@ -104,7 +105,9 @@ static uint16_t read_tilt_sensor_raw( void ){
 
 	for( int i = 0; i < SOLAR_TILT_ADC_SAMPLES; i++ ){
 
-		mv += adc_u16_read_mv( SOLAR_TILT_SENSOR_IO );
+		// mv += adc_u16_read_mv( SOLAR_TILT_SENSOR_IO );
+		mv += patchboard_u16_read_tilt_volts();
+
 	}
 
 	return mv / SOLAR_TILT_ADC_SAMPLES;

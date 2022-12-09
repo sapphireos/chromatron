@@ -40,6 +40,9 @@ void patchboard_v_init( void ){
         return;
     }
 
+    pca9536_i8_init();
+    max11645_v_init();
+
     log_v_info_P( PSTR("PCA9536 detected") );
 
     pca9536_v_set_output( PATCH_PCA9536_IO_SOLAR_EN );
@@ -84,7 +87,7 @@ void patchboard_v_set_motor2( bool enable ){
 
 uint16_t patchboard_u16_read_tilt_volts( void ){
 
-    return max11645_u16_read( PATCH_ADC_CH_TILT );
+    return ( max11645_u16_read( PATCH_ADC_CH_TILT ) * PATCH_ADC_VREF ) / 4096;
 }
 
 uint16_t patchboard_u16_read_solar_volts( void ){

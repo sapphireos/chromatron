@@ -41,7 +41,7 @@
 #define SOLAR_ANGLE_DRIVE_MAX           70 // degrees
 
 
-#define SOLAR_TILT_SENSOR_IO 	IO_PIN_34_A2
+// #define SOLAR_TILT_SENSOR_IO 	IO_PIN_34_A2
 #define SOLAR_TILT_MOTOR_IO_0 	IO_PIN_16_RX
 #define SOLAR_TILT_MOTOR_IO_1 	IO_PIN_17_TX
 
