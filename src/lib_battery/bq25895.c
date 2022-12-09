@@ -140,6 +140,8 @@ int8_t bq25895_i8_init( void ){
         return -1;
     }
 
+    log_v_debug_P( PSTR("BQ25895 detected") );
+
     kv_v_add_db_info( bq25895_info_kv, sizeof(bq25895_info_kv) );
 
     bq25895_v_read_all();
