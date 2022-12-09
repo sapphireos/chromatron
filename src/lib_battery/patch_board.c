@@ -77,17 +77,17 @@ void patchboard_v_set_motor2( bool enable ){
 
     if( enable ){
 
-        pca9536_v_gpio_write( PATCH_PCA9536_IO_MOTOR_IN_2, 0 );
+        pca9536_v_gpio_write( PATCH_PCA9536_IO_MOTOR_IN_2, 1 );
     }
     else{
 
-        pca9536_v_gpio_write( PATCH_PCA9536_IO_MOTOR_IN_2, 1 );
+        pca9536_v_gpio_write( PATCH_PCA9536_IO_MOTOR_IN_2, 0 );
     }
 }
 
 uint16_t patchboard_u16_read_tilt_volts( void ){
 
-    return ( max11645_u16_read( PATCH_ADC_CH_TILT ) * PATCH_ADC_VREF ) / 4096;
+    return ( (uint32_t)max11645_u16_read( PATCH_ADC_CH_TILT ) * PATCH_ADC_VREF ) / 4096;
 }
 
 uint16_t patchboard_u16_read_solar_volts( void ){

@@ -40,6 +40,8 @@ static uint16_t solar_tilt_max = 3000;
 static uint16_t solar_tilt_motor_pwm = 768;
 
 static uint16_t solar_array_tilt_sensor;
+static uint16_t solar_array_target_sensor;
+
 static uint8_t solar_array_tilt_angle;
 static uint8_t solar_array_target_angle;
 
@@ -59,6 +61,7 @@ KV_SECTION_OPT kv_meta_t solar_tilt_opt_kv[] = {
     { CATBUS_TYPE_UINT16,    0, KV_FLAGS_PERSIST, 	&solar_tilt_motor_pwm,		0,  "solar_tilt_motor_pwm" },
 
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_array_tilt_sensor,   0,  "solar_tilt_sensor" },
+    { CATBUS_TYPE_UINT16,   0, 0,  					&solar_array_target_sensor,   0,  "solar_target_sensor" },
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &solar_array_tilt_angle,    0,  "solar_tilt_angle" },
     { CATBUS_TYPE_UINT8,    0, 0, 	 				&solar_array_target_angle,	0,  "solar_target_angle" },
 
@@ -151,20 +154,28 @@ static void set_motor_pwm( uint8_t channel, uint16_t pwm ){
 
 static void motor_up( uint16_t pwm ){
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, pwm );
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 1023 );	
+	patchboard_v_set_motor2( TRUE );
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 1023 - pwm );	
+	
+	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
 }
 
 static void motor_down( uint16_t pwm ){
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, pwm );
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
+	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, pwm );
+	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
+
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, pwm );
+	patchboard_v_set_motor2( FALSE );
 }
 
 static void motors_off( void ){
 
 	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
+	patchboard_v_set_motor2( FALSE );
+
+	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
 }
 
 
@@ -189,7 +200,7 @@ PT_THREAD( solar_tilt_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
 	pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_0, 20000 );
-	pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 20000 );
+	// pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 20000 );
 
 
 	motors_off();	
@@ -214,7 +225,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         // record previous angle
-        int16_t prev_tilt = solar_array_tilt_angle;
+        int16_t prev_tilt_sensor = solar_array_tilt_sensor;
 
         solar_array_tilt_sensor = read_tilt_sensor();
 
@@ -242,6 +253,9 @@ PT_BEGIN( pt );
 			continue;
         }
 
+
+        bq25895_v_set_boost_mode( TRUE ); // DEBUG!
+
         motor_1sec_count++;
 
         if( motor_1sec_count >= ( 1000 / SOLAR_MOTOR_RATE) ){
@@ -264,7 +278,7 @@ PT_BEGIN( pt );
 	        if( is_motor_running() ){
 
 	        	// delta of actual tilt angle since last iteration
-	        	int16_t tilt_delta = (int16_t)solar_array_tilt_angle - prev_tilt;
+	        	int16_t tilt_delta = (int16_t)solar_array_tilt_sensor - prev_tilt_sensor;
 
 	        	// if array is in motion, reset timeout
 	        	if( abs16( tilt_delta ) > 0 ){
@@ -273,7 +287,7 @@ PT_BEGIN( pt );
 
 
 	        		// record delta to total amount of travel recorded
-	        		solar_tilt_total_travel += abs16( tilt_delta );
+	        		// solar_tilt_total_travel += abs16( tilt_delta );
 	        	}
 	        	else{
 
@@ -316,12 +330,12 @@ PT_BEGIN( pt );
 
 
         // delta of actual tilt angle from target tilt angle on current iteration
-        int16_t target_delta = (int16_t)solar_array_target_angle - (int16_t)solar_array_tilt_angle;
+        int16_t target_delta = (int16_t)solar_array_target_sensor - (int16_t)solar_array_tilt_sensor;
 
         if( motor_state == MOTOR_STATE_IDLE ){
 
         	// check if target angle is far enough away from current angle:
-        	if( abs16( target_delta ) >= SOLAR_TILT_MOVEMENT_THRESHOLD ){
+        	if( abs16( target_delta ) >= SOLAR_TILT_SENSOR_MOVE_THRESHOLD ){
 
         		// initiate a movement
 
@@ -347,8 +361,8 @@ PT_BEGIN( pt );
 
 
         	// check if target position has been reached:
-        	if( ( abs16( target_delta ) < SOLAR_TILT_MOVEMENT_THRESHOLD ) ||
-         	    ( solar_array_tilt_angle > solar_array_target_angle ) ){
+        	if( ( abs16( target_delta ) < SOLAR_TILT_SENSOR_MOVE_THRESHOLD ) ||
+         	    ( solar_array_tilt_sensor > solar_array_target_sensor ) ){
 
         		// stop movement and reset state
         		motors_off();
@@ -365,8 +379,8 @@ PT_BEGIN( pt );
         // traveling down:
         else if( motor_state == MOTOR_STATE_DOWN ){
 			
-			if( ( abs16( target_delta ) < SOLAR_TILT_MOVEMENT_THRESHOLD ) ||
-        		( solar_array_tilt_angle < solar_array_target_angle ) ){
+			if( ( abs16( target_delta ) < SOLAR_TILT_SENSOR_MOVE_THRESHOLD ) ||
+        		( solar_array_tilt_sensor < solar_array_target_sensor ) ){
 
         		motors_off();
 
