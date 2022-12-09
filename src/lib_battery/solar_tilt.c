@@ -195,6 +195,34 @@ static bool is_motor_running( void ){
 	return ( motor_state == MOTOR_STATE_UP ) || ( motor_state == MOTOR_STATE_DOWN );
 }
 
+
+/*
+
+Mechanical calibration procedure:
+
+Move panel to full open with gears disengaged.
+
+Set tilt sensor target to 3200 mV and wait for drive train to reach position.
+
+Engage the tilt gear.
+
+Set tilt sensor target to 3000 mV.  Gears should engage and lock in.  Position should be approx 60 degrees.
+
+Set tilt sensor target to 1650 mV.  This should be a 30 degreee tilt angle.
+
+Set tilt sensor target to 300 mV.  This should lower the panel to 0 degrees and stop.
+
+
+
+Tilt max, 60 degrees at 3000 mV sensor.
+Tilt min, 0 degrees, at 300 mV sensor.
+
+
+
+
+
+*/
+
 PT_THREAD( solar_tilt_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
