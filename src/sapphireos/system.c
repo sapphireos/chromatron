@@ -187,6 +187,7 @@ PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) );
 KV_SECTION_META kv_meta_t sys_info_kv[] = {
     { CATBUS_TYPE_INT8,   0, 0,                   0, sys_kv_reboot_handler,            "reboot" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &sys_mode,                       0,  "sys_mode" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &shutting_down,                  0,  "sys_shutting_down" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &startup_boot_mode,              0,  "sys_boot_mode" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_minor, 0,  "loader_version_minor" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_major, 0,  "loader_version_major" },

@@ -20,42 +20,25 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
+*/
 
-#ifndef _SAPPHIRE_H
-#define _SAPPHIRE_H
+#ifndef _CHARGER2_H
+#define _CHARGER2_H
+
+// PCA9536 connections on Charger2
+#define CHARGER2_PCA9536_IO_QON     0
+#define CHARGER2_PCA9536_IO_S2      1
+#define CHARGER2_PCA9536_IO_SPARE   2
+#define CHARGER2_PCA9536_IO_BOOST   3
 
 
-#include "cpu.h"
-#include "system.h"
-#include "adc.h"
-#include "io.h"
-#include "timers.h"
-#include "threading.h"
-#include "keyvalue.h"
-#include "sockets.h"
-#include "crc.h"
-#include "util.h"
-#include "datetime.h"
-#include "time_ntp.h"
-#include "fs.h"
-#include "ip.h"
-#include "memory.h"
-#include "logging.h"
-#include "random.h"
-#include "spi.h"
-#include "types.h"
-#include "power.h"
-#include "list.h"
-#include "i2c.h"
-#include "catbus.h"
-#include "kvdb.h"
-#include "usart_fifo.h"
-#include "pwm.h"
-#include "timesync.h"
-#include "wifi.h"
-#include "i2s.h"
-#include "services.h"
-#include "hash.h"
+
+void charger2_v_init( void );
+
+bool charger2_b_read_qon( void );
+bool charger2_b_read_s2( void );
+bool charger2_b_read_spare( void );
+
+void charger2_v_set_boost( bool enable );
 
 #endif

@@ -33,6 +33,7 @@
 #include "flash_fs.h"
 #include "hal_boards.h"
 
+#include "mppt.h"
 #include "battery.h"
 
 #ifdef ENABLE_BATTERY
@@ -46,7 +47,7 @@ static uint16_t batt_charge_current;
 static uint16_t batt_charge_power;
 static uint16_t batt_max_charge_current;
 static bool batt_charging;
-static bool vbus_connected;
+// static bool vbus_connected;
 static uint8_t batt_fault;
 static uint8_t vbus_status;
 static uint8_t charge_status;
@@ -69,20 +70,21 @@ static uint32_t adc_fail;
 static int8_t batt_temp = -127;
 static int16_t batt_temp_state;
 
-#ifdef ESP32
-static int8_t case_temp = -127;
-static int8_t ambient_temp = -127;
-static int16_t case_temp_state;
-static int16_t ambient_temp_state;
-#endif
-
 static int8_t batt_temp_raw;
+
+// #ifdef ESP32
+// static int8_t case_temp = -127;
+// static int8_t ambient_temp = -127;
+// static int16_t case_temp_state;
+// static int16_t ambient_temp_state;
+// #endif
+
 
 KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp,                  0,  "batt_temp" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp_raw,              0,  "batt_temp_raw" },
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,              0,  "batt_charging" },
-    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,             0,  "batt_external_power" },
+    // { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,             0,  "batt_external_power" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,                 0,  "batt_volts" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,                 0,  "batt_vbus_volts" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,                  0,  "batt_sys_volts" },
@@ -98,7 +100,6 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                     0,  "batt_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &solar_vindpm,               0,  "batt_solar_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                     0,  "batt_iindpm" },
-    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_PERSIST,    0,                           0,  "batt_enable_mppt" },
 
     { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                  0,  "batt_dump_regs" },
 
@@ -108,24 +109,23 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_good,                   0,  "batt_adc_reads" },
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_fail,                   0,  "batt_adc_fails" },
 
-    #ifdef ESP32
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                  0,  "batt_case_temp" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,               0,  "batt_ambient_temp" },
-    #endif
+    // #ifdef ESP32
+    // { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                  0,  "batt_case_temp" },
+    // { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,               0,  "batt_ambient_temp" },
+    // #endif
 
 };
 
 #define VOLTS_FILTER    32
 
-#define VINDPM_WALL     0
-#define VINDPM_SOLAR    solar_vindpm
+// #define VINDPM_WALL     0
+// #define VINDPM_SOLAR    solar_vindpm
 
 
 #define BQ25895_THERM_FILTER 32
 
 
-PT_THREAD( bat_adc_thread( pt_t *pt, void *state ) );
-PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
+// PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
 
 int8_t bq25895_i8_init( void ){
@@ -139,6 +139,8 @@ int8_t bq25895_i8_init( void ){
 
         return -1;
     }
+
+    log_v_debug_P( PSTR("BQ25895 detected") );
 
     kv_v_add_db_info( bq25895_info_kv, sizeof(bq25895_info_kv) );
 
@@ -304,7 +306,7 @@ bool bq25895_b_is_boost_1500khz( void ){
     return ( reg & BQ25895_BIT_BOOST_FREQ ) != 0;
 }
 
-void bq25895_v_set_boost_mode( bool enable ){
+static void set_boost_mode( bool enable ){
 
     if( enable ){
 
@@ -314,6 +316,21 @@ void bq25895_v_set_boost_mode( bool enable ){
 
         bq25895_v_clr_reg_bits( BQ25895_REG_BOOST_EN, BQ25895_BIT_BOOST_EN );
     }
+}
+
+void bq25895_v_set_boost_mode( bool enable ){
+
+    // check if MCU power source is PMID and
+    // disabling the boost converter is requested
+    if( mcu_source_pmid && !enable ){
+
+        // leave boost mode enabled in this case,
+        // since turning it off would turn off the MCU power.
+
+        return;
+    }
+
+    set_boost_mode( enable );
 }
 
 // forces input current limit detection
@@ -727,130 +744,130 @@ int8_t bq25895_i8_calc_temp( uint8_t ratio ){
 }
 
 
-// percent * 10
-// IE, the first value is 41.8%
-static const uint16_t temp_table2[] = {
-418 , // -20C
-415 ,
-411 ,
-407 ,
-403 ,
-399 ,
-395 ,
-390 ,
-386 ,
-381 ,
-377 ,
-372 ,
-367 ,
-363 ,
-358 ,
-353 ,
-348 ,
-343 ,
-338 ,
-333 ,
-328 , // 0C
-322 ,
-317 ,
-312 ,
-307 ,
-301 ,
-296 ,
-291 ,
-285 ,
-280 ,
-275 ,
-269 ,
-264 ,
-259 ,
-254 ,
-248 ,
-243 ,
-238 ,
-233 ,
-228 ,
-223 ,
-218 ,
-213 ,
-209 ,
-204 ,
-199 , // 25C
-195 ,
-190 ,
-186 ,
-181 ,
-177 ,
-173 ,
-168 ,
-164 ,
-160 ,
-156 ,
-153 ,
-149 ,
-145 ,
-141 ,
-138 ,
-134 ,
-131 ,
-128 ,
-124 ,
-121 ,
-118 ,
-115 ,
-112 ,
-109 ,
-107 ,
-104 ,
-101 ,
-99  ,
-96  ,
-94  ,
-91  ,
-89  ,
-87  ,
-84  ,
-82  ,
-80  ,
-78  ,
-76  ,
-74  ,
-72  ,
-70  ,
-69  ,
-67  ,
-65  ,
-63  ,
-62  ,
-60  ,
-59  ,
-57  ,
-56  ,
-54  ,
-53  ,
-52  ,
-50  ,
-49  ,
-48  ,
-47  ,
-46  ,
-45  ,
-43  , // 85C
-};
+// // percent * 10
+// // IE, the first value is 41.8%
+// static const uint16_t temp_table2[] = {
+// 418 , // -20C
+// 415 ,
+// 411 ,
+// 407 ,
+// 403 ,
+// 399 ,
+// 395 ,
+// 390 ,
+// 386 ,
+// 381 ,
+// 377 ,
+// 372 ,
+// 367 ,
+// 363 ,
+// 358 ,
+// 353 ,
+// 348 ,
+// 343 ,
+// 338 ,
+// 333 ,
+// 328 , // 0C
+// 322 ,
+// 317 ,
+// 312 ,
+// 307 ,
+// 301 ,
+// 296 ,
+// 291 ,
+// 285 ,
+// 280 ,
+// 275 ,
+// 269 ,
+// 264 ,
+// 259 ,
+// 254 ,
+// 248 ,
+// 243 ,
+// 238 ,
+// 233 ,
+// 228 ,
+// 223 ,
+// 218 ,
+// 213 ,
+// 209 ,
+// 204 ,
+// 199 , // 25C
+// 195 ,
+// 190 ,
+// 186 ,
+// 181 ,
+// 177 ,
+// 173 ,
+// 168 ,
+// 164 ,
+// 160 ,
+// 156 ,
+// 153 ,
+// 149 ,
+// 145 ,
+// 141 ,
+// 138 ,
+// 134 ,
+// 131 ,
+// 128 ,
+// 124 ,
+// 121 ,
+// 118 ,
+// 115 ,
+// 112 ,
+// 109 ,
+// 107 ,
+// 104 ,
+// 101 ,
+// 99  ,
+// 96  ,
+// 94  ,
+// 91  ,
+// 89  ,
+// 87  ,
+// 84  ,
+// 82  ,
+// 80  ,
+// 78  ,
+// 76  ,
+// 74  ,
+// 72  ,
+// 70  ,
+// 69  ,
+// 67  ,
+// 65  ,
+// 63  ,
+// 62  ,
+// 60  ,
+// 59  ,
+// 57  ,
+// 56  ,
+// 54  ,
+// 53  ,
+// 52  ,
+// 50  ,
+// 49  ,
+// 48  ,
+// 47  ,
+// 46  ,
+// 45  ,
+// 43  , // 85C
+// };
 
-// percent * 10, using table 2
-int8_t bq25895_i8_calc_temp2( uint16_t percent ){
+// // percent * 10, using table 2
+// int8_t bq25895_i8_calc_temp2( uint16_t percent ){
 
-    for( uint8_t i = 0; i < cnt_of_array(temp_table2) - 1; i++ ){
+//     for( uint8_t i = 0; i < cnt_of_array(temp_table2) - 1; i++ ){
 
-        if( ( percent <= temp_table2[i] ) && ( percent >= temp_table2[i + 1] ) ){
+//         if( ( percent <= temp_table2[i] ) && ( percent >= temp_table2[i + 1] ) ){
 
-            return (int16_t)i - 20;
-        }
-    }
+//             return (int16_t)i - 20;
+//         }
+//     }
 
-    return -20;
-}
+//     return -20;
+// }
 
 int8_t bq25895_i8_get_therm( void ){
 
@@ -864,23 +881,23 @@ int8_t bq25895_i8_get_temp( void ){
     return batt_temp;
 }
 
-int8_t bq25895_i8_get_case_temp( void ){
+// int8_t bq25895_i8_get_case_temp( void ){
 
-    #ifdef ESP32
-    return case_temp;
-    #else
-    return 0;
-    #endif
-}
+//     #ifdef ESP32
+//     return case_temp;
+//     #else
+//     return 0;
+//     #endif
+// }
 
-int8_t bq25895_i8_get_ambient_temp( void ){
+// int8_t bq25895_i8_get_ambient_temp( void ){
 
-    #ifdef ESP32
-    return ambient_temp;
-    #else
-    return 0;
-    #endif
-}
+//     #ifdef ESP32
+//     return ambient_temp;
+//     #else
+//     return 0;
+//     #endif
+// }
 
 uint16_t bq25895_u16_read_vbus( void ){
 
@@ -1172,9 +1189,9 @@ static void init_charger( void ){
     // default to 0.5C rate:
     uint32_t fast_charge_current = batt_u16_get_nameplate_capacity() / 2;
 
-    if( fast_charge_current > 5000 ){
+    if( fast_charge_current > BQ25895_MAX_FAST_CHARGE_CURRENT ){
 
-        fast_charge_current = 5000;
+        fast_charge_current = BQ25895_MAX_FAST_CHARGE_CURRENT;
     }
 
     // set default max current to the cell count setting
@@ -1190,7 +1207,7 @@ static void init_charger( void ){
 
     bq25895_v_set_fast_charge_current( fast_charge_current );
 
-    bq25895_v_set_termination_current( 65 );
+    bq25895_v_set_termination_current( BQ25895_TERM_CURRENT );
 
     bq25895_v_set_charge_voltage( batt_u16_get_charge_voltage() );
 
@@ -1212,9 +1229,31 @@ static void init_charger( void ){
     // turn off ICO
     // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
 
-    // bq25895_v_set_vindpm( 0 );
-    bq25895_v_set_vindpm( VINDPM_SOLAR );
+    bq25895_v_set_vindpm( 0 );
 }
+
+// top level API to enable the charger
+void bq25895_v_enable_charger( void ){
+
+    init_charger();
+
+    bq25895_v_set_charger( TRUE );
+
+    if( mcu_source_pmid ){
+            
+        // re-init boost
+        init_boost_converter();
+    }
+
+}
+
+// top level API to disable the charger
+void bq25895_v_disable_charger( void ){
+
+    bq25895_v_set_charger( FALSE );
+
+}
+
 
 static bool is_charging( void ){
 
@@ -1277,32 +1316,32 @@ static bool read_adc( void ){
 }
 
 
-static bool is_recharge_threshold( void ){
+// static bool is_recharge_threshold( void ){
 
-    return batt_volts <= ( batt_u16_get_charge_voltage() - 50 );
-}
+//     return batt_volts <= ( batt_u16_get_charge_voltage() - 50 );
+// }
 
-static bool is_vbus_volts_ok( void ){
+// static bool is_vbus_volts_ok( void ){
 
-    if( vbus_volts < 4200 ){
+//     if( vbus_volts < 4200 ){
 
-        return FALSE;
-    }
+//         return FALSE;
+//     }
 
-    return TRUE;
-}
+//     return TRUE;
+// }
 
-static bool is_vbus_good( void ){
+// static bool is_vbus_good( void ){
 
-    if( !bq25895_b_get_vbus_good() ){
+//     if( !bq25895_b_get_vbus_good() ){
 
-        return FALSE;
-    }
+//         return FALSE;
+//     }
 
-    return TRUE;
-}
+//     return TRUE;
+// }
 
-
+#if 0
 PT_THREAD( bat_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -1476,162 +1515,64 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
-
-
-
-#if defined(ESP32)
-
-PT_THREAD( bat_aux_temp_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-    if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
-
-        THREAD_EXIT( pt );
-    }
-
-    io_v_set_mode( ELITE_CASE_ADC_IO, IO_MODE_INPUT );      
-    io_v_set_mode( ELITE_AMBIENT_ADC_IO, IO_MODE_INPUT );      
-
-    while(1){
-
-        THREAD_WAIT_WHILE( pt, sys_volts == 0 ); // avoid divide by zero error
-
-        uint32_t case_adc = adc_u16_read_mv( ELITE_CASE_ADC_IO );
-        uint32_t ambient_adc = adc_u16_read_mv( ELITE_AMBIENT_ADC_IO );
-
-        int8_t temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
-
-        if( case_temp != -127 ){
-
-            case_temp_state = util_i16_ewma( temp * 256, case_temp_state, BQ25895_THERM_FILTER );    
-            case_temp = case_temp_state / 256;
-        }
-        else{
-
-            case_temp_state = temp * 256;
-            case_temp = temp;
-        }
-        
-        temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
-
-        if( ambient_temp != -127 ){
-
-            ambient_temp_state = util_i16_ewma( temp * 256, ambient_temp_state, BQ25895_THERM_FILTER );    
-            ambient_temp = ambient_temp_state / 256;
-        }
-        else{
-
-            ambient_temp_state = temp * 256;
-            ambient_temp = temp;
-        }
-
-        TMR_WAIT( pt, 1000 );
-    }
-
-PT_END( pt );
-}
-
 #endif
 
 
-static bool enable_mppt;
-static uint16_t mppt_current_vindpm;
-static uint8_t mppt_index;
-static uint32_t mppt_time;
-static bool mppt_done;
+// #if defined(ESP32)
 
-#define MPPT_BINS ( ( BQ25895_MAX_MPPT_VINDPM - BQ25895_MIN_MPPT_VINDPM ) / BQ25895_MPPT_VINDPM_STEP )
-static uint16_t mppt_bins[MPPT_BINS];
+// PT_THREAD( bat_aux_temp_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
 
-KV_SECTION_OPT kv_meta_t bq25895_info_mppt_kv[] = {
-    { CATBUS_TYPE_UINT16, MPPT_BINS - 1, KV_FLAGS_READ_ONLY,  &mppt_bins,                  0,  "batt_mppt_bins" },
+//     if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
 
-};
+//         THREAD_EXIT( pt );
+//     }
 
-static void reset_mppt( void ){
+//     io_v_set_mode( ELITE_CASE_ADC_IO, IO_MODE_INPUT );      
+//     io_v_set_mode( ELITE_AMBIENT_ADC_IO, IO_MODE_INPUT );      
 
-    if( !enable_mppt ){
+//     while(1){
 
-        return;
-    }
+//         THREAD_WAIT_WHILE( pt, sys_volts == 0 ); // avoid divide by zero error
 
-    mppt_current_vindpm = BQ25895_MIN_MPPT_VINDPM;
-    mppt_index = 0;
-    bq25895_v_set_vindpm( mppt_current_vindpm );
+//         uint32_t case_adc = adc_u16_read_mv( ELITE_CASE_ADC_IO );
+//         uint32_t ambient_adc = adc_u16_read_mv( ELITE_AMBIENT_ADC_IO );
 
-    memset( mppt_bins, 0, sizeof(mppt_bins) );
+//         int8_t temp = bq25895_i8_calc_temp2( ( case_adc * 1000 ) / sys_volts );
 
-    mppt_time = tmr_u32_get_system_time_ms();
-    mppt_done = FALSE;
-}
+//         if( case_temp != -127 ){
 
-static void do_mppt( uint16_t charge_current ){
+//             case_temp_state = util_i16_ewma( temp * 256, case_temp_state, BQ25895_THERM_FILTER );    
+//             case_temp = case_temp_state / 256;
+//         }
+//         else{
 
-    if( !enable_mppt ){
+//             case_temp_state = temp * 256;
+//             case_temp = temp;
+//         }
+        
+//         temp = bq25895_i8_calc_temp2( ( ambient_adc * 1000 ) / sys_volts );
 
-        return;
-    }
+//         if( ambient_temp != -127 ){
 
-    int16_t delta_curent = (int16_t)charge_current - (int16_t)mppt_bins[mppt_index];
+//             ambient_temp_state = util_i16_ewma( temp * 256, ambient_temp_state, BQ25895_THERM_FILTER );    
+//             ambient_temp = ambient_temp_state / 256;
+//         }
+//         else{
 
-    // check if algorithm is running:
-    if( mppt_done ){
+//             ambient_temp_state = temp * 256;
+//             ambient_temp = temp;
+//         }
 
-        // check if time to run
-        if( ( tmr_u32_elapsed_time_ms( mppt_time) > 60000 ) ||
-            ( abs16( delta_curent ) >= 250 ) ){ // sudden change in charge current
+//         TMR_WAIT( pt, 1000 );
+//     }
 
-            mppt_done = FALSE; // note that mppt will start on the NEXT cycle, not this one.
+// PT_END( pt );
+// }
 
-            log_v_debug_P( PSTR("start mppt: %d"), delta_curent );
-        }
+// #endif
 
-        return;
-    }   
-
-    // MPPT RUNNING
-    
-    // store current in bin
-    mppt_bins[mppt_index] = charge_current;
-    mppt_index++;
-
-    if( mppt_current_vindpm == 0 ){
-
-        mppt_current_vindpm = BQ25895_MIN_MPPT_VINDPM;
-    }
-    else{
-
-        mppt_current_vindpm += BQ25895_MPPT_VINDPM_STEP;
-    }
-
-    if( mppt_current_vindpm >= BQ25895_MAX_MPPT_VINDPM ){
-
-        // MPPT is finished
-        mppt_done = TRUE;
-        mppt_time = tmr_u32_get_system_time_ms();
-
-        // select vindpm. this is max of currents stored in mppt_bins, the index representing
-        // the vindpm setting that produced it.
-        uint16_t best_current = 0;
-        uint8_t best_index = 0;
-
-        for( uint8_t i = 0; i < MPPT_BINS; i++ ){
-
-            if( mppt_bins[i] > best_current ){
-
-                best_current = mppt_bins[i];
-                best_index = i;
-            }
-        }
-
-        mppt_current_vindpm = BQ25895_MIN_MPPT_VINDPM + ( best_index * BQ25895_MPPT_VINDPM_STEP );
-
-        log_v_debug_P( PSTR("mppt done: vindpm %d current: %d"), mppt_current_vindpm, best_current );
-    }
-
-    bq25895_v_set_vindpm( mppt_current_vindpm );
-}
 
 
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
@@ -1653,27 +1594,21 @@ PT_BEGIN( pt );
         init_boost_converter();
     }
 
-    thread_t_create( bat_control_thread,
-                     PSTR("bat_control"),
-                     0,
-                     0 );
+    // thread_t_create( bat_control_thread,
+    //                  PSTR("bat_control"),
+    //                  0,
+    //                  0 );
 
-    #if defined(ESP32)
+    // #if defined(ESP32)
 
-    thread_t_create( bat_aux_temp_thread,
-                     PSTR("bat_aux_temp"),
-                     0,
-                     0 );
+    // thread_t_create( bat_aux_temp_thread,
+    //                  PSTR("bat_aux_temp"),
+    //                  0,
+    //                  0 );
 
-    #endif
+    // #endif
 
-    // check if MPPT enabled
-    if( kv_b_get_boolean( __KV__batt_enable_mppt ) ){
-
-        enable_mppt = TRUE;
-    }
-
-    reset_mppt();
+    mppt_v_reset();
 
     TMR_WAIT( pt, 50 );
 
@@ -1711,7 +1646,7 @@ PT_BEGIN( pt );
 
 
             // run MPPT
-            do_mppt( batt_charge_current );
+            mppt_v_run( batt_charge_current );
         }
         else{
 

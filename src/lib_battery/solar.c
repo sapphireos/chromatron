@@ -25,151 +25,520 @@
 
 #include "sapphire.h"
 
-#include "pwm.h"
-#include "keyvalue.h"
-
 #include "solar.h"
+#include "solar_tilt.h"
+#include "mppt.h"
+#include "buttons.h"
+#include "thermal.h"
 #include "battery.h"
+#include "patch_board.h"
+#include "pixel_power.h"
+#include "led_detect.h"
+#include "fuel_gauge.h"
+#include "energy.h"
 
-static int16_t solar_array_tilt_angle;
-static int16_t solar_array_target_angle;
-static bool pause_motors;
+#include "hal_boards.h"
 
-KV_SECTION_META kv_meta_t solar_tilt_info_kv[] = {
-    
-    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_PERSIST,  0,             0,  "solar_enable_tilt" },
+
+PT_THREAD( solar_control_thread( pt_t *pt, void *state ) );
+
+
+// config parameters:
+static bool patch_board_installed;
+static bool charger2_board_installed;
+static bool enable_dc_charge = TRUE;
+static bool enable_solar_charge;
+static bool mppt_enabled;
+
+
+static uint8_t solar_state;
+#define SOLAR_MODE_DISCHARGE			0
+#define SOLAR_MODE_CHARGE_DC			1
+#define SOLAR_MODE_CHARGE_SOLAR			2
+#define SOLAR_MODE_FULL_CHARGE			3
+#define SOLAR_MODE_STOPPED				4
+#define SOLAR_MODE_SHUTDOWN	  			5
+
+static catbus_string_t state_name;
+
+
+static uint16_t charge_timer;
+#define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
+#define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
+
+static uint16_t fuel_gauge_timer;
+#define FUEL_SAMPLE_TIME				( 60 ) // debug! 60 seconds is probably much more than we need
+
+static uint16_t filtered_batt_volts;
+#define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
+
+
+KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
+	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
+	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&state_name,				0,  "solar_control_state_text" },
+
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&patch_board_installed, 	0,  "solar_enable_patch_board" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&charger2_board_installed, 	0,  "solar_enable_charger2" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
+
+	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
 };
-
-KV_SECTION_OPT kv_meta_t solar_tilt_opt_kv[] = {
-    
-    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &solar_array_tilt_angle,    0,  "solar_tilt_angle" },
-    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY,  &solar_array_target_angle,	0,  "solar_target_angle" },
-    { CATBUS_TYPE_BOOL,     0, 0,  					&pause_motors,              0,  "solar_pause_motors" },
-};
-
-
-PT_THREAD( solar_tilt_thread( pt_t *pt, void *state ) );
 
 
 void solar_v_init( void ){
 
-	if( kv_b_get_boolean( __KV__solar_enable_tilt ) ){
+	kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
 
-		kv_v_add_db_info( solar_tilt_opt_kv, sizeof(solar_tilt_opt_kv) );
+	energy_v_init();
 
-		thread_t_create( solar_tilt_thread,
-                     PSTR("solar_tilt"),
+	fuel_v_init();
+
+	thermal_v_init();
+
+	if( kv_b_get_boolean( __KV__solar_enable_led_detect ) ){
+
+		led_detect_v_init();
+	}
+
+	button_v_init();
+
+	pixelpower_v_init();
+
+	if( patch_board_installed && charger2_board_installed ){
+
+		log_v_error_P( PSTR("Cannot enable patch board and charger2 on the same system") );
+
+		patch_board_installed = FALSE;
+		charger2_board_installed = FALSE;
+	}
+
+	if( patch_board_installed ){
+		
+		patchboard_v_init();
+
+		solar_tilt_v_init(); // tilt system requires patch board
+	}
+
+	if( charger2_board_installed ){
+		
+		patchboard_v_init();
+	}
+
+	thread_t_create( solar_control_thread,
+                     PSTR("solar_control"),
                      0,
                      0 );
+}
+
+bool solar_b_has_patch_board( void ){
+
+	return patch_board_installed;
+}
+
+bool solar_b_has_charger2_board( void ){
+
+	return charger2_board_installed;
+}
+
+// bool solar_b_is_dc_power( void ){
+
+// 	return solar_state == SOLAR_MODE_CHARGE_DC;	
+// }
+
+// bool solar_b_is_solar_power( void ){
+
+// 	return solar_state == SOLAR_MODE_CHARGE_SOLAR;
+// }
+
+static PGM_P get_state_name( uint8_t state ){
+
+	if( state == SOLAR_MODE_STOPPED ){
+
+		return PSTR("stopped");
+	}
+	else if( state == SOLAR_MODE_DISCHARGE ){
+
+		return PSTR("discharge");
+	}
+	else if( state == SOLAR_MODE_CHARGE_DC ){
+
+		return PSTR("charge_dc");
+	}
+	else if( state == SOLAR_MODE_CHARGE_SOLAR ){
+
+		return PSTR("charge_solar");
+	}
+	else if( state == SOLAR_MODE_FULL_CHARGE ){
+
+		return PSTR("full_charge");
+	}
+	else if( state == SOLAR_MODE_SHUTDOWN ){
+
+		return PSTR("shutdown");
+	}
+	else{
+
+		return PSTR("unknown");
 	}
 }
 
+static void apply_state_name( void ){
 
-static uint16_t read_tilt_sensor_raw( void ){
-
-	uint16_t mv = adc_u16_read_mv( SOLAR_TILT_SENSOR_IO );
-
-	return mv;
+	strncpy_P( state_name.str, get_state_name( solar_state ), sizeof(state_name.str) );
 }
 
-static uint8_t filter_index;
-static int16_t tilt_filter[SOLAR_TILT_FILTER];
 
-static uint16_t read_tilt_sensor( void ){
+static bool is_charging( void ){
 
-	// read new value
-	tilt_filter[filter_index] = read_tilt_sensor_raw();
-	filter_index++;
+	return ( solar_state == SOLAR_MODE_CHARGE_DC ) || 
+		   ( solar_state == SOLAR_MODE_CHARGE_SOLAR );
+}
 
-	if( filter_index >= cnt_of_array(tilt_filter) ){
+static void enable_charge( void ){
 
-		filter_index = 0;
+	// check if state is set to charge
+	if( !is_charging() ){
+
+		// don't physically enable the charger if
+		// we are not in a charge state
+
+		return;
 	}
 
-	int16_t angle = 0;
+	batt_v_enable_charge();
 
-	// filter:
-	for( uint8_t i = 0; i < cnt_of_array(tilt_filter); i++ ){
+	if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
 
-		angle += tilt_filter[i];
+		mppt_v_enable();
 	}
-
-	return angle / cnt_of_array(tilt_filter);
 }
 
-static void set_motor_pwm( uint8_t channel, uint16_t pwm ){
+static void disable_charge( void ){
 
-	pwm_v_write( channel, pwm );
+	mppt_v_disable();
+	
+	batt_v_disable_charge();	
 }
 
-static void motor_up( uint16_t pwm ){
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, pwm );
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
-}
-
-static void motor_down( uint16_t pwm ){
-
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, pwm );
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
-}
-
-PT_THREAD( solar_tilt_thread( pt_t *pt, void *state ) )
+PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-	pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_0, 10000 );
-	pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 10000 );
+	apply_state_name();
 
-	// init tilt sensor
-	for( uint8_t i = 0; i < cnt_of_array(tilt_filter); i++ ){
+	while(1){
 
-		tilt_filter[i] = read_tilt_sensor_raw();
-	}
-
-	solar_array_tilt_angle = read_tilt_sensor();
-
-	
-	while( 1 ){
-
-		thread_v_set_alarm( tmr_u32_get_system_time_ms() + SOLAR_MOTOR_RATE );               
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+		TMR_WAIT( pt, 1000 );
 
 
-        int16_t prev_tilt = solar_array_tilt_angle;
 
-        solar_array_tilt_angle = read_tilt_sensor();
+		fuel_gauge_timer++;
 
-        // delta of actual tilt angle since last iteration
-        int16_t tilt_delta = solar_array_tilt_angle - prev_tilt;
+		if( fuel_gauge_timer >= FUEL_SAMPLE_TIME ){
 
-        // delta of actual tilt angle from target tilt angle on current iteration
-        int16_t target_delta = solar_array_tilt_angle - solar_array_target_angle;
+			fuel_gauge_timer = 0;
 
-        /*
+			// disable charge mechanism (includes cutting off solar array)
+			// delay 500 ms or so
+			// read batt voltage
+			// re-enable charge
 
-		!!!!!!!!!!!!!!!!!!!!!!!!!!
+			// note that the disable/enable charge here does not change the solar
+			// control loop state.  technically we are still charging, but we turn
+			// off the charger when we want to sample the current state of charge.
+			// the charge current will increase the battery voltage according
+			// to the impedance of the cell.
 
-		Test this code with gear train disconnected!
+			disable_charge();
 
-        */
+			TMR_WAIT( pt, 500 );
 
-        if( pause_motors ){
 
-        	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
-			set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
-        }
-        else{
+			// do fuel gauge here
 
-	        if( target_delta < 10 ){
+			fuel_v_do_soc();
 
-	        	motor_up( 512 );
-	        }
-	        else if( target_delta > 10 ){
 
-	        	motor_down( 512 );
-	        }
-	    }
+			// filtered_batt_volts = etc
+
+			// uint16_t batt_volts = batt_u16_get_batt_volts();
+
+			// re-enable charge
+			enable_charge();
+		}
+
+
+
+		static uint8_t next_state;
+		next_state = solar_state;
+
+
+		if( solar_state == SOLAR_MODE_STOPPED ){
+
+			charge_timer++;
+
+			// charge timer exceeded
+			if( charge_timer >= STOPPED_TIME ){
+
+				// signal charger control to stop
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+		}
+		else if( solar_state == SOLAR_MODE_DISCHARGE ){
+
+			// check if VBUS is connected:
+
+			if( patch_board_installed ){
+
+				// patch board has a dedicated DC detect signal:
+				// also validate that VBUS sees it
+				if( patchboard_b_read_dc_detect() && batt_b_is_vbus_connected() ){
+
+					next_state = SOLAR_MODE_CHARGE_DC;
+				}
+				// check solar enable threshold
+				else if( patchboard_u16_read_solar_volts() >= SOLAR_MIN_CHARGE_VOLTS ){
+
+					next_state = SOLAR_MODE_CHARGE_SOLAR;
+				}
+			}
+			else if( charger2_board_installed ){
+
+				// charger2 board is USB powered
+				if( batt_b_is_vbus_connected() ){
+
+					next_state = SOLAR_MODE_CHARGE_DC;
+				}
+			}
+			else{
+
+				// generic board
+				// no dedicated DC detection.
+				// we make an assumption based on configuration here.
+
+				if( batt_b_is_vbus_connected() ){
+
+					if( enable_solar_charge ){
+
+						// if solar is enabled, assume charging on solar power
+						next_state = SOLAR_MODE_CHARGE_SOLAR;
+					}
+					else if( enable_dc_charge ){
+
+						next_state = SOLAR_MODE_CHARGE_DC;	
+					}
+				}
+			}
+		}
+		else if( solar_state == SOLAR_MODE_CHARGE_DC ){
+
+			if( !enable_dc_charge ){						
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+
+			// check if no longer charging:
+			if( batt_b_is_charge_complete() ){
+
+				next_state = SOLAR_MODE_FULL_CHARGE;
+			}
+			else if( !batt_b_is_charging() ){
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+		}
+		else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
+
+			if( !enable_solar_charge ){						
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+
+			// mppt is running in bq25895 adc loop,
+			// nothing to do here.
+
+
+			// tilt control loop goes here
+			// (not the motion control, but target angle selection)
+
+
+
+			// check if no longer charging:
+			if( batt_b_is_charge_complete() ){
+
+				next_state = SOLAR_MODE_FULL_CHARGE;
+			}
+			else if( !batt_b_is_charging() ){
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+		}
+		else if( solar_state == SOLAR_MODE_FULL_CHARGE ){
+
+			// ensure charge hardware is OFF
+			disable_charge();
+
+			// we do not leave full charge state until we start discharging,
+			// IE battery voltage drops below a threshold
+			if( filtered_batt_volts < RECHARGE_THRESHOLD ){
+
+				// switch to discharge state
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+		}
+		else if( solar_state == SOLAR_MODE_SHUTDOWN ){
+
+			// check tilt angle
+
+			if( solar_tilt_u8_get_tilt_angle() == 0 ){
+				// note that units that do not have the tilt system
+				// will always report 0 angle, so the shutdown
+				// state will take effect immediately.
+
+				// panel is closed
+				sys_v_initiate_shutdown( 5 );
+
+				THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+
+				batt_v_shutdown_power();
+				// if on battery power, this should not return
+				// as the power will be cut off.
+				// if an external power source was plugged in during
+				// the shutdown, then this will return.
+
+				// we will delay here and wait
+				// for the reboot thread to reboot the system.
+				TMR_WAIT( pt, 120000 ); 
+			}
+		}
+		else{
+
+			ASSERT( FALSE );
+		}
+
+
+		// check if a shutdown was requested
+		if( button_b_is_shutdown_requested() ){
+
+			next_state = SOLAR_MODE_SHUTDOWN;
+		}
+		else if( is_charging() ){
+
+			charge_timer++;
+
+			// charge timer exceeded
+			if( charge_timer >= MAX_CHARGE_TIME ){
+
+				// signal charger control to stop
+
+				next_state = SOLAR_MODE_STOPPED;
+			}
+		}
+
+
+		// if state is changing:
+
+		if( next_state != solar_state ){
+
+			// set up any init conditions for entry to next state
+			if( next_state == SOLAR_MODE_SHUTDOWN ){
+
+				// set tilt system to close the panel
+				solar_tilt_v_set_tilt_angle( 0 );	
+
+				// don't change GFX state, just leave it
+				// on whatever it was set to when shutting down.
+				// if it was off, there is no reason to turn
+				// graphics back on for a few seconds.
+				// gfx_v_set_system_enable( TRUE );
+			}
+			else if( next_state == SOLAR_MODE_STOPPED ){
+
+				charge_timer = STOPPED_TIME;
+
+				gfx_v_set_system_enable( TRUE );
+			}
+			else if( next_state == SOLAR_MODE_DISCHARGE ){
+
+				gfx_v_set_system_enable( TRUE );	
+			}
+			else if( next_state == SOLAR_MODE_FULL_CHARGE ){
+
+				gfx_v_set_system_enable( TRUE );	
+			}
+			else if( next_state == SOLAR_MODE_CHARGE_DC ){
+
+				// !!!
+				// on DC charge, might want to leave gfx enabled
+				// so FX patterns can display charge status.
+				gfx_v_set_system_enable( FALSE );
+
+
+
+				enable_charge();
+
+				charge_timer = 0;
+			}
+			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
+
+				// disable graphics when on solar charging.
+				// can't really see them anyway!
+				gfx_v_set_system_enable( FALSE );
+
+				enable_charge();
+
+				charge_timer = 0;
+
+				// starting solar charge
+
+				// if patch board is installed,
+				// enable the solar panel connection
+				if( patch_board_installed ){
+
+					patchboard_v_set_solar_en( TRUE );					
+				}
+			}
+
+
+			// check if leaving solar charge mode
+			if( next_state != SOLAR_MODE_CHARGE_SOLAR ){
+
+				// if patch board is installed:
+				// disable the solar panel connection.
+				if( patch_board_installed ){
+
+					patchboard_v_set_solar_en( FALSE );					
+				}
+
+				TMR_WAIT( pt, 100 );
+
+				disable_charge();
+
+				// set tilt system to close the panel
+				solar_tilt_v_set_tilt_angle( 0 );	
+			}
+			// check if leaving DC charge mode
+			else if( next_state != SOLAR_MODE_CHARGE_DC ){
+
+				disable_charge();	
+			}
+
+
+
+			fuel_gauge_timer = FUEL_SAMPLE_TIME - 2; // want fuel to sample shortly after any state change
+
+			log_v_debug_P( PSTR("Changing states from %s to %s"), get_state_name( solar_state ), get_state_name( next_state ) );
+
+
+			// switch states for next cycle
+			solar_state = next_state;
+			apply_state_name();
+		}
 	}
 
 PT_END( pt );

@@ -20,42 +20,28 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
+*/
 
-#ifndef _SAPPHIRE_H
-#define _SAPPHIRE_H
+#ifndef _MAX11645_H
+#define _MAX11645_H
 
 
-#include "cpu.h"
-#include "system.h"
-#include "adc.h"
-#include "io.h"
-#include "timers.h"
-#include "threading.h"
-#include "keyvalue.h"
-#include "sockets.h"
-#include "crc.h"
-#include "util.h"
-#include "datetime.h"
-#include "time_ntp.h"
-#include "fs.h"
-#include "ip.h"
-#include "memory.h"
-#include "logging.h"
-#include "random.h"
-#include "spi.h"
-#include "types.h"
-#include "power.h"
-#include "list.h"
-#include "i2c.h"
-#include "catbus.h"
-#include "kvdb.h"
-#include "usart_fifo.h"
-#include "pwm.h"
-#include "timesync.h"
-#include "wifi.h"
-#include "i2s.h"
-#include "services.h"
-#include "hash.h"
+#define MAX11645_I2C_ADDR 		0x36
+
+#define MAX11645_N_CHANNELS		2
+
+#define MAX11645_BIT_SETUP 		0b10000000
+#define MAX11645_BIT_CONFIG 	0b00000000
+
+#define MAX11645_BIT_CFG_CS		0b00000010
+#define MAX11645_BIT_CFG_SE		0b00000001
+#define MAX11645_BIT_CFG_SCAN0  0b00100000
+#define MAX11645_BIT_CFG_SCAN1  0b01000000
+
+
+
+void max11645_v_init( void );
+
+uint16_t max11645_u16_read( uint8_t channel );
 
 #endif

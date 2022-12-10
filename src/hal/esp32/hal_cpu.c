@@ -345,7 +345,7 @@ void cpu_reboot( void ){
     while(1);
 }
 
-void hal_cpu_v_delay_us( uint16_t us ){
+void IRAM_ATTR hal_cpu_v_delay_us( uint16_t us ){
 	
 	ets_delay_us( us );
 }

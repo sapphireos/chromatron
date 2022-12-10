@@ -20,42 +20,24 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
+*/
 
-#ifndef _SAPPHIRE_H
-#define _SAPPHIRE_H
+#ifndef _MPPT_H
+#define _MPPT_H
 
+#define MPPT_CHECK_INTERVAL			60000
+#define MPPT_CURRENT_THRESHOLD		250
 
-#include "cpu.h"
-#include "system.h"
-#include "adc.h"
-#include "io.h"
-#include "timers.h"
-#include "threading.h"
-#include "keyvalue.h"
-#include "sockets.h"
-#include "crc.h"
-#include "util.h"
-#include "datetime.h"
-#include "time_ntp.h"
-#include "fs.h"
-#include "ip.h"
-#include "memory.h"
-#include "logging.h"
-#include "random.h"
-#include "spi.h"
-#include "types.h"
-#include "power.h"
-#include "list.h"
-#include "i2c.h"
-#include "catbus.h"
-#include "kvdb.h"
-#include "usart_fifo.h"
-#include "pwm.h"
-#include "timesync.h"
-#include "wifi.h"
-#include "i2s.h"
-#include "services.h"
-#include "hash.h"
+#define BQ25895_MIN_MPPT_VINDPM     4900
+#define BQ25895_MAX_MPPT_VINDPM     6200
+#define BQ25895_MPPT_VINDPM_STEP    100
+
+void mppt_v_init( void );
+
+void mppt_v_run( uint16_t charge_current );
+void mppt_v_reset( void );
+
+void mppt_v_enable( void );
+void mppt_v_disable( void );
 
 #endif

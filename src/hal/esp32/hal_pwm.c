@@ -31,67 +31,17 @@
 #include "sapphire.h"
 
 #include "driver/ledc.h"
+#include "driver/timer.h"
+
+
+static void esp32_timer_init( int group, int timer, int timer_interval_msec );
+
 
 static ledc_channel_config_t ledc_channel[HAL_PWM_MAX_CHANNELS];
 
-// static uint16_t pwm;
-// static uint16_t adc;
-
-// int8_t _pwm_kv_handler(
-//     kv_op_t8 op,
-//     catbus_hash_t32 hash,
-//     void *data,
-//     uint16_t len )
-// {
-    
-//     if( op == KV_OP_SET ){
-
-//         ledc_set_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel, pwm);
-//         ledc_update_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel);
-//     }
-
-//     return 0;
-// }
-
-// KV_SECTION_META kv_meta_t pwm_info_kv[] = {
-//     { CATBUS_TYPE_UINT16,  0, 0,    &pwm,              _pwm_kv_handler,        "pwm" },
-//     { CATBUS_TYPE_UINT16,  0, 0,    &adc,              0,        "pwm_adc" },
-// };
-
-
-
-// PT_THREAD( adc_pwm_thread( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
-        
-//     while(1){
-
-//         TMR_WAIT( pt, 100 );
-
-//         adc = adc_u16_read_raw( IO_PIN_17_TX );
-
-//         adc = 4095 - adc;
-
-//         adc = ( 100 * adc ) / 4095;
-        
-//         pwm = 600 + adc * 4;
-
-//         if( pwm < 700 ){
-
-//             pwm = 0;
-//         }
-
-//         ledc_set_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel, pwm);
-//         ledc_update_duty(ledc_channel[0].speed_mode, ledc_channel[0].channel);
-
-//     }
-    
-// PT_END( pt );
-// }
-
-// #define PWM_ENABLED
-
 void pwm_v_init( void ){
+
+    esp32_timer_init( TIMER_GROUP_0, TIMER_0, 250 );
 
     for( uint8_t i = 0; i < cnt_of_array(ledc_channel); i++ ){
 
@@ -99,12 +49,8 @@ void pwm_v_init( void ){
     }
 
 
-    #pragma message "PWM ready for testing!"
-
-
-
-
-    // #pragma message "PWM is not done!"
+    // leaving this example code here for future reference:
+    
 
     // #ifdef PWM_ENABLED
 
@@ -258,3 +204,68 @@ void pwm_v_write( uint8_t channel, uint16_t value ){
     ledc_set_duty( ledc_channel[led_ch].speed_mode, ledc_channel[led_ch].channel, value );
     ledc_update_duty( ledc_channel[led_ch].speed_mode, ledc_channel[led_ch].channel) ;
 }
+
+
+#define TIMER_DIVIDER         (16)  //  Hardware timer clock divider
+#define TIMER_SCALE           (TIMER_BASE_CLK / TIMER_DIVIDER)  // convert counter value to seconds
+
+static bool IRAM_ATTR timer_isr_callback(void *args)
+{
+    // BaseType_t high_task_awoken = pdFALSE;
+    // example_timer_info_t *info = (example_timer_info_t *) args;
+
+    // uint64_t timer_counter_value = timer_group_get_counter_value_in_isr(info->timer_group, info->timer_idx);
+
+    /* Prepare basic event data that will be then sent back to task */
+    // example_timer_event_t evt = {
+    //     .info.timer_group = info->timer_group,
+    //     .info.timer_idx = info->timer_idx,
+    //     .info.auto_reload = info->auto_reload,
+    //     .info.alarm_interval = info->alarm_interval,
+    //     .timer_counter_value = timer_counter_value
+    // };
+
+    // if (!info->auto_reload) {
+    //     timer_counter_value += info->alarm_interval * TIMER_SCALE;
+    //     timer_group_set_alarm_value_in_isr(info->timer_group, info->timer_idx, timer_counter_value);
+    // }
+
+    /* Now just send the event data back to the main program task */
+    // xQueueSendFromISR(s_timer_queue, &evt, &high_task_awoken);
+
+    // return high_task_awoken == pdTRUE; // return whether we need to yield at the end of ISR
+
+    return FALSE;
+}
+
+static void esp32_timer_init( int group, int timer, int timer_interval_msec )
+{
+    /* Select and initialize basic parameters of the timer */
+    timer_config_t config = {
+        .divider = TIMER_DIVIDER,
+        .counter_dir = TIMER_COUNT_UP,
+        .counter_en = TIMER_PAUSE,
+        .alarm_en = TIMER_ALARM_EN,
+        .auto_reload = TRUE,
+    }; // default clock source is APB
+    timer_init(group, timer, &config);
+
+    /* Timer's counter will initially start from value below.
+       Also, if auto_reload is set, this value will be automatically reload on alarm */
+    timer_set_counter_value(group, timer, 0);
+
+    /* Configure the alarm value and the interrupt on alarm. */
+    timer_set_alarm_value(group, timer, timer_interval_msec * ( TIMER_SCALE / 1000 ));
+    timer_enable_intr(group, timer);
+
+    // example_timer_info_t *timer_info = calloc(1, sizeof(example_timer_info_t));
+    // timer_info->timer_group = group;
+    // timer_info->timer_idx = timer;
+    // timer_info->auto_reload = auto_reload;
+    // timer_info->alarm_interval = timer_interval_sec;
+    // timer_isr_callback_add(group, timer, timer_group_isr_callback, timer_info, 0);
+    timer_isr_callback_add(group, timer, timer_isr_callback, 0, 0);
+
+    timer_start(group, timer);
+}
+

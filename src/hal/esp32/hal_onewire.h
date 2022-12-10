@@ -22,40 +22,16 @@
 // </license>
  */
 
-#ifndef _SAPPHIRE_H
-#define _SAPPHIRE_H
+#ifndef _HAL_ONEWIRE_H
+#define _HAL_ONEWIRE_H
 
 
-#include "cpu.h"
-#include "system.h"
-#include "adc.h"
-#include "io.h"
-#include "timers.h"
-#include "threading.h"
-#include "keyvalue.h"
-#include "sockets.h"
-#include "crc.h"
-#include "util.h"
-#include "datetime.h"
-#include "time_ntp.h"
-#include "fs.h"
-#include "ip.h"
-#include "memory.h"
-#include "logging.h"
-#include "random.h"
-#include "spi.h"
-#include "types.h"
-#include "power.h"
-#include "list.h"
-#include "i2c.h"
-#include "catbus.h"
-#include "kvdb.h"
-#include "usart_fifo.h"
-#include "pwm.h"
-#include "timesync.h"
-#include "wifi.h"
-#include "i2s.h"
-#include "services.h"
-#include "hash.h"
+void hal_onewire_v_init( uint8_t gpio );
+void hal_onewire_v_deinit( void );
+
+bool hal_onewire_b_reset( void );
+void hal_onewire_v_write_byte( uint8_t byte );
+uint8_t hal_onewire_u8_read_byte( void );
+
 
 #endif

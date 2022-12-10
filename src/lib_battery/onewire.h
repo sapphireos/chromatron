@@ -22,40 +22,39 @@
 // </license>
  */
 
-#ifndef _SAPPHIRE_H
-#define _SAPPHIRE_H
+#ifndef _ONEWIRE_H
+#define _ONEWIRE_H
 
+#define ONEWIRE_ID_LEN  6
 
-#include "cpu.h"
-#include "system.h"
-#include "adc.h"
-#include "io.h"
-#include "timers.h"
-#include "threading.h"
-#include "keyvalue.h"
-#include "sockets.h"
-#include "crc.h"
-#include "util.h"
-#include "datetime.h"
-#include "time_ntp.h"
-#include "fs.h"
-#include "ip.h"
-#include "memory.h"
-#include "logging.h"
-#include "random.h"
-#include "spi.h"
-#include "types.h"
-#include "power.h"
-#include "list.h"
-#include "i2c.h"
-#include "catbus.h"
-#include "kvdb.h"
-#include "usart_fifo.h"
-#include "pwm.h"
-#include "timesync.h"
-#include "wifi.h"
-#include "i2s.h"
-#include "services.h"
-#include "hash.h"
+#define ONEWIRE_CMD_READ_ROM_ID    0x33
+
+// 1-wire delays, from Maxim app note AN126:
+// these are all microseconds
+#define ONEWIRE_DELAY_A 6
+#define ONEWIRE_DELAY_B 64
+#define ONEWIRE_DELAY_C 60
+#define ONEWIRE_DELAY_D 10
+#define ONEWIRE_DELAY_E 9
+#define ONEWIRE_DELAY_F 55
+#define ONEWIRE_DELAY_G 0
+#define ONEWIRE_DELAY_H 480
+#define ONEWIRE_DELAY_I 70
+#define ONEWIRE_DELAY_J 410
+
+#define ONEWIRE_IDLE    150
+
+void onewire_v_init( uint8_t _io_pin );
+
+void onewire_v_deinit( void );
+
+uint8_t onewire_u8_crc( uint8_t *data, uint8_t len );
+
+bool onewire_b_reset( void );
+
+void onewire_v_write_byte( uint8_t byte );
+uint8_t onewire_u8_read_byte( void );
+
+bool onewire_b_read_rom_id( uint8_t *family_code, uint64_t *id );
 
 #endif

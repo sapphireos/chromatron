@@ -33,6 +33,7 @@
 #include "flash_fs.h"
 
 #include "veml7700.h"
+#include "ssd1306.h"
 
 #ifdef ESP32
 #include "telemetry.h"
@@ -60,6 +61,7 @@ void app_v_init( void ){
     pwm_v_init();
 
     veml7700_v_init();
+    ssd1306_v_init();
 
     telemetry_v_init();
 

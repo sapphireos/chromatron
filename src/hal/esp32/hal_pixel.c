@@ -33,7 +33,7 @@
 #include "pixel.h"
 #include "pixel_vars.h"
 #include "gfx_lib.h"
-#include "battery.h"
+#include "pixel_power.h"
 
 #include "logging.h"
 
@@ -295,7 +295,7 @@ PT_BEGIN( pt );
             spi_v_release();
 
             // shut down pixel power
-            batt_v_disable_pixels();
+            pixelpower_v_disable_pixels();
 
             // wait while pixels are zero output
             while( gfx_b_is_output_zero() ){
@@ -306,10 +306,10 @@ PT_BEGIN( pt );
             }
 
             // re-enable pixel power
-            batt_v_enable_pixels();
+            pixelpower_v_enable_pixels();
 
             // wait until pixels have been re-enabled
-            THREAD_WAIT_WHILE( pt, !batt_b_pixels_enabled() );
+            THREAD_WAIT_WHILE( pt, !pixelpower_b_pixels_enabled() );
 
             // re-enable pixel drivers
             _pixel_v_configure();

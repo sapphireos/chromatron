@@ -42,13 +42,63 @@ Basic SoC on voltage is usable.  Later we can compensate for load, but the cycle
 
 Some knowledge of the day/night cycle for solar charging would be useful.  This could come from light level, if available.
 
-This module might not be the right place for that though.
+This module might not be the right place for that though.  The top level solar charge control loop should do this.
 
 
 Might turn off the recorder, and just rewrite this module to be more streamlined.  Not sure the filters are useful either.
 
 Just want cycle count and basic Soc!
 
+Some kind of very basic lifetime logging would be neat.  Like, ever N cycles (10? 100?) record a data type in a 
+fixed sized buffer.
+
+
+To enhance the accuracy, we need to disable the charger while we take our voltage measurement during a charge cycle.
+(We should also attempt to get a voltage drop estimate from pixels off to on at a given power level - maybe could 
+do a calibration at assembly time, and maybe semi periodically).
+
+Re-enable the charger after the measurement.  This should be driven externally by the overall solar charge control loop.
+The fuel gauge does not need to be updated often.  10 minute intervals is a good start, and on some events such as changing
+from charge to discharge or enabling/disabling the pixel array.
+
+
+
+Solar system modes:
+
+IDLE/RESET - this is an unknown state, the system has usually just started.
+DISCHARGE_IDLE - battery discharging, system is running, pixels are OFF
+DISCHARGE_PIXELS - above, but pixels are ON
+CHARGE_DC - charging on DC wall power
+CHARGE_SOLAR - charging on solar power
+FULL_CHARGE - system is fully charged and is connected to a valid power source (DC plugged in, or solar is generating enough)
+
+solar KV should have a text system mode name for easy field use.
+
+Solar module controls:
+
+solar panel voltage enable
+solar panel tilt motor
+batt charger config (mppt voltage set point and currents)
+gfx system enable
+
+
+Solar module knows:
+
+batt params (voltage, temp)
+pixel power
+dc input detect
+solar panel voltage
+panel tilt angle
+
+
+
+remember it does not control pixel enable - that is done on zero gfx to make sure we always get clean fade downs.
+
+gfx_v_set_system_enable() API commands gfx system to shut down.  This can be controlled by solar.  The battery control
+loop is handling this now.
+
+Solar and battery control loops can be combined.  The DC only devices are actually just a special case with the solar
+and tilt system disabled.  Solar is a first class always-available citizen in Chromatron.
 
 
 
@@ -57,6 +107,11 @@ Just want cycle count and basic Soc!
 
 
 
+
+
+
+
+Old notes:
 
 
 Fuel gauge notes:
@@ -111,11 +166,47 @@ Discharge rate at a given load.
 
 
 
-
-
-
-
 */
+
+
+
+static uint8_t batt_soc = 50; // state of charge in percent
+static uint16_t soc_state;
+#define SOC_MAX_VOLTS   ( batt_u16_get_charge_voltage() - 100 )
+#define SOC_MIN_VOLTS   ( batt_u16_get_discharge_voltage() )
+#define SOC_FILTER      64
+
+
+KV_SECTION_OPT kv_meta_t fuel_gauge_info_kv[] = {
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_soc,                    0,  "batt_soc" },
+};
+
+
+void fuel_v_init( void ){
+
+    kv_v_add_db_info( fuel_gauge_info_kv, sizeof(fuel_gauge_info_kv) );
+}
+
+uint8_t fuel_u8_get_soc( void ){
+
+    return batt_soc;
+}
+
+void fuel_v_do_soc( void ){
+    
+    
+    
+    
+    
+}
+
+
+
+
+
+#if 0
+
+
 
 #define MODE_UNKNOWN        0
 #define MODE_DISCHARGE      1 // discharging on battery power
@@ -590,7 +681,8 @@ PT_BEGIN( pt );
 
             // get charge state
             bool is_charging = batt_b_is_charging();
-            bool is_wall_power = batt_b_is_wall_power();
+            // bool is_wall_power = batt_b_is_wall_power();
+            bool is_wall_power = 0;
 
             if( is_charging ){
 
@@ -705,3 +797,16 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+
+#endif
+
+
+
+
+
+
+
+
+
+

@@ -25,15 +25,15 @@
 #ifndef _BQ25895_H_
 #define _BQ25895_H_
 
-#define BQ25895_MIN_BOOST_VOLTAGE   4550
-#define BQ25895_MAX_BOOST_VOLTAGE   5510
+#define BQ25895_MIN_BOOST_VOLTAGE       4550
+#define BQ25895_MAX_BOOST_VOLTAGE       5510
 
-#define BQ25895_MIN_VINDPM          3900
-#define BQ25895_MAX_VINDPM          15300
+#define BQ25895_MIN_VINDPM              3900
+#define BQ25895_MAX_VINDPM              15300
 
-#define BQ25895_MIN_MPPT_VINDPM     4900
-#define BQ25895_MAX_MPPT_VINDPM     6200
-#define BQ25895_MPPT_VINDPM_STEP    100
+#define BQ25895_MAX_FAST_CHARGE_CURRENT 5000
+
+#define BQ25895_TERM_CURRENT            ( 65 * 2 )
 
 // NOTE! The datasheet lists the address as 0x6B in the serial Interface
 // overview, but then lists it as 0x6A in the register description.
@@ -250,7 +250,10 @@ uint16_t bq25895_u16_get_iindpm( void );
 bool bq25895_b_get_vindpm( void );
 bool bq25895_b_get_iindpm( void );
 uint16_t bq25895_u16_read_vbus( void );
-int8_t bq25895_i8_get_case_temp( void );
-int8_t bq25895_i8_get_ambient_temp( void );
+// int8_t bq25895_i8_get_case_temp( void );
+// int8_t bq25895_i8_get_ambient_temp( void );
+
+void bq25895_v_enable_charger( void );
+void bq25895_v_disable_charger( void );
 
 #endif

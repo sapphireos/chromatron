@@ -27,16 +27,14 @@
 
 #include "sapphire.h"
 
-#include "adc.h"
-
-#define SOLAR_MOTOR_RATE	10
-
-#define SOLAR_TILT_SENSOR_IO 	IO_PIN_34_A2
-#define SOLAR_TILT_MOTOR_IO_0 	IO_PIN_16_RX
-#define SOLAR_TILT_MOTOR_IO_1 	IO_PIN_17_TX
-
-#define SOLAR_TILT_FILTER	4
+#define SOLAR_MIN_CHARGE_VOLTS		4800
 
 void solar_v_init( void );
+
+bool solar_b_has_patch_board( void );
+bool solar_b_has_charger2_board( void );
+
+// bool solar_b_is_dc_power( void );
+// bool solar_b_is_solar_power( void );
 
 #endif

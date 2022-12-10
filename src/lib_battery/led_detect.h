@@ -22,40 +22,29 @@
 // </license>
  */
 
-#ifndef _SAPPHIRE_H
-#define _SAPPHIRE_H
+#ifndef _LED_DETECT_H
+#define _LED_DETECT_H
 
 
-#include "cpu.h"
-#include "system.h"
-#include "adc.h"
-#include "io.h"
-#include "timers.h"
-#include "threading.h"
-#include "keyvalue.h"
-#include "sockets.h"
-#include "crc.h"
-#include "util.h"
-#include "datetime.h"
-#include "time_ntp.h"
-#include "fs.h"
-#include "ip.h"
-#include "memory.h"
-#include "logging.h"
-#include "random.h"
-#include "spi.h"
-#include "types.h"
-#include "power.h"
-#include "list.h"
-#include "i2c.h"
-#include "catbus.h"
-#include "kvdb.h"
-#include "usart_fifo.h"
-#include "pwm.h"
-#include "timesync.h"
-#include "wifi.h"
-#include "i2s.h"
-#include "services.h"
-#include "hash.h"
+#define LED_UNIT_TYPE_NONE          0
+#define LED_UNIT_TYPE_STRAND50      1
+
+
+typedef struct{
+    uint8_t unit_type;
+    uint8_t led_type;
+    uint16_t pix_count;
+    uint16_t pix_size_x;
+    uint16_t pix_size_y;
+} led_profile_t;
+
+typedef struct{
+    uint64_t unit_id;
+    uint8_t unit_type;
+} led_unit_t;
+
+void led_detect_v_init( void );
+
+bool led_detect_b_led_connected( void );
 
 #endif

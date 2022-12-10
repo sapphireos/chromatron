@@ -20,42 +20,39 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
+*/
 
-#ifndef _SAPPHIRE_H
-#define _SAPPHIRE_H
+#ifndef _SOLAR_TILT_H
+#define _SOLAR_TILT_H
 
+#include "sapphire.h"
 
-#include "cpu.h"
-#include "system.h"
 #include "adc.h"
-#include "io.h"
-#include "timers.h"
-#include "threading.h"
-#include "keyvalue.h"
-#include "sockets.h"
-#include "crc.h"
-#include "util.h"
-#include "datetime.h"
-#include "time_ntp.h"
-#include "fs.h"
-#include "ip.h"
-#include "memory.h"
-#include "logging.h"
-#include "random.h"
-#include "spi.h"
-#include "types.h"
-#include "power.h"
-#include "list.h"
-#include "i2c.h"
-#include "catbus.h"
-#include "kvdb.h"
-#include "usart_fifo.h"
-#include "pwm.h"
-#include "timesync.h"
-#include "wifi.h"
-#include "i2s.h"
-#include "services.h"
-#include "hash.h"
+
+#define SOLAR_MOTOR_RATE				100
+
+#define SOLAR_MOTOR_MOVE_TIMEOUT		2000
+#define SOLAR_MOTOR_LOCK_TIMEOUT		10000
+
+// #define SOLAR_TILT_MOVEMENT_THRESHOLD 	1 // degrees
+#define SOLAR_TILT_SENSOR_MOVE_THRESHOLD   50 // mV
+
+#define SOLAR_ANGLE_POS_MIN				0 // degrees
+#define SOLAR_ANGLE_POS_MAX				60 // degrees
+#define SOLAR_ANGLE_DRIVE_MAX           70 // degrees
+
+
+// #define SOLAR_TILT_SENSOR_IO 	IO_PIN_34_A2
+#define SOLAR_TILT_MOTOR_IO_0 	IO_PIN_16_RX
+// #define SOLAR_TILT_MOTOR_IO_1 	IO_PIN_17_TX
+
+#define SOLAR_TILT_ADC_SAMPLES      8
+#define SOLAR_TILT_FILTER	        4
+
+void solar_tilt_v_init( void );
+
+uint8_t solar_tilt_u8_get_tilt_angle( void );
+uint8_t solar_tilt_u8_get_target_angle( void );
+void solar_tilt_v_set_tilt_angle( uint8_t angle );
 
 #endif

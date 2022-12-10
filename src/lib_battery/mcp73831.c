@@ -159,9 +159,14 @@ uint16_t mcp73831_u16_get_vbus_volts( void ){
     return batt_vbus_volts;
 }
 
+bool mcp73831_b_is_charge_complete( void ){
+
+    return batt_volts >= 4100;
+}
+
 bool mcp73831_b_is_charging( void ){
 
-    if( batt_volts >= 4100 ){
+    if( mcp73831_b_is_charge_complete() ){
 
         return FALSE;
     }
@@ -216,6 +221,11 @@ uint16_t mcp73831_u16_get_batt_volts( void ){
 }
 
 uint16_t mcp73831_u16_get_vbus_volts( void ){
+
+    return 0;
+}
+
+bool mcp73831_b_is_charge_complete( void ){
 
     return 0;
 }
