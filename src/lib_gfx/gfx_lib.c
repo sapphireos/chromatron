@@ -1154,14 +1154,9 @@ void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
 
                 a = 0;
             }
-        }
-        // possible optimization:
-        // array_func( a, index );
-        
-        if( attr == PIX_ATTR_HUE ){
 
             _gfx_v_set_hs_fade_1d( a, index );
-        }        
+        }
     }
     else if( attr == PIX_ARRAY_ATTR_V_FADE ){
 
@@ -1253,7 +1248,6 @@ void gfx_v_array_add( uint8_t obj, uint8_t attr, int32_t src ){
 
                 a = 0;
             }
-        }
 
             _gfx_v_set_sat_1d( a, index );
         }        
@@ -1339,8 +1333,6 @@ void gfx_v_array_sub( uint8_t obj, uint8_t attr, int32_t src ){
 
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
     
-    for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
-
     if( attr == PIX_ARRAY_ATTR_HUE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
@@ -1376,8 +1368,7 @@ void gfx_v_array_sub( uint8_t obj, uint8_t attr, int32_t src ){
 
                 a = 0;
             }
-        }
-
+        
             _gfx_v_set_sat_1d( a, index );
         }        
     }
@@ -1462,8 +1453,6 @@ void gfx_v_array_mul( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
 
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
     
-    for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
-
     if( attr == PIX_ARRAY_ATTR_HUE ){
 
         if( type == CATBUS_TYPE_FIXED16 ){
@@ -1572,8 +1561,7 @@ void gfx_v_array_mul( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
 
                 a = 0;
             }
-        }
-
+        
             _gfx_v_set_hs_fade_1d( a, index );
         }    
     }
@@ -1672,10 +1660,6 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
 
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
     
-    for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
-
-        uint16_t index = i + pix_arrays[obj].index;
-
     if( attr == PIX_ARRAY_ATTR_HUE ){
 
         if( type == CATBUS_TYPE_FIXED16 ){
@@ -1784,8 +1768,7 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 typ
 
                 a = 0;
             }
-        }
-
+        
             _gfx_v_set_hs_fade_1d( a, index );
         }    
     }
@@ -1884,8 +1867,6 @@ void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src ){
 
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
     
-    for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
-
     if( attr == PIX_ARRAY_ATTR_HUE ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
@@ -1921,7 +1902,6 @@ void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src ){
 
                 a = 0;
             }
-        }
 
             _gfx_v_set_sat_1d( a, index );
         }        
