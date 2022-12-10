@@ -27,6 +27,8 @@
 
 #include "sapphire.h"
 
+#define SOLAR_MIN_CHARGE_VOLTS		4800
+
 void solar_v_init( void );
 
 bool solar_b_has_patch_board( void );

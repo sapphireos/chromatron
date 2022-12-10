@@ -48,6 +48,7 @@ static bool patch_board_installed;
 static bool charger2_board_installed;
 static bool enable_dc_charge = TRUE;
 static bool enable_solar_charge;
+static bool mppt_enabled;
 
 
 static uint8_t solar_state;
@@ -81,7 +82,7 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_mppt" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
 
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
 };
@@ -101,8 +102,6 @@ void solar_v_init( void ){
 
 		led_detect_v_init();
 	}
-
-	mppt_v_init();
 
 	button_v_init();
 
@@ -210,10 +209,17 @@ static void enable_charge( void ){
 	}
 
 	batt_v_enable_charge();
+
+	if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
+
+		mppt_v_enable();
+	}
 }
 
 static void disable_charge( void ){
 
+	mppt_v_disable();
+	
 	batt_v_disable_charge();	
 }
 
@@ -285,16 +291,18 @@ PT_BEGIN( pt );
 		}
 		else if( solar_state == SOLAR_MODE_DISCHARGE ){
 
-			// check if DC is connected:
+			// check if VBUS is connected:
 
 			if( patch_board_installed ){
 
 				// patch board has a dedicated DC detect signal:
-				if( patchboard_b_read_dc_detect() ){
+				// also validate that VBUS sees it
+				if( patchboard_b_read_dc_detect() && batt_b_is_vbus_connected() ){
 
 					next_state = SOLAR_MODE_CHARGE_DC;
 				}
-				else if( patchboard_u16_read_solar_volts() >= BATT_MIN_CHARGE_VBUS_VOLTS ){
+				// check solar enable threshold
+				else if( patchboard_u16_read_solar_volts() >= SOLAR_MIN_CHARGE_VOLTS ){
 
 					next_state = SOLAR_MODE_CHARGE_SOLAR;
 				}
@@ -302,7 +310,7 @@ PT_BEGIN( pt );
 			else if( charger2_board_installed ){
 
 				// charger2 board is USB powered
-				if( batt_u16_get_vbus_volts() >= BATT_MIN_CHARGE_VBUS_VOLTS ){
+				if( batt_b_is_vbus_connected() ){
 
 					next_state = SOLAR_MODE_CHARGE_DC;
 				}
@@ -313,7 +321,7 @@ PT_BEGIN( pt );
 				// no dedicated DC detection.
 				// we make an assumption based on configuration here.
 
-				if( batt_u16_get_vbus_volts() >= BATT_MIN_CHARGE_VBUS_VOLTS ){
+				if( batt_b_is_vbus_connected() ){
 
 					if( enable_solar_charge ){
 

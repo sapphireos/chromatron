@@ -193,8 +193,11 @@ uint8_t fuel_u8_get_soc( void ){
 }
 
 void fuel_v_do_soc( void ){
-
-
+    
+    
+    
+    
+    
 }
 
 

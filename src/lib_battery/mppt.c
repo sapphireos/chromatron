@@ -38,7 +38,7 @@ static bool mppt_done;
 #define MPPT_BINS ( ( BQ25895_MAX_MPPT_VINDPM - BQ25895_MIN_MPPT_VINDPM ) / BQ25895_MPPT_VINDPM_STEP )
 static uint16_t mppt_bins[MPPT_BINS];
 
-KV_SECTION_OPT kv_meta_t bq25895_info_mppt_kv[] = {
+KV_SECTION_OPT kv_meta_t mppt_opt_kv[] = {
     { CATBUS_TYPE_UINT16, MPPT_BINS - 1, KV_FLAGS_READ_ONLY,  &mppt_bins,                  0,  "batt_mppt_bins" },
 
 };
@@ -140,19 +140,16 @@ void mppt_v_reset( void ){
 	reset_mppt();
 }
 
-void mppt_v_init( void ){
+void mppt_v_enable( void ){
 
-	// check if MPPT enabled
-    if( kv_b_get_boolean( __KV__solar_enable_mppt ) ){
-
-        enable_mppt = TRUE;
-    }
-
-    // no thread here
-    // the mppt loop is driven directly by the BQ25895 ADC thread
-    // for minimum response time.
+    enable_mppt = TRUE;
 }
 
+void mppt_v_disable( void ){
 
+    enable_mppt = FALSE;
+
+    bq25895_v_set_vindpm( 0 );
+}
 
 

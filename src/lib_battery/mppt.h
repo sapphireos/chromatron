@@ -37,5 +37,7 @@ void mppt_v_init( void );
 void mppt_v_run( uint16_t charge_current );
 void mppt_v_reset( void );
 
+void mppt_v_enable( void );
+void mppt_v_disable( void );
 
 #endif

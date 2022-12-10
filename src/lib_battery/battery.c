@@ -517,6 +517,11 @@ uint16_t batt_u16_get_vbus_volts( void ){
     return bq25895_u16_read_vbus();
 }
 
+bool batt_b_is_vbus_connected( void ){
+
+    return batt_u16_get_vbus_volts() >= BATT_MIN_CHARGE_VBUS_VOLTS;
+}
+
 uint16_t batt_u16_get_batt_volts( void ){
 
     if( batt_enable_mcp73831 ){
