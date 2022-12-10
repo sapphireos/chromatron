@@ -49,6 +49,13 @@ static uint32_t solar_tilt_total_travel;
 
 static bool pause_motors = TRUE; // DEBUG default to paused!
 
+static uint8_t motor_state;
+#define MOTOR_STATE_IDLE 	0
+#define MOTOR_STATE_UP		1
+#define MOTOR_STATE_DOWN	2
+#define MOTOR_STATE_LOCK	3
+
+
 
 KV_SECTION_META kv_meta_t solar_tilt_info_kv[] = {
     
@@ -68,6 +75,7 @@ KV_SECTION_OPT kv_meta_t solar_tilt_opt_kv[] = {
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_PERSIST,    &solar_tilt_total_travel,   0,  "solar_tilt_total_travel" },
 
     { CATBUS_TYPE_BOOL,     0, 0,  					&pause_motors,              0,  "solar_pause_motors" },
+    { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &motor_state,               0,  "solar_tilt_motor_state" },
 };
 
 
@@ -78,6 +86,9 @@ static void motors_off( void );
 void solar_tilt_v_init( void ){
 
 	if( kv_b_get_boolean( __KV__solar_enable_tilt ) ){
+
+		pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_0, 20000 );
+		// pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 20000 );
 
 		motors_off();
 
@@ -182,12 +193,6 @@ static void motors_off( void ){
 }
 
 
-static uint8_t motor_state;
-#define MOTOR_STATE_IDLE 	0
-#define MOTOR_STATE_UP		1
-#define MOTOR_STATE_DOWN	2
-#define MOTOR_STATE_LOCK	3
-
 static int16_t motor_timeout;
 
 static uint8_t motor_1sec_count;
@@ -230,9 +235,6 @@ PT_THREAD( solar_tilt_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-	pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_0, 20000 );
-	// pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 20000 );
-
 
 	motors_off();	
 
@@ -243,6 +245,8 @@ PT_BEGIN( pt );
 	}
 
 	solar_array_tilt_sensor = read_tilt_sensor();
+
+	solar_array_target_sensor = solar_array_tilt_sensor; // init so we don't immediately move
 
 	solar_array_tilt_angle = convert_tilt_mv_to_angle( solar_array_tilt_sensor );
 
