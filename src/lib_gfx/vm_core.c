@@ -2080,10 +2080,8 @@ opcode_vstore_attr:
 
 opcode_pload_attr:
     DECODE_1I2RS;
-
-    ref.n = registers[opcode_1i2rs->reg1];
-
-    registers[opcode_1i2rs->reg2] = gfx_i32_get_pixel_attr( ref.ref.addr, opcode_1i2rs->imm1 );    
+    
+    registers[opcode_1i2rs->reg2] = gfx_i32_get_pixel_attr_single( registers[opcode_1i2rs->reg1], opcode_1i2rs->imm1 );    
 
     DISPATCH;
 

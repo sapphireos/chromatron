@@ -42,6 +42,7 @@ class TestCompilerOnDevice(CompilerTests):
                     'pix_count': 16,
                     'pix_size_x': 4,
                     'pix_size_y': 4,
+                    'gfx_debug_reset': True,
                     'vm_prog': 'test.fxb',
                 }
 

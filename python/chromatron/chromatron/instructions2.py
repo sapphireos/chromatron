@@ -2795,6 +2795,12 @@ class insVPixelLoadAttr(insVPixelLoad):
                     value = 1
                     break
 
+        elif self.attr == 'is_hs_fading':
+            for val in vm.gfx_data['hue']:
+                if val != 0:
+                    value = 1
+                    break
+
         else:
             value = pixel_array[self.attr]
 
@@ -2953,6 +2959,10 @@ class insPixelLoadAttr(insPixelLoad):
 
         if self.attr == 'is_v_fading':
             if vm.gfx_data['val'][ref] != 0:
+                value = 1
+
+        elif self.attr == 'is_hs_fading':
+            if vm.gfx_data['hue'][ref] != 0:
                 value = 1
 
         vm.registers[self.target.reg] = value

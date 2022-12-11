@@ -1,15 +1,19 @@
 
 a = Number(publish=True)
 b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
 
 def init():
-    a = pixels.is_v_fading
+    a = pixels[1].is_v_fading
 
-    pixels.val = 0.5
+    pixels[1].val = 0.5
 
-    b = pixels.is_v_fading
+    b = pixels[1].is_v_fading
+    c = pixels[0].is_v_fading
 
-
+    pixels.val = 1.0
+    d = pixels[0].is_v_fading
 
 
 # a = StringBuf(32, publish=True)
