@@ -37,9 +37,12 @@
 // #define SOLAR_TILT_MOVEMENT_THRESHOLD 	1 // degrees
 #define SOLAR_TILT_SENSOR_MOVE_THRESHOLD   50 // mV
 
+#define SOLAR_TILT_SENSOR_MIN           300 // mV
+#define SOLAR_TILT_SENSOR_MAX           3000 // mV
+#define SOLAR_TILT_SENSOR_OPEN          3200 // mV
+
 #define SOLAR_ANGLE_POS_MIN				0 // degrees
 #define SOLAR_ANGLE_POS_MAX				60 // degrees
-#define SOLAR_ANGLE_DRIVE_MAX           70 // degrees
 
 
 // #define SOLAR_TILT_SENSOR_IO 	IO_PIN_34_A2

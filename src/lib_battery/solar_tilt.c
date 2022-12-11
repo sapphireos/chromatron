@@ -35,8 +35,6 @@
 #include "bq25895.h"
 
 
-static uint16_t solar_tilt_min = 300;
-static uint16_t solar_tilt_max = 3000;
 static uint16_t solar_tilt_motor_pwm = 768;
 
 static uint16_t solar_array_tilt_sensor;
@@ -47,6 +45,7 @@ static uint8_t solar_array_target_angle;
 
 static uint32_t solar_tilt_total_travel;
 
+static bool unlock_panel;
 static bool pause_motors = TRUE; // DEBUG default to paused!
 
 static uint8_t motor_state;
@@ -63,18 +62,17 @@ KV_SECTION_META kv_meta_t solar_tilt_info_kv[] = {
 };
 
 KV_SECTION_OPT kv_meta_t solar_tilt_opt_kv[] = {
-    { CATBUS_TYPE_UINT16,    0, KV_FLAGS_PERSIST, 	&solar_tilt_min,			0,  "solar_tilt_min" },
-    { CATBUS_TYPE_UINT16,    0, KV_FLAGS_PERSIST, 	&solar_tilt_max,			0,  "solar_tilt_max" },
     { CATBUS_TYPE_UINT16,    0, KV_FLAGS_PERSIST, 	&solar_tilt_motor_pwm,		0,  "solar_tilt_motor_pwm" },
 
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_array_tilt_sensor,   0,  "solar_tilt_sensor" },
-    { CATBUS_TYPE_UINT16,   0, 0,  					&solar_array_target_sensor,   0,  "solar_target_sensor" },
+    { CATBUS_TYPE_UINT16,   0, 0,  					&solar_array_target_sensor, 0,  "solar_target_sensor" },
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &solar_array_tilt_angle,    0,  "solar_tilt_angle" },
     { CATBUS_TYPE_UINT8,    0, 0, 	 				&solar_array_target_angle,	0,  "solar_target_angle" },
 
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_PERSIST,    &solar_tilt_total_travel,   0,  "solar_tilt_total_travel" },
 
     { CATBUS_TYPE_BOOL,     0, 0,  					&pause_motors,              0,  "solar_pause_motors" },
+    { CATBUS_TYPE_BOOL,     0, 0,  					&unlock_panel,              0,  "solar_unlock_panel" },
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &motor_state,               0,  "solar_tilt_motor_state" },
 };
 
@@ -158,7 +156,7 @@ static uint16_t read_tilt_sensor( void ){
 
 static uint8_t convert_tilt_mv_to_angle( uint16_t mv ){
 
-	return util_u16_linear_interp( mv, solar_tilt_min, SOLAR_ANGLE_POS_MIN, solar_tilt_max, SOLAR_ANGLE_POS_MAX );
+	return util_u16_linear_interp( mv, SOLAR_TILT_SENSOR_MIN, SOLAR_ANGLE_POS_MIN, SOLAR_TILT_SENSOR_MAX, SOLAR_ANGLE_POS_MAX );
 }
 
 static void set_motor_pwm( uint8_t channel, uint16_t pwm ){
@@ -285,6 +283,15 @@ PT_BEGIN( pt );
 			motor_state = MOTOR_STATE_IDLE;
 
 			continue;
+        }
+        
+        if( unlock_panel ){
+
+        	solar_array_target_sensor = SOLAR_TILT_SENSOR_OPEN;
+        }
+        else if( solar_array_tilt_sensor > ( SOLAR_TILT_SENSOR_OPEN - 100 ) ){
+
+        	solar_array_target_sensor = SOLAR_TILT_SENSOR_MAX;
         }
 
 
