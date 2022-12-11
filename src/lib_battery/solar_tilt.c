@@ -88,7 +88,7 @@ void solar_tilt_v_init( void ){
 	if( kv_b_get_boolean( __KV__solar_enable_tilt ) ){
 
 		pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_0, 20000 );
-		// pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 20000 );
+		pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 20000 );
 
 		motors_off();
 
@@ -234,6 +234,11 @@ Tilt min, 0 degrees, at 300 mV sensor.
 PT_THREAD( solar_tilt_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 512 );
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 512 );
+
+	return;
 
 
 	motors_off();	
