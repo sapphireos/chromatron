@@ -73,6 +73,10 @@ static uint16_t filtered_batt_volts;
 #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
 
 
+static bool dc_detect;
+static uint16_t solar_volts;
+
+
 KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&state_name,				0,  "solar_control_state_text" },
@@ -83,6 +87,9 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
+
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY,  0,                          0,  "solar_dc_detect" },
+	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  0,                          0,  "solar_panel_volts" },
 
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
 };
@@ -272,6 +279,12 @@ PT_BEGIN( pt );
 		}
 
 
+		if( patch_board_installed ){
+
+			dc_detect = patchboard_b_read_dc_detect();
+			solar_volts = patchboard_u16_read_solar_volts();
+		}
+
 
 		static uint8_t next_state;
 		next_state = solar_state;
@@ -297,12 +310,12 @@ PT_BEGIN( pt );
 
 				// patch board has a dedicated DC detect signal:
 				// also validate that VBUS sees it
-				if( patchboard_b_read_dc_detect() && batt_b_is_vbus_connected() ){
+				if( dc_detect && batt_b_is_vbus_connected() ){
 
 					next_state = SOLAR_MODE_CHARGE_DC;
 				}
 				// check solar enable threshold
-				else if( patchboard_u16_read_solar_volts() >= SOLAR_MIN_CHARGE_VOLTS ){
+				else if( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ){
 
 					next_state = SOLAR_MODE_CHARGE_SOLAR;
 				}

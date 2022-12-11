@@ -25,6 +25,8 @@
 
 #include "sapphire.h"
 
+#include "hal_boards.h"
+
 #include "pwm.h"
 #include "keyvalue.h"
 
@@ -112,6 +114,10 @@ void solar_tilt_v_init( void ){
 
 		pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_0, 20000 );
 		pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 20000 );
+
+
+		io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+    	io_v_digital_write( ELITE_FAN_IO, 0 );
 
 		motors_off();
 
@@ -227,28 +233,26 @@ static void set_motor_pwm( uint8_t channel, uint16_t pwm ){
 
 static void motor_up( uint16_t pwm ){
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 1023 );	
-	patchboard_v_set_motor2( TRUE );
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 1023 - pwm );	
-	
-	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
+	io_v_digital_write( ELITE_FAN_IO, 1 );
+
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, pwm );
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
 }
 
 static void motor_down( uint16_t pwm ){
 
-	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, pwm );
-	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
+	io_v_digital_write( ELITE_FAN_IO, 1 );
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, pwm );
-	patchboard_v_set_motor2( FALSE );
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, pwm );	
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
 }
 
 static void motors_off( void ){
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
-	patchboard_v_set_motor2( FALSE );
+	io_v_digital_write( ELITE_FAN_IO, 0 );
 
-	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
 }
 
 

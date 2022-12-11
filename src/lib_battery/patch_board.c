@@ -48,7 +48,7 @@ void patchboard_v_init( void ){
     pca9536_v_set_output( PATCH_PCA9536_IO_SOLAR_EN );
     pca9536_v_set_input( PATCH_PCA9536_IO_DC_DETECT );
     pca9536_v_set_input( PATCH_PCA9536_IO_IO2 );
-    pca9536_v_set_output( PATCH_PCA9536_IO_MOTOR_IN_2 );
+    pca9536_v_set_input( PATCH_PCA9536_IO_MOTOR_IN_2 );
 }
 
 bool patchboard_b_read_dc_detect( void ){
