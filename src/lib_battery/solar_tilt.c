@@ -235,8 +235,19 @@ PT_THREAD( solar_tilt_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 512 );
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 512 );
+	// io_v_set_mode( SOLAR_TILT_MOTOR_IO_1, IO_MODE_OUTPUT );
+    // io_v_digital_write( SOLAR_TILT_MOTOR_IO_1, 1 );
+
+	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 512 );
+
+	while(1){
+
+		TMR_WAIT( pt, 100 );
+
+		set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, solar_tilt_motor_pwm );	
+	}
+
+	
 
 	return;
 
