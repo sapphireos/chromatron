@@ -125,7 +125,7 @@ class TestCompilerOnDevice(CompilerTests):
 
 @pytest.mark.device
 @pytest.mark.parametrize("opt_passes", TEST_OPT_PASSES)
-class TestHSVArrayLocal(HSVArrayTests):
+class TestHSVArrayDevice(HSVArrayTests):
     def run_test(self, program, opt_passes=[OptPasses.SSA]):
         ct = chromatron.Chromatron(host=NETWORK_ADDR)
         
@@ -146,25 +146,42 @@ class TestHSVArrayLocal(HSVArrayTests):
 
                 ct.stop_vm()
 
+                keys = {
+                    'kv_test_key': 0,
+                    'gfx_debug': True,
+                    'gfx_debug_reset': True,
+                    'gfx_hsfade': 0,
+                    'gfx_vfade': 0,
+                    'pix_count': 16,
+                    'pix_size_x': 4,
+                    'pix_size_y': 4,
+                    'vm_prog': 'test.fxb',
+                }
+
+                ct.set_keys(**keys)
+
+
                 # reset test key
-                ct.set_key('kv_test_key', 0)
+                # ct.set_key('kv_test_key', 0)
                 
-                ct.set_key('gfx_debug', True)
+                # ct.set_key('gfx_debug', True)
 
-                ct.set_key('gfx_hsfade', 0)
-                ct.set_key('gfx_vfade', 0)
+                # ct.set_key('gfx_hsfade', 0)
+                # ct.set_key('gfx_vfade', 0)
 
-                ct.set_key('gfx_debug_reset', True)
+                # ct.set_key('gfx_debug_reset', True)
 
-                ct.set_key('pix_count', 16)
-                ct.set_key('pix_size_x', 4)                
-                ct.set_key('pix_size_y', 4)                
+                # ct.set_key('pix_count', 16)
+                # ct.set_key('pix_size_x', 4)                
+                # ct.set_key('pix_size_y', 4)                
 
-                time.sleep(0.3)
+                # time.sleep(0.3)
 
                 # change vm program
-                ct.set_key('vm_prog', 'test.fxb')
+                # ct.set_key('vm_prog', 'test.fxb')
+                
                 ct.put_file('test.fxb', stream)
+
                 ct.start_vm()
 
                 for i in range(100):

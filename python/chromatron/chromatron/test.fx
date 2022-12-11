@@ -1,17 +1,13 @@
 
-fx_a = Number()
-fx_b = Number()
-fx_c = Number()
-fx_d = Number()
+a = Number(publish=True)
+b = Number(publish=True)
 
 def init():
-    fx_a = pixels.is_v_fading
-    pixels.val = 1.0
-    fx_b = pixels.is_v_fading
+    a = pixels.is_v_fading
 
-    fx_c = pixels[1].is_v_fading
-    pixels.val = 1.0
-    fx_d = pixels[1].is_v_fading
+    pixels.val = 0.5
+
+    b = pixels.is_v_fading
 
 
 
