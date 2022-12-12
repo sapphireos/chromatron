@@ -1,19 +1,11 @@
 
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-d = Number(publish=True)
+a = StringBuf(32, publish=True)
+
+b = Number(456)
 
 def init():
-    a = pixels[1].is_v_fading
+    a = f'meow {123:4} {b}'
 
-    pixels[1].val = 0.5
-
-    b = pixels[1].is_v_fading
-    c = pixels[0].is_v_fading
-
-    pixels.val = 1.0
-    d = pixels[0].is_v_fading
 
 
 # a = StringBuf(32, publish=True)

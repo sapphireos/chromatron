@@ -154,6 +154,20 @@ class cg1StrLiteral(cg1CodeNode):
     def build(self, builder, target_type=None):
         return builder.add_string(self.s, lineno=self.lineno)
 
+class cg1FormatStr(cg1CodeNode):
+    _fields = ["s"]
+
+    def __init__(self, s, **kwargs):
+        super(cg1FormatStr, self).__init__(**kwargs)
+        self.s = s
+
+    @property
+    def name(self):
+        return self.s
+
+    def build(self, builder, target_type=None):
+        return builder.add_string(self.s, lineno=self.lineno)
+
 
 class cg1DeclareStruct(cg1DeclarationBase):
     def __init__(self, struct=None, **kwargs):
@@ -831,7 +845,7 @@ class CodeGenPass1(ast.NodeVisitor):
 
         # else:
         #     return cg1DeclareStr(type="str", lineno=node.lineno)
-
+    
     # def _handle_Array(self, node):
     #     dims = [a.n for a in node.args]
 
@@ -1177,8 +1191,29 @@ class CodeGenPass1(ast.NodeVisitor):
         items = [self.visit(a) for a in node.elts]
         return cg1Tuple(items, lineno=node.lineno)        
 
+    def visit_FormattedValue(self, node):
+        # print(node)
+        # print(dir(node))
+        # print(node.value)
+        print(node.format_spec)
+
+        return self.visit(node.value)
+
+    def visit_JoinedStr(self, node):
+        for val in node.values:
+            visited = self.visit(val)
+
+            if isinstance(visited, cg1StrLiteral):
+                print(visited.s, len(visited.s))
+
+            else:
+                print(visited)
+
+        return cg1FormatStr('meow', lineno=node.lineno)
+
     def generic_visit(self, node):
         raise NotImplementedError(node)
+
 
 def parse(source):
     return ast.parse(source)
