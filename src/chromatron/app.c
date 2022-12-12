@@ -52,10 +52,6 @@ void app_v_init( void ){
 
     vm_v_init();
 
-    #ifdef ENABLE_BATTERY
-    batt_v_init();
-    #endif
-
     #ifdef ESP32
 
     pwm_v_init();
@@ -65,6 +61,10 @@ void app_v_init( void ){
 
     telemetry_v_init();
 
+    #endif
+
+    #ifdef ENABLE_BATTERY
+    batt_v_init();
     #endif
 }
 

@@ -34,14 +34,14 @@
 #include "driver/timer.h"
 
 
-static void esp32_timer_init( int group, int timer, int timer_interval_msec );
+void esp32_timer_init( int group, int timer, int timer_interval_msec );
 
 
 static ledc_channel_config_t ledc_channel[HAL_PWM_MAX_CHANNELS];
 
 void pwm_v_init( void ){
 
-    esp32_timer_init( TIMER_GROUP_0, TIMER_0, 250 );
+    // esp32_timer_init( TIMER_GROUP_0, TIMER_0, 250 );
 
     for( uint8_t i = 0; i < cnt_of_array(ledc_channel); i++ ){
 
@@ -209,7 +209,7 @@ void pwm_v_write( uint8_t channel, uint16_t value ){
 #define TIMER_DIVIDER         (16)  //  Hardware timer clock divider
 #define TIMER_SCALE           (TIMER_BASE_CLK / TIMER_DIVIDER)  // convert counter value to seconds
 
-static bool IRAM_ATTR timer_isr_callback(void *args)
+bool IRAM_ATTR timer_isr_callback(void *args)
 {
     // BaseType_t high_task_awoken = pdFALSE;
     // example_timer_info_t *info = (example_timer_info_t *) args;
@@ -238,7 +238,7 @@ static bool IRAM_ATTR timer_isr_callback(void *args)
     return FALSE;
 }
 
-static void esp32_timer_init( int group, int timer, int timer_interval_msec )
+void esp32_timer_init( int group, int timer, int timer_interval_msec )
 {
     /* Select and initialize basic parameters of the timer */
     timer_config_t config = {

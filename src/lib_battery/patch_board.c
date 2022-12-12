@@ -48,7 +48,9 @@ void patchboard_v_init( void ){
     pca9536_v_set_output( PATCH_PCA9536_IO_SOLAR_EN );
     pca9536_v_set_input( PATCH_PCA9536_IO_DC_DETECT );
     pca9536_v_set_input( PATCH_PCA9536_IO_IO2 );
-    pca9536_v_set_output( PATCH_PCA9536_IO_MOTOR_IN_2 );
+    pca9536_v_set_input( PATCH_PCA9536_IO_MOTOR_IN_2 );
+
+    patchboard_v_set_solar_en( FALSE );
 }
 
 bool patchboard_b_read_dc_detect( void ){
@@ -91,7 +93,10 @@ uint16_t patchboard_u16_read_tilt_volts( void ){
 }
 
 uint16_t patchboard_u16_read_solar_volts( void ){
+
+    uint32_t mv = ( (uint32_t)max11645_u16_read( PATCH_ADC_CH_SOLAR_VOLTS ) * PATCH_ADC_VREF ) / 4096;
+
     // adjust for voltage divider
-    return ( max11645_u16_read( PATCH_ADC_CH_SOLAR_VOLTS ) * ( 10 + 22 ) ) / 10;
+    return ( mv * ( 10 + 22 ) ) / 10;
 }
 

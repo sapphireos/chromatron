@@ -25,6 +25,8 @@
 
 #include "sapphire.h"
 
+#include "hal_boards.h"
+
 #include "pwm.h"
 #include "keyvalue.h"
 
@@ -35,8 +37,6 @@
 #include "bq25895.h"
 
 
-static uint16_t solar_tilt_min = 300;
-static uint16_t solar_tilt_max = 3000;
 static uint16_t solar_tilt_motor_pwm = 768;
 
 static uint16_t solar_array_tilt_sensor;
@@ -47,8 +47,39 @@ static uint8_t solar_array_target_angle;
 
 static uint32_t solar_tilt_total_travel;
 
+static bool unlock_panel;
+static bool enable_manual_tilt;
 static bool pause_motors = TRUE; // DEBUG default to paused!
 
+static uint8_t motor_state;
+#define MOTOR_STATE_IDLE 	0
+#define MOTOR_STATE_UP		1
+#define MOTOR_STATE_DOWN	2
+#define MOTOR_STATE_LOCK	3
+
+
+void set_tilt_target( uint8_t angle );
+
+int8_t _tilt_target_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_GET ){
+
+    }
+    else if( op == KV_OP_SET ){
+
+    	set_tilt_target( solar_array_target_angle );
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    return 0;
+}
 
 KV_SECTION_META kv_meta_t solar_tilt_info_kv[] = {
     
@@ -56,18 +87,20 @@ KV_SECTION_META kv_meta_t solar_tilt_info_kv[] = {
 };
 
 KV_SECTION_OPT kv_meta_t solar_tilt_opt_kv[] = {
-    { CATBUS_TYPE_UINT16,    0, KV_FLAGS_PERSIST, 	&solar_tilt_min,			0,  "solar_tilt_min" },
-    { CATBUS_TYPE_UINT16,    0, KV_FLAGS_PERSIST, 	&solar_tilt_max,			0,  "solar_tilt_max" },
     { CATBUS_TYPE_UINT16,    0, KV_FLAGS_PERSIST, 	&solar_tilt_motor_pwm,		0,  "solar_tilt_motor_pwm" },
 
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_array_tilt_sensor,   0,  "solar_tilt_sensor" },
-    { CATBUS_TYPE_UINT16,   0, 0,  					&solar_array_target_sensor,   0,  "solar_target_sensor" },
+    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,	&solar_array_target_sensor, 0,  "solar_tilt_target_sensor" },
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &solar_array_tilt_angle,    0,  "solar_tilt_angle" },
-    { CATBUS_TYPE_UINT8,    0, 0, 	 				&solar_array_target_angle,	0,  "solar_target_angle" },
+
+    { CATBUS_TYPE_UINT8,    0, 0, 	 				&solar_array_target_angle,  _tilt_target_kv_handler,  "solar_tilt_target_angle" },
 
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_PERSIST,    &solar_tilt_total_travel,   0,  "solar_tilt_total_travel" },
 
-    { CATBUS_TYPE_BOOL,     0, 0,  					&pause_motors,              0,  "solar_pause_motors" },
+    { CATBUS_TYPE_BOOL,     0, 0,  					&pause_motors,              0,  "solar_tilt_pause_motor" },
+    { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &enable_manual_tilt,        0,  "solar_tilt_manual" },
+    { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&unlock_panel,              0,  "solar_tilt_unlock_panel" },
+    { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &motor_state,               0,  "solar_tilt_motor_state" },
 };
 
 
@@ -78,6 +111,13 @@ static void motors_off( void );
 void solar_tilt_v_init( void ){
 
 	if( kv_b_get_boolean( __KV__solar_enable_tilt ) ){
+
+		pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_0, 20000 );
+		pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 20000 );
+
+
+		io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+    	io_v_digital_write( ELITE_FAN_IO, 0 );
 
 		motors_off();
 
@@ -90,6 +130,19 @@ void solar_tilt_v_init( void ){
 	}
 }
 
+
+static uint8_t convert_tilt_mv_to_angle( uint16_t mv ){
+
+	return util_u16_linear_interp( mv, SOLAR_TILT_SENSOR_MIN, SOLAR_ANGLE_POS_MIN, SOLAR_TILT_SENSOR_MAX, SOLAR_ANGLE_POS_MAX );
+}
+
+static uint16_t convert_angle_to_tilt_mv( uint8_t angle ){
+
+	return util_u16_linear_interp( angle, SOLAR_ANGLE_POS_MIN, SOLAR_TILT_SENSOR_MIN, SOLAR_ANGLE_POS_MAX, SOLAR_TILT_SENSOR_MAX );
+}
+
+
+
 uint8_t solar_tilt_u8_get_tilt_angle( void ){
 
 	return solar_array_tilt_angle;
@@ -100,9 +153,37 @@ uint8_t solar_tilt_u8_get_target_angle( void ){
 	return solar_array_target_angle;
 }
 
-void solar_tilt_v_set_tilt_angle( uint8_t angle ){
+void set_tilt_target( uint8_t angle ){
+
+	if( angle > SOLAR_ANGLE_POS_MAX ){
+
+		angle = SOLAR_ANGLE_POS_MAX;
+	}
+	// else if( angle < SOLAR_ANGLE_POS_MIN ){
+
+	// 	angle = SOLAR_ANGLE_POS_MIN;
+	// }
 
 	solar_array_target_angle = angle;
+
+	solar_array_target_sensor = convert_angle_to_tilt_mv( angle );
+}
+
+void solar_tilt_v_set_tilt_angle( uint8_t angle ){
+
+	if( enable_manual_tilt ){
+
+		// automatic tilt control bypassed
+		return;
+	}
+	else if( unlock_panel ){
+
+		// panel unlocked, disable automatic control
+
+		return;
+	}
+
+	set_tilt_target( angle );
 }
 
 static uint16_t read_tilt_sensor_raw( void ){
@@ -145,11 +226,6 @@ static uint16_t read_tilt_sensor( void ){
 }
 
 
-static uint8_t convert_tilt_mv_to_angle( uint16_t mv ){
-
-	return util_u16_linear_interp( mv, solar_tilt_min, SOLAR_ANGLE_POS_MIN, solar_tilt_max, SOLAR_ANGLE_POS_MAX );
-}
-
 static void set_motor_pwm( uint8_t channel, uint16_t pwm ){
 
 	pwm_v_write( channel, pwm );
@@ -157,36 +233,28 @@ static void set_motor_pwm( uint8_t channel, uint16_t pwm ){
 
 static void motor_up( uint16_t pwm ){
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 1023 );	
-	patchboard_v_set_motor2( TRUE );
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 1023 - pwm );	
-	
-	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
+	io_v_digital_write( ELITE_FAN_IO, 1 );
+
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, pwm );
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
 }
 
 static void motor_down( uint16_t pwm ){
 
-	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, pwm );
-	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
+	io_v_digital_write( ELITE_FAN_IO, 1 );
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, pwm );
-	patchboard_v_set_motor2( FALSE );
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, pwm );	
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
 }
 
 static void motors_off( void ){
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
-	patchboard_v_set_motor2( FALSE );
+	io_v_digital_write( ELITE_FAN_IO, 0 );
 
-	// set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
+	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
 }
 
-
-static uint8_t motor_state;
-#define MOTOR_STATE_IDLE 	0
-#define MOTOR_STATE_UP		1
-#define MOTOR_STATE_DOWN	2
-#define MOTOR_STATE_LOCK	3
 
 static int16_t motor_timeout;
 
@@ -230,10 +298,6 @@ PT_THREAD( solar_tilt_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-	pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_0, 20000 );
-	// pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 20000 );
-
-
 	motors_off();	
 
 	// init tilt sensor
@@ -244,7 +308,10 @@ PT_BEGIN( pt );
 
 	solar_array_tilt_sensor = read_tilt_sensor();
 
+	solar_array_target_sensor = solar_array_tilt_sensor; // init so we don't immediately move
+
 	solar_array_tilt_angle = convert_tilt_mv_to_angle( solar_array_tilt_sensor );
+	solar_array_target_angle = convert_tilt_mv_to_angle( solar_array_target_sensor );
 
 	
 	thread_v_set_alarm( tmr_u32_get_system_time_ms() + SOLAR_MOTOR_RATE );
@@ -282,6 +349,15 @@ PT_BEGIN( pt );
 			motor_state = MOTOR_STATE_IDLE;
 
 			continue;
+        }
+
+        if( unlock_panel ){
+
+        	solar_array_target_sensor = SOLAR_TILT_SENSOR_OPEN;
+        }
+        else if( solar_array_tilt_sensor > ( SOLAR_TILT_SENSOR_OPEN - 100 ) ){
+
+        	solar_array_target_sensor = SOLAR_TILT_SENSOR_MAX;
         }
 
 
