@@ -38,7 +38,7 @@
 #include "pca9536.h"
 
 
-#define MAX_BUTTONS 3
+#define MAX_BUTTONS 2
 
 static uint8_t button_state;
 static int8_t ui_button = -1; // physically installed button for QON and wired direct to MCU
@@ -217,10 +217,10 @@ static bool _button_b_read_button( uint8_t ch ){
 
             return charger2_b_read_s2();
         }
-        else if( ch == 2 ){
+        // else if( ch == 2 ){
 
-            return charger2_b_read_spare(); // spare has never been connected on actual hardware
-        }
+        //     return charger2_b_read_spare(); // spare has never been connected on actual hardware
+        // }
     }
     else if( solar_b_has_patch_board() ){
 
