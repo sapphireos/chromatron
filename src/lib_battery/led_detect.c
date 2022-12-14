@@ -177,13 +177,27 @@ PT_BEGIN( pt );
         uint8_t family = 0;
 
         if( device_present ){        
-            
-            bool rom_valid = onewire_b_read_rom_id( &family, &id );
+
+            bool rom_valid = FALSE;
+
+            for( uint8_t i = 0; i < 20; i++ ){
+
+                rom_valid = onewire_b_read_rom_id( &family, &id );
+
+                if( rom_valid ){
+
+                    break;
+                }
+            }
 
             if( rom_valid ){
 
                 detected = TRUE;
-            }    
+            }
+            else{
+
+                log_v_warn_P( PSTR("Presence detect, but ROM invalid") );
+            }
         }
 
 
