@@ -478,7 +478,15 @@ class cg1BinOpNode(cg1CodeNode):
 
     def build(self, builder, target_type=None):
         left = self.left.build(builder, target_type=target_type)
-        right = self.right.build(builder, target_type=target_type)
+
+        if isinstance(self.right, cg1Tuple):
+            right = []
+
+            for item in self.right.items:
+                right.append(item.build(builder, target_type=target_type))
+
+        else:
+            right = self.right.build(builder, target_type=target_type)
 
         return builder.binop(self.op, left, right, target_type=target_type, lineno=self.lineno)
 
@@ -1062,11 +1070,11 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1Var(node.arg, data_type, dimensions, lineno=node.lineno)
 
     def visit_BinOp(self, node):
-        print(self.visit(node.op)) 
-        print(self.visit(node.left))
-        print(self.visit(node.right))
+        op = self.visit(node.op)
+        left = self.visit(node.left)
+        right = self.visit(node.right)
 
-        return cg1BinOpNode(self.visit(node.op), self.visit(node.left), self.visit(node.right), lineno=node.lineno)
+        return cg1BinOpNode(op, left, right, lineno=node.lineno)
 
     def visit_BoolOp(self, node):
         op = self.visit(node.op)

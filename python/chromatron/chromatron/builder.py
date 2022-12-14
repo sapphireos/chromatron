@@ -905,6 +905,15 @@ class Builder(object):
     def assign(self, target, value, lineno=None):
         prev_ir = self.current_func.body[-1]
 
+        # special handling for formatted strings
+        if isinstance(value, irFormatString):
+            value.target = self.load_value(target, lineno=lineno)
+            # value.target = target
+
+            self.append_node(value)
+
+            return
+
         # check if previous IR is a binop, this assign is from the binop result,
         # and the target value is a scalar:
         if isinstance(prev_ir, irBinop) and prev_ir.target == value and target.is_scalar:
@@ -1043,9 +1052,11 @@ class Builder(object):
         return target
 
     def formatted_string(self, string, parameters=[], lineno=None):
-        print('Format', string, parameters, lineno)
+        ir = irFormatString(self.load_value(string, lineno=lineno), parameters, lineno=lineno)
 
-        return irFormatString
+        # self.append_node(ir)
+
+        return ir
 
     def binop(self, op, left, right, target_type=None, lineno=None):
         if op == 'mod' and isinstance(left, varStringBuf) and isinstance(right, Iterable):

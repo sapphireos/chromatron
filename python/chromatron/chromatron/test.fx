@@ -7,6 +7,7 @@ def init():
     # a = f'meow {123:4} {b}'
     a = "meow %4d %d" % (123, b)
 
+    # b = 5
 
 
 # a = StringBuf(32, publish=True)

@@ -7037,13 +7037,21 @@ class irLoadString(IR):
         return insLoadString(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 class irFormatString(IR):
-    def __init__(self, target, value, **kwargs):
+    def __init__(self, string, values, target=None, **kwargs):
         super().__init__(**kwargs)
+        self.string = string
+        self.values = values
         self.target = target
-        self.value = value
 
     def __str__(self):
-        return f'FORMAT STR {self.target} <-- {self.value}'
+        values = '('
+        for v in self.values:
+            values += str(v) + ', '
+
+        values = values[:-2]
+        values += ')'
+        
+        return f'FORMAT STR {self.target} <-- {self.string} % {values}'
 
     def gvn_process(self, VN):
         pass
@@ -7064,13 +7072,16 @@ class irFormatString(IR):
                 # self.value = replacement
 
     def get_input_vars(self):
-        return [self.target, self.value]
+        inputs = [self.target, self.string]
+        inputs.extend(self.values)
+        return inputs
 
     def get_output_vars(self):
         return []
 
     def generate(self):
-        return insLoadString(self.target.generate(), self.value.generate(), lineno=self.lineno)
+        pass
+        # return insLoadString(self.target.generate(), self.values.generate(), lineno=self.lineno)
 
 
 class irLoadRef(IR):
