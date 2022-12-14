@@ -344,7 +344,7 @@ PT_BEGIN( pt );
 
         	motors_off();
 
-			bq25895_v_set_boost_mode( FALSE ); // DEBUG!
+			// bq25895_v_set_boost_mode( FALSE ); // DEBUG!
 
 			motor_state = MOTOR_STATE_IDLE;
 
