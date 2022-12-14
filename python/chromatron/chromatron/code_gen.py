@@ -1062,6 +1062,10 @@ class CodeGenPass1(ast.NodeVisitor):
         return cg1Var(node.arg, data_type, dimensions, lineno=node.lineno)
 
     def visit_BinOp(self, node):
+        print(self.visit(node.op)) 
+        print(self.visit(node.left))
+        print(self.visit(node.right))
+
         return cg1BinOpNode(self.visit(node.op), self.visit(node.left), self.visit(node.right), lineno=node.lineno)
 
     def visit_BoolOp(self, node):
@@ -1191,25 +1195,27 @@ class CodeGenPass1(ast.NodeVisitor):
         items = [self.visit(a) for a in node.elts]
         return cg1Tuple(items, lineno=node.lineno)        
 
-    def visit_FormattedValue(self, node):
-        # print(node)
-        # print(dir(node))
-        # print(node.value)
-        print(node.format_spec)
+    # def visit_FormattedValue(self, node):
+    #     # print(node)
+    #     # print(dir(node))
+    #     # print(node.value)
+    #     print(node.format_spec)
 
-        return self.visit(node.value)
+    #     return self.visit(node.value)
 
     def visit_JoinedStr(self, node):
-        for val in node.values:
-            visited = self.visit(val)
+        raise SyntaxError(f'f-string syntax not supported.', lineno=node.lineno)
 
-            if isinstance(visited, cg1StrLiteral):
-                print(visited.s, len(visited.s))
+        # for val in node.values:
+        #     visited = self.visit(val)
 
-            else:
-                print(visited)
+        #     if isinstance(visited, cg1StrLiteral):
+        #         print(visited.s, len(visited.s))
 
-        return cg1FormatStr('meow', lineno=node.lineno)
+        #     else:
+        #         print(visited)
+
+        # return cg1FormatStr('meow', lineno=node.lineno)
 
     def generic_visit(self, node):
         raise NotImplementedError(node)

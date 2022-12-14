@@ -7036,6 +7036,43 @@ class irLoadString(IR):
     def generate(self):
         return insLoadString(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
+class irFormatString(IR):
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+
+    def __str__(self):
+        return f'FORMAT STR {self.target} <-- {self.value}'
+
+    def gvn_process(self, VN):
+        pass
+        # if self.target in VN:
+        #     replacement = VN[VN[self.target]]
+
+        #     if self.target != replacement:
+        #         debug_print(f'replace loadstr target {self.target} with {replacement}')
+
+        #         self.target = replacement
+
+        # if self.value in VN:
+        #     replacement = VN[VN[self.value]]
+
+        #     if self.value != replacement:
+        #         debug_print(f'replace loadstr value {self.value} with {replacement}')
+
+                # self.value = replacement
+
+    def get_input_vars(self):
+        return [self.target, self.value]
+
+    def get_output_vars(self):
+        return []
+
+    def generate(self):
+        return insLoadString(self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+
 class irLoadRef(IR):
     def __init__(self, target, ref, **kwargs):
         super().__init__(**kwargs)

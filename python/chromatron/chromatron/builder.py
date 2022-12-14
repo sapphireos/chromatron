@@ -1042,7 +1042,15 @@ class Builder(object):
 
         return target
 
+    def formatted_string(self, string, parameters=[], lineno=None):
+        print('Format', string, parameters, lineno)
+
+        return irFormatString
+
     def binop(self, op, left, right, target_type=None, lineno=None):
+        if op == 'mod' and isinstance(left, varStringBuf) and isinstance(right, Iterable):
+            return self.formatted_string(left, right, lineno=lineno)
+
         left = self.load_value(left, target_type=target_type, lineno=lineno)
         right = self.load_value(right, target_type=target_type, lineno=lineno)
 
