@@ -35,6 +35,7 @@
 // static uint8_t current_dimmer = DEFAULT_CONTRAST;
 static uint8_t target_dimmer = DEFAULT_CONTRAST;
 
+static bool invert;
 static uint16_t debug;
 
 KV_SECTION_META kv_meta_t ssd1306_kv[] = {
@@ -42,8 +43,9 @@ KV_SECTION_META kv_meta_t ssd1306_kv[] = {
 };
 
 KV_SECTION_OPT kv_meta_t ssd1306_opt_kv[] = {
-    {CATBUS_TYPE_UINT8,     0, 0, &target_dimmer,      0, "ssd1306_dimmer"},   
-    {CATBUS_TYPE_UINT16,    0, 0, &debug,              0, "ssd1306_debug"},   
+    {CATBUS_TYPE_UINT8,     0, 0, &target_dimmer,           0, "ssd1306_dimmer"},   
+    {CATBUS_TYPE_UINT16,    0, 0, &debug,                   0, "ssd1306_debug"},   
+    {CATBUS_TYPE_BOOL,      0, KV_FLAGS_PERSIST, &invert,   0, "ssd1306_invert"},   
 };
 
 #define BUF_SIZE 64
@@ -123,6 +125,12 @@ static void write_pixel( uint16_t x, uint16_t y, uint8_t val ){
     if( y >= lcd_height ){
 
         return;
+    }
+
+    if( invert ){
+
+        x = ( lcd_width - 1 ) - x;
+        y = ( lcd_height - 1 ) - y;
     }
 
     if( val != 0 ){

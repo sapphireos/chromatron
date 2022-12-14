@@ -40,10 +40,7 @@ void patchboard_v_init( void ){
         return;
     }
 
-    pca9536_i8_init();
     max11645_v_init();
-
-    log_v_info_P( PSTR("PCA9536 detected") );
 
     pca9536_v_set_output( PATCH_PCA9536_IO_SOLAR_EN );
     pca9536_v_set_input( PATCH_PCA9536_IO_DC_DETECT );
