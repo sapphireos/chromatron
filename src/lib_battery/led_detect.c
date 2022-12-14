@@ -180,15 +180,7 @@ PT_BEGIN( pt );
 
             bool rom_valid = FALSE;
 
-            for( uint8_t i = 0; i < 20; i++ ){
-
-                rom_valid = onewire_b_read_rom_id( &family, &id );
-
-                if( rom_valid ){
-
-                    break;
-                }
-            }
+            rom_valid = onewire_b_read_rom_id( &family, &id );
 
             if( rom_valid ){
 
