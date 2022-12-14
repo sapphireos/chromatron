@@ -192,6 +192,12 @@ PT_BEGIN( pt );
             }
         }
 
+        /*
+    
+        LED data signal is corrupting the 1 wire signal... need to schedule detection for bus idle periods.
+
+        */
+
 
         // LED unit removed
         if( led_detected && !detected ){
