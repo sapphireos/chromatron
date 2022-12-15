@@ -437,6 +437,11 @@ void bq25895_v_set_batlowv( bool high ){
     The datasheet just says it will turn off BOOST, but the BATFET stays on until another, 
     lower threshold.  But it actually does cut off at BATLOWV.  This is fine for us (better, actually).
 
+
+    SO FAR:
+    I cannot get this bit to actually clear.  It will clear if VBUS is plugged in (not helpful), but then
+    resets to 1 when VBUS is unplugged.  Any attempt to clear the bit on battery power fails, it is forced to 1.
+
     */
 
     // high is 3.0V, low is 2.8V
@@ -1192,13 +1197,14 @@ static void init_boost_converter( void ){
 
 static void init_charger( void ){
 
+    log_v_debug_P( PSTR("Init charger") );
+
     // enable charger and make sure HIZ is disabled
     bq25895_v_set_hiz( FALSE );
     bq25895_v_set_charger( TRUE );
 
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
-    bq25895_v_set_batlowv( FALSE ); // set BATLOWV to 2.8V
 
     // charge config for NCR18650B
 
@@ -1234,6 +1240,8 @@ static void init_charger( void ){
     bq25895_v_set_termination_current( BQ25895_TERM_CURRENT );
 
     bq25895_v_set_charge_voltage( batt_u16_get_charge_voltage() );
+
+    bq25895_v_set_batlowv( FALSE ); // set BATLOWV to 2.8V
 
     // disable ILIM pin
     bq25895_v_set_inlim_pin( FALSE );
@@ -1602,6 +1610,9 @@ PT_END( pt );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    init_charger();
+    batt_v_disable_charge();
 
     if( ( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ) ||
         ( ffs_u8_read_board_type() == BOARD_TYPE_UNSET ) ){
