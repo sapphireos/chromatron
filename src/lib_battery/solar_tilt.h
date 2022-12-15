@@ -44,11 +44,6 @@
 #define SOLAR_ANGLE_POS_MIN				0 // degrees
 #define SOLAR_ANGLE_POS_MAX				60 // degrees
 
-
-// #define SOLAR_TILT_SENSOR_IO 	IO_PIN_34_A2
-#define SOLAR_TILT_MOTOR_IO_1 	IO_PIN_16_RX
-#define SOLAR_TILT_MOTOR_IO_0 	IO_PIN_17_TX
-
 #define SOLAR_TILT_ADC_SAMPLES      8
 #define SOLAR_TILT_FILTER	        4
 

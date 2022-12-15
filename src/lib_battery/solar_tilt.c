@@ -36,6 +36,7 @@
 
 #include "bq25895.h"
 
+#ifdef ESP32
 
 static uint16_t solar_tilt_motor_pwm = 768;
 
@@ -112,8 +113,8 @@ void solar_tilt_v_init( void ){
 
 	if( kv_b_get_boolean( __KV__solar_enable_tilt ) ){
 
-		pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_0, 20000 );
-		pwm_v_init_channel( SOLAR_TILT_MOTOR_IO_1, 20000 );
+		pwm_v_init_channel( ELITE_TILT_MOTOR_IO_0, 20000 );
+		pwm_v_init_channel( ELITE_TILT_MOTOR_IO_1, 20000 );
 
 
 		io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
@@ -235,24 +236,24 @@ static void motor_up( uint16_t pwm ){
 
 	io_v_digital_write( ELITE_FAN_IO, 1 );
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, pwm );
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
+	set_motor_pwm( ELITE_TILT_MOTOR_IO_1, pwm );
+	set_motor_pwm( ELITE_TILT_MOTOR_IO_0, 0 );
 }
 
 static void motor_down( uint16_t pwm ){
 
 	io_v_digital_write( ELITE_FAN_IO, 1 );
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, pwm );	
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
+	set_motor_pwm( ELITE_TILT_MOTOR_IO_0, pwm );	
+	set_motor_pwm( ELITE_TILT_MOTOR_IO_1, 0 );
 }
 
 static void motors_off( void ){
 
 	io_v_digital_write( ELITE_FAN_IO, 0 );
 
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_0, 0 );
-	set_motor_pwm( SOLAR_TILT_MOTOR_IO_1, 0 );
+	set_motor_pwm( ELITE_TILT_MOTOR_IO_0, 0 );
+	set_motor_pwm( ELITE_TILT_MOTOR_IO_1, 0 );
 }
 
 
@@ -566,3 +567,27 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+#else
+
+void solar_tilt_v_init( void ){
+
+
+}
+
+uint8_t solar_tilt_u8_get_tilt_angle( void ){
+
+	return 0;
+}
+
+uint8_t solar_tilt_u8_get_target_angle( void ){
+
+	return 0;
+}
+
+void solar_tilt_v_set_tilt_angle( uint8_t angle ){
+
+	
+}
+
+
+#endif

@@ -137,7 +137,7 @@ bool onewire_b_read_rom_id( uint8_t *family_code, uint64_t *id ){
 
 #else
 
-void onewire_v_init( void ){
+void onewire_v_init( uint8_t _io_pin ){
 
 }
 
