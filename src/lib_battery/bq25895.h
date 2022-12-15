@@ -222,6 +222,7 @@ void bq25895_v_set_fast_charge_current( uint16_t current );
 void bq25895_v_set_pre_charge_current( uint16_t current );
 void bq25895_v_set_termination_current( uint16_t current );
 void bq25895_v_set_charge_voltage( uint16_t volts );
+void bq25895_v_set_batlowv( bool high );
 void bq25895_v_enable_ship_mode( bool delay );
 void bq25895_v_leave_ship_mode( void );
 void bq25895_v_set_system_reset( bool enable );

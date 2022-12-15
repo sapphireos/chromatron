@@ -427,6 +427,29 @@ void bq25895_v_set_charge_voltage( uint16_t volts ){
     bq25895_v_set_reg_bits( BQ25895_REG_CHARGE_VOLTS, data );
 }
 
+void bq25895_v_set_batlowv( bool high ){
+
+    /*
+    
+    Note from TI: https://e2e.ti.com/support/power-management-group/power-management/f/power-management-forum/710331/bq25895-batfet-turn-off-at-vbat_otg-about-2-85v-in-boost-mode
+
+    They admit that BATLOWV will trigger turning off the BATFET, but this is not documented.  
+    The datasheet just says it will turn off BOOST, but the BATFET stays on until another, 
+    lower threshold.  But it actually does cut off at BATLOWV.  This is fine for us (better, actually).
+
+    */
+
+    // high is 3.0V, low is 2.8V
+    if( high ){
+
+        bq25895_v_set_reg_bits( BQ25895_REG_CHARGE_VOLTS, BQ25895_BIT_BATLOWV );
+    }
+    else{
+
+        bq25895_v_clr_reg_bits( BQ25895_REG_CHARGE_VOLTS, BQ25895_BIT_BATLOWV );
+    }
+}
+
 void bq25895_v_enable_ship_mode( bool delay ){
 
     // enable delay
@@ -1175,6 +1198,7 @@ static void init_charger( void ){
 
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
+    bq25895_v_set_batlowv( FALSE ); // set BATLOWV to 2.8V
 
     // charge config for NCR18650B
 
