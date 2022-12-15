@@ -1241,7 +1241,7 @@ static void init_charger( void ){
 
     bq25895_v_set_charge_voltage( batt_u16_get_charge_voltage() );
 
-    bq25895_v_set_batlowv( FALSE ); // set BATLOWV to 2.8V
+    // bq25895_v_set_batlowv( FALSE ); // set BATLOWV to 2.8V
 
     // disable ILIM pin
     bq25895_v_set_inlim_pin( FALSE );
