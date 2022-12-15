@@ -45,6 +45,7 @@ typedef struct{
 
 void led_detect_v_init( void );
 
+void led_detect_v_run_detect( void );
 bool led_detect_b_led_connected( void );
 
 #endif

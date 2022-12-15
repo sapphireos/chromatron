@@ -38,6 +38,7 @@ static bool led_detected = TRUE;
 static uint64_t led_id;
 static uint8_t current_profile;
 static uint8_t force_profile;
+static bool detection_enabled;
 
 KV_SECTION_OPT kv_meta_t led_detect_opt_kv[] = {    
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &led_detected,               0,  "led_detected" },
@@ -77,18 +78,14 @@ static const led_unit_t led_units[] = {
     }
 };
 
-PT_THREAD( led_detect_thread( pt_t *pt, void *state ) );
 
 void led_detect_v_init( void ){
+
+    detection_enabled = TRUE;
 
     led_detected = FALSE;
 
     kv_v_add_db_info( led_detect_opt_kv, sizeof(led_detect_opt_kv) );
-
-    thread_t_create( led_detect_thread,
-                     PSTR("led_detect"),
-                     0,
-                     0 );
 }
 
 bool led_detect_b_led_connected( void ){
@@ -147,96 +144,103 @@ static void load_profile( uint8_t type ){
 }
 
 
-PT_THREAD( led_detect_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-    
-    while(1){
+static uint32_t timer;
 
-        TMR_WAIT( pt, 2000 );
+void led_detect_v_run_detect( void ){
 
-        if( force_profile ){
+    if( !detection_enabled ){
 
-            // if a profile is forced, skip detection and load
-
-            load_profile( force_profile );
-
-            continue;
-        }
-
-
-
-        onewire_v_init( ELITE_LED_ID_IO );
-
-        TMR_WAIT( pt, 10 );
-
-        bool device_present = onewire_b_reset();
-
-        bool detected = FALSE;
-        uint64_t id = 0;
-        uint8_t family = 0;
-
-        if( device_present ){        
-
-            bool rom_valid = FALSE;
-
-            rom_valid = onewire_b_read_rom_id( &family, &id );
-
-            if( rom_valid ){
-
-                detected = TRUE;
-            }
-            else{
-
-                log_v_warn_P( PSTR("Presence detect, but ROM invalid") );
-            }
-        }
-
-        /*
-    
-        LED data signal is corrupting the 1 wire signal... need to schedule detection for bus idle periods.
-
-        */
-
-
-        // LED unit removed
-        if( led_detected && !detected ){
-
-            log_v_info_P( PSTR("LED disconnected") );
-        }
-        else if( led_detected && ( led_id != id ) ){
-
-            led_id = id;
-
-            // changed LED units!
-            log_v_info_P( PSTR("LED unit installed: %u"), led_id );
-
-            // get profile
-            const led_profile_t *profile = get_profile_by_id( led_id );
-
-            if( profile != 0 ){
-
-                log_v_warn_P( PSTR("Loading profile: %u"), profile->unit_type );
-
-                load_profile( profile->unit_type );
-            }
-            else{
-
-                log_v_warn_P( PSTR("No profile found!") );
-            }
-        }
-
-        if( !detected ){
-
-            led_id = 0;
-        }
-
-        led_detected = detected;
-
-        onewire_v_deinit();
+        return;
     }
 
-PT_END( pt );
+    if( tmr_u32_elapsed_time_ms( timer ) < 2000 ){
+
+        return;
+    }
+
+    timer = tmr_u32_get_system_time_ms();
+
+    if( force_profile ){
+
+        // if a profile is forced, skip detection and load
+
+        load_profile( force_profile );
+
+        return;
+    }
+
+    onewire_v_init( ELITE_LED_ID_IO );
+
+    // delay to charge line
+    _delay_us( 500 );
+
+    bool device_present = onewire_b_reset();
+
+    bool detected = FALSE;
+    uint64_t id = 0;
+    uint8_t family = 0;
+
+    if( device_present ){        
+
+        bool rom_valid = FALSE;
+
+        rom_valid = onewire_b_read_rom_id( &family, &id );
+
+        if( rom_valid ){
+
+            detected = TRUE;
+        }
+        else{
+
+            log_v_warn_P( PSTR("Presence detect, but ROM invalid") );
+        }
+    }
+
+    /*
+
+    Note that the LED data signal can corrupt the detection signal.
+    Schedule tasks accordingly!
+
+
+    Need to do some retry loop, fail X times before signalling disconnect
+
+    */
+
+    // LED unit removed
+    if( led_detected && !detected ){
+
+        log_v_info_P( PSTR("LED disconnected") );
+    }
+    else if( led_detected && ( led_id != id ) ){
+
+        led_id = id;
+
+        // changed LED units!
+        log_v_info_P( PSTR("LED unit installed: %u"), led_id );
+
+        // get profile
+        const led_profile_t *profile = get_profile_by_id( led_id );
+
+        if( profile != 0 ){
+
+            log_v_warn_P( PSTR("Loading profile: %u"), profile->unit_type );
+
+            load_profile( profile->unit_type );
+        }
+        else{
+
+            log_v_warn_P( PSTR("No profile found!") );
+        }
+    }
+
+    if( !detected ){
+
+        led_id = 0;
+    }
+
+    led_detected = detected;
+
+    onewire_v_deinit();
 }
 
 
@@ -246,6 +250,14 @@ void led_detect_v_init( void ){
 
 }
 
+bool led_detect_b_led_connected( void ){
 
+    return TRUE;
+}
+
+void led_detect_v_run_detect( void ){
+
+
+}
 
 #endif

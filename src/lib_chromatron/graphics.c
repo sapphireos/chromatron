@@ -238,6 +238,12 @@ PT_BEGIN( pt );
             avg_timing_lag = util_u32_ewma( lag, avg_timing_lag, 4 );
         }
 
+        // run detection algorithm (if enabled) before signalling
+        // pixel driver to run
+        // this avoids signal cross talk between the LED signal line
+        // and the LED detection line.
+        led_detect_v_run_detect();
+
         if( sys_b_is_shutting_down() ){
 
             gfx_v_shutdown_graphic();
