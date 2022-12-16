@@ -323,6 +323,20 @@ PT_BEGIN( pt );
 		thread_v_set_alarm( thread_u32_get_alarm() + SOLAR_MOTOR_RATE );               
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
+        // check if tilt sensor is connected:
+        if( solar_array_tilt_sensor < SOLAR_TILT_SENSOR_PRESENCE ){
+
+        	// tilt sensor not connected.
+        	// turn everything off:
+        	motors_off();
+
+        	motor_state = MOTOR_STATE_IDLE;
+
+        	TMR_WAIT( pt, 10000 );
+
+        	THREAD_RESTART( PT );
+        }
+
         // record previous angle
         int16_t prev_tilt_sensor = solar_array_tilt_sensor;
 
