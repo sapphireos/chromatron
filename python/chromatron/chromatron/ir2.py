@@ -7054,22 +7054,32 @@ class irFormatString(IR):
         return f'FORMAT STR {self.target} <-- {self.string} % {values}'
 
     def gvn_process(self, VN):
-        pass
-        # if self.target in VN:
-        #     replacement = VN[VN[self.target]]
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
 
-        #     if self.target != replacement:
-        #         debug_print(f'replace loadstr target {self.target} with {replacement}')
+            if self.target != replacement:
+                debug_print(f'replace formatstr target {self.target} with {replacement}')
 
-        #         self.target = replacement
+                self.target = replacement
 
-        # if self.value in VN:
-        #     replacement = VN[VN[self.value]]
+        if self.string in VN:
+            replacement = VN[VN[self.string]]
 
-        #     if self.value != replacement:
-        #         debug_print(f'replace loadstr value {self.value} with {replacement}')
+            if self.string != replacement:
+                debug_print(f'replace formatstr string {self.string} with {replacement}')
 
-                # self.value = replacement
+                self.string = replacement
+
+        for i in range(len(self.values)):
+            value = self.values[i]
+            if value in VN:
+                replacement = VN[VN[value]]
+
+                if value != replacement:
+
+                    debug_print(f"replace formatstr value {self.values[i]} with {replacement}")
+
+                    self.values[i] = replacement
 
     def get_input_vars(self):
         inputs = [self.target, self.string]
