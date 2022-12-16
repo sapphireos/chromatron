@@ -42,6 +42,9 @@
 #define SOLAR_TILT_SENSOR_MAX           3000 // mV
 #define SOLAR_TILT_SENSOR_OPEN          3200 // mV
 
+#define SOLAR_TILT_SENSOR_UP_LIMIT		3200
+#define SOLAR_TILT_SENSOR_DOWN_LIMIT	100
+
 #define SOLAR_ANGLE_POS_MIN				0 // degrees
 #define SOLAR_ANGLE_POS_MAX				60 // degrees
 

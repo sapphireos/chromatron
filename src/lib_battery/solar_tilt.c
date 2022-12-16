@@ -505,6 +505,15 @@ PT_BEGIN( pt );
 
         		THREAD_EXIT( pt );
         	}
+        	// check limit
+        	else if( solar_array_tilt_sensor >= SOLAR_TILT_SENSOR_UP_LIMIT ){
+
+        		motor_state = MOTOR_STATE_IDLE;
+
+        		motors_off();
+
+        		log_v_warn_P( PSTR("Tilt sensor at UP limit") );
+        	}
         	else{
 
         		// movement in progress, engage motors
@@ -532,6 +541,15 @@ PT_BEGIN( pt );
         		log_v_critical_P( PSTR("Tilt motion in wrong direction!") );
 
         		THREAD_EXIT( pt );
+        	}
+        	// check limit
+        	else if( solar_array_tilt_sensor >= SOLAR_TILT_SENSOR_DOWN_LIMIT ){
+
+        		motor_state = MOTOR_STATE_IDLE;
+
+        		motors_off();
+
+        		log_v_warn_P( PSTR("Tilt sensor at DOWN limit") );
         	}
         	else{
 
