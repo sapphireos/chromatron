@@ -145,6 +145,7 @@ static void load_profile( uint8_t type ){
 
 
 static uint32_t timer;
+static uint8_t detect_miss_count;
 
 void led_detect_v_run_detect( void ){
 
@@ -209,10 +210,11 @@ void led_detect_v_run_detect( void ){
     // LED unit removed
     if( led_detected && !detected ){
 
-        log_v_info_P( PSTR("LED disconnected") );
+        detect_miss_count++;
     }
-    else if( led_detected && ( led_id != id ) ){
+    else if( detected && ( led_id != id ) ){
 
+        led_detected = TRUE;
         led_id = id;
 
         // changed LED units!
@@ -233,12 +235,19 @@ void led_detect_v_run_detect( void ){
         }
     }
 
-    if( !detected ){
+    if( detected ){
 
-        led_id = 0;
+        detect_miss_count = 0;
     }
 
-    led_detected = detected;
+    if( detect_miss_count >= LED_MAX_DETECT_MISS_COUNT ){
+
+        // detection miss, probably actually unplugged
+        led_id = 0;
+        led_detected = FALSE;
+
+        log_v_info_P( PSTR("LED disconnected") );
+    }
 
     onewire_v_deinit();
 }
