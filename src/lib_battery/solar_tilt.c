@@ -334,7 +334,7 @@ PT_BEGIN( pt );
 
         	TMR_WAIT( pt, 10000 );
 
-        	THREAD_RESTART( PT );
+        	THREAD_RESTART( pt );
         }
 
         // record previous angle
@@ -344,6 +344,10 @@ PT_BEGIN( pt );
 
         solar_array_tilt_angle = convert_tilt_mv_to_angle( solar_array_tilt_sensor );
 
+        // delta of actual tilt angle since last iteration
+    	int16_t tilt_delta = (int16_t)solar_array_tilt_sensor - prev_tilt_sensor;
+
+    	// check for shutdown
         if( sys_b_is_shutting_down() ){
 
 			motors_off();
@@ -378,6 +382,8 @@ PT_BEGIN( pt );
 
         bq25895_v_set_boost_mode( TRUE ); // DEBUG!
 
+
+
         motor_1sec_count++;
 
         if( motor_1sec_count >= ( 1000 / SOLAR_MOTOR_RATE) ){
@@ -398,9 +404,6 @@ PT_BEGIN( pt );
 
 	        // check if motor is running
 	        if( is_motor_running() ){
-
-	        	// delta of actual tilt angle since last iteration
-	        	int16_t tilt_delta = (int16_t)solar_array_tilt_sensor - prev_tilt_sensor;
 
 	        	// if array is in motion, reset timeout
 	        	if( abs16( tilt_delta ) > 0 ){
@@ -491,6 +494,17 @@ PT_BEGIN( pt );
 
         		motor_state = MOTOR_STATE_IDLE;
         	}
+        	// check if motion is in wrong direction
+        	else if( tilt_delta < 0 ){
+
+        		motors_off();
+
+        		motor_state = MOTOR_STATE_LOCK;
+        		
+        		log_v_critical_P( PSTR("Tilt motion in wrong direction!") );
+
+        		THREAD_EXIT( pt );
+        	}
         	else{
 
         		// movement in progress, engage motors
@@ -507,6 +521,17 @@ PT_BEGIN( pt );
         		motors_off();
 
         		motor_state = MOTOR_STATE_IDLE;
+        	}
+        	// check if motion is in wrong direction
+        	else if( tilt_delta > 0 ){
+
+        		motors_off();
+
+        		motor_state = MOTOR_STATE_LOCK;
+        		
+        		log_v_critical_P( PSTR("Tilt motion in wrong direction!") );
+
+        		THREAD_EXIT( pt );
         	}
         	else{
 
