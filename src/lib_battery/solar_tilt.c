@@ -495,13 +495,13 @@ PT_BEGIN( pt );
         		motor_state = MOTOR_STATE_IDLE;
         	}
         	// check if motion is in wrong direction
-        	else if( tilt_delta < 0 ){
+        	else if( tilt_delta < -SOLAR_TILT_SENSOR_DIR_THRESHOLD ){
 
         		motors_off();
 
         		motor_state = MOTOR_STATE_LOCK;
         		
-        		log_v_critical_P( PSTR("Tilt motion in wrong direction!") );
+        		log_v_critical_P( PSTR("Tilt motion in wrong direction! (up)") );
 
         		THREAD_EXIT( pt );
         	}
@@ -532,18 +532,18 @@ PT_BEGIN( pt );
         		motor_state = MOTOR_STATE_IDLE;
         	}
         	// check if motion is in wrong direction
-        	else if( tilt_delta > 0 ){
+        	else if( tilt_delta > SOLAR_TILT_SENSOR_DIR_THRESHOLD ){
 
         		motors_off();
 
         		motor_state = MOTOR_STATE_LOCK;
         		
-        		log_v_critical_P( PSTR("Tilt motion in wrong direction!") );
+        		log_v_critical_P( PSTR("Tilt motion in wrong direction! (down)") );
 
         		THREAD_EXIT( pt );
         	}
         	// check limit
-        	else if( solar_array_tilt_sensor >= SOLAR_TILT_SENSOR_DOWN_LIMIT ){
+        	else if( solar_array_tilt_sensor <= SOLAR_TILT_SENSOR_DOWN_LIMIT ){
 
         		motor_state = MOTOR_STATE_IDLE;
 
