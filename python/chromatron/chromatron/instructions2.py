@@ -1228,7 +1228,47 @@ class insLoadString(BaseInstruction):
         dest.pool.write_string(dest.addr, value)
 
     def assemble(self):
-        return OpcodeFormat3AC(self.mnemonic, self.dest.assemble(), self.src.assemble(), self.dest_string_size, lineno=self.lineno)
+        return OpcodeFormat1Imm2RegS(self.mnemonic, self.dest_string_size, self.dest.assemble(), self.src.assemble(), lineno=self.lineno)
+
+class insFormatString(BaseInstruction):
+    mnemonic = 'FMTSTR'
+
+    def __init__(self, dest, string, values, **kwargs):
+        super().__init__(**kwargs)
+        self.dest = dest
+        self.string = string
+        self.values = values
+
+        # assert src.var.var.data_type == 'strref'
+        assert dest.var.var.data_type in ['strref', 'ref']
+
+        self.dest_string_size = dest.var.var.target.strlen
+
+    def __str__(self):
+        values = '('
+        for v in self.values:
+            values += str(v) + ', '
+
+        values = values[:-2]
+        values += ')'
+
+        return "%s %s <-S %s [%s]" % (self.mnemonic, self.dest, self.string, values)
+
+    def execute(self, vm):
+        return
+
+        # dest = vm.registers[self.dest.reg]
+        # src = vm.registers[self.src.reg]
+
+        # value = src.pool.load_string(src.addr)
+
+        # # truncate length
+        # value = value[:self.dest_string_size]
+
+        # dest.pool.write_string(dest.addr, value)
+
+    def assemble(self):
+        return OpcodeFormat3AC(self.mnemonic, self.dest.assemble(), self.string.assemble(), self.dest_string_size, lineno=self.lineno)
 
 class insLoadDB(BaseInstruction):
     mnemonic = 'LDDB'

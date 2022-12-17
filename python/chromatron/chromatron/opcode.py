@@ -200,6 +200,7 @@ opcodes = {
     'PRINT':                0xFA,
     'PRINTREF':             0xFB,
     'PRINTSTR':             0xFC,
+    'FMTSTR':               0xFD,
 }
 
 class Opcode(object):

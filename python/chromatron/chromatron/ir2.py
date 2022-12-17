@@ -7090,9 +7090,7 @@ class irFormatString(IR):
         return []
 
     def generate(self):
-        pass
-        # return insLoadString(self.target.generate(), self.values.generate(), lineno=self.lineno)
-
+        return insFormatString(self.target.generate(), self.string.generate(), [v.generate() for v in self.values], lineno=self.lineno)
 
 class irLoadRef(IR):
     def __init__(self, target, ref, **kwargs):

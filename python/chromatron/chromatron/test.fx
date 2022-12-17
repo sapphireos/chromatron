@@ -5,9 +5,9 @@ b = Number(456)
 
 def init():
     # a = f'meow {123:4} {b}'
-    a = "meow %4d %d" % (123, b)
-    a = "meow %4d %d" % (123, b)
-
+    # a = "meow %4d %d" % (123, b)
+    # a = "meow %4d %d" % (123, b)
+    a = 'meow'
     # b = 5
 
 
