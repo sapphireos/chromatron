@@ -1266,7 +1266,26 @@ class insFormatString(BaseInstruction):
         dest.pool.write_string(dest.addr, formatted_string)
 
     def assemble(self):
-        return OpcodeFormat3AC(self.mnemonic, self.dest.assemble(), self.string.assemble(), self.dest_string_size, lineno=self.lineno)
+        values = []
+        for v in self.values:
+            try:
+                values.append(v.assemble())
+
+            except IndexError:
+                values.append(0)
+
+        while len(values) < 3:
+            values.append(0)
+
+        return OpcodeFormat1Imm5Reg(
+            self.mnemonic, 
+            self.dest_string_size,
+            self.dest.assemble(), 
+            self.string.assemble(), 
+            values[0],
+            values[1],
+            values[2],
+            lineno=self.lineno)
 
 class insLoadDB(BaseInstruction):
     mnemonic = 'LDDB'

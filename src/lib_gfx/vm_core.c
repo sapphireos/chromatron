@@ -211,6 +211,17 @@ typedef struct __attribute__((packed)){
 } opcode_1i4r_t;
 #define DECODE_1I4R opcode_1i4r = (opcode_1i4r_t *)pc; pc += 8;
 
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint16_t imm1;
+    uint8_t reg1;
+    uint8_t reg2;
+    uint8_t reg3;
+    uint8_t reg4;
+    uint8_t reg5;
+} opcode_1i5r_t;
+#define DECODE_1I5R opcode_1i5r = (opcode_1i5r_t *)pc; pc += 8;
+
 // typedef struct __attribute__((packed)){
 //     uint8_t opcode;
 //     uint8_t dest;
@@ -1015,6 +1026,7 @@ static int8_t _vm_i8_run_stream(
     opcode_1i2rs_t *opcode_1i2rs;
     opcode_1i3r_t *opcode_1i3r;
     opcode_1i4r_t *opcode_1i4r;
+    opcode_1i5r_t *opcode_1i5r;
     // opcode_lkp0_t *opcode_lkp0;
     opcode_lkp1_t *opcode_lkp1;
     opcode_lkp2_t *opcode_lkp2;
@@ -1344,6 +1356,56 @@ opcode_ldstr:
     DISPATCH;
 
 opcode_fmtstr:
+    DECODE_1I5R;
+
+    dest_ref.n = registers[opcode_1i5r->reg1];
+    src_ref.n = registers[opcode_1i5r->reg2];
+    dest_str_len = opcode_1i5r->imm1;
+    
+    dest_s = (char *)( pools[dest_ref.ref.pool] + dest_ref.ref.addr );
+    src_s = (char *)( pools[src_ref.ref.pool] + src_ref.ref.addr );    
+
+    // zero out dest buffer
+    // note that we can add 1 to the dest len to account for the null terminator.
+    // the compiler will ensure we have enough space for this.
+    memset( dest_s, 0, dest_str_len + 1 );
+
+    count = 0;
+
+    if( opcode_1i5r->reg3 != 0 ){
+
+        params[0] = registers[opcode_1i5r->reg3];
+        count++;
+    }
+
+    if( opcode_1i5r->reg4 != 0 ){
+
+        params[1] = registers[opcode_1i5r->reg4];
+        count++;
+    }
+
+    if( opcode_1i5r->reg5 != 0 ){
+
+        params[2] = registers[opcode_1i5r->reg5];
+        count++;
+    }
+
+    if( count == 0 ){
+
+        snprintf( dest_s, dest_str_len, src_s );    
+    }
+    else if( count == 1 ){
+
+        snprintf( dest_s, dest_str_len, src_s, params[0] );    
+    }
+    else if( count == 2 ){
+
+        snprintf( dest_s, dest_str_len, src_s, params[0], params[1] );    
+    }
+    else if( count == 3 ){
+
+        snprintf( dest_s, dest_str_len, src_s, params[0], params[1], params[2] );    
+    }
 
     DISPATCH;
 
