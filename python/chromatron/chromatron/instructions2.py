@@ -1255,17 +1255,15 @@ class insFormatString(BaseInstruction):
         return "%s %s <-S %s [%s]" % (self.mnemonic, self.dest, self.string, values)
 
     def execute(self, vm):
-        return
+        dest = vm.registers[self.dest.reg]
+        string_src = vm.registers[self.string.reg]
+        string = string_src.pool.load_string(string_src.addr)
 
-        # dest = vm.registers[self.dest.reg]
-        # src = vm.registers[self.src.reg]
+        values = tuple([vm.registers[v.reg] for v in self.values])
 
-        # value = src.pool.load_string(src.addr)
-
-        # # truncate length
-        # value = value[:self.dest_string_size]
-
-        # dest.pool.write_string(dest.addr, value)
+        formatted_string = string % values
+        
+        dest.pool.write_string(dest.addr, formatted_string)
 
     def assemble(self):
         return OpcodeFormat3AC(self.mnemonic, self.dest.assemble(), self.string.assemble(), self.dest_string_size, lineno=self.lineno)
