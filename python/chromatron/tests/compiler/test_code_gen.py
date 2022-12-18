@@ -2124,10 +2124,28 @@ def init():
 
 """
 
+test_formatted_string = """
+
+a = Number(publish=True)
+b = StringBuf(32, publish=True)
+
+def init():
+    a = 456
+    b = "test %5d %d" % (123, a)
+
+"""
 
 class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
+
+    def test_formatted_string(self, opt_passes):
+        self.run_test(test_formatted_string,
+            opt_passes=opt_passes,
+            expected={
+                'a': 456,
+                'b': "test   123 456",
+            })
 
     def test_is_hs_fading2(self, opt_passes):
         self.run_test(test_is_hs_fading2,
