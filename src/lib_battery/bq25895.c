@@ -1170,6 +1170,10 @@ static void init_boost_converter( void ){
 
     // boost frequency can only be changed when OTG boost is turned off.
     bq25895_v_set_boost_mode( FALSE );
+
+    // apply BATLOWV setting, this can only be changed with boost off
+    bq25895_v_set_batlowv( FALSE );
+
     bq25895_v_set_boost_1500khz();
     bq25895_v_set_boost_mode( TRUE );
 
@@ -1235,8 +1239,6 @@ static void init_charger( void ){
     bq25895_v_set_termination_current( BQ25895_TERM_CURRENT );
 
     bq25895_v_set_charge_voltage( batt_u16_get_charge_voltage() );
-
-    // bq25895_v_set_batlowv( FALSE ); // set BATLOWV to 2.8V
 
     // disable ILIM pin
     bq25895_v_set_inlim_pin( FALSE );

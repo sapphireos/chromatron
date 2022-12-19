@@ -50,7 +50,7 @@ static uint32_t solar_tilt_total_travel;
 
 static bool unlock_panel;
 static bool enable_manual_tilt;
-static bool pause_motors = TRUE; // DEBUG default to paused!
+static bool pause_motors;
 
 static uint8_t motor_state;
 #define MOTOR_STATE_IDLE 	0
@@ -309,6 +309,15 @@ Tilt min, 0 degrees, at 300 mV sensor.
 
 */
 
+static void update_sensor( void ){
+
+	// update tilt sensor and angle
+    solar_array_tilt_sensor = read_tilt_sensor();
+
+    solar_array_tilt_angle = convert_tilt_mv_to_angle( solar_array_tilt_sensor );
+}
+
+
 PT_THREAD( solar_tilt_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -340,11 +349,7 @@ PT_BEGIN( pt );
         // record previous angle
         int16_t prev_tilt_sensor = solar_array_tilt_sensor;
 
-        // update tilt sensor and angle
-        solar_array_tilt_sensor = read_tilt_sensor();
-
-        solar_array_tilt_angle = convert_tilt_mv_to_angle( solar_array_tilt_sensor );
-
+        update_sensor();
 
         // check if tilt sensor is connected:
         if( solar_array_tilt_sensor < SOLAR_TILT_SENSOR_PRESENCE ){
@@ -368,10 +373,17 @@ PT_BEGIN( pt );
 
 			motors_off();
 
+			motor_state = MOTOR_STATE_IDLE;
+
 			// record total travel
 			kv_i8_persist( __KV__solar_tilt_total_travel );
 
-			THREAD_EXIT( pt );        	
+			while( TRUE ){
+
+				update_sensor();
+
+				TMR_WAIT( pt, 1000 );
+			}
         }
 
 

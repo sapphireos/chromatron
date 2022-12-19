@@ -531,7 +531,7 @@ PT_BEGIN( pt );
 				disable_charge();
 
 				// set tilt system to close the panel
-				solar_tilt_v_set_tilt_angle( 0 );	
+				// solar_tilt_v_set_tilt_angle( 0 );	
 			}
 			// check if leaving DC charge mode
 			else if( ( solar_state == SOLAR_MODE_CHARGE_DC ) &&
