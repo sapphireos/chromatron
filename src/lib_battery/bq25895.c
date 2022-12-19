@@ -437,6 +437,12 @@ void bq25895_v_set_batlowv( bool high ){
     I cannot get this bit to actually clear.  It will clear if VBUS is plugged in (not helpful), but then
     resets to 1 when VBUS is unplugged.  Any attempt to clear the bit on battery power fails, it is forced to 1.
 
+
+    From forum response:
+    BATLOWV is automatically set in boost mode.  There is no workaround for this undocumented behavior.
+    Effectively we cannot change it in our application.
+
+
     */
 
     // high is 3.0V, low is 2.8V
@@ -1170,11 +1176,6 @@ static void init_boost_converter( void ){
 
     // boost frequency can only be changed when OTG boost is turned off.
     bq25895_v_set_boost_mode( FALSE );
-
-    // apply BATLOWV setting, this can only be changed with boost off
-    // this is undocumented!
-    bq25895_v_set_batlowv( FALSE );
-
     bq25895_v_set_boost_1500khz();
     bq25895_v_set_boost_mode( TRUE );
 
