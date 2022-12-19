@@ -134,10 +134,24 @@ void solar_tilt_v_init( void ){
 
 static uint8_t convert_tilt_mv_to_angle( uint16_t mv ){
 
+	if( mv <= SOLAR_TILT_SENSOR_MIN ){
+
+		return SOLAR_ANGLE_POS_MIN;
+	}
+	else if( mv >= SOLAR_TILT_SENSOR_MAX ){
+
+		return SOLAR_ANGLE_POS_MAX;
+	}
+
 	return util_u16_linear_interp( mv, SOLAR_TILT_SENSOR_MIN, SOLAR_ANGLE_POS_MIN, SOLAR_TILT_SENSOR_MAX, SOLAR_ANGLE_POS_MAX );
 }
 
 static uint16_t convert_angle_to_tilt_mv( uint8_t angle ){
+
+	if( angle > SOLAR_ANGLE_POS_MAX ){
+
+		angle = SOLAR_ANGLE_POS_MAX;
+	}
 
 	return util_u16_linear_interp( angle, SOLAR_ANGLE_POS_MIN, SOLAR_TILT_SENSOR_MIN, SOLAR_ANGLE_POS_MAX, SOLAR_TILT_SENSOR_MAX );
 }
@@ -323,6 +337,15 @@ PT_BEGIN( pt );
 		thread_v_set_alarm( thread_u32_get_alarm() + SOLAR_MOTOR_RATE );               
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
+        // record previous angle
+        int16_t prev_tilt_sensor = solar_array_tilt_sensor;
+
+        // update tilt sensor and angle
+        solar_array_tilt_sensor = read_tilt_sensor();
+
+        solar_array_tilt_angle = convert_tilt_mv_to_angle( solar_array_tilt_sensor );
+
+
         // check if tilt sensor is connected:
         if( solar_array_tilt_sensor < SOLAR_TILT_SENSOR_PRESENCE ){
 
@@ -336,13 +359,6 @@ PT_BEGIN( pt );
 
         	THREAD_RESTART( pt );
         }
-
-        // record previous angle
-        int16_t prev_tilt_sensor = solar_array_tilt_sensor;
-
-        solar_array_tilt_sensor = read_tilt_sensor();
-
-        solar_array_tilt_angle = convert_tilt_mv_to_angle( solar_array_tilt_sensor );
 
         // delta of actual tilt angle since last iteration
     	int16_t tilt_delta = (int16_t)solar_array_tilt_sensor - prev_tilt_sensor;

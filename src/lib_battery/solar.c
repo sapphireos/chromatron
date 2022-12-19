@@ -207,15 +207,6 @@ static bool is_charging( void ){
 
 static void enable_charge( void ){
 
-	// check if state is set to charge
-	if( !is_charging() ){
-
-		// don't physically enable the charger if
-		// we are not in a charge state
-
-		return;
-	}
-
 	batt_v_enable_charge();
 
 	if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
@@ -276,7 +267,12 @@ PT_BEGIN( pt );
 			// uint16_t batt_volts = batt_u16_get_batt_volts();
 
 			// re-enable charge
-			enable_charge();
+			if( is_charging() ){
+
+				enable_charge();
+
+				TMR_WAIT( pt, 1000 );
+			}
 		}
 
 
@@ -520,7 +516,8 @@ PT_BEGIN( pt );
 
 
 			// check if leaving solar charge mode
-			if( next_state != SOLAR_MODE_CHARGE_SOLAR ){
+			if( ( solar_state == SOLAR_MODE_CHARGE_SOLAR ) &&
+				( next_state != SOLAR_MODE_CHARGE_SOLAR ) ){
 
 				// if patch board is installed:
 				// disable the solar panel connection.
@@ -537,7 +534,8 @@ PT_BEGIN( pt );
 				solar_tilt_v_set_tilt_angle( 0 );	
 			}
 			// check if leaving DC charge mode
-			else if( next_state != SOLAR_MODE_CHARGE_DC ){
+			else if( ( solar_state == SOLAR_MODE_CHARGE_DC ) &&
+					 ( next_state != SOLAR_MODE_CHARGE_DC ) ){
 
 				disable_charge();	
 			}

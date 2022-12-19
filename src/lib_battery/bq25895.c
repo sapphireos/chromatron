@@ -55,7 +55,6 @@ static bool dump_regs;
 
 static uint16_t boost_voltage;
 static uint16_t vindpm;
-static uint16_t solar_vindpm = 5800;
 static uint16_t iindpm;
 
 // true if MCU system power is sourced from the boost converter
@@ -98,7 +97,6 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,              0,  "batt_boost_voltage" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                     0,  "batt_vindpm" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &solar_vindpm,               0,  "batt_solar_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                     0,  "batt_iindpm" },
 
     { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                  0,  "batt_dump_regs" },
@@ -117,9 +115,6 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
 };
 
 #define VOLTS_FILTER    32
-
-// #define VINDPM_WALL     0
-// #define VINDPM_SOLAR    solar_vindpm
 
 
 #define BQ25895_THERM_FILTER 32
