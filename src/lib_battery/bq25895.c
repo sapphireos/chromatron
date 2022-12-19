@@ -1172,6 +1172,7 @@ static void init_boost_converter( void ){
     bq25895_v_set_boost_mode( FALSE );
 
     // apply BATLOWV setting, this can only be changed with boost off
+    // this is undocumented!
     bq25895_v_set_batlowv( FALSE );
 
     bq25895_v_set_boost_1500khz();
