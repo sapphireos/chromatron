@@ -1,4 +1,3 @@
-/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,22 +19,12 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
-*/
 
-#ifndef _SOLAR_H
-#define _SOLAR_H
+#ifndef _LIGHT_SENSOR_H_
+#define _LIGHT_SENSOR_H_
 
-#include "sapphire.h"
 
-#define SOLAR_MIN_CHARGE_VOLTS				4800
-#define SOLAR_MIN_CHARGE_LIGHT_DEFAULT		1000
-
-void solar_v_init( void );
-
-bool solar_b_has_patch_board( void );
-bool solar_b_has_charger2_board( void );
-
-// bool solar_b_is_dc_power( void );
-// bool solar_b_is_solar_power( void );
+void light_sensor_v_init( void );
+uint16_t light_sensor_u16_read( void );
 
 #endif

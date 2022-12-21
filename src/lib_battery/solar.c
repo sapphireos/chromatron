@@ -36,6 +36,7 @@
 #include "led_detect.h"
 #include "fuel_gauge.h"
 #include "energy.h"
+#include "light_sensor.h"
 
 #include "hal_boards.h"
 
@@ -76,6 +77,7 @@ static uint16_t filtered_batt_volts;
 static bool dc_detect;
 static uint16_t solar_volts;
 
+static uint16_t charge_minimum_light = SOLAR_MIN_CHARGE_LIGHT_DEFAULT;
 
 KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
@@ -88,6 +90,8 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
+
+	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&charge_minimum_light,  	0,  "solar_charge_minimum_light" },
 
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY,  &dc_detect,                 0,  "solar_dc_detect" },
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_volts,               0,  "solar_panel_volts" },
@@ -105,6 +109,8 @@ void solar_v_init( void ){
 	fuel_v_init();
 
 	thermal_v_init();
+
+	light_sensor_v_init();
 
 	if( kv_b_get_boolean( __KV__solar_enable_led_detect ) ){
 
@@ -312,7 +318,8 @@ PT_BEGIN( pt );
 					next_state = SOLAR_MODE_CHARGE_DC;
 				}
 				// check solar enable threshold
-				else if( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ){
+				else if( ( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ) &&
+						 ( light_sensor_u16_read() >= charge_minimum_light ) ){
 
 					next_state = SOLAR_MODE_CHARGE_SOLAR;
 				}

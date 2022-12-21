@@ -122,10 +122,20 @@ void veml7700_v_configure( uint8_t _gain, uint8_t _int_time ){
 
 uint16_t veml7700_u16_read_als( void ){
 
-    return _read_reg16( VEML7700_REG_ALS );
+    return filtered_als;
 }
 
 uint16_t veml7700_u16_read_white( void ){
+
+    return filtered_white;
+}
+
+uint16_t _veml7700_u16_read_als( void ){
+
+    return _read_reg16( VEML7700_REG_ALS );
+}
+
+uint16_t _veml7700_u16_read_white( void ){
 
     return _read_reg16( VEML7700_REG_WHITE );
 }
@@ -237,8 +247,8 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
-        raw_als = veml7700_u16_read_als();
-        raw_white = veml7700_u16_read_white();
+        raw_als = _veml7700_u16_read_als();
+        raw_white = _veml7700_u16_read_white();
 
         if( gain == VEML7700_ALS_GAIN_x0_125 ){
 
