@@ -1565,14 +1565,17 @@ opcode_print:
 opcode_printref:
     DECODE_1AC;    
 
-    // log_v_info_P( PSTR("VM print: %d"), registers[opcode_1ac->op1] );
+    log_v_info_P( PSTR("VM print ref: %d"), registers[opcode_1ac->op1] );
     
     DISPATCH;
 
 opcode_printstr:
-    DECODE_1AC;    
+    DECODE_1AC; 
 
-    // log_v_info_P( PSTR("VM print: %d"), registers[opcode_1ac->op1] );
+    src_ref.n = registers[opcode_1ac->op1];  
+    src_s = (char *)( pools[src_ref.ref.pool] + src_ref.ref.addr ); 
+
+    log_v_info_P( PSTR("VM print: %s"), src_s );
     
     DISPATCH;
 
