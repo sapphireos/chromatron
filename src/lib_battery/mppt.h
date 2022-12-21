@@ -40,4 +40,6 @@ void mppt_v_reset( void );
 void mppt_v_enable( void );
 void mppt_v_disable( void );
 
+bool mppt_b_is_running( void );
+
 #endif

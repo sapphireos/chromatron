@@ -38,7 +38,7 @@ static bool mppt_done;
 #define MPPT_BINS ( ( BQ25895_MAX_MPPT_VINDPM - BQ25895_MIN_MPPT_VINDPM ) / BQ25895_MPPT_VINDPM_STEP )
 static uint16_t mppt_bins[MPPT_BINS];
 
-KV_SECTION_OPT kv_meta_t mppt_opt_kv[] = {
+KV_SECTION_META kv_meta_t mppt_opt_kv[] = {
     { CATBUS_TYPE_UINT16, MPPT_BINS - 1, KV_FLAGS_READ_ONLY,  &mppt_bins,                  0,  "batt_mppt_bins" },
 
 };
@@ -152,4 +152,7 @@ void mppt_v_disable( void ){
     bq25895_v_set_vindpm( 0 );
 }
 
+bool mppt_b_is_running( void ){
 
+    return !mppt_done;
+}

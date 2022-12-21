@@ -652,6 +652,79 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+bool solar_tilt_b_is_moving( void ){
+
+	return is_motor_running();
+
+}
+
+#define ANGLE_STEP 5
+#define ANGLE_BINS (SOLAR_ANGLE_POS_MAX / ANGLE_STEP)
+static uint16_t charge_angle_array[ANGLE_BINS];
+static uint8_t charge_angle_index;
+
+#define N_SAMPLES 4
+
+static uint16_t sample_accumulator;
+static uint8_t sample_count;
+
+static bool angle_done;
+
+KV_SECTION_META kv_meta_t tilt_angle_opt_kv[] = {
+    { CATBUS_TYPE_UINT16, ANGLE_BINS - 1, KV_FLAGS_READ_ONLY,  &charge_angle_array,  0,  "solar_charge_angle_bins" },
+
+};
+
+
+void solar_tilt_v_optimize_reset( void ){
+
+	memset( charge_angle_array, 0, sizeof(charge_angle_array) );
+	charge_angle_index = 0;
+
+	sample_count = 0;
+	sample_accumulator = 0;
+
+	angle_done = FALSE;
+}
+
+void solar_tilt_v_optimize_step( void ){
+
+	if( angle_done ){
+
+		return;
+	}
+
+	uint16_t target_angle = charge_angle_index * ANGLE_STEP;
+
+	if( solar_array_tilt_angle != target_angle ){
+
+		solar_tilt_v_set_tilt_angle( target_angle );
+		sample_count = 0;
+		sample_accumulator = 0;
+	}
+	else{
+
+		sample_accumulator += batt_u16_get_charge_current();	
+		sample_count++;
+
+		if( sample_count >= N_SAMPLES ){
+
+			charge_angle_array[charge_angle_index] = sample_accumulator / N_SAMPLES;
+
+			sample_count = 0;
+			sample_accumulator = 0;
+
+			charge_angle_index++;
+
+			if( charge_angle_index >= cnt_of_array(charge_angle_array) ){
+
+				charge_angle_index = 0;
+				angle_done = TRUE;
+			}
+		}
+	}
+}
+
 #else
 
 void solar_tilt_v_init( void ){
@@ -674,5 +747,19 @@ void solar_tilt_v_set_tilt_angle( uint8_t angle ){
 	
 }
 
+bool solar_tilt_b_is_moving( void ){
+
+	return FALSE;	
+}
+
+void solar_tilt_v_optimize_reset( void ){
+
+	
+}
+
+void solar_tilt_v_optimize_step( void ){
+
+	
+}
 
 #endif

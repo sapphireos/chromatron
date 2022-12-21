@@ -532,6 +532,16 @@ uint16_t batt_u16_get_batt_volts( void ){
     return bq25895_u16_get_batt_voltage();
 }
 
+uint16_t batt_u16_get_charge_current( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        return 0;
+    }
+
+    return bq25895_u16_get_charge_current();
+}
+
 uint8_t batt_u8_get_soc( void ){
 
     return fuel_u8_get_soc();    

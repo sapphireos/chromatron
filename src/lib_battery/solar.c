@@ -228,6 +228,11 @@ static void disable_charge( void ){
 	batt_v_disable_charge();	
 }
 
+static void request_close_panel( void ){
+
+	solar_tilt_v_set_tilt_angle( 0 );	
+}
+
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
@@ -379,13 +384,23 @@ PT_BEGIN( pt );
 			// mppt is running in bq25895 adc loop,
 			// nothing to do here.
 
+			if( !mppt_b_is_running() ){
 
-			// tilt control loop goes here
-			// (not the motion control, but target angle selection)
+				// tilt control loop goes here
+				// (not the motion control, but target angle selection)
+				solar_tilt_v_optimize_step();
+			}
 
+			if( solar_tilt_b_is_moving() ){
 
+				mppt_v_disable();	
+			}
+			else{
 
-			// check if no longer charging:
+				mppt_v_enable();	
+			}
+
+			// check if no longer charging:a
 			if( batt_b_is_charge_complete() ){
 
 				next_state = SOLAR_MODE_FULL_CHARGE;
@@ -533,12 +548,14 @@ PT_BEGIN( pt );
 					patchboard_v_set_solar_en( FALSE );					
 				}
 
+				solar_tilt_v_optimize_reset();
+
 				TMR_WAIT( pt, 100 );
 
 				disable_charge();
 
 				// set tilt system to close the panel
-				// solar_tilt_v_set_tilt_angle( 0 );	
+				request_close_panel();
 			}
 			// check if leaving DC charge mode
 			else if( ( solar_state == SOLAR_MODE_CHARGE_DC ) &&
