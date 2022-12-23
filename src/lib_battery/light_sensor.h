@@ -25,6 +25,6 @@
 
 
 void light_sensor_v_init( void );
-uint16_t light_sensor_u16_read( void );
+uint32_t light_sensor_u32_read( void );
 
 #endif

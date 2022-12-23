@@ -326,7 +326,7 @@ PT_BEGIN( pt );
 				}
 				// check solar enable threshold
 				else if( ( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ) &&
-						 ( light_sensor_u16_read() >= charge_minimum_light ) ){
+						 ( light_sensor_u32_read() >= charge_minimum_light ) ){
 
 					next_state = SOLAR_MODE_CHARGE_SOLAR;
 				}
@@ -459,6 +459,8 @@ PT_BEGIN( pt );
 
 		// check if a shutdown was requested
 		if( button_b_is_shutdown_requested() ){
+
+			log_v_debug_P( PSTR("Shutdown request from button module") );
 
 			next_state = SOLAR_MODE_SHUTDOWN;
 		}

@@ -32,7 +32,7 @@ void light_sensor_v_init( void ){
 	veml7700_v_init();
 }
 
-uint16_t light_sensor_u16_read( void ){
+uint32_t light_sensor_u32_read( void ){
 
-	return veml7700_u16_read_als();
+	return veml7700_u32_read_als();
 }

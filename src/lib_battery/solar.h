@@ -28,7 +28,7 @@
 #include "sapphire.h"
 
 #define SOLAR_MIN_CHARGE_VOLTS				4800
-#define SOLAR_MIN_CHARGE_LIGHT_DEFAULT		10000000
+#define SOLAR_MIN_CHARGE_LIGHT_DEFAULT		500000
 
 void solar_v_init( void );
 
