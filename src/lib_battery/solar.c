@@ -77,7 +77,7 @@ static uint16_t filtered_batt_volts;
 static bool dc_detect;
 static uint16_t solar_volts;
 
-static uint16_t charge_minimum_light = SOLAR_MIN_CHARGE_LIGHT_DEFAULT;
+static uint32_t charge_minimum_light = SOLAR_MIN_CHARGE_LIGHT_DEFAULT;
 
 KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
@@ -91,7 +91,7 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
 
-	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&charge_minimum_light,  	0,  "solar_charge_minimum_light" },
+	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&charge_minimum_light,  	0,  "solar_charge_minimum_light" },
 
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY,  &dc_detect,                 0,  "solar_dc_detect" },
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_volts,               0,  "solar_panel_volts" },
