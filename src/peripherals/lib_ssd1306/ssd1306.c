@@ -367,7 +367,7 @@ PT_BEGIN( pt );
         datetime_v_seconds_to_datetime( ntp.seconds, &now );
         datetime_v_to_iso8601( iso8601, sizeof(iso8601), &now );
 
-        ssd1306_v_printf("%d\n%s", debug, iso8601);
+        ssd1306_v_printf("%4d   RSSI: %2d\n%s", debug, wifi_i8_rssi(), iso8601);
 
         ssd1306_v_set_contrast( target_dimmer );
 
