@@ -130,6 +130,8 @@ void solar_v_init( void ){
 	}
 
 	if( patch_board_installed ){
+
+		enable_solar_charge = TRUE; // solar is always enabled with patch board, that's the point of having it
 		
 		patchboard_v_init();
 
