@@ -390,7 +390,8 @@ PT_BEGIN( pt );
 
 				// tilt control loop goes here
 				// (not the motion control, but target angle selection)
-				solar_tilt_v_optimize_step();
+				// solar_tilt_v_optimize_step();
+				solar_tilt_v_set_tilt_angle( 45 );
 			}
 
 			if( solar_tilt_b_is_moving() ){
@@ -499,9 +500,15 @@ PT_BEGIN( pt );
 			}
 			else if( next_state == SOLAR_MODE_DISCHARGE ){
 
+				// set tilt system to close the panel
+				solar_tilt_v_set_tilt_angle( 0 );	
+
 				gfx_v_set_system_enable( TRUE );	
 			}
 			else if( next_state == SOLAR_MODE_FULL_CHARGE ){
+
+				// set tilt system to close the panel
+				solar_tilt_v_set_tilt_angle( 0 );	
 
 				gfx_v_set_system_enable( TRUE );	
 			}
