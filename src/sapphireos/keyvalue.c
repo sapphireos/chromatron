@@ -780,7 +780,7 @@ void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
             goto done;
         }
 
-        int8_t status = _kv_i8_persist_get( opt_meta.hash, opt_meta.ptr, size );
+        _kv_i8_persist_get( opt_meta.hash, opt_meta.ptr, size );
 
     done:
         meta++;

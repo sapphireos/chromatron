@@ -213,13 +213,22 @@ static bool is_charging( void ){
 		   ( solar_state == SOLAR_MODE_CHARGE_SOLAR );
 }
 
+#include "bq25895.h"
 static void enable_charge( void ){
 
 	batt_v_enable_charge();
 
 	if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
 
-		mppt_v_enable();
+		if( mppt_enabled ){
+
+			mppt_v_enable();	
+		}
+		else{
+
+			// debug!
+			bq25895_v_set_vindpm( 5800 );
+		}
 	}
 }
 
@@ -328,6 +337,8 @@ PT_BEGIN( pt );
 				else if( ( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ) &&
 						 ( light_sensor_u32_read() >= charge_minimum_light ) ){
 
+					log_v_debug_P( PSTR("entering solar charge: %u mV %u lux"), solar_volts, light_sensor_u32_read() );
+
 					next_state = SOLAR_MODE_CHARGE_SOLAR;
 				}
 			}
@@ -400,7 +411,10 @@ PT_BEGIN( pt );
 			}
 			else{
 
-				mppt_v_enable();	
+				if( mppt_enabled ){
+
+					mppt_v_enable();		
+				}
 			}
 
 			// check if no longer charging:a
@@ -477,6 +491,7 @@ PT_BEGIN( pt );
 			}
 		}
 
+		next_state = SOLAR_MODE_CHARGE_SOLAR;
 
 		// if state is changing:
 

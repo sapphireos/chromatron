@@ -54,7 +54,7 @@ static uint8_t charge_status;
 static bool dump_regs;
 
 static uint16_t boost_voltage;
-static uint16_t vindpm;
+// static uint16_t vindpm;
 static uint16_t iindpm;
 
 // true if MCU system power is sourced from the boost converter
@@ -96,7 +96,7 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,    0,  "batt_max_charge_current" },
     
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,              0,  "batt_boost_voltage" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                     0,  "batt_vindpm" },
+    // { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                     0,  "batt_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                     0,  "batt_iindpm" },
 
     { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                  0,  "batt_dump_regs" },
