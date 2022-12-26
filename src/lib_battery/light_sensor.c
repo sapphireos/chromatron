@@ -29,7 +29,9 @@
 
 void light_sensor_v_init( void ){
 
-	veml7700_v_init();
+	// veml7700 is initialized separately!
+	
+	// veml7700_v_init();
 }
 
 uint32_t light_sensor_u32_read( void ){
