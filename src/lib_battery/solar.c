@@ -100,6 +100,13 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 };
 
 
+
+
+
+
+#include "bq25895.h"
+
+
 void solar_v_init( void ){
 
 	kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
@@ -119,7 +126,7 @@ void solar_v_init( void ){
 
 	button_v_init();
 
-	pixelpower_v_init();
+	// pixelpower_v_init();
 
 	if( patch_board_installed && charger2_board_installed ){
 
@@ -143,10 +150,14 @@ void solar_v_init( void ){
 		patchboard_v_init();
 	}
 
-	thread_t_create( solar_control_thread,
-                     PSTR("solar_control"),
-                     0,
-                     0 );
+
+	bq25895_v_set_boost_mode( FALSE );
+	batt_v_enable_charge();
+
+	// thread_t_create( solar_control_thread,
+    //                  PSTR("solar_control"),
+    //                  0,
+    //                  0 );
 }
 
 bool solar_b_has_patch_board( void ){
@@ -213,7 +224,6 @@ static bool is_charging( void ){
 		   ( solar_state == SOLAR_MODE_CHARGE_SOLAR );
 }
 
-#include "bq25895.h"
 static void enable_charge( void ){
 
 	batt_v_enable_charge();
@@ -227,7 +237,7 @@ static void enable_charge( void ){
 		else{
 
 			// debug!
-			bq25895_v_set_vindpm( 5800 );
+			// bq25895_v_set_vindpm( 5800 );
 		}
 	}
 }
@@ -257,50 +267,51 @@ PT_BEGIN( pt );
 
 
 
-		fuel_gauge_timer++;
+		// fuel_gauge_timer++;
 
-		if( fuel_gauge_timer >= FUEL_SAMPLE_TIME ){
+		// if( fuel_gauge_timer >= FUEL_SAMPLE_TIME ){
 
-			fuel_gauge_timer = 0;
+		// 	fuel_gauge_timer = 0;
 
-			// disable charge mechanism (includes cutting off solar array)
-			// delay 500 ms or so
-			// read batt voltage
-			// re-enable charge
+		// 	// disable charge mechanism (includes cutting off solar array)
+		// 	// delay 500 ms or so
+		// 	// read batt voltage
+		// 	// re-enable charge
 
-			// note that the disable/enable charge here does not change the solar
-			// control loop state.  technically we are still charging, but we turn
-			// off the charger when we want to sample the current state of charge.
-			// the charge current will increase the battery voltage according
-			// to the impedance of the cell.
+		// 	// note that the disable/enable charge here does not change the solar
+		// 	// control loop state.  technically we are still charging, but we turn
+		// 	// off the charger when we want to sample the current state of charge.
+		// 	// the charge current will increase the battery voltage according
+		// 	// to the impedance of the cell.
 
-			disable_charge();
+		// 	disable_charge();
 
-			TMR_WAIT( pt, 500 );
-
-
-			// do fuel gauge here
-
-			fuel_v_do_soc();
+		// 	TMR_WAIT( pt, 500 );
 
 
-			// filtered_batt_volts = etc
+		// 	// do fuel gauge here
 
-			// uint16_t batt_volts = batt_u16_get_batt_volts();
+		// 	fuel_v_do_soc();
 
-			// re-enable charge
-			if( is_charging() ){
 
-				enable_charge();
+		// 	// filtered_batt_volts = etc
 
-				TMR_WAIT( pt, 1000 );
-			}
-		}
+		// 	// uint16_t batt_volts = batt_u16_get_batt_volts();
+
+		// 	// re-enable charge
+		// 	if( is_charging() ){
+
+		// 		enable_charge();
+
+		// 		TMR_WAIT( pt, 1000 );
+		// 	}
+		// }
 
 
 		if( patch_board_installed ){
 
 			dc_detect = patchboard_b_read_dc_detect();
+			// dc_detect = FALSE;
 			solar_volts = patchboard_u16_read_solar_volts();
 		}
 
@@ -491,7 +502,7 @@ PT_BEGIN( pt );
 			}
 		}
 
-		next_state = SOLAR_MODE_CHARGE_SOLAR;
+		// next_state = SOLAR_MODE_CHARGE_SOLAR;
 
 		// if state is changing:
 
