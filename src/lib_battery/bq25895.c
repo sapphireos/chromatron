@@ -120,8 +120,13 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
 #define BQ25895_THERM_FILTER 32
 
 
+static void init_charger( void );
+static void init_boost_converter( void );
+
+
 // PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
+
 
 int8_t bq25895_i8_init( void ){
 
@@ -141,6 +146,26 @@ int8_t bq25895_i8_init( void ){
 
     bq25895_v_read_all();
 
+    
+    init_charger();
+    batt_v_disable_charge();
+
+    if( ( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ) ||
+        ( ffs_u8_read_board_type() == BOARD_TYPE_UNSET ) ){
+
+        log_v_debug_P( PSTR("MCU power source is PMID BOOST") );
+
+        mcu_source_pmid = TRUE;
+
+        // we will not init the boost converter in this instance, because that will cut MCU power.
+        // we have to wait until we have VBUS available.
+    }
+    else{
+
+        init_boost_converter();
+    }
+
+
     thread_t_create( bat_mon_thread,
                      PSTR("bat_mon"),
                      0,
@@ -152,6 +177,7 @@ int8_t bq25895_i8_init( void ){
 void bq25895_v_read_all( void ){
 
     i2c_v_mem_read( BQ25895_I2C_ADDR, 0, 1, regs, sizeof(regs), 0 );
+    bq25895_u8_read_reg( BQ25895_REG_FAULT );
 }
 
 static uint8_t read_cached_reg( uint8_t addr ){
@@ -1610,23 +1636,23 @@ PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    init_charger();
-    batt_v_disable_charge();
+    // init_charger();
+    // batt_v_disable_charge();
 
-    if( ( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ) ||
-        ( ffs_u8_read_board_type() == BOARD_TYPE_UNSET ) ){
+    // if( ( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ) ||
+    //     ( ffs_u8_read_board_type() == BOARD_TYPE_UNSET ) ){
 
-        log_v_debug_P( PSTR("MCU power source is PMID BOOST") );
+    //     log_v_debug_P( PSTR("MCU power source is PMID BOOST") );
 
-        mcu_source_pmid = TRUE;
+    //     mcu_source_pmid = TRUE;
 
-        // we will not init the boost converter in this instance, because that will cut MCU power.
-        // we have to wait until we have VBUS available.
-    }
-    else{
+    //     // we will not init the boost converter in this instance, because that will cut MCU power.
+    //     // we have to wait until we have VBUS available.
+    // }
+    // else{
 
-        init_boost_converter();
-    }
+    //     init_boost_converter();
+    // }
 
     // thread_t_create( bat_control_thread,
     //                  PSTR("bat_control"),

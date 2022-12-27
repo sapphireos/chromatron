@@ -150,14 +150,21 @@ void solar_v_init( void ){
 		patchboard_v_init();
 	}
 
-
-	bq25895_v_set_boost_mode( FALSE );
+	patchboard_v_set_solar_en( TRUE );
+	// bq25895_v_set_boost_mode( TRUE );
 	batt_v_enable_charge();
+	bq25895_v_set_boost_mode( FALSE );
 
-	// thread_t_create( solar_control_thread,
-    //                  PSTR("solar_control"),
-    //                  0,
-    //                  0 );
+
+	// fault clearing on BQ25895?
+
+
+	// bq25895_v_disable_charger();
+
+	thread_t_create( solar_control_thread,
+                     PSTR("solar_control"),
+                     0,
+                     0 );
 }
 
 bool solar_b_has_patch_board( void ){
@@ -265,6 +272,17 @@ PT_BEGIN( pt );
 
 		TMR_WAIT( pt, 1000 );
 
+		if( button_b_is_shutdown_requested() ){
+
+
+			sys_v_initiate_shutdown( 5 );
+
+			THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+
+			batt_v_shutdown_power();
+		}
+
+
 
 
 		// fuel_gauge_timer++;
@@ -314,6 +332,10 @@ PT_BEGIN( pt );
 			// dc_detect = FALSE;
 			solar_volts = patchboard_u16_read_solar_volts();
 		}
+
+
+		THREAD_RESTART( pt );
+
 
 
 		static uint8_t next_state;
