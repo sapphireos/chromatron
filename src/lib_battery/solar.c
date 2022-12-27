@@ -142,7 +142,7 @@ void solar_v_init( void ){
 		
 		patchboard_v_init();
 
-		solar_tilt_v_init(); // tilt system requires patch board
+		// solar_tilt_v_init(); // tilt system requires patch board
 	}
 
 	if( charger2_board_installed ){
