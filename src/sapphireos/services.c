@@ -1251,7 +1251,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
                 track_node( service, header, offer, ip, origin );
 
-                log_v_debug_P( PSTR("service switched to %d.%d.%d.%d for %0x:%0x"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, service->id, service->group );
+                log_v_debug_P( PSTR("service switched to %d.%d.%d.%d for %0x:%0lx"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, service->id, service->group );
             }
         }
         // NOTE servers have no processing here - they don't track other offers.
@@ -1268,7 +1268,7 @@ static void process_offer( service_msg_offer_hdr_t *header, service_msg_offer_t 
 
         if( !valid && service->server_valid ){
 
-            log_v_debug_P( PSTR("%d.%d.%d.%d is now valid for %0x:%0x"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, service->id, service->group );            
+            log_v_debug_P( PSTR("%d.%d.%d.%d is now valid for %0x:%0lx"), ip->ip3, ip->ip2, ip->ip1, ip->ip0, service->id, service->group );            
         }
 
         // are we connected to this node?
@@ -1520,7 +1520,7 @@ PT_BEGIN( pt );
 
                         if( service->state != STATE_LISTEN ){
 
-                            log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d:%u service: %0x:%0x"), 
+                            log_v_debug_P( PSTR("server shutdown %d.%d.%d.%d:%u service: %0x:%0lx"), 
                                 raddr.ipaddr.ip3, 
                                 raddr.ipaddr.ip2, 
                                 raddr.ipaddr.ip1, 
@@ -1605,7 +1605,7 @@ PT_BEGIN( pt );
 
                     if( service->timeout == SERVICE_CONNECTED_WARN_THRESHOLD ){
 
-                        log_v_warn_P( PSTR("server unresponsive: %0x:%0x"), service->id, service->group );
+                        log_v_warn_P( PSTR("server unresponsive: %0x:%0lx"), service->id, service->group );
                     }
                 }
             }
