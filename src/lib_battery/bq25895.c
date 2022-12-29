@@ -41,6 +41,7 @@
 static uint8_t regs[BQ25895_N_REGS];
 
 static uint16_t batt_volts;
+static uint16_t batt_volts_raw;
 static uint16_t vbus_volts;
 static uint16_t sys_volts;
 static uint16_t batt_charge_current;
@@ -54,7 +55,7 @@ static uint8_t charge_status;
 static bool dump_regs;
 
 static uint16_t boost_voltage;
-// static uint16_t vindpm;
+static uint16_t vindpm;
 static uint16_t iindpm;
 
 // true if MCU system power is sourced from the boost converter
@@ -85,6 +86,7 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,              0,  "batt_charging" },
     // { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,             0,  "batt_external_power" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,                 0,  "batt_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts_raw,             0,  "batt_volts_raw" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,                 0,  "batt_vbus_volts" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,                  0,  "batt_sys_volts" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,              0,  "batt_charge_status" },
@@ -96,7 +98,7 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,    0,  "batt_max_charge_current" },
     
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,              0,  "batt_boost_voltage" },
-    // { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                     0,  "batt_vindpm" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                     0,  "batt_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                     0,  "batt_iindpm" },
 
     { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                  0,  "batt_dump_regs" },
@@ -125,7 +127,7 @@ static void init_boost_converter( void );
 
 
 // PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
-PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
+PT_THREAD( bq25895_mon_thread( pt_t *pt, void *state ) );
 
 
 int8_t bq25895_i8_init( void ){
@@ -166,8 +168,8 @@ int8_t bq25895_i8_init( void ){
     }
 
 
-    thread_t_create( bat_mon_thread,
-                     PSTR("bat_mon"),
+    thread_t_create( bq25895_mon_thread,
+                     PSTR("bat_mon_bq25895"),
                      0,
                      0 );
 
@@ -1140,6 +1142,8 @@ void bq25895_v_print_regs( void ){
 
 void bq25895_v_set_vindpm( int16_t mv ){
 
+    vindpm = mv;
+
     uint16_t original_mv = mv;
 
     if( mv < BQ25895_MIN_VINDPM ){
@@ -1340,6 +1344,8 @@ static bool read_adc( void ){
 
         batt_volts = temp_batt_volts;
     }
+
+    batt_volts_raw = temp_batt_volts;
 
     batt_charge_current = bq25895_u16_get_charge_current();
     charge_status = bq25895_u8_get_charge_status();
@@ -1635,7 +1641,7 @@ PT_END( pt );
 
 
 
-PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
+PT_THREAD( bq25895_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 

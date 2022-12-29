@@ -388,6 +388,12 @@ uint16_t batt_u16_get_charge_voltage( void ){
 
 uint16_t batt_u16_get_min_discharge_voltage( void ){
 
+    // verify the min discharge voltage is in a reasonable range
+    if( batt_min_discharge_voltage < BATT_CUTOFF_VOLTAGE ){
+
+        batt_min_discharge_voltage = BATT_CUTOFF_VOLTAGE;
+    }
+
     return batt_min_discharge_voltage;
 }
 
@@ -631,11 +637,14 @@ void batt_v_shutdown_power( void ){
 PT_THREAD( battery_cutoff_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+    
+    // wait until connection to battery is established
+    THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );    
 
     while(1){
 
         THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() >= BATT_EMERGENCY_VOLTAGE );
-        
+
         log_v_critical_P( PSTR("Battery voltage critical, emergency shutdown") );
 
         batt_v_shutdown_power();

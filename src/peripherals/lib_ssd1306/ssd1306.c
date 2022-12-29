@@ -347,7 +347,7 @@ PT_BEGIN( pt );
 
     while( TRUE ){
 
-        TMR_WAIT( pt, 100 );
+        TMR_WAIT( pt, 200 );
 
         // if( ( current_dimmer == 0 ) && ( target_dimmer == 0 ) ){
         if( target_dimmer == 0 ){
