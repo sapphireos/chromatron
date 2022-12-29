@@ -216,6 +216,7 @@ bool bq25895_b_adc_ready( void );
 void bq25895_v_set_boost_1500khz( void );
 bool bq25895_b_is_boost_1500khz( void );
 void bq25895_v_set_boost_mode( bool enable );
+bool bq25895_b_is_boost_enabled( void );
 void bq25895_v_force_dpdm( void );
 void bq25895_v_set_minsys( uint8_t sysmin );
 void bq25895_v_set_fast_charge_current( uint16_t current );

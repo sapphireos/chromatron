@@ -53,6 +53,7 @@ static uint8_t batt_fault;
 static uint8_t vbus_status;
 static uint8_t charge_status;
 static bool dump_regs;
+static bool boost_enabled;
 
 static uint16_t boost_voltage;
 static uint16_t vindpm;
@@ -97,6 +98,7 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,    0,  "batt_max_charge_current" },
     
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &boost_enabled,              0,  "batt_boost_enabled" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,              0,  "batt_boost_voltage" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                     0,  "batt_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                     0,  "batt_iindpm" },
@@ -116,10 +118,9 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
 
 };
 
-#define VOLTS_FILTER    32
-
-
-#define BQ25895_THERM_FILTER 32
+#define BQ25895_VOLTS_FILTER        32
+#define BQ25895_CURRENT_FILTER      32
+#define BQ25895_THERM_FILTER        32
 
 
 static void init_charger( void );
@@ -331,6 +332,8 @@ bool bq25895_b_is_boost_1500khz( void ){
 
 static void set_boost_mode( bool enable ){
 
+    boost_enabled = enable;
+
     if( enable ){
 
         bq25895_v_set_reg_bits( BQ25895_REG_BOOST_EN, BQ25895_BIT_BOOST_EN );
@@ -354,6 +357,11 @@ void bq25895_v_set_boost_mode( bool enable ){
     }
 
     set_boost_mode( enable );
+}
+
+bool bq25895_b_is_boost_enabled( void ){
+
+    return boost_enabled;
 }
 
 // forces input current limit detection
@@ -1347,14 +1355,16 @@ static bool read_adc( void ){
 
     batt_volts_raw = temp_batt_volts;
 
-    batt_charge_current = bq25895_u16_get_charge_current();
+    uint16_t temp_charge_current = bq25895_u16_get_charge_current();
     charge_status = bq25895_u8_get_charge_status();
     batt_charging = is_charging();
 
     if( batt_volts != 0 ){
 
-        batt_volts = util_u16_ewma( temp_batt_volts, batt_volts, VOLTS_FILTER );
+        batt_volts = util_u16_ewma( temp_batt_volts, batt_volts, BQ25895_VOLTS_FILTER );
     }
+
+    batt_charge_current = util_u16_ewma( temp_charge_current, batt_charge_current, BQ25895_CURRENT_FILTER );
     
 
     sys_volts = bq25895_u16_get_sys_voltage();

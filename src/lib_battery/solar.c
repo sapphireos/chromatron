@@ -510,6 +510,11 @@ PT_BEGIN( pt );
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
 
+			// if( bq25895_b_is_boost_enabled() ){
+
+				
+			// }
+
 			// mppt is running in bq25895 adc loop,
 			// nothing to do here.
 
