@@ -512,7 +512,7 @@ PT_BEGIN( pt );
 
 			// if( bq25895_b_is_boost_enabled() ){
 
-				
+
 			// }
 
 			// mppt is running in bq25895 adc loop,
@@ -562,7 +562,7 @@ PT_BEGIN( pt );
 
 			// check tilt angle
 
-			if( solar_tilt_u8_get_tilt_angle() == 0 ){
+			if( ( solar_tilt_u8_get_tilt_angle() == 0 ) || solar_tilt_b_is_manual() ){
 				// note that units that do not have the tilt system
 				// will always report 0 angle, so the shutdown
 				// state will take effect immediately.

@@ -201,6 +201,11 @@ void solar_tilt_v_set_tilt_angle( uint8_t angle ){
 	set_tilt_target( angle );
 }
 
+bool solar_tilt_b_is_manual( void ){
+
+	return enable_manual_tilt;
+}
+
 static uint16_t read_tilt_sensor_raw( void ){
 
 	uint16_t mv = 0;

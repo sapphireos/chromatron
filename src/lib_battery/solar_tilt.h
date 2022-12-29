@@ -56,6 +56,7 @@ void solar_tilt_v_init( void );
 uint8_t solar_tilt_u8_get_tilt_angle( void );
 uint8_t solar_tilt_u8_get_target_angle( void );
 void solar_tilt_v_set_tilt_angle( uint8_t angle );
+bool solar_tilt_b_is_manual( void );
 
 bool solar_tilt_b_is_moving( void );
 
