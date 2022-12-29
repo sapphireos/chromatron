@@ -367,7 +367,18 @@ PT_BEGIN( pt );
         datetime_v_seconds_to_datetime( ntp.seconds, &now );
         datetime_v_to_iso8601( iso8601, sizeof(iso8601), &now );
 
-        ssd1306_v_printf("%4d   RSSI: %2d\n%s", debug, wifi_i8_rssi(), iso8601);
+
+        uint16_t batt_volts = 0;
+        kv_i8_get( __KV__batt_volts, &batt_volts, sizeof(batt_volts) );
+
+        uint16_t batt_charge_current = 0;
+        kv_i8_get( __KV__batt_charge_current, &batt_charge_current, sizeof(batt_charge_current) );
+
+        uint32_t lux = 0;
+        kv_i8_get( __KV__veml7700_filtered_als, &lux, sizeof(lux) );
+
+        // ssd1306_v_printf("%4dmV RSSI:%2d\n%s", batt_volts, wifi_i8_rssi(), iso8601);
+        ssd1306_v_printf("%4d mV RSSI:%2d\n%4d mA %5d lux", batt_volts, wifi_i8_rssi(), batt_charge_current, lux / 1000 );
 
         ssd1306_v_set_contrast( target_dimmer );
 
