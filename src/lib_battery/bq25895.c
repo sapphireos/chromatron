@@ -1688,6 +1688,12 @@ PT_BEGIN( pt );
         // read all registers
         bq25895_v_read_all();
 
+        if( dump_regs ){
+
+            dump_regs = FALSE;
+
+            bq25895_v_print_regs();
+        }
 
         if( bq25895_b_adc_ready_cached() && read_adc() ){
 
@@ -1720,14 +1726,7 @@ PT_BEGIN( pt );
             continue;
         }
 
-        if( dump_regs ){
-
-            dump_regs = FALSE;
-
-            bq25895_v_print_regs();
-        }
-
-        TMR_WAIT( pt, 500 );
+        // TMR_WAIT( pt, 500 );
     }
 
 PT_END( pt );
