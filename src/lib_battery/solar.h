@@ -27,7 +27,9 @@
 
 #include "sapphire.h"
 
+#define SOLAR_CONTROL_POLLING_RATE			1000
 #define SOLAR_SENSOR_POLLING_RATE			250
+
 #define SOLAR_DC_FILTER_DEPTH				4
 #define SOLAR_VOLTS_FILTER_DEPTH			32
 

@@ -63,7 +63,7 @@ static catbus_string_t state_name;
 static uint16_t charge_timer;
 #define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
 #define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
-#define DISCHARGE_HOLD_TIME				( 30 * 60 ) // time to remain in discharge before allowing a switch back to charge
+#define DISCHARGE_HOLD_TIME				( 10 ) // time to remain in discharge before allowing a switch back to charge
 
 static uint16_t fuel_gauge_timer;
 #define FUEL_SAMPLE_TIME				( 60 ) // debug! 60 seconds is probably much more than we need
@@ -360,7 +360,7 @@ PT_BEGIN( pt );
 
 	while(1){
 
-		TMR_WAIT( pt, 1000 );
+		TMR_WAIT( pt, SOLAR_CONTROL_POLLING_RATE );
 
 		// fuel_gauge_timer++;
 
@@ -407,8 +407,14 @@ PT_BEGIN( pt );
 		static uint8_t next_state;
 		next_state = solar_state;
 
-
-		if( solar_state == SOLAR_MODE_STOPPED ){
+		// check for cut off
+		if( batt_u16_get_batt_volts() < batt_u16_get_min_discharge_voltage() ){
+			
+			log_v_warn_P( PSTR("Battery at discharge cutoff") );
+				
+			next_state = SOLAR_MODE_SHUTDOWN;
+		}
+		else if( solar_state == SOLAR_MODE_STOPPED ){
 
 			charge_timer++;
 
