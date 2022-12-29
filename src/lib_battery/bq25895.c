@@ -1240,7 +1240,7 @@ static void init_charger( void ){
     // turn off ICO
     bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
 
-    bq25895_v_set_inlim( 3250 );
+    bq25895_v_set_inlim( 3250 ); // 3.25 A is maximum input
     bq25895_v_set_pre_charge_current( 160 );
     
     // default to 0.5C rate:
@@ -1296,19 +1296,22 @@ void bq25895_v_enable_charger( void ){
 
     bq25895_v_set_charger( TRUE );
 
+    // if powered by PMID:
     if( mcu_source_pmid ){
             
-        // re-init boost
-        init_boost_converter();
-    }
+        // check if VBUS is ok:
+        if( bq25895_b_get_vbus_good() ){
 
+            // re-init boost
+            init_boost_converter();
+        }
+    }
 }
 
 // top level API to disable the charger
 void bq25895_v_disable_charger( void ){
 
     bq25895_v_set_charger( FALSE );
-
 }
 
 

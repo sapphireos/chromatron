@@ -27,8 +27,13 @@
 
 #include "sapphire.h"
 
-#define SOLAR_MIN_CHARGE_VOLTS				4800
+#define SOLAR_SENSOR_POLLING_RATE			250
+#define SOLAR_DC_FILTER_DEPTH				4
+#define SOLAR_VOLTS_FILTER_DEPTH			32
+
+#define SOLAR_MIN_CHARGE_VOLTS				5500
 #define SOLAR_MIN_CHARGE_LIGHT_DEFAULT		500000
+
 
 void solar_v_init( void );
 
