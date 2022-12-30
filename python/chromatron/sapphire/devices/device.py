@@ -48,6 +48,12 @@ import base64
 import traceback
 import crcmod
 
+from colorama import init as colorama_init
+from colorama import Fore
+from colorama import Style
+
+colorama_init()
+
 from sapphire.buildtools import firmware_package
 from sapphire.buildtools.firmware_package import FirmwarePackage
 from sapphire.buildtools.core import CHROMATRON_ESP_UPGRADE_FWID
@@ -1316,7 +1322,7 @@ class Device(object):
             params = self.get_kv(line)
 
         if isinstance(params, dict):
-            s = "\nName                             Flags  Type     Value\n"
+            s = f"\n{Fore.GREEN}Name                             {Fore.RED}Flags  {Fore.BLUE}Type     {Fore.YELLOW}Value{Style.RESET_ALL}\n"
 
             for k in sorted(params.keys()):
                 s += "%s\n" % (self._keys[k])
