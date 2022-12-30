@@ -1757,6 +1757,36 @@ class Device(object):
 
         return s
 
+    def cli_watch(self, line):
+        if line == '*':
+            return "Cannot watch on all keys"
+
+        try:
+            while True:
+                params = self.get_kv(line)
+
+                if isinstance(params, dict):
+                    s = "\nName                             Flags  Type     Value\n"
+
+                    for k in sorted(params.keys()):
+                        s += "%s\n" % (self._keys[k])
+
+                else:
+                    s = "%s = %s" % (line, params)
+
+                print(s)
+
+                try:
+                    time.sleep(0.2)
+
+                except KeyboardInterrupt:
+                    return ""
+
+        except DeviceCommsErrorException:
+            return "Lost connection!"
+
+
+
     def cli_batt_recorder_info(self, line):
         try:
             data = self.get_batt_records()
