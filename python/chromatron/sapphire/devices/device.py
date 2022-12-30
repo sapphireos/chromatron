@@ -215,21 +215,23 @@ class KVKey(object):
         flags = ''
 
         if "persist" in self.flags:
-            flags += 'P'
+            flags += f'{Fore.WHITE}P'
         else:
-            flags += ' '
+            flags += f'{Fore.WHITE} '
 
         if "read_only" in self.flags:
-            flags += 'R'
+            flags += f'{Fore.YELLOW}R'
         else:
-            flags += ' '
+            flags += f'{Fore.YELLOW} '
 
         if "dynamic" in self.flags:
-            flags += 'D'
+            flags += f'{Fore.BLUE}D'
         else:
-            flags += ' '
+            flags += f'{Fore.BLUE} '
 
-        s = "%32s %6s %8s %s" % (self.key, flags, get_type_name(self.type), str(self._value))
+        type_str = get_type_name(self.type)
+
+        s = f"{Fore.GREEN}{self.key:32} {flags:6} {Fore.MAGENTA}{type_str:8} {Fore.CYAN}{self._value}{Style.RESET_ALL}"
         return s
 
     def is_readonly(self):
@@ -1322,7 +1324,7 @@ class Device(object):
             params = self.get_kv(line)
 
         if isinstance(params, dict):
-            s = f"\n{Fore.GREEN}Name                             {Fore.RED}Flags  {Fore.BLUE}Type     {Fore.YELLOW}Value{Style.RESET_ALL}\n"
+            s = f"{Style.RESET_ALL}\nName                           Flags Type     Value\n"
 
             for k in sorted(params.keys()):
                 s += "%s\n" % (self._keys[k])
@@ -1772,7 +1774,7 @@ class Device(object):
                 params = self.get_kv(line)
 
                 if isinstance(params, dict):
-                    s = "\nName                             Flags  Type     Value\n"
+                    s = f"{Style.RESET_ALL}\nName                           Flags Type     Value\n"
 
                     for k in sorted(params.keys()):
                         s += "%s\n" % (self._keys[k])
