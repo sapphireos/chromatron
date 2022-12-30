@@ -239,7 +239,7 @@ static bool is_charging( void ){
 		   ( solar_state == SOLAR_MODE_CHARGE_SOLAR );
 }
 
-static void enable_charge( void ){
+static void enable_charge( uint8_t target_state ){
 
 	batt_v_enable_charge();
 
@@ -250,7 +250,7 @@ static void enable_charge( void ){
 
 	*/
 
-	if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
+	if( target_state == SOLAR_MODE_CHARGE_SOLAR ){
 
 		if( mppt_enabled ){
 
@@ -262,13 +262,17 @@ static void enable_charge( void ){
 			bq25895_v_set_vindpm( 5800 );
 		}
 	}
-	else if( solar_state == SOLAR_MODE_CHARGE_DC ){
+	else if( target_state == SOLAR_MODE_CHARGE_DC ){
 
 
 		bq25895_v_set_vindpm( 0 );
 
 		// turn on ICO
     	bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
+	}
+	else{
+
+		log_v_warn_P( PSTR("This is not a valid charge state!") );
 	}
 }
 
@@ -657,7 +661,7 @@ PT_BEGIN( pt );
 				// so FX patterns can display charge status.
 				gfx_v_set_system_enable( FALSE );
 
-				enable_charge();
+				enable_charge( next_state );
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
 
@@ -666,7 +670,7 @@ PT_BEGIN( pt );
 				gfx_v_set_system_enable( FALSE );
 
 
-				enable_charge();
+				enable_charge( next_state );
 
 				// starting solar charge
 
