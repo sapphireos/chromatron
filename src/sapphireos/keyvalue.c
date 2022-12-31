@@ -770,18 +770,19 @@ void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
 
         if( opt_meta.ptr == 0 ){
 
-            continue;
+            goto done;
         }
 
         uint16_t size = kv_u16_get_size_meta( &opt_meta );
 
         if( size == CATBUS_TYPE_SIZE_INVALID ){
 
-            continue;
+            goto done;
         }
 
         _kv_i8_persist_get( opt_meta.hash, opt_meta.ptr, size );
 
+    done:
         meta++;
     }
 }

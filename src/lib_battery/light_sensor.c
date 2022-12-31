@@ -1,4 +1,3 @@
-/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -20,23 +19,22 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
- */
-
-#ifndef _HAL_BOARDS_H
-#define _HAL_BOARDS_H
-
-#include "boards.h"
-
-#include "hal_io.h"
-
-// for Elite board:
-#define ELITE_CASE_ADC_IO       IO_PIN_32_A7
-#define ELITE_AMBIENT_ADC_IO    IO_PIN_33_A9
-#define ELITE_FAN_IO            IO_PIN_19_MISO
-#define ELITE_BOOST_IO          IO_PIN_4_A5
-#define ELITE_LED_ID_IO         IO_PIN_25_A1 // CS pin on SPI header
-#define ELITE_TILT_MOTOR_IO_1   IO_PIN_16_RX
-#define ELITE_TILT_MOTOR_IO_0   IO_PIN_17_TX
 
 
-#endif
+#include "sapphire.h"
+
+#include "light_sensor.h"
+
+#include "veml7700.h"
+
+void light_sensor_v_init( void ){
+
+	// veml7700 is initialized separately!
+	
+	// veml7700_v_init();
+}
+
+uint32_t light_sensor_u32_read( void ){
+
+	return veml7700_u32_read_als();
+}

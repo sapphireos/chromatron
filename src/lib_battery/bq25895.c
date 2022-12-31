@@ -41,6 +41,7 @@
 static uint8_t regs[BQ25895_N_REGS];
 
 static uint16_t batt_volts;
+static uint16_t batt_volts_raw;
 static uint16_t vbus_volts;
 static uint16_t sys_volts;
 static uint16_t batt_charge_current;
@@ -52,10 +53,10 @@ static uint8_t batt_fault;
 static uint8_t vbus_status;
 static uint8_t charge_status;
 static bool dump_regs;
+static bool boost_enabled;
 
 static uint16_t boost_voltage;
 static uint16_t vindpm;
-static uint16_t solar_vindpm = 5800;
 static uint16_t iindpm;
 
 // true if MCU system power is sourced from the boost converter
@@ -86,6 +87,7 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,              0,  "batt_charging" },
     // { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &vbus_connected,             0,  "batt_external_power" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts,                 0,  "batt_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_volts_raw,             0,  "batt_volts_raw" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vbus_volts,                 0,  "batt_vbus_volts" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,                  0,  "batt_sys_volts" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,              0,  "batt_charge_status" },
@@ -96,9 +98,9 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &batt_max_charge_current,    0,  "batt_max_charge_current" },
     
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &boost_enabled,              0,  "batt_boost_enabled" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &boost_voltage,              0,  "batt_boost_voltage" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &vindpm,                     0,  "batt_vindpm" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &solar_vindpm,               0,  "batt_solar_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &iindpm,                     0,  "batt_iindpm" },
 
     { CATBUS_TYPE_BOOL,    0, 0,                   &dump_regs,                  0,  "batt_dump_regs" },
@@ -116,17 +118,18 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
 
 };
 
-#define VOLTS_FILTER    32
+#define BQ25895_VOLTS_FILTER        32
+#define BQ25895_CURRENT_FILTER      32
+#define BQ25895_THERM_FILTER        32
 
-// #define VINDPM_WALL     0
-// #define VINDPM_SOLAR    solar_vindpm
 
-
-#define BQ25895_THERM_FILTER 32
+static void init_charger( void );
+static void init_boost_converter( void );
 
 
 // PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
-PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) );
+PT_THREAD( bq25895_mon_thread( pt_t *pt, void *state ) );
+
 
 int8_t bq25895_i8_init( void ){
 
@@ -146,8 +149,28 @@ int8_t bq25895_i8_init( void ){
 
     bq25895_v_read_all();
 
-    thread_t_create( bat_mon_thread,
-                     PSTR("bat_mon"),
+    
+    init_charger();
+    batt_v_disable_charge();
+
+    if( ( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ) ||
+        ( ffs_u8_read_board_type() == BOARD_TYPE_UNSET ) ){
+
+        log_v_debug_P( PSTR("MCU power source is PMID BOOST") );
+
+        mcu_source_pmid = TRUE;
+
+        // we will not init the boost converter in this instance, because that will cut MCU power.
+        // we have to wait until we have VBUS available.
+    }
+    else{
+
+        init_boost_converter();
+    }
+
+
+    thread_t_create( bq25895_mon_thread,
+                     PSTR("bat_mon_bq25895"),
                      0,
                      0 );
 
@@ -157,6 +180,7 @@ int8_t bq25895_i8_init( void ){
 void bq25895_v_read_all( void ){
 
     i2c_v_mem_read( BQ25895_I2C_ADDR, 0, 1, regs, sizeof(regs), 0 );
+    bq25895_u8_read_reg( BQ25895_REG_FAULT );
 }
 
 static uint8_t read_cached_reg( uint8_t addr ){
@@ -308,6 +332,8 @@ bool bq25895_b_is_boost_1500khz( void ){
 
 static void set_boost_mode( bool enable ){
 
+    boost_enabled = enable;
+
     if( enable ){
 
         bq25895_v_set_reg_bits( BQ25895_REG_BOOST_EN, BQ25895_BIT_BOOST_EN );
@@ -331,6 +357,11 @@ void bq25895_v_set_boost_mode( bool enable ){
     }
 
     set_boost_mode( enable );
+}
+
+bool bq25895_b_is_boost_enabled( void ){
+
+    return boost_enabled;
 }
 
 // forces input current limit detection
@@ -425,6 +456,40 @@ void bq25895_v_set_charge_voltage( uint16_t volts ){
     bq25895_v_clr_reg_bits( BQ25895_REG_CHARGE_VOLTS, BQ25895_MASK_CHARGE_VOLTS );
 
     bq25895_v_set_reg_bits( BQ25895_REG_CHARGE_VOLTS, data );
+}
+
+void bq25895_v_set_batlowv( bool high ){
+
+    /*
+    
+    Note from TI: https://e2e.ti.com/support/power-management-group/power-management/f/power-management-forum/710331/bq25895-batfet-turn-off-at-vbat_otg-about-2-85v-in-boost-mode
+
+    They admit that BATLOWV will trigger turning off the BATFET, but this is not documented.  
+    The datasheet just says it will turn off BOOST, but the BATFET stays on until another, 
+    lower threshold.  But it actually does cut off at BATLOWV.  This is fine for us (better, actually).
+
+
+    SO FAR:
+    I cannot get this bit to actually clear.  It will clear if VBUS is plugged in (not helpful), but then
+    resets to 1 when VBUS is unplugged.  Any attempt to clear the bit on battery power fails, it is forced to 1.
+
+
+    From forum response:
+    BATLOWV is automatically set in boost mode.  There is no workaround for this undocumented behavior.
+    Effectively we cannot change it in our application.
+
+
+    */
+
+    // high is 3.0V, low is 2.8V
+    if( high ){
+
+        bq25895_v_set_reg_bits( BQ25895_REG_CHARGE_VOLTS, BQ25895_BIT_BATLOWV );
+    }
+    else{
+
+        bq25895_v_clr_reg_bits( BQ25895_REG_CHARGE_VOLTS, BQ25895_BIT_BATLOWV );
+    }
 }
 
 void bq25895_v_enable_ship_mode( bool delay ){
@@ -1085,6 +1150,8 @@ void bq25895_v_print_regs( void ){
 
 void bq25895_v_set_vindpm( int16_t mv ){
 
+    vindpm = mv;
+
     uint16_t original_mv = mv;
 
     if( mv < BQ25895_MIN_VINDPM ){
@@ -1169,6 +1236,8 @@ static void init_boost_converter( void ){
 
 static void init_charger( void ){
 
+    log_v_debug_P( PSTR("Init charger") );
+
     // enable charger and make sure HIZ is disabled
     bq25895_v_set_hiz( FALSE );
     bq25895_v_set_charger( TRUE );
@@ -1183,7 +1252,7 @@ static void init_charger( void ){
     // turn off ICO
     bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
 
-    bq25895_v_set_inlim( 3250 );
+    bq25895_v_set_inlim( 3250 ); // 3.25 A is maximum input
     bq25895_v_set_pre_charge_current( 160 );
     
     // default to 0.5C rate:
@@ -1239,19 +1308,22 @@ void bq25895_v_enable_charger( void ){
 
     bq25895_v_set_charger( TRUE );
 
+    // if powered by PMID:
     if( mcu_source_pmid ){
             
-        // re-init boost
-        init_boost_converter();
-    }
+        // check if VBUS is ok:
+        if( bq25895_b_get_vbus_good() ){
 
+            // re-init boost
+            init_boost_converter();
+        }
+    }
 }
 
 // top level API to disable the charger
 void bq25895_v_disable_charger( void ){
 
     bq25895_v_set_charger( FALSE );
-
 }
 
 
@@ -1281,14 +1353,18 @@ static bool read_adc( void ){
         batt_volts = temp_batt_volts;
     }
 
-    batt_charge_current = bq25895_u16_get_charge_current();
+    batt_volts_raw = temp_batt_volts;
+
+    uint16_t temp_charge_current = bq25895_u16_get_charge_current();
     charge_status = bq25895_u8_get_charge_status();
     batt_charging = is_charging();
 
     if( batt_volts != 0 ){
 
-        batt_volts = util_u16_ewma( temp_batt_volts, batt_volts, VOLTS_FILTER );
+        batt_volts = util_u16_ewma( temp_batt_volts, batt_volts, BQ25895_VOLTS_FILTER );
     }
+
+    batt_charge_current = util_u16_ewma( temp_charge_current, batt_charge_current, BQ25895_CURRENT_FILTER );
     
 
     sys_volts = bq25895_u16_get_sys_voltage();
@@ -1575,24 +1651,27 @@ PT_END( pt );
 
 
 
-PT_THREAD( bat_mon_thread( pt_t *pt, void *state ) )
+PT_THREAD( bq25895_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    if( ( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ) ||
-        ( ffs_u8_read_board_type() == BOARD_TYPE_UNSET ) ){
+    // init_charger();
+    // batt_v_disable_charge();
 
-        log_v_debug_P( PSTR("MCU power source is PMID BOOST") );
+    // if( ( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ) ||
+    //     ( ffs_u8_read_board_type() == BOARD_TYPE_UNSET ) ){
 
-        mcu_source_pmid = TRUE;
+    //     log_v_debug_P( PSTR("MCU power source is PMID BOOST") );
 
-        // we will not init the boost converter in this instance, because that will cut MCU power.
-        // we have to wait until we have VBUS available.
-    }
-    else{
+    //     mcu_source_pmid = TRUE;
 
-        init_boost_converter();
-    }
+    //     // we will not init the boost converter in this instance, because that will cut MCU power.
+    //     // we have to wait until we have VBUS available.
+    // }
+    // else{
+
+    //     init_boost_converter();
+    // }
 
     // thread_t_create( bat_control_thread,
     //                  PSTR("bat_control"),
@@ -1625,6 +1704,12 @@ PT_BEGIN( pt );
         // read all registers
         bq25895_v_read_all();
 
+        if( dump_regs ){
+
+            dump_regs = FALSE;
+
+            bq25895_v_print_regs();
+        }
 
         if( bq25895_b_adc_ready_cached() && read_adc() ){
 
@@ -1657,14 +1742,7 @@ PT_BEGIN( pt );
             continue;
         }
 
-        if( dump_regs ){
-
-            dump_regs = FALSE;
-
-            bq25895_v_print_regs();
-        }
-
-        TMR_WAIT( pt, 500 );
+        // TMR_WAIT( pt, 500 );
     }
 
 PT_END( pt );

@@ -38,7 +38,7 @@ static bool mppt_done;
 #define MPPT_BINS ( ( BQ25895_MAX_MPPT_VINDPM - BQ25895_MIN_MPPT_VINDPM ) / BQ25895_MPPT_VINDPM_STEP )
 static uint16_t mppt_bins[MPPT_BINS];
 
-KV_SECTION_OPT kv_meta_t mppt_opt_kv[] = {
+KV_SECTION_META kv_meta_t mppt_opt_kv[] = {
     { CATBUS_TYPE_UINT16, MPPT_BINS - 1, KV_FLAGS_READ_ONLY,  &mppt_bins,                  0,  "batt_mppt_bins" },
 
 };
@@ -67,18 +67,19 @@ static void do_mppt( uint16_t charge_current ){
         return;
     }
 
-    int16_t delta_curent = (int16_t)charge_current - (int16_t)mppt_bins[mppt_index];
+    int16_t delta_current = (int16_t)charge_current - (int16_t)mppt_bins[mppt_index];
 
     // check if algorithm is running:
     if( mppt_done ){
 
         // check if time to run
         if( ( tmr_u32_elapsed_time_ms( mppt_time) > MPPT_CHECK_INTERVAL ) ||
-            ( abs16( delta_curent ) >= MPPT_CURRENT_THRESHOLD ) ){ // sudden change in charge current
+            ( abs16( delta_current ) >= MPPT_CURRENT_THRESHOLD ) ){ // sudden change in charge current
 
             mppt_done = FALSE; // note that mppt will start on the NEXT cycle, not this one.
+            mppt_index = 0;
 
-            log_v_debug_P( PSTR("start mppt: %d"), delta_curent );
+            log_v_debug_P( PSTR("start mppt: delta: %d charge: %u index: %u bin: %u"), delta_current, charge_current, mppt_index, mppt_bins[mppt_index] );
         }
 
         return;
@@ -99,7 +100,8 @@ static void do_mppt( uint16_t charge_current ){
         mppt_current_vindpm += BQ25895_MPPT_VINDPM_STEP;
     }
 
-    if( mppt_current_vindpm >= BQ25895_MAX_MPPT_VINDPM ){
+    // if( mppt_current_vindpm >= BQ25895_MAX_MPPT_VINDPM ){
+    if( mppt_index >= cnt_of_array(mppt_bins) ){ // check if done scanning
 
         // MPPT is finished
         mppt_done = TRUE;
@@ -119,9 +121,11 @@ static void do_mppt( uint16_t charge_current ){
             }
         }
 
+        mppt_index = best_index;
+
         mppt_current_vindpm = BQ25895_MIN_MPPT_VINDPM + ( best_index * BQ25895_MPPT_VINDPM_STEP );
 
-        log_v_debug_P( PSTR("mppt done: vindpm %d current: %d"), mppt_current_vindpm, best_current );
+        log_v_debug_P( PSTR("mppt done: vindpm %u current: %u"), mppt_current_vindpm, best_current );
     }
 
     bq25895_v_set_vindpm( mppt_current_vindpm );
@@ -152,4 +156,7 @@ void mppt_v_disable( void ){
     bq25895_v_set_vindpm( 0 );
 }
 
+bool mppt_b_is_running( void ){
 
+    return !mppt_done;
+}

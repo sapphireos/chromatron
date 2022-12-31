@@ -29,6 +29,7 @@
 
 #define BATT_MAX_FLOAT_VOLTAGE		4150
 #define BATT_CUTOFF_VOLTAGE			3100
+#define BATT_EMERGENCY_VOLTAGE		3050
 
 #define BATT_RECHARGE_THRESHOLD		100
 
@@ -47,7 +48,7 @@ void batt_v_init( void );
 
 
 uint16_t batt_u16_get_charge_voltage( void );
-uint16_t batt_u16_get_discharge_voltage( void );
+uint16_t batt_u16_get_min_discharge_voltage( void );
 
 // APIs to control pixel strip power switch
 // void batt_v_enable_pixels( void );
@@ -62,6 +63,7 @@ int8_t batt_i8_get_batt_temp( void );
 uint16_t batt_u16_get_vbus_volts( void );
 bool batt_b_is_vbus_connected( void );
 uint16_t batt_u16_get_batt_volts( void );
+uint16_t batt_u16_get_charge_current( void );
 uint8_t batt_u8_get_soc( void );
 bool batt_b_is_charging( void );
 bool batt_b_is_charge_complete( void );

@@ -46,9 +46,19 @@ KV_SECTION_OPT kv_meta_t pixelpower_info_kv[] = {
 };
 
 
+PT_THREAD( pixel_power_thread( pt_t *pt, void *state ) );
+
+
 void pixelpower_v_init( void ){
 
+    pixelpower_v_enable_pixels();
+
     kv_v_add_db_info( pixelpower_info_kv, sizeof(pixelpower_info_kv) );
+
+    thread_t_create( pixel_power_thread,
+                     PSTR("pixel_power_control"),
+                     0,
+                     0 );
 }
 
 
@@ -96,7 +106,7 @@ PT_BEGIN( pt );
             #if defined(ESP32)
             else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
-                // bq25895_v_set_boost_mode( TRUE );
+                bq25895_v_set_boost_mode( TRUE );
 
                 // wait for boost to start up
                 TMR_WAIT( pt, 40 );

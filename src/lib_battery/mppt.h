@@ -25,8 +25,8 @@
 #ifndef _MPPT_H
 #define _MPPT_H
 
-#define MPPT_CHECK_INTERVAL			60000
-#define MPPT_CURRENT_THRESHOLD		250
+#define MPPT_CHECK_INTERVAL			120000
+#define MPPT_CURRENT_THRESHOLD		500
 
 #define BQ25895_MIN_MPPT_VINDPM     4900
 #define BQ25895_MAX_MPPT_VINDPM     6200
@@ -39,5 +39,7 @@ void mppt_v_reset( void );
 
 void mppt_v_enable( void );
 void mppt_v_disable( void );
+
+bool mppt_b_is_running( void );
 
 #endif

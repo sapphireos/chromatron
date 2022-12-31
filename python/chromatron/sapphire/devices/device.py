@@ -49,6 +49,12 @@ import traceback
 import crcmod
 from pprint import pprint
 
+from colorama import init as colorama_init
+from colorama import Fore
+from colorama import Style
+
+colorama_init()
+
 from sapphire.buildtools import firmware_package
 from sapphire.buildtools.firmware_package import FirmwarePackage
 from sapphire.buildtools.core import CHROMATRON_ESP_UPGRADE_FWID
@@ -210,21 +216,23 @@ class KVKey(object):
         flags = ''
 
         if "persist" in self.flags:
-            flags += 'P'
+            flags += f'{Fore.WHITE}P'
         else:
-            flags += ' '
+            flags += f'{Fore.WHITE} '
 
         if "read_only" in self.flags:
-            flags += 'R'
+            flags += f'{Fore.YELLOW}R'
         else:
-            flags += ' '
+            flags += f'{Fore.YELLOW} '
 
         if "dynamic" in self.flags:
-            flags += 'D'
+            flags += f'{Fore.BLUE}D'
         else:
-            flags += ' '
+            flags += f'{Fore.BLUE} '
 
-        s = "%32s %6s %8s %s" % (self.key, flags, get_type_name(self.type), str(self._value))
+        type_str = get_type_name(self.type)
+
+        s = f"{Fore.GREEN}{self.key:32} {flags:6} {Fore.MAGENTA}{type_str:8} {Fore.CYAN}{self._value}{Style.RESET_ALL}"
         return s
 
     def is_readonly(self):
@@ -1335,7 +1343,7 @@ class Device(object):
             params = self.get_kv(line)
 
         if isinstance(params, dict):
-            s = "\nName                             Flags  Type     Value\n"
+            s = f"{Style.RESET_ALL}\nName                           Flags Type     Value\n"
 
             for k in sorted(params.keys()):
                 s += "%s\n" % (self._keys[k])
@@ -1775,6 +1783,36 @@ class Device(object):
             s += f'{item.ipaddr:15} {item.rport:5} {item.lport:5} {item.tx_count:7} {item.rx_count:7} {item.dropped:5}    {item.timeout:3}\n'
 
         return s
+
+    def cli_watch(self, line):
+        if line == '*':
+            return "Cannot watch on all keys"
+
+        try:
+            while True:
+                params = self.get_kv(line)
+
+                if isinstance(params, dict):
+                    s = f"{Style.RESET_ALL}\nName                           Flags Type     Value\n"
+
+                    for k in sorted(params.keys()):
+                        s += "%s\n" % (self._keys[k])
+
+                else:
+                    s = "%s = %s" % (line, params)
+
+                print(s)
+
+                try:
+                    time.sleep(0.2)
+
+                except KeyboardInterrupt:
+                    return ""
+
+        except DeviceCommsErrorException:
+            return "Lost connection!"
+
+
 
     def cli_batt_recorder_info(self, line):
         try:

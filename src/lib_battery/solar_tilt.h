@@ -29,25 +29,24 @@
 
 #include "adc.h"
 
-#define SOLAR_MOTOR_RATE				100
+#define SOLAR_MOTOR_RATE				      100
 
-#define SOLAR_MOTOR_MOVE_TIMEOUT		2000
-#define SOLAR_MOTOR_LOCK_TIMEOUT		10000
+#define SOLAR_MOTOR_MOVE_TIMEOUT		      2000
+#define SOLAR_MOTOR_LOCK_TIMEOUT		      10000
 
-// #define SOLAR_TILT_MOVEMENT_THRESHOLD 	1 // degrees
-#define SOLAR_TILT_SENSOR_MOVE_THRESHOLD   50 // mV
+#define SOLAR_TILT_SENSOR_MOVE_THRESHOLD       50 // mV
+#define SOLAR_TILT_SENSOR_DIR_THRESHOLD        20 // mV
 
+#define SOLAR_TILT_SENSOR_PRESENCE		100 // mV
 #define SOLAR_TILT_SENSOR_MIN           300 // mV
 #define SOLAR_TILT_SENSOR_MAX           3000 // mV
 #define SOLAR_TILT_SENSOR_OPEN          3200 // mV
 
+#define SOLAR_TILT_SENSOR_UP_LIMIT		3200
+#define SOLAR_TILT_SENSOR_DOWN_LIMIT	100
+
 #define SOLAR_ANGLE_POS_MIN				0 // degrees
 #define SOLAR_ANGLE_POS_MAX				60 // degrees
-
-
-// #define SOLAR_TILT_SENSOR_IO 	IO_PIN_34_A2
-#define SOLAR_TILT_MOTOR_IO_0 	IO_PIN_16_RX
-#define SOLAR_TILT_MOTOR_IO_1 	IO_PIN_17_TX
 
 #define SOLAR_TILT_ADC_SAMPLES      8
 #define SOLAR_TILT_FILTER	        4
@@ -57,5 +56,11 @@ void solar_tilt_v_init( void );
 uint8_t solar_tilt_u8_get_tilt_angle( void );
 uint8_t solar_tilt_u8_get_target_angle( void );
 void solar_tilt_v_set_tilt_angle( uint8_t angle );
+bool solar_tilt_b_is_manual( void );
+
+bool solar_tilt_b_is_moving( void );
+
+void solar_tilt_v_optimize_reset( void );
+void solar_tilt_v_optimize_step( void );
 
 #endif

@@ -104,6 +104,13 @@ bool onewire_b_read_rom_id( uint8_t *family_code, uint64_t *id ){
     for( uint8_t i = 0; i < 8; i++ ){
 
         data[i] = onewire_u8_read_byte();
+
+        // check if first byte is all 1s.
+        if( ( i == 0 ) && ( data[0] == 0xff ) ){
+
+            // this is an invalid family code, give up early.
+            return FALSE;
+        }
     }    
 
     uint8_t crc = onewire_u8_crc( data, sizeof(data) - 1 );
@@ -115,15 +122,22 @@ bool onewire_b_read_rom_id( uint8_t *family_code, uint64_t *id ){
         return FALSE;
     }
 
+
     *family_code = data[0];
     memcpy( id, &data[1], ONEWIRE_ID_LEN );
+
+    // check if ID is valid
+    if( ( *id == 0 ) || ( *family_code == 0 ) ){
+
+        return FALSE;
+    }
 
     return TRUE;
 }
 
 #else
 
-void onewire_v_init( void ){
+void onewire_v_init( uint8_t _io_pin ){
 
 }
 

@@ -170,15 +170,15 @@ int8_t batt_kv_handler(
 }
 
 
-static uint8_t batt_state;
-#define BATT_STATE_OK           0
-#define BATT_STATE_LOW          1
-#define BATT_STATE_CRITICAL     2
-#define BATT_STATE_CUTOFF       3
+// static uint8_t batt_state;
+// #define BATT_STATE_OK           0
+// #define BATT_STATE_LOW          1
+// #define BATT_STATE_CRITICAL     2
+// #define BATT_STATE_CUTOFF       3
 // static uint8_t batt_request_shutdown;
 
 
-#define EMERGENCY_CUTOFF_VOLTAGE ( BATT_CUTOFF_VOLTAGE - 100 ) // set 100 mv below the main cutoff, to give a little headroom
+// #define EMERGENCY_CUTOFF_VOLTAGE ( BATT_CUTOFF_VOLTAGE - 100 ) // set 100 mv below the main cutoff, to give a little headroom
 
 
 KV_SECTION_META kv_meta_t battery_enable_kv[] = {
@@ -195,7 +195,7 @@ KV_SECTION_OPT kv_meta_t battery_enable_mcp73831_kv[] = {
 KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
     // { CATBUS_TYPE_INT8,   0, KV_FLAGS_READ_ONLY,  &batt_ui_state,               0,  "batt_ui_state" },
     // { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,              0,  "batt_pixel_power" },
-    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,                  0,  "batt_state" },
+    // { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_state,                  0,  "batt_state" },
     // { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
     // { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "batt_button_event" },
     // { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &fan_on,                      0,  "batt_fan_on" },
@@ -284,7 +284,7 @@ hold btn 0 for 3 seconds and btn 1 for 6 seconds
 //     return ret_val;
 // }
 
-// PT_THREAD( battery_ui_thread( pt_t *pt, void *state ) );
+PT_THREAD( battery_cutoff_thread( pt_t *pt, void *state ) );
 
 void batt_v_init( void ){
 
@@ -370,10 +370,10 @@ void batt_v_init( void ){
 
     // batt_v_enable_pixels();
 
-    // thread_t_create( battery_ui_thread,
-    //                  PSTR("batt_ui"),
-    //                  0,
-    //                  0 );
+    thread_t_create( battery_cutoff_thread,
+                     PSTR("batt_cutoff_monitor"),
+                     0,
+                     0 );
 
     // fs_f_create_virtual( PSTR("low_batt.fxb"), fx_low_batt_vfile_handler );
     // fs_f_create_virtual( PSTR("crit_batt.fxb"), fx_crit_batt_vfile_handler );
@@ -386,7 +386,13 @@ uint16_t batt_u16_get_charge_voltage( void ){
     return batt_max_charge_voltage;
 }
 
-uint16_t batt_u16_get_discharge_voltage( void ){
+uint16_t batt_u16_get_min_discharge_voltage( void ){
+
+    // verify the min discharge voltage is in a reasonable range
+    if( batt_min_discharge_voltage < BATT_CUTOFF_VOLTAGE ){
+
+        batt_min_discharge_voltage = BATT_CUTOFF_VOLTAGE;
+    }
 
     return batt_min_discharge_voltage;
 }
@@ -532,6 +538,16 @@ uint16_t batt_u16_get_batt_volts( void ){
     return bq25895_u16_get_batt_voltage();
 }
 
+uint16_t batt_u16_get_charge_current( void ){
+
+    if( batt_enable_mcp73831 ){
+
+        return 0;
+    }
+
+    return bq25895_u16_get_charge_current();
+}
+
 uint8_t batt_u8_get_soc( void ){
 
     return fuel_u8_get_soc();    
@@ -616,6 +632,27 @@ void batt_v_shutdown_power( void ){
     bq25895_v_enable_ship_mode( FALSE );
     bq25895_v_enable_ship_mode( FALSE );
 }
+
+
+PT_THREAD( battery_cutoff_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    // wait until connection to battery is established
+    THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );    
+
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() >= BATT_EMERGENCY_VOLTAGE );
+
+        log_v_critical_P( PSTR("Battery voltage critical, emergency shutdown") );
+
+        batt_v_shutdown_power();
+    }
+
+PT_END( pt );
+}
+
 
 
 // #if defined(ESP32)

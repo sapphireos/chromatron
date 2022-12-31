@@ -30,6 +30,7 @@
 #include "pixel.h"
 #include "graphics.h"
 #include "pixel_power.h"
+#include "led_detect.h"
 #include "vm.h"
 #include "vm_sync.h"
 #include "superconductor.h"
@@ -236,6 +237,12 @@ PT_BEGIN( pt );
 
             avg_timing_lag = util_u32_ewma( lag, avg_timing_lag, 4 );
         }
+
+        // run detection algorithm (if enabled) before signalling
+        // pixel driver to run
+        // this avoids signal cross talk between the LED signal line
+        // and the LED detection line.
+        led_detect_v_run_detect();
 
         if( sys_b_is_shutting_down() ){
 

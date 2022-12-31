@@ -30,6 +30,9 @@
 #define LED_UNIT_TYPE_STRAND50      1
 
 
+
+#define LED_MAX_DETECT_MISS_COUNT   3
+
 typedef struct{
     uint8_t unit_type;
     uint8_t led_type;
@@ -45,6 +48,7 @@ typedef struct{
 
 void led_detect_v_init( void );
 
+void led_detect_v_run_detect( void );
 bool led_detect_b_led_connected( void );
 
 #endif

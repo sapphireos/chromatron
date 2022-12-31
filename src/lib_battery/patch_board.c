@@ -64,11 +64,11 @@ void patchboard_v_set_solar_en( bool enable ){
 
     if( enable ){
 
-        pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 0 );
+        pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 1 );
     }
     else{
 
-        pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 1 );
+        pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 0 );
     }
 }
 
