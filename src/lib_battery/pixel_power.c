@@ -83,7 +83,9 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 50 );
+        TMR_WAIT( pt, 100 );
+
+        THREAD_WAIT_WHILE( pt, !request_pixels_disabled && !request_pixels_enabled );
 
         // check if pixels should be ENabled:
         if( request_pixels_enabled ){
