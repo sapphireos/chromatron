@@ -195,7 +195,7 @@ static fuel_curve_t *curve_ptr;
 
 // static const PROGMEM char fuel_data_fname[] = "batt_soc_data";
 
-static uint8_t batt_soc = 50; // state of charge in percent
+static uint8_t batt_soc = 100; // state of charge in percent
 // static uint16_t soc_state;
 // #define SOC_MAX_VOLTS   ( batt_u16_get_charge_voltage() - 100 )
 // #define SOC_MIN_VOLTS   ( batt_u16_get_discharge_voltage() )
@@ -347,14 +347,25 @@ PT_BEGIN( pt );
             // voltage might be a bit over the intended maximum.
             // this is not a bug, it is a consequence of the analog nature of reality.
 
+            batt_soc = 100;
+
             continue;
         }
         else if( volts <= SOC_VOLTS_MIN ){
 
             // battery may run down beyond minimum tracking voltage
             // also not an error.
+
+            batt_soc = 0;
+
             continue;
         }
+
+
+        // compute simple SoC for now
+        batt_soc = ( ( volts - SOC_VOLTS_MIN ) * 100 ) / ( SOC_VOLTS_MAX - SOC_VOLTS_MIN  );
+
+
 
         uint8_t bin = volts_to_bin( volts );
 
