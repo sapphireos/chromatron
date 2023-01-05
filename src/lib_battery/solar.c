@@ -308,6 +308,17 @@ static void disable_solar_vbus( void ){
 	}	
 }
 
+static bool is_solar_enable_threshold( void ){
+
+	if( ( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ) &&
+		( light_sensor_u32_read() >= charge_minimum_light ) ){
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 
 PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) )
 {
@@ -375,7 +386,31 @@ PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+	// wait if battery is not connected (this could also be a charge system fault)
+	THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
+
+	// check if above solar threshold
+	if( is_solar_enable_threshold() ){
+
+		// if so, start in discharge state, so it will then switch to solar charge
+		// and enable the panel connection.
+		// this is done before the full charge check, so that if it is fully charged,
+		// we will still be able to power off the panel instead of the battery.
+		solar_state = SOLAR_MODE_DISCHARGE;		
+	}
+	// check if fully charged:
+	else if( batt_u16_get_batt_volts() >= batt_u16_get_charge_voltage() ){
+
+		solar_state = SOLAR_MODE_FULL_CHARGE;
+	}
+	else{
+
+		solar_state = SOLAR_MODE_DISCHARGE;
+	}
+
+
 	apply_state_name();
+
 
 	while(1){
 
@@ -468,8 +503,7 @@ PT_BEGIN( pt );
 						next_state = SOLAR_MODE_CHARGE_DC;
 					}
 					// check solar enable threshold
-					else if( ( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ) &&
-							 ( light_sensor_u32_read() >= charge_minimum_light ) ){
+					else if( is_solar_enable_threshold() ){
 
 						log_v_debug_P( PSTR("entering solar charge: %u mV %u lux"), solar_volts, light_sensor_u32_read() );
 
