@@ -292,6 +292,21 @@ static void request_close_panel( void ){
 	solar_tilt_v_set_tilt_angle( 0 );	
 }
 
+static void enable_solar_vbus( void ){
+
+	if( patch_board_installed ){
+
+		patchboard_v_set_solar_en( TRUE );					
+	}	
+}
+
+static void disable_solar_vbus( void ){
+
+	if( patch_board_installed ){
+
+		patchboard_v_set_solar_en( FALSE );					
+	}	
+}
 
 
 PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) )
@@ -556,7 +571,7 @@ PT_BEGIN( pt );
 
 			// we do not leave full charge state until we start discharging,
 			// IE battery voltage drops below a threshold
-			if( filtered_batt_volts < RECHARGE_THRESHOLD ){
+			if( batt_u16_get_batt_volts() < RECHARGE_THRESHOLD ){
 
 				// switch to discharge state
 				next_state = SOLAR_MODE_DISCHARGE;
@@ -674,12 +689,8 @@ PT_BEGIN( pt );
 
 				// starting solar charge
 
-				// if patch board is installed,
 				// enable the solar panel connection
-				if( patch_board_installed ){
-
-					patchboard_v_set_solar_en( TRUE );					
-				}
+				enable_solar_vbus();
 			}
 
 
@@ -687,11 +698,11 @@ PT_BEGIN( pt );
 			if( ( solar_state == SOLAR_MODE_CHARGE_SOLAR ) &&
 				( next_state != SOLAR_MODE_CHARGE_SOLAR ) ){
 
-				// if patch board is installed:
-				// disable the solar panel connection.
-				if( patch_board_installed ){
+				// check if something other than full charge:
+				if( next_state != SOLAR_MODE_FULL_CHARGE ){
 
-					patchboard_v_set_solar_en( FALSE );					
+					// disable the solar panel connection.
+					disable_solar_vbus();
 				}
 
 				// solar_tilt_v_optimize_reset();
