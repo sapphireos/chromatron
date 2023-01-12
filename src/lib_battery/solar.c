@@ -134,6 +134,8 @@ void solar_v_init( void ){
 
 	pixelpower_v_init();
 
+	mppt_v_init();
+
 	if( patch_board_installed && charger2_board_installed ){
 
 		log_v_error_P( PSTR("Cannot enable patch board and charger2 on the same system") );
