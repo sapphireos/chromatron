@@ -767,4 +767,9 @@ void solar_tilt_v_optimize_step( void ){
 	
 }
 
+bool solar_tilt_b_is_manual( void ){
+
+	return FALSE;
+}
+
 #endif
