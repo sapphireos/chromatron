@@ -23,6 +23,15 @@
 */
 
 
+/*
+
+
+Need to improve charge validation in both solar and DC.  Automatically switch over
+from bad input, with delays and logging.  Battery charging is just not simple.
+
+
+*/
+
 #include "sapphire.h"
 
 #include "solar.h"
@@ -64,6 +73,7 @@ static uint16_t charge_timer;
 #define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
 #define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
 #define DISCHARGE_HOLD_TIME				( 10 ) // time to remain in discharge before allowing a switch back to charge
+#define CHARGE_HOLD_TIME				( 5 )  // time to remain in charge before allowing a switch back to discharge or full
 
 static uint16_t fuel_gauge_timer;
 #define FUEL_SAMPLE_TIME				( 60 ) // debug! 60 seconds is probably much more than we need
@@ -548,14 +558,22 @@ PT_BEGIN( pt );
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
 
-			// check if no longer charging:
-			if( batt_b_is_charge_complete() ){
 
-				next_state = SOLAR_MODE_FULL_CHARGE;
+			if( charge_timer < CHARGE_HOLD_TIME ){
+
+				charge_timer++;
 			}
-			else if( !batt_b_is_charging() ){
+			else{
 
-				next_state = SOLAR_MODE_DISCHARGE;
+				// check if no longer charging:
+				if( batt_b_is_charge_complete() ){
+
+					next_state = SOLAR_MODE_FULL_CHARGE;
+				}
+				else if( !batt_b_is_charging() ){
+
+					next_state = SOLAR_MODE_DISCHARGE;
+				}
 			}
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
