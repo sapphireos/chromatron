@@ -200,11 +200,12 @@ bool button_b_is_shutdown_requested( void ){
     return batt_request_shutdown;
 }
 
+// UNPRESSED BUTTONS READ TRUE (HIGH!)
 static bool _button_b_read_button( uint8_t ch ){
 
     if( ch >= MAX_BUTTONS ){
 
-        return FALSE;
+        return TRUE;
     }
 
     if( solar_b_has_charger2_board() ){
@@ -241,7 +242,7 @@ static bool _button_b_read_button( uint8_t ch ){
         }
     }
 
-    return FALSE;
+    return TRUE;
 }
 
 static bool _button_b_button_down( uint8_t ch ){
@@ -349,6 +350,8 @@ PT_BEGIN( pt );
                 }
             }
             else{
+
+                log_v_debug_P( PSTR("Button commanded switch to AP mode") );
 
                 wifi_v_switch_to_ap();
             }
