@@ -140,8 +140,6 @@ void solar_v_init( void ){
 		led_detect_v_init();
 	}
 
-	button_v_init();
-
 	pixelpower_v_init();
 
 	mppt_v_init();

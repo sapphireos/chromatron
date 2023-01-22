@@ -38,7 +38,7 @@
 #include "pca9536.h"
 
 
-#define MAX_BUTTONS 2
+#define MAX_BUTTONS 4
 
 static uint8_t button_state;
 static int8_t ui_button = -1; // physically installed button for QON and wired direct to MCU
@@ -67,13 +67,16 @@ static uint8_t batt_request_shutdown;
 
 
 
-KV_SECTION_OPT kv_meta_t button_info_kv[] = {
-    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
-    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "batt_button_event" },
+KV_SECTION_OPT kv_meta_t button_batt_opt_kv[] = {
     { CATBUS_TYPE_BOOL,   0, 0,                   &batt_request_shutdown,       0,  "batt_request_shutdown" },
+
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "batt_button_event" },    
 };
 
+KV_SECTION_OPT kv_meta_t button_ui_opt_kv[] = {
 
+};
 
 
 PT_THREAD( button_thread( pt_t *pt, void *state ) );
@@ -81,7 +84,11 @@ PT_THREAD( button_thread( pt_t *pt, void *state ) );
 
 void button_v_init( void ){
 
-    kv_v_add_db_info( button_info_kv, sizeof(button_info_kv) );
+    
+    kv_v_add_db_info( button_batt_opt_kv, sizeof(button_batt_opt_kv) );
+
+
+    kv_v_add_db_info( button_ui_opt_kv, sizeof(button_ui_opt_kv) );
 
     #if defined(ESP8266)
     ui_button = IO_PIN_6_DAC0;

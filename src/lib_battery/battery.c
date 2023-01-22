@@ -27,25 +27,22 @@
 #include "hal_boards.h"
 #include "flash_fs.h"
 
-#include "status_led.h"
+// #include "status_led.h"
 
-#include "gfx_lib.h"
-#include "vm.h"
-#include "pixel.h"
+// #include "gfx_lib.h"
+// #include "vm.h"
+// #include "pixel.h"
 
 #include "battery.h"
 #include "fuel_gauge.h"
 
 #include "bq25895.h"
-#include "pca9536.h"
 #include "mcp73831.h"
 
 #include "solar.h"
+#include "buttons.h"
 
-#include "charger2.h"
-#include "patch_board.h"
-
-#include "hal_pixel.h"
+// #include "hal_pixel.h"
 
 #ifdef ENABLE_BATTERY
 
@@ -288,14 +285,16 @@ PT_THREAD( battery_cutoff_thread( pt_t *pt, void *state ) );
 
 void batt_v_init( void ){
 
+    // always init button module
+    button_v_init();
+
     set_batt_nameplate_capacity();
 
-    // if( !batt_enable ){
+    // check if battery module enabled
+    if( !batt_enable ){
 
-    //     pixels_enabled = TRUE;
-
-    //     return;
-    // }
+        return;
+    }
 
     #ifndef ESP8266
     kv_v_add_db_info( battery_enable_mcp73831_kv, sizeof(battery_enable_mcp73831_kv) );
