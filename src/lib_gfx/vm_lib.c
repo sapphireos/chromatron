@@ -363,7 +363,7 @@ int8_t vm_lib_i8_libcall_built_in(
             }
             else{
 
-                temp0 = params[0];
+                temp0 = data[params[0]];
             }
 
             if( temp0 < 0 ){
@@ -382,7 +382,7 @@ int8_t vm_lib_i8_libcall_built_in(
             }
             else{
 
-                temp0 = params[0];
+                temp0 = data[params[0]];
             }
 
             if( temp0 < 0 ){
@@ -401,7 +401,7 @@ int8_t vm_lib_i8_libcall_built_in(
             }
             else{
 
-                temp0 = params[0];
+                temp0 = data[params[0]];
             }
 
             if( temp0 < 0 ){
@@ -420,7 +420,7 @@ int8_t vm_lib_i8_libcall_built_in(
             }
             else{
 
-                temp0 = params[0];
+                temp0 = data[params[0]];
             }
 
             if( temp0 < 0 ){

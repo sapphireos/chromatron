@@ -78,11 +78,14 @@ KV_SECTION_OPT kv_meta_t button_ui_opt_kv[] = {
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "button_state" },
 
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "button_event_0" },    
-    #elif MAX_BUTTONS >= 2
+    #endif
+    #if MAX_BUTTONS >= 2
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[1],             0,  "button_event_1" },    
-    #elif MAX_BUTTONS >= 3
+    #endif
+    #if MAX_BUTTONS >= 3
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[2],             0,  "button_event_2" },    
-    #elif MAX_BUTTONS >= 4
+    #endif
+    #if MAX_BUTTONS >= 4
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[3],             0,  "button_event_3" },    
     #endif
 };
