@@ -248,6 +248,27 @@ static void _pixel_v_configure( void ){
 }
 
 
+static void start_transfer( void ){
+
+    uint16_t data_length = setup_pixel_buffer();
+
+    // this will transmit using interrupt/DMA mode
+    memset( &spi_transaction, 0, sizeof(spi_transaction) );
+
+    spi_transaction.length = data_length * 8;
+    spi_transaction.tx_buffer = outputs;
+    
+    esp_err_t err = spi_device_queue_trans( hal_spi_s_get_handle(), &spi_transaction, 200 );
+    if( err != ESP_OK ){
+
+        log_v_critical_P( PSTR("pixel spi bus error: 0x%03x handle: 0x%x len: %u"), err, hal_spi_s_get_handle(), data_length );
+
+        // this is bad, but log and we will try on the next frame
+
+        // continue;
+    }     
+}
+
 PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -266,23 +287,7 @@ PT_BEGIN( pt );
 
         // initiate SPI transfers
 
-        uint16_t data_length = setup_pixel_buffer();
-
-        // this will transmit using interrupt/DMA mode
-        memset( &spi_transaction, 0, sizeof(spi_transaction) );
-
-        spi_transaction.length = data_length * 8;
-        spi_transaction.tx_buffer = outputs;
-        
-        esp_err_t err = spi_device_queue_trans( hal_spi_s_get_handle(), &spi_transaction, 200 );
-        if( err != ESP_OK ){
-
-            log_v_critical_P( PSTR("pixel spi bus error: 0x%03x handle: 0x%x len: %u"), err, hal_spi_s_get_handle(), data_length );
-
-            // this is bad, but log and we will try on the next frame
-
-            continue;
-        }     
+        start_transfer();        
 
         THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
 
@@ -290,6 +295,12 @@ PT_BEGIN( pt );
 
         
         if( gfx_b_is_output_zero() ){
+
+            // start final transfer to drive 0s to bus
+            start_transfer();
+
+            THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
+
 
             // shut down pixel driver IO
             spi_v_release();
