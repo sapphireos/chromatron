@@ -103,6 +103,15 @@ void button_v_init( void ){
     kv_v_add_db_info( button_ui_opt_kv, sizeof(button_ui_opt_kv) );
 
 
+    /*
+    
+    TODO
+
+    clean up the button pin selection logic.
+    it is a bit of a mess to do it this way.
+
+    */
+
     #if defined(ESP8266)
     batt_ui_button = IO_PIN_6_DAC0;
     #elif defined(ESP32)
@@ -113,9 +122,32 @@ void button_v_init( void ){
 
         batt_ui_button = IO_PIN_21;
     }
+    else if( board == BOARD_TYPE_ESP32_MINI_BUTTONS ){
+        
+        #ifndef CONFIG_FREERTOS_UNICORE        
+        log_v_critical_P( PSTR("Mini button board should be a single core!") );
+
+        return;
+        #endif
+
+        batt_ui_button = MINI_BTN_BOARD_BTN_0;
+
+        io_v_set_mode( MINI_BTN_BOARD_BTN_1, IO_MODE_INPUT_PULLUP );     
+        io_v_set_mode( MINI_BTN_BOARD_BTN_2, IO_MODE_INPUT_PULLUP );     
+        io_v_set_mode( MINI_BTN_BOARD_BTN_3, IO_MODE_INPUT_PULLUP );        
+    }
     else{
 
+        #ifdef CONFIG_FREERTOS_UNICORE
+        // the devkitm mini esp32 has only a single core.
+        // it is also missing some IO pins, so it cannot use the
+        // default pin 17 that the dual core uses.
+
+        batt_ui_button = MINI_BTN_BOARD_BTN_0;
+
+        #else
         batt_ui_button = IO_PIN_17_TX;
+        #endif
     }
     #endif
 
@@ -123,7 +155,6 @@ void button_v_init( void ){
 
         io_v_set_mode( batt_ui_button, IO_MODE_INPUT_PULLUP );     
     }
-
 
     thread_t_create( button_thread,
                      PSTR("button"),
@@ -254,42 +285,31 @@ static bool _button_b_read_button( uint8_t ch ){
             return patchboard_b_read_io2();
         }
     }
+    else if( ffs_u8_read_board_type() == BOARD_TYPE_ESP32_MINI_BUTTONS ){
+
+        if( ch == 0 ){
+
+            return io_b_digital_read( batt_ui_button );
+        }
+        else if( ch == 1 ){
+
+            return io_b_digital_read( MINI_BTN_BOARD_BTN_1 );
+        }
+        else if( ch == 2 ){
+
+            return io_b_digital_read( MINI_BTN_BOARD_BTN_2 );
+        }
+        else if( ch == 3 ){
+
+            return io_b_digital_read( MINI_BTN_BOARD_BTN_3 );
+        }
+    }
     else{
 
         if( ch == 0 ){
 
             return io_b_digital_read( batt_ui_button );
         }
-        #if MAX_BUTTONS >= 2
-        else if( ch == 1 ){
-
-            #if defined(ESP32)
-            return io_b_digital_read( IO_PIN_13_A12 ); // PLACEHOLDER FIX THIS!
-            #endif
-
-            return TRUE;
-        }
-        #endif
-        #if MAX_BUTTONS >= 3
-        else if( ch == 2 ){
-
-            #if defined(ESP32)
-            return io_b_digital_read( IO_PIN_13_A12 ); // PLACEHOLDER FIX THIS!
-            #endif
-
-        return TRUE;
-        }
-        #if MAX_BUTTONS >= 4
-        else if( ch == 3 ){
-
-            #if defined(ESP32)
-            return io_b_digital_read( IO_PIN_13_A12 ); // PLACEHOLDER FIX THIS!
-            #endif
-
-            return TRUE;
-        }
-        #endif
-        #endif
     }
 
     return TRUE;
