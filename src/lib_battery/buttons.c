@@ -294,6 +294,7 @@ static bool _button_b_read_button( uint8_t ch ){
 
             return io_b_digital_read( batt_ui_button );
         }
+        #if defined(ESP32)
         else if( ch == 1 ){
 
             return io_b_digital_read( MINI_BTN_BOARD_BTN_1 );
@@ -306,6 +307,7 @@ static bool _button_b_read_button( uint8_t ch ){
 
             return io_b_digital_read( MINI_BTN_BOARD_BTN_3 );
         }
+        #endif
     }
     else{
 
