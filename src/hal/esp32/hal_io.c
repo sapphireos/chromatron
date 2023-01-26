@@ -154,6 +154,8 @@ static const gpio_num_t gpios_elite[IO_PIN_COUNT] = {
     GPIO_NUM_2,  // IO_PIN_LED2
 };
 
+static io_int_handler_t int_handlers[IO_PIN_COUNT];
+
 static const gpio_num_t *gpios = gpios_v0_1;
 
 int32_t hal_io_i32_get_gpio_num( uint8_t pin ){
@@ -314,12 +316,50 @@ void io_v_disable_jtag( void ){
 
 }
 
+static void IRAM_ATTR gpio_interrupt_handler(void *args)
+{
+    int pin = (int)args;
+
+    int_handlers[pin]();
+}
+
 void io_v_enable_interrupt(
     uint8_t int_number,
     io_int_handler_t handler,
     io_int_mode_t8 mode )
 {
+    #ifndef BOOTLOADER
 
+    ASSERT( int_number < IO_PIN_COUNT );
+    gpio_num_t gpio = gpios[int_number];
+
+    gpio_int_type_t int_type = GPIO_INTR_DISABLE;
+
+    if( mode == IO_INT_LOW ){
+
+        int_type = GPIO_INTR_LOW_LEVEL;
+    }
+    else if( mode == IO_INT_CHANGE ){
+
+        int_type = GPIO_INTR_ANYEDGE;
+    }
+    else if( mode == IO_INT_FALLING ){
+
+        int_type = GPIO_INTR_NEGEDGE;
+    }
+    else if( mode == IO_INT_RISING ){
+
+        int_type = GPIO_INTR_POSEDGE;
+    }
+
+    gpio_set_intr_type( gpio, int_type );
+
+    int_handlers[int_number] = handler;
+
+    gpio_install_isr_service( 0 );
+    gpio_isr_handler_add( gpio, gpio_interrupt_handler, (void *)(uint32_t)int_number );
+
+    #endif
 }
 
 void io_v_disable_interrupt( uint8_t int_number )
