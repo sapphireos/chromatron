@@ -309,7 +309,13 @@ class cg1Module(cg1Node):
 
                 elif node.target in ['sync']:
                     src = node.params[0].s
-                    query = [a.s for a in node.params[1].items]
+                    
+                    try:
+                        query = [a.s for a in node.params[1].items]
+
+                    except AttributeError:
+                        raise SyntaxError("Improper syntax for sync function", lineno=node.lineno)
+
                     try:
                         rate = int(node.params[2].s)
 

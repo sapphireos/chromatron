@@ -1,17 +1,25 @@
 
-a = StringBuf(32, publish=True)
+# send('light_level', 'veml7700_filtered_als', ['shard_1'])
+sync('light_level', 'veml7700_filtered_als', ['shard_1'])
 
-b = Number(456)
 
-def init():
-    # a = f'meow {123:4} {b}'
-    a = "meow %12d %d" % (123, b)
-    # a = "meow %4d %d" % (123, b)
-    # a = 'meow'
-    # b = 5
-    print('hello')
-    print(a)
-    print('good bye!')
+# vase = PixelArray(0, 55, reverse=False)
+# top = PixelArray(55, 12, reverse=False)
+
+
+# a = StringBuf(32, publish=True)
+
+# b = Number(456)
+
+# def init():
+#     # a = f'meow {123:4} {b}'
+#     a = "meow %12d %d" % (123, b)
+#     # a = "meow %4d %d" % (123, b)
+#     # a = 'meow'
+#     # b = 5
+#     print('hello')
+#     print(a)
+#     print('good bye!')
 
 # a = StringBuf(32, publish=True)
 # b = StringBuf('test2', publish=True)
