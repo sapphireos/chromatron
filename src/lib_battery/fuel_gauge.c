@@ -170,21 +170,63 @@ Discharge rate at a given load.
 
 
 
-static uint8_t batt_soc = 50; // state of charge in percent
-static uint16_t soc_state;
-#define SOC_MAX_VOLTS   ( batt_u16_get_charge_voltage() - 100 )
-#define SOC_MIN_VOLTS   ( batt_u16_get_discharge_voltage() )
-#define SOC_FILTER      64
+
+#define SOC_VOLTS_MAX 4100
+#define SOC_VOLTS_MIN 3100
+#define SOC_VOLTS_STEP 100
+#define SOC_VOLTS_BINS ( ( SOC_VOLTS_MAX - SOC_VOLTS_MIN ) / SOC_VOLTS_STEP )
+
+// packed for easy file storage
+typedef struct __attribute__((packed)){
+    uint32_t seconds[SOC_VOLTS_BINS];
+    uint32_t energy[SOC_VOLTS_BINS];
+    int8_t temp[SOC_VOLTS_BINS];
+} fuel_curve_t;
+
+static uint64_t base_energy;
+static int8_t base_temp;
+
+static uint8_t current_bin = 255;
+
+static fuel_curve_t the_curve;
+
+static fuel_curve_t *curve_ptr;
+
+
+// static const PROGMEM char fuel_data_fname[] = "batt_soc_data";
+
+static uint8_t batt_soc = 100; // state of charge in percent
+// static uint16_t soc_state;
+// #define SOC_MAX_VOLTS   ( batt_u16_get_charge_voltage() - 100 )
+// #define SOC_MIN_VOLTS   ( batt_u16_get_discharge_voltage() )
+// #define SOC_FILTER      64
 
 
 KV_SECTION_OPT kv_meta_t fuel_gauge_info_kv[] = {
-    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &batt_soc,                    0,  "batt_soc" },
+    { CATBUS_TYPE_UINT8,  0,                  KV_FLAGS_READ_ONLY,  &batt_soc,                    0,  "batt_soc" },
+    { CATBUS_TYPE_UINT32, SOC_VOLTS_BINS - 1, KV_FLAGS_READ_ONLY,  the_curve.seconds,            0,  "batt_fuel_bins_time" },
+    { CATBUS_TYPE_UINT32, SOC_VOLTS_BINS - 1, KV_FLAGS_READ_ONLY,  the_curve.energy,             0,  "batt_fuel_bins_energy" },
+    { CATBUS_TYPE_INT8,   SOC_VOLTS_BINS - 1, KV_FLAGS_READ_ONLY,  the_curve.temp,               0,  "batt_fuel_bins_temp" },
+    { CATBUS_TYPE_UINT8,  0,                  KV_FLAGS_READ_ONLY,  &current_bin,                 0,  "batt_fuel_bin" },
 };
+
+
+PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) );
 
 
 void fuel_v_init( void ){
 
     kv_v_add_db_info( fuel_gauge_info_kv, sizeof(fuel_gauge_info_kv) );
+
+
+    // load data file
+
+
+
+    thread_t_create( fuel_gauge_thread,
+                     PSTR("fuel_gauge"),
+                     0,
+                     0 );
 }
 
 uint8_t fuel_u8_get_soc( void ){
@@ -192,13 +234,209 @@ uint8_t fuel_u8_get_soc( void ){
     return batt_soc;
 }
 
-void fuel_v_do_soc( void ){
-    
-    
-    
-    
-    
+
+static void update_file( void ){
+
+
 }
+
+//     0    1    2    3    4    5    6    7    8    9    
+// 4100 4000 3900 3800 3700 3600 3500 3400 3300 3200 3100
+
+static uint64_t get_energy( void ){
+
+    return energy_u64_get_pixel_mwh();
+}
+
+uint32_t calc_power_from_energy( uint32_t seconds, uint32_t mwh ){
+
+    return ( (uint64_t)mwh * 3600 ) / seconds;
+}
+
+
+static uint8_t volts_to_bin( uint16_t volts ){
+
+    return SOC_VOLTS_BINS - ( ( volts - SOC_VOLTS_MIN ) / SOC_VOLTS_STEP );
+}
+
+/*
+Search for a curve matching the given power level and with
+available data for volts.
+
+*/
+fuel_curve_t *search_curve( uint16_t volts, uint32_t mw ){
+
+    return &the_curve;
+}
+
+/*
+
+Calculate total energy capacity in a curve
+
+*/
+
+uint32_t calc_energy_for_curve( fuel_curve_t *curve ){
+
+    uint32_t total = 0;
+
+    for( uint8_t i = 0; i < SOC_VOLTS_BINS; i++ ){
+
+        total += curve->energy[i];
+    }
+
+    return total;
+}
+
+/*
+
+Calculate state of charge
+
+*/
+uint8_t calc_soc( uint16_t volts, uint16_t mw, uint32_t mwh ){
+
+
+    return 0;
+}
+
+
+
+static void reset_soc_tracking( void ){
+
+    curve_ptr = &the_curve;
+    current_bin = 255;
+    base_energy = get_energy();
+    base_temp = batt_i8_get_batt_temp();
+}
+
+PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    reset_soc_tracking();
+
+    // wait until battery voltage is valid
+    THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() < SOC_VOLTS_MIN );
+
+
+    while(1){
+
+        // check if charging:
+        THREAD_WAIT_WHILE( pt, batt_b_is_charging() );
+
+        TMR_WAIT( pt, 1000 );
+
+        // check if charging:
+        if( batt_b_is_charging() ){
+
+            reset_soc_tracking();
+
+            continue;
+        }
+
+        // the double charging checks around the wait serve to require (in a coarse
+        // fashion) the charging have stopped for at least one second.
+
+
+
+
+        uint16_t volts = batt_u16_get_batt_volts();
+
+        if( volts > SOC_VOLTS_MAX ){
+
+            // battery charging is not an exact process, at full charge the battery
+            // voltage might be a bit over the intended maximum.
+            // this is not a bug, it is a consequence of the analog nature of reality.
+
+            batt_soc = 100;
+
+            continue;
+        }
+        else if( volts <= SOC_VOLTS_MIN ){
+
+            // battery may run down beyond minimum tracking voltage
+            // also not an error.
+
+            batt_soc = 0;
+
+            continue;
+        }
+
+
+        // compute simple SoC for now
+        batt_soc = ( ( volts - SOC_VOLTS_MIN ) * 100 ) / ( SOC_VOLTS_MAX - SOC_VOLTS_MIN  );
+
+
+
+        uint8_t bin = volts_to_bin( volts );
+
+        if( bin >= SOC_VOLTS_BINS ){
+
+            // this could probably change to an assert
+
+            log_v_error_P( PSTR("invalid bin") );
+
+            continue;
+        }
+
+        // initialize current bin tracking
+        if( current_bin == 255 ){
+
+            current_bin = bin;
+        }
+
+        // incrment seconds in bin
+        curve_ptr->seconds[bin]++;
+
+        // get delta of pixel energy since last bin
+        uint64_t current_energy = get_energy();
+
+        curve_ptr->energy[bin] = current_energy - base_energy;
+
+        // set average temp over bin so far
+        int8_t avg_temp = ( base_temp - batt_i8_get_batt_temp() ) / 2;
+        
+        curve_ptr->temp[bin] = avg_temp;
+
+
+        // if bin is changing:
+        if( bin != current_bin ){
+
+            // update data file
+            update_file();
+
+            current_bin = bin;
+            base_energy = current_energy;
+        }
+
+
+
+
+
+
+
+
+
+    }
+
+PT_END( pt );
+}
+
+
+
+
+
+
+
+
+
+
+// void fuel_v_do_soc( void ){
+    
+    
+    
+    
+    
+// }
 
 
 

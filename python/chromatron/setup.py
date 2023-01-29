@@ -65,7 +65,7 @@ setup(
         "cmd2 == 0.6.9",
         "click == 7.1.2",
         "crcmod == 1.7",
-        "intelhex == 2.1",
+        "intelhex == 2.3",
         "fnvhash==0.1.0",
         "zeroconf==0.24.4",
         "colorlog==4.1.0",

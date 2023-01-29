@@ -23,6 +23,15 @@
 */
 
 
+/*
+
+
+Need to improve charge validation in both solar and DC.  Automatically switch over
+from bad input, with delays and logging.  Battery charging is just not simple.
+
+
+*/
+
 #include "sapphire.h"
 
 #include "solar.h"
@@ -64,6 +73,7 @@ static uint16_t charge_timer;
 #define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
 #define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
 #define DISCHARGE_HOLD_TIME				( 10 ) // time to remain in discharge before allowing a switch back to charge
+#define CHARGE_HOLD_TIME				( 5 )  // time to remain in charge before allowing a switch back to discharge or full
 
 static uint16_t fuel_gauge_timer;
 #define FUEL_SAMPLE_TIME				( 60 ) // debug! 60 seconds is probably much more than we need
@@ -130,9 +140,9 @@ void solar_v_init( void ){
 		led_detect_v_init();
 	}
 
-	button_v_init();
-
 	pixelpower_v_init();
+
+	mppt_v_init();
 
 	if( patch_board_installed && charger2_board_installed ){
 
@@ -292,6 +302,32 @@ static void request_close_panel( void ){
 	solar_tilt_v_set_tilt_angle( 0 );	
 }
 
+static void enable_solar_vbus( void ){
+
+	if( patch_board_installed ){
+
+		patchboard_v_set_solar_en( TRUE );					
+	}	
+}
+
+static void disable_solar_vbus( void ){
+
+	if( patch_board_installed ){
+
+		patchboard_v_set_solar_en( FALSE );					
+	}	
+}
+
+static bool is_solar_enable_threshold( void ){
+
+	if( ( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ) &&
+		( light_sensor_u32_read() >= charge_minimum_light ) ){
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
 
 
 PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) )
@@ -360,7 +396,31 @@ PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+	// wait if battery is not connected (this could also be a charge system fault)
+	THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
+
+	// check if above solar threshold
+	if( is_solar_enable_threshold() ){
+
+		// if so, start in discharge state, so it will then switch to solar charge
+		// and enable the panel connection.
+		// this is done before the full charge check, so that if it is fully charged,
+		// we will still be able to power off the panel instead of the battery.
+		solar_state = SOLAR_MODE_DISCHARGE;		
+	}
+	// check if fully charged:
+	else if( batt_u16_get_batt_volts() >= batt_u16_get_charge_voltage() ){
+
+		solar_state = SOLAR_MODE_FULL_CHARGE;
+	}
+	else{
+
+		solar_state = SOLAR_MODE_DISCHARGE;
+	}
+
+
 	apply_state_name();
+
 
 	while(1){
 
@@ -453,8 +513,7 @@ PT_BEGIN( pt );
 						next_state = SOLAR_MODE_CHARGE_DC;
 					}
 					// check solar enable threshold
-					else if( ( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ) &&
-							 ( light_sensor_u32_read() >= charge_minimum_light ) ){
+					else if( is_solar_enable_threshold() ){
 
 						log_v_debug_P( PSTR("entering solar charge: %u mV %u lux"), solar_volts, light_sensor_u32_read() );
 
@@ -497,14 +556,22 @@ PT_BEGIN( pt );
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
 
-			// check if no longer charging:
-			if( batt_b_is_charge_complete() ){
 
-				next_state = SOLAR_MODE_FULL_CHARGE;
+			if( charge_timer < CHARGE_HOLD_TIME ){
+
+				charge_timer++;
 			}
-			else if( !batt_b_is_charging() ){
+			else{
 
-				next_state = SOLAR_MODE_DISCHARGE;
+				// check if no longer charging:
+				if( batt_b_is_charge_complete() ){
+
+					next_state = SOLAR_MODE_FULL_CHARGE;
+				}
+				else if( !batt_b_is_charging() ){
+
+					next_state = SOLAR_MODE_DISCHARGE;
+				}
 			}
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
@@ -556,7 +623,7 @@ PT_BEGIN( pt );
 
 			// we do not leave full charge state until we start discharging,
 			// IE battery voltage drops below a threshold
-			if( filtered_batt_volts < RECHARGE_THRESHOLD ){
+			if( batt_u16_get_batt_volts() < RECHARGE_THRESHOLD ){
 
 				// switch to discharge state
 				next_state = SOLAR_MODE_DISCHARGE;
@@ -674,12 +741,8 @@ PT_BEGIN( pt );
 
 				// starting solar charge
 
-				// if patch board is installed,
 				// enable the solar panel connection
-				if( patch_board_installed ){
-
-					patchboard_v_set_solar_en( TRUE );					
-				}
+				enable_solar_vbus();
 			}
 
 
@@ -687,11 +750,11 @@ PT_BEGIN( pt );
 			if( ( solar_state == SOLAR_MODE_CHARGE_SOLAR ) &&
 				( next_state != SOLAR_MODE_CHARGE_SOLAR ) ){
 
-				// if patch board is installed:
-				// disable the solar panel connection.
-				if( patch_board_installed ){
+				// check if something other than full charge:
+				if( next_state != SOLAR_MODE_FULL_CHARGE ){
 
-					patchboard_v_set_solar_en( FALSE );					
+					// disable the solar panel connection.
+					disable_solar_vbus();
 				}
 
 				// solar_tilt_v_optimize_reset();

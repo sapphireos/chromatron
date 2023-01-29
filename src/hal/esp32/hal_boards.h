@@ -30,6 +30,7 @@
 #include "hal_io.h"
 
 // for Elite board:
+// BOARD_TYPE_ELITE
 #define ELITE_CASE_ADC_IO       IO_PIN_32_A7
 #define ELITE_AMBIENT_ADC_IO    IO_PIN_33_A9
 #define ELITE_FAN_IO            IO_PIN_19_MISO
@@ -37,6 +38,13 @@
 #define ELITE_LED_ID_IO         IO_PIN_25_A1 // CS pin on SPI header
 #define ELITE_TILT_MOTOR_IO_1   IO_PIN_16_RX
 #define ELITE_TILT_MOTOR_IO_0   IO_PIN_17_TX
+
+// ESP32 Mini button controllers:
+// BOARD_TYPE_ESP32_MINI_BUTTONS
+#define MINI_BTN_BOARD_BTN_0    IO_PIN_32_A7
+#define MINI_BTN_BOARD_BTN_1    IO_PIN_33_A9
+#define MINI_BTN_BOARD_BTN_2    IO_PIN_25_A1
+#define MINI_BTN_BOARD_BTN_3    IO_PIN_26_A0
 
 
 #endif

@@ -469,6 +469,7 @@ int8_t gfx_i8_kv_handler(
 KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_enable,                  0,                   "gfx_enable" },
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_READ_ONLY, &sys_enable,                0,                   "gfx_sys_enable" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_READ_ONLY, &zero_output,               0,                   "gfx_zero_output" },
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_debug,                   0,                   "gfx_debug" },
     { CATBUS_TYPE_BOOL,       0, 0,                0,                            gfx_i8_kv_handler,   "gfx_debug_reset" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,                   "gfx_sub_dimmer" },

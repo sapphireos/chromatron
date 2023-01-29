@@ -42,25 +42,44 @@ KV_SECTION_META kv_meta_t ssd1306_kv[] = {
     {CATBUS_TYPE_BOOL,      0, KV_FLAGS_PERSIST, 0,    0, "ssd1306_enable"},   
 };
 
+static uint8_t lcd_width = 128;
+static uint8_t lcd_height = 32;
+
+
 KV_SECTION_OPT kv_meta_t ssd1306_opt_kv[] = {
     {CATBUS_TYPE_UINT8,     0, 0, &target_dimmer,           0, "ssd1306_dimmer"},   
     {CATBUS_TYPE_UINT16,    0, 0, &debug,                   0, "ssd1306_debug"},   
     {CATBUS_TYPE_BOOL,      0, KV_FLAGS_PERSIST, &invert,   0, "ssd1306_invert"},   
+    {CATBUS_TYPE_UINT8,     0, KV_FLAGS_PERSIST, &lcd_width,0, "ssd1306_width"},   
+    {CATBUS_TYPE_UINT8,     0, KV_FLAGS_PERSIST, &lcd_height,0, "ssd1306_height"},   
 };
 
 #define BUF_SIZE 64
 
-static uint8_t lcd_width = 128;
-static uint8_t lcd_height = 32;
-
-static uint8_t disp_buf[128 * 32 / 8];
+static mem_handle_t disp_buf_h;
 
 static uint16_t cursor_x, cursor_y;
 static uint8_t current_font;
 
+
+static uint8_t *get_disp_buf( void ){
+
+    if( disp_buf_h <= 0 ){
+
+        return 0;
+    }
+
+    return mem2_vp_get_ptr( disp_buf_h );
+}
+
 static void command_n( uint8_t cmd, uint8_t *data, uint16_t len ){
     
     ASSERT( len <= BUF_SIZE );
+
+    if( data == 0 ){
+
+        return;
+    }
 
     uint8_t buf[BUF_SIZE + 2];
 
@@ -109,6 +128,13 @@ static void refresh_display( void ){
     command2( SSD1306_CMD_SET_PAGE_ADDR, 0x00, lcd_height - 1 );
     command2( SSD1306_CMD_SET_COL_ADDR, 0x00, lcd_width - 1 );
 
+    uint8_t *disp_buf = get_disp_buf();
+
+    if( disp_buf == 0 ){
+
+        return;
+    }
+
     data_n( &disp_buf[0],   128 );
     data_n( &disp_buf[128], 128 );
     data_n( &disp_buf[256], 128 );
@@ -123,6 +149,13 @@ static void write_pixel( uint16_t x, uint16_t y, uint8_t val ){
     }
 
     if( y >= lcd_height ){
+
+        return;
+    }
+
+    uint8_t *disp_buf = get_disp_buf();
+
+    if( disp_buf == 0 ){
 
         return;
     }
@@ -251,7 +284,14 @@ void ssd1306_v_printf( char * format, ... ){
 
 void ssd1306_v_clear( void ){
 
-    memset( disp_buf, 0, sizeof(disp_buf) );
+    uint8_t *disp_buf = get_disp_buf();
+
+    if( disp_buf == 0 ){
+
+        return;
+    }
+
+    memset( disp_buf, 0, mem2_u16_get_size( disp_buf_h ) );
 }
 
 void ssd1306_v_home( void ){
@@ -417,6 +457,18 @@ PT_END( pt );
 void ssd1306_v_init( void ){
 
     if( !kv_b_get_boolean( __KV__ssd1306_enable ) ){
+
+        return;
+    }
+
+    uint16_t buf_size = lcd_width * lcd_height / 8;
+
+    disp_buf_h = mem2_h_alloc( buf_size );
+
+    if( disp_buf_h < 0 ){
+
+        // the system is pretty hosed if this fails on init
+        log_v_critical_P( PSTR("mem fail") );
 
         return;
     }

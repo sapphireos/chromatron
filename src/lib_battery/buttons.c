@@ -34,14 +34,14 @@
 #include "patch_board.h"
 #include "buttons.h"
 #include "battery.h"
-
 #include "pca9536.h"
 
 
-#define MAX_BUTTONS 2
+#define MAX_BUTTONS 4
 
 static uint8_t button_state;
-static int8_t ui_button = -1; // physically installed button for QON and wired direct to MCU
+static int8_t batt_ui_button = -1; // physically installed button for QON and wired direct to MCU
+// the batt ui button is always button channel 0
 
 // button events:
 static uint8_t button_event_prev[MAX_BUTTONS];
@@ -67,13 +67,28 @@ static uint8_t batt_request_shutdown;
 
 
 
-KV_SECTION_OPT kv_meta_t button_info_kv[] = {
-    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "batt_button_state" },
-    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "batt_button_event" },
+KV_SECTION_OPT kv_meta_t button_batt_opt_kv[] = {
     { CATBUS_TYPE_BOOL,   0, 0,                   &batt_request_shutdown,       0,  "batt_request_shutdown" },
+
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "batt_button_event" },    
 };
 
+KV_SECTION_OPT kv_meta_t button_ui_opt_kv[] = {
+    #if MAX_BUTTONS >=1
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_state,                0,  "button_state" },
 
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[0],             0,  "button_event_0" },    
+    #endif
+    #if MAX_BUTTONS >= 2
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[1],             0,  "button_event_1" },    
+    #endif
+    #if MAX_BUTTONS >= 3
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[2],             0,  "button_event_2" },    
+    #endif
+    #if MAX_BUTTONS >= 4
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &button_event[3],             0,  "button_event_3" },    
+    #endif
+};
 
 
 PT_THREAD( button_thread( pt_t *pt, void *state ) );
@@ -81,29 +96,68 @@ PT_THREAD( button_thread( pt_t *pt, void *state ) );
 
 void button_v_init( void ){
 
-    kv_v_add_db_info( button_info_kv, sizeof(button_info_kv) );
+    if( batt_b_enabled() ){
+
+        // optional controls for battery systems:
+        kv_v_add_db_info( button_batt_opt_kv, sizeof(button_batt_opt_kv) );    
+    }
+
+    // normal button controls:
+    kv_v_add_db_info( button_ui_opt_kv, sizeof(button_ui_opt_kv) );
+
+
+    /*
+    
+    TODO
+
+    clean up the button pin selection logic.
+    it is a bit of a mess to do it this way.
+
+    */
 
     #if defined(ESP8266)
-    ui_button = IO_PIN_6_DAC0;
+    batt_ui_button = IO_PIN_6_DAC0;
     #elif defined(ESP32)
 
     uint8_t board = ffs_u8_read_board_type();
 
     if( board == BOARD_TYPE_ELITE ){
 
-        ui_button = IO_PIN_21;
+        batt_ui_button = IO_PIN_21;
+    }
+    else if( board == BOARD_TYPE_ESP32_MINI_BUTTONS ){
+        
+        #ifndef CONFIG_FREERTOS_UNICORE        
+        log_v_critical_P( PSTR("Mini button board should be a single core!") );
+
+        return;
+        #endif
+
+        batt_ui_button = MINI_BTN_BOARD_BTN_0;
+
+        io_v_set_mode( MINI_BTN_BOARD_BTN_1, IO_MODE_INPUT_PULLUP );     
+        io_v_set_mode( MINI_BTN_BOARD_BTN_2, IO_MODE_INPUT_PULLUP );     
+        io_v_set_mode( MINI_BTN_BOARD_BTN_3, IO_MODE_INPUT_PULLUP );        
     }
     else{
 
-        ui_button = IO_PIN_17_TX;
+        #ifdef CONFIG_FREERTOS_UNICORE
+        // the devkitm mini esp32 has only a single core.
+        // it is also missing some IO pins, so it cannot use the
+        // default pin 17 that the dual core uses.
+
+        batt_ui_button = MINI_BTN_BOARD_BTN_0;
+
+        #else
+        batt_ui_button = IO_PIN_17_TX;
+        #endif
     }
     #endif
 
-    if( ui_button >= 0 ){
+    if( batt_ui_button >= 0 ){
 
-        io_v_set_mode( ui_button, IO_MODE_INPUT_PULLUP );     
+        io_v_set_mode( batt_ui_button, IO_MODE_INPUT_PULLUP );     
     }
-
 
     thread_t_create( button_thread,
                      PSTR("button"),
@@ -200,11 +254,12 @@ bool button_b_is_shutdown_requested( void ){
     return batt_request_shutdown;
 }
 
+// UNPRESSED BUTTONS READ TRUE (HIGH!)
 static bool _button_b_read_button( uint8_t ch ){
 
     if( ch >= MAX_BUTTONS ){
 
-        return FALSE;
+        return TRUE;
     }
 
     if( solar_b_has_charger2_board() ){
@@ -226,22 +281,43 @@ static bool _button_b_read_button( uint8_t ch ){
 
         if( ch == 0 ){
 
-            return io_b_digital_read( ui_button );
+            return io_b_digital_read( batt_ui_button );
         }
         else if( ch == 1 ){
 
             return patchboard_b_read_io2();
         }
     }
+    else if( ffs_u8_read_board_type() == BOARD_TYPE_ESP32_MINI_BUTTONS ){
+
+        if( ch == 0 ){
+
+            return io_b_digital_read( batt_ui_button );
+        }
+        #if defined(ESP32)
+        else if( ch == 1 ){
+
+            return io_b_digital_read( MINI_BTN_BOARD_BTN_1 );
+        }
+        else if( ch == 2 ){
+
+            return io_b_digital_read( MINI_BTN_BOARD_BTN_2 );
+        }
+        else if( ch == 3 ){
+
+            return io_b_digital_read( MINI_BTN_BOARD_BTN_3 );
+        }
+        #endif
+    }
     else{
 
         if( ch == 0 ){
 
-            return io_b_digital_read( ui_button );
+            return io_b_digital_read( batt_ui_button );
         }
     }
 
-    return FALSE;
+    return TRUE;
 }
 
 static bool _button_b_button_down( uint8_t ch ){
@@ -330,30 +406,33 @@ PT_BEGIN( pt );
             status_led_v_override();
         }
 
+        if( batt_b_enabled() ){
 
-        // check for shutdown
-        if( button_hold_duration[0] >= BUTTON_SHUTDOWN_TIME ){
+            // check for shutdown
+            if( button_hold_duration[0] >= BUTTON_SHUTDOWN_TIME ){
 
-            if( button_hold_duration[1] < BUTTON_WIFI_TIME ){
+                if( button_hold_duration[1] < BUTTON_WIFI_TIME ){
 
-                if( !batt_b_is_external_power() ){
+                    if( !batt_b_is_external_power() ){
 
-                    log_v_debug_P( PSTR("Button commanded shutdown") );
+                        log_v_debug_P( PSTR("Button commanded shutdown") );
 
-                    // set shutdown request
-                    batt_request_shutdown = TRUE;
+                        // set shutdown request
+                        batt_request_shutdown = TRUE;
 
-                    TMR_WAIT( pt, 120000 ); 
-                    // power should be off by now, but if not,
-                    // just carry on?    
+                        TMR_WAIT( pt, 120000 ); 
+                        // power should be off by now, but if not,
+                        // just carry on?    
+                    }
+                }
+                else{
+
+                    log_v_debug_P( PSTR("Button commanded switch to AP mode") );
+
+                    wifi_v_switch_to_ap();
                 }
             }
-            else{
-
-                wifi_v_switch_to_ap();
-            }
         }
-
     }
     
 
