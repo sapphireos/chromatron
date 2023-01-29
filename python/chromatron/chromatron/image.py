@@ -106,6 +106,7 @@ class Link(StructField):
                   Uint16Field(_name="rate"),
                   CatbusHash(_name="source_hash"),
                   CatbusHash(_name="dest_hash"),
+                  CatbusHash(_name="tag"),
                   CatbusQuery(_name="query")]
 
         super().__init__(_name="link", _fields=fields, **kwargs)
@@ -295,6 +296,7 @@ class FXImage(object):
         for link in links:
             source_hash = catbus_string_hash(link['source'])
             dest_hash = catbus_string_hash(link['dest'])
+            tag_hash = catbus_string_hash(link['tag'])
             query = [catbus_string_hash(a) for a in link['query']]
 
             meta_names.append(link['source'])
@@ -307,6 +309,7 @@ class FXImage(object):
                                  rate=link['rate'],
                                  source_hash=source_hash, 
                                  dest_hash=dest_hash, 
+                                 tag=tag_hash,
                                  query=query).pack()
 
         # set up DB entries

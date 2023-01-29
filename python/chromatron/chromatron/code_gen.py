@@ -328,7 +328,13 @@ class cg1Module(cg1Node):
                     aggregation = 'any'
                     dest = src
 
-                    builder.link(node.target, src, dest, query, aggregation, rate, lineno=node.lineno)
+                    if 'tag' in node.keywords:
+                        tag = node.keywords['tag'].s
+
+                    else:
+                        tag = None
+
+                    builder.link(node.target, src, dest, query, aggregation, rate, tag, lineno=node.lineno)
 
                 elif node.target in ['send', 'receive']:
                     src = node.params[1].s
@@ -349,7 +355,13 @@ class cg1Module(cg1Node):
                     except IndexError:
                         aggregation = 'any'
 
-                    builder.link(node.target, src, dest, query, aggregation, rate, lineno=node.lineno)
+                    if 'tag' in node.keywords:
+                        tag = node.keywords['tag'].s
+
+                    else:
+                        tag = None
+
+                    builder.link(node.target, src, dest, query, aggregation, rate, tag, lineno=node.lineno)
 
         # collect funcs
         funcs = [a for a in self.body if isinstance(a, cg1Func)]
@@ -981,8 +993,12 @@ class CodeGenPass1(ast.NodeVisitor):
             return cg1Call(func, args, kwargs, lineno=node.lineno)
 
         else:
+            kwargs = {}
+            for kw in map(self.visit, node.keywords):
+                kwargs.update(kw)
+
             # function call at module level
-            return cg1Call(func, list(map(self.visit, node.args)), lineno=node.lineno)
+            return cg1Call(func, list(map(self.visit, node.args)), kwargs, lineno=node.lineno)
 
     def visit_Yield(self, node):
         return cg1Call('yield', [], lineno=node.lineno)

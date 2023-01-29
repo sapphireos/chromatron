@@ -28,6 +28,20 @@ MONTHS =      {'january':   1,
                'november':  11,
                'december':  12}
 
+LINK_AGGREGRATIONS = {
+    'any': LINK_AGG_ANY,
+    'min': LINK_AGG_MIN,
+    'max': LINK_AGG_MAX,
+    'sum': LINK_AGG_SUM,
+    'avg': LINK_AGG_AVG,
+}
+
+LINK_MODES = {
+    'send': LINK_MODE_SEND,
+    'receive': LINK_MODE_RECV,
+    'sync': LINK_MODE_SYNC,
+}
+
 class Builder(object):
     def __init__(self, script_name='fx_script', source=[]):
         self.script_name = script_name
@@ -519,6 +533,9 @@ class Builder(object):
         indirect = False
         lib_call = False
         db_call = False
+
+        if func_name in LINK_MODES:
+            raise SyntaxError(f"Cannot call link constructor {func_name} as a function", lineno=lineno)
 
         if len(params) > 0 and \
            isinstance(params[0], VarContainer) and \
@@ -1757,28 +1774,16 @@ class Builder(object):
         self.cron[func].append(params)
 
 
-    def link(self, mode, source, dest, query, aggregation, rate, lineno=None):
-        aggregations = {
-            'any': LINK_AGG_ANY,
-            'min': LINK_AGG_MIN,
-            'max': LINK_AGG_MAX,
-            'sum': LINK_AGG_SUM,
-            'avg': LINK_AGG_AVG,
-        }
-
-        modes = {
-            'send': LINK_MODE_SEND,
-            'receive': LINK_MODE_RECV,
-            'sync': LINK_MODE_SYNC,
-        }
-
-        new_link = {'mode': modes[mode],
-                    'aggregation': aggregations[aggregation],
+    def link(self, mode, source, dest, query, aggregation, rate, tag=None, lineno=None):
+        new_link = {'mode': LINK_MODES[mode],
+                    'aggregation': LINK_AGGREGRATIONS[aggregation],
                     'rate': int(rate),
                     'source': source,
                     'dest': dest,
-                    'query': query}
+                    'query': query,
+                    'tag': tag}
 
         pprint(new_link)
 
         self.links.append(new_link)
+        
