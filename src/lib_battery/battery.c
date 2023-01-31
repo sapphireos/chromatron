@@ -369,6 +369,8 @@ PT_BEGIN( pt );
         log_v_critical_P( PSTR("Battery voltage critical, emergency shutdown") );
 
         batt_v_shutdown_power();
+
+        TMR_WAIT( pt, 10000 );
     }
 
 PT_END( pt );
