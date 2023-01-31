@@ -260,6 +260,10 @@ static bool is_follower( void ){
 
 static uint16_t get_priority( void ){
 
+    // TODO
+    // if doze mode works out, check for it here
+    // and lower priority?
+
     return 1;
 }
 

@@ -80,6 +80,10 @@ void pwr_v_wake( void ){
 
 }
 
+bool pwr_b_is_doze_mode( void ){
+
+    return doze_mode;
+}
 
 
 PT_THREAD( doze_thread( pt_t *pt, void *state ) )
