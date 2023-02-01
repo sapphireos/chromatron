@@ -260,8 +260,8 @@ void hal_wifi_v_init( void ){
     system_phy_set_max_tpw( tx_power * 4 );
 
     // set sleep mode
-    // wifi_set_sleep_type( MODEM_SLEEP_T );
-    wifi_set_sleep_type( NONE_SLEEP_T );
+    wifi_set_sleep_type( MODEM_SLEEP_T );
+    // wifi_set_sleep_type( NONE_SLEEP_T );
 
     // disable auto reconnect (we will manage this)
     wifi_station_set_auto_connect( FALSE );
@@ -589,7 +589,7 @@ static bool is_low_power_mode( void ){
 }
 
 static void apply_power_save_mode( void ){
-
+    return;
     // set power state
     if( is_low_power_mode() ){
 
@@ -1003,7 +1003,7 @@ PT_BEGIN( pt );
         wifi_rssi = -127;
 
         // reset power save mode to off
-        wifi_set_sleep_type( NONE_SLEEP_T );
+        // wifi_set_sleep_type( NONE_SLEEP_T );
 
         wifi_set_opmode_current( NULL_MODE );
 
