@@ -128,6 +128,13 @@ void cpu_v_init( void ){
     // }
     #endif    
 
+
+    /*
+    
+    Note that older ESP32-MINI-1 modules are single core, and newer ones are dual core.
+
+    */
+
     #ifndef BOOTLOADER
     #ifdef CONFIG_FREERTOS_UNICORE
     trace_printf("CPU: 1 core\n");
