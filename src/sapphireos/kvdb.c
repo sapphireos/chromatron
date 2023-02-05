@@ -476,9 +476,16 @@ int8_t kvdb_i8_set( catbus_hash_t32 hash, catbus_type_t8 type, const void *data,
     
     data_ptr = (uint8_t *)( entry + 1 );
 
-    // check if there is a notifier and data is changing
+    // check if data is changing
     if( changed ){
 
+        // check if persist is set:
+        if( entry->flags & KV_FLAGS_PERSIST ){
+
+            kv_i8_persist( entry->hash );
+        }        
+
+        // check if there is a notifier
         if( kvdb_v_notify_set != 0 ){
 
             catbus_meta_t meta;
