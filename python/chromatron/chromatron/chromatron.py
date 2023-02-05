@@ -501,6 +501,10 @@ class Chromatron(object):
             code = code_gen.compile_script(filename).stream
             bin_filename = os.path.split(filename)[1] + 'b'
 
+            # write out .fxb file
+            with open(bin_filename, 'wb+') as f:
+                f.write(code)
+
         try:
             self.delete_file(bin_filename)
 
