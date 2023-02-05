@@ -291,6 +291,33 @@ int8_t kvdb_i8_add(
     return KVDB_STATUS_OK;
 }
 
+int8_t kvdb_i8_set_persist( catbus_hash_t32 hash, bool persist ){
+
+    if( hash == 0 ){
+
+        return KVDB_STATUS_INVALID_HASH;    
+    }
+
+    // get entry for hash
+    db_entry_t *entry = _kvdb_dbp_search_hash( hash );
+
+    if( entry == 0 ){
+
+        return KVDB_STATUS_NOT_FOUND;    
+    }
+
+    if( persist ){
+
+        entry->flags |= KV_FLAGS_PERSIST;
+    }
+    else{
+
+        entry->flags &= ~KV_FLAGS_PERSIST;   
+    }
+
+    return KVDB_STATUS_OK;
+}
+
 void kvdb_v_set_name( char name[CATBUS_STRING_LEN] ){
     
     #ifdef KVDB_ENABLE_NAME_LOOKUP

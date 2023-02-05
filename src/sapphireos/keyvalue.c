@@ -1318,6 +1318,7 @@ PT_BEGIN( pt );
     static kv_meta_t *ptr;
     static kv_meta_t *end_ptr;
     static file_t f;
+    static uint16_t index;
 
     while(1){
 
@@ -1332,34 +1333,64 @@ PT_BEGIN( pt );
             goto end;
         }
 
-        kv_meta_t meta;
-        ptr = (kv_meta_t *)kv_start;
-        end_ptr = (kv_meta_t *)kv_end;
-
         if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-            end_ptr = (kv_meta_t *)kv_opt_end;
+            // NEW algorithm to work with KVDB dynamic persist
+
+            for( index = 0; index < kv_u16_count(); index++ ){
+
+                kv_meta_t meta;
+
+                if( kv_i8_lookup_index( index, &meta ) != KV_ERR_STATUS_OK ){
+
+                    continue;
+                }
+
+                // check flags - and that there is a RAM pointer
+                if( ( ( meta.flags & KV_FLAGS_PERSIST ) != 0 ) &&
+                      ( meta.ptr != 0 ) ){
+
+                    uint16_t param_len = kv_u16_get_size_meta( &meta );
+
+                    uint32_t hash = hash_u32_string( meta.name );
+                    _kv_i8_persist_set_internal( f, &meta, hash, meta.ptr, param_len );
+
+                    TMR_WAIT( pt, 5 );
+                }   
+            }
         }
+        // TODO Remove this section after confirming the dynamic works
+        else{
 
-        // iterate through handlers
-        while( ptr < end_ptr ){
+            kv_meta_t meta;
+            ptr = (kv_meta_t *)kv_start;
+            end_ptr = (kv_meta_t *)kv_end;
 
-            // load meta data
-            memcpy_P( &meta, ptr, sizeof(kv_meta_t) );
+            if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-            // check flags - and that there is a RAM pointer
-            if( ( ( meta.flags & KV_FLAGS_PERSIST ) != 0 ) &&
-                  ( meta.ptr != 0 ) ){
+                end_ptr = (kv_meta_t *)kv_opt_end;
+            }
 
-                uint16_t param_len = kv_u16_get_size_meta( &meta );
+            // iterate through handlers
+            while( ptr < end_ptr ){
 
-                uint32_t hash = hash_u32_string( meta.name );
-                _kv_i8_persist_set_internal( f, &meta, hash, meta.ptr, param_len );
+                // load meta data
+                memcpy_P( &meta, ptr, sizeof(kv_meta_t) );
 
-                TMR_WAIT( pt, 5 );
-            }   
+                // check flags - and that there is a RAM pointer
+                if( ( ( meta.flags & KV_FLAGS_PERSIST ) != 0 ) &&
+                      ( meta.ptr != 0 ) ){
 
-            ptr++;
+                    uint16_t param_len = kv_u16_get_size_meta( &meta );
+
+                    uint32_t hash = hash_u32_string( meta.name );
+                    _kv_i8_persist_set_internal( f, &meta, hash, meta.ptr, param_len );
+
+                    TMR_WAIT( pt, 5 );
+                }   
+
+                ptr++;
+            }
         }
 
         f = fs_f_close( f );

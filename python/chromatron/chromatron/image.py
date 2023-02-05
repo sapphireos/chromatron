@@ -95,9 +95,11 @@ class VMPublishVar(StructField):
         fields = [Uint32Field(_name="hash"),
                   Uint16Field(_name="addr"),
                   Uint8Field(_name="type"),
-                  ArrayField(_name="padding", _length=1, _field=Uint8Field)]
+                  Uint8Field(_name="flags")]
 
         super().__init__(_name="vm_publish", _fields=fields, **kwargs)
+
+KV_FLAGS_PERSIST =           0x04
 
 class Link(StructField):
     def __init__(self, **kwargs):
@@ -281,11 +283,21 @@ class FXImage(object):
         published_var_count = 0
         packed_publish = bytes()
         for var in self.program.globals:
+            flags = 0
+
+            # check for persist, this automatically also publish
+            if 'persist' in var.keywords and var.keywords['persist'] == True:
+                var.keywords['publish'] = True
+
+                flags |= KV_FLAGS_PERSIST
+
             if 'publish' in var.keywords and var.keywords['publish'] == True:
                 published_var = VMPublishVar(
                                     hash=catbus_string_hash(var.name), 
                                     addr=var.addr.addr,
-                                    type=get_type_id(var.data_type))
+                                    type=get_type_id(var.data_type),
+                                    flags=flags)
+                
                 packed_publish += published_var.pack()
                 
                 meta_names.append(var.name)

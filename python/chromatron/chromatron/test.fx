@@ -2,9 +2,10 @@
 # a = Number()
 
 # def init():
-send('light_level', 'veml7700_filtered_als', ['shard_1'], tag='meow')
+# send('light_level', 'veml7700_filtered_als', ['shard_1'], tag='meow')
     # a = sync('light_level', ['shard_1'])
 
+var = Number(persist=True)
 
 # vase = PixelArray(0, 55, reverse=False)
 # top = PixelArray(55, 12, reverse=False)

@@ -28,6 +28,7 @@
 #include "catbus_link.h"
 #include "datetime_struct.h"
 #include "target.h"
+#include "keyvalue.h"
 
 #define VM_ISA_VERSION              13
 
@@ -103,7 +104,7 @@ typedef struct __attribute__((packed)){
     uint32_t hash;
     uint16_t addr;
     uint8_t type;
-    uint8_t padding[1];
+    kv_flags_t8 flags;
 } vm_publish_t;
 
 typedef struct __attribute__((packed)){

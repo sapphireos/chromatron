@@ -5708,6 +5708,11 @@ int8_t vm_i8_load_program(
             kvdb_i8_add( publish->hash, type, 1, 0, 0 );
             kvdb_v_set_tag( publish->hash, ( 1 << vm_id ) );
 
+            if( publish->flags & KV_FLAGS_PERSIST ){
+
+                kvdb_i8_set_persist( publish->hash, TRUE );
+            }
+
             obj_ptr += sizeof(vm_publish_t);
         }
     }

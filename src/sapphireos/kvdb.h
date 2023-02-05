@@ -48,6 +48,8 @@ int8_t kvdb_i8_add(
     const void *data,
     uint16_t len );
 
+int8_t kvdb_i8_set_persist( catbus_hash_t32 hash, bool persist );
+
 void kvdb_v_set_name( char name[CATBUS_STRING_LEN] );
 #ifdef PGM_P
 void kvdb_v_set_name_P( PGM_P name );
