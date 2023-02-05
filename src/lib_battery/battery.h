@@ -35,7 +35,12 @@
 
 #define BATT_MIN_CHARGE_VBUS_VOLTS				4000
 
-#define BATT_PIX_COUNT_LOW_POWER_THRESHOLD		100
+// #define BATT_PIX_COUNT_LOW_POWER_THRESHOLD		100
+
+
+#define LION_MAX_VOLTAGE    4200
+#define LION_MIN_VOLTAGE    2900
+
 
 void batt_v_init( void );
 bool batt_b_enabled( void );

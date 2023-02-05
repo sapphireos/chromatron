@@ -25,10 +25,7 @@
 #ifndef _FUEL_GAUGE_H
 #define _FUEL_GAUGE_H
 
-
-#define LION_MAX_VOLTAGE    4200
-#define LION_MIN_VOLTAGE    2900
-
+#define FUEL_GAUGE_VOLTS_FILTER_DEPTH   16
 
 // #define FUEL_MAX_DISCHARGE_FILE_SIZE        65536
 
