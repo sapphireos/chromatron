@@ -72,6 +72,8 @@ static uint8_t current_scan_backoff;
 
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
+static bool enable_modem_sleep = FALSE; // default to disable modem sleep, it can be unstable and lose traffic
+
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
@@ -108,6 +110,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_msg_recovered,           0,   "wifi_arp_msg_recovered" },
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_msg_fails,               0,   "wifi_arp_msg_fails" },
+
+    { CATBUS_TYPE_BOOL,          0, KV_FLAGS_PERSIST,     &enable_modem_sleep,               0,   "wifi_enable_modem_sleep" },
 };
 
 
@@ -256,8 +260,8 @@ void hal_wifi_v_init( void ){
     system_phy_set_max_tpw( tx_power * 4 );
 
     // set sleep mode
-    // wifi_set_sleep_type( MODEM_SLEEP_T );
-    wifi_set_sleep_type( NONE_SLEEP_T );
+    wifi_set_sleep_type( MODEM_SLEEP_T );
+    // wifi_set_sleep_type( NONE_SLEEP_T );
 
     // disable auto reconnect (we will manage this)
     wifi_station_set_auto_connect( FALSE );
@@ -566,6 +570,37 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
         }
     }
 }
+
+static bool is_low_power_mode( void ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        // safe mode, we're not going to do anything fancy
+
+        return FALSE;
+    }
+
+    if( enable_modem_sleep ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static void apply_power_save_mode( void ){
+    return;
+    // set power state
+    if( is_low_power_mode() ){
+
+        wifi_set_sleep_type( MODEM_SLEEP_T );
+    }
+    else{
+
+        wifi_set_sleep_type( NONE_SLEEP_T );
+    }
+}
+
 
 int8_t get_route( ip_addr4_t *subnet, ip_addr4_t *subnet_mask ){
 
@@ -967,6 +1002,9 @@ PT_BEGIN( pt );
 
         wifi_rssi = -127;
 
+        // reset power save mode to off
+        // wifi_set_sleep_type( NONE_SLEEP_T );
+
         wifi_set_opmode_current( NULL_MODE );
 
         current_scan_backoff = scan_backoff;
@@ -1235,6 +1273,8 @@ PT_BEGIN( pt );
         if( connected ){
 
             wifi_rssi = wifi_station_get_rssi();
+
+            apply_power_save_mode();
         }
     }
 

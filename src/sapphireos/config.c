@@ -95,7 +95,6 @@ KV_SECTION_META kv_meta_t sys_cfg_kv[] = {
     { CATBUS_TYPE_UINT16,      0, 0,                   0, cfg_i8_kv_handler,  "fw_load_count" },
     { CATBUS_TYPE_UINT32,      0, 0,                   0, cfg_i8_kv_handler,  "max_log_size" },
     { CATBUS_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_led_quiet" },
-    { CATBUS_TYPE_BOOL,        0, 0,                   0, cfg_i8_kv_handler,  "enable_low_power" },
     // { CATBUS_TYPE_UINT32,      0, 0,                   &slowest_time, 0,      "cfg_slowest_time" },
     // { CATBUS_TYPE_UINT32,      0, 0,                   &slowest_id, 0,        "cfg_slowest_id" },
     #ifndef DISABLE_RECOVERY_MODE
