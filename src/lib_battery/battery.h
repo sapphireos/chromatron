@@ -65,4 +65,6 @@ uint16_t batt_u16_get_nameplate_capacity( void );
 
 void batt_v_shutdown_power( void );
 
+bool batt_b_startup_on_vbus( void );
+
 #endif

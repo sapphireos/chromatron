@@ -356,6 +356,10 @@ void batt_v_shutdown_power( void ){
     bq25895_v_enable_ship_mode( FALSE );
 }
 
+bool batt_b_startup_on_vbus( void ){
+
+    return startup_on_vbus;
+}
 
 PT_THREAD( battery_cutoff_thread( pt_t *pt, void *state ) )
 {
@@ -366,8 +370,8 @@ PT_BEGIN( pt );
 
     // check if VBUS connected on startup    
     startup_on_vbus = batt_b_is_vbus_connected();
-    
-    
+
+
     while(1){
 
         THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() >= BATT_EMERGENCY_VOLTAGE );

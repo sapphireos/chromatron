@@ -63,8 +63,8 @@ static uint8_t button_hold_duration[MAX_BUTTONS];
 #define BUTTON_SHUTDOWN_TIME        ( 3000 / BUTTON_CHECK_TIMING )
 #define BUTTON_WIFI_TIME            ( 1000 / BUTTON_CHECK_TIMING )
 
-static uint8_t batt_request_shutdown;
-
+static bool batt_request_shutdown;
+static bool shutdown_on_vbus_unplug;
 
 
 KV_SECTION_OPT kv_meta_t button_batt_opt_kv[] = {
@@ -334,9 +334,62 @@ static bool _button_b_button_down( uint8_t ch ){
     return TRUE;
 }
 
+
+PT_THREAD( vbus_shutdown_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    // check button for several seconds, if pressed,
+    // cancel the shutdown
+    static uint8_t counter;
+    counter = 0;
+
+    #define POLL_RATE 100
+    #define CHECK_TIME 5000 // in millseconds!
+
+    while( counter < ( CHECK_TIME / POLL_RATE ) ){ // set for 5 seconds
+
+        TMR_WAIT( pt, POLL_RATE );
+
+        if( button_state & 1 ){
+
+            // button 0 is pressed
+
+            // cancel shutdown!
+
+            log_v_debug_P( PSTR("VBUS unplug shutdown cancelled by button press") );
+
+            THREAD_EXIT( pt );
+        }
+
+        counter++;
+    }
+    
+    log_v_debug_P( PSTR("VBUS unplug event shutdown") );
+
+    // set shutdown request
+    batt_request_shutdown = TRUE;
+
+    TMR_WAIT( pt, 120000 ); 
+    // power should be off by now, but if not,
+    // just carry on?    
+    
+PT_END( pt );
+}
+
+
 PT_THREAD( button_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+     if( batt_b_enabled() ){
+
+        // if started on vbus:
+        if( batt_b_startup_on_vbus() ){
+
+            shutdown_on_vbus_unplug = TRUE;
+        }
+    }
     
     while(1){
 
@@ -407,6 +460,23 @@ PT_BEGIN( pt );
         }
 
         if( batt_b_enabled() ){
+
+            // if started on vbus:
+            if( shutdown_on_vbus_unplug ){
+
+                // check if VBUS is no longer plugged in
+                if( !batt_b_is_external_power() ){
+
+                    // clear flag so we stop checking this event
+                    shutdown_on_vbus_unplug = FALSE;
+
+                    // start shutdown thread
+                    thread_t_create( vbus_shutdown_thread,
+                                     PSTR("vbus_shutdown"),
+                                     0,
+                                     0 );
+                }
+            }
 
             // check for shutdown
             if( button_hold_duration[0] >= BUTTON_SHUTDOWN_TIME ){
