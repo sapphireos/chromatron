@@ -214,6 +214,31 @@ uint8_t fuel_u8_get_soc( void ){
     return batt_soc;
 }
 
+bool fuel_b_threshold_full_charge( void ){
+
+    return batt_soc >= FUEL_GAUGE_THRESHOLD_FULL_CHARGE;
+}
+
+bool fuel_b_threshold_top_charge( void ){
+
+    return ( batt_soc < FUEL_GAUGE_THRESHOLD_FULL_CHARGE ) && ( batt_soc >= FUEL_GAUGE_THRESHOLD_TOP_CHARGE );
+}
+
+bool fuel_b_threshold_mid_charge( void ){
+
+    return ( batt_soc < FUEL_GAUGE_THRESHOLD_TOP_CHARGE ) && ( batt_soc >= FUEL_GAUGE_THRESHOLD_MID_CHARGE );
+}
+
+bool fuel_b_threshold_low_charge( void ){
+
+    return ( batt_soc < FUEL_GAUGE_THRESHOLD_MID_CHARGE ) && ( batt_soc >= FUEL_GAUGE_THRESHOLD_LOW_CHARGE );
+}
+
+bool fuel_b_threshold_critical_charge( void ){
+
+    return ( batt_soc < FUEL_GAUGE_THRESHOLD_LOW_CHARGE );
+}
+
 static void reset_filter( void ){
 
     uint16_t batt_volts = batt_u16_get_batt_volts();

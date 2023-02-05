@@ -27,6 +27,11 @@
 
 #define FUEL_GAUGE_VOLTS_FILTER_DEPTH   16
 
+#define FUEL_GAUGE_THRESHOLD_FULL_CHARGE    95
+#define FUEL_GAUGE_THRESHOLD_TOP_CHARGE     70
+#define FUEL_GAUGE_THRESHOLD_MID_CHARGE     40
+#define FUEL_GAUGE_THRESHOLD_LOW_CHARGE     10
+
 // #define FUEL_MAX_DISCHARGE_FILE_SIZE        65536
 
 // #define BATT_RECORDER_RATE                  300
@@ -54,7 +59,11 @@ void fuel_v_init( void );
 
 uint8_t fuel_u8_get_soc( void );
 
-void fuel_v_do_soc( void );
+bool fuel_b_threshold_full_charge( void );
+bool fuel_b_threshold_top_charge( void );
+bool fuel_b_threshold_mid_charge( void );
+bool fuel_b_threshold_low_charge( void );
+bool fuel_b_threshold_critical_charge( void );
 
 #endif
 
