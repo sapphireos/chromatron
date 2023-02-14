@@ -1871,6 +1871,7 @@ def main():
     parser.add_argument("--load_esp32_loader", action="store_true", help="Load bootloader to ESP32")
     parser.add_argument("--monitor", action="store_true", help="Run serial monitor")
     parser.add_argument("--port", action="store", default=None, help="Set serial port")
+    parser.add_argument("--force_single_core", action="store_true", default=False, help="Force single core on ESP32")
 
     args = vars(parser.parse_args())
 
@@ -2040,7 +2041,7 @@ def main():
 
         # check if single or dual core chip
         single_core = False
-        if chip_info.find('Single Core') >= 0:
+        if chip_info.find('Single Core') >= 0 or args['force_single_core']:
             single_core = True
 
         target = 'esp32'
