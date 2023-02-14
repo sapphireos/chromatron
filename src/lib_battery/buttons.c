@@ -113,6 +113,12 @@ void button_v_init( void ){
     clean up the button pin selection logic.
     it is a bit of a mess to do it this way.
 
+
+
+
+    Mini devkit notes:
+    The devkitm mini does not have pins 16 or 17, and is now available in single and dual cores.
+
     */
 
     #if defined(ESP8266)
@@ -127,30 +133,19 @@ void button_v_init( void ){
     }
     else if( board == BOARD_TYPE_ESP32_MINI_BUTTONS ){
         
-        #ifndef CONFIG_FREERTOS_UNICORE        
-        log_v_critical_P( PSTR("Mini button board should be a single core!") );
-
-        return;
-        #endif
-
         batt_ui_button = MINI_BTN_BOARD_BTN_0;
 
         io_v_set_mode( MINI_BTN_BOARD_BTN_1, IO_MODE_INPUT_PULLUP );     
         io_v_set_mode( MINI_BTN_BOARD_BTN_2, IO_MODE_INPUT_PULLUP );     
         io_v_set_mode( MINI_BTN_BOARD_BTN_3, IO_MODE_INPUT_PULLUP );        
     }
-    else{
+    else if( batt_b_enabled() ){
 
-        #ifdef CONFIG_FREERTOS_UNICORE
-        // the devkitm mini esp32 has only a single core.
-        // it is also missing some IO pins, so it cannot use the
-        // default pin 17 that the dual core uses.
+        // This will crash on the ESP32 U4WDH used on the devkit mini because it doesn't have pins 16 and 17.
+        // However, we need this for compatibility support on legacy boards that do not have a board ID set.
+        // FWIW, those boards should not have the battery system enabled for their uses.
 
-        batt_ui_button = MINI_BTN_BOARD_BTN_0;
-
-        #else
         batt_ui_button = IO_PIN_17_TX;
-        #endif
     }
     #endif
 
@@ -279,7 +274,7 @@ static bool _button_b_read_button( uint8_t ch ){
     }
     else if( solar_b_has_patch_board() ){
 
-        if( ch == 0 ){
+        if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
 
             return io_b_digital_read( batt_ui_button );
         }
@@ -290,7 +285,7 @@ static bool _button_b_read_button( uint8_t ch ){
     }
     else if( ffs_u8_read_board_type() == BOARD_TYPE_ESP32_MINI_BUTTONS ){
 
-        if( ch == 0 ){
+        if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
 
             return io_b_digital_read( batt_ui_button );
         }
@@ -311,7 +306,7 @@ static bool _button_b_read_button( uint8_t ch ){
     }
     else{
 
-        if( ch == 0 ){
+        if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
 
             return io_b_digital_read( batt_ui_button );
         }
