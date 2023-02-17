@@ -291,6 +291,9 @@ static const hal_pix_ch_t pix_io[] = {
 };
 #endif
 
+void hal_pixel_v_configure( void ){
+
+}
 
 void hal_pixel_v_init( void ){
 

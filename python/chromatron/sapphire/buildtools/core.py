@@ -1202,7 +1202,7 @@ class AppBuilder(HexBuilder):
             hash32 = fnv1a_32(kv.param_name.encode('utf-8'))
 
             if hash32 in kv_meta_by_hash:
-                raise Exception("Hash collision! %s 0x%lx" % (kv.param_name, hash32))
+                raise Exception("Hash collision! %s 0x%lx -> %s" % (kv.param_name, hash32, kv_meta_by_hash[hash32][0].param_name))
 
             kv_meta_by_hash[hash32] = (kv, index)
 
