@@ -213,7 +213,7 @@ uint16_t hal_pixel_u16_driver_pixels( uint8_t driver ){
 
     ASSERT( driver < N_PIXEL_OUTPUTS );
     
-    return pix_counts[driver];
+    return gfx_u16_get_pix_driver_count( driver );
 }
 
 uint16_t hal_pixel_u16_driver_offset( uint8_t driver ){
@@ -224,7 +224,7 @@ uint16_t hal_pixel_u16_driver_offset( uint8_t driver ){
 
     for( uint8_t i = 0; i < driver; i++ ){
 
-        offset += pix_counts[i];
+        offset += gfx_u16_get_pix_driver_count( i );
     }
     
     return offset;
@@ -236,7 +236,7 @@ uint16_t hal_pixel_u16_get_pix_count( void ){
 
     for( uint8_t i = 0; i < N_PIXEL_OUTPUTS; i++ ){
 
-        count += pix_counts[i];
+        count += gfx_u16_get_pix_driver_count( i );
     }
 
     return count;

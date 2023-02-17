@@ -257,6 +257,7 @@ static bool _button_b_read_button( uint8_t ch ){
         return TRUE;
     }
 
+    #if defined(ESP8266) || defined(ESP32)
     if( solar_b_has_charger2_board() ){
         
         if( ch == 0 ){
@@ -304,6 +305,7 @@ static bool _button_b_read_button( uint8_t ch ){
         }
         #endif
     }
+    #endif
     else{
 
         if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){

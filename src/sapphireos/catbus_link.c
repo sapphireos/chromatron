@@ -555,7 +555,7 @@ typedef struct __attribute__((packed)){
 
 #define LINK_FILE_VERSION 1
 
-static file_t open_link_file(){
+static file_t open_link_file( void ){
 
     file_t f;
 

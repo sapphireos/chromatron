@@ -25,7 +25,7 @@
 
 #include "sapphire.h"
 
-#ifndef ESP8266
+#ifdef ESP32
 
 #include "mcp73831.h"
 

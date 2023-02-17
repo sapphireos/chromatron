@@ -62,7 +62,6 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #include "sockets.h"
 #include "fs.h"
 #include "watchdog.h"
-#include "hal_status_led.h"
 #include "hash.h"
 
 #include "hal_esp8266.h"
