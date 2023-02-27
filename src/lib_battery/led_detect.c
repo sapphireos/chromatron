@@ -32,7 +32,7 @@
 #include "hal_boards.h"
 #include "pix_modes.h"
 
-#if defined(ESP32)
+#if defined(ENABLE_LED_DETECT)
 
 static bool led_detected = TRUE;
 static uint64_t led_id;

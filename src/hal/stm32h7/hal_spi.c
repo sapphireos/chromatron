@@ -154,6 +154,21 @@ uint32_t spi_u32_get_freq( uint8_t channel ){
 	return actual_freq;
 }
 
+
+void spi_v_set_freq( uint8_t channel, uint32_t freq ){
+
+    ASSERT( channel < N_SPI_PORTS );
+
+
+}
+
+
+void spi_v_set_mode( uint8_t channel, uint8_t mode ){
+
+	ASSERT( channel < N_SPI_PORTS );
+
+}
+
 uint8_t spi_u8_send( uint8_t channel, uint8_t data ){
 
 	ASSERT( channel < N_SPI_PORTS );
