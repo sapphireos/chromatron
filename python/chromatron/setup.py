@@ -25,7 +25,7 @@ from setuptools import setup
 setup(
     name='chromatron',
 
-    version='1.0.7',
+    version='1.0.8',
 
     packages=['chromatron',
               'chromatron.midi',
@@ -57,13 +57,12 @@ setup(
 
     install_requires=[
         "crcmod == 1.7",
-        "click == 7.1.2",
         "appdirs==1.4.3",
         "requests==2.22.0",
         # "setuptools >= 50.3.2",
         "pyserial == 3.4.0",
-        "cmd2 == 2.4.3",
-        "click == 7.1.2",
+        # "cmd2 == 0.6.9", # now included directly in source tree (because pip broke the ability to install it)
+        "click == 8.1.3",
         "crcmod == 1.7",
         "intelhex == 2.3",
         "fnvhash==0.1.0",
