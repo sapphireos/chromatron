@@ -62,7 +62,7 @@ setup(
         "requests==2.22.0",
         # "setuptools >= 50.3.2",
         "pyserial == 3.4.0",
-        "cmd2 == 0.6.9",
+        "cmd2 == 2.4.3",
         "click == 7.1.2",
         "crcmod == 1.7",
         "intelhex == 2.3",

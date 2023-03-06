@@ -137,6 +137,13 @@ class SapphireConsole(cmd.Cmd):
             print(target.who())
 
 
+    def sigint_handler(self, signum, frame):
+        raise SystemExit
+
+    def do_exit(self, line):
+        raise SystemExit
+
+
 cli_template = """
     def do_$fname(self, line):
         for target in self.targets:
