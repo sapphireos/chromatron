@@ -153,7 +153,7 @@ class FXImage(object):
     def render(self, filename=None):
         function_addrs = {}
         function_indexes = {}
-        function_table = []
+        function_table = {}
         label_addrs = {}
         opcodes = []
         pixel_arrays = []
@@ -192,7 +192,7 @@ class FXImage(object):
         for func in self.funcs.values():
             info = FunctionInfo(addr=function_addrs[func.name], frame_size=func.local_memory_size * DATA_LEN)
 
-            function_table.append(info)
+            function_table[func.name] = info
 
             function_indexes[func.name] = len(function_table) - 1
 
@@ -246,7 +246,7 @@ class FXImage(object):
 
         # set up function table
         packed_function_table = bytes()
-        for func in function_table:
+        for func in function_table.values():
             packed_function_table += func.pack()
 
         func_table_len = len(function_table) * DATA_LEN

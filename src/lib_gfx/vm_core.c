@@ -312,7 +312,7 @@ typedef struct __attribute__((packed)){
 #endif
 
 #define LIBCALL(FUNC_HASH, PARAMS_LEN) \
-    if( vm_lib_i8_libcall_built_in( FUNC_HASH, state, pools, &state->return_val, params, PARAMS_LEN ) != 0 ){ \
+    if( vm_lib_i8_libcall_built_in( FUNC_HASH, state, func_table, pools, &state->return_val, params, PARAMS_LEN ) != 0 ){ \
         /* try gfx lib */ \
         GFX_LIB_CALL(FUNC_HASH, PARAMS_LEN) \
     } \

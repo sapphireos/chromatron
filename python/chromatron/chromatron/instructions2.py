@@ -1093,6 +1093,7 @@ class insLoadRef(BaseInstruction):
         vm.registers[self.dest.reg] = ref
 
     def assemble(self):
+        print('load ref', self.src, self.src.addr, self.src.storage.value)
         return OpcodeFormat2Imm1Reg(self.mnemonic, self.src.addr, self.src.storage.value, self.dest.assemble(), lineno=self.lineno)
 
 class insLoadGlobalImmediate(BaseInstruction):

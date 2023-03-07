@@ -1383,8 +1383,9 @@ def run_script(path, debug_print=False, opt_passes=OptPasses.SSA):
     stream = image.render()
     print(image.header)
     
-    for func in image.function_table:
-        print(func)
+    for func_name, func_info in image.function_table.items():
+        print(func_name)
+        print(func_info)
 
     print(f'prog len: {image.prog_len} image len: {image.image_len}')
 

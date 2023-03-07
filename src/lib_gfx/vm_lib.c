@@ -44,6 +44,7 @@
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
     vm_state_t *state, 
+    function_info_t *func_table,
     int32_t *pools[],
 	int32_t *result, 
 	int32_t *params, 
@@ -57,6 +58,7 @@ int8_t vm_lib_i8_libcall_built_in(
     char *str;
     char *str2;
     vm_reference_t ref;
+    uint16_t func_addr;
 
     #ifdef ENABLE_PIXEL_MAPPER
     int32_t x, y, z, index, h, s, v, size;
@@ -260,9 +262,17 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            // params[0] - thread addr
+            // params[0] - function ref
+            // decode reference:
+            ref.n = params[0];
 
-            trace_printf("VM start thread: 0x%0lx\r\n", params[0]);
+            // verify storage pool:
+            if( ref.ref.pool != POOL_FUNCTIONS ){
+
+                break;
+            }
+
+            func_addr = func_table[ref.ref.addr].addr;
 
             // search for an empty slot
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
@@ -271,10 +281,8 @@ int8_t vm_lib_i8_libcall_built_in(
 
                     memset( &state->threads[i], 0, sizeof(state->threads[i]) );
 
-                    state->threads[i].func_addr = params[0];
+                    state->threads[i].func_addr = func_addr;
                     state->threads[i].tick = state->tick;
-
-                    trace_printf("Thread started\r\n");
 
                     break;
                 }
@@ -288,12 +296,22 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            // params[0] - thread addr
+            // params[0] - function ref
+            // decode reference:
+            ref.n = params[0];
+
+            // verify storage pool:
+            if( ref.ref.pool != POOL_FUNCTIONS ){
+
+                break;
+            }
+
+            func_addr = func_table[ref.ref.addr].addr;
 
             // search for matching threads
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
-                if( state->threads[i].func_addr == params[0] ){
+                if( state->threads[i].func_addr == func_addr ){
 
                     state->threads[i].func_addr = 0xffff;
 
@@ -309,10 +327,22 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
+            // params[0] - function ref
+            // decode reference:
+            ref.n = params[0];
+
+            // verify storage pool:
+            if( ref.ref.pool != POOL_FUNCTIONS ){
+
+                break;
+            }
+
+            func_addr = func_table[ref.ref.addr].addr;
+
             // search for matching threads
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
-                if( state->threads[i].func_addr == params[0] ){
+                if( state->threads[i].func_addr == func_addr ){
 
                     *result = TRUE;
 
