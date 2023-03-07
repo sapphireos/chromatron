@@ -1311,6 +1311,8 @@ end:
     
     log_v_debug_P( PSTR("Wifi disconnected. Last RSSI: %d ch: %d"), wifi_rssi, wifi_channel );
 
+    wifi_v_reset_scan_timeout();
+
     THREAD_RESTART( pt );
 
 PT_END( pt );
