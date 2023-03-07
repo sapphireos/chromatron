@@ -5636,8 +5636,6 @@ int8_t vm_i8_load_program(
 
     obj_ptr += header.func_info_len;
 
-    trace_printf("pix len %u\r\n", header.pix_obj_len);
-
     // ******************
     // load objects:
     // ******************
@@ -5651,8 +5649,6 @@ int8_t vm_i8_load_program(
 
         obj_ptr += header.pix_obj_len;
     }
-
-    trace_printf("pub len %u %u\r\n", header.publish_len, state->publish_count);
 
     // ******************
     // load published vars:
@@ -5694,10 +5690,6 @@ int8_t vm_i8_load_program(
             obj_ptr += sizeof(vm_publish_t);
         }
     }
-
-    trace_printf("%u\r\n", obj_ptr - obj_start);
-
-    trace_printf("link len %u %u\r\n", header.link_len, state->link_count);
 
     // ******************
     // load links:
@@ -5741,9 +5733,13 @@ int8_t vm_i8_load_program(
         }
     }
 
-    trace_printf("%u\r\n", obj_ptr - obj_start);
+    // ******************
+    // load DB:
+    // ******************
 
-    
+    // TODO!
+
+
     // ******************
     // load constant pool:
     // ******************
