@@ -53,8 +53,6 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="global_data_len"),
                   Uint16Field(_name="constant_len"),
                   Uint16Field(_name="stringlit_len"),
-                  Uint16Field(_name="read_keys_len"),
-                  Uint16Field(_name="write_keys_len"),
                   Uint16Field(_name="publish_len"),
                   Uint16Field(_name="link_len"),
                   Uint16Field(_name="db_len"),
@@ -158,8 +156,6 @@ class FXImage(object):
         function_table = []
         label_addrs = {}
         opcodes = []
-        read_keys = []
-        write_keys = []
         pixel_arrays = []
         links = self.program.links
         db_entries = {}
@@ -269,16 +265,7 @@ class FXImage(object):
         
         pix_obj_len = len(packed_pixel_arrays)
 
-        # set up read keys
-        packed_read_keys = bytes()
-        for key in read_keys:
-            packed_read_keys += struct.pack('<L', catbus_string_hash(key))
-
-        # set up write keys
-        packed_write_keys = bytes()
-        for key in write_keys:
-            packed_write_keys += struct.pack('<L', catbus_string_hash(key))
-
+        
         # set up published registers
         published_var_count = 0
         packed_publish = bytes()
@@ -361,8 +348,6 @@ class FXImage(object):
                     constant_len=constant_len,
                     stringlit_len=stringlit_len,
                     pix_obj_len=pix_obj_len,
-                    read_keys_len=len(packed_read_keys),
-                    write_keys_len=len(packed_write_keys),
                     publish_len=len(packed_publish),
                     link_len=len(packed_links),
                     db_len=len(packed_db),
@@ -373,8 +358,6 @@ class FXImage(object):
         stream += header.pack()
         stream += packed_function_table
         stream += packed_pixel_arrays
-        stream += packed_read_keys  
-        stream += packed_write_keys
         stream += packed_publish
         stream += packed_links
         stream += packed_db
