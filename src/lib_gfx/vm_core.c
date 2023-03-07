@@ -5896,11 +5896,15 @@ error:
     if( f > 0 ){
 
         fs_f_close( f );
+
+        f = -1;
     }
 
     if( *handle > 0 ){
 
         mem2_v_free( *handle );
+
+        *handle = -1;
     }
     
     return status;
