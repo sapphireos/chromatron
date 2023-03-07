@@ -32,7 +32,10 @@ from chromatron import DeviceGroup
 import sys
 import traceback # ignore unused warning!
 
-import cmd2 as cmd
+# cmd2 now directly included in source tree.
+# modern versions of pip refuse to install cmd2 0.6.9 and newer versions of cmd2
+# remove features (like auto command abbreviation)
+from . import cmd2 as cmd
 
 
 class SapphireConsole(cmd.Cmd):
@@ -135,6 +138,13 @@ class SapphireConsole(cmd.Cmd):
     def do_who(self, line):
         for target in self.targets:
             print(target.who())
+
+    # needed if we ever update cmd2
+    # def sigint_handler(self, signum, frame):
+    #     raise SystemExit
+
+    # def do_exit(self, line):
+    #     raise SystemExit
 
 
 cli_template = """

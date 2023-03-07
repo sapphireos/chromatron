@@ -35,7 +35,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/.git/modules/components/unity/unity/HEAD"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/.git/modules/examples/build_system/cmake/import_lib/main/lib/tinyxml2/HEAD"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/.git/modules/examples/peripherals/secure_element/atecc608_ecdsa/components/esp-cryptoauthlib/HEAD"
-  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/.git/refs/heads/chromatron_esp_v4.4.2"
+  "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/.git/refs/heads/chromatron_esp_v4.4.2_single"
   "/home/jeremy/JEREMY/SAPPHIRE/chromatron/src/hal/esp-idf/CMakeLists.txt"
   "../CMakeLists.txt"
   "CMakeFiles/3.16.3/CMakeASMCompiler.cmake"

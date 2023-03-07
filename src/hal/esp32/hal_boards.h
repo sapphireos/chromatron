@@ -35,6 +35,8 @@
 #define ELITE_AMBIENT_ADC_IO    IO_PIN_33_A9
 #define ELITE_FAN_IO            IO_PIN_19_MISO
 #define ELITE_BOOST_IO          IO_PIN_4_A5
+
+
 #define ELITE_LED_ID_IO         IO_PIN_25_A1 // CS pin on SPI header
 #define ELITE_TILT_MOTOR_IO_1   IO_PIN_16_RX
 #define ELITE_TILT_MOTOR_IO_0   IO_PIN_17_TX

@@ -29,10 +29,11 @@
 #include "config.h"
 #include "crc.h"
 #include "watchdog.h"
+#include "status_led.h"
 
 #include "hal_esp8266.h"
 #include "esp8266_loader.h"
-#include "hal_status_led.h"
+// #include "hal_status_led.h"
 
 // #define NO_LOGGING
 #include "logging.h"

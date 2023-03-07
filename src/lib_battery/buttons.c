@@ -63,8 +63,8 @@ static uint8_t button_hold_duration[MAX_BUTTONS];
 #define BUTTON_SHUTDOWN_TIME        ( 3000 / BUTTON_CHECK_TIMING )
 #define BUTTON_WIFI_TIME            ( 1000 / BUTTON_CHECK_TIMING )
 
-static uint8_t batt_request_shutdown;
-
+static bool batt_request_shutdown;
+static bool shutdown_on_vbus_unplug;
 
 
 KV_SECTION_OPT kv_meta_t button_batt_opt_kv[] = {
@@ -113,6 +113,12 @@ void button_v_init( void ){
     clean up the button pin selection logic.
     it is a bit of a mess to do it this way.
 
+
+
+
+    Mini devkit notes:
+    The devkitm mini does not have pins 16 or 17, and is now available in single and dual cores.
+
     */
 
     #if defined(ESP8266)
@@ -127,30 +133,19 @@ void button_v_init( void ){
     }
     else if( board == BOARD_TYPE_ESP32_MINI_BUTTONS ){
         
-        #ifndef CONFIG_FREERTOS_UNICORE        
-        log_v_critical_P( PSTR("Mini button board should be a single core!") );
-
-        return;
-        #endif
-
         batt_ui_button = MINI_BTN_BOARD_BTN_0;
 
         io_v_set_mode( MINI_BTN_BOARD_BTN_1, IO_MODE_INPUT_PULLUP );     
         io_v_set_mode( MINI_BTN_BOARD_BTN_2, IO_MODE_INPUT_PULLUP );     
         io_v_set_mode( MINI_BTN_BOARD_BTN_3, IO_MODE_INPUT_PULLUP );        
     }
-    else{
+    else if( batt_b_enabled() ){
 
-        #ifdef CONFIG_FREERTOS_UNICORE
-        // the devkitm mini esp32 has only a single core.
-        // it is also missing some IO pins, so it cannot use the
-        // default pin 17 that the dual core uses.
+        // This will crash on the ESP32 U4WDH used on the devkit mini because it doesn't have pins 16 and 17.
+        // However, we need this for compatibility support on legacy boards that do not have a board ID set.
+        // FWIW, those boards should not have the battery system enabled for their uses.
 
-        batt_ui_button = MINI_BTN_BOARD_BTN_0;
-
-        #else
         batt_ui_button = IO_PIN_17_TX;
-        #endif
     }
     #endif
 
@@ -262,6 +257,7 @@ static bool _button_b_read_button( uint8_t ch ){
         return TRUE;
     }
 
+    #if defined(ESP8266) || defined(ESP32)
     if( solar_b_has_charger2_board() ){
         
         if( ch == 0 ){
@@ -279,7 +275,7 @@ static bool _button_b_read_button( uint8_t ch ){
     }
     else if( solar_b_has_patch_board() ){
 
-        if( ch == 0 ){
+        if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
 
             return io_b_digital_read( batt_ui_button );
         }
@@ -290,7 +286,7 @@ static bool _button_b_read_button( uint8_t ch ){
     }
     else if( ffs_u8_read_board_type() == BOARD_TYPE_ESP32_MINI_BUTTONS ){
 
-        if( ch == 0 ){
+        if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
 
             return io_b_digital_read( batt_ui_button );
         }
@@ -309,9 +305,10 @@ static bool _button_b_read_button( uint8_t ch ){
         }
         #endif
     }
+    #endif
     else{
 
-        if( ch == 0 ){
+        if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
 
             return io_b_digital_read( batt_ui_button );
         }
@@ -334,9 +331,62 @@ static bool _button_b_button_down( uint8_t ch ){
     return TRUE;
 }
 
+
+PT_THREAD( vbus_shutdown_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    // check button for several seconds, if pressed,
+    // cancel the shutdown
+    static uint8_t counter;
+    counter = 0;
+
+    #define POLL_RATE 100
+    #define CHECK_TIME 5000 // in millseconds!
+
+    while( counter < ( CHECK_TIME / POLL_RATE ) ){ // set for 5 seconds
+
+        TMR_WAIT( pt, POLL_RATE );
+
+        if( button_state & 1 ){
+
+            // button 0 is pressed
+
+            // cancel shutdown!
+
+            log_v_debug_P( PSTR("VBUS unplug shutdown cancelled by button press") );
+
+            THREAD_EXIT( pt );
+        }
+
+        counter++;
+    }
+    
+    log_v_debug_P( PSTR("VBUS unplug event shutdown") );
+
+    // set shutdown request
+    batt_request_shutdown = TRUE;
+
+    TMR_WAIT( pt, 120000 ); 
+    // power should be off by now, but if not,
+    // just carry on?    
+    
+PT_END( pt );
+}
+
+
 PT_THREAD( button_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+     if( batt_b_enabled() ){
+
+        // if started on vbus:
+        if( batt_b_startup_on_vbus() ){
+
+            shutdown_on_vbus_unplug = TRUE;
+        }
+    }
     
     while(1){
 
@@ -407,6 +457,23 @@ PT_BEGIN( pt );
         }
 
         if( batt_b_enabled() ){
+
+            // if started on vbus:
+            if( shutdown_on_vbus_unplug ){
+
+                // check if VBUS is no longer plugged in
+                if( !batt_b_is_external_power() ){
+
+                    // clear flag so we stop checking this event
+                    shutdown_on_vbus_unplug = FALSE;
+
+                    // start shutdown thread
+                    thread_t_create( vbus_shutdown_thread,
+                                     PSTR("vbus_shutdown"),
+                                     0,
+                                     0 );
+                }
+            }
 
             // check for shutdown
             if( button_hold_duration[0] >= BUTTON_SHUTDOWN_TIME ){

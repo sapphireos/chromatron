@@ -62,7 +62,6 @@ theoretical fastest speed for a 576 byte packet is 1.44 ms.
 #include "sockets.h"
 #include "fs.h"
 #include "watchdog.h"
-#include "hal_status_led.h"
 #include "hash.h"
 
 #include "hal_esp8266.h"
@@ -138,7 +137,7 @@ KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_ssid" },
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ap_password" },
     { CATBUS_TYPE_KEY128,        0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_md5" },
-    { CATBUS_TYPE_UINT32,        0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_fw_len" },
+    // { CATBUS_TYPE_UINT32,        0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_fw_len" },
 
     { CATBUS_TYPE_UINT8,         0, KV_FLAGS_PERSIST,           &tx_power,          0,                   "wifi_tx_power" },
 };
@@ -1411,6 +1410,28 @@ int8_t wifi_i8_get_status( void ){
 
     return wifi_status;
 }
+
+
+int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
+    return 0;
+}
+
+int8_t hal_wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
+    return 0;
+}
+
 
 #elif !defined(ESP8266) && !defined(ESP32)
 bool wifi_b_connected( void ){

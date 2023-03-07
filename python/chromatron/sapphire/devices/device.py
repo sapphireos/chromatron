@@ -1340,6 +1340,8 @@ class Device(object):
             params = self.get_kv('*')
 
         else:
+            # convert cmd2's new whatever object back into the string it was always meant to be.
+            line = str(line)
             params = self.get_kv(line)
 
         if isinstance(params, dict):

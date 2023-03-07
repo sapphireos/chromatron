@@ -28,7 +28,8 @@
 #include "battery.h"
 #include "fuel_gauge.h"
 #include "energy.h"
-#include "graphics.h"
+#include "solar.h"
+#include "util.h"
 
 /*
 
@@ -168,9 +169,185 @@ Discharge rate at a given load.
 
 */
 
+static uint16_t charge_start_voltage;
+static uint32_t total_charge_cycle_mv;
+static uint16_t total_cycles;
+static uint16_t current_charge_cycle_mv;
+
+static uint8_t batt_soc = 100; // state of charge in percent
+
+#define SOC_MAX_VOLTS   ( batt_u16_get_charge_voltage() - 0 )
+#define SOC_MIN_VOLTS   ( batt_u16_get_min_discharge_voltage() )
+
+#define SOC_CYCLE_RANGE_MV  ( LION_MAX_VOLTAGE - LION_MIN_VOLTAGE )
+
+
+KV_SECTION_OPT kv_meta_t fuel_gauge_info_kv[] = {
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,                    &batt_soc,                    0,  "batt_soc" },
+    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_READ_ONLY,                    &charge_start_voltage,        0,  "batt_charge_start_volts" },
+    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_READ_ONLY,                    &current_charge_cycle_mv,     0,  "batt_charge_cycle_mv" },
+    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_READ_ONLY,                    &total_cycles,     0,  "batt_charge_cycles" },
+    { CATBUS_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST, &total_charge_cycle_mv,       0,  "batt_total_cycle_mv" },
+};
+
+static uint16_t batt_volts_filter[FUEL_GAUGE_VOLTS_FILTER_DEPTH];
+static uint8_t batt_volts_filter_index;
+static uint16_t filtered_batt_volts;
+
+
+PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) );
+
+
+void fuel_v_init( void ){
+
+    kv_v_add_db_info( fuel_gauge_info_kv, sizeof(fuel_gauge_info_kv) );
+
+
+    thread_t_create( fuel_gauge_thread,
+                     PSTR("fuel_gauge"),
+                     0,
+                     0 );
+}
+
+uint8_t fuel_u8_get_soc( void ){
+
+    return batt_soc;
+}
+
+bool fuel_b_threshold_full_charge( void ){
+
+    return batt_soc >= FUEL_GAUGE_THRESHOLD_FULL_CHARGE;
+}
+
+bool fuel_b_threshold_top_charge( void ){
+
+    return ( batt_soc < FUEL_GAUGE_THRESHOLD_FULL_CHARGE ) && ( batt_soc >= FUEL_GAUGE_THRESHOLD_TOP_CHARGE );
+}
+
+bool fuel_b_threshold_mid_charge( void ){
+
+    return ( batt_soc < FUEL_GAUGE_THRESHOLD_TOP_CHARGE ) && ( batt_soc >= FUEL_GAUGE_THRESHOLD_MID_CHARGE );
+}
+
+bool fuel_b_threshold_low_charge( void ){
+
+    return ( batt_soc < FUEL_GAUGE_THRESHOLD_MID_CHARGE ) && ( batt_soc >= FUEL_GAUGE_THRESHOLD_LOW_CHARGE );
+}
+
+bool fuel_b_threshold_critical_charge( void ){
+
+    return ( batt_soc < FUEL_GAUGE_THRESHOLD_LOW_CHARGE );
+}
+
+static void reset_filter( void ){
+
+    uint16_t batt_volts = batt_u16_get_batt_volts();
+
+    for( uint8_t i = 0; i < cnt_of_array(batt_volts_filter); i++ ){
+
+        batt_volts_filter[i] = batt_volts;
+    }       
+
+    filtered_batt_volts = batt_volts;
+}
+
+PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    static bool is_charging;
+
+    is_charging = FALSE;
+    
+    // wait until battery voltage is valid
+    THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() < SOC_MIN_VOLTS );
+
+    reset_filter();
+
+
+    while(1){
+
+        TMR_WAIT( pt, 1000 );
+
+        total_cycles = total_charge_cycle_mv / SOC_CYCLE_RANGE_MV;
+
+        // update volts filter
+        uint16_t batt_volts = batt_u16_get_batt_volts();
+
+        batt_volts_filter[batt_volts_filter_index] = batt_volts;
+        batt_volts_filter_index++;
+
+        if( batt_volts_filter_index >= cnt_of_array(batt_volts_filter) ){
+
+            batt_volts_filter_index = 0;
+        }
+        
+        filtered_batt_volts = 0;
+
+        for( uint8_t i = 0; i < cnt_of_array(batt_volts_filter); i++ ){
+
+            filtered_batt_volts += batt_volts_filter[i];
+        }
+
+        filtered_batt_volts /= cnt_of_array(batt_volts_filter);
+
+
+        // update soc
+        batt_soc = util_u16_linear_interp( 
+                        filtered_batt_volts, 
+                        SOC_MIN_VOLTS, 
+                        0,
+                        SOC_MAX_VOLTS,
+                        100 );
+
+        // update state machine:
+
+        // if charging
+        if( is_charging ){
+
+            // leaving charge
+            if( !solar_b_is_charging() ){
+
+                is_charging = FALSE;
+
+                // set final charge cycle
+                total_charge_cycle_mv += current_charge_cycle_mv;
+
+                kv_i8_persist( __KV__batt_total_cycle_mv );
+
+                reset_filter();
+            }
+        }
+        else{
+
+            // switching into charge
+            if( solar_b_is_charging() ){
+
+                is_charging = TRUE;
+
+                charge_start_voltage = filtered_batt_volts;
+                current_charge_cycle_mv = 0;
+
+                reset_filter();
+            }
+        }
+
+        // if charging, update current recovered voltage
+        if( is_charging ){
+
+            current_charge_cycle_mv = filtered_batt_volts - charge_start_voltage;
+        }
+    }
+
+PT_END( pt );
+}
 
 
 
+
+
+
+#if 0
 #define SOC_VOLTS_MAX 4100
 #define SOC_VOLTS_MIN 3100
 #define SOC_VOLTS_STEP 100
@@ -1040,11 +1217,4 @@ PT_END( pt );
 #endif
 
 
-
-
-
-
-
-
-
-
+#endif

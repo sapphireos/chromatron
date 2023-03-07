@@ -50,7 +50,7 @@ static uint8_t batt_cells; // number of cells in system
 static uint16_t cell_capacity; // mAh capacity of each cell
 static uint32_t total_nameplate_capacity;
 
-
+static bool startup_on_vbus;
 
 static void set_batt_nameplate_capacity( void ){
 
@@ -136,6 +136,8 @@ KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_PERSIST,    &batt_cells,                  batt_kv_handler,  "batt_cells" },
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &cell_capacity,               batt_kv_handler,  "batt_cell_capacity" },
     { CATBUS_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &total_nameplate_capacity,    batt_kv_handler,  "batt_nameplate_capacity" },
+
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &startup_on_vbus,             0,                "batt_vbus_startup" },
 };
 
 
@@ -354,13 +356,21 @@ void batt_v_shutdown_power( void ){
     bq25895_v_enable_ship_mode( FALSE );
 }
 
+bool batt_b_startup_on_vbus( void ){
+
+    return startup_on_vbus;
+}
 
 PT_THREAD( battery_cutoff_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
     // wait until connection to battery is established
-    THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );    
+    THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
+
+    // check if VBUS connected on startup    
+    startup_on_vbus = batt_b_is_vbus_connected();
+
 
     while(1){
 

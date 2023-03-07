@@ -37,10 +37,21 @@
 #define SOLAR_MIN_CHARGE_LIGHT_DEFAULT		500000
 
 
+#define SOLAR_MODE_DISCHARGE			0
+#define SOLAR_MODE_CHARGE_DC			1
+#define SOLAR_MODE_CHARGE_SOLAR			2
+#define SOLAR_MODE_FULL_CHARGE			3
+#define SOLAR_MODE_STOPPED				4
+#define SOLAR_MODE_SHUTDOWN	  			5
+
+
 void solar_v_init( void );
 
 bool solar_b_has_patch_board( void );
 bool solar_b_has_charger2_board( void );
+
+uint8_t solar_u8_get_state( void );
+bool solar_b_is_charging( void );
 
 // bool solar_b_is_dc_power( void );
 // bool solar_b_is_solar_power( void );

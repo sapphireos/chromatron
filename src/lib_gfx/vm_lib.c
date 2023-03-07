@@ -33,8 +33,12 @@
 #include "pixel_mapper.h"
 #include "vm.h"
 #include "vm_core.h"
+
+#ifdef ENABLE_BATTERY
 #include "battery.h"
 #include "buttons.h"
+#include "fuel_gauge.h"
+#endif
 
 
 int8_t vm_lib_i8_libcall_built_in( 
@@ -465,6 +469,36 @@ int8_t vm_lib_i8_libcall_built_in(
             }
 
             *result = button_b_is_button_hold_released( temp0 );
+
+            break;
+
+        case __KV__batt_charge_full:
+
+            *result = fuel_b_threshold_full_charge();
+
+            break;
+
+        case __KV__batt_charge_top:
+
+            *result = fuel_b_threshold_top_charge();
+
+            break;
+
+        case __KV__batt_charge_mid:
+
+            *result = fuel_b_threshold_mid_charge();
+
+            break;
+
+        case __KV__batt_charge_low:
+
+            *result = fuel_b_threshold_low_charge();
+
+            break;
+
+        case __KV__batt_charge_critical:
+
+            *result = fuel_b_threshold_critical_charge();
 
             break;
 

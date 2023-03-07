@@ -73,13 +73,6 @@ static int16_t batt_temp_state;
 
 static int8_t batt_temp_raw;
 
-// #ifdef ESP32
-// static int8_t case_temp = -127;
-// static int8_t ambient_temp = -127;
-// static int16_t case_temp_state;
-// static int16_t ambient_temp_state;
-// #endif
-
 
 KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp,                  0,  "batt_temp" },

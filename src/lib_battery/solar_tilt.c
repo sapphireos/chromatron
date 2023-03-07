@@ -36,7 +36,7 @@
 
 #include "bq25895.h"
 
-#ifdef ESP32
+#ifdef ENABLE_SOLAR_TILT
 
 static uint16_t solar_tilt_motor_pwm = 768;
 

@@ -59,12 +59,6 @@ static bool mppt_enabled;
 
 
 static uint8_t solar_state;
-#define SOLAR_MODE_DISCHARGE			0
-#define SOLAR_MODE_CHARGE_DC			1
-#define SOLAR_MODE_CHARGE_SOLAR			2
-#define SOLAR_MODE_FULL_CHARGE			3
-#define SOLAR_MODE_STOPPED				4
-#define SOLAR_MODE_SHUTDOWN	  			5
 
 static catbus_string_t state_name;
 
@@ -75,10 +69,6 @@ static uint16_t charge_timer;
 #define DISCHARGE_HOLD_TIME				( 10 ) // time to remain in discharge before allowing a switch back to charge
 #define CHARGE_HOLD_TIME				( 5 )  // time to remain in charge before allowing a switch back to discharge or full
 
-static uint16_t fuel_gauge_timer;
-#define FUEL_SAMPLE_TIME				( 60 ) // debug! 60 seconds is probably much more than we need
-
-static uint16_t filtered_batt_volts;
 #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
 
 
@@ -195,6 +185,11 @@ bool solar_b_has_charger2_board( void ){
 	return charger2_board_installed;
 }
 
+uint8_t solar_u8_get_state( void ){
+
+	return solar_state;
+}
+
 // bool solar_b_is_dc_power( void ){
 
 // 	return solar_state == SOLAR_MODE_CHARGE_DC;	
@@ -248,6 +243,12 @@ static bool is_charging( void ){
 	return ( solar_state == SOLAR_MODE_CHARGE_DC ) || 
 		   ( solar_state == SOLAR_MODE_CHARGE_SOLAR );
 }
+
+bool solar_b_is_charging( void ){
+
+	return is_charging();
+}
+
 
 static void enable_charge( uint8_t target_state ){
 
@@ -425,48 +426,6 @@ PT_BEGIN( pt );
 	while(1){
 
 		TMR_WAIT( pt, SOLAR_CONTROL_POLLING_RATE );
-
-		// fuel_gauge_timer++;
-
-		// if( fuel_gauge_timer >= FUEL_SAMPLE_TIME ){
-
-		// 	fuel_gauge_timer = 0;
-
-		// 	// disable charge mechanism (includes cutting off solar array)
-		// 	// delay 500 ms or so
-		// 	// read batt voltage
-		// 	// re-enable charge
-
-		// 	// note that the disable/enable charge here does not change the solar
-		// 	// control loop state.  technically we are still charging, but we turn
-		// 	// off the charger when we want to sample the current state of charge.
-		// 	// the charge current will increase the battery voltage according
-		// 	// to the impedance of the cell.
-
-		// 	disable_charge();
-
-		// 	TMR_WAIT( pt, 500 );
-
-
-		// 	// do fuel gauge here
-
-		// 	fuel_v_do_soc();
-
-
-		// 	// filtered_batt_volts = etc
-
-		// 	// uint16_t batt_volts = batt_u16_get_batt_volts();
-
-		// 	// re-enable charge
-		// 	if( is_charging() ){
-
-		// 		enable_charge();
-
-		// 		TMR_WAIT( pt, 1000 );
-		// 	}
-		// }
-
-
 
 		static uint8_t next_state;
 		next_state = solar_state;
@@ -772,10 +731,6 @@ PT_BEGIN( pt );
 
 				disable_charge();	
 			}
-
-
-
-			fuel_gauge_timer = FUEL_SAMPLE_TIME - 2; // want fuel to sample shortly after any state change
 
 			log_v_debug_P( PSTR("Changing states from %s to %s"), get_state_name( solar_state ), get_state_name( next_state ) );
 

@@ -1207,7 +1207,7 @@ class AppBuilder(HexBuilder):
             hash32 = fnv1a_32(kv.param_name.encode('utf-8'))
 
             if hash32 in kv_meta_by_hash:
-                raise Exception("Hash collision! %s 0x%lx" % (kv.param_name, hash32))
+                raise Exception("Hash collision! %s 0x%lx -> %s" % (kv.param_name, hash32, kv_meta_by_hash[hash32][0].param_name))
 
             kv_meta_by_hash[hash32] = (kv, index)
 
@@ -1876,6 +1876,7 @@ def main():
     parser.add_argument("--load_esp32_loader", action="store_true", help="Load bootloader to ESP32")
     parser.add_argument("--monitor", action="store_true", help="Run serial monitor")
     parser.add_argument("--port", action="store", default=None, help="Set serial port")
+    parser.add_argument("--force_single_core", action="store_true", default=False, help="Force single core on ESP32")
 
     args = vars(parser.parse_args())
 
@@ -2045,7 +2046,7 @@ def main():
 
         # check if single or dual core chip
         single_core = False
-        if chip_info.find('Single Core') >= 0:
+        if chip_info.find('Single Core') >= 0 or args['force_single_core']:
             single_core = True
 
         target = 'esp32'
