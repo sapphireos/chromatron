@@ -262,6 +262,8 @@ int8_t vm_lib_i8_libcall_built_in(
 
             // params[0] - thread addr
 
+            trace_printf("VM start thread: 0x%0lx\r\n", params[0]);
+
             // search for an empty slot
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
@@ -271,6 +273,8 @@ int8_t vm_lib_i8_libcall_built_in(
 
                     state->threads[i].func_addr = params[0];
                     state->threads[i].tick = state->tick;
+
+                    trace_printf("Thread started\r\n");
 
                     break;
                 }

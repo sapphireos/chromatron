@@ -5144,13 +5144,13 @@ int8_t vm_i8_run(
             // if sync leader, set in database
             if( link_b_is_synced_leader( publish->hash ) ){
 
-                status = kvdb_i8_set( publish->hash, publish->type, ptr, len );
+                kv_status = kvdb_i8_set( publish->hash, publish->type, ptr, len );
             }
         }
         // normal publish
         else{
 
-            status = kvdb_i8_set( publish->hash, publish->type, ptr, len );
+            kv_status = kvdb_i8_set( publish->hash, publish->type, ptr, len );
         }
         
         if( kv_status != KVDB_STATUS_OK ){

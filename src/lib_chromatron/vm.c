@@ -697,7 +697,7 @@ PT_BEGIN( pt );
                         mem2_vp_get_ptr( state->handle ), 
                         &state->vm_state );
 
-    if( state->vm_return ){
+    if( state->vm_return != VM_STATUS_OK ){
 
         log_v_debug_P( PSTR("VM init fail: %d"), state->vm_return );
 
