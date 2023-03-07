@@ -5411,20 +5411,6 @@ int8_t vm_i8_check_header( vm_program_header_t *prog_header ){
 
     uint16_t obj_start = sizeof(vm_program_header_t);
 
-    // read keys
-    if( ( obj_start % 4 ) != 0 ){
-
-        return VM_STATUS_READ_KEYS_MISALIGN;
-    }
-    obj_start += prog_header->read_keys_len;
-
-    // write keys
-    if( ( obj_start % 4 ) != 0 ){
-
-        return VM_STATUS_WRITE_KEYS_MISALIGN;
-    }
-    obj_start += prog_header->write_keys_len;
-
     // publish
     if( ( obj_start % 4 ) != 0 ){
 
@@ -5463,8 +5449,6 @@ int8_t vm_i8_load_program(
 
     int8_t status = VM_STATUS_ERROR;
     *handle = -1;
-
-    // return -1;
 
     // open file
     file_t f = fs_f_open( program_fname, FS_MODE_READ_ONLY );
@@ -5548,8 +5532,6 @@ int8_t vm_i8_load_program(
                        header.local_data_len + 
                        header.constant_len +
                        header.stringlit_len +
-                       header.read_keys_len + 
-                       header.write_keys_len +
                        header.publish_len + 
                        header.link_len +
                        header.db_len +
@@ -5593,14 +5575,6 @@ int8_t vm_i8_load_program(
     state->pix_obj_count = header.pix_obj_len / sizeof(gfx_pixel_array_t);
     state->pix_obj_start = obj_start;
     obj_start += header.pix_obj_len;
-
-    state->read_keys_count = header.read_keys_len / sizeof(uint32_t);
-    state->read_keys_start = obj_start;
-    obj_start += header.read_keys_len;
-
-    state->write_keys_count = header.write_keys_len / sizeof(uint32_t);
-    state->write_keys_start = obj_start;
-    obj_start += header.write_keys_len;
 
     state->publish_count = header.publish_len / sizeof(vm_publish_t);
     state->publish_start = obj_start;
@@ -5662,6 +5636,8 @@ int8_t vm_i8_load_program(
 
     obj_ptr += header.func_info_len;
 
+    trace_printf("pix len %u\r\n", header.pix_obj_len);
+
     // ******************
     // load objects:
     // ******************
@@ -5676,6 +5652,8 @@ int8_t vm_i8_load_program(
         obj_ptr += header.pix_obj_len;
     }
 
+    trace_printf("pub len %u %u\r\n", header.publish_len, state->publish_count);
+
     // ******************
     // load published vars:
     // ******************
@@ -5683,13 +5661,13 @@ int8_t vm_i8_load_program(
 
         for( uint16_t i = 0; i < state->publish_count; i++ ){
 
-            vm_publish_t *publish = (vm_publish_t *)obj_ptr;
-
             if( fs_i16_read( f, (uint8_t *)obj_ptr, sizeof(vm_publish_t) ) != sizeof(vm_publish_t) ){
 
                 status = VM_STATUS_ERR_BAD_FILE_READ;
                 goto error;
             }   
+
+            vm_publish_t *publish = (vm_publish_t *)obj_ptr;
 
             if( publish->addr >= state->global_data_count ){
 
@@ -5716,6 +5694,54 @@ int8_t vm_i8_load_program(
             obj_ptr += sizeof(vm_publish_t);
         }
     }
+
+    trace_printf("%u\r\n", obj_ptr - obj_start);
+
+    trace_printf("link len %u %u\r\n", header.link_len, state->link_count);
+
+    // ******************
+    // load links:
+    // ******************
+    if( header.link_len > 0 ){
+
+        for( uint16_t i = 0; i < state->link_count; i++ ){
+
+            if( fs_i16_read( f, (uint8_t *)obj_ptr, sizeof(link_t) ) != sizeof(link_t) ){
+
+                status = VM_STATUS_ERR_BAD_FILE_READ;
+                goto error;
+            }   
+
+            link_t *link = (link_t *)obj_ptr;
+
+            #ifdef ENABLE_CATBUS_LINK
+            link_handle_t link_h = 
+                link_l_create( 
+                    link->mode,
+                    link->source_key,
+                    link->dest_key,
+                    &link->query,
+                    link->tag,
+                    link->rate,
+                    link->aggregation,
+                    LINK_FILTER_OFF );   
+
+            if( link_h <= 0){
+
+                status = VM_STATUS_LOAD_ALLOC_FAIL;
+                goto error;
+            }
+
+            // record link handle
+            state->links[i] = link_h;
+
+            #endif         
+
+            obj_ptr += sizeof(link_t);
+        }
+    }
+
+    trace_printf("%u\r\n", obj_ptr - obj_start);
 
     
     // ******************

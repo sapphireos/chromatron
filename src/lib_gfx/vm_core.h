@@ -66,8 +66,8 @@
 #define VM_STATUS_DATA_MISALIGN             -41
 #define VM_STATUS_IMAGE_TOO_LARGE           -42
 #define VM_STATUS_HEADER_MISALIGN           -43
-#define VM_STATUS_READ_KEYS_MISALIGN        -44
-#define VM_STATUS_WRITE_KEYS_MISALIGN       -45
+// #define VM_STATUS_READ_KEYS_MISALIGN        -44
+// #define VM_STATUS_WRITE_KEYS_MISALIGN       -45
 #define VM_STATUS_PUBLISH_VARS_MISALIGN     -46
 #define VM_STATUS_PIXEL_MISALIGN            -47
 #define VM_STATUS_LINK_MISALIGN             -48
@@ -97,6 +97,11 @@
 #define VM_STATUS_YIELDED                   2
 #define VM_STATUS_DID_NOT_RUN               3
 #define VM_STATUS_READY                     4
+
+
+#ifndef VM_MAX_LINKS
+    #define VM_MAX_LINKS 16
+#endif
 
 
 // note this needs to pad to 32 bit alignment!
@@ -145,8 +150,6 @@ typedef struct __attribute__((packed)){
     uint16_t global_data_len;
     uint16_t constant_len;      // length in BYTES, not number of objects!
     uint16_t stringlit_len;     // length in BYTES, not number of objects!
-    uint16_t read_keys_len;     // length in BYTES, not number of objects!
-    uint16_t write_keys_len;    // length in BYTES, not number of objects!
     uint16_t publish_len;       // length in BYTES, not number of objects!
     uint16_t link_len;          // length in BYTES, not number of objects!
     uint16_t db_len;            // length in BYTES, not number of objects!
@@ -260,6 +263,10 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
 
     uint16_t link_count;
     uint16_t link_start;
+
+    #ifdef ENABLE_CATBUS_LINK
+    link_handle_t links[VM_MAX_LINKS];
+    #endif
 
     uint16_t db_count;
     uint16_t db_start;

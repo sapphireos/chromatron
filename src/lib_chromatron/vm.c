@@ -141,43 +141,43 @@ static const char* vm_names[VM_MAX_VMS] = {
 //     __KV__pix_mode,    
 // };
 
-#ifdef ENABLE_CATBUS_LINK
-static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
+// #ifdef ENABLE_CATBUS_LINK
+// static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 
-    catbus_hash_t32 link_tag = 0;
+//     catbus_hash_t32 link_tag = 0;
 
-    if( vm_id == 0 ){
+//     if( vm_id == 0 ){
 
-        link_tag = __KV__vm_0;
-    }
-    else if( vm_id == 1 ){
+//         link_tag = __KV__vm_0;
+//     }
+//     else if( vm_id == 1 ){
 
-        link_tag = __KV__vm_1;
-    }
-    else if( vm_id == 2 ){
+//         link_tag = __KV__vm_1;
+//     }
+//     else if( vm_id == 2 ){
 
-        link_tag = __KV__vm_2;
-    }
-    else if( vm_id == 3 ){
+//         link_tag = __KV__vm_2;
+//     }
+//     else if( vm_id == 3 ){
 
-        link_tag = __KV__vm_3;
-    }
-    else{
+//         link_tag = __KV__vm_3;
+//     }
+//     else{
 
-        ASSERT( FALSE );
-    }
+//         ASSERT( FALSE );
+//     }
 
-    return link_tag;
-}
-#endif
+//     return link_tag;
+// }
+// #endif
 
 static void reset_published_data( uint8_t vm_id ){
 
     kvdb_v_clear_tag( 0, 1 << vm_id );
 
-    #ifdef ENABLE_CATBUS_LINK
-    link_v_delete_by_tag( get_link_tag( vm_id ) );
-    #endif
+    // #ifdef ENABLE_CATBUS_LINK
+    // link_v_delete_by_tag( get_link_tag( vm_id ) );
+    // #endif
 } 
 
 static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
@@ -632,6 +632,17 @@ static void kill_vm( uint8_t vm_id ){
     }
 
     vm_thread_state_t *state = thread_vp_get_data( vm_threads[vm_id] );
+    vm_state_t *vm_state = &state->vm_state;
+
+    // clear links
+    for( uint16_t i = 0; i < vm_state->link_count; i++ ){
+
+        if( vm_state->links[i] > 0 ){
+
+            link_v_delete( vm_state->links[i] );
+            vm_state->links[i] = 0;
+        }
+    }
 
     if( state->handle > 0 ){
 

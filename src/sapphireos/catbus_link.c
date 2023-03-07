@@ -912,6 +912,11 @@ static void delete_link( link_handle_t link ){
     list_v_release_node( link );
 }
 
+void link_v_delete( link_handle_t link ){
+
+    delete_link( link );
+}
+
 void link_v_delete_by_tag( catbus_hash_t32 tag ){
 	
 	list_node_t ln = link_list.head;

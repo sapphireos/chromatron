@@ -198,6 +198,7 @@ link_handle_t link_l_create2( link_state_t *state );
 
 uint8_t link_u8_count( void );
 
+void link_v_delete( link_handle_t link );
 void link_v_delete_by_tag( catbus_hash_t32 tag );
 void link_v_delete_by_hash( uint64_t hash );
 
