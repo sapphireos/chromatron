@@ -790,8 +790,43 @@ PT_BEGIN( pt );
 
                         if( meta_tag_hashes[i] == hash ){
 
+                            uint32_t meta_kv = 0;
+
+                            if( i == 0 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_0;
+                            }
+                            else if( i == 1 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_1;
+                            }
+                            else if( i == 2 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_2;
+                            }
+                            else if( i == 3 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_3;
+                            }
+                            else if( i == 4 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_4;
+                            }
+                            else if( i == 5 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_5;
+                            }
+                            else if( i == 6 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_6;
+                            }
+                            else if( i == 7 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_7;
+                            }
+
                             // retrieve string from config DB
-                            cfg_i8_get( CFG_PARAM_META_TAG_0 + i, str->str );
+                            cfg_i8_get( meta_kv, str->str );
 
                             break;
                         }
