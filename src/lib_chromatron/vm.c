@@ -644,6 +644,19 @@ static void kill_vm( uint8_t vm_id ){
         }
     }
 
+    for( uint16_t i = 0; i < VM_MAX_THREADS; i++ ){
+
+        if( vm_state->threads[i].func_addr != 0xffff ){
+
+            if( vm_state->threads[i].context_h > 0 ){
+
+                mem2_v_free( vm_state->threads[i].context_h );
+
+                vm_state->threads[i].context_h = -1;
+            }
+        }
+    }
+
     if( state->handle > 0 ){
 
         mem2_v_free( state->handle );

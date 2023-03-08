@@ -1889,35 +1889,6 @@ opcode_lcall0:
 
     LIBCALL( registers[opcode_1ac->op1], 0 );
 
-    // if( vm_lib_i8_libcall_built_in( registers[opcode_1ac->op1], state, &state->return_val, params, 0 ) != 0 ){
-
-    //     #ifdef VM_ENABLE_GFX
-    //     // try gfx lib
-        
-    //     data[result] = gfx_i32_lib_call( hash, params, len );
-    //     #endif
-    // }
-    // else{
-
-    //     // internal lib call completed successfully
-
-    //     // check yield flag
-    //     if( state->yield > 0 ){
-
-    //         // check call depth, can only yield from top level functions running as a thread
-    //         if( ( call_depth != 0 ) || ( state->current_thread < 0 ) ){
-
-    //             return VM_STATUS_IMPROPER_YIELD;
-    //         }
-
-    //         // store PC offset
-    //         state->threads[state->current_thread].pc_offset = pc - ( code + func_addr );
-
-    //         // yield!
-    //         return VM_STATUS_YIELDED;
-    //     }
-    // }
-
     DISPATCH;
 
 opcode_lcall1:

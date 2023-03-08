@@ -277,12 +277,25 @@ int8_t vm_lib_i8_libcall_built_in(
             // search for an empty slot
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
-                if( state->threads[i].func_addr == 0xffff ){
+                vm_thread_t *vm_thread = (vm_thread_t *)&state->threads[i];
 
-                    memset( &state->threads[i], 0, sizeof(state->threads[i]) );
+                if( vm_thread->func_addr == 0xffff ){
 
-                    state->threads[i].func_addr = func_addr;
-                    state->threads[i].tick = state->tick;
+                    memset( vm_thread, 0, sizeof(vm_thread_t) );
+
+                    vm_thread->context_h = mem2_h_alloc( func_table[ref.ref.addr].frame_size );
+
+                    if( vm_thread->context_h <= 0 ){
+
+                        log_v_critical_P( PSTR("VM thread alloc fail") );
+
+                        break;
+                    }
+
+                    memset( mem2_vp_get_ptr( vm_thread->context_h ), 0, mem2_u16_get_size( vm_thread->context_h ) );
+
+                    vm_thread->func_addr = func_addr;
+                    vm_thread->tick = state->tick;
 
                     break;
                 }
@@ -311,9 +324,18 @@ int8_t vm_lib_i8_libcall_built_in(
             // search for matching threads
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
-                if( state->threads[i].func_addr == func_addr ){
+                vm_thread_t *vm_thread = (vm_thread_t *)&state->threads[i];
 
-                    state->threads[i].func_addr = 0xffff;
+                if( vm_thread->func_addr == func_addr ){
+
+                    if( vm_thread->context_h > 0 ){
+
+                        mem2_v_free( vm_thread->context_h );
+
+                        vm_thread->context_h = -1;
+                    }
+
+                    vm_thread->func_addr = 0xffff;
 
                     break;
                 }
@@ -342,7 +364,9 @@ int8_t vm_lib_i8_libcall_built_in(
             // search for matching threads
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
-                if( state->threads[i].func_addr == func_addr ){
+                vm_thread_t *vm_thread = (vm_thread_t *)&state->threads[i];
+
+                if( vm_thread->func_addr == func_addr ){
 
                     *result = TRUE;
 

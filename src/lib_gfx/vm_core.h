@@ -175,6 +175,8 @@ typedef struct __attribute__((packed)){
     uint16_t func_addr;
     uint16_t pc_offset;
     uint64_t tick;
+    mem_handle_t context_h;
+    uint16_t padding;
 } vm_thread_t;
 
 typedef struct __attribute__((packed)){
