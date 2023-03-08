@@ -54,5 +54,6 @@ typedef uint8_t mem_type_t8;
 #define MEM_TYPE_LINK_PRODUCER      28
 #define MEM_TYPE_LINK_REMOTE        29
 #define MEM_TYPE_KV_OPT             30
+#define MEM_TYPE_VM_THREAD_CONTEXT  31
 
 #endif

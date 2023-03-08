@@ -287,7 +287,8 @@ int8_t vm_i8_run(
     uint8_t *stream,
     uint16_t func_addr,
     uint16_t pc_offset,
-    vm_state_t *state );
+    vm_state_t *state,
+    int32_t *context );
 
 int8_t vm_i8_run_tick(
     uint8_t *stream,

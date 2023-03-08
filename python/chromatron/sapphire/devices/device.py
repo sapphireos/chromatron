@@ -1039,6 +1039,7 @@ class Device(object):
             28: "link_producer",
             29: "link_remote",
             30: "kv_opt",
+            31: "vm_thread_context",
         }
 
         total_size = 0

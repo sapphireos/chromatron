@@ -326,6 +326,8 @@ typedef struct __attribute__((packed)){
             } \
             /* store PC offset */ \
             state->threads[state->current_thread].pc_offset = pc - ( code + func_addr ); \
+            /* store local memory context */ \
+            if( context != 0 ){ memcpy( context, local_memory, current_frame_size ); }\
             /* yield! */ \
             return VM_STATUS_YIELDED; \
         } \
@@ -335,7 +337,8 @@ static int8_t _vm_i8_run_stream(
     uint8_t *stream,
     uint16_t func_addr,
     uint16_t pc_offset,
-    vm_state_t *state ){
+    vm_state_t *state,
+    int32_t *context ){
 
 #if defined(ESP8266)
     static void *opcode_table[] = {
@@ -945,8 +948,13 @@ static int8_t _vm_i8_run_stream(
 
         return VM_STATUS_ERR_FUNC_NOT_FOUND;
     }
-    
 
+    // restore context if provided:
+    if( context != 0 ){
+
+        memcpy( local_memory, context, current_frame_size );
+    }
+    
     // uint16_t dest;
     // uint16_t src;
     // uint16_t call_target;
@@ -5025,7 +5033,8 @@ int8_t vm_i8_run(
     uint8_t *stream,
     uint16_t func_addr,
     uint16_t pc_offset,
-    vm_state_t *state ){
+    vm_state_t *state,
+    int32_t *context ){
 
     uint32_t start_time = tmr_u32_get_system_time_us();
 
@@ -5072,7 +5081,7 @@ int8_t vm_i8_run(
 
     state->return_val = 0;
 
-    int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state );
+    int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state, context );
 
     cycles = VM_MAX_CYCLES - cycles;
 
@@ -5243,8 +5252,10 @@ int8_t vm_i8_run_tick(
 
             uint8_t thread = event;
             state->current_thread = thread;
+
+            int32_t *context = mem2_vp_get_ptr( state->threads[thread].context_h );
         
-            status = vm_i8_run( stream, state->threads[thread].func_addr, state->threads[thread].pc_offset, state );
+            status = vm_i8_run( stream, state->threads[thread].func_addr, state->threads[thread].pc_offset, state, context );
 
             elapsed_us += state->last_elapsed_us;
 
@@ -5281,14 +5292,14 @@ int8_t vm_i8_run_init(
 
     state->tick = 0;
 
-    return vm_i8_run( stream, state->init_start, 0, state );
+    return vm_i8_run( stream, state->init_start, 0, state, 0 );
 }
 
 int8_t vm_i8_run_loop(
     uint8_t *stream,
     vm_state_t *state ){
 
-    return vm_i8_run( stream, state->loop_start, 0, state );
+    return vm_i8_run( stream, state->loop_start, 0, state, 0 );
 }
 
 // int32_t vm_i32_get_data( 

@@ -283,7 +283,7 @@ int8_t vm_lib_i8_libcall_built_in(
 
                     memset( vm_thread, 0, sizeof(vm_thread_t) );
 
-                    vm_thread->context_h = mem2_h_alloc( func_table[ref.ref.addr].frame_size );
+                    vm_thread->context_h = mem2_h_alloc2( func_table[ref.ref.addr].frame_size, MEM_TYPE_VM_THREAD_CONTEXT );
 
                     if( vm_thread->context_h <= 0 ){
 
