@@ -50,6 +50,20 @@ from bad input, with delays and logging.  Battery charging is just not simple.
 #include "hal_boards.h"
 
 
+/*
+
+TODO
+
+Add a fault state for when a power source is available but the battery
+charger is reporting a fault.
+
+
+Remove tilt controls and patchboard stuff.  We aren't gonna use it.
+
+
+*/
+
+
 // config parameters:
 static bool patch_board_installed;
 static bool charger2_board_installed;
