@@ -611,6 +611,8 @@ PT_BEGIN( pt );
 				// we will delay here and wait
 				// for the reboot thread to reboot the system.
 				TMR_WAIT( pt, 120000 ); 
+
+				log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
 			}
 		}
 		else{
