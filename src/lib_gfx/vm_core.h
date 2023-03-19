@@ -254,12 +254,6 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     
     uint32_t max_cycles;
 
-    uint16_t read_keys_count;
-    uint16_t read_keys_start;
-
-    uint16_t write_keys_count;
-    uint16_t write_keys_start;
-
     uint16_t publish_count;
     uint16_t publish_start;
 

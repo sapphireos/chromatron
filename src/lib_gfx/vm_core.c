@@ -5302,71 +5302,12 @@ int8_t vm_i8_run_loop(
     return vm_i8_run( stream, state->loop_start, 0, state, 0 );
 }
 
-// int32_t vm_i32_get_data( 
-//     uint8_t *stream,
-//     vm_state_t *state,
-//     uint16_t addr ){
-
-//     // bounds check
-//     if( addr >= state->data_count ){
-
-//         return 0;
-//     }
-
-//     int32_t *data_table = (int32_t *)( stream + state->data_start );
-
-//     return data_table[addr];
-// }
-
-// void vm_v_get_data_multi( 
-//     uint8_t *stream,
-//     vm_state_t *state,
-//     uint16_t addr, 
-//     uint16_t len,
-//     int32_t *dest ){
-
-//     // bounds check
-//     if( ( addr + len ) > state->data_count ){
-
-//         return;
-//     }
-
-//     int32_t *data_table = (int32_t *)( stream + state->data_start );
-
-//     while( len > 0 ){
-
-//         *dest = data_table[addr];
-
-//         dest++;
-//         addr++;
-//         len--;
-//     }
-// }
-
 int32_t* vm_i32p_get_data_ptr( 
     uint8_t *stream,
     vm_state_t *state ){
 
     return (int32_t *)( stream + state->global_data_start );    
 }
-
-// void vm_v_set_data( 
-//     uint8_t *stream,
-//     vm_state_t *state,
-//     uint16_t addr, 
-//     int32_t data ){
-
-//     // bounds check
-//     if( addr >= state->data_count ){
-
-//         return;
-//     }
-
-//     int32_t *data_table = (int32_t *)( stream + state->data_start );
-
-//     data_table[addr] = data;
-// }
-
 
 int8_t vm_i8_check_header( vm_program_header_t *prog_header ){
 
