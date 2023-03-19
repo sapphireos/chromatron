@@ -1235,6 +1235,12 @@ static void init_charger( void ){
     bq25895_v_set_hiz( FALSE );
     bq25895_v_set_charger( TRUE );
 
+    // make sure we've left ship mode.
+    // yup - the BQ25895 has occasional problems with setting the BATFET_DIS bit
+    // when plugging in a power source.
+    // so we gotta check for that and try to fix it.
+    bq25895_v_leave_ship_mode();
+
     bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
 
@@ -1721,6 +1727,28 @@ PT_BEGIN( pt );
             }
 
             adc_good++;
+
+            // check if vbus is plugged in:
+            if( vbus_volts > 3500 ){
+
+                // check BATFET_DIS bit
+                // sometimes when plugging in a power source, 
+                // the BQ25895 will decide to disconnect the battery.
+                // can't find any fault condition present that would cause
+                // this.  datasheet and forums come up blank.
+                // probably yet another bug in the chip's logic.
+                // so anyway we check for that here, log it for fun, 
+                // and then clear the bit, hopefully we've had enough
+                // power on vbus to accomplish this.
+                uint8_t reg = regs[BQ25895_REG_SHIP_MODE];
+
+                if( ( reg & BQ25895_BIT_BATFET_DIS ) != 0 ){
+
+                    log_v_error_P( PSTR("Uncommanded BATFET disconnect. Resetting bit.") );
+
+                    bq25895_v_leave_ship_mode();
+                }
+            }
 
 
             // run MPPT

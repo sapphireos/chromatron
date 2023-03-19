@@ -344,6 +344,8 @@ uint16_t batt_u16_get_nameplate_capacity( void ){
 
 void batt_v_shutdown_power( void ){
 
+    log_v_info_P( PSTR("Battery shutdown commanded") );
+
     if( batt_enable_mcp73831 ){
 
         mcp73831_v_shutdown();

@@ -50,6 +50,20 @@ from bad input, with delays and logging.  Battery charging is just not simple.
 #include "hal_boards.h"
 
 
+/*
+
+TODO
+
+Add a fault state for when a power source is available but the battery
+charger is reporting a fault.
+
+
+Remove tilt controls and patchboard stuff.  We aren't gonna use it.
+
+
+*/
+
+
 // config parameters:
 static bool patch_board_installed;
 static bool charger2_board_installed;
@@ -611,6 +625,8 @@ PT_BEGIN( pt );
 				// we will delay here and wait
 				// for the reboot thread to reboot the system.
 				TMR_WAIT( pt, 120000 ); 
+
+				log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
 			}
 		}
 		else{

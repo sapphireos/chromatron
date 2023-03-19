@@ -861,6 +861,8 @@ PT_BEGIN( pt );
         // in case that does not happen, we will delay and then force a reboot.
         TMR_WAIT( pt, 20000 );
 
+        log_v_warn_P( PSTR("Shutdown state 2 timeout - rebooting...") );
+
         reboot( TRUE );
     }
 	
