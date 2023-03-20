@@ -1,47 +1,98 @@
 
+# a = Number()
+# b = Number()
 
-pixel1 = PixelArray(0, 8)
-pixel2 = PixelArray(8, 8)
+# def init():
 
-fx_send_var = Number(publish=True)
-fx_vm_lib_test = Number(publish=True)
+#     a = pixels.count
+#     b = pixels.count
 
-fx_thread1 = Number(publish=True)
-fx_thread2 = Number(publish=True)
-
-send('kv_test_key', 'fx_send_var', ['test'], tag='meow')
+#     return a + b
 
 
-def thread1():
-    while True:
-        delay(1000)
-        fx_thread1 += 1        
+# a = Number(publish=True)
+# b = Number(publish=True)
 
-def thread2():
-    while True:
-        delay(2000)
-        fx_thread2 += 1        
+# def init():
+#     a = pixels.is_hs_fading
+
+#     pixels.hue = 0.5
+
+#     b = pixels.is_hs_fading
+
+
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
 
 def init():
-    pixels.sat = 1.0
-    pixels.val = 1.0
+    pixels.count = 1
+    a = pixels.count
 
-    pixel1.hue = 0.333
-    pixel2.hue = 0.667
+    pixels.count = pixels.count + 1
+    b = pixels.count
 
-    fx_send_var = 123
-
-    fx_vm_lib_test = test_lib_call(1, 2)
-
-    db.kv_test_key = 456
-
-    start_thread(thread1)
-    start_thread(thread2)
+    pixels.count += 1
+    c = pixels.count
 
 
-def loop():
-    pixel1.hue += 0.001
-    pixel2.hue += 0.001
+# fx_thread1 = Number(publish=True)
+
+# def thread1():
+#     i = Number()
+#     while True:
+#         i += 1
+#         delay(1000)
+#         fx_thread1 += i + 1
+
+
+
+# def init():
+#     start_thread(thread1)
+
+# pixel1 = PixelArray(0, 8)
+# pixel2 = PixelArray(8, 8)
+
+# fx_send_var = Number(publish=True)
+# fx_vm_lib_test = Number(publish=True)
+
+# fx_thread1 = Number(publish=True)
+# fx_thread2 = Number(publish=True)
+
+# send('kv_test_key', 'fx_send_var', ['test'], tag='meow')
+
+
+# def thread1():
+#     while True:
+#         delay(1000)
+#         fx_thread1 += 1        
+
+# def thread2():
+#     while True:
+#         delay(2000)
+#         fx_thread2 += 1        
+
+# def init():
+#     pixels.sat = 1.0
+#     pixels.val = 1.0
+
+#     pixel1.hue = 0.333
+#     pixel2.hue = 0.667
+
+#     fx_send_var = 123
+
+#     fx_vm_lib_test = test_lib_call(1, 2)
+
+#     db.kv_test_key = 456
+
+#     start_thread(thread1)
+#     start_thread(thread2)
+
+
+# def loop():
+#     pixel1.hue += 0.001
+#     pixel2.hue += 0.001
 
 
 # a = Number()
