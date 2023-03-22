@@ -416,7 +416,7 @@ PT_BEGIN( pt );
 
                 // send data
                 uint16_t offset = 0;
-                uint16_t data_len = vm_u16_get_data_len();
+                uint16_t data_len = vm_u16_get_sync_data_len();
 
                 // TODO
                 // need to split the chunk transmission with some delays.
@@ -436,7 +436,7 @@ PT_BEGIN( pt );
                         chunk_size = data_len;
                     }
 
-                    send_data( vm_i32p_get_data(), chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
+                    send_data( vm_i32p_get_sync_data(), chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
 
                     offset += chunk_size;
                 } 
@@ -470,7 +470,7 @@ PT_BEGIN( pt );
 
             log_v_debug_P( PSTR("rx data offset %d / %d"), msg->offset, sync_data_remaining );
 
-            int32_t *data_ptr = vm_i32p_get_data() + msg->offset;
+            int32_t *data_ptr = vm_i32p_get_sync_data() + msg->offset;
             memcpy( data_ptr, &msg->data, data_len );
 
             sync_data_remaining -= data_len;

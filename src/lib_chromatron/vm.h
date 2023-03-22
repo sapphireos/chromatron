@@ -51,9 +51,9 @@ uint32_t vm_u32_get_checkpoint_hash( void );
 
 uint64_t vm_u64_get_tick( void );
 uint64_t vm_u64_get_frame( void );
-uint32_t vm_u32_get_data_hash( void );
-uint16_t vm_u16_get_data_len( void );
-int32_t* vm_i32p_get_data( void ); 
+uint32_t vm_u32_get_sync_data_hash( void );
+uint16_t vm_u16_get_sync_data_len( void );
+int32_t* vm_i32p_get_sync_data( void ); 
 vm_state_t* vm_p_get_state( void );
 
 #endif
