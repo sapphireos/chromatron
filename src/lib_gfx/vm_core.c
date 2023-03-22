@@ -1566,8 +1566,7 @@ opcode_stdbi:
 
 opcode_suspend:
     DECODE_SUSPEND;
-
-        
+    
     // verify suspend is only executed at top level of a thread function:
     if( ( call_depth != 0 ) || ( state->current_thread < 0 ) ){
         
@@ -1592,7 +1591,7 @@ opcode_suspend:
             ptr_i32++;
             index++;
 
-            if( index >= state->max_thread_context_size ){
+            if( index > state->max_thread_context_size ){
 
                 return VM_STATUS_BAD_CONTEXT_SIZE;
             }
@@ -1606,7 +1605,7 @@ opcode_suspend:
 
         value = VM_MIN_DELAY;
     }
-            
+
     state->threads[state->current_thread].tick += value;
 
     return VM_STATUS_YIELDED;
@@ -1631,7 +1630,7 @@ opcode_resume:
             ptr_i32++;
             index++;
 
-            if( index >= state->max_thread_context_size ){
+            if( index > state->max_thread_context_size ){
 
                 return VM_STATUS_BAD_CONTEXT_SIZE;
             }
@@ -1984,7 +1983,6 @@ opcode_icall4:
     CALL_FINISH;
 
     DISPATCH;
-
 
 opcode_lcall0:
     DECODE_1AC;
@@ -5612,6 +5610,7 @@ int8_t vm_i8_load_program(
 
     state->thread_context_start = obj_start;
     state->max_thread_context_size = header.max_context_len;
+    obj_start += thread_context_size;
 
     // set up final items for VM execution
 

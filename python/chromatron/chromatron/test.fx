@@ -40,6 +40,8 @@
 fx_thread1 = Number(publish=True)
 
 def thread1():
+    fx_thread1 = 123
+
     i = Number()
     while True:
         i += 1
@@ -49,6 +51,7 @@ def thread1():
 
 
 def init():
+    fx_thread1 = 64
     start_thread(thread1)
 
 # pixel1 = PixelArray(0, 8)
