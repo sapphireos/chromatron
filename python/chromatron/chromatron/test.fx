@@ -39,7 +39,7 @@
 
 fx_thread1 = Number(publish=True)
 fx_thread2 = Number(publish=True)
-
+fx_loop = Number(publish=True)
 
 def thread1():
     while True:
@@ -55,6 +55,9 @@ def init():
    
     start_thread(thread1)
     start_thread(thread2)
+
+def loop():
+    fx_loop += 1
 
 # pixel1 = PixelArray(0, 8)
 # pixel2 = PixelArray(8, 8)

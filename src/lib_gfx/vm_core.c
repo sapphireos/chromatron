@@ -5777,13 +5777,7 @@ int8_t vm_i8_load_program(
     // ******************
 
     // TODO!
-
-    // ******************
-    // load thread context:
-    // ******************
-
-    obj_ptr += thread_context_size;
-
+    
 
     // ******************
     // load constant pool:
