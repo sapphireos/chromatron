@@ -7943,6 +7943,18 @@ class irSuspend(IR):
 
         return insSuspend(self.delay.generate(), context=[v.generate() for v in self.context], lineno=self.lineno)
 
+class irResume(IR):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __str__(self):
+        s = f'RESUME'
+
+        return s   
+
+    def generate(self):
+        return insResume(lineno=self.lineno)
+
 class irCallType(IR):
     pass
 

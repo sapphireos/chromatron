@@ -113,6 +113,16 @@ static uint32_t cycles;
 
 #define DECODE_NOP pc += 4;
 
+// special handling for suspend:
+#define DECODE_SUSPEND DECODE_1I1R
+
+// note special handling for resume:
+// we move the PC back to the previous instruction (suspend)
+// then we decode the suspend (which bumps the PC to again point
+// to the current resume isntruction), and THEN bump the PC to point
+// to the next instruction after resume
+#define DECODE_RESUME pc -= 4; DECODE_SUSPEND; pc += 4;
+
 typedef struct __attribute__((packed)){
     uint8_t opcode;
     uint8_t op1;
@@ -634,9 +644,9 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 243
         &&opcode_trap,              // 244
         &&opcode_trap,              // 245
-        &&opcode_trap,              // 246
 
-        &&opcode_suspend,           // 247
+        &&opcode_suspend,           // 246
+        &&opcode_resume,            // 247
         &&opcode_halt,              // 248
         &&opcode_assert,            // 249
         &&opcode_print,             // 250
@@ -1555,7 +1565,7 @@ opcode_stdbi:
     DISPATCH;
 
 opcode_suspend:
-    DECODE_1I1R;
+    DECODE_SUSPEND;
 
         
     // verify suspend is only executed at top level of a thread function:
@@ -1593,6 +1603,32 @@ opcode_suspend:
 
     DISPATCH;
 
+opcode_resume:
+    DECODE_RESUME;
+
+    // set up pointer to thread context:
+    ptr_i32 = thread_contexts + ( state->max_thread_context_size * state->current_thread );
+    index = 0;
+
+    // restore context
+    for( uint8_t i = 0; i < 16; i++ ){
+
+        // check if saving register at this bit position
+        if( opcode_1i1r->imm1 & ( 1 << i ) ){
+
+            registers[i] = *ptr_i32;
+
+            ptr_i32++;
+            index++;
+
+            if( index >= state->max_thread_context_size ){
+
+                return VM_STATUS_BAD_CONTEXT_SIZE;
+            }
+        }
+    }
+
+    DISPATCH;
 
 opcode_halt:
     return VM_STATUS_HALT;

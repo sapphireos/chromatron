@@ -2428,6 +2428,20 @@ class insSuspend(BaseInstruction):
 
         return OpcodeFormat1Imm1Reg(self.mnemonic, context_bits, self.delay.assemble(), lineno=self.lineno)
 
+class insResume(BaseInstruction):
+    mnemonic = 'RESUME'
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __str__(self):
+        return f"{self.mnemonic}"
+
+    def execute(self, vm):
+        pass
+
+    def assemble(self):
+        return OpcodeFormatNop(self.mnemonic, lineno=self.lineno)
 
 class insCall(BaseInstruction):
     mnemonic = 'CALL'

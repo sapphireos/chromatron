@@ -539,6 +539,10 @@ class Builder(object):
 
             ir = irSuspend(delay=delay_value, lineno=lineno)
             self.append_node(ir)
+
+            ir = irResume(lineno=lineno)
+            self.append_node(ir)
+
             return
 
         if func_name in LINK_MODES:
