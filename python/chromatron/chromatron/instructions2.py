@@ -2416,7 +2416,17 @@ class insSuspend(BaseInstruction):
         pass
 
     def assemble(self):
-        return OpcodeFormatNop(self.mnemonic, lineno=self.lineno)
+        context_bits = 0
+
+        for reg in self.context:
+            context_bits |= (1 << reg.reg)
+
+        # up to 16 context saves can be encoded in the 16 bit mask.
+
+        # support for context saves beyond the first 16 registers will require another
+        # instruction with additional encoding space.
+
+        return OpcodeFormat1Imm1Reg(self.mnemonic, context_bits, self.delay.assemble(), lineno=self.lineno)
 
 
 class insCall(BaseInstruction):

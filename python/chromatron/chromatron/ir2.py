@@ -7938,7 +7938,10 @@ class irSuspend(IR):
         return [self.delay]
 
     def generate(self):
-        return insSuspend(self.delay, context=self.context, lineno=self.lineno)
+        if len(self.context) > 16:
+            raise CompilerFatal(f"SUSPEND only supports the first 16 registers.", lineno=self.lineno)
+
+        return insSuspend(self.delay.generate(), context=[v.generate() for v in self.context], lineno=self.lineno)
 
 class irCallType(IR):
     pass
