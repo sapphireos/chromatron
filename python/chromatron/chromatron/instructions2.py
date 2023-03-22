@@ -166,6 +166,7 @@ class insProgram(object):
         objects=[], 
         strings={}, 
         links=[],
+        db={},
         cron={},
         call_graph={}):
 
@@ -173,6 +174,7 @@ class insProgram(object):
         self.globals = global_vars
         self.call_graph = call_graph
         self.links = links
+        self.db = db
         self.cron = cron
 
         # initialize memory
@@ -254,7 +256,7 @@ class insProgram(object):
 
         self.objects = objects
 
-        self.db = {
+        self.vm_db = {
             catbus_string_hash('kv_test_key'): 0,
             catbus_string_hash('kv_test_array'): [0] * 4,
             catbus_string_hash('kv_test_string'): "",
@@ -1103,7 +1105,6 @@ class insLoadRef(BaseInstruction):
         vm.registers[self.dest.reg] = ref
 
     def assemble(self):
-        print('load ref', self.src, self.src.addr, self.src.storage.value)
         return OpcodeFormat2Imm1Reg(self.mnemonic, self.src.addr, self.src.storage.value, self.dest.assemble(), lineno=self.lineno)
 
 class insLoadGlobalImmediate(BaseInstruction):
@@ -1316,7 +1317,7 @@ class insLoadDB(BaseInstruction):
         return "%s %s <-DB %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        db = vm.program.db
+        db = vm.program.vm_db
 
         key = vm.registers[self.src.reg]
 
@@ -1380,7 +1381,7 @@ class insLoadDBIndexed(BaseInstruction):
         return "%s %s <-DB %s[%s]" % (self.mnemonic, self.dest, self.src, self.lookup)
 
     def execute(self, vm):
-        db = vm.program.db
+        db = vm.program.vm_db
 
         key = vm.registers[self.src.reg]
         lookup = vm.registers[self.lookup.reg]
@@ -1452,7 +1453,7 @@ class insStoreDB(BaseInstruction):
         return "%s %s <-DB %s" % (self.mnemonic, self.dest, self.src)
 
     def execute(self, vm):
-        db = vm.program.db
+        db = vm.program.vm_db
 
         key = vm.registers[self.dest.reg]
         value = vm.registers[self.src.reg]
@@ -1515,7 +1516,7 @@ class insStoreDBIndexed(BaseInstruction):
         return "%s %s[%s] <-DB %s" % (self.mnemonic, self.dest, self.lookup, self.src)
 
     def execute(self, vm):
-        db = vm.program.db
+        db = vm.program.vm_db
 
         key = vm.registers[self.dest.reg]
         value = vm.registers[self.src.reg]
@@ -2711,7 +2712,7 @@ class insDBCall(BaseInstruction):
         return "%s %s {%s}.%s (%s)" % (self.mnemonic, self.target, self.func_name, self.key, params)
 
     def execute(self, vm):
-        db = vm.program.db
+        db = vm.program.vm_db
 
         key = vm.registers[self.key.reg]
 

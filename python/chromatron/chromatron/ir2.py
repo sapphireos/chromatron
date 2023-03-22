@@ -382,6 +382,7 @@ class irProgram(IR):
         symbols=None, 
         strings={}, 
         links=[],
+        db={},
         cron={},
         **kwargs):
         
@@ -392,6 +393,7 @@ class irProgram(IR):
         self.global_symbols = symbols
         self.strings = strings
         self.links = links
+        self.db = db
         self.cron = cron
         self.constant_pool = []
         self.call_graph = None
@@ -516,6 +518,7 @@ class irProgram(IR):
                 objects=self.objects,
                 strings=self.strings,
                 links=self.links,
+                db=self.db,
                 cron=self.cron,
                 call_graph=self.call_graph)
 

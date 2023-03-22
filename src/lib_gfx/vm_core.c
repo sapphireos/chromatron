@@ -5768,8 +5768,24 @@ int8_t vm_i8_load_program(
     // ******************
     // load DB:
     // ******************
+    if( header.db_len > 0 ){
 
-    // TODO!
+        catbus_meta_t meta;
+
+        for( uint8_t i = 0; i < state->db_count; i++ ){
+
+            if( fs_i16_read( f, (uint8_t *)&meta, sizeof(meta) ) != sizeof(meta) ){
+
+                status = VM_STATUS_ERR_BAD_FILE_READ;
+                goto error;
+            }
+
+            kvdb_i8_add( meta.hash, meta.type, meta.count + 1, 0, 0 );
+            kvdb_v_set_tag( meta.hash, 1 << vm_id );      
+
+            obj_ptr += sizeof(meta);
+        }   
+    }
 
 
     // ******************
@@ -5777,7 +5793,7 @@ int8_t vm_i8_load_program(
     // ******************
 
     // TODO!
-    
+
 
     // ******************
     // load constant pool:

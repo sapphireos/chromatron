@@ -162,7 +162,7 @@ class FXImage(object):
         opcodes = []
         pixel_arrays = []
         links = self.program.links
-        db_entries = {}
+        db_entries = self.program.db
         cron_tab = self.program.cron
         constant_pool = self.constants
         max_context_len = 0

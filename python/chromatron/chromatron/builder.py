@@ -59,6 +59,7 @@ class Builder(object):
         self.structs = {}
         self.strings = {}
         self.links = []
+        self.db_entries = {}
         self.cron = {}
 
         self.next_temp = 0
@@ -1308,6 +1309,7 @@ class Builder(object):
                 self.global_symbols, 
                 self.strings, 
                 self.links,
+                self.db_entries,
                 self.cron,
                 lineno=0)
 
@@ -1797,4 +1799,10 @@ class Builder(object):
         pprint(new_link)
 
         self.links.append(new_link)
-        
+    
+    def db(self, name, type, count, lineno=None):
+        db_entry = CatbusMeta(hash=catbus_string_hash(name), 
+                              type=type,
+                              array_len=count - 1)
+
+        self.db_entries[name] = db_entry

@@ -36,6 +36,7 @@
 #     pixels.count += 1
 #     c = pixels.count
 
+db('fx_db', 'uint8', 1)
 
 fx_thread1 = Number(publish=True)
 fx_thread2 = Number(publish=True)
@@ -52,6 +53,7 @@ def thread2():
         fx_thread2 += 1        
 
 def init():
+    db.fx_db = 123
    
     start_thread(thread1)
     start_thread(thread2)
