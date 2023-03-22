@@ -1599,6 +1599,16 @@ opcode_suspend:
         }
     }
 
+    // load delay value
+    value = registers[opcode_1i1r->reg1];
+
+    if( value < VM_MIN_DELAY ){
+
+        value = VM_MIN_DELAY;
+    }
+            
+    state->threads[state->current_thread].tick += value;
+
     return VM_STATUS_YIELDED;
 
     DISPATCH;
