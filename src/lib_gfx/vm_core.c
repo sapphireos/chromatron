@@ -5602,7 +5602,6 @@ int8_t vm_i8_load_program(
 
     state->thread_context_start = obj_start;
     state->max_thread_context_size = header.max_context_len;
-    obj_start += thread_context_size;
 
     // set up final items for VM execution
 
@@ -5750,6 +5749,19 @@ int8_t vm_i8_load_program(
     // ******************
 
     // TODO!
+
+
+    // ******************
+    // load Cron:
+    // ******************
+
+    // TODO!
+
+    // ******************
+    // load thread context:
+    // ******************
+
+    obj_ptr += thread_context_size;
 
 
     // ******************

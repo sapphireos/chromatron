@@ -194,11 +194,14 @@ class FXImage(object):
             function_addrs['loop'] = 65535
 
         # set up function table
+        func_table_len = 0
         for func in self.funcs.values():
             info = FunctionInfo(
                     addr=function_addrs[func.name], 
                     frame_size=func.local_memory_size * DATA_LEN,
                     context_size=func.context_size * DATA_LEN)
+
+            func_table_len += info.size()
 
             if func.context_size > max_context_len:
                 max_context_len = func.context_size
@@ -259,8 +262,6 @@ class FXImage(object):
         packed_function_table = bytes()
         for func in function_table.values():
             packed_function_table += func.pack()
-
-        func_table_len = len(function_table) * DATA_LEN
 
         # set up constant poo
         constant_len = len(constant_pool) * DATA_LEN
