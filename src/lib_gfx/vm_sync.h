@@ -29,7 +29,7 @@
 #ifdef ENABLE_TIME_SYNC
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
-#define SYNC_PROTOCOL_VERSION           	6
+#define SYNC_PROTOCOL_VERSION           	7
 
 #define SYNC_SERVICE                        __KV__vmsync
 
