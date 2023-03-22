@@ -80,6 +80,7 @@
 #define VM_STATUS_BAD_STORAGE_POOL          -55
 #define VM_STATUS_INVALID_FUNC_REF          -56
 #define VM_STATUS_BAD_PUBLISH_ADDR          -57
+#define VM_STATUS_BAD_CONTEXT_SIZE          -58
 
 
 #define VM_STATUS_RESTRICTED_KEY            -70
@@ -115,6 +116,8 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     uint16_t addr;
     uint16_t frame_size;
+    uint16_t context_size;
+    uint16_t padding;
 } function_info_t;
 
 typedef struct __attribute__((packed)){
@@ -148,6 +151,8 @@ typedef struct __attribute__((packed)){
     uint16_t func_info_len;
     uint16_t local_data_len;
     uint16_t global_data_len;
+    uint16_t max_context_len;
+    uint16_t padding;
     uint16_t constant_len;      // length in BYTES, not number of objects!
     uint16_t stringlit_len;     // length in BYTES, not number of objects!
     uint16_t publish_len;       // length in BYTES, not number of objects!
@@ -175,8 +180,8 @@ typedef struct __attribute__((packed)){
     uint16_t func_addr;
     uint16_t pc_offset;
     uint64_t tick;
-    mem_handle_t context_h;
-    uint16_t padding;
+    // mem_handle_t context_h;
+    // uint16_t padding;
 } vm_thread_t;
 
 typedef struct __attribute__((packed)){
@@ -220,7 +225,7 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t global_data_len;
     
     uint16_t prog_size;
-    uint16_t padding;
+    uint16_t max_thread_context_size;
 
     uint16_t pool_start;
     uint16_t pool_len;
@@ -248,7 +253,7 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
 
     vm_thread_t threads[VM_MAX_THREADS];
     
-    uint32_t yield;
+    // uint32_t yield;
 
     int32_t current_thread;
     
@@ -271,7 +276,7 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t cron_start;
 
     uint16_t last_cron;
-    uint16_t reserved;
+    uint16_t thread_context_start;
 
     uint16_t pix_obj_start;
     uint16_t pix_obj_count;
@@ -281,8 +286,7 @@ int8_t vm_i8_run(
     uint8_t *stream,
     uint16_t func_addr,
     uint16_t pc_offset,
-    vm_state_t *state,
-    int32_t *context );
+    vm_state_t *state );
 
 int8_t vm_i8_run_tick(
     uint8_t *stream,

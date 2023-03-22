@@ -51,6 +51,8 @@ class ProgramHeader(StructField):
                   Uint16Field(_name="func_len"),
                   Uint16Field(_name="local_data_len"),
                   Uint16Field(_name="global_data_len"),
+                  Uint16Field(_name="max_context_len"),
+                  Uint16Field(_name="padding"),
                   Uint16Field(_name="constant_len"),
                   Uint16Field(_name="stringlit_len"),
                   Uint16Field(_name="publish_len"),
@@ -163,6 +165,7 @@ class FXImage(object):
         db_entries = {}
         cron_tab = self.program.cron
         constant_pool = self.constants
+        max_context_len = 0
 
         if filename is None:
             filename = self.program.name.replace('.fx', '') + '.fxb'
@@ -196,6 +199,9 @@ class FXImage(object):
                     addr=function_addrs[func.name], 
                     frame_size=func.local_memory_size * DATA_LEN,
                     context_size=func.context_size * DATA_LEN)
+
+            if func.context_size > max_context_len:
+                max_context_len = func.context_size
 
             function_table[func.name] = info
 
@@ -350,6 +356,7 @@ class FXImage(object):
                     func_len=func_table_len,
                     local_data_len=local_data_len,
                     global_data_len=global_data_len,
+                    max_context_len=max_context_len,
                     constant_len=constant_len,
                     stringlit_len=stringlit_len,
                     pix_obj_len=pix_obj_len,

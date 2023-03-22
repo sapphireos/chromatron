@@ -228,7 +228,7 @@ int8_t vm_lib_i8_libcall_built_in(
 
         case __KV__yield:
 
-            state->yield = 1;
+            // state->yield = 1;
             break;
 
         case __KV__delay:
@@ -252,7 +252,7 @@ int8_t vm_lib_i8_libcall_built_in(
             state->threads[state->current_thread].tick += temp0;
 
             // delay also yields
-            state->yield = 1;
+            // state->yield = 1;
 
             break;
 
@@ -283,16 +283,16 @@ int8_t vm_lib_i8_libcall_built_in(
 
                     memset( vm_thread, 0, sizeof(vm_thread_t) );
 
-                    vm_thread->context_h = mem2_h_alloc2( func_table[ref.ref.addr].frame_size, MEM_TYPE_VM_THREAD_CONTEXT );
+                    // vm_thread->context_h = mem2_h_alloc2( func_table[ref.ref.addr].frame_size, MEM_TYPE_VM_THREAD_CONTEXT );
 
-                    if( vm_thread->context_h <= 0 ){
+                    // if( vm_thread->context_h <= 0 ){
 
-                        log_v_critical_P( PSTR("VM thread alloc fail") );
+                    //     log_v_critical_P( PSTR("VM thread alloc fail") );
 
-                        break;
-                    }
+                    //     break;
+                    // }
 
-                    memset( mem2_vp_get_ptr( vm_thread->context_h ), 0, mem2_u16_get_size( vm_thread->context_h ) );
+                    // memset( mem2_vp_get_ptr( vm_thread->context_h ), 0, mem2_u16_get_size( vm_thread->context_h ) );
 
                     vm_thread->func_addr = func_addr;
                     vm_thread->tick = state->tick;
@@ -328,12 +328,12 @@ int8_t vm_lib_i8_libcall_built_in(
 
                 if( vm_thread->func_addr == func_addr ){
 
-                    if( vm_thread->context_h > 0 ){
+                    // if( vm_thread->context_h > 0 ){
 
-                        mem2_v_free( vm_thread->context_h );
+                    //     mem2_v_free( vm_thread->context_h );
 
-                        vm_thread->context_h = -1;
-                    }
+                    //     vm_thread->context_h = -1;
+                    // }
 
                     vm_thread->func_addr = 0xffff;
 

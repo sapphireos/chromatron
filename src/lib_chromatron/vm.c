@@ -648,12 +648,12 @@ static void kill_vm( uint8_t vm_id ){
 
         if( vm_state->threads[i].func_addr != 0xffff ){
 
-            if( vm_state->threads[i].context_h > 0 ){
+            // if( vm_state->threads[i].context_h > 0 ){
 
-                mem2_v_free( vm_state->threads[i].context_h );
+            //     mem2_v_free( vm_state->threads[i].context_h );
 
-                vm_state->threads[i].context_h = -1;
-            }
+            //     vm_state->threads[i].context_h = -1;
+            // }
         }
     }
 
@@ -1257,7 +1257,7 @@ int8_t vm_cron_i8_run_func( uint8_t i, uint16_t func_addr ){
 
     vm_thread_state_t *thread_state = thread_vp_get_data( vm_threads[i] );
 
-    return vm_i8_run( mem2_vp_get_ptr( thread_state->handle ), func_addr, 0, &thread_state->vm_state, 0 );
+    return vm_i8_run( mem2_vp_get_ptr( thread_state->handle ), func_addr, 0, &thread_state->vm_state );
 }
 
 #endif

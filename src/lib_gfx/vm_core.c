@@ -311,6 +311,7 @@ typedef struct __attribute__((packed)){
 #define GFX_LIB_CALL(FUNC_HASH, PARAMS_LEN)
 #endif
 
+#if 0
 #define LIBCALL(FUNC_HASH, PARAMS_LEN) \
     if( vm_lib_i8_libcall_built_in( FUNC_HASH, state, func_table, pools, &state->return_val, params, PARAMS_LEN ) != 0 ){ \
         /* try gfx lib */ \
@@ -332,13 +333,19 @@ typedef struct __attribute__((packed)){
             return VM_STATUS_YIELDED; \
         } \
     }
+#endif
+
+#define LIBCALL(FUNC_HASH, PARAMS_LEN) \
+    if( vm_lib_i8_libcall_built_in( FUNC_HASH, state, func_table, pools, &state->return_val, params, PARAMS_LEN ) != 0 ){ \
+        /* try gfx lib */ \
+        GFX_LIB_CALL(FUNC_HASH, PARAMS_LEN) \
+    }
 
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
     uint16_t func_addr,
     uint16_t pc_offset,
-    vm_state_t *state,
-    int32_t *context ){
+    vm_state_t *state ){
 
 #if defined(ESP8266)
     static void *opcode_table[] = {
@@ -628,8 +635,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 244
         &&opcode_trap,              // 245
         &&opcode_trap,              // 246
-        &&opcode_trap,              // 247
 
+        &&opcode_suspend,           // 247
         &&opcode_halt,              // 248
         &&opcode_assert,            // 249
         &&opcode_print,             // 250
@@ -930,6 +937,7 @@ static int8_t _vm_i8_run_stream(
     int32_t *local_memory = locals_start;
     int32_t *registers = local_memory;
     int32_t *global_memory = (int32_t *)( stream + state->global_data_start );
+    int32_t *thread_contexts = (int32_t *)( stream + state->thread_context_start );
 
     uint16_t func_count = state->func_info_len / sizeof(function_info_t);
     uint16_t current_frame_size = 0xffff;
@@ -949,11 +957,11 @@ static int8_t _vm_i8_run_stream(
         return VM_STATUS_ERR_FUNC_NOT_FOUND;
     }
 
-    // restore context if provided:
-    if( context != 0 ){
+    // // restore context if provided:
+    // if( context != 0 ){
 
-        memcpy( local_memory, context, current_frame_size );
-    }
+    //     memcpy( local_memory, context, current_frame_size );
+    // }
     
     // uint16_t dest;
     // uint16_t src;
@@ -1545,6 +1553,46 @@ opcode_stdbi:
 #endif
 
     DISPATCH;
+
+opcode_suspend:
+    DECODE_1I1R;
+
+        
+    // verify suspend is only executed at top level of a thread function:
+    if( ( call_depth != 0 ) || ( state->current_thread < 0 ) ){
+        
+        return VM_STATUS_IMPROPER_YIELD;
+    }
+    
+    // store PC offset
+    state->threads[state->current_thread].pc_offset = pc - ( code + func_addr );
+
+    // set up pointer to thread context:
+    ptr_i32 = thread_contexts + ( state->max_thread_context_size * state->current_thread );
+    index = 0;
+
+    // store context
+    for( uint8_t i = 0; i < 16; i++ ){
+
+        // check if saving register at this bit position
+        if( opcode_1i1r->imm1 & ( 1 << i ) ){
+
+            *ptr_i32 = registers[i];
+
+            ptr_i32++;
+            index++;
+
+            if( index >= state->max_thread_context_size ){
+
+                return VM_STATUS_BAD_CONTEXT_SIZE;
+            }
+        }
+    }
+
+    return VM_STATUS_YIELDED;
+
+    DISPATCH;
+
 
 opcode_halt:
     return VM_STATUS_HALT;
@@ -5033,8 +5081,7 @@ int8_t vm_i8_run(
     uint8_t *stream,
     uint16_t func_addr,
     uint16_t pc_offset,
-    vm_state_t *state,
-    int32_t *context ){
+    vm_state_t *state ){
 
     uint32_t start_time = tmr_u32_get_system_time_us();
 
@@ -5075,13 +5122,13 @@ int8_t vm_i8_run(
     #endif
 
     // reset yield
-    state->yield = 0;
+    // state->yield = 0;
 
     state->frame_number++;
 
     state->return_val = 0;
 
-    int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state, context );
+    int8_t status = _vm_i8_run_stream( stream, func_addr, pc_offset, state );
 
     cycles = VM_MAX_CYCLES - cycles;
 
@@ -5253,9 +5300,7 @@ int8_t vm_i8_run_tick(
             uint8_t thread = event;
             state->current_thread = thread;
 
-            int32_t *context = mem2_vp_get_ptr( state->threads[thread].context_h );
-        
-            status = vm_i8_run( stream, state->threads[thread].func_addr, state->threads[thread].pc_offset, state, context );
+            status = vm_i8_run( stream, state->threads[thread].func_addr, state->threads[thread].pc_offset, state );
 
             elapsed_us += state->last_elapsed_us;
 
@@ -5292,14 +5337,14 @@ int8_t vm_i8_run_init(
 
     state->tick = 0;
 
-    return vm_i8_run( stream, state->init_start, 0, state, 0 );
+    return vm_i8_run( stream, state->init_start, 0, state );
 }
 
 int8_t vm_i8_run_loop(
     uint8_t *stream,
     vm_state_t *state ){
 
-    return vm_i8_run( stream, state->loop_start, 0, state, 0 );
+    return vm_i8_run( stream, state->loop_start, 0, state );
 }
 
 int32_t* vm_i32p_get_data_ptr( 
@@ -5449,10 +5494,14 @@ int8_t vm_i8_load_program(
         goto error;
     }
 
+    // compute max size of all possible thread contexts:
+    uint16_t thread_context_size = header.max_context_len * cnt_of_array(state->threads);
+
     uint32_t vm_size = header.code_len + 
                        header.func_info_len + 
                        header.global_data_len + 
                        header.local_data_len + 
+                       thread_context_size + 
                        header.constant_len +
                        header.stringlit_len +
                        header.publish_len + 
@@ -5514,6 +5563,10 @@ int8_t vm_i8_load_program(
     state->cron_count = header.cron_len / sizeof(cron_t);
     state->cron_start = obj_start;
     obj_start += header.cron_len;
+
+    state->thread_context_start = obj_start;
+    state->max_thread_context_size = header.max_context_len;
+    obj_start += thread_context_size;
 
     // set up final items for VM execution
 
