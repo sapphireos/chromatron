@@ -598,6 +598,16 @@ class insFunc(object):
         return size
 
     @property
+    def context_size(self):
+        # size in WORDS not bytes
+        contexts = [ins.context_size for ins in self.code if isinstance(ins, insSuspend)]
+
+        if len(contexts) == 0:
+            return 0
+
+        return max(contexts)
+        
+    @property
     def globals(self):
         return self.program.globals
 
@@ -2381,6 +2391,33 @@ class insLoadRetVal(BaseInstruction):
 
     def assemble(self):
         return OpcodeFormat1AC(self.mnemonic, self.target.assemble(), lineno=self.lineno)
+
+class insSuspend(BaseInstruction):
+    mnemonic = 'SUSPEND'
+
+    def __init__(self, delay, context=[], **kwargs):
+        super().__init__(**kwargs)
+        self.delay = delay
+        self.context = context
+
+    def __str__(self):
+        context = ''
+        for reg in self.context:
+            context += '%s, ' % (reg)
+        context = context[:len(context) - 2]
+
+        return "%s (%s) [%s]" % (self.mnemonic, self.delay, context)
+
+    @property
+    def context_size(self):
+        return len(self.context)
+
+    def execute(self, vm):
+        pass
+
+    def assemble(self):
+        return OpcodeFormatNop(self.mnemonic, lineno=self.lineno)
+
 
 class insCall(BaseInstruction):
     mnemonic = 'CALL'

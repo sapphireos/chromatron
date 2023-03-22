@@ -66,7 +66,9 @@ class ProgramHeader(StructField):
 class FunctionInfo(StructField):
     def __init__(self, **kwargs):
         fields = [Uint16Field(_name="addr"),
-                  Uint16Field(_name="frame_size")]
+                  Uint16Field(_name="frame_size"),
+                  Uint16Field(_name="context_size"),
+                  Uint16Field(_name="padding")]
 
         super().__init__(_name="function_info", _fields=fields, **kwargs)
 
@@ -190,7 +192,10 @@ class FXImage(object):
 
         # set up function table
         for func in self.funcs.values():
-            info = FunctionInfo(addr=function_addrs[func.name], frame_size=func.local_memory_size * DATA_LEN)
+            info = FunctionInfo(
+                    addr=function_addrs[func.name], 
+                    frame_size=func.local_memory_size * DATA_LEN,
+                    context_size=func.context_size * DATA_LEN)
 
             function_table[func.name] = info
 

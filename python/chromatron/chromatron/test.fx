@@ -22,34 +22,34 @@
 
 
 
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-
-def init():
-    pixels.count = 1
-    a = pixels.count
-
-    pixels.count = pixels.count + 1
-    b = pixels.count
-
-    pixels.count += 1
-    c = pixels.count
-
-
-# fx_thread1 = Number(publish=True)
-
-# def thread1():
-#     i = Number()
-#     while True:
-#         i += 1
-#         delay(1000)
-#         fx_thread1 += i + 1
-
-
+# a = Number(publish=True)
+# b = Number(publish=True)
+# c = Number(publish=True)
 
 # def init():
-#     start_thread(thread1)
+#     pixels.count = 1
+#     a = pixels.count
+
+#     pixels.count = pixels.count + 1
+#     b = pixels.count
+
+#     pixels.count += 1
+#     c = pixels.count
+
+
+fx_thread1 = Number(publish=True)
+
+def thread1():
+    i = Number()
+    while True:
+        i += 1
+        delay(1000)
+        fx_thread1 += i + 1
+
+
+
+def init():
+    start_thread(thread1)
 
 # pixel1 = PixelArray(0, 8)
 # pixel2 = PixelArray(8, 8)

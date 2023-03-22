@@ -534,6 +534,13 @@ class Builder(object):
         lib_call = False
         db_call = False
 
+        if func_name == 'delay':
+            delay_value = self.load_value(params[0], target_type='i32', lineno=lineno)
+
+            ir = irSuspend(delay=delay_value, lineno=lineno)
+            self.append_node(ir)
+            return
+
         if func_name in LINK_MODES:
             raise SyntaxError(f"Cannot call link constructor {func_name} as a function", lineno=lineno)
 

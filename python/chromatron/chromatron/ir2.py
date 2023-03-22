@@ -73,7 +73,7 @@ DEBUG = False
 DEBUG_FILTER_LOAD_STORE = False
 DEBUG_PRINT = True
 EXCEPTION_ON_LIVENESS_ERROR = True
-SHOW_LIVENESS = False
+SHOW_LIVENESS = True
 LIVENESS_MODE = 'register'
 # LIVENESS_MODE = 'mem'
 
@@ -6744,6 +6744,9 @@ class irObjectLoad(IR):
         # so we don't remove loads that would have loaded a changed value.
         # effectively, we need value numbering to be able to act on 
         # memory objects and not just registers.
+        # this type of optimization might need to be done in the load/store eliminator
+        # instead.  we don't have SSA on memory values so GVN isn't going to work, since
+        # it cannot track changes.
 
         # expr = self.gvn_expr
 
@@ -7910,6 +7913,32 @@ class irLoadRetVal(IR):
 
     def generate(self):
         return insLoadRetVal(self.target.generate(), lineno=self.lineno)
+
+class irSuspend(IR):
+    def __init__(self, delay, **kwargs):
+        super().__init__(**kwargs)
+
+        self.delay = delay
+    
+    def __str__(self):
+        if len(self.context) == 0:
+            s = f'SUSPEND {self.delay}'
+
+        else:
+            context_registers = [v.ssa_name for v in self.context]
+            s = f'SUSPEND {self.delay}: {context_registers}'
+
+        return s   
+
+    @property
+    def context(self):
+        return self.live_out
+
+    def get_input_vars(self):
+        return [self.delay]
+
+    def generate(self):
+        return insSuspend(self.delay, context=self.context, lineno=self.lineno)
 
 class irCallType(IR):
     pass

@@ -195,6 +195,7 @@ opcodes = {
     'VAVG':                 0xE8,
     'VSUM':                 0xE9,
 
+    'SUSPEND':              0xF7,
     'HALT':                 0xF8,
     'ASSERT':               0xF9,
     'PRINT':                0xFA,
