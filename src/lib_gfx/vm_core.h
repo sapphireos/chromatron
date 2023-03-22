@@ -180,8 +180,6 @@ typedef struct __attribute__((packed)){
     uint16_t func_addr;
     uint16_t pc_offset;
     uint64_t tick;
-    // mem_handle_t context_h;
-    // uint16_t padding;
 } vm_thread_t;
 
 typedef struct __attribute__((packed)){
@@ -224,8 +222,11 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t global_data_count;
     uint16_t global_data_len;
     
+    uint16_t max_thread_context_size; // maximum per-thread context size
+    uint16_t total_thread_context_size; // total context size for ALL threads
+
+    uint16_t thread_context_start;
     uint16_t prog_size;
-    uint16_t max_thread_context_size;
 
     uint16_t pool_start;
     uint16_t pool_len;
@@ -276,7 +277,7 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t cron_start;
 
     uint16_t last_cron;
-    uint16_t thread_context_start;
+    uint16_t padding;
 
     uint16_t pix_obj_start;
     uint16_t pix_obj_count;
@@ -320,6 +321,8 @@ uint64_t vm_u64_get_next_tick(
 int32_t* vm_i32p_get_data_ptr( 
     uint8_t *stream,
     vm_state_t *state );
+
+uint16_t vm_u16_get_data_len( vm_state_t *state );
 
 // void vm_v_set_data( 
 //     uint8_t *stream,

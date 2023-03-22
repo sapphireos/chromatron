@@ -581,7 +581,7 @@ uint16_t vm_u16_get_sync_data_len( void ){
 
     vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );    
 
-    return state->vm_state.global_data_len;
+    return vm_u16_get_data_len( &state->vm_state );
 }
 
 int32_t* vm_i32p_get_sync_data( void ){
@@ -592,8 +592,9 @@ int32_t* vm_i32p_get_sync_data( void ){
     }
 
     vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
+    void *stream = mem2_vp_get_ptr( state->handle );
 
-    return vm_i32p_get_data_ptr( mem2_vp_get_ptr( state->handle ), &state->vm_state );   
+    return vm_i32p_get_data_ptr( stream, &state->vm_state );   
 }
 
 

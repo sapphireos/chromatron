@@ -5398,6 +5398,11 @@ int32_t* vm_i32p_get_data_ptr(
     return (int32_t *)( stream + state->global_data_start );    
 }
 
+uint16_t vm_u16_get_data_len( vm_state_t *state ){
+
+    return state->global_data_len + state->total_thread_context_size;
+}
+
 int8_t vm_i8_check_header( vm_program_header_t *prog_header ){
 
     if( prog_header->file_magic != FILE_MAGIC ){
@@ -5608,10 +5613,6 @@ int8_t vm_i8_load_program(
     state->cron_start = obj_start;
     obj_start += header.cron_len;
 
-    state->thread_context_start = obj_start;
-    state->max_thread_context_size = header.max_context_len;
-    obj_start += thread_context_size;
-
     // set up final items for VM execution
 
     state->pool_start           = obj_start;
@@ -5623,14 +5624,25 @@ int8_t vm_i8_load_program(
     obj_start += header.stringlit_len;
 
     state->code_start           = obj_start;
+    obj_start += header.code_len;
 
-    state->local_data_start     = state->code_start + header.code_len;
+    state->local_data_start     = obj_start;
     state->local_data_len       = header.local_data_len;
     state->local_data_count     = state->local_data_len / DATA_LEN;
+    obj_start += state->local_data_len;
 
-    state->global_data_start    = state->local_data_start + header.local_data_len;
+    state->global_data_start    = obj_start;
     state->global_data_len      = header.global_data_len;
     state->global_data_count    = state->global_data_len / DATA_LEN;
+    obj_start += state->global_data_len;
+
+    // thread context data must be directly after global data
+    // the gfx synchronizer needs to be able to access both as a 
+    // contiguous block.
+    state->thread_context_start = obj_start;
+    state->max_thread_context_size = header.max_context_len;
+    state->total_thread_context_size = thread_context_size;
+    obj_start += state->total_thread_context_size;
 
     uint8_t *stream = mem2_vp_get_ptr( *handle );
 
