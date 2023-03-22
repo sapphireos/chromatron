@@ -208,8 +208,13 @@ PT_BEGIN( pt );
                     if( job_ready( &cron_now, entry ) ){
 
                         int8_t status = vm_cron_i8_run_func( entry->vm_id, entry->cron.func_addr );                   
+
+                        if( status != VM_STATUS_OK ){
+
+                            log_v_warn_P( PSTR("cron job failed") );
+                        }
                        
-                        log_v_debug_P( PSTR("Running cron job: %u for vm: %d status: %d"), entry->cron.func_addr, entry->vm_id, status );
+                        // log_v_debug_P( PSTR("Running cron job: %u for vm: %d status: %d"), entry->cron.func_addr, entry->vm_id, status );
                     }
 
                     ln = next_ln;
@@ -236,7 +241,9 @@ PT_THREAD( cron_replay_thread( pt_t *pt, replay_state_t *state ) )
 {
 PT_BEGIN( pt ); 
 
-    if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
+    if( !cfg_b_get_boolean( __KV__enable_ntp_sync ) ){
+
+        log_v_warn_P( PSTR("NTP sync not enabled, cannot start cron") );
 
         THREAD_EXIT( pt );
     }
@@ -277,8 +284,15 @@ PT_BEGIN( pt );
                 if( job_ready( &state->cron_time, entry ) ){
 
                     int8_t status = vm_cron_i8_run_func( entry->vm_id, entry->cron.func_addr );                   
+
+                    if( status != VM_STATUS_OK ){
+
+                        log_v_warn_P( PSTR("cron job failed") );
+
+                        THREAD_EXIT( pt );
+                    }
                    
-                    log_v_debug_P( PSTR("Replaying cron job: %u for vm: %d status: %d"), entry->cron.func_addr, entry->vm_id, status );
+                    // trace_printf( "Replaying cron job: %u for vm: %d status: %d cron_time: %d\r\n", entry->cron.func_addr, entry->vm_id, status, state->cron_seconds );
                 }
 
 next:
@@ -314,31 +328,30 @@ void vm_cron_v_init( void ){
     #endif
 }
 
-void vm_cron_v_load( uint8_t vm_id, vm_state_t *state, file_t f ){
+void vm_cron_v_load_job( uint8_t vm_id, cron_t *cron ){
 
     #ifdef ENABLE_TIME_SYNC
-
-    // make sure this vm's cron jobs are unloaded first
-    vm_cron_v_unload( vm_id );
-
-    fs_v_seek( f, sizeof(uint32_t) + state->cron_start );
 
     cron_job_t cron_job;
     cron_job.vm_id = vm_id;
 
-    for( uint8_t i = 0; i < state->cron_count; i++ ){
+    cron_job.cron = *cron;
 
-        fs_i16_read( f, (uint8_t *)&cron_job.cron, sizeof(cron_job.cron) );
+    list_node_t ln = list_ln_create_node2( &cron_job, sizeof(cron_job), MEM_TYPE_CRON_JOB );
 
-        list_node_t ln = list_ln_create_node2( &cron_job, sizeof(cron_job), MEM_TYPE_CRON_JOB );
+    if( ln < 0 ){
 
-        if( ln < 0 ){
-
-            return;
-        }
-
-        list_v_insert_tail( &cron_list, ln );
+        return;
     }
+
+    list_v_insert_tail( &cron_list, ln );
+
+    #endif
+}
+
+void vm_cron_v_start_jobs( uint8_t vm_id ){
+
+    #ifdef ENABLE_TIME_SYNC
 
     replay_state_t replay_state;
     replay_state.vm_id = vm_id;
@@ -346,7 +359,7 @@ void vm_cron_v_load( uint8_t vm_id, vm_state_t *state, file_t f ){
     thread_t_create( THREAD_CAST(cron_replay_thread),
              PSTR("cron_replay"),
              &replay_state,
-             sizeof(replay_state) );
+             sizeof(replay_state) );    
 
     #endif
 }

@@ -35,6 +35,7 @@
 #include "timers.h"
 #include "fs.h"
 #include "config.h"
+#include "vm_cron.h"
 
 #ifdef VM_ENABLE_KV
 #include "keyvalue.h"
@@ -5556,7 +5557,7 @@ int8_t vm_i8_load_program(
                        header.publish_len + 
                        header.link_len +
                        header.db_len +
-                       header.cron_len +
+                       // header.cron_len +  // see cron notes farther down, we don't handle cron state here
                        header.pix_obj_len;
 
     // allocate memory
@@ -5610,8 +5611,8 @@ int8_t vm_i8_load_program(
     obj_start += header.db_len;
 
     state->cron_count = header.cron_len / sizeof(cron_t);
-    state->cron_start = obj_start;
-    obj_start += header.cron_len;
+    // state->cron_start = obj_start;
+    // obj_start += header.cron_len; // see cron notes farther down, we don't handle cron state here
 
     // set up final items for VM execution
 
@@ -5792,7 +5793,27 @@ int8_t vm_i8_load_program(
     // load Cron:
     // ******************
 
-    // TODO!
+    // make sure this vm's cron jobs are unloaded first
+    vm_cron_v_unload( vm_id );
+
+    for( uint8_t i = 0; i < state->cron_count; i++ ){
+
+        cron_t cron;
+
+        if( fs_i16_read( f, (uint8_t *)&cron, sizeof(cron) ) != sizeof(cron) ){
+
+            status = VM_STATUS_ERR_BAD_FILE_READ;
+            goto error;
+        }
+
+        vm_cron_v_load_job( vm_id, &cron );
+    }
+
+    // note that cron handles its own state, so we don't allocate space for cron entries
+    // in the VM stream and we don't need to bump the object pointer.
+
+    // start cron:
+    vm_cron_v_start_jobs( vm_id );
 
 
     // ******************

@@ -665,6 +665,9 @@ static void kill_vm( uint8_t vm_id ){
 
     // reset VM data
     reset_published_data( state->vm_id );
+
+    // clear cron jobs:
+    vm_cron_v_unload( state->vm_id );
     
     // clear thread handle
     vm_threads[state->vm_id] = -1;
