@@ -38,21 +38,23 @@
 
 
 fx_thread1 = Number(publish=True)
+fx_thread2 = Number(publish=True)
+
 
 def thread1():
-    fx_thread1 = 123
-
-    i = Number()
     while True:
-        i += 1
         delay(1000)
-        fx_thread1 += i + 1
+        fx_thread1 += 1        
 
-
+def thread2():
+    while True:
+        delay(2000)
+        fx_thread2 += 1        
 
 def init():
-    fx_thread1 = 64
+   
     start_thread(thread1)
+    start_thread(thread2)
 
 # pixel1 = PixelArray(0, 8)
 # pixel2 = PixelArray(8, 8)

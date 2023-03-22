@@ -351,6 +351,8 @@ typedef struct __attribute__((packed)){
         GFX_LIB_CALL(FUNC_HASH, PARAMS_LEN) \
     }
 
+
+
 static int8_t _vm_i8_run_stream(
     uint8_t *stream,
     uint16_t func_addr,
@@ -1586,9 +1588,8 @@ opcode_suspend:
         // check if saving register at this bit position
         if( opcode_1i1r->imm1 & ( 1 << i ) ){
 
-            *ptr_i32 = registers[i];
+            ptr_i32[index] = registers[i];
 
-            ptr_i32++;
             index++;
 
             if( index > state->max_thread_context_size ){
@@ -1625,9 +1626,8 @@ opcode_resume:
         // check if saving register at this bit position
         if( opcode_1i1r->imm1 & ( 1 << i ) ){
 
-            registers[i] = *ptr_i32;
+            registers[i] = ptr_i32[index];
 
-            ptr_i32++;
             index++;
 
             if( index > state->max_thread_context_size ){
