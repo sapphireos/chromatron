@@ -367,6 +367,8 @@ bool mem2_b_verify_handle( mem_handle_t handle ){
     // check if handle is negative
     if( handle < 0 ){
 
+        // trace_printf("invalid handle!\r\n");
+
         sys_v_set_error( SYS_ERR_INVALID_HANDLE );
 
         status = FALSE;
@@ -377,6 +379,8 @@ bool mem2_b_verify_handle( mem_handle_t handle ){
     handle = unswizzle(handle);
 
     if( handles[handle] == 0 ){
+
+        // trace_printf("unallocated!\r\n");
 
         sys_v_set_error( SYS_ERR_HANDLE_UNALLOCATED );
 
@@ -390,6 +394,8 @@ bool mem2_b_verify_handle( mem_handle_t handle ){
 
     if( *canary != generate_canary( header ) ){
 
+        // trace_printf("invalid canary!\r\n");
+
         sys_v_set_error( SYS_ERR_INVALID_CANARY );
 
         status = FALSE;
@@ -397,6 +403,8 @@ bool mem2_b_verify_handle( mem_handle_t handle ){
     }
 
     if( is_dirty( header ) == TRUE ){
+
+        // trace_printf("block is dirty!\r\n");
 
         sys_v_set_error( SYS_ERR_MEM_BLOCK_IS_DIRTY );
 

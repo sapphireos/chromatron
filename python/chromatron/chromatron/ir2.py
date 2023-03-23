@@ -434,10 +434,7 @@ class irProgram(IR):
 
         call_graph = {}
 
-        for func_name in ['init', 'loop']:
-            if func_name not in self.funcs:
-                continue
-
+        for func_name in self.funcs:
             func = self.funcs[func_name]
 
             call_graph[func_name] = func.get_call_graph(self.funcs)

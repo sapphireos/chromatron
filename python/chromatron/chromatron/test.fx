@@ -36,39 +36,47 @@
 #     pixels.count += 1
 #     c = pixels.count
 
-db('fx_db', 'uint8', 1)
+@schedule(hours=23, minutes=0, seconds=0)
+def dim_evening():
+    # db.gfx_sub_dimmer = 16384
+    # pass
+    # fx_debug += 1
+    pixels.hue = 0.0
 
-fx_thread1 = Number(publish=True)
-fx_thread2 = Number(publish=True)
-fx_loop = Number(publish=True)
-fx_cron = Number(publish=True)
 
-def thread1():
-    while True:
-        delay(1000)
-        fx_thread1 += 1        
+# db('fx_db', 'uint8', 1)
 
-def thread2():
-    while True:
-        delay(2000)
-        fx_thread2 += 1        
+# fx_thread1 = Number(publish=True)
+# fx_thread2 = Number(publish=True)
+# fx_loop = Number(publish=True)
+# fx_cron = Number(publish=True)
 
-def init():
-    db.fx_db = 123
+# def thread1():
+#     while True:
+#         delay(1000)
+#         fx_thread1 += 1        
+
+# def thread2():
+#     while True:
+#         delay(2000)
+#         fx_thread2 += 1        
+
+# def init():
+#     db.fx_db = 123
    
-    start_thread(thread1)
-    start_thread(thread2)
+#     start_thread(thread1)
+#     start_thread(thread2)
 
-def loop():
-    fx_loop += 1
+# def loop():
+#     fx_loop += 1
 
 
-@schedule(seconds=0)
-@schedule(seconds=15)
-@schedule(seconds=30)
-@schedule(seconds=45)
-def turn_off():
-    fx_cron += 1
+# @schedule(seconds=0)
+# @schedule(seconds=15)
+# @schedule(seconds=30)
+# @schedule(seconds=45)
+# def turn_off():
+#     fx_cron += 1
 
 
 # pixel1 = PixelArray(0, 8)

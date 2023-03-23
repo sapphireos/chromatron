@@ -225,7 +225,7 @@ class insProgram(object):
             return func_stack
 
         worst_stack = 0
-        for func_name in self.call_graph:
+        for func_name in funcs:
             func_stack = get_stack(funcs[func_name], self.call_graph[func_name])
 
             if func_stack > worst_stack:

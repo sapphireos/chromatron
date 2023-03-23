@@ -5247,7 +5247,7 @@ int8_t vm_i8_run(
     // record run time
     uint32_t elapsed = tmr_u32_elapsed_time_us( start_time );
     state->last_elapsed_us = elapsed;
-    
+
     return status;
 }
 

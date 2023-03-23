@@ -292,7 +292,7 @@ PT_BEGIN( pt );
                         THREAD_EXIT( pt );
                     }
                    
-                    // trace_printf( "Replaying cron job: %u for vm: %d status: %d cron_time: %d\r\n", entry->cron.func_addr, entry->vm_id, status, state->cron_seconds );
+                    
                 }
 
 next:

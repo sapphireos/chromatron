@@ -1036,7 +1036,7 @@ class HexBuilder(Builder):
         elif self.settings["TOOLCHAIN"] in ["ESP32", "ESP32_bootloader"]:
             runcmd(os.path.join(bintools, 'xtensa-esp32-elf-size -B main.elf'))
             runcmd(os.path.join(bintools, 'xtensa-esp32-elf-nm -n main.elf'), tofile='main.sym')            
-            # runcmd(os.path.join(bintools, 'xtensa-esp32-elf-objdump -h -S -l main.elf'), tofile='main.lss')
+            runcmd(os.path.join(bintools, 'xtensa-esp32-elf-objdump -h -S -l main.elf'), tofile='main.lss')
             
         else:
             raise Exception("Unsupported toolchain")
