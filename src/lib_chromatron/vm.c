@@ -565,8 +565,6 @@ uint32_t vm_u32_get_sync_data_hash( void ){
         return 0;
     }
 
-    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );        
-
     uint8_t *data = (uint8_t *)vm_i32p_get_sync_data();
 
     return hash_u32_data( data, vm_u16_get_sync_data_len() );
