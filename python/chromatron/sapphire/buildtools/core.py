@@ -366,15 +366,10 @@ class Builder(object):
 
         elif settings["TOOLCHAIN"] == "ESP32_bootloader":
             if "CC" not in settings:
-                settings["CC"] = os.path.join(TOOLS_DIR, 'esp-2021r2-patch3-8.4.0', 'bin', 'xtensa-esp32-elf-gcc')
+                settings["CC"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_bootloader', 'bin', 'xtensa-esp32-elf-gcc')
 
             if "BINTOOLS" not in settings:
-                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'esp-2021r2-patch3-8.4.0', 'bin')
-            # if "CC" not in settings:
-            #     settings["CC"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_bootloader', 'bin', 'xtensa-esp32-elf-gcc')
-
-            # if "BINTOOLS" not in settings:
-            #     settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_bootloader', 'bin')
+                settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_bootloader', 'bin')
 
         else:
             raise SettingsParseException("Unknown toolchain")
@@ -1036,7 +1031,7 @@ class HexBuilder(Builder):
         elif self.settings["TOOLCHAIN"] in ["ESP32", "ESP32_bootloader"]:
             runcmd(os.path.join(bintools, 'xtensa-esp32-elf-size -B main.elf'))
             runcmd(os.path.join(bintools, 'xtensa-esp32-elf-nm -n main.elf'), tofile='main.sym')            
-            runcmd(os.path.join(bintools, 'xtensa-esp32-elf-objdump -h -S -l main.elf'), tofile='main.lss')
+            # runcmd(os.path.join(bintools, 'xtensa-esp32-elf-objdump -h -S -l main.elf'), tofile='main.lss')
             
         else:
             raise Exception("Unsupported toolchain")
