@@ -1580,7 +1580,7 @@ opcode_suspend:
     state->threads[state->current_thread].pc_offset = pc - ( code + func_addr );
 
     // set up pointer to thread context:
-    ptr_i32 = thread_contexts + ( state->max_thread_context_size * state->current_thread );
+    ptr_i32 = (int32_t *)( (uint8_t *)thread_contexts + ( state->max_thread_context_size * state->current_thread ) );
     index = 0;
 
     // store context
@@ -1593,7 +1593,7 @@ opcode_suspend:
 
             index++;
 
-            if( index > state->max_thread_context_size ){
+            if( index > ( state->max_thread_context_size / sizeof(int32_t) ) ){
 
                 return VM_STATUS_BAD_CONTEXT_SIZE;
             }
@@ -1618,7 +1618,7 @@ opcode_resume:
     DECODE_RESUME;
 
     // set up pointer to thread context:
-    ptr_i32 = thread_contexts + ( state->max_thread_context_size * state->current_thread );
+    ptr_i32 = (int32_t *)( (uint8_t *)thread_contexts + ( state->max_thread_context_size * state->current_thread ) );
     index = 0;
 
     // restore context
@@ -1631,7 +1631,7 @@ opcode_resume:
 
             index++;
 
-            if( index > state->max_thread_context_size ){
+            if( index > ( state->max_thread_context_size / sizeof(int32_t) ) ){
 
                 return VM_STATUS_BAD_CONTEXT_SIZE;
             }
@@ -5128,6 +5128,8 @@ int8_t vm_i8_run(
     uint16_t pc_offset,
     vm_state_t *state ){
 
+    // trace_printf("VM run func: %d\r\n", func_addr);
+
     uint32_t start_time = tmr_u32_get_system_time_us();
 
     cycles = VM_MAX_CYCLES;
@@ -5245,7 +5247,7 @@ int8_t vm_i8_run(
     // record run time
     uint32_t elapsed = tmr_u32_elapsed_time_us( start_time );
     state->last_elapsed_us = elapsed;
-
+    
     return status;
 }
 
@@ -5425,6 +5427,12 @@ int8_t vm_i8_check_header( vm_program_header_t *prog_header ){
     if( ( sizeof(vm_program_header_t) % 4 ) != 0 ){
 
         return VM_STATUS_HEADER_MISALIGN;
+    }
+
+    // check for obviously bad thread context size:
+    if( ( prog_header->max_context_len % 4 ) != 0 ){
+
+        return VM_STATUS_BAD_CONTEXT_SIZE;
     }
 
     uint16_t obj_start = sizeof(vm_program_header_t);

@@ -203,8 +203,8 @@ class FXImage(object):
 
             func_table_len += info.size()
 
-            if func.context_size > max_context_len:
-                max_context_len = func.context_size
+            if info.context_size > max_context_len:
+                max_context_len = info.context_size
 
             function_table[func.name] = info
 
