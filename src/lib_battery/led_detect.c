@@ -141,6 +141,8 @@ static void load_profile( uint8_t type ){
 
     // set up pixel profile
 
+    log_v_info_P( PSTR("TODO: implement pixel profile settings!") );
+
 }
 
 
