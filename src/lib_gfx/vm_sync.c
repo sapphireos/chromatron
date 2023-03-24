@@ -41,7 +41,7 @@ static uint8_t sync_state;
 #define STATE_SYNCING       1
 #define STATE_SYNC 	        2
 
-static uint16_t sync_data_remaining;
+static int16_t sync_data_remaining;
 
 int8_t vmsync_i8_kv_handler(
     kv_op_t8 op,
@@ -183,7 +183,7 @@ static void send_sync( sock_addr_t *raddr ){
     msg.checkpoint              = vm_u32_get_checkpoint();
     msg.checkpoint_hash         = vm_u32_get_checkpoint_hash();
     
-    msg.data_len                = state->global_data_len;
+    msg.data_len                = vm_u16_get_sync_data_len();
     msg.max_threads             = VM_MAX_THREADS;
 
     if( msg.max_threads > SYNC_MAX_THREADS ){
@@ -203,7 +203,7 @@ static void send_sync( sock_addr_t *raddr ){
 
 static void send_data( int32_t *data, uint16_t len, uint64_t tick, uint16_t offset, sock_addr_t *raddr ){
 
-    mem_handle_t h = mem2_h_alloc( sizeof(vm_sync_msg_data_t) - 1 + len );
+    mem_handle_t h = mem2_h_alloc( ( sizeof(vm_sync_msg_data_t) - 1 ) + len );
 
     if( h < 0 ){
 
@@ -436,6 +436,8 @@ PT_BEGIN( pt );
                         chunk_size = data_len;
                     }
 
+                    log_v_debug_P( PSTR("sending sync data: %d bytes"), chunk_size );
+
                     send_data( vm_i32p_get_sync_data(), chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
 
                     offset += chunk_size;
@@ -466,21 +468,42 @@ PT_BEGIN( pt );
 
             vm_sync_msg_data_t *msg = (vm_sync_msg_data_t *)header;
             
-            int16_t data_len = sock_i16_get_bytes_read( sock ) - sizeof(vm_sync_msg_data_t) + 1;
+            int16_t data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(vm_sync_msg_data_t) - 1 );
 
-            log_v_debug_P( PSTR("rx data offset %d / %d"), msg->offset, sync_data_remaining );
+            if( data_len <= 0 ){
 
-            int32_t *data_ptr = vm_i32p_get_sync_data() + msg->offset;
-            memcpy( data_ptr, &msg->data, data_len );
+                log_v_error_P( PSTR("invalid data len %d"), data_len );
+
+                continue;
+            }
+
+            log_v_debug_P( PSTR("rx data offset %d / %d len: %d"), msg->offset, sync_data_remaining, data_len );
+
+            if( data_len > sync_data_remaining ){
+
+                log_v_error_P( PSTR("more data than expected: %d > %d"), data_len, sync_data_remaining );
+                continue;
+            }
 
             sync_data_remaining -= data_len;
 
+            // validate remaining data len before copying into our VM:
             if( sync_data_remaining == 0 ){
 
                 log_v_debug_P( PSTR("sync complete") );
 
                 sync_state = STATE_SYNC;
             }
+            else if( sync_data_remaining < 0 ){
+
+                log_v_error_P( PSTR("invalid sync data remaining: %d"), sync_data_remaining );
+                continue;
+            }   
+
+
+            int32_t *data_ptr = vm_i32p_get_sync_data() + msg->offset;
+            memcpy( data_ptr, &msg->data, data_len );
+
         }
     }
 
