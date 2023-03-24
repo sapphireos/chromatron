@@ -346,8 +346,8 @@ PT_BEGIN( pt );
             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 0 );
 
-            if( ( batt_i8_get_batt_temp() >= 38 ) ||
-                ( case_temp >= 55 ) ){
+            if( ( batt_i8_get_batt_temp() >= FAN_THRESH_BATT_MAX ) ||
+                ( case_temp >= FAN_THRESH_CASE_MAX ) ){
 
                 fan_on = TRUE;
             }
@@ -360,8 +360,8 @@ PT_BEGIN( pt );
             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 1 );
 
-            if( ( batt_i8_get_batt_temp() <= 37 ) &&
-                ( case_temp <= 52 ) ){
+            if( ( batt_i8_get_batt_temp() <= FAN_THRESH_BATT_MIN ) &&
+                ( case_temp <= FAN_THRESH_CASE_MIN ) ){
 
                 fan_on = FALSE;
             }

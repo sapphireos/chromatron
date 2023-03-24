@@ -26,6 +26,11 @@
 #define _THERMAL_H
 
 
+#define FAN_THRESH_BATT_MIN  37
+#define FAN_THRESH_BATT_MAX  38
+#define FAN_THRESH_CASE_MIN  52
+#define FAN_THRESH_CASE_MAX  55
+
 void thermal_v_init( void );
 
 int8_t thermal_i8_get_case_temp( void );
