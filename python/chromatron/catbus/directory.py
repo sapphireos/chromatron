@@ -80,6 +80,8 @@ class Directory(CatbusService):
 
                 key = c.lookup_hash(hashed_key)
 
+                c.close()
+
                 if len(key) == 0:
                     raise KeyError(hashed_key)
 

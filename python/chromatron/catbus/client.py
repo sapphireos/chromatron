@@ -145,6 +145,8 @@ class BaseClient(object):
 
         self._connected_host = host
 
+    def close(self):
+        self._sock.close()
 
 class Client(BaseClient):
     def __init__(self, host=None, universe=0, **kwargs):
