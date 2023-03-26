@@ -68,6 +68,13 @@ class BaseClient(object):
         if host is not None:
             self.connect(host)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+        return False
+
     def __str__(self):
         return f'BaseClient({self._connected_host})'
 
