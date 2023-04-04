@@ -444,8 +444,35 @@ PT_BEGIN( pt );
 		static uint8_t next_state;
 		next_state = solar_state;
 
+		if( solar_state == SOLAR_MODE_SHUTDOWN ){
+
+			// check tilt angle
+
+			if( ( solar_tilt_u8_get_tilt_angle() == 0 ) || solar_tilt_b_is_manual() ){
+				// note that units that do not have the tilt system
+				// will always report 0 angle, so the shutdown
+				// state will take effect immediately.
+
+				// panel is closed
+				sys_v_initiate_shutdown( 5 );
+
+				THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+
+				batt_v_shutdown_power();
+				// if on battery power, this should not return
+				// as the power will be cut off.
+				// if an external power source was plugged in during
+				// the shutdown, then this will return.
+
+				// we will delay here and wait
+				// for the reboot thread to reboot the system.
+				TMR_WAIT( pt, 120000 ); 
+
+				log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
+			}
+		}
 		// check for cut off
-		if( batt_u16_get_batt_volts() < batt_u16_get_min_discharge_voltage() ){
+		else if( batt_u16_get_batt_volts() < batt_u16_get_min_discharge_voltage() ){
 			
 			log_v_warn_P( PSTR("Battery at discharge cutoff") );
 				
@@ -600,33 +627,6 @@ PT_BEGIN( pt );
 
 				// switch to discharge state
 				next_state = SOLAR_MODE_DISCHARGE;
-			}
-		}
-		else if( solar_state == SOLAR_MODE_SHUTDOWN ){
-
-			// check tilt angle
-
-			if( ( solar_tilt_u8_get_tilt_angle() == 0 ) || solar_tilt_b_is_manual() ){
-				// note that units that do not have the tilt system
-				// will always report 0 angle, so the shutdown
-				// state will take effect immediately.
-
-				// panel is closed
-				sys_v_initiate_shutdown( 5 );
-
-				THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
-
-				batt_v_shutdown_power();
-				// if on battery power, this should not return
-				// as the power will be cut off.
-				// if an external power source was plugged in during
-				// the shutdown, then this will return.
-
-				// we will delay here and wait
-				// for the reboot thread to reboot the system.
-				TMR_WAIT( pt, 120000 ); 
-
-				log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
 			}
 		}
 		else{
