@@ -554,7 +554,9 @@ PT_BEGIN( pt );
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_DC ){
 
-			if( !enable_dc_charge ){						
+			if( !enable_dc_charge ){					
+
+				log_v_error_P( PSTR("DC charge is not enabled!") );
 
 				next_state = SOLAR_MODE_DISCHARGE;
 			}

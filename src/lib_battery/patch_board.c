@@ -71,13 +71,13 @@ void patchboard_v_set_solar_en( bool enable ){
 
     if( enable ){
 
-        io_v_digital_write( ELITE_DC_DETECT_IO, 1 );
+        io_v_digital_write( ELITE_SOLAR_EN_IO, 1 );
 
         // pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 1 );
     }
     else{
 
-        io_v_digital_write( ELITE_DC_DETECT_IO, 0 );
+        io_v_digital_write( ELITE_SOLAR_EN_IO, 0 );
 
         // pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 0 );
     }
