@@ -25,75 +25,88 @@
 
 #include "sapphire.h"
 
+#include "hal_boards.h"
 #include "patch_board.h"
 
-#include "max11645.h"
-#include "pca9536.h"
+// #include "max11645.h"
+// #include "pca9536.h"
 
 
 void patchboard_v_init( void ){
     
-    if( pca9536_i8_init() != 0 ){
+    // if( pca9536_i8_init() != 0 ){
 
-        log_v_critical_P( PSTR("PCA9536 NOT detected") );
+    //     log_v_critical_P( PSTR("PCA9536 NOT detected") );
 
-        return;
-    }
+    //     return;
+    // }
 
-    max11645_v_init();
+    // max11645_v_init();
 
-    pca9536_v_set_output( PATCH_PCA9536_IO_SOLAR_EN );
-    pca9536_v_set_input( PATCH_PCA9536_IO_DC_DETECT );
-    pca9536_v_set_input( PATCH_PCA9536_IO_IO2 );
-    pca9536_v_set_input( PATCH_PCA9536_IO_MOTOR_IN_2 );
+    // pca9536_v_set_output( PATCH_PCA9536_IO_SOLAR_EN );
+    // pca9536_v_set_input( PATCH_PCA9536_IO_DC_DETECT );
+    // pca9536_v_set_input( PATCH_PCA9536_IO_IO2 );
+    // pca9536_v_set_input( PATCH_PCA9536_IO_MOTOR_IN_2 );
+
+    io_v_set_mode( ELITE_SOLAR_EN_IO, IO_MODE_OUTPUT );    
+    io_v_set_mode( ELITE_DC_DETECT_IO, IO_MODE_INPUT );    
+    io_v_set_mode( ELITE_PANEL_VOLTS_IO, IO_MODE_INPUT );    
 
     patchboard_v_set_solar_en( FALSE );
 }
 
 bool patchboard_b_read_dc_detect( void ){
 
-    return pca9536_b_gpio_read( PATCH_PCA9536_IO_DC_DETECT );
+    return io_b_digital_read( ELITE_DC_DETECT_IO );
+
+    // return pca9536_b_gpio_read( PATCH_PCA9536_IO_DC_DETECT );
 }
 
-bool patchboard_b_read_io2( void ){
+// bool patchboard_b_read_io2( void ){
 
-    return pca9536_b_gpio_read( PATCH_PCA9536_IO_IO2 );
-}
+//     return pca9536_b_gpio_read( PATCH_PCA9536_IO_IO2 );
+// }
 
 void patchboard_v_set_solar_en( bool enable ){
 
     if( enable ){
 
-        pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 1 );
+        io_v_digital_write( ELITE_DC_DETECT_IO, 1 );
+
+        // pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 1 );
     }
     else{
 
-        pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 0 );
+        io_v_digital_write( ELITE_DC_DETECT_IO, 0 );
+
+        // pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 0 );
     }
 }
 
-void patchboard_v_set_motor2( bool enable ){
+// void patchboard_v_set_motor2( bool enable ){
 
-    if( enable ){
+//     if( enable ){
 
-        pca9536_v_gpio_write( PATCH_PCA9536_IO_MOTOR_IN_2, 1 );
-    }
-    else{
+//         pca9536_v_gpio_write( PATCH_PCA9536_IO_MOTOR_IN_2, 1 );
+//     }
+//     else{
 
-        pca9536_v_gpio_write( PATCH_PCA9536_IO_MOTOR_IN_2, 0 );
-    }
-}
+//         pca9536_v_gpio_write( PATCH_PCA9536_IO_MOTOR_IN_2, 0 );
+//     }
+// }
 
-uint16_t patchboard_u16_read_tilt_volts( void ){
+// uint16_t patchboard_u16_read_tilt_volts( void ){
 
-    return ( (uint32_t)max11645_u16_read( PATCH_ADC_CH_TILT ) * PATCH_ADC_VREF ) / 4096;
-}
+//     return ( (uint32_t)max11645_u16_read( PATCH_ADC_CH_TILT ) * PATCH_ADC_VREF ) / 4096;
+// }
 
 uint16_t patchboard_u16_read_solar_volts( void ){
 
-    uint32_t mv = ( (uint32_t)max11645_u16_read( PATCH_ADC_CH_SOLAR_VOLTS ) * PATCH_ADC_VREF ) / 4096;
+    // uint32_t mv = ( (uint32_t)max11645_u16_read( PATCH_ADC_CH_SOLAR_VOLTS ) * PATCH_ADC_VREF ) / 4096;
 
-    // adjust for voltage divider
+    uint32_t mv = adc_u16_read_mv( ELITE_PANEL_VOLTS_IO );
+
+    // // adjust for voltage divider
     return ( mv * ( 10 + 22 ) ) / 10;
 }
 

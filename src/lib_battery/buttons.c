@@ -279,10 +279,10 @@ static bool _button_b_read_button( uint8_t ch ){
 
             return io_b_digital_read( batt_ui_button );
         }
-        else if( ch == 1 ){
+        // else if( ch == 1 ){
 
-            return patchboard_b_read_io2();
-        }
+        //     return patchboard_b_read_io2();
+        // }
     }
     else if( ffs_u8_read_board_type() == BOARD_TYPE_ESP32_MINI_BUTTONS ){
 

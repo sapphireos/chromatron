@@ -41,6 +41,7 @@ from bad input, with delays and logging.  Battery charging is just not simple.
 #include "thermal.h"
 #include "battery.h"
 #include "patch_board.h"
+#include "charger2.h"
 #include "pixel_power.h"
 #include "led_detect.h"
 #include "fuel_gauge.h"
@@ -162,13 +163,14 @@ void solar_v_init( void ){
 		
 		patchboard_v_init();
 
-		solar_tilt_v_init(); // tilt system requires patch board
+		// solar_tilt_v_init(); // tilt system requires patch board
 	}
 
 	if( charger2_board_installed ){
 		
-		patchboard_v_init();
+		charger2_v_init();
 	}
+
 
 	// // patchboard_v_set_solar_en( FALSE );
 	// bq25895_v_set_boost_mode( TRUE );
