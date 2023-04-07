@@ -48,6 +48,7 @@ SYSTEM_HASHES = {catbus_string_hash(k): k for k in SYSTEM_KEYS}
 
 
 import random
+from sapphire.common.util import to_thread
 
 
 class BaseClient(object):
@@ -922,6 +923,34 @@ class Client(BaseClient):
             d[response.filename] = {'size': response.filesize, 'flags': response.flags, 'filename': response.filename}
 
         return d
+
+class AsyncClient(Client):
+    async def ping(self):
+        return await to_thread(super().ping())
+
+    async def lookup_hash(self, *args, **kwargs):
+        return await to_thread(super().lookup_hash, *args, **kwargs)
+
+    async def get_directory(self, *args, **kwargs):
+        return await to_thread(super().get_directory, *args, **kwargs)
+
+    async def discover(self, *args, **kwargs):
+        return await to_thread(super().discover, *args, **kwargs)
+
+    async def get_meta(self, *args, **kwargs):
+        return await to_thread(super().get_meta, *args, **kwargs)
+
+    async def get_keys(self, *args, **kwargs):
+        return await to_thread(super().get_keys, *args, **kwargs)
+
+    # async def get_key(self, *args, **kwargs):
+        # return await to_thread(super().get_key, *args, **kwargs)
+    async def get_key(self, key):
+        try:
+            return (await self.get_keys(key))[key]
+
+        except KeyError:
+            raise KeyError(key)
 
 
 if __name__ == '__main__':
