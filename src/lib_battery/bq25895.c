@@ -1729,7 +1729,7 @@ PT_BEGIN( pt );
             adc_good++;
 
             // check if vbus is plugged in:
-            if( vbus_volts > 3500 ){
+            if( vbus_volts > BATT_MIN_CHARGE_VBUS_VOLTS ){
 
                 // check BATFET_DIS bit
                 // sometimes when plugging in a power source, 

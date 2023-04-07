@@ -80,8 +80,8 @@ static catbus_string_t state_name;
 static uint16_t charge_timer;
 #define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
 #define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
-#define DISCHARGE_HOLD_TIME				( 10 ) // time to remain in discharge before allowing a switch back to charge
-#define CHARGE_HOLD_TIME				( 5 )  // time to remain in charge before allowing a switch back to discharge or full
+#define DISCHARGE_HOLD_TIME				( 4 ) // time to remain in discharge before allowing a switch back to charge
+#define CHARGE_HOLD_TIME				( 4 )  // time to remain in charge before allowing a switch back to discharge or full
 
 #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
 
@@ -472,7 +472,8 @@ PT_BEGIN( pt );
 			}
 		}
 		// check for cut off
-		else if( batt_u16_get_batt_volts() < batt_u16_get_min_discharge_voltage() ){
+		else if( ( batt_u16_get_batt_volts() < batt_u16_get_min_discharge_voltage() ) &&
+				 !batt_b_is_vbus_connected() ){
 			
 			log_v_warn_P( PSTR("Battery at discharge cutoff") );
 				
