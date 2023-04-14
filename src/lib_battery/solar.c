@@ -474,8 +474,11 @@ PT_BEGIN( pt );
 			}
 		}
 		// check for cut off
+		// also wait for at least some time to allow charge sources to initialize
+		// before shutting down.  this helps get into charge mode from cutoff.
 		else if( ( batt_u16_get_batt_volts() < batt_u16_get_min_discharge_voltage() ) &&
-				 !batt_b_is_vbus_connected() ){
+				 !batt_b_is_vbus_connected() &&
+				 tmr_u64_get_system_time_ms() > 20000 ){
 			
 			log_v_warn_P( PSTR("Battery at discharge cutoff") );
 				
