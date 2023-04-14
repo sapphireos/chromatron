@@ -352,10 +352,14 @@ PT_BEGIN( pt );
 
             if( force_on ){
 
+                fan_on = TRUE;
+
                 io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
                 io_v_digital_write( ELITE_FAN_IO, 1 );
             }
             else{
+
+                fan_on = FALSE;
 
                 io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
                 io_v_digital_write( ELITE_FAN_IO, 0 );   
