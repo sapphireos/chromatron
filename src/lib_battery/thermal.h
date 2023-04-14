@@ -31,6 +31,8 @@
 #define FAN_THRESH_CASE_MIN  52
 #define FAN_THRESH_CASE_MAX  55
 
+#define FAN_MIN_ON_TIME      600 // tenths of a second
+
 void thermal_v_init( void );
 
 int8_t thermal_i8_get_case_temp( void );

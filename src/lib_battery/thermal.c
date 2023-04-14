@@ -41,6 +41,10 @@ static int16_t case_temp_state;
 static int16_t ambient_temp_state;
 
 static bool fan_on;
+static uint16_t fan_run_time;
+
+static bool force_on;
+static bool override;
 
 #define FAN_IO IO_PIN_19_MISO
 #define BOOST_IO IO_PIN_4_A5
@@ -54,6 +58,8 @@ KV_SECTION_OPT kv_meta_t thermal_info_kv[] = {
 
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_PERSIST,    0,                           0,  "batt_enable_fan" },
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &fan_on,                     0,  "batt_fan_on" },
+    { CATBUS_TYPE_BOOL,    0, 0,                   &override,                   0,  "batt_fan_override" },
+    { CATBUS_TYPE_BOOL,    0, 0,                   &force_on,                   0,  "batt_fan_force_on" },
     #endif
 
 };
@@ -339,7 +345,24 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 20 );
         }
-        while( !fan_on && !sys_b_is_shutting_down() ){
+
+        while( override ){
+
+            TMR_WAIT( pt, 100 );
+
+            if( force_on ){
+
+                io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+                io_v_digital_write( ELITE_FAN_IO, 1 );
+            }
+            else{
+
+                io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+                io_v_digital_write( ELITE_FAN_IO, 0 );   
+            }
+        }
+
+        while( !fan_on && !sys_b_is_shutting_down() && !override ){
 
             TMR_WAIT( pt, 100 );
 
@@ -353,17 +376,25 @@ PT_BEGIN( pt );
             }
         }
 
-        while( fan_on && !sys_b_is_shutting_down() ){
+        while( fan_on && !sys_b_is_shutting_down() && !override ){
 
             TMR_WAIT( pt, 100 );
 
+            if( fan_run_time < 65535 ){
+
+                fan_run_time++;
+            }
+            
             io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 1 );
 
             if( ( batt_i8_get_batt_temp() <= FAN_THRESH_BATT_MIN ) &&
-                ( case_temp <= FAN_THRESH_CASE_MIN ) ){
+                ( case_temp <= FAN_THRESH_CASE_MIN ) &&
+                ( fan_run_time > FAN_MIN_ON_TIME ) ){
 
                 fan_on = FALSE;
+
+                fan_run_time = 0;
             }
         }
     }
