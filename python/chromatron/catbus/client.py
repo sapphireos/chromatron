@@ -925,7 +925,70 @@ class Client(BaseClient):
         return d
 
 
+import threading
+from copy import deepcopy
 
+class BackgroundClient(threading.Thread):
+    def __init__(self, host, rate=2.0, semaphore=None):
+        super().__init__()
+
+        self._host = host
+        self._client = Client(host)
+        self._rate = rate
+        self._semaphore = semaphore
+
+        self._keys = ['wifi_rssi']
+        self._data = {}
+        self._last_update = None
+        self._connection_failed = False
+
+        self._lock = threading.Lock()
+
+        self._stop_event = threading.Event()
+
+        self.daemon = True
+        self.start()
+
+    def poll(self):
+        if self._semaphore:
+            self._semaphore.acquire()
+
+        try:
+            data = self._client.get_keys(*self._keys)
+
+            with self._lock:
+                self._data.update(data)
+
+        except KeyError:
+            pass
+
+        finally:
+            if self._semaphore:
+                self._semaphore.release()
+
+        self._last_update = time.time()
+
+    @property
+    def data(self):
+        with self._lock:
+            return deepcopy(self._data)
+
+    def run(self):
+        while not self._stop_event.is_set():
+            try:
+                self.poll()
+
+            except NoResponseFromHost:
+                print(f"{self._host} failed")
+                self._connection_failed = True
+
+
+
+            time.sleep(self._rate)
+
+    def stop(self):
+        self._stop_event.set()
+        
 
 # class AsyncClient(Client):
 #     async def ping(self):
