@@ -938,6 +938,7 @@ class BackgroundClient(threading.Thread):
         self._semaphore = semaphore
 
         self._keys = ['wifi_rssi']
+        self._set_kv = {}
         self._data = {}
         self._last_update = None
         self._connection_failed = False
@@ -949,12 +950,28 @@ class BackgroundClient(threading.Thread):
         self.daemon = True
         self.start()
 
-    def poll(self):
-        if self._semaphore:
-            self._semaphore.acquire()
+    def _subscribe_keys(self, keys=[]):
+        for k in keys:
+            if k not in self._keys:
+                self._keys.append(k)
+
+    def subscribe_keys(self, keys=[]):
+        with self._lock:
+            self._subscribe_keys(keys)
+            
+    def set_keys(self, data={}):
+        with self._lock:
+            self._set_kv.update(data)   
+
+            # setting a key implies subscribing to it
+            self._subscribe_keys(self._set_kv.keys())
+            
+    def _update_kv(self, keys=None):
+        if keys is None:
+            keys = self._keys
 
         try:
-            data = self._client.get_keys(*self._keys)
+            data = self._client.get_keys(keys)
 
             with self._lock:
                 self._data.update(data)
@@ -962,11 +979,32 @@ class BackgroundClient(threading.Thread):
         except KeyError:
             pass
 
+
+    def poll(self):
+        if self._semaphore:
+            self._semaphore.acquire()
+
+        try:
+            if len(self._set_kv) > 0:
+                with self._lock:
+                    kv = deepcopy(self._set_kv)
+                    self._set_kv = {}
+
+                self._client.set_keys(**kv)
+            
+            self._update_kv()
+
+            self._last_update = time.time()
+
+        except NoResponseFromHost:
+            print(f"{self._host} failed")
+            self._connection_failed = True 
+            
         finally:
             if self._semaphore:
                 self._semaphore.release()
 
-        self._last_update = time.time()
+        
 
     @property
     def data(self):
@@ -975,14 +1013,8 @@ class BackgroundClient(threading.Thread):
 
     def run(self):
         while not self._stop_event.is_set():
-            try:
-                self.poll()
-
-            except NoResponseFromHost:
-                print(f"{self._host} failed")
-                self._connection_failed = True
-
-
+    
+            self.poll()
 
             time.sleep(self._rate)
 

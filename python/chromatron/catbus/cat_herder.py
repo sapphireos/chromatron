@@ -83,6 +83,8 @@ class CatHerder(threading.Thread):
 				logging.info(f'Starting worker: {host}')
 
 
+			for worker in self._workers.values():
+				worker.set_keys({'kv_test_key': 123})
 
 			# prune
 			remove = []
@@ -123,11 +125,14 @@ if __name__ == "__main__":
 
 	# c = BackgroundClient(('10.0.0.211', 44632))
 
+
 	while True:
 		try:
 			time.sleep(1.0)
 
 			pprint(c.data)
+
+			# c.set_keys({'kv_test_key': 123})
 
 		except KeyboardInterrupt:
 			break
