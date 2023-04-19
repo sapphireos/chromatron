@@ -302,7 +302,7 @@ static uint16_t calc_symbol_duration( uint8_t bw, uint8_t sf ){
     }
     else if( bw == RFM95W_BW_500000 ){
 
-        bandwidth = 50000;
+        bandwidth = 500000;
     }
     else{
 
