@@ -35,7 +35,6 @@ from bad input, with delays and logging.  Battery charging is just not simple.
 #include "sapphire.h"
 
 #include "solar.h"
-#include "solar_tilt.h"
 #include "mppt.h"
 #include "buttons.h"
 #include "thermal.h"
@@ -57,9 +56,6 @@ TODO
 
 Add a fault state for when a power source is available but the battery
 charger is reporting a fault.
-
-
-Remove tilt controls and patchboard stuff.  We aren't gonna use it.
 
 
 */
@@ -162,8 +158,6 @@ void solar_v_init( void ){
 		enable_solar_charge = TRUE; // solar is always enabled with patch board, that's the point of having it
 		
 		patchboard_v_init();
-
-		// solar_tilt_v_init(); // tilt system requires patch board
 	}
 
 	if( charger2_board_installed ){
@@ -314,11 +308,6 @@ static void disable_charge( void ){
 	// batt_v_disable_charge();	
 }
 
-static void request_close_panel( void ){
-
-	solar_tilt_v_set_tilt_angle( 0 );	
-}
-
 static void enable_solar_vbus( void ){
 
 	if( patch_board_installed ){
@@ -448,30 +437,21 @@ PT_BEGIN( pt );
 
 		if( solar_state == SOLAR_MODE_SHUTDOWN ){
 
-			// check tilt angle
+			sys_v_initiate_shutdown( 5 );
 
-			if( ( solar_tilt_u8_get_tilt_angle() == 0 ) || solar_tilt_b_is_manual() ){
-				// note that units that do not have the tilt system
-				// will always report 0 angle, so the shutdown
-				// state will take effect immediately.
+			THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
-				// panel is closed
-				sys_v_initiate_shutdown( 5 );
+			batt_v_shutdown_power();
+			// if on battery power, this should not return
+			// as the power will be cut off.
+			// if an external power source was plugged in during
+			// the shutdown, then this will return.
 
-				THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+			// we will delay here and wait
+			// for the reboot thread to reboot the system.
+			TMR_WAIT( pt, 120000 ); 
 
-				batt_v_shutdown_power();
-				// if on battery power, this should not return
-				// as the power will be cut off.
-				// if an external power source was plugged in during
-				// the shutdown, then this will return.
-
-				// we will delay here and wait
-				// for the reboot thread to reboot the system.
-				TMR_WAIT( pt, 120000 ); 
-
-				log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
-			}
+			log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
 		}
 		// check for cut off
 		// also wait for at least some time to allow charge sources to initialize
@@ -589,34 +569,6 @@ PT_BEGIN( pt );
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
 
-			// if( bq25895_b_is_boost_enabled() ){
-
-
-			// }
-
-			// mppt is running in bq25895 adc loop,
-			// nothing to do here.
-
-			// if( !mppt_b_is_running() ){
-
-			// 	// tilt control loop goes here
-			// 	// (not the motion control, but target angle selection)
-			// 	// solar_tilt_v_optimize_step();
-			// 	solar_tilt_v_set_tilt_angle( 45 );
-			// }
-
-			// if( solar_tilt_b_is_moving() ){
-
-			// 	mppt_v_disable();	
-			// }
-			// else{
-
-			// 	if( mppt_enabled ){
-
-			// 		mppt_v_enable();		
-			// 	}
-			// }
-
 			// check if no longer charging:a
 			if( batt_b_is_charge_complete() ){
 
@@ -675,9 +627,6 @@ PT_BEGIN( pt );
 			// set up any init conditions for entry to next state
 			if( next_state == SOLAR_MODE_SHUTDOWN ){
 
-				// set tilt system to close the panel
-				solar_tilt_v_set_tilt_angle( 0 );	
-
 				// don't change GFX state, just leave it
 				// on whatever it was set to when shutting down.
 				// if it was off, there is no reason to turn
@@ -692,15 +641,9 @@ PT_BEGIN( pt );
 			}
 			else if( next_state == SOLAR_MODE_DISCHARGE ){
 
-				// set tilt system to close the panel
-				solar_tilt_v_set_tilt_angle( 0 );	
-
 				gfx_v_set_system_enable( TRUE );	
 			}
 			else if( next_state == SOLAR_MODE_FULL_CHARGE ){
-
-				// set tilt system to close the panel
-				solar_tilt_v_set_tilt_angle( 0 );	
 
 				gfx_v_set_system_enable( TRUE );	
 			}
@@ -740,14 +683,9 @@ PT_BEGIN( pt );
 					disable_solar_vbus();
 				}
 
-				// solar_tilt_v_optimize_reset();
-
 				TMR_WAIT( pt, 100 );
 
 				disable_charge();
-
-				// set tilt system to close the panel
-				request_close_panel();
 			}
 			// check if leaving DC charge mode
 			else if( ( solar_state == SOLAR_MODE_CHARGE_DC ) &&
