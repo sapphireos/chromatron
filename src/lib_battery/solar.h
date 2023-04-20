@@ -43,6 +43,7 @@
 #define SOLAR_MODE_FULL_CHARGE			3
 #define SOLAR_MODE_STOPPED				4
 #define SOLAR_MODE_SHUTDOWN	  			5
+#define SOLAR_MODE_FAULT	  			6
 
 
 void solar_v_init( void );
