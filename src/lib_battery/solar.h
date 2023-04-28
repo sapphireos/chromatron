@@ -46,6 +46,23 @@
 #define SOLAR_MODE_FAULT	  			6
 
 
+#define SOLAR_CYCLE_UNKNOWN				0
+#define SOLAR_CYCLE_DAY					1
+#define SOLAR_CYCLE_DUSK				2
+#define SOLAR_CYCLE_TWILIGHT			3
+#define SOLAR_CYCLE_NIGHT				4
+#define SOLAR_CYCLE_SUNRISE				5
+#define SOLAR_CYCLE_DAWN				6
+
+
+// make these config options
+#define SOLAR_DAY_THRESHOLD				1000
+#define SOLAR_DUSK_THRESHOLD			100
+#define SOLAR_TWILIGHT_THRESHOLD		10
+
+#define SOLAR_CYCLE_VALIDITY_THRESH		30
+#define SOLAR_CYCLE_TWILIGHT_TIME		300
+
 void solar_v_init( void );
 
 bool solar_b_has_patch_board( void );

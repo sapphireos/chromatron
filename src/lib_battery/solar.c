@@ -68,6 +68,7 @@ static bool enable_dc_charge = TRUE;
 static bool enable_solar_charge;
 static bool mppt_enabled;
 
+static uint8_t solar_cycle;
 
 static uint8_t solar_state;
 
@@ -400,6 +401,74 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+// static uint8_t day_thresh_counter;
+// static uint8_t dusk_thresh_counter;
+// static uint8_t twilight_thresh_counter;
+
+static void process_solar_cycle( void ){
+
+
+	// if( solar_cycle == SOLAR_CYCLE_TWILIGHT ){
+
+	// 	twilight_thresh_counter++;
+
+	// 	if( twilight_thresh_counter > SOLAR_CYCLE_TWILIGHT_TIME ){
+
+	// 		solar_cycle = SOLAR_CYCLE_NIGHT;
+	// 	}
+	// }
+	// else{
+
+	// 	uint32_t light_level = light_sensor_u32_read();
+
+	// 	if( light_level > SOLAR_DAY_THRESHOLD ){
+
+	// 		day_thresh_counter++;
+	// 		dusk_thresh_counter = 0;
+	// 		twilight_thresh_counter = 0;
+	// 	}
+	// 	else if( light_level > SOLAR_TWILIGHT_THRESHOLD ){
+
+	// 		day_thresh_counter++;
+	// 		dusk_thresh_counter = 0;
+	// 		twilight_thresh_counter = 0;
+	// 	}
+	// 	else if( light_level < SOLAR_TWILIGHT_THRESHOLD ){
+
+	// 		day_thresh_counter = 0;
+	// 		dusk_thresh_counter = 0;
+	// 		twilight_thresh_counter++;
+	// 	}
+	// 	else if( light_level < SOLAR_DUSK_THRESHOLD ){
+
+	// 		day_thresh_counter = 0;
+	// 		dusk_thresh_counter++;
+	// 		twilight_thresh_counter = 0;
+	// 	}
+	// 	else{
+
+	// 		day_thresh_counter = 0;
+	// 		dusk_thresh_counter = 0;
+	// 		twilight_thresh_counter = 0;
+	// 	}
+
+	// 	// check thresholds
+	// 	if( day_thresh_counter > SOLAR_CYCLE_VALIDITY_THRESH ){
+
+	// 		solar_cycle = SOLAR_CYCLE_DAY;
+	// 	}
+	// 	else if( dusk_thresh_counter > SOLAR_CYCLE_VALIDITY_THRESH ){
+
+	// 		solar_cycle = SOLAR_CYCLE_DUSK;
+	// 	}
+	// 	else if( twilight_thresh_counter > SOLAR_CYCLE_VALIDITY_THRESH ){
+
+	// 		solar_cycle = SOLAR_CYCLE_TWILIGHT;
+
+	// 		twilight_thresh_counter = 0;
+	// 	}
+	// }
+}
 
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
@@ -726,6 +795,8 @@ PT_BEGIN( pt );
 			// switch states for next cycle
 			solar_state = next_state;
 			apply_state_name();
+
+			process_solar_cycle();
 		}
 	}
 

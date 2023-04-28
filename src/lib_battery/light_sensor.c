@@ -27,6 +27,9 @@
 
 #include "veml7700.h"
 
+
+#define FILTER_RATIO 8
+
 // 1 minute average
 static uint32_t filtered_light;
 static int32_t current_delta;
@@ -65,25 +68,24 @@ PT_BEGIN( pt );
 	static uint8_t counter;
 	counter = 0;
 
-	static uint32_t accum;
-	accum = 0;
+	// init filter
+	filtered_light = veml7700_u32_read_als();
+
 	
 	while(1){
 
-		TMR_WAIT( pt, 1000 );
+		TMR_WAIT( pt, 4000 );
 
 		uint32_t light = veml7700_u32_read_als();
 
-		accum += light;
-
+		filtered_light = util_u32_ewma( light, filtered_light, FILTER_RATIO );
 
 		counter++;
 
-		if( counter >= 60 ){
+		if( counter >= 15 ){ // approx 1 minute at 4 second rate
 
 			counter = 0;
 
-			int32_t temp = accum / 60;
 
 			current_delta = temp - (int32_t)filtered_light;
 
