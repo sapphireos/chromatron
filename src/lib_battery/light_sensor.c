@@ -30,7 +30,7 @@
 
 #define FILTER_RATIO 8
 
-// 1 minute average
+// long term average of filtered ALS input
 static uint32_t filtered_light;
 static int32_t current_delta;
 
@@ -60,6 +60,11 @@ uint32_t light_sensor_u32_read( void ){
 }
 
 
+uint32_t light_sensor_u32_read_delta( void ){
+
+	return current_delta;
+}
+
 
 PT_THREAD( light_sensor_thread( pt_t *pt, void *state ) )
 {       	
@@ -78,7 +83,7 @@ PT_BEGIN( pt );
 
 		uint32_t light = veml7700_u32_read_als();
 
-		filtered_light = util_u32_ewma( light, filtered_light, FILTER_RATIO );
+		uint32_t temp = util_u32_ewma( light, filtered_light, FILTER_RATIO );
 
 		counter++;
 
@@ -86,13 +91,10 @@ PT_BEGIN( pt );
 
 			counter = 0;
 
-
 			current_delta = temp - (int32_t)filtered_light;
-
-			filtered_light = temp;
-
-			accum = 0;
 		}
+
+		filtered_light = temp;
 	}
 
 PT_END( pt );	
