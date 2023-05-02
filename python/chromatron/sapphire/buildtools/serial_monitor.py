@@ -7,7 +7,7 @@ import serial
 CP2102_VID = 0x10c4
 CP2102_PID = 0xea60
 
-def monitor(portname=None, baud=115200):
+def monitor(portname=None, baud=115200, reconnect=False):
     if portname is None:
         ports = list(serial.tools.list_ports.comports())
 
@@ -20,38 +20,55 @@ def monitor(portname=None, baud=115200):
 
     print(f"Connecting monitor on port {portname}")    
 
-    port = serial.Serial(portname, baudrate=baud)
-
-    start = None
-
     try:
-        buf = ''
+        while reconnect:
+            while True:
+                try:
+                    port = serial.Serial(portname, baudrate=baud)
+                    break
 
-        while True:
-            try:
-                char = port.read(1).decode('utf-8')[0]
+                except serial.serialutil.SerialException:
+                    if not reconnect:
+                        raise
 
-                if char in ['\r', '\n']:
-                    # check if buffer is empty
-                    if len(buf) == 0:
-                        continue
+                    time.sleep(0.1)
 
-                    now = time.time()
-                    if start == None:
-                        elapsed = 0.0
+
+            start = None
+        
+            buf = ''
+
+            while True:
+                try:
+                    char = port.read(1).decode('utf-8')[0]
+
+                    if char in ['\r', '\n']:
+                        # check if buffer is empty
+                        if len(buf) == 0:
+                            continue
+
+                        now = time.time()
+                        if start == None:
+                            elapsed = 0.0
+
+                        else:
+                            elapsed = now - start                   
+                        
+                        start = now
+                        print("%5d" % (elapsed * 1000), buf)
+                        buf = ''
 
                     else:
-                        elapsed = now - start                   
-                    
-                    start = now
-                    print("%5d" % (elapsed * 1000), buf)
-                    buf = ''
+                        buf += char
 
-                else:
-                    buf += char
+                except UnicodeDecodeError:
+                    pass
 
-            except UnicodeDecodeError:
-                pass
+                except serial.serialutil.SerialException:
+                    if not reconnect:
+                        raise
+
+                    time.sleep(0.1)
 
 
     except KeyboardInterrupt:
