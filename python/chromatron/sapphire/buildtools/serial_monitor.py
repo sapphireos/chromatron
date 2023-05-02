@@ -28,11 +28,13 @@ def monitor(portname=None, baud=115200, reconnect=False):
                     break
 
                 except serial.serialutil.SerialException:
+
                     if not reconnect:
                         raise
 
-                    time.sleep(0.1)
+                    time.sleep(0.02)
 
+            print("Port connected")
 
             start = None
         
@@ -65,6 +67,10 @@ def monitor(portname=None, baud=115200, reconnect=False):
                     pass
 
                 except serial.serialutil.SerialException:
+                    port.close()
+
+                    print("Port disconnected")
+
                     if not reconnect:
                         raise
 
