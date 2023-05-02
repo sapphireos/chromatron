@@ -68,7 +68,7 @@ def monitor(portname=None, baud=115200, reconnect=False):
                     if not reconnect:
                         raise
 
-                    time.sleep(0.1)
+                    break
 
 
     except KeyboardInterrupt:
