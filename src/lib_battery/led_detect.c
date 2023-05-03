@@ -241,7 +241,7 @@ void led_detect_v_run_detect( void ){
 
         detect_miss_count = 0;
     }
-    else if( detect_miss_count >= LED_MAX_DETECT_MISS_COUNT ){
+    else if( led_detected && ( detect_miss_count >= LED_MAX_DETECT_MISS_COUNT ) ){
 
         // detection miss, probably actually unplugged
         led_id = 0;
