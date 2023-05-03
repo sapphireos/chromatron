@@ -143,7 +143,7 @@ PT_BEGIN( pt );
                 io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
                 io_v_digital_write( ELITE_BOOST_IO, 0 );
 
-                // bq25895_v_set_boost_mode( FALSE ); // DEBUG for TILT!
+                bq25895_v_set_boost_mode( FALSE );
             }
             #endif
 
