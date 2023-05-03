@@ -75,6 +75,10 @@ static const led_unit_t led_units[] = {
     {
         1146042388,
         LED_UNIT_TYPE_STRAND50,
+    },
+    {
+        1145896795,
+        LED_UNIT_TYPE_STRAND50,
     }
 };
 
