@@ -120,7 +120,7 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 
 PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) );
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) );
-
+PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) );
 
 
 #include "bq25895.h"
@@ -168,14 +168,6 @@ void solar_v_init( void ){
 	}
 
 
-	// // patchboard_v_set_solar_en( FALSE );
-	// bq25895_v_set_boost_mode( TRUE );
-	// batt_v_enable_charge();
-	// bq25895_v_set_boost_mode( FALSE );
-	// bq25895_v_disable_charger();
-
-
-
 	thread_t_create( solar_control_thread,
                      PSTR("solar_control"),
                      0,
@@ -183,6 +175,11 @@ void solar_v_init( void ){
 
 	thread_t_create( solar_sensor_thread,
                      PSTR("solar_sensor"),
+                     0,
+                     0 );
+
+	thread_t_create( solar_cycle_thread,
+                     PSTR("solar_cycle"),
                      0,
                      0 );
 }
@@ -399,75 +396,6 @@ PT_BEGIN( pt );
 	}
 
 PT_END( pt );
-}
-
-// static uint8_t day_thresh_counter;
-// static uint8_t dusk_thresh_counter;
-// static uint8_t twilight_thresh_counter;
-
-static void process_solar_cycle( void ){
-
-
-	// if( solar_cycle == SOLAR_CYCLE_TWILIGHT ){
-
-	// 	twilight_thresh_counter++;
-
-	// 	if( twilight_thresh_counter > SOLAR_CYCLE_TWILIGHT_TIME ){
-
-	// 		solar_cycle = SOLAR_CYCLE_NIGHT;
-	// 	}
-	// }
-	// else{
-
-	// 	uint32_t light_level = light_sensor_u32_read();
-
-	// 	if( light_level > SOLAR_DAY_THRESHOLD ){
-
-	// 		day_thresh_counter++;
-	// 		dusk_thresh_counter = 0;
-	// 		twilight_thresh_counter = 0;
-	// 	}
-	// 	else if( light_level > SOLAR_TWILIGHT_THRESHOLD ){
-
-	// 		day_thresh_counter++;
-	// 		dusk_thresh_counter = 0;
-	// 		twilight_thresh_counter = 0;
-	// 	}
-	// 	else if( light_level < SOLAR_TWILIGHT_THRESHOLD ){
-
-	// 		day_thresh_counter = 0;
-	// 		dusk_thresh_counter = 0;
-	// 		twilight_thresh_counter++;
-	// 	}
-	// 	else if( light_level < SOLAR_DUSK_THRESHOLD ){
-
-	// 		day_thresh_counter = 0;
-	// 		dusk_thresh_counter++;
-	// 		twilight_thresh_counter = 0;
-	// 	}
-	// 	else{
-
-	// 		day_thresh_counter = 0;
-	// 		dusk_thresh_counter = 0;
-	// 		twilight_thresh_counter = 0;
-	// 	}
-
-	// 	// check thresholds
-	// 	if( day_thresh_counter > SOLAR_CYCLE_VALIDITY_THRESH ){
-
-	// 		solar_cycle = SOLAR_CYCLE_DAY;
-	// 	}
-	// 	else if( dusk_thresh_counter > SOLAR_CYCLE_VALIDITY_THRESH ){
-
-	// 		solar_cycle = SOLAR_CYCLE_DUSK;
-	// 	}
-	// 	else if( twilight_thresh_counter > SOLAR_CYCLE_VALIDITY_THRESH ){
-
-	// 		solar_cycle = SOLAR_CYCLE_TWILIGHT;
-
-	// 		twilight_thresh_counter = 0;
-	// 	}
-	// }
 }
 
 
@@ -795,11 +723,114 @@ PT_BEGIN( pt );
 			// switch states for next cycle
 			solar_state = next_state;
 			apply_state_name();
-
-			process_solar_cycle();
 		}
 	}
 
 PT_END( pt );
 }
 
+
+// static uint8_t candidate_next_cycle;
+// static uint8_t cycle_threshold_counter;
+
+PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+	// solar_cycle = SOLAR_CYCLE_UNKNOWN;
+	// candidate_next_cycle = SOLAR_CYCLE_UNKNOWN;
+
+	// THREAD_EXIT( pt );
+
+
+	// while(1){
+
+	// 	TMR_WAIT( pt, SOLAR_CONTROL_POLLING_RATE );
+
+	// 	uint32_t light_level = light_sensor_u32_read();
+
+	// 	if( light_level > SOLAR_DAY_THRESHOLD ){
+
+	// 		candidate_next_cycle = SOLAR_CYCLE_DAY;
+	// 		cycle_threshold_counter++;
+	// 	}
+	// 	else if( light_level > SOLAR_DAY_THRESHOLD ){
+
+	// 		candidate_next_cycle = SOLAR_CYCLE_DAY;
+	// 		cycle_threshold_counter++;
+	// 	}
+	// }
+
+PT_END( pt );
+}
+
+
+
+// static uint8_t day_thresh_counter;
+// static uint8_t dusk_thresh_counter;
+// static uint8_t twilight_thresh_counter;
+
+// static void process_solar_cycle( void ){
+
+
+	// if( solar_cycle == SOLAR_CYCLE_TWILIGHT ){
+
+	// 	twilight_thresh_counter++;
+
+	// 	if( twilight_thresh_counter > SOLAR_CYCLE_TWILIGHT_TIME ){
+
+	// 		solar_cycle = SOLAR_CYCLE_NIGHT;
+	// 	}
+	// }
+	// else{
+
+	// 	uint32_t light_level = light_sensor_u32_read();
+
+	// 	if( light_level > SOLAR_DAY_THRESHOLD ){
+
+	// 		day_thresh_counter++;
+	// 		dusk_thresh_counter = 0;
+	// 		twilight_thresh_counter = 0;
+	// 	}
+	// 	else if( light_level > SOLAR_TWILIGHT_THRESHOLD ){
+
+	// 		day_thresh_counter++;
+	// 		dusk_thresh_counter = 0;
+	// 		twilight_thresh_counter = 0;
+	// 	}
+	// 	else if( light_level < SOLAR_TWILIGHT_THRESHOLD ){
+
+	// 		day_thresh_counter = 0;
+	// 		dusk_thresh_counter = 0;
+	// 		twilight_thresh_counter++;
+	// 	}
+	// 	else if( light_level < SOLAR_DUSK_THRESHOLD ){
+
+	// 		day_thresh_counter = 0;
+	// 		dusk_thresh_counter++;
+	// 		twilight_thresh_counter = 0;
+	// 	}
+	// 	else{
+
+	// 		day_thresh_counter = 0;
+	// 		dusk_thresh_counter = 0;
+	// 		twilight_thresh_counter = 0;
+	// 	}
+
+	// 	// check thresholds
+	// 	if( day_thresh_counter > SOLAR_CYCLE_VALIDITY_THRESH ){
+
+	// 		solar_cycle = SOLAR_CYCLE_DAY;
+	// 	}
+	// 	else if( dusk_thresh_counter > SOLAR_CYCLE_VALIDITY_THRESH ){
+
+	// 		solar_cycle = SOLAR_CYCLE_DUSK;
+	// 	}
+	// 	else if( twilight_thresh_counter > SOLAR_CYCLE_VALIDITY_THRESH ){
+
+	// 		solar_cycle = SOLAR_CYCLE_TWILIGHT;
+
+	// 		twilight_thresh_counter = 0;
+	// 	}
+	// }
+// }
