@@ -731,6 +731,47 @@ PT_END( pt );
 
 
 static uint8_t solar_cycle;
+static catbus_string_t cycle_name;
+
+
+static PGM_P get_cycle_name( uint8_t state ){
+
+	if( state == SOLAR_CYCLE_UNKNOWN ){
+
+		return PSTR("unknown");
+	}
+	else if( state == SOLAR_CYCLE_DAY ){
+
+		return PSTR("day");
+	}
+	else if( state == SOLAR_CYCLE_DUSK ){
+
+		return PSTR("dusk");
+	}
+	else if( state == SOLAR_CYCLE_TWILIGHT ){
+
+		return PSTR("twilight");
+	}
+	else if( state == SOLAR_CYCLE_NIGHT ){
+
+		return PSTR("night");
+	}
+	else if( state == SOLAR_CYCLE_DAWN ){
+
+		return PSTR("dawn");
+	}
+	else{
+
+		return PSTR("invalid");
+	}
+}
+
+static void apply_cycle_name( void ){
+
+	strncpy_P( cycle_name.str, get_cycle_name( solar_state ), sizeof(cycle_name.str) );
+}
+
+
 
 static uint8_t cycle_threshold_counter;
 static uint16_t cycle_countdown;
@@ -742,6 +783,8 @@ static uint32_t dawn_threshold = 10 * 1000;
 
 KV_SECTION_OPT kv_meta_t solar_cycle_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_cycle,			0,  "solar_cycle" },
+	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&cycle_name,			0,  "solar_cycle_name" },
+
 	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&day_threshold,			0,  "solar_day_threshold" },
 	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&dusk_threshold,		0,  "solar_dusk_threshold" },
 	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&twilight_threshold,	0,  "solar_twilight_threshold" },
@@ -875,6 +918,8 @@ PT_BEGIN( pt );
 				solar_cycle = SOLAR_CYCLE_DUSK;
 			}
 		}
+
+		apply_cycle_name();
 	}
 
 PT_END( pt );
