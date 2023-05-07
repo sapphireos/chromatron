@@ -40,7 +40,6 @@
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
-    uint8_t flags;
     uint64_t src_addr;
 } rf_mac_header_0_t;
 

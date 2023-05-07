@@ -481,7 +481,6 @@ PT_BEGIN( pt );
 
             rf_mac_header_0_t header = {
                 RF_MAC_MAGIC,
-                0,
                 cfg_u64_get_device_id(),
             };
 

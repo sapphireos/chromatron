@@ -192,15 +192,44 @@ PT_END( pt );
 }
 
 
+
+static uint32_t telemetry_data_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            // ee_v_read_block( CFG_FILE_ERROR_LOG_START + pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            // len = cfg_u16_error_log_size();
+            break;
+
+        case FS_VFILE_OP_DELETE:
+            // cfg_v_erase_error_log();
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
 PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    fs_f_create_virtual( PSTR("telemetry_data"), telemetry_data_vfile_handler );
 
     while( 1 ){
 
         TMR_WAIT( pt, 1000 );
 
-        
+
     }
 
 PT_END( pt );
