@@ -735,10 +735,10 @@ static uint8_t solar_cycle;
 static uint8_t cycle_threshold_counter;
 static uint16_t cycle_countdown;
 
-static uint32_t day_threshold = 1000;
-static uint32_t dusk_threshold = 100;
-static uint32_t twilight_threshold = 10;
-static uint32_t dawn_threshold = 10;
+static uint32_t day_threshold = 1000 * 1000;
+static uint32_t dusk_threshold = 100 * 1000;
+static uint32_t twilight_threshold = 10 * 1000;
+static uint32_t dawn_threshold = 10 * 1000;
 
 KV_SECTION_OPT kv_meta_t solar_cycle_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_cycle,			0,  "solar_cycle" },
