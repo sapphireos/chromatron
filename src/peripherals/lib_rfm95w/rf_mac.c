@@ -147,7 +147,7 @@ Downlink:
 static uint8_t telemetry_channel;
 static uint8_t telemetry_code;
 
-KV_SECTION_META kv_meta_t rf_mac_kv[] = {
+KV_SECTION_OPT kv_meta_t rf_mac_kv[] = {
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &telemetry_channel,  0, "telemetry_channel" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &telemetry_code,     0, "telemetry_code" },
 };
@@ -179,6 +179,8 @@ PT_THREAD( rf_thread( pt_t *pt, void *state ) );
 
 
 int8_t rf_mac_i8_init( void ){
+
+    kv_v_add_db_info( rf_mac_kv, sizeof(rf_mac_kv) );
 
     list_v_init( &tx_q );
     list_v_init( &rx_q );
