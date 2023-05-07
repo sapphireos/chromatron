@@ -142,6 +142,14 @@ Downlink:
     923.3 - SF12BW500 (RX2)
 
 
+
+Code selection:
+
+Single channel: must be 500 khz BW
+
+We are not using SF6 at this time (but could in the future).
+
+
 */
 
 static uint8_t telemetry_channel;
@@ -159,15 +167,97 @@ static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
     920000000,
 };
 
+
+// all available codes supported by our hardware
 static const rf_mac_coding_t codebook[] = {
-    // beacon coding
-    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 12, RFM95W_BW_500000 }, // 732 bps
-    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 12, RFM95W_BW_500000 }, // 
-    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 11, RFM95W_BW_500000 }, // 
-    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 11, RFM95W_BW_500000 }, // 
-    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 10, RFM95W_BW_500000 }, // 
-    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_500000 }, // 
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 11, RFM95W_BW_500000 }, // 1342 bps | 64b: 381ms | 512b: 3052ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 11, RFM95W_BW_500000 }, // 2148 bps | 64b: 238ms | 512b: 1906ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 10, RFM95W_BW_500000 }, // 2441 bps | 64b: 209ms | 512b: 1678ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_250000 }, // 1953 bps | 64b: 262ms | 512b: 2097ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_500000 }, // 3906 bps | 64b: 131ms | 512b: 1048ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 9,  RFM95W_BW_250000 }, // 2197 bps | 64b: 233ms | 512b: 1864ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 9,  RFM95W_BW_500000 }, // 4394 bps | 64b: 116ms | 512b: 932ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_125000 }, // 1757 bps | 64b: 291ms | 512b: 2331ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_250000 }, // 3515 bps | 64b: 145ms | 512b: 1165ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_500000 }, // 7031 bps | 64b: 72ms  | 512b: 582ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_125000 }, // 1953 bps | 64b: 262ms | 512b: 2097ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_250000 }, // 3906 bps | 64b: 131ms | 512b: 1048ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_500000 }, // 7812 bps | 64b: 65ms  | 512b: 524ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_62500 },  // 1562 bps | 64b: 327ms | 512b: 2622m
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_125000 }, // 3125 bps | 64b: 163ms | 512b: 1310ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_250000 }, // 6250 bps | 64b: 81ms  | 512b: 655ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_500000 }, // 12500 bps| 64b: 40ms  | 512b: 327ms *
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_62500 },  // 1708 bps | 64b: 299ms | 512b: 2398ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_125000 }, // 3417 bps | 64b: 149ms | 512b: 1198ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_250000 }, // 6835 bps | 64b: 74ms  | 512b: 599ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_500000 }, // 13671 bps| 64b: 37ms  | 512b: 299ms *
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_62500 },  // 2734 bps | 64b: 187ms | 512b: 1498ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_125000 }, // 5468 bps | 64b: 93ms  | 512b: 749ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_250000 }, // 10937 bps| 64b: 46ms  | 512b: 374ms *
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_500000 }, // 21875 bps| 64b: 23ms  | 512b: 187ms *
 };
+
+
+// // codes available in single channel mode that are 400 ms valid for 64 bytes
+// static const rf_mac_coding_t single_channel_codebook[] = {
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 11, RFM95W_BW_500000 }, // 1342 bps | 64b: 381ms | 512b: 3052ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 11, RFM95W_BW_500000 }, // 2148 bps | 64b: 238ms | 512b: 1906ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 10, RFM95W_BW_500000 }, // 2441 bps | 64b: 209ms | 512b: 1678ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_250000 }, // 1953 bps | 64b: 262ms | 512b: 2097ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_500000 }, // 3906 bps | 64b: 131ms | 512b: 1048ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 9,  RFM95W_BW_250000 }, // 2197 bps | 64b: 233ms | 512b: 1864ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 9,  RFM95W_BW_500000 }, // 4394 bps | 64b: 116ms | 512b: 932ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_125000 }, // 1757 bps | 64b: 291ms | 512b: 2331ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_250000 }, // 3515 bps | 64b: 145ms | 512b: 1165ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_500000 }, // 7031 bps | 64b: 72ms  | 512b: 582ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_125000 }, // 1953 bps | 64b: 262ms | 512b: 2097ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_250000 }, // 3906 bps | 64b: 131ms | 512b: 1048ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_500000 }, // 7812 bps | 64b: 65ms  | 512b: 524ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_62500 },  // 1562 bps | 64b: 327ms | 512b: 2622m
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_125000 }, // 3125 bps | 64b: 163ms | 512b: 1310ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_250000 }, // 6250 bps | 64b: 81ms  | 512b: 655ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_500000 }, // 12500 bps| 64b: 40ms  | 512b: 327ms *
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_62500 },  // 1708 bps | 64b: 299ms | 512b: 2398ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_125000 }, // 3417 bps | 64b: 149ms | 512b: 1198ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_250000 }, // 6835 bps | 64b: 74ms  | 512b: 599ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_500000 }, // 13671 bps| 64b: 37ms  | 512b: 299ms *
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_62500 },  // 2734 bps | 64b: 187ms | 512b: 1498ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_125000 }, // 5468 bps | 64b: 93ms  | 512b: 749ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_250000 }, // 10937 bps| 64b: 46ms  | 512b: 374ms *
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_500000 }, // 21875 bps| 64b: 23ms  | 512b: 187ms *
+// };
+
+
+// // codes available for 512b packets in less than 400 ms
+// static const rf_mac_coding_t codebook_512b[] = {
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 11, RFM95W_BW_500000 }, // 1342 bps | 64b: 381ms | 512b: 3052ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 11, RFM95W_BW_500000 }, // 2148 bps | 64b: 238ms | 512b: 1906ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 10, RFM95W_BW_500000 }, // 2441 bps | 64b: 209ms | 512b: 1678ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_250000 }, // 1953 bps | 64b: 262ms | 512b: 2097ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_500000 }, // 3906 bps | 64b: 131ms | 512b: 1048ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 9,  RFM95W_BW_250000 }, // 2197 bps | 64b: 233ms | 512b: 1864ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 9,  RFM95W_BW_500000 }, // 4394 bps | 64b: 116ms | 512b: 932ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_125000 }, // 1757 bps | 64b: 291ms | 512b: 2331ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_250000 }, // 3515 bps | 64b: 145ms | 512b: 1165ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_500000 }, // 7031 bps | 64b: 72ms  | 512b: 582ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_125000 }, // 1953 bps | 64b: 262ms | 512b: 2097ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_250000 }, // 3906 bps | 64b: 131ms | 512b: 1048ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_500000 }, // 7812 bps | 64b: 65ms  | 512b: 524ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_62500 },  // 1562 bps | 64b: 327ms | 512b: 2622m
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_125000 }, // 3125 bps | 64b: 163ms | 512b: 1310ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_250000 }, // 6250 bps | 64b: 81ms  | 512b: 655ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_500000 }, // 12500 bps| 64b: 40ms  | 512b: 327ms *
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_62500 },  // 1708 bps | 64b: 299ms | 512b: 2398ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_125000 }, // 3417 bps | 64b: 149ms | 512b: 1198ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_250000 }, // 6835 bps | 64b: 74ms  | 512b: 599ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_500000 }, // 13671 bps| 64b: 37ms  | 512b: 299ms *
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_62500 },  // 2734 bps | 64b: 187ms | 512b: 1498ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_125000 }, // 5468 bps | 64b: 93ms  | 512b: 749ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_250000 }, // 10937 bps| 64b: 46ms  | 512b: 374ms *
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_500000 }, // 21875 bps| 64b: 23ms  | 512b: 187ms *
+// };
+
+
 
 static uint8_t current_code;
 

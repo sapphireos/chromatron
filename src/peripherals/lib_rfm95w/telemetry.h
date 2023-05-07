@@ -27,23 +27,26 @@
 
 #define TELEMETRY_BASE_STATION_RELAY_PORT   32123
 
-// typedef struct __attribute__((packed)){
-//     uint16_t sample;
-//     // uint16_t batt_flags;
-//     uint16_t batt_volts;
-//     uint16_t charge_current;
-//     uint32_t als;
-//     int8_t batt_temp;
-//     int8_t case_temp;
-//     int8_t ambient_temp;
-//     uint8_t batt_fault;
-// } telemetry_msg_0_t;
-// // #define 
+typedef struct __attribute__((packed)){
+    uint8_t flags;
+    uint16_t batt_volts;
+    uint16_t charge_current;
+    uint32_t als;
+    int8_t batt_temp;
+    int8_t case_temp;
+    int8_t ambient_temp;
+    uint8_t batt_fault;
+    uint16_t pixel_power;
+    uint8_t vm_status;
+} telemetry_msg_remote_data_0_t;
 
+#define TELEMETRY_FLAGS_BEACON  0b00000001
+#define TELEMETRY_FLAGS_CONFIG  0b00000010
+#define TELEMETRY_FLAGS_REMOTE  0b00000100
 
 typedef struct __attribute__((packed)){
     uint8_t flags;
-    
+    uint8_t cycle;
 } telemetry_msg_beacon_t;
 
 

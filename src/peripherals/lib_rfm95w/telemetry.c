@@ -39,6 +39,7 @@ KV_SECTION_META kv_meta_t telemetry_info_kv[] = {
 };
 
 
+
 // PT_THREAD( telemetry_rx_thread( pt_t *pt, void *state ) );
 // PT_THREAD( telemetry_tx_thread( pt_t *pt, void *state ) );
 PT_THREAD( telemetry_remote_station_thread( pt_t *pt, void *state ) );
@@ -179,13 +180,43 @@ void telemetry_v_init( void ){
 // PT_END( pt );
 // }
 
+
+static uint32_t beacons_received;
+
+KV_SECTION_OPT kv_meta_t telemetry_remote_opt[] = {
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &beacons_received,           0,   "telemetry_beacons_received" },
+};
+
+
 PT_THREAD( telemetry_remote_station_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    kv_v_add_db_info( telemetry_remote_opt, sizeof(telemetry_remote_opt) );
+
     while( 1 ){
 
-        TMR_WAIT( pt, 1000 );
+        // TMR_WAIT( pt, 1000 );
+
+        THREAD_WAIT_WHILE( pt, !rf_mac_b_rx_available() );
+
+
+        rf_mac_rx_pkt_t pkt;
+        uint8_t buf[RFM95W_FIFO_LEN];
+
+        if( rf_mac_i8_get_rx( &pkt, buf, sizeof(buf) ) < 0 ){
+
+            continue;
+        }
+
+        // rf_mac_header_0_t *header =(rf_mac_header_0_t *)buf;
+        uint8_t *flags = (uint8_t *)&buf[sizeof(rf_mac_header_0_t)];
+
+        // check for beacon
+        if( *flags & TELEMETRY_FLAGS_BEACON ){
+
+            beacons_received++;
+        }
     }
 
 PT_END( pt );
@@ -219,9 +250,42 @@ static uint32_t telemetry_data_vfile_handler( vfile_op_t8 op, uint32_t pos, void
     return len;
 }
 
+
+static void transmit_beacon( void ){
+
+    telemetry_msg_beacon_t msg = {
+        TELEMETRY_FLAGS_BEACON,
+        0
+    };
+
+    rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
+}
+
+
+PT_THREAD( telemetry_beacon_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while( 1 ){
+
+        TMR_WAIT( pt, 16000 );
+        
+        transmit_beacon();
+    }
+
+PT_END( pt );
+}
+
 PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    // kv_v_add_db_info( telemetry_basestation_opt, sizeof(telemetry_basestation_opt) );
+
+    thread_t_create( telemetry_beacon_thread,
+                     PSTR("telemetry_beacon"),
+                     0,
+                     0 );
 
     fs_f_create_virtual( PSTR("telemetry_data"), telemetry_data_vfile_handler );
 
