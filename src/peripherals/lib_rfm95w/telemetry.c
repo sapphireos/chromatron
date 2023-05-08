@@ -42,8 +42,12 @@ KV_SECTION_META kv_meta_t telemetry_info_kv[] = {
 
 // PT_THREAD( telemetry_rx_thread( pt_t *pt, void *state ) );
 // PT_THREAD( telemetry_tx_thread( pt_t *pt, void *state ) );
-PT_THREAD( telemetry_remote_station_thread( pt_t *pt, void *state ) );
-PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemetry_remote_station_rx_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemetry_remote_station_tx_thread( pt_t *pt, void *state ) );
+
+PT_THREAD( telemetry_beacon_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemetry_base_station_rx_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemetry_base_station_tx_thread( pt_t *pt, void *state ) );
 
 void telemetry_v_init( void ){
 
@@ -64,15 +68,30 @@ void telemetry_v_init( void ){
     
     if( telemetry_station_enable ){
 
-        thread_t_create( telemetry_base_station_thread,
-                     PSTR("telemetry_base_station"),
+        thread_t_create( telemetry_base_station_tx_thread,
+                     PSTR("telemetry_base_station_tx"),
                      0,
                      0 );
+
+        thread_t_create( telemetry_base_station_rx_thread,
+                     PSTR("telemetry_base_station_rx"),
+                     0,
+                     0 );
+
+       thread_t_create( telemetry_beacon_thread,
+                 PSTR("telemetry_beacon"),
+                 0,
+                 0 );
     }  
     else{
 
-        thread_t_create( telemetry_remote_station_thread,
-             PSTR("telemetry_remote_station"),
+        thread_t_create( telemetry_remote_station_rx_thread,
+             PSTR("telemetry_remote_station_rx"),
+             0,
+             0 );
+
+        thread_t_create( telemetry_remote_station_tx_thread,
+             PSTR("telemetry_remote_station_tx"),
              0,
              0 );
 
@@ -188,7 +207,7 @@ KV_SECTION_OPT kv_meta_t telemetry_remote_opt[] = {
 };
 
 
-PT_THREAD( telemetry_remote_station_thread( pt_t *pt, void *state ) )
+PT_THREAD( telemetry_remote_station_rx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
@@ -196,10 +215,7 @@ PT_BEGIN( pt );
 
     while( 1 ){
 
-        // TMR_WAIT( pt, 1000 );
-
         THREAD_WAIT_WHILE( pt, !rf_mac_b_rx_available() );
-
 
         rf_mac_rx_pkt_t pkt;
         uint8_t buf[RFM95W_FIFO_LEN];
@@ -217,6 +233,20 @@ PT_BEGIN( pt );
 
             beacons_received++;
         }
+    }
+
+PT_END( pt );
+}
+
+PT_THREAD( telemetry_remote_station_tx_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while( 1 ){
+
+        TMR_WAIT( pt, 1000 );
+
+
     }
 
 PT_END( pt );
@@ -276,18 +306,33 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) )
+
+void load_telemetry_config( void ){
+
+    file_t f = fs_f_open_P( PSTR("telemetry_config"), FS_MODE_READ_ONLY );
+
+    if( f < 0 ){
+
+        // reset_config();
+
+        goto done;
+    }
+
+
+
+done:
+    
+    if( f > 0 ){
+
+        f = fs_f_close( f );
+    }
+}
+
+PT_THREAD( telemetry_base_station_tx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
     // kv_v_add_db_info( telemetry_basestation_opt, sizeof(telemetry_basestation_opt) );
-
-    thread_t_create( telemetry_beacon_thread,
-                     PSTR("telemetry_beacon"),
-                     0,
-                     0 );
-
-    fs_f_create_virtual( PSTR("telemetry_data"), telemetry_data_vfile_handler );
 
     while( 1 ){
 
@@ -299,6 +344,42 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+
+PT_THREAD( telemetry_base_station_rx_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    fs_f_create_virtual( PSTR("telemetry_data"), telemetry_data_vfile_handler );
+
+    while( 1 ){
+
+        THREAD_WAIT_WHILE( pt, !rf_mac_b_rx_available() );
+
+        rf_mac_rx_pkt_t pkt;
+        uint8_t buf[RFM95W_FIFO_LEN];
+
+        if( rf_mac_i8_get_rx( &pkt, buf, sizeof(buf) ) < 0 ){
+
+            continue;
+        }
+
+        // rf_mac_header_0_t *header =(rf_mac_header_0_t *)buf;
+        uint8_t *flags = (uint8_t *)&buf[sizeof(rf_mac_header_0_t)];
+
+        // check for remote data
+        if( *flags & TELEMETRY_FLAGS_REMOTE ){
+
+            // uint64_t    
+            telemetry_msg_remote_data_0_t *msg = (telemetry_msg_remote_data_0_t *)flags;
+
+
+        }
+
+
+    }
+
+PT_END( pt );
+}
 
 
 

@@ -536,8 +536,12 @@ PT_BEGIN( pt );
                 continue;
             }
 
+            // read header
+            rf_mac_header_0_t *header = (rf_mac_header_0_t *)buf;
+
             rf_mac_rx_pkt_t rx_pkt;
 
+            rx_pkt.src_addr = header->src_addr;
             rx_pkt.rssi = rfm95w_i16_get_packet_rssi();
             rx_pkt.snr = rfm95w_i16_get_packet_snr();
             rx_pkt.len = rx_len;

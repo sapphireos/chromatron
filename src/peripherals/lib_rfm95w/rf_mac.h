@@ -60,6 +60,7 @@ typedef struct{
 } rf_mac_tx_pkt_t;
 
 typedef struct{
+    uint64_t src_addr;
     int16_t rssi;
     int16_t snr;
     uint8_t len;
