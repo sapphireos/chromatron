@@ -244,9 +244,12 @@ PT_BEGIN( pt );
 
     while( 1 ){
 
-        TMR_WAIT( pt, 1000 );
+        TMR_WAIT( pt, 16000 );
 
+        telemetry_msg_remote_data_0_t msg = {0};
+        msg.flags = TELEMETRY_FLAGS_REMOTE;
 
+        rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
     }
 
 PT_END( pt );
@@ -369,13 +372,10 @@ PT_BEGIN( pt );
         // check for remote data
         if( *flags & TELEMETRY_FLAGS_REMOTE ){
 
-            // uint64_t    
             telemetry_msg_remote_data_0_t *msg = (telemetry_msg_remote_data_0_t *)flags;
 
-
+            log_v_debug_P( PSTR("rx remote") );
         }
-
-
     }
 
 PT_END( pt );
