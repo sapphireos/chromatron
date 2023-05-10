@@ -29,6 +29,7 @@
 
 typedef struct __attribute__((packed)){
     uint8_t flags;
+    uint32_t sample;
     uint16_t batt_volts;
     uint16_t charge_current;
     uint32_t als;
@@ -39,6 +40,13 @@ typedef struct __attribute__((packed)){
     uint16_t pixel_power;
     uint8_t vm_status;
 } telemetry_msg_remote_data_0_t;
+
+typedef struct __attribute__((packed)){
+    uint64_t src_addr;
+    int16_t rssi;
+    int16_t snr;
+    telemetry_msg_remote_data_0_t msg;
+} telemetry_data_entry_t;
 
 #define TELEMETRY_FLAGS_BEACON  0b00000001
 #define TELEMETRY_FLAGS_CONFIG  0b00000010

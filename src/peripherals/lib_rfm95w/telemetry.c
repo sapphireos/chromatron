@@ -39,6 +39,8 @@ KV_SECTION_META kv_meta_t telemetry_info_kv[] = {
 };
 
 
+static list_t remote_stations_list;
+
 
 // PT_THREAD( telemetry_rx_thread( pt_t *pt, void *state ) );
 // PT_THREAD( telemetry_tx_thread( pt_t *pt, void *state ) );
@@ -55,6 +57,8 @@ void telemetry_v_init( void ){
 
         return;
     }
+
+    list_v_init( &remote_stations_list );
 
     if( !telemetry_enable ){
 
@@ -242,12 +246,26 @@ PT_THREAD( telemetry_remote_station_tx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    static uint32_t sample;
+    sample = 0;
+
     while( 1 ){
 
         TMR_WAIT( pt, 16000 );
 
         telemetry_msg_remote_data_0_t msg = {0};
         msg.flags = TELEMETRY_FLAGS_REMOTE;
+        msg.sample = sample;
+        sample++;
+
+        catbus_i8_get( __KV__batt_volts,            CATBUS_TYPE_UINT16, &msg.batt_volts );
+        catbus_i8_get( __KV__batt_charge_current,   CATBUS_TYPE_UINT16, &msg.charge_current );
+        catbus_i8_get( __KV__veml7700_filtered_als, CATBUS_TYPE_UINT32, &msg.als );
+        catbus_i8_get( __KV__batt_temp,             CATBUS_TYPE_INT8,   &msg.batt_temp );
+        catbus_i8_get( __KV__batt_case_temp,        CATBUS_TYPE_INT8,   &msg.case_temp );
+        catbus_i8_get( __KV__batt_ambient_temp,     CATBUS_TYPE_INT8,   &msg.ambient_temp );
+        catbus_i8_get( __KV__batt_fault,            CATBUS_TYPE_INT8,   &msg.batt_fault );
+
 
         rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
     }
@@ -263,15 +281,11 @@ static uint32_t telemetry_data_vfile_handler( vfile_op_t8 op, uint32_t pos, void
     switch( op ){
 
         case FS_VFILE_OP_READ:
-            // ee_v_read_block( CFG_FILE_ERROR_LOG_START + pos, ptr, len );
+            len = list_u16_flatten( &remote_stations_list, pos, ptr, len );
             break;
 
         case FS_VFILE_OP_SIZE:
-            // len = cfg_u16_error_log_size();
-            break;
-
-        case FS_VFILE_OP_DELETE:
-            // cfg_v_erase_error_log();
+            len = list_u16_size( &remote_stations_list );
             break;
 
         default:
@@ -348,6 +362,28 @@ PT_END( pt );
 }
 
 
+telemetry_data_entry_t* search_remotes( uint64_t src_addr ){
+
+    list_node_t ln = remote_stations_list.head;
+    list_node_t next_ln;
+
+    while( ln > 0 ){
+
+        next_ln = list_ln_next( ln );
+
+        telemetry_data_entry_t *entry = list_vp_get_data( ln );
+
+        if( entry->src_addr == src_addr ){
+
+            return entry;
+        }
+
+        ln = next_ln;
+    }   
+
+    return 0;
+}
+
 PT_THREAD( telemetry_base_station_rx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -374,7 +410,28 @@ PT_BEGIN( pt );
 
             telemetry_msg_remote_data_0_t *msg = (telemetry_msg_remote_data_0_t *)flags;
 
-            log_v_debug_P( PSTR("rx remote") );
+            log_v_debug_P( PSTR("rx remote: 0x%lx"), pkt.src_addr );
+
+            telemetry_data_entry_t *entry = search_remotes( pkt.src_addr );
+
+            if( entry == 0 ){
+
+                list_node_t ln = list_ln_create_node( 0, sizeof(telemetry_data_entry_t) );
+
+                if( ln < 0 ){
+
+                    THREAD_EXIT( pt );
+                }
+
+                list_v_insert_tail( &remote_stations_list, ln );
+
+                entry = list_vp_get_data( ln );
+            }
+
+            entry->src_addr = pkt.src_addr;
+            entry->rssi = pkt.rssi;
+            entry->snr = pkt.snr;
+            entry->msg = *msg;
         }
     }
 
