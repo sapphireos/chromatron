@@ -596,7 +596,7 @@ PT_BEGIN( pt );
                 // set up coding
                 configure_code();
 
-                rfm95w_v_write_fifo( data, pkt->len );
+                // rfm95w_v_write_fifo( data, pkt->len );
             }
             else{
 

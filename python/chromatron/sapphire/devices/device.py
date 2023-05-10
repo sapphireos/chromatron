@@ -1818,12 +1818,12 @@ class Device(object):
         except OSError:
             return
 
-        pprint(data)
-
         s = ''
         # s = '\nKey                     Rate (ms)\n'
 
-        # for item in data:
+        for item in data:
+            s += f'{item}\n'
+            
         #     s += f'{self._client.lookup_hash(item.hash)[item.hash]:20}   {item.rate}\n'
 
         return s

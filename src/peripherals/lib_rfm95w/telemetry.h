@@ -30,17 +30,17 @@
 typedef struct __attribute__((packed)){
     uint8_t flags;
     uint32_t sample;
-    uint16_t batt_volts;
-    uint16_t charge_current;
-    uint32_t als;
-    int8_t batt_temp;
-    int8_t case_temp;
-    int8_t ambient_temp;
-    uint8_t batt_fault;
-    uint16_t pixel_power;
-    uint8_t vm_status;
     int16_t base_rssi;
     int16_t base_snr;
+    // uint16_t batt_volts;
+    // uint16_t charge_current;
+    // uint32_t als;
+    // int8_t batt_temp;
+    // int8_t case_temp;
+    // int8_t ambient_temp;
+    // uint8_t batt_fault;
+    // uint16_t pixel_power;
+    // uint8_t vm_status;
 } telemetry_msg_remote_data_0_t;
 
 typedef struct __attribute__((packed)){
