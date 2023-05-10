@@ -39,6 +39,8 @@ typedef struct __attribute__((packed)){
     uint8_t batt_fault;
     uint16_t pixel_power;
     uint8_t vm_status;
+    int16_t base_rssi;
+    int16_t base_snr;
 } telemetry_msg_remote_data_0_t;
 
 typedef struct __attribute__((packed)){

@@ -1818,6 +1818,8 @@ class Device(object):
         except OSError:
             return
 
+        pprint(data)
+
         s = ''
         # s = '\nKey                     Rate (ms)\n'
 

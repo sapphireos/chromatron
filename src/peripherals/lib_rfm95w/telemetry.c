@@ -41,6 +41,8 @@ KV_SECTION_META kv_meta_t telemetry_info_kv[] = {
 
 static list_t remote_stations_list;
 
+static int16_t base_rssi;
+static int16_t base_snr;
 
 // PT_THREAD( telemetry_rx_thread( pt_t *pt, void *state ) );
 // PT_THREAD( telemetry_tx_thread( pt_t *pt, void *state ) );
@@ -208,6 +210,8 @@ static uint32_t beacons_received;
 
 KV_SECTION_OPT kv_meta_t telemetry_remote_opt[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &beacons_received,           0,   "telemetry_beacons_received" },
+    { CATBUS_TYPE_INT16,  0, KV_FLAGS_READ_ONLY,  &base_rssi,                  0,   "telemetry_base_rssi" },
+    { CATBUS_TYPE_INT16,  0, KV_FLAGS_READ_ONLY,  &base_snr,                   0,   "telemetry_base_snr" },
 };
 
 
@@ -236,6 +240,9 @@ PT_BEGIN( pt );
         if( *flags & TELEMETRY_FLAGS_BEACON ){
 
             beacons_received++;
+
+            base_rssi = pkt.rssi;
+            base_snr = pkt.snr;
         }
     }
 
@@ -266,6 +273,8 @@ PT_BEGIN( pt );
         catbus_i8_get( __KV__batt_ambient_temp,     CATBUS_TYPE_INT8,   &msg.ambient_temp );
         catbus_i8_get( __KV__batt_fault,            CATBUS_TYPE_INT8,   &msg.batt_fault );
 
+        msg.base_rssi = base_rssi;
+        msg.base_snr = base_snr;
 
         rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
     }

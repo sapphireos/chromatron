@@ -460,7 +460,23 @@ class PortMonitorArray(ArrayField):
 
 class TelemetryDataEntry(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint16Field(_name="padding")]
+        fields = [Uint64Field(_name="src_addr"),
+                  Int16Field(_name="rssi"),
+                  Int16Field(_name="snr"),
+                  Uint8Field(_name="flags"),
+                  Uint32Field(_name="sample"),
+                  Uint16Field(_name="batt_volts"),
+                  Uint16Field(_name="charge_current"),
+                  Uint32Field(_name="als"),
+                  Int8Field(_name="batt_temp"),
+                  Int8Field(_name="case_temp"),
+                  Int8Field(_name="ambient_temp"),
+                  Uint8Field(_name="batt_fault"),
+                  Uint16Field(_name="pixel_power"),
+                  Uint8Field(_name="vm_status"),
+                  Int16Field(_name="base_rssi"),
+                  Int16Field(_name="base_snr"),
+        ]
 
         super().__init__(_fields=fields, **kwargs)
 
