@@ -260,6 +260,12 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 16000 );
 
+        // don't transmit if there are no beacons
+        if( beacons_received == 0 ){
+
+            continue;
+        }
+
         telemetry_msg_remote_data_0_t msg = {0};
         msg.flags = TELEMETRY_FLAGS_REMOTE;
         msg.sample = sample;
