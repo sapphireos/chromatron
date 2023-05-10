@@ -322,6 +322,13 @@ int8_t rf_mac_i8_send( uint64_t dest_addr, uint8_t *data, uint8_t len ){
         return -1;
     }
 
+    uint16_t tx_len = len + sizeof(rf_mac_header_0_t);
+
+    if( tx_len > RFM95W_FIFO_LEN ){
+
+        return -2;
+    }
+
     uint8_t buf[sizeof(rf_mac_tx_pkt_t) + RFM95W_FIFO_LEN];
 
     rf_mac_tx_pkt_t *pkt = (rf_mac_tx_pkt_t *)buf;
@@ -335,7 +342,7 @@ int8_t rf_mac_i8_send( uint64_t dest_addr, uint8_t *data, uint8_t len ){
 
     if( ln < 0 ){
 
-        return -2;
+        return -3;
     }
 
     list_v_insert_head( &tx_q, ln );
@@ -453,6 +460,8 @@ static void configure_code( void ){
 
 static void reset_fifo( void ){
 
+    rfm95w_v_clear_fifo();
+
     rfm95w_v_write_reg( RFM95W_RegFifoTxBaseAddr, 0 );
     rfm95w_v_write_reg( RFM95W_RegFifoRxBaseAddr, 0 );
     rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
@@ -525,6 +534,10 @@ PT_BEGIN( pt );
                 continue;
             }
 
+            log_v_debug_P( PSTR("rx len: %d"), rx_len );
+
+            rfm95w_v_dump_fifo();
+
             rfm95w_v_read_fifo( buf, rx_len );
 
             reset_fifo();
@@ -581,9 +594,15 @@ PT_BEGIN( pt );
             rfm95w_v_write_fifo( (uint8_t *)&header, sizeof(header) );
             rfm95w_v_write_fifo( data, pkt->len );
 
-            rfm95w_v_write_reg( RFM95W_RegPayloadLength, sizeof(header) + pkt->len );
+            uint8_t tx_len = sizeof(header) + pkt->len;
+
+            rfm95w_v_write_reg( RFM95W_RegPayloadLength, tx_len );
+
+            log_v_debug_P( PSTR("tx len: %d"), tx_len );
 
             list_v_release_node( ln );
+
+            rfm95w_v_dump_fifo();
 
             if( pkt->dest_addr == 0 ){
 
@@ -595,8 +614,6 @@ PT_BEGIN( pt );
 
                 // set up coding
                 configure_code();
-
-                // rfm95w_v_write_fifo( data, pkt->len );
             }
             else{
 

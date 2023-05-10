@@ -179,6 +179,8 @@ void rfm95w_v_set_reg_bits( uint8_t addr, uint8_t mask );
 void rfm95w_v_clr_reg_bits( uint8_t addr, uint8_t mask );
 void rfm95w_v_read_fifo( uint8_t *buf, uint8_t len );
 void rfm95w_v_write_fifo( uint8_t *buf, uint8_t len );
+void rfm95w_v_clear_fifo( void );
+void rfm95w_v_dump_fifo( void );
 
 // config api
 void rfm95w_v_set_mode( uint8_t mode );
