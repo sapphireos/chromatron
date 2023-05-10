@@ -111,7 +111,7 @@ int8_t rfm95w_i8_init( uint8_t cs, uint8_t reset ){
     
     CHIP_DISABLE();
 
-    // spi_v_init( RFM95_SPI_CHANNEL, 10000000, 0 );
+    // spi_v_init( RFM95_SPI_CHANNEL, 10000000, 0 ); // !!! 10MHz can cause bit errors on the bus itself!
     spi_v_init( RFM95_SPI_CHANNEL, 1000000, 0 );
 
     // log_v_debug_P( PSTR("0x%x = 0x%x"), RFM95W_RegOpMode, rfm95w_u8_read_reg( RFM95W_RegOpMode ) );
