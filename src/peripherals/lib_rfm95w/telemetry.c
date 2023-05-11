@@ -256,15 +256,12 @@ PT_BEGIN( pt );
     static uint32_t sample;
     sample = 0;
 
+    // don't transmit if there are no beacons
+    THREAD_WAIT_WHILE( pt, beacons_received == 0 );
+
+    TMR_WAIT( pt, 2000 + ( rnd_u16_get_int() >> 4 ) );
+
     while( 1 ){
-
-        TMR_WAIT( pt, 16000 );
-
-        // don't transmit if there are no beacons
-        if( beacons_received == 0 ){
-
-            continue;
-        }
 
         telemetry_msg_remote_data_0_t msg;
         memset( &msg, 0, sizeof(msg) );
@@ -272,7 +269,6 @@ PT_BEGIN( pt );
         msg.flags = TELEMETRY_FLAGS_REMOTE;
         msg.sample = sample;
         sample++;
-        // msg.sample = 0x99887766;
 
         catbus_i8_get( __KV__batt_volts,            CATBUS_TYPE_UINT16, &msg.batt_volts );
         catbus_i8_get( __KV__batt_charge_current,   CATBUS_TYPE_UINT16, &msg.charge_current );
@@ -282,23 +278,13 @@ PT_BEGIN( pt );
         catbus_i8_get( __KV__batt_ambient_temp,     CATBUS_TYPE_INT8,   &msg.ambient_temp );
         catbus_i8_get( __KV__batt_fault,            CATBUS_TYPE_UINT8,  &msg.batt_fault );
 
-        // msg.pixel_power = 1234;
-        // msg.vm_status = 219;
-        // msg.pixel_power = 1;
-        // msg.vm_status = 2;
-
-
         msg.base_rssi = base_rssi;
         msg.base_snr = base_snr;
 
-        // msg.base_rssi = -1;
-        // msg.base_snr = -2;
-
-
-        log_v_debug_P( PSTR("tx %d %d"),msg.base_rssi, msg.base_snr );
-
-
         rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
+
+
+        TMR_WAIT( pt, 16000 + ( rnd_u16_get_int() >> 3 ) );
     }
 
 PT_END( pt );
@@ -346,7 +332,7 @@ PT_BEGIN( pt );
 
     while( 1 ){
 
-        TMR_WAIT( pt, 16000 );
+        TMR_WAIT( pt, 16000 + ( rnd_u16_get_int() >> 3 ) );
         
         transmit_beacon();
     }
@@ -461,9 +447,6 @@ PT_BEGIN( pt );
             entry->rssi = pkt.rssi;
             entry->snr = pkt.snr;
             entry->msg = *msg;
-
-            log_v_debug_P( PSTR("rx remote: 0x%llx %d %d"), pkt.src_addr, msg->base_rssi, msg->base_snr );
-
         }
     }
 

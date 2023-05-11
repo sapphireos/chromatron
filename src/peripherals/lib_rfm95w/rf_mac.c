@@ -534,10 +534,6 @@ PT_BEGIN( pt );
                 continue;
             }
 
-            log_v_debug_P( PSTR("rx len: %d"), rx_len );
-
-            rfm95w_v_dump_fifo();
-
             rfm95w_v_read_fifo( buf, rx_len );
 
             reset_fifo();
@@ -597,12 +593,8 @@ PT_BEGIN( pt );
             uint8_t tx_len = sizeof(header) + pkt->len;
 
             rfm95w_v_write_reg( RFM95W_RegPayloadLength, tx_len );
-
-            log_v_debug_P( PSTR("tx len: %d"), tx_len );
-
+            
             list_v_release_node( ln );
-
-            rfm95w_v_dump_fifo();
 
             if( pkt->dest_addr == 0 ){
 
