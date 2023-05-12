@@ -145,7 +145,11 @@ static void load_profile( uint8_t type ){
 
     // set up pixel profile
 
-    log_v_info_P( PSTR("TODO: implement pixel profile settings!") );
+    catbus_i8_set( __KV__pix_count,            CATBUS_TYPE_UINT16, &profile->pix_count, sizeof(profile->pix_count) );
+    catbus_i8_set( __KV__pix_size_x,           CATBUS_TYPE_UINT16, &profile->pix_size_x, sizeof(profile->pix_size_x) );
+    catbus_i8_set( __KV__pix_size_y,           CATBUS_TYPE_UINT16, &profile->pix_size_y, sizeof(profile->pix_size_y) );
+
+    log_v_info_P( PSTR("TODO: Verify pixel profile settings!") );
 
 }
 
