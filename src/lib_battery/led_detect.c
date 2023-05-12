@@ -56,6 +56,7 @@ static const led_profile_t led_profiles[] = {
         0, // pix count
         0, // pix size x
         0, // pix size y
+        {""}, // vm prog
     },
     {
         LED_UNIT_TYPE_STRAND50,
@@ -63,6 +64,7 @@ static const led_profile_t led_profiles[] = {
         50, // pix count
         50, // pix size x
         1, // pix size y
+        {"rainbow.fxb"}, // vm prog
     },
 };
 
@@ -145,9 +147,28 @@ static void load_profile( uint8_t type ){
 
     // set up pixel profile
 
-    catbus_i8_set( __KV__pix_count,            CATBUS_TYPE_UINT16, &profile->pix_count, sizeof(profile->pix_count) );
-    catbus_i8_set( __KV__pix_size_x,           CATBUS_TYPE_UINT16, &profile->pix_size_x, sizeof(profile->pix_size_x) );
-    catbus_i8_set( __KV__pix_size_y,           CATBUS_TYPE_UINT16, &profile->pix_size_y, sizeof(profile->pix_size_y) );
+    catbus_i8_set( __KV__pix_count,     CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_count, sizeof(profile->pix_count) );
+    catbus_i8_set( __KV__pix_size_x,    CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_size_x, sizeof(profile->pix_size_x) );
+    catbus_i8_set( __KV__pix_size_y,    CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_size_y, sizeof(profile->pix_size_y) );
+    catbus_i8_set( __KV__vm_prog,       CATBUS_TYPE_STRING32, (catbus_string_t *)&profile->vm_prog, sizeof(profile->vm_prog) );
+
+
+    // Should add a max dimmer setting too
+
+    // enable and reset VM
+    bool vm_run = TRUE;
+
+    if( profile->vm_prog.str[0] == 0 ){
+
+        // no program is selected - stop VM
+
+        vm_run = FALSE;
+    }
+    catbus_i8_set( __KV__vm_run,        CATBUS_TYPE_BOOL, &vm_run, sizeof(vm_run) );
+
+    bool vm_reset = TRUE;
+    catbus_i8_set( __KV__vm_reset,      CATBUS_TYPE_BOOL, &vm_reset, sizeof(vm_reset) );
+
 
     log_v_info_P( PSTR("TODO: Verify pixel profile settings!") );
 

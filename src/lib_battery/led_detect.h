@@ -39,6 +39,12 @@ typedef struct{
     uint16_t pix_count;
     uint16_t pix_size_x;
     uint16_t pix_size_y;
+    // vm prog name
+    catbus_string_t vm_prog;
+    // this will load VM 0
+    // if the device needs to run other VMs,
+    // it can start or bootstrap a sequencer
+    // from whatever runs in VM 0.
 } led_profile_t;
 
 typedef struct{
