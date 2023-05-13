@@ -34,6 +34,11 @@
 // #include "pca9536.h"
 
 
+KV_SECTION_OPT kv_meta_t patch_board_opt_kv[] = {    
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_PERSIST,  0,               0,  "solar_patch_invert_gate" },
+};
+
+
 void patchboard_v_init( void ){
     
     // if( pca9536_i8_init() != 0 ){
@@ -51,6 +56,8 @@ void patchboard_v_init( void ){
     // pca9536_v_set_input( PATCH_PCA9536_IO_MOTOR_IN_2 );
 
     #ifdef ESP32
+    kv_v_add_db_info( patch_board_opt_kv, sizeof(patch_board_opt_kv) );
+
     io_v_set_mode( ELITE_SOLAR_EN_IO, IO_MODE_OUTPUT );    
     io_v_set_mode( ELITE_DC_DETECT_IO, IO_MODE_INPUT );    
     io_v_set_mode( ELITE_PANEL_VOLTS_IO, IO_MODE_INPUT );    
@@ -82,6 +89,11 @@ bool patchboard_b_read_dc_detect( void ){
 void patchboard_v_set_solar_en( bool enable ){
 
     #ifdef ESP32
+
+    if( kv_b_get_boolean( __KV__solar_patch_invert_gate ) ){
+
+        enable = !enable;
+    }
 
     if( enable ){
 
