@@ -339,6 +339,8 @@ static void set_boost_mode( bool enable ){
 
 void bq25895_v_set_boost_mode( bool enable ){
 
+    // trace_printf("!!! Set boost: %d\r\n", enable);
+
     // check if MCU power source is PMID and
     // disabling the boost converter is requested
     if( mcu_source_pmid && !enable ){

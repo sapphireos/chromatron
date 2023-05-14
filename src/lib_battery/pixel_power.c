@@ -87,8 +87,12 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !request_pixels_disabled && !request_pixels_enabled );
 
+        // trace_printf("Pixel power: enable: %d disable: %d\r\n", request_pixels_enabled, request_pixels_disabled );
+
         // check if pixels should be ENabled:
         if( request_pixels_enabled ){
+
+            // trace_printf("Pixel power ENABLE\r\n");
 
             request_pixels_disabled = FALSE;
 
@@ -108,10 +112,12 @@ PT_BEGIN( pt );
             #if defined(ESP32)
             else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
-                bq25895_v_set_boost_mode( TRUE );
+                bq25895_v_set_boost_mode( TRUE );                
 
                 // wait for boost to start up
                 TMR_WAIT( pt, 40 );
+
+                // trace_printf("Pixel power BOOST ON\r\n");
 
                 io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
                 io_v_digital_write( ELITE_BOOST_IO, 1 );
@@ -126,6 +132,8 @@ PT_BEGIN( pt );
 
         // check if pixels should be DISabled:
         if( request_pixels_disabled ){
+
+            // trace_printf("Pixel power DISABLE\r\n");
 
             if( solar_b_has_charger2_board() ){
 
