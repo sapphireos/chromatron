@@ -103,12 +103,6 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
 
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_good,                   0,  "batt_adc_reads" },
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_fail,                   0,  "batt_adc_fails" },
-
-    // #ifdef ESP32
-    // { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &case_temp,                  0,  "batt_case_temp" },
-    // { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &ambient_temp,               0,  "batt_ambient_temp" },
-    // #endif
-
 };
 
 #define BQ25895_VOLTS_FILTER        32
@@ -144,7 +138,6 @@ int8_t bq25895_i8_init( void ){
 
     
     init_charger();
-    batt_v_disable_charge();
 
     if( ( ffs_u8_read_board_type() == BOARD_TYPE_UNKNOWN ) ||
         ( ffs_u8_read_board_type() == BOARD_TYPE_UNSET ) ){
