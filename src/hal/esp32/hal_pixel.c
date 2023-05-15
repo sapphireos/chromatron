@@ -301,6 +301,8 @@ PT_BEGIN( pt );
 
                 // shut down pixel power
                 pixelpower_v_disable_pixels();
+
+                THREAD_WAIT_WHILE( pt, pixelpower_b_pixels_enabled() );
             }
 
             // wait while pixels are zero output
