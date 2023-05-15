@@ -1739,9 +1739,19 @@ PT_BEGIN( pt );
 
                 if( ( reg & BQ25895_BIT_BATFET_DIS ) != 0 ){
 
-                    log_v_error_P( PSTR("Uncommanded BATFET disconnect. Resetting bit.") );
+                    log_v_error_P( PSTR("Uncommanded BATFET disconnect. Resetting bit. Faults: %d"), batt_fault );
 
                     bq25895_v_leave_ship_mode();
+
+                    // attempt to reduce charge current
+                    if( batt_max_charge_current > 3000 ){
+
+                        batt_max_charge_current -= 500;
+
+                        bq25895_v_set_fast_charge_current( batt_max_charge_current );
+
+                        log_v_warn_P( PSTR("Charge current reduced to: %u"), batt_max_charge_current );
+                    }
                 }
             }
 
