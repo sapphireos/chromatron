@@ -278,35 +278,30 @@ PT_BEGIN( pt );
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
 
-        if( request_reconfigure ){
-
-            _pixel_v_configure();
-
-            request_reconfigure = FALSE;
-        }
-
-        // initiate SPI transfers
-
-        start_transfer();        
-
-        THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
-
-        TMR_WAIT( pt, 5 );
-
-        
+        // check if output is zero
         if( gfx_b_is_output_zero() ){
 
-            // start final transfer to drive 0s to bus
-            start_transfer();
+            // check if pixels are POWERED:
+            if( pixelpower_b_pixels_enabled() ){
+                // if pixels aren't powered, we can just skip this part
+                // and wait for the graphics system to be non-zeroes.
 
-            THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
+
+                // make sure pixel drivers are enabled
+                _pixel_v_configure();
+
+                // start final transfer to drive 0s to bus
+                start_transfer();
+
+                THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
 
 
-            // shut down pixel driver IO
-            spi_v_release();
+                // shut down pixel driver IO
+                spi_v_release();
 
-            // shut down pixel power
-            pixelpower_v_disable_pixels();
+                // shut down pixel power
+                pixelpower_v_disable_pixels();
+            }
 
             // wait while pixels are zero output
             while( gfx_b_is_output_zero() ){
@@ -329,6 +324,27 @@ PT_BEGIN( pt );
             pixel_v_signal();
         }
 
+
+        // check that pixels are enabled here and log a message if not
+        if( !pixelpower_b_pixels_enabled() ){
+
+            log_v_error_P( PSTR("Pixels are still unpowered!") );
+        }
+
+        if( request_reconfigure ){
+
+            _pixel_v_configure();
+
+            request_reconfigure = FALSE;
+        }
+        
+        // initiate SPI transfers
+
+        start_transfer();        
+
+        THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
+
+        TMR_WAIT( pt, 5 );
     }
 
 PT_END( pt );
@@ -344,12 +360,13 @@ void hal_pixel_v_init( void ){
 
     #endif
 
+    // init with pixel driver disabled
+    spi_v_release();
+
 	thread_t_create( pixel_thread,
                      PSTR("pixel"),
                      0,
                      0 );
-
-	_pixel_v_configure();
 }
 
 void hal_pixel_v_configure( void ){
