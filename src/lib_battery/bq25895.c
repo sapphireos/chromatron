@@ -1769,7 +1769,7 @@ PT_BEGIN( pt );
 
                 if( current_fast_charge_setting < batt_max_charge_current ){
 
-                    current_fast_charge_setting += 50;
+                    current_fast_charge_setting += 2;
                 }
 
                 if( current_fast_charge_setting > batt_max_charge_current ){

@@ -683,6 +683,8 @@ PT_BEGIN( pt );
 				// can't really see them anyway!
 				gfx_v_set_system_enable( FALSE );
 
+				// wait until pixel power shuts off
+				THREAD_WAIT_WHILE( pt, pixelpower_b_pixels_enabled() );
 
 				enable_charge( next_state );
 
