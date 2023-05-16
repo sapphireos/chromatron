@@ -1236,7 +1236,7 @@ static void init_charger( void ){
     // so we gotta check for that and try to fix it.
     bq25895_v_leave_ship_mode();
 
-    bq25895_v_set_minsys( BQ25895_SYSMIN_3_0V );
+    bq25895_v_set_minsys( BQ25895_SYSMIN_3_2V );
     bq25895_v_set_watchdog( BQ25895_WATCHDOG_OFF );
 
     // charge config for NCR18650B
