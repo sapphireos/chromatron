@@ -59,6 +59,10 @@ static uint16_t boost_voltage;
 static uint16_t vindpm;
 static uint16_t iindpm;
 
+#ifdef BQ25895_SOFT_START
+static uint16_t current_fast_charge_setting;
+#endif
+
 // true if MCU system power is sourced from the boost converter
 static bool mcu_source_pmid;
 
@@ -1268,7 +1272,12 @@ static void init_charger( void ){
         fast_charge_current = batt_max_charge_current;
     }
 
+    #ifdef BQ25895_SOFT_START
+    bq25895_v_set_fast_charge_current( 500 );
+    current_fast_charge_setting = 500;
+    #else
     bq25895_v_set_fast_charge_current( fast_charge_current );
+    #endif
 
     bq25895_v_set_termination_current( BQ25895_TERM_CURRENT );
 
@@ -1754,6 +1763,31 @@ PT_BEGIN( pt );
                     }
                 }
             }
+
+            #ifdef BQ25895_SOFT_START
+            if( bq25895_b_is_charging() ){
+
+                if( current_fast_charge_setting < batt_max_charge_current ){
+
+                    current_fast_charge_setting += 50;
+                }
+
+                if( current_fast_charge_setting > batt_max_charge_current ){
+
+                    current_fast_charge_setting = batt_max_charge_current;
+                }
+
+                bq25895_v_set_fast_charge_current( current_fast_charge_setting );
+            }
+            else{
+
+                // if not charging, reset the slow start ramp
+
+                current_fast_charge_setting = 500;
+
+                bq25895_v_set_fast_charge_current( current_fast_charge_setting );   
+            }
+            #endif
 
 
             // run MPPT

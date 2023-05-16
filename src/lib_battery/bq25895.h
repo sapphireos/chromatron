@@ -35,6 +35,8 @@
 
 #define BQ25895_TERM_CURRENT            ( 65 * 2 )
 
+#define BQ25895_SOFT_START              TRUE
+
 // NOTE! The datasheet lists the address as 0x6B in the serial Interface
 // overview, but then lists it as 0x6A in the register description.
 // the 0x6B is a typo!
