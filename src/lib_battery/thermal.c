@@ -316,8 +316,8 @@ PT_BEGIN( pt );
     }
 
     // BOOST
-    io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
-    io_v_digital_write( ELITE_BOOST_IO, 1 );
+    // io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
+    // io_v_digital_write( ELITE_BOOST_IO, 1 );
 
     // FAN
     // turn on for 5 seconds for easy testing
@@ -338,7 +338,7 @@ PT_BEGIN( pt );
             // ensure fan is off when shutting down.
             // if it is on, it can kick the battery controller back on as it winds down.
 
-            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+            // io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 0 );            
 
             fan_on = FALSE;
@@ -354,14 +354,14 @@ PT_BEGIN( pt );
 
                 fan_on = TRUE;
 
-                io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+                // io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
                 io_v_digital_write( ELITE_FAN_IO, 1 );
             }
             else{
 
                 fan_on = FALSE;
 
-                io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+                // io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
                 io_v_digital_write( ELITE_FAN_IO, 0 );   
             }
         }
@@ -370,7 +370,7 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 100 );
 
-            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+            // io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 0 );
 
             if( ( batt_i8_get_batt_temp() >= FAN_THRESH_BATT_MAX ) ||
@@ -389,7 +389,7 @@ PT_BEGIN( pt );
                 fan_run_time++;
             }
             
-            io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
+            // io_v_set_mode( ELITE_FAN_IO, IO_MODE_OUTPUT );    
             io_v_digital_write( ELITE_FAN_IO, 1 );
 
             if( ( batt_i8_get_batt_temp() <= FAN_THRESH_BATT_MIN ) &&
