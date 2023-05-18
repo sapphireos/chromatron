@@ -32,6 +32,7 @@ typedef struct __attribute__((packed)){
     uint32_t sample;
     int16_t base_rssi;
     int16_t base_snr;
+    uint16_t vbus_volts;
     uint16_t batt_volts;
     uint16_t charge_current;
     uint32_t als;

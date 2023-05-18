@@ -469,6 +469,7 @@ class TelemetryDataEntry(StructField):
                   Uint32Field(_name="sample"),
                   Int16Field(_name="base_rssi"),
                   Int16Field(_name="base_snr"),
+                  Uint16Field(_name="vbus_volts"),
                   Uint16Field(_name="batt_volts"),
                   Uint16Field(_name="charge_current"),
                   Uint32Field(_name="als"),
