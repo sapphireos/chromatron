@@ -372,6 +372,22 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
+        // process remote station data
+
+        list_node_t ln = remote_stations_list.head;
+        list_node_t next_ln;
+
+        while( ln > 0 ){
+
+            next_ln = list_ln_next( ln );
+
+            telemetry_data_entry_t *entry = list_vp_get_data( ln );
+
+            entry->time_since_last_contact++;
+    
+            ln = next_ln;
+        }   
+
 
     }
 
@@ -447,6 +463,7 @@ PT_BEGIN( pt );
             entry->rssi = pkt.rssi;
             entry->snr = pkt.snr;
             entry->msg = *msg;
+            entry->time_since_last_contact++;
         }
     }
 

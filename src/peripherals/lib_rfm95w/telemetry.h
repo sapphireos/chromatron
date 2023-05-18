@@ -47,6 +47,7 @@ typedef struct __attribute__((packed)){
     uint64_t src_addr;
     int16_t rssi;
     int16_t snr;
+    uint32_t time_since_last_contact;
     telemetry_msg_remote_data_0_t msg;
 } telemetry_data_entry_t;
 

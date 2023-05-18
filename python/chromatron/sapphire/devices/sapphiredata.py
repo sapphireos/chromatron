@@ -463,6 +463,8 @@ class TelemetryDataEntry(StructField):
         fields = [Uint64Field(_name="src_addr"),
                   Int16Field(_name="rssi"),
                   Int16Field(_name="snr"),
+                  Uint32Field(_name="time_since_last_contact"),
+
                   Uint8Field(_name="flags"),
                   Uint32Field(_name="sample"),
                   Int16Field(_name="base_rssi"),
