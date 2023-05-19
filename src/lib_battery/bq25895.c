@@ -39,12 +39,14 @@
 #ifdef ENABLE_BATTERY
 
 static uint8_t regs[BQ25895_N_REGS];
+// static uint8_t prev_regs[BQ25895_N_REGS];
 
 static uint16_t batt_volts;
 static uint16_t batt_volts_raw;
 static uint16_t vbus_volts;
 static uint16_t sys_volts;
 static uint16_t batt_charge_current;
+static uint16_t batt_instant_charge_current;
 static uint16_t batt_charge_power;
 static uint16_t batt_max_charge_current;
 static bool batt_charging;
@@ -89,6 +91,7 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &sys_volts,                  0,  "batt_sys_volts" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,              0,  "batt_charge_status" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,        0,  "batt_charge_current" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_instant_charge_current,0,  "batt_charge_current_instant" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_power,          0,  "batt_charge_power" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,                 0,  "batt_fault" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,                0,  "batt_vbus_status" },
@@ -1302,6 +1305,8 @@ static void init_charger( void ){
     // bq25895_v_clr_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
 
     bq25895_v_set_vindpm( 0 );
+
+    // bq25895_v_set_vindpm( 5800 );
 }
 
 // top level API to enable the charger
@@ -1367,6 +1372,7 @@ static bool read_adc( void ){
         batt_volts = util_u16_ewma( temp_batt_volts, batt_volts, BQ25895_VOLTS_FILTER );
     }
 
+    batt_instant_charge_current = temp_charge_current;
     batt_charge_current = util_u16_ewma( temp_charge_current, batt_charge_current, BQ25895_CURRENT_FILTER );
     
 
@@ -1701,6 +1707,8 @@ PT_BEGIN( pt );
         bq25895_v_start_adc_oneshot();
         start_time = tmr_u32_get_system_time_ms();
 
+        memcpy( prev_regs, regs, sizeof(prev_regs) );
+
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
 
@@ -1748,19 +1756,24 @@ PT_BEGIN( pt );
 
                 if( ( reg & BQ25895_BIT_BATFET_DIS ) != 0 ){
 
-                    log_v_error_P( PSTR("Uncommanded BATFET disconnect. Resetting bit. Faults: %d"), batt_fault );
+                    log_v_error_P( PSTR("Uncommanded BATFET disconnect. Resetting bit. Faults: %d Charge current: %u Prev: %u"), batt_fault, batt_instant_charge_current, batt_charge_current );
 
                     bq25895_v_leave_ship_mode();
 
+                    // memcpy( regs, prev_regs, sizeof(prev_regs) );
+                    // bq25895_v_print_regs();
+
                     // attempt to reduce charge current
-                    if( batt_max_charge_current > 3000 ){
+                    // if( batt_max_charge_current > 3000 ){
 
-                        batt_max_charge_current -= 500;
+                    //     batt_max_charge_current -= 500;
 
-                        bq25895_v_set_fast_charge_current( batt_max_charge_current );
+                    //     bq25895_v_set_fast_charge_current( batt_max_charge_current );
 
-                        log_v_warn_P( PSTR("Charge current reduced to: %u"), batt_max_charge_current );
-                    }
+                    //     log_v_warn_P( PSTR("Charge current reduced to: %u"), batt_max_charge_current );
+                    // }
+
+                    // bq25895_v_read_all();
                 }
             }
 

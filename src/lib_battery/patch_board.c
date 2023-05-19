@@ -89,6 +89,8 @@ bool patchboard_b_read_dc_detect( void ){
 
 void patchboard_v_set_solar_en( bool enable ){
 
+    // enable = TRUE;
+
     #ifdef ESP32
 
     if( kv_b_get_boolean( __KV__solar_patch_invert_gate ) ){
