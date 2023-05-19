@@ -30,6 +30,7 @@
 typedef struct __attribute__((packed)){
     uint8_t flags;
     uint32_t sample;
+    uint32_t sys_time;
     int16_t base_rssi;
     int16_t base_snr;
     uint16_t vbus_volts;

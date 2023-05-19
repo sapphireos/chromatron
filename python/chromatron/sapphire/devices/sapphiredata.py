@@ -467,6 +467,7 @@ class TelemetryDataEntry(StructField):
 
                   Uint8Field(_name="flags"),
                   Uint32Field(_name="sample"),
+                  Uint32Field(_name="sys_time"),
                   Int16Field(_name="base_rssi"),
                   Int16Field(_name="base_snr"),
                   Uint16Field(_name="vbus_volts"),

@@ -272,6 +272,8 @@ PT_BEGIN( pt );
         msg.sample = sample;
         sample++;
 
+        catbus_i8_get( __KV__sys_time,              CATBUS_TYPE_UINT32, &msg.sys_time );
+
         catbus_i8_get( __KV__batt_vbus_volts,       CATBUS_TYPE_UINT16, &msg.vbus_volts );
         catbus_i8_get( __KV__batt_volts,            CATBUS_TYPE_UINT16, &msg.batt_volts );
         catbus_i8_get( __KV__batt_charge_current,   CATBUS_TYPE_UINT16, &msg.charge_current );
