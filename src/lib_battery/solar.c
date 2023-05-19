@@ -87,6 +87,8 @@ static bool dc_detect;
 static uint8_t dc_detect_filter[SOLAR_DC_FILTER_DEPTH];
 static uint8_t dc_detect_filter_index;
 
+static uint16_t solar_vindpm = 5800;
+
 static uint16_t solar_volts;
 static uint16_t solar_volts_filter[SOLAR_VOLTS_FILTER_DEPTH];
 static uint8_t solar_volts_filter_index;
@@ -106,6 +108,8 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
 
 	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&charge_minimum_light,  	0,  "solar_charge_minimum_light" },
+
+	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&solar_vindpm,  			0,  "solar_vindpm" },
 
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY,  &dc_detect,                 0,  "solar_dc_detect" },
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_volts,               0,  "solar_panel_volts" },
@@ -281,7 +285,7 @@ static void enable_charge( uint8_t target_state ){
 		else{
 
 			// debug!
-			bq25895_v_set_vindpm( 5800 );
+			bq25895_v_set_vindpm( solar_vindpm );
 		}
 	}
 	else if( target_state == SOLAR_MODE_CHARGE_DC ){

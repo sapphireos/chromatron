@@ -1707,7 +1707,7 @@ PT_BEGIN( pt );
         bq25895_v_start_adc_oneshot();
         start_time = tmr_u32_get_system_time_ms();
 
-        memcpy( prev_regs, regs, sizeof(prev_regs) );
+        // memcpy( prev_regs, regs, sizeof(prev_regs) );
 
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
