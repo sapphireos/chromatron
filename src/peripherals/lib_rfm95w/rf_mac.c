@@ -164,9 +164,9 @@ KV_SECTION_OPT kv_meta_t rf_mac_kv[] = {
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &telemetry_channel,  0, "telemetry_channel" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &telemetry_code,     0, "telemetry_code" },
 
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &rx_good,            0, "telemetry_rx_msgs" },
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &rx_errors,          0, "telemetry_rx_errors" },
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &tx_count,           0, "telemetry_tx_msgs" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &rx_good,            0, "telemetry_stats_rx_msgs" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &rx_errors,          0, "telemetry_stats_rx_errors" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &tx_count,           0, "telemetry_stats_tx_msgs" },
 };
 
 static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
