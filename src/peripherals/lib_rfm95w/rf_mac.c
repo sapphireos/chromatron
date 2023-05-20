@@ -155,9 +155,18 @@ We are not using SF6 at this time (but could in the future).
 static uint8_t telemetry_channel;
 static uint8_t telemetry_code;
 
+
+static uint32_t rx_good;
+static uint32_t rx_errors;
+static uint32_t tx_count;
+
 KV_SECTION_OPT kv_meta_t rf_mac_kv[] = {
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &telemetry_channel,  0, "telemetry_channel" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &telemetry_code,     0, "telemetry_code" },
+
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &rx_good,            0, "telemetry_rx_msgs" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &rx_errors,          0, "telemetry_rx_errors" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &tx_count,           0, "telemetry_tx_msgs" },
 };
 
 static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
@@ -509,6 +518,8 @@ PT_BEGIN( pt );
 
                 // lora_rx_errors++;
 
+                rx_errors++;
+
                 if( payload_crc_error ){
 
                     log_v_debug_P( PSTR("payload crc error") );    
@@ -530,9 +541,13 @@ PT_BEGIN( pt );
             
             if( rx_len >= sizeof(buf) ){
 
+                rx_errors++;
+
                 // invalid length
                 continue;
             }
+
+            rx_good++;
 
             rfm95w_v_read_fifo( buf, rx_len );
 
@@ -615,6 +630,8 @@ PT_BEGIN( pt );
             rfm95w_v_set_power( RFM95W_POWER_MAX );
 
             rfm95w_v_transmit();
+
+            tx_count++;
 
             THREAD_WAIT_WHILE( pt, !rfm95w_b_is_tx_done() );
         }
