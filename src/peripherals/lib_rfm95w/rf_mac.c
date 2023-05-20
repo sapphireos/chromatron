@@ -506,6 +506,10 @@ PT_BEGIN( pt );
             THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() );
         }
 
+        rf_mac_rx_pkt_t rx_pkt;
+        rx_pkt.rssi = rfm95w_i16_get_packet_rssi();
+        rx_pkt.snr = rfm95w_i16_get_packet_snr();
+
         // check if receive or tx path
         if( rfm95w_b_is_rx_done() ){
             // RECEIVE
@@ -522,7 +526,7 @@ PT_BEGIN( pt );
 
                 if( payload_crc_error ){
 
-                    log_v_debug_P( PSTR("payload crc error") );    
+                    log_v_debug_P( PSTR("payload crc error: rssi: %d snr: %d"), rx_pkt.rssi, rx_pkt.snr );    
                 }
 
                 if( header_error ){
@@ -563,11 +567,7 @@ PT_BEGIN( pt );
             // read header
             rf_mac_header_0_t *header = (rf_mac_header_0_t *)buf;
 
-            rf_mac_rx_pkt_t rx_pkt;
-
             rx_pkt.src_addr = header->src_addr;
-            rx_pkt.rssi = rfm95w_i16_get_packet_rssi();
-            rx_pkt.snr = rfm95w_i16_get_packet_snr();
             rx_pkt.len = rx_len;
 
             list_node_t ln = list_ln_create_node( 0, rx_len + sizeof(rf_mac_rx_pkt_t) );
