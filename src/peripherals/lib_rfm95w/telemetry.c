@@ -456,9 +456,16 @@ PT_BEGIN( pt );
 
         // rf_mac_header_0_t *header =(rf_mac_header_0_t *)buf;
         uint8_t *flags = (uint8_t *)&buf[sizeof(rf_mac_header_0_t)];
+        uint8_t payload_len = pkt.len - sizeof(rf_mac_header_0_t);
 
         // check for remote data
         if( *flags & TELEMETRY_FLAGS_REMOTE ){
+
+            // bounds check
+            if( payload_len != sizeof(telemetry_msg_remote_data_0_t) ){
+                
+                continue;
+            }
 
             telemetry_msg_remote_data_0_t *msg = (telemetry_msg_remote_data_0_t *)flags;
 
