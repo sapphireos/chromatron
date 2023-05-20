@@ -831,6 +831,8 @@ PT_BEGIN( pt );
 
 		uint32_t light_level = light_sensor_u32_read();
 
+		uint8_t next_cycle = SOLAR_CYCLE_UNKNOWN;
+
 		if( solar_cycle == SOLAR_CYCLE_DAY ){
 
 			if( light_level < dusk_threshold ){
@@ -839,7 +841,7 @@ PT_BEGIN( pt );
 
 				if( cycle_threshold_counter >= SOLAR_CYCLE_VALIDITY_THRESH ){
 
-					solar_cycle = SOLAR_CYCLE_DUSK;
+					next_cycle = SOLAR_CYCLE_DUSK;
 					cycle_threshold_counter = 0;
 				}
 			}
@@ -856,7 +858,7 @@ PT_BEGIN( pt );
 
 				if( cycle_threshold_counter >= SOLAR_CYCLE_VALIDITY_THRESH ){
 
-					solar_cycle = SOLAR_CYCLE_TWILIGHT;
+					next_cycle = SOLAR_CYCLE_TWILIGHT;
 					cycle_countdown = SOLAR_CYCLE_TWILIGHT_TIME;
 					cycle_threshold_counter = 0;
 				}
@@ -872,7 +874,7 @@ PT_BEGIN( pt );
 
 			if( cycle_countdown == 0 ){
 
-				solar_cycle = SOLAR_CYCLE_NIGHT;
+				next_cycle = SOLAR_CYCLE_NIGHT;
 			}
 		}
 		else if( solar_cycle == SOLAR_CYCLE_NIGHT ){
@@ -883,7 +885,7 @@ PT_BEGIN( pt );
 
 				if( cycle_threshold_counter >= SOLAR_CYCLE_VALIDITY_THRESH ){
 
-					solar_cycle = SOLAR_CYCLE_DAWN;
+					next_cycle = SOLAR_CYCLE_DAWN;
 					cycle_threshold_counter = 0;
 				}
 			}
@@ -900,7 +902,7 @@ PT_BEGIN( pt );
 
 				if( cycle_threshold_counter >= SOLAR_CYCLE_VALIDITY_THRESH ){
 
-					solar_cycle = SOLAR_CYCLE_DAY;
+					next_cycle = SOLAR_CYCLE_DAY;
 					cycle_threshold_counter = 0;
 				}
 			}
@@ -913,16 +915,23 @@ PT_BEGIN( pt );
 
 			if( light_level > day_threshold ){
 
-				solar_cycle = SOLAR_CYCLE_DAY;
+				next_cycle = SOLAR_CYCLE_DAY;
 			}
 			else if( light_level < twilight_threshold ){
 
-				solar_cycle = SOLAR_CYCLE_NIGHT;
+				next_cycle = SOLAR_CYCLE_NIGHT;
 			}
 			else if( light_level < dusk_threshold ){
 
-				solar_cycle = SOLAR_CYCLE_DUSK;
+				next_cycle = SOLAR_CYCLE_DUSK;
 			}
+		}
+
+		if( next_cycle != solar_cycle ){
+
+			log_v_debug_P( PSTR("Changing solar cycle from: %d to: %d"), solar_cycle, next_cycle );
+
+			solar_cycle = next_cycle;
 		}
 
 		apply_cycle_name();
