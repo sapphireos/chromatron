@@ -927,7 +927,7 @@ PT_BEGIN( pt );
 			}
 		}
 
-		if( next_cycle != solar_cycle ){
+		if( ( next_cycle != SOLAR_CYCLE_UNKNOWN ) && ( next_cycle != solar_cycle ) ){
 
 			log_v_debug_P( PSTR("Changing solar cycle from: %d to: %d"), solar_cycle, next_cycle );
 
