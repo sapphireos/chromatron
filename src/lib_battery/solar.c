@@ -774,7 +774,7 @@ static PGM_P get_cycle_name( uint8_t state ){
 
 static void apply_cycle_name( void ){
 
-	strncpy_P( cycle_name.str, get_cycle_name( solar_state ), sizeof(cycle_name.str) );
+	strncpy_P( cycle_name.str, get_cycle_name( solar_cycle ), sizeof(cycle_name.str) );
 }
 
 
@@ -862,6 +862,11 @@ PT_BEGIN( pt );
 					cycle_countdown = SOLAR_CYCLE_TWILIGHT_TIME;
 					cycle_threshold_counter = 0;
 				}
+			}
+			else if( light_level > day_threshold ){
+
+				next_cycle = SOLAR_CYCLE_DAY;
+				cycle_threshold_counter = 0;
 			}
 			else{
 
