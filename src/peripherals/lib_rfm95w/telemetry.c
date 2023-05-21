@@ -304,6 +304,7 @@ PT_BEGIN( pt );
 
 
         TMR_WAIT( pt, 16000 + ( rnd_u16_get_int() >> 3 ) );
+        // TMR_WAIT( pt, 5100 );
     }
 
 PT_END( pt );
@@ -368,6 +369,7 @@ PT_BEGIN( pt );
     while( 1 ){
 
         TMR_WAIT( pt, 17000 + ( rnd_u16_get_int() >> 3 ) );
+        // TMR_WAIT( pt, 4000 );
         
         transmit_beacon();
     }
