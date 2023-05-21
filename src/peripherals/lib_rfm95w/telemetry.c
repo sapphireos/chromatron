@@ -311,6 +311,19 @@ PT_END( pt );
 
 
 
+
+// BASE STATION:
+
+
+static uint32_t beacons_sent;
+static uint32_t remote0_rx;
+
+KV_SECTION_OPT kv_meta_t telemetry_basestation_opt[] = {
+    { CATBUS_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &beacons_sent,               0,   "telemetry_beacons_sent" },
+};
+
+
+
 static uint32_t telemetry_data_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     // the pos and len values are already bounds checked by the FS driver
@@ -342,6 +355,9 @@ static void transmit_beacon( void ){
     };
 
     rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
+
+
+    beacons_sent++;
 }
 
 
@@ -381,11 +397,12 @@ done:
     }
 }
 
+
 PT_THREAD( telemetry_base_station_tx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    // kv_v_add_db_info( telemetry_basestation_opt, sizeof(telemetry_basestation_opt) );
+    kv_v_add_db_info( telemetry_basestation_opt, sizeof(telemetry_basestation_opt) );
 
     while( 1 ){
 
@@ -467,6 +484,8 @@ PT_BEGIN( pt );
                 continue;
             }
 
+            remote0_rx++;
+
             telemetry_msg_remote_data_0_t *msg = (telemetry_msg_remote_data_0_t *)flags;
 
             telemetry_data_entry_t *entry = search_remotes( pkt.src_addr );
@@ -489,7 +508,7 @@ PT_BEGIN( pt );
             entry->rssi = pkt.rssi;
             entry->snr = pkt.snr;
             entry->msg = *msg;
-            entry->time_since_last_contact++;
+            entry->time_since_last_contact = 0;
         }
     }
 
