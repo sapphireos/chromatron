@@ -447,7 +447,7 @@ int16_t rfm95w_i16_get_packet_rssi( void ){
 
 int16_t rfm95w_i16_get_packet_snr( void ){
 
-    int16_t snr = rfm95w_u8_read_reg( RFM95W_RegPktSnrValue );
+    int8_t snr = rfm95w_u8_read_reg( RFM95W_RegPktSnrValue );
 
     return snr / 4;
 }
