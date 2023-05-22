@@ -306,7 +306,7 @@ PT_BEGIN( pt );
             }
 
             // wait while pixels are zero output
-            while( gfx_b_is_output_zero() || !pixelpower_b_pixels_enabled() ){
+            while( gfx_b_is_output_zero() && !pixelpower_b_pixels_enabled() ){
 
                 THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 

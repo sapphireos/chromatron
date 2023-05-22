@@ -162,7 +162,6 @@ static void load_profile( uint8_t type ){
     catbus_i8_set( __KV__pix_count,     CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_count, sizeof(profile->pix_count) );
     catbus_i8_set( __KV__pix_size_x,    CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_size_x, sizeof(profile->pix_size_x) );
     catbus_i8_set( __KV__pix_size_y,    CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_size_y, sizeof(profile->pix_size_y) );
-    catbus_i8_set( __KV__vm_prog,       CATBUS_TYPE_STRING32, (catbus_string_t *)&profile->vm_prog, sizeof(profile->vm_prog) );
 
 
     // Should add a max dimmer setting too
@@ -172,11 +171,15 @@ static void load_profile( uint8_t type ){
 
     if( profile->vm_prog.str[0] == 0 ){
 
-        // no program is selected - stop VM
-
-        vm_run = FALSE;
+        // no program is selected - leave VM controls alone
     }
-    catbus_i8_set( __KV__vm_run,        CATBUS_TYPE_BOOL, &vm_run, sizeof(vm_run) );
+    else{
+
+        catbus_i8_set( __KV__vm_prog,       CATBUS_TYPE_STRING32, (catbus_string_t *)&profile->vm_prog, sizeof(profile->vm_prog) );
+
+        catbus_i8_set( __KV__vm_run,        CATBUS_TYPE_BOOL, &vm_run, sizeof(vm_run) );
+    }
+
 
     bool vm_reset = TRUE;
     catbus_i8_set( __KV__vm_reset,      CATBUS_TYPE_BOOL, &vm_reset, sizeof(vm_reset) );
