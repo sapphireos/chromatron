@@ -279,7 +279,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
 
         // check if output is zero
-        if( gfx_b_is_output_zero() ){
+        if( gfx_b_is_output_zero() || !pixelpower_b_pixels_enabled() ){
 
             // check if pixels are POWERED:
             if( pixelpower_b_pixels_enabled() ){
@@ -306,7 +306,7 @@ PT_BEGIN( pt );
             }
 
             // wait while pixels are zero output
-            while( gfx_b_is_output_zero() ){
+            while( gfx_b_is_output_zero() || !pixelpower_b_pixels_enabled() ){
 
                 THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 
@@ -331,6 +331,8 @@ PT_BEGIN( pt );
         if( !pixelpower_b_pixels_enabled() ){
 
             log_v_error_P( PSTR("Pixels are still unpowered!") );
+
+            continue;
         }
 
         if( request_reconfigure ){

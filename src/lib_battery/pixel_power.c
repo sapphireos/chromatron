@@ -94,6 +94,40 @@ bool pixelpower_b_pixels_enabled( void ){
     return pixels_enabled;
 }
 
+static bool is_vbus_valid( void ){
+
+    uint16_t vbus = batt_u16_get_vbus_volts();
+
+    return vbus < PIXEL_POWER_MAX_VBUS;
+}
+
+
+static void pixels_off( void ){
+
+    // trace_printf("Pixel power DISABLE\r\n");
+
+    if( solar_b_has_charger2_board() ){
+
+        charger2_v_set_boost( FALSE );
+    }
+    else if( batt_b_is_mcp73831_enabled() ){
+
+        mcp73831_v_disable_pixels();   
+    }
+    #if defined(ESP32)
+    else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+
+        disable_pixel_power_fet();
+
+        bq25895_v_set_boost_mode( FALSE );
+    }
+    #endif
+
+    pixels_enabled = FALSE;
+    request_pixels_disabled = FALSE;
+}
+
+
 
 PT_THREAD( pixel_power_thread( pt_t *pt, void *state ) )
 {
@@ -101,7 +135,26 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, !request_pixels_disabled && !request_pixels_enabled );
+        THREAD_WAIT_WHILE( pt, is_vbus_valid() && !request_pixels_disabled && !request_pixels_enabled );
+
+
+        // verify that vbus is below maximum
+        // if not (meaning, it is above the trigger threshold)
+        // pixel power will be deactivated continously.
+        // pending enable requests will not be reset - 
+        // if there is an enable (and no disable request) pending
+        // when vbus becomes valid, the pixels will be enabled.
+        // this loop, because it runs continuously, also serves
+        // to continuously monitor the vbus voltage and will immediately 
+        // (well, asap anyay) shut down pixel power.
+        if( !is_vbus_valid() ){
+            
+            pixels_off();
+
+            TMR_WAIT( pt, 20 );
+
+            continue;
+        }
 
         // trace_printf("Pixel power: enable: %d disable: %d\r\n", request_pixels_enabled, request_pixels_disabled );
 
@@ -143,32 +196,14 @@ PT_BEGIN( pt );
             pixels_enabled = TRUE;
         }
 
+        
+
         request_pixels_enabled = FALSE;
 
         // check if pixels should be DISabled:
         if( request_pixels_disabled ){
 
-            // trace_printf("Pixel power DISABLE\r\n");
-
-            if( solar_b_has_charger2_board() ){
-
-                charger2_v_set_boost( FALSE );
-            }
-            else if( batt_b_is_mcp73831_enabled() ){
-
-                mcp73831_v_disable_pixels();   
-            }
-            #if defined(ESP32)
-            else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
-
-                disable_pixel_power_fet();
-
-                bq25895_v_set_boost_mode( FALSE );
-            }
-            #endif
-
-            pixels_enabled = FALSE;
-            request_pixels_disabled = FALSE;
+            pixels_off();
         }
 
         TMR_WAIT( pt, 50 );

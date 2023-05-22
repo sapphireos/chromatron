@@ -29,6 +29,8 @@
 // pixelpower_b_pixels_enabled is declared in gfx lib so
 // pixel HAL can get to it
 
+#define PIXEL_POWER_MAX_VBUS	5600
+
 void pixelpower_v_init( void );
 
 void pixelpower_v_enable_pixels( void );
