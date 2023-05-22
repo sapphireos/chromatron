@@ -66,6 +66,14 @@ static const led_profile_t led_profiles[] = {
         1, // pix size y
         {"rainbow.fxb"}, // vm prog
     },
+    {
+        LED_UNIT_TYPE_SUNSTREAK,
+        PIX_MODE_WS2811, // led type
+        366, // pix count
+        122, // pix size x
+        3, // pix size y
+        {""}, // vm prog
+    },
 };
 
 // known units
@@ -73,6 +81,10 @@ static const led_unit_t led_units[] = {
     {
         0,
         LED_UNIT_TYPE_NONE,
+    },
+    {
+        1145795934,
+        LED_UNIT_TYPE_SUNSTREAK,
     },
     {
         1146042388,
