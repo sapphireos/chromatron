@@ -28,8 +28,8 @@
 
 #define FAN_THRESH_BATT_MIN  37
 #define FAN_THRESH_BATT_MAX  38
-#define FAN_THRESH_CASE_MIN  52
-#define FAN_THRESH_CASE_MAX  55
+#define FAN_THRESH_CASE_MIN  43
+#define FAN_THRESH_CASE_MAX  45
 
 #define FAN_MIN_ON_TIME      600 // tenths of a second
 
