@@ -192,7 +192,7 @@ KV_SECTION_OPT kv_meta_t fuel_gauge_info_kv[] = {
 
 static uint16_t batt_volts_filter[FUEL_GAUGE_VOLTS_FILTER_DEPTH];
 static uint8_t batt_volts_filter_index;
-static uint16_t filtered_batt_volts;
+static uint32_t filtered_batt_volts;
 
 
 PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) );
