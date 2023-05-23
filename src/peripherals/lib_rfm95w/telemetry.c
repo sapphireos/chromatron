@@ -46,6 +46,8 @@ static list_t remote_stations_list;
 static int16_t base_rssi;
 static int16_t base_snr;
 
+static uint16_t beacon_timeout;
+
 // PT_THREAD( telemetry_rx_thread( pt_t *pt, void *state ) );
 // PT_THREAD( telemetry_tx_thread( pt_t *pt, void *state ) );
 PT_THREAD( telemetry_remote_station_rx_thread( pt_t *pt, void *state ) );
@@ -241,6 +243,8 @@ PT_BEGIN( pt );
         // check for beacon
         if( *flags & TELEMETRY_FLAGS_BEACON ){
 
+            beacon_timeout = 0;
+            
             beacons_received++;
 
             base_rssi = pkt.rssi;
@@ -257,6 +261,8 @@ PT_BEGIN( pt );
 
     static uint32_t sample;
     sample = 0;
+
+    beacon_timeout = 0;
 
     // don't transmit if there are no beacons
     THREAD_WAIT_WHILE( pt, beacons_received == 0 );
@@ -305,6 +311,16 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 16000 + ( rnd_u16_get_int() >> 3 ) );
         // TMR_WAIT( pt, 5100 );
+
+        beacon_timeout++;
+
+        if( beacon_timeout > TELEMETRY_BEACON_TIMEOUT ){
+
+            log_v_info_P( PSTR("Telemetry lost beacon") );
+            beacons_received = 0;
+
+            THREAD_RESTART( pt );
+        }
     }
 
 PT_END( pt );

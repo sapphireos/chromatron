@@ -25,7 +25,9 @@
 #ifndef _TELEMETRY_H_
 #define _TELEMETRY_H_
 
-#define TELEMETRY_BASE_STATION_RELAY_PORT   32123
+// #define TELEMETRY_BASE_STATION_RELAY_PORT   32123
+
+#define TELEMETRY_BEACON_TIMEOUT            128 // comes out to roughly 30-35 minutes
 
 typedef struct __attribute__((packed)){
     uint8_t flags;
