@@ -787,6 +787,8 @@ static uint32_t dusk_threshold = 100 * 1000;
 static uint32_t twilight_threshold = 10 * 1000;
 static uint32_t dawn_threshold = 10 * 1000;
 
+static uint16_t twilight_countdown = 300;
+
 KV_SECTION_OPT kv_meta_t solar_cycle_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_cycle,			0,  "solar_cycle" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&cycle_name,			0,  "solar_cycle_name" },
@@ -795,6 +797,8 @@ KV_SECTION_OPT kv_meta_t solar_cycle_opt_kv[] = {
 	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&dusk_threshold,		0,  "solar_dusk_threshold" },
 	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&twilight_threshold,	0,  "solar_twilight_threshold" },
 	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&dawn_threshold,		0,  "solar_dawn_threshold" },
+
+	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&twilight_countdown,	0,  "solar_twilight_countdown" },
 };
 
 /*
@@ -859,7 +863,7 @@ PT_BEGIN( pt );
 				if( cycle_threshold_counter >= SOLAR_CYCLE_VALIDITY_THRESH ){
 
 					next_cycle = SOLAR_CYCLE_TWILIGHT;
-					cycle_countdown = SOLAR_CYCLE_TWILIGHT_TIME;
+					cycle_countdown = twilight_countdown;
 					cycle_threshold_counter = 0;
 				}
 			}

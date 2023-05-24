@@ -56,7 +56,6 @@
 
 
 #define SOLAR_CYCLE_VALIDITY_THRESH		30
-#define SOLAR_CYCLE_TWILIGHT_TIME		300
 
 void solar_v_init( void );
 
