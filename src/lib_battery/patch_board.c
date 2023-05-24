@@ -30,30 +30,15 @@
 
 
 
-// #include "max11645.h"
-// #include "pca9536.h"
-
+static bool gate_enabled;
 
 KV_SECTION_OPT kv_meta_t patch_board_opt_kv[] = {    
-    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_PERSIST,  0,               0,  "solar_patch_invert_gate" },
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_PERSIST,    0,               0,  "solar_patch_invert_gate" },
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &gate_enabled,   0,  "solar_patch_gate_enabled" },
 };
 
 
 void patchboard_v_init( void ){
-    
-    // if( pca9536_i8_init() != 0 ){
-
-    //     log_v_critical_P( PSTR("PCA9536 NOT detected") );
-
-    //     return;
-    // }
-
-    // max11645_v_init();
-
-    // pca9536_v_set_output( PATCH_PCA9536_IO_SOLAR_EN );
-    // pca9536_v_set_input( PATCH_PCA9536_IO_DC_DETECT );
-    // pca9536_v_set_input( PATCH_PCA9536_IO_IO2 );
-    // pca9536_v_set_input( PATCH_PCA9536_IO_MOTOR_IN_2 );
 
     #ifdef ESP32
     kv_v_add_db_info( patch_board_opt_kv, sizeof(patch_board_opt_kv) );
@@ -64,7 +49,6 @@ void patchboard_v_init( void ){
     #endif
 
     patchboard_v_set_solar_en( FALSE );
-    // patchboard_v_set_solar_en( TRUE );
 }
 
 bool patchboard_b_read_dc_detect( void ){
@@ -78,18 +62,11 @@ bool patchboard_b_read_dc_detect( void ){
     return FALSE;
 
     #endif
-
-    // return pca9536_b_gpio_read( PATCH_PCA9536_IO_DC_DETECT );
 }
-
-// bool patchboard_b_read_io2( void ){
-
-//     return pca9536_b_gpio_read( PATCH_PCA9536_IO_IO2 );
-// }
 
 void patchboard_v_set_solar_en( bool enable ){
 
-    // enable = TRUE;
+    gate_enabled = enable;
 
     #ifdef ESP32
 
@@ -101,41 +78,18 @@ void patchboard_v_set_solar_en( bool enable ){
     if( enable ){
 
         io_v_digital_write( ELITE_SOLAR_EN_IO, 1 );
-
-        // pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 1 );
     }
     else{
 
         io_v_digital_write( ELITE_SOLAR_EN_IO, 0 );
-
-        // pca9536_v_gpio_write( PATCH_PCA9536_IO_SOLAR_EN, 0 );
     }
 
     #endif
 }
 
-// void patchboard_v_set_motor2( bool enable ){
-
-//     if( enable ){
-
-//         pca9536_v_gpio_write( PATCH_PCA9536_IO_MOTOR_IN_2, 1 );
-//     }
-//     else{
-
-//         pca9536_v_gpio_write( PATCH_PCA9536_IO_MOTOR_IN_2, 0 );
-//     }
-// }
-
-// uint16_t patchboard_u16_read_tilt_volts( void ){
-
-//     return ( (uint32_t)max11645_u16_read( PATCH_ADC_CH_TILT ) * PATCH_ADC_VREF ) / 4096;
-// }
-
 uint16_t patchboard_u16_read_solar_volts( void ){
 
     #ifdef ESP32
-
-    // uint32_t mv = ( (uint32_t)max11645_u16_read( PATCH_ADC_CH_SOLAR_VOLTS ) * PATCH_ADC_VREF ) / 4096;
 
     uint32_t mv = adc_u16_read_mv( ELITE_PANEL_VOLTS_IO );
 
