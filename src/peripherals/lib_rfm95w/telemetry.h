@@ -29,6 +29,13 @@
 
 #define TELEMETRY_BEACON_TIMEOUT            128 // comes out to roughly 30-35 minutes
 
+#define TELEMETRY_FLAGS_BEACON      0b00000001
+#define TELEMETRY_FLAGS_CONFIG      0b00000010
+#define TELEMETRY_FLAGS_REMOTE      0b00000100
+#define TELEMETRY_FLAGS_REQUEST     0b00001000
+#define TELEMETRY_FLAGS_RESPONSE    0b00010000
+
+
 typedef struct __attribute__((packed)){
     uint8_t flags;
     uint32_t sample;
@@ -48,22 +55,30 @@ typedef struct __attribute__((packed)){
 } telemetry_msg_remote_data_0_t;
 
 typedef struct __attribute__((packed)){
-    uint64_t src_addr;
-    int16_t rssi;
-    int16_t snr;
-    uint32_t time_since_last_contact;
-    telemetry_msg_remote_data_0_t msg;
-} telemetry_data_entry_t;
-
-#define TELEMETRY_FLAGS_BEACON  0b00000001
-#define TELEMETRY_FLAGS_CONFIG  0b00000010
-#define TELEMETRY_FLAGS_REMOTE  0b00000100
-
-typedef struct __attribute__((packed)){
     uint8_t flags;
     uint8_t cycle;
 } telemetry_msg_beacon_t;
 
+typedef struct __attribute__((packed)){
+    uint8_t flags;
+    uint64_t device_id;
+} telemetry_msg_request_name_t;
+
+typedef struct __attribute__((packed)){
+    uint8_t flags;
+    uint64_t device_id;
+    catbus_string_t name;
+} telemetry_msg_response_name_t;
+
+
+typedef struct __attribute__((packed)){
+    uint64_t src_addr;
+    int16_t rssi;
+    int16_t snr;
+    uint32_t time_since_last_contact;
+    catbus_string_t name;
+    telemetry_msg_remote_data_0_t msg;
+} telemetry_data_entry_t;
 
 void telemetry_v_init( void );
 

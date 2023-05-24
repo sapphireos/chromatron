@@ -36,7 +36,7 @@
 #define RF_MAC_MODE_FSK     1
 #define RF_MAC_MODE_GFSK    2
 
-#define RF_MAC_MAGIC 0x12345678
+#define RF_MAC_MAGIC 0x12345679
 
 typedef struct __attribute__((packed)){
     uint32_t magic;

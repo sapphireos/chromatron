@@ -464,6 +464,7 @@ class TelemetryDataEntry(StructField):
                   Int16Field(_name="rssi"),
                   Int16Field(_name="snr"),
                   Uint32Field(_name="time_since_last_contact"),
+                  StringField(_name="name", _length=32),
 
                   Uint8Field(_name="flags"),
                   Uint32Field(_name="sample"),

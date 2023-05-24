@@ -25,6 +25,7 @@
 
 #include "sapphire.h"
 
+#include "config.h"
 #include "telemetry.h"
 #include "rf_mac.h"
 
@@ -219,6 +220,19 @@ KV_SECTION_OPT kv_meta_t telemetry_remote_opt[] = {
 };
 
 
+static void transmit_name( void ){    
+
+    telemetry_msg_response_name_t msg = {
+        TELEMETRY_FLAGS_RESPONSE,
+        cfg_u64_get_device_id(),
+    };
+
+    catbus_i8_get( __KV__meta_tag_name,          CATBUS_TYPE_STRING32, &msg.name );
+
+    rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
+
+}
+
 PT_THREAD( telemetry_remote_station_rx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -249,6 +263,15 @@ PT_BEGIN( pt );
 
             base_rssi = pkt.rssi;
             base_snr = pkt.snr;
+        }
+        else if( *flags & TELEMETRY_FLAGS_REQUEST ){
+
+            telemetry_msg_request_name_t *msg = (telemetry_msg_request_name_t *)flags;
+
+            if( cfg_u64_get_device_id() == msg->device_id ){
+
+                transmit_name();
+            }
         }
     }
 
@@ -375,6 +398,16 @@ static void transmit_beacon( void ){
 
 
     beacons_sent++;
+}
+
+static void transmit_name_request( uint64_t device_id ){
+
+    telemetry_msg_request_name_t msg = {
+        TELEMETRY_FLAGS_REQUEST,
+        device_id
+    };
+
+    rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
 }
 
 
@@ -520,6 +553,8 @@ PT_BEGIN( pt );
                 list_v_insert_tail( &remote_stations_list, ln );
 
                 entry = list_vp_get_data( ln );
+
+                memset( entry, 0, sizeof(telemetry_data_entry_t) );
             }
 
             entry->src_addr = pkt.src_addr;
@@ -527,6 +562,22 @@ PT_BEGIN( pt );
             entry->snr = pkt.snr;
             entry->msg = *msg;
             entry->time_since_last_contact = 0;
+
+            if( entry->name.str[0] == 0 ){
+
+                transmit_name_request( entry->src_addr );
+            }
+        }
+        else if( *flags & TELEMETRY_FLAGS_RESPONSE ){
+
+            telemetry_msg_response_name_t *msg = (telemetry_msg_response_name_t *)flags;
+
+            telemetry_data_entry_t *entry = search_remotes( msg->device_id );
+
+            if( entry != 0 ){
+
+                memcpy( entry->name.str, msg->name.str, sizeof(entry->name) );
+            }
         }
     }
 

@@ -567,6 +567,11 @@ PT_BEGIN( pt );
             // read header
             rf_mac_header_0_t *header = (rf_mac_header_0_t *)buf;
 
+            if( header->magic != RF_MAC_MAGIC ){
+
+                continue; // bad magic!
+            }
+
             rx_pkt.src_addr = header->src_addr;
             rx_pkt.len = rx_len;
 
