@@ -217,5 +217,6 @@ void gfx_v_log_value_curve( void );
 // declared here so pixel driver can get to it
 // see pixel_power.h
 bool pixelpower_b_pixels_enabled( void );
+bool pixelpower_b_power_control_enabled( void );
 
 #endif

@@ -38,7 +38,8 @@
 
 static bool request_pixels_enabled = FALSE;
 static bool request_pixels_disabled = FALSE;
-static bool pixels_enabled = FALSE;
+static bool pixels_enabled = TRUE; // default to ON, so systems that do not use the pixel power control will output pixels.
+static bool power_control_enabled = FALSE;
 
 
 KV_SECTION_OPT kv_meta_t pixelpower_info_kv[] = {
@@ -66,6 +67,10 @@ static void disable_pixel_power_fet( void ){
 
 void pixelpower_v_init( void ){
 
+    // pixel power system defaults to OFF if power control is enabled
+    pixels_enabled = FALSE;
+    power_control_enabled = TRUE;
+
     #if defined(ESP32)
     disable_pixel_power_fet();
     #endif
@@ -92,6 +97,11 @@ void pixelpower_v_disable_pixels( void ){
 bool pixelpower_b_pixels_enabled( void ){
 
     return pixels_enabled;
+}
+
+bool pixelpower_b_power_control_enabled( void ){
+
+    return power_control_enabled;
 }
 
 static bool is_vbus_valid( void ){
