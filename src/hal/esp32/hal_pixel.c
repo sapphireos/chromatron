@@ -279,7 +279,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
 
         // check if output is zero
-        if( gfx_b_is_output_zero() || !pixelpower_b_pixels_enabled() ){
+        if( gfx_b_is_output_zero() || ( pixelpower_b_power_control_enabled() && !pixelpower_b_pixels_enabled() ) ){
 
             // check if pixels are POWERED:
             if( pixelpower_b_pixels_enabled() ){
@@ -299,25 +299,31 @@ PT_BEGIN( pt );
                 // shut down pixel driver IO
                 spi_v_release();
 
-                // shut down pixel power
-                pixelpower_v_disable_pixels();
+                if( pixelpower_b_power_control_enabled() ){
 
-                THREAD_WAIT_WHILE( pt, pixelpower_b_pixels_enabled() );
+                    // shut down pixel power
+                    pixelpower_v_disable_pixels();
+
+                    THREAD_WAIT_WHILE( pt, pixelpower_b_pixels_enabled() );
+                }
             }
 
             // wait while pixels are zero output
-            while( gfx_b_is_output_zero() && !pixelpower_b_pixels_enabled() ){
+            while( gfx_b_is_output_zero() || ( pixelpower_b_power_control_enabled() && !pixelpower_b_pixels_enabled() ) ){
 
                 THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 
                 setup_pixel_buffer();
             }
 
-            // re-enable pixel power
-            pixelpower_v_enable_pixels();
+            if( pixelpower_b_power_control_enabled() ){
 
-            // wait until pixels have been re-enabled
-            THREAD_WAIT_WHILE( pt, !pixelpower_b_pixels_enabled() );
+                // re-enable pixel power
+                pixelpower_v_enable_pixels();
+
+                // wait until pixels have been re-enabled
+                THREAD_WAIT_WHILE( pt, !pixelpower_b_pixels_enabled() );
+            }
 
             // re-enable pixel drivers
             _pixel_v_configure();
@@ -334,6 +340,7 @@ PT_BEGIN( pt );
 
             continue;
         }
+    
 
         if( request_reconfigure ){
 
