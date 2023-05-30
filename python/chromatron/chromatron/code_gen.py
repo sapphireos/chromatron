@@ -1390,17 +1390,19 @@ def run_script(path, debug_print=False, opt_passes=OptPasses.SSA):
     print(f'prog len: {image.prog_len} image len: {image.image_len}')
 
 
-    return ins_program
+    return stream
 
 
 OPT_LEVELS = {
-    'none': OptPasses.NONE,
-    'ls_sched': OptPasses.LS_SCHED,
-    'default': OptPasses.SSA,
-    'ssa': OptPasses.SSA,
-    'gvn': OptPasses.GVN,
-    'loop': OptPasses.LOOP,
+    'none': [OptPasses.NONE],
+    'ls_sched': [OptPasses.LS_SCHED],
+    'ssa': [OptPasses.SSA],
+    'gvn': [OptPasses.GVN],
+    'loop': [OptPasses.LOOP],
+    'all': [OptPasses.SSA, OptPasses.GVN, OptPasses.LOOP, OptPasses.LS_SCHED],
 }
+
+OPT_LEVELS['default'] = OPT_LEVELS['all']
 
 
 def main():
@@ -1411,13 +1413,13 @@ def main():
 
     logging.info(f'Compiling: {script_name}')
 
-    try:
-        opt_levels = sys.argv[2:]
+    # try:
+    #     opt_levels = sys.argv[2:]
 
-    except IndexError:
-        opt_levels = ['default']
+    # except IndexError:
+    #     opt_levels = ['default']
 
-    opt_passes = [OPT_LEVELS[o] for o in opt_levels]
+    opt_passes = OPT_LEVELS['default']
 
 
     logging.info(f'Optimization passes: {opt_passes}')
@@ -1431,12 +1433,10 @@ def main():
         # pprint.pprint(program.gfx_data)
         # pprint.pprint(program.dump_globals())
 
-        return
-
         try:
-            output_path = sys.argv[2]
-            with open(output_path, 'w+') as f:
-                f.write(program.stream)
+            output_path = os.path.join(sys.argv[2], script_name + 'b')
+            with open(output_path, 'wb+') as f:
+                f.write(program)
 
         except IndexError:
             pass
