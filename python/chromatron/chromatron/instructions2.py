@@ -2422,12 +2422,17 @@ class insSuspend(BaseInstruction):
         for reg in self.context:
             context_bits |= (1 << reg.reg)
 
-        # up to 16 context saves can be encoded in the 16 bit mask.
+        # up to 16 context saves can be encoded in each 16 bit mask.
+        # there are 3 context switch masks, so 48 saves.
 
-        # support for context saves beyond the first 16 registers will require another
+        # support for context saves beyond the first 48 registers will require another
         # instruction with additional encoding space.
 
-        return OpcodeFormat1Imm1Reg(self.mnemonic, context_bits, self.delay.assemble(), lineno=self.lineno)
+        context0 = (context_bits >> 0) & 0xffff
+        context1 = (context_bits >> 16) & 0xffff
+        context2 = (context_bits >> 32) & 0xffff
+
+        return OpcodeFormat3Imm1Reg(self.mnemonic, context2, context1, context0, self.delay.assemble(), lineno=self.lineno)
 
 class insResume(BaseInstruction):
     mnemonic = 'RESUME'

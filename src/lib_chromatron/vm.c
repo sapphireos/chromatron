@@ -955,14 +955,14 @@ PT_BEGIN( pt );
         if( state->vm_return == VM_STATUS_HALT ){
 
             vm_status[state->vm_id] = VM_STATUS_HALT;
-            trace_printf( "VM %d halted\r\n", state->vm_id );
+            log_v_debug_P( "VM %d halted\r\n", state->vm_id );
             goto exit;
         }
         else if( state->vm_return < 0 ){
 
             vm_status[state->vm_id] = state->vm_return;
 
-            trace_printf( "VM %d error: %d\r\n", state->vm_id, state->vm_return );
+            log_v_debug_P( "VM %d error: %d\r\n", state->vm_id, state->vm_return );
             goto exit;
         }
     }

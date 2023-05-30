@@ -5707,7 +5707,8 @@ class irFunc(IR):
 
                             changed = True
 
-                        else:
+                        elif not isinstance(ir, irControlFlow):
+                        # else:
                             variant_inputs = [i for i in ir.get_input_vars() if i in info['body_vars']]
 
                             if len(variant_inputs) == 0:
@@ -7914,7 +7915,7 @@ class irLoadRetVal(IR):
     def generate(self):
         return insLoadRetVal(self.target.generate(), lineno=self.lineno)
 
-class irSuspend(IR):
+class irSuspend(irControlFlow):
     def __init__(self, delay, **kwargs):
         super().__init__(**kwargs)
 
@@ -7938,12 +7939,12 @@ class irSuspend(IR):
         return [self.delay]
 
     def generate(self):
-        if len(self.context) > 16:
-            raise CompilerFatal(f"SUSPEND only supports the first 16 registers.", lineno=self.lineno)
+        if len(self.context) > 48:
+            raise CompilerFatal(f"SUSPEND only supports the first 48 registers.  Count: {len(self.context)}")
 
         return insSuspend(self.delay.generate(), context=[v.generate() for v in self.context], lineno=self.lineno)
 
-class irResume(IR):
+class irResume(irControlFlow):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 

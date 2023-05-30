@@ -115,14 +115,14 @@ static uint32_t cycles;
 #define DECODE_NOP pc += 4;
 
 // special handling for suspend:
-#define DECODE_SUSPEND DECODE_1I1R
+#define DECODE_SUSPEND DECODE_3I1R
 
 // note special handling for resume:
 // we move the PC back to the previous instruction (suspend)
 // then we decode the suspend (which bumps the PC to again point
 // to the current resume isntruction), and THEN bump the PC to point
 // to the next instruction after resume
-#define DECODE_RESUME pc -= 4; DECODE_SUSPEND; pc += 4;
+#define DECODE_RESUME pc -= 8; DECODE_SUSPEND; pc += 8;
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
@@ -186,6 +186,15 @@ typedef struct __attribute__((packed)){
     uint8_t reg1;
 } opcode_2i1r_t;
 #define DECODE_2I1R opcode_2i1r = (opcode_2i1r_t *)pc; pc += 8;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint16_t imm1;
+    uint16_t imm2;
+    uint16_t imm3;
+    uint8_t reg1;
+} opcode_3i1r_t;
+#define DECODE_3I1R opcode_3i1r = (opcode_3i1r_t *)pc; pc += 8;
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
@@ -1030,6 +1039,7 @@ static int8_t _vm_i8_run_stream(
     uint16_t stride;
     int32_t params[8];
     int32_t dest_str_len;
+    uint64_t context_bits;
     vm_reference_t ref;
     vm_reference_t dest_ref;
     vm_reference_t src_ref;
@@ -1051,6 +1061,7 @@ static int8_t _vm_i8_run_stream(
     opcode_1i_t *opcode_1i;
     opcode_1i1r_t *opcode_1i1r;
     opcode_2i1r_t *opcode_2i1r;
+    opcode_3i1r_t *opcode_3i1r;
     opcode_1i2r_t *opcode_1i2r;
     opcode_1i2rs_t *opcode_1i2rs;
     opcode_1i3r_t *opcode_1i3r;
@@ -1583,11 +1594,13 @@ opcode_suspend:
     ptr_i32 = (int32_t *)( (uint8_t *)thread_contexts + ( state->max_thread_context_size * state->current_thread ) );
     index = 0;
 
+    context_bits = ( (uint64_t)opcode_3i1r->imm3 << 32 ) | ( (uint64_t)opcode_3i1r->imm2 << 16 ) | ( (uint64_t)opcode_3i1r->imm1 << 0 );
+
     // store context
-    for( uint8_t i = 0; i < 16; i++ ){
+    for( uint8_t i = 0; i < 48; i++ ){
 
         // check if saving register at this bit position
-        if( opcode_1i1r->imm1 & ( 1 << i ) ){
+        if( context_bits & ( 1 << i ) ){
 
             ptr_i32[index] = registers[i];
 
@@ -1601,7 +1614,7 @@ opcode_suspend:
     }
 
     // load delay value
-    value = registers[opcode_1i1r->reg1];
+    value = registers[opcode_3i1r->reg1];
 
     if( value < VM_MIN_DELAY ){
 
@@ -1621,11 +1634,13 @@ opcode_resume:
     ptr_i32 = (int32_t *)( (uint8_t *)thread_contexts + ( state->max_thread_context_size * state->current_thread ) );
     index = 0;
 
+    context_bits = ( (uint64_t)opcode_3i1r->imm3 << 32 ) | ( (uint64_t)opcode_3i1r->imm2 << 16 ) | ( (uint64_t)opcode_3i1r->imm1 << 0 );
+
     // restore context
-    for( uint8_t i = 0; i < 16; i++ ){
+    for( uint8_t i = 0; i < 48; i++ ){
 
         // check if saving register at this bit position
-        if( opcode_1i1r->imm1 & ( 1 << i ) ){
+        if( context_bits & ( 1 << i ) ){
 
             registers[i] = ptr_i32[index];
 

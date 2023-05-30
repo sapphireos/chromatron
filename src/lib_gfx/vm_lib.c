@@ -231,30 +231,30 @@ int8_t vm_lib_i8_libcall_built_in(
             // state->yield = 1;
             break;
 
-        case __KV__delay:
-            // default to yield (no delay) if no parameters
-            if( param_len < 1 ){
+        // case __KV__delay:
+        //     // default to yield (no delay) if no parameters
+        //     if( param_len < 1 ){
 
-                temp0 = 0;
-            }
-            else{
-                // first parameter is delay time, all other params ignored
-                temp0 = params[0];
-            }
+        //         temp0 = 0;
+        //     }
+        //     else{
+        //         // first parameter is delay time, all other params ignored
+        //         temp0 = params[0];
+        //     }
 
-            // bounds check
-            if( temp0 < VM_MIN_DELAY ){
+        //     // bounds check
+        //     if( temp0 < VM_MIN_DELAY ){
 
-                temp0 = VM_MIN_DELAY;
-            }
+        //         temp0 = VM_MIN_DELAY;
+        //     }
 
-            // set up delay
-            state->threads[state->current_thread].tick += temp0;
+        //     // set up delay
+        //     state->threads[state->current_thread].tick += temp0;
 
-            // delay also yields
-            // state->yield = 1;
+        //     // delay also yields
+        //     // state->yield = 1;
 
-            break;
+        //     break;
 
         case __KV__start_thread:
             if( param_len != 1 ){
