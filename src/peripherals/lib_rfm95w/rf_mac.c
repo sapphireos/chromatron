@@ -100,7 +100,7 @@ SF  BW      CR    Bitrate  Airtime (64 bytes, 512 bytes) (ms)
 12  62.5    4/8   91       5626  45008
 12  500     4/8   732      699   5592
 12  62.5    4/5   146      3506  28048
-12  500     4/5   73       7013  56104
+12  500     4/5   1171     437   3497
 
 6   62.5    4/8   2929     174   1392
 6   500     4/8   23437    21    168
@@ -142,14 +142,31 @@ Downlink:
     923.3 - SF12BW500 (RX2)
 
 
+
+Code selection:
+
+Single channel: must be 500 khz BW
+
+We are not using SF6 at this time (but could in the future).
+
+
 */
 
 static uint8_t telemetry_channel;
 static uint8_t telemetry_code;
 
-KV_SECTION_META kv_meta_t rf_mac_kv[] = {
+
+static uint32_t rx_good;
+static uint32_t rx_errors;
+static uint32_t tx_count;
+
+KV_SECTION_OPT kv_meta_t rf_mac_kv[] = {
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &telemetry_channel,  0, "telemetry_channel" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &telemetry_code,     0, "telemetry_code" },
+
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &rx_good,            0, "telemetry_stats_rx_msgs" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &rx_errors,          0, "telemetry_stats_rx_errors" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &tx_count,           0, "telemetry_stats_tx_msgs" },
 };
 
 static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
@@ -159,15 +176,97 @@ static const uint32_t beacon_channels[RF_MAC_N_BEACON_CH] = {
     920000000,
 };
 
+
+// all available codes supported by our hardware
 static const rf_mac_coding_t codebook[] = {
-    // beacon coding
-    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 12, RFM95W_BW_500000 }, // 732 bps
-    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 12, RFM95W_BW_500000 }, // 
-    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 11, RFM95W_BW_500000 }, // 
-    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 11, RFM95W_BW_500000 }, // 
-    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 10, RFM95W_BW_500000 }, // 
-    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_500000 }, // 
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 11, RFM95W_BW_500000 }, // 1342 bps | 64b: 381ms | 512b: 3052ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 11, RFM95W_BW_500000 }, // 2148 bps | 64b: 238ms | 512b: 1906ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 10, RFM95W_BW_500000 }, // 2441 bps | 64b: 209ms | 512b: 1678ms
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_250000 }, // 1953 bps | 64b: 262ms | 512b: 2097ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_500000 }, // 3906 bps | 64b: 131ms | 512b: 1048ms
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 9,  RFM95W_BW_250000 }, // 2197 bps | 64b: 233ms | 512b: 1864ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 9,  RFM95W_BW_500000 }, // 4394 bps | 64b: 116ms | 512b: 932ms
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_125000 }, // 1757 bps | 64b: 291ms | 512b: 2331ms
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_250000 }, // 3515 bps | 64b: 145ms | 512b: 1165ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_500000 }, // 7031 bps | 64b: 72ms  | 512b: 582ms
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_125000 }, // 1953 bps | 64b: 262ms | 512b: 2097ms
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_250000 }, // 3906 bps | 64b: 131ms | 512b: 1048ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_500000 }, // 7812 bps | 64b: 65ms  | 512b: 524ms
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_62500 },  // 1562 bps | 64b: 327ms | 512b: 2622m
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_125000 }, // 3125 bps | 64b: 163ms | 512b: 1310ms
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_250000 }, // 6250 bps | 64b: 81ms  | 512b: 655ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_500000 }, // 12500 bps| 64b: 40ms  | 512b: 327ms *
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_62500 },  // 1708 bps | 64b: 299ms | 512b: 2398ms
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_125000 }, // 3417 bps | 64b: 149ms | 512b: 1198ms
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_250000 }, // 6835 bps | 64b: 74ms  | 512b: 599ms
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_500000 }, // 13671 bps| 64b: 37ms  | 512b: 299ms *
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_62500 },  // 2734 bps | 64b: 187ms | 512b: 1498ms
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_125000 }, // 5468 bps | 64b: 93ms  | 512b: 749ms
+    // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_250000 }, // 10937 bps| 64b: 46ms  | 512b: 374ms *
+    { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_500000 }, // 21875 bps| 64b: 23ms  | 512b: 187ms *
 };
+
+
+// // codes available in single channel mode that are 400 ms valid for 64 bytes
+// static const rf_mac_coding_t single_channel_codebook[] = {
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 11, RFM95W_BW_500000 }, // 1342 bps | 64b: 381ms | 512b: 3052ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 11, RFM95W_BW_500000 }, // 2148 bps | 64b: 238ms | 512b: 1906ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 10, RFM95W_BW_500000 }, // 2441 bps | 64b: 209ms | 512b: 1678ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_250000 }, // 1953 bps | 64b: 262ms | 512b: 2097ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_500000 }, // 3906 bps | 64b: 131ms | 512b: 1048ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 9,  RFM95W_BW_250000 }, // 2197 bps | 64b: 233ms | 512b: 1864ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 9,  RFM95W_BW_500000 }, // 4394 bps | 64b: 116ms | 512b: 932ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_125000 }, // 1757 bps | 64b: 291ms | 512b: 2331ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_250000 }, // 3515 bps | 64b: 145ms | 512b: 1165ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_500000 }, // 7031 bps | 64b: 72ms  | 512b: 582ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_125000 }, // 1953 bps | 64b: 262ms | 512b: 2097ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_250000 }, // 3906 bps | 64b: 131ms | 512b: 1048ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_500000 }, // 7812 bps | 64b: 65ms  | 512b: 524ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_62500 },  // 1562 bps | 64b: 327ms | 512b: 2622m
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_125000 }, // 3125 bps | 64b: 163ms | 512b: 1310ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_250000 }, // 6250 bps | 64b: 81ms  | 512b: 655ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_500000 }, // 12500 bps| 64b: 40ms  | 512b: 327ms *
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_62500 },  // 1708 bps | 64b: 299ms | 512b: 2398ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_125000 }, // 3417 bps | 64b: 149ms | 512b: 1198ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_250000 }, // 6835 bps | 64b: 74ms  | 512b: 599ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_500000 }, // 13671 bps| 64b: 37ms  | 512b: 299ms *
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_62500 },  // 2734 bps | 64b: 187ms | 512b: 1498ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_125000 }, // 5468 bps | 64b: 93ms  | 512b: 749ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_250000 }, // 10937 bps| 64b: 46ms  | 512b: 374ms *
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_500000 }, // 21875 bps| 64b: 23ms  | 512b: 187ms *
+// };
+
+
+// // codes available for 512b packets in less than 400 ms
+// static const rf_mac_coding_t codebook_512b[] = {
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 11, RFM95W_BW_500000 }, // 1342 bps | 64b: 381ms | 512b: 3052ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 11, RFM95W_BW_500000 }, // 2148 bps | 64b: 238ms | 512b: 1906ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 10, RFM95W_BW_500000 }, // 2441 bps | 64b: 209ms | 512b: 1678ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_250000 }, // 1953 bps | 64b: 262ms | 512b: 2097ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 10, RFM95W_BW_500000 }, // 3906 bps | 64b: 131ms | 512b: 1048ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 9,  RFM95W_BW_250000 }, // 2197 bps | 64b: 233ms | 512b: 1864ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 9,  RFM95W_BW_500000 }, // 4394 bps | 64b: 116ms | 512b: 932ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_125000 }, // 1757 bps | 64b: 291ms | 512b: 2331ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_250000 }, // 3515 bps | 64b: 145ms | 512b: 1165ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 9,  RFM95W_BW_500000 }, // 7031 bps | 64b: 72ms  | 512b: 582ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_125000 }, // 1953 bps | 64b: 262ms | 512b: 2097ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_250000 }, // 3906 bps | 64b: 131ms | 512b: 1048ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 8,  RFM95W_BW_500000 }, // 7812 bps | 64b: 65ms  | 512b: 524ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_62500 },  // 1562 bps | 64b: 327ms | 512b: 2622m
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_125000 }, // 3125 bps | 64b: 163ms | 512b: 1310ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_250000 }, // 6250 bps | 64b: 81ms  | 512b: 655ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 8,  RFM95W_BW_500000 }, // 12500 bps| 64b: 40ms  | 512b: 327ms *
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_62500 },  // 1708 bps | 64b: 299ms | 512b: 2398ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_125000 }, // 3417 bps | 64b: 149ms | 512b: 1198ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_250000 }, // 6835 bps | 64b: 74ms  | 512b: 599ms
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_8, 7,  RFM95W_BW_500000 }, // 13671 bps| 64b: 37ms  | 512b: 299ms *
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_62500 },  // 2734 bps | 64b: 187ms | 512b: 1498ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_125000 }, // 5468 bps | 64b: 93ms  | 512b: 749ms
+//     // { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_250000 }, // 10937 bps| 64b: 46ms  | 512b: 374ms *
+//     { RF_MAC_MODE_LORA, RFM95W_CODING_4_5, 7,  RFM95W_BW_500000 }, // 21875 bps| 64b: 23ms  | 512b: 187ms *
+// };
+
+
 
 static uint8_t current_code;
 
@@ -179,6 +278,8 @@ PT_THREAD( rf_thread( pt_t *pt, void *state ) );
 
 
 int8_t rf_mac_i8_init( void ){
+
+    kv_v_add_db_info( rf_mac_kv, sizeof(rf_mac_kv) );
 
     list_v_init( &tx_q );
     list_v_init( &rx_q );
@@ -230,6 +331,13 @@ int8_t rf_mac_i8_send( uint64_t dest_addr, uint8_t *data, uint8_t len ){
         return -1;
     }
 
+    uint16_t tx_len = len + sizeof(rf_mac_header_0_t);
+
+    if( tx_len > RFM95W_FIFO_LEN ){
+
+        return -2;
+    }
+
     uint8_t buf[sizeof(rf_mac_tx_pkt_t) + RFM95W_FIFO_LEN];
 
     rf_mac_tx_pkt_t *pkt = (rf_mac_tx_pkt_t *)buf;
@@ -243,7 +351,7 @@ int8_t rf_mac_i8_send( uint64_t dest_addr, uint8_t *data, uint8_t len ){
 
     if( ln < 0 ){
 
-        return -2;
+        return -3;
     }
 
     list_v_insert_head( &tx_q, ln );
@@ -302,7 +410,7 @@ static uint16_t calc_symbol_duration( uint8_t bw, uint8_t sf ){
     }
     else if( bw == RFM95W_BW_500000 ){
 
-        bandwidth = 50000;
+        bandwidth = 500000;
     }
     else{
 
@@ -361,6 +469,8 @@ static void configure_code( void ){
 
 static void reset_fifo( void ){
 
+    rfm95w_v_clear_fifo();
+
     rfm95w_v_write_reg( RFM95W_RegFifoTxBaseAddr, 0 );
     rfm95w_v_write_reg( RFM95W_RegFifoRxBaseAddr, 0 );
     rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
@@ -396,6 +506,10 @@ PT_BEGIN( pt );
             THREAD_WAIT_WHILE( pt, !rfm95w_b_is_rx_done() );
         }
 
+        rf_mac_rx_pkt_t rx_pkt;
+        rx_pkt.rssi = rfm95w_i16_get_packet_rssi();
+        rx_pkt.snr = rfm95w_i16_get_packet_snr();
+
         // check if receive or tx path
         if( rfm95w_b_is_rx_done() ){
             // RECEIVE
@@ -408,9 +522,11 @@ PT_BEGIN( pt );
 
                 // lora_rx_errors++;
 
+                rx_errors++;
+
                 if( payload_crc_error ){
 
-                    log_v_debug_P( PSTR("payload crc error") );    
+                    log_v_debug_P( PSTR("payload crc error: rssi: %d snr: %d"), rx_pkt.rssi, rx_pkt.snr );    
                 }
 
                 if( header_error ){
@@ -429,9 +545,13 @@ PT_BEGIN( pt );
             
             if( rx_len >= sizeof(buf) ){
 
+                rx_errors++;
+
                 // invalid length
                 continue;
             }
+
+            rx_good++;
 
             rfm95w_v_read_fifo( buf, rx_len );
 
@@ -444,10 +564,15 @@ PT_BEGIN( pt );
                 continue;
             }
 
-            rf_mac_rx_pkt_t rx_pkt;
+            // read header
+            rf_mac_header_0_t *header = (rf_mac_header_0_t *)buf;
 
-            rx_pkt.rssi = rfm95w_i16_get_packet_rssi();
-            rx_pkt.snr = rfm95w_i16_get_packet_snr();
+            if( header->magic != RF_MAC_MAGIC ){
+
+                continue; // bad magic!
+            }
+
+            rx_pkt.src_addr = header->src_addr;
             rx_pkt.len = rx_len;
 
             list_node_t ln = list_ln_create_node( 0, rx_len + sizeof(rf_mac_rx_pkt_t) );
@@ -479,15 +604,16 @@ PT_BEGIN( pt );
 
             rf_mac_header_0_t header = {
                 RF_MAC_MAGIC,
-                0,
                 cfg_u64_get_device_id(),
             };
 
             rfm95w_v_write_fifo( (uint8_t *)&header, sizeof(header) );
             rfm95w_v_write_fifo( data, pkt->len );
 
-            rfm95w_v_write_reg( RFM95W_RegPayloadLength, sizeof(header) + pkt->len );
+            uint8_t tx_len = sizeof(header) + pkt->len;
 
+            rfm95w_v_write_reg( RFM95W_RegPayloadLength, tx_len );
+            
             list_v_release_node( ln );
 
             if( pkt->dest_addr == 0 ){
@@ -500,8 +626,6 @@ PT_BEGIN( pt );
 
                 // set up coding
                 configure_code();
-
-                rfm95w_v_write_fifo( data, pkt->len );
             }
             else{
 
@@ -511,6 +635,8 @@ PT_BEGIN( pt );
             rfm95w_v_set_power( RFM95W_POWER_MAX );
 
             rfm95w_v_transmit();
+
+            tx_count++;
 
             THREAD_WAIT_WHILE( pt, !rfm95w_b_is_tx_done() );
         }

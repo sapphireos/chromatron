@@ -111,7 +111,8 @@ int8_t rfm95w_i8_init( uint8_t cs, uint8_t reset ){
     
     CHIP_DISABLE();
 
-    spi_v_init( RFM95_SPI_CHANNEL, 10000000, 0 );
+    // spi_v_init( RFM95_SPI_CHANNEL, 10000000, 0 ); // !!! 10MHz can cause bit errors on the bus itself!
+    spi_v_init( RFM95_SPI_CHANNEL, 1000000, 0 );
 
     // log_v_debug_P( PSTR("0x%x = 0x%x"), RFM95W_RegOpMode, rfm95w_u8_read_reg( RFM95W_RegOpMode ) );
     // log_v_debug_P( PSTR("0x%x = 0x%x"), RFM95W_RegPaConfig, rfm95w_u8_read_reg( RFM95W_RegPaConfig ) );
@@ -292,6 +293,43 @@ void rfm95w_v_write_fifo( uint8_t *buf, uint8_t len ){
     // rfm95w_v_write_reg( RFM95W_RegPayloadLength, len );
 }
 
+void rfm95w_v_clear_fifo( void ){
+
+    uint8_t buf[RFM95W_FIFO_LEN];    
+    memset( buf, 0, sizeof(buf) );
+
+    rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
+
+    rfm95w_v_write_fifo( buf, sizeof(buf) );
+}
+
+void rfm95w_v_dump_fifo( void ){
+
+    uint8_t buf[RFM95W_FIFO_LEN];    
+
+    rfm95w_v_read_fifo( buf, sizeof(buf) );
+
+    uint16_t index = 0;
+
+    log_v_debug_P( PSTR("fifo:") );
+
+    for( uint8_t i = 0; i < 8; i++ ){
+
+        log_v_debug_P( PSTR("0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x"),
+            buf[index + 0],
+            buf[index + 1],
+            buf[index + 2],
+            buf[index + 3],
+            buf[index + 4],
+            buf[index + 5],
+            buf[index + 6],
+            buf[index + 7]
+        );
+
+        index += 8;
+    }
+}
+
 void rfm95w_v_set_mode( uint8_t mode ){
 
     uint8_t data = rfm95w_u8_read_reg( RFM95W_RegOpMode );
@@ -409,7 +447,7 @@ int16_t rfm95w_i16_get_packet_rssi( void ){
 
 int16_t rfm95w_i16_get_packet_snr( void ){
 
-    int16_t snr = rfm95w_u8_read_reg( RFM95W_RegPktSnrValue );
+    int8_t snr = rfm95w_u8_read_reg( RFM95W_RegPktSnrValue );
 
     return snr / 4;
 }

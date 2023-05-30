@@ -216,6 +216,66 @@ static uint32_t calc_lux( uint16_t val, uint8_t _gain, uint8_t _int_time ){
 }
 
 
+// returns 0 if sample was computed,
+// non-zero if a setting needed to be changed and
+// the sample is not ready
+static int8_t process_sensor( void ){
+
+    raw_als = _veml7700_u16_read_als();
+    raw_white = _veml7700_u16_read_white();
+
+    if( gain == VEML7700_ALS_GAIN_x0_125 ){
+
+        if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }
+    }
+    else if( gain == VEML7700_ALS_GAIN_x0_25 ){
+
+        if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }
+        else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }
+    }
+    else if( gain == VEML7700_ALS_GAIN_x1 ){
+
+        if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x2, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }                
+        else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }
+    }
+    else if( gain == VEML7700_ALS_GAIN_x2 ){
+    
+        if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }            
+    }
+
+    als = calc_lux( raw_als, gain, int_time );
+    white = calc_lux( raw_white, gain, int_time );
+
+    filtered_als = util_u32_ewma( als, filtered_als, FILTER_RATIO );
+    filtered_white = util_u32_ewma( white, filtered_white, FILTER_RATIO );
+        
+    return 0;
+}
+
 PT_THREAD( veml7700_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );
@@ -243,63 +303,21 @@ PT_BEGIN( pt );
     // veml7700_v_configure( VEML7700_ALS_GAIN_x2, VEML7700_ALS_INT_TIME_800ms );
     veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_100ms );
 
+
+    // run several cycles to set gain
+    for( uint8_t i = 0; i < 16; i++ ){
+
+        if( process_sensor() == 0 ){
+
+            break;
+        }
+    }
+
     while(1){
 
         TMR_WAIT( pt, 1000 );
 
-        raw_als = _veml7700_u16_read_als();
-        raw_white = _veml7700_u16_read_white();
-
-        if( gain == VEML7700_ALS_GAIN_x0_125 ){
-
-            if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
-
-                veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
-                continue;
-            }
-        }
-        else if( gain == VEML7700_ALS_GAIN_x0_25 ){
-
-            if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
-
-                veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
-                continue;
-            }
-            else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
-
-                veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_100ms );
-                continue;
-            }
-        }
-        else if( gain == VEML7700_ALS_GAIN_x1 ){
-
-            if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
-
-                veml7700_v_configure( VEML7700_ALS_GAIN_x2, VEML7700_ALS_INT_TIME_100ms );
-                continue;
-            }                
-            else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
-
-                veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
-                continue;
-            }
-        }
-        else if( gain == VEML7700_ALS_GAIN_x2 ){
-        
-            if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
-
-                veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
-                continue;
-            }            
-        }
-
-        als = calc_lux( raw_als, gain, int_time );
-        white = calc_lux( raw_white, gain, int_time );
-
-        filtered_als = util_u32_ewma( als, filtered_als, FILTER_RATIO );
-        filtered_white = util_u32_ewma( white, filtered_white, FILTER_RATIO );
-
-        // log_v_debug_P( PSTR("%d %d"), raw_als, raw_white );
+        process_sensor();        
     }
     
 

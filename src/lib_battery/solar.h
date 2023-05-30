@@ -29,6 +29,7 @@
 
 #define SOLAR_CONTROL_POLLING_RATE			1000
 #define SOLAR_SENSOR_POLLING_RATE			250
+#define SOLAR_CYCLE_POLLING_RATE			1000
 
 #define SOLAR_DC_FILTER_DEPTH				4
 #define SOLAR_VOLTS_FILTER_DEPTH			32
@@ -43,7 +44,18 @@
 #define SOLAR_MODE_FULL_CHARGE			3
 #define SOLAR_MODE_STOPPED				4
 #define SOLAR_MODE_SHUTDOWN	  			5
+#define SOLAR_MODE_FAULT	  			6
 
+
+#define SOLAR_CYCLE_UNKNOWN				0
+#define SOLAR_CYCLE_DAY					1
+#define SOLAR_CYCLE_DUSK				2
+#define SOLAR_CYCLE_TWILIGHT			3
+#define SOLAR_CYCLE_NIGHT				4
+#define SOLAR_CYCLE_DAWN				5
+
+
+#define SOLAR_CYCLE_VALIDITY_THRESH		30
 
 void solar_v_init( void );
 

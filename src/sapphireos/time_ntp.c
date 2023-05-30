@@ -374,7 +374,7 @@ PT_BEGIN( pt );
 
                 if( ( clock_source > NTP_SOURCE_INTERNAL ) && ( delta_ms > ( NTP_MASTER_CLOCK_TIMEOUT * 1000 ) ) ){
 
-                    log_v_info_P( PSTR("NTP master clock desync, changing source to internal") );
+                    log_v_info_P( PSTR("NTP master clock desync, changing source to internal: %u"), delta_ms );
 
                     clock_source = NTP_SOURCE_INTERNAL;           
                 }

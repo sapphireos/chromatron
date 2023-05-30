@@ -35,12 +35,12 @@ from bad input, with delays and logging.  Battery charging is just not simple.
 #include "sapphire.h"
 
 #include "solar.h"
-#include "solar_tilt.h"
 #include "mppt.h"
 #include "buttons.h"
 #include "thermal.h"
 #include "battery.h"
 #include "patch_board.h"
+#include "charger2.h"
 #include "pixel_power.h"
 #include "led_detect.h"
 #include "fuel_gauge.h"
@@ -58,9 +58,6 @@ Add a fault state for when a power source is available but the battery
 charger is reporting a fault.
 
 
-Remove tilt controls and patchboard stuff.  We aren't gonna use it.
-
-
 */
 
 
@@ -71,7 +68,6 @@ static bool enable_dc_charge = TRUE;
 static bool enable_solar_charge;
 static bool mppt_enabled;
 
-
 static uint8_t solar_state;
 
 static catbus_string_t state_name;
@@ -80,8 +76,9 @@ static catbus_string_t state_name;
 static uint16_t charge_timer;
 #define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
 #define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
-#define DISCHARGE_HOLD_TIME				( 10 ) // time to remain in discharge before allowing a switch back to charge
-#define CHARGE_HOLD_TIME				( 5 )  // time to remain in charge before allowing a switch back to discharge or full
+#define DISCHARGE_HOLD_TIME				( 4 ) // time to remain in discharge before allowing a switch back to charge
+#define CHARGE_HOLD_TIME				( 4 )  // time to remain in charge before allowing a switch back to discharge or full
+#define FAULT_HOLD_TIME					( 10 )  // minimum time to remain in fault state
 
 #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
 
@@ -89,6 +86,8 @@ static uint16_t charge_timer;
 static bool dc_detect;
 static uint8_t dc_detect_filter[SOLAR_DC_FILTER_DEPTH];
 static uint8_t dc_detect_filter_index;
+
+static uint16_t solar_vindpm = 5800;
 
 static uint16_t solar_volts;
 static uint16_t solar_volts_filter[SOLAR_VOLTS_FILTER_DEPTH];
@@ -110,6 +109,8 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 
 	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&charge_minimum_light,  	0,  "solar_charge_minimum_light" },
 
+	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&solar_vindpm,  			0,  "solar_vindpm" },
+
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY,  &dc_detect,                 0,  "solar_dc_detect" },
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_volts,               0,  "solar_panel_volts" },
 
@@ -121,7 +122,7 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 
 PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) );
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) );
-
+PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) );
 
 
 #include "bq25895.h"
@@ -161,21 +162,12 @@ void solar_v_init( void ){
 		enable_solar_charge = TRUE; // solar is always enabled with patch board, that's the point of having it
 		
 		patchboard_v_init();
-
-		solar_tilt_v_init(); // tilt system requires patch board
 	}
 
 	if( charger2_board_installed ){
 		
-		patchboard_v_init();
+		charger2_v_init();
 	}
-
-	// // patchboard_v_set_solar_en( FALSE );
-	// bq25895_v_set_boost_mode( TRUE );
-	// batt_v_enable_charge();
-	// bq25895_v_set_boost_mode( FALSE );
-	// bq25895_v_disable_charger();
-
 
 
 	thread_t_create( solar_control_thread,
@@ -185,6 +177,11 @@ void solar_v_init( void ){
 
 	thread_t_create( solar_sensor_thread,
                      PSTR("solar_sensor"),
+                     0,
+                     0 );
+
+	thread_t_create( solar_cycle_thread,
+                     PSTR("solar_cycle"),
                      0,
                      0 );
 }
@@ -240,6 +237,10 @@ static PGM_P get_state_name( uint8_t state ){
 
 		return PSTR("shutdown");
 	}
+	else if( state == SOLAR_MODE_FAULT ){
+
+		return PSTR("fault");
+	}
 	else{
 
 		return PSTR("unknown");
@@ -284,11 +285,10 @@ static void enable_charge( uint8_t target_state ){
 		else{
 
 			// debug!
-			bq25895_v_set_vindpm( 5800 );
+			bq25895_v_set_vindpm( solar_vindpm );
 		}
 	}
 	else if( target_state == SOLAR_MODE_CHARGE_DC ){
-
 
 		bq25895_v_set_vindpm( 0 );
 
@@ -310,11 +310,6 @@ static void disable_charge( void ){
 	// to do it.
 
 	// batt_v_disable_charge();	
-}
-
-static void request_close_panel( void ){
-
-	solar_tilt_v_set_tilt_angle( 0 );	
 }
 
 static void enable_solar_vbus( void ){
@@ -406,7 +401,6 @@ PT_END( pt );
 }
 
 
-
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -444,8 +438,30 @@ PT_BEGIN( pt );
 		static uint8_t next_state;
 		next_state = solar_state;
 
+		if( solar_state == SOLAR_MODE_SHUTDOWN ){
+
+			sys_v_initiate_shutdown( 5 );
+
+			THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+
+			batt_v_shutdown_power();
+			// if on battery power, this should not return
+			// as the power will be cut off.
+			// if an external power source was plugged in during
+			// the shutdown, then this will return.
+
+			// we will delay here and wait
+			// for the reboot thread to reboot the system.
+			TMR_WAIT( pt, 120000 ); 
+
+			log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
+		}
 		// check for cut off
-		if( batt_u16_get_batt_volts() < batt_u16_get_min_discharge_voltage() ){
+		// also wait for at least some time to allow charge sources to initialize
+		// before shutting down.  this helps get into charge mode from cutoff.
+		else if( ( batt_u16_get_batt_volts() < batt_u16_get_min_discharge_voltage() ) &&
+				 !batt_b_is_vbus_connected() &&
+				 tmr_u64_get_system_time_ms() > 20000 ){
 			
 			log_v_warn_P( PSTR("Battery at discharge cutoff") );
 				
@@ -463,6 +479,17 @@ PT_BEGIN( pt );
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
 		}
+		else if( solar_state == SOLAR_MODE_FAULT ){
+
+			if( charge_timer < FAULT_HOLD_TIME ){
+
+				charge_timer++;
+			}
+			else if( !batt_b_is_batt_fault() ){
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+		}
 		else if( solar_state == SOLAR_MODE_DISCHARGE ){
 
 			// check charge timer, do not allow a switch to a charge mode
@@ -473,6 +500,13 @@ PT_BEGIN( pt );
 
 				charge_timer++;
 			}
+
+			// check for fault?
+			// go to fault state?
+			else if( batt_b_is_batt_fault() ){
+
+				next_state = SOLAR_MODE_FAULT;
+			}
 			else{
 
 				// minimum discharge time reached
@@ -481,11 +515,13 @@ PT_BEGIN( pt );
 
 					// patch board has a dedicated DC detect signal:
 					// also validate that VBUS sees it
+					// and no charger faults
 					if( dc_detect && batt_b_is_vbus_connected() ){
 
 						next_state = SOLAR_MODE_CHARGE_DC;
 					}
-					// check solar enable threshold
+					// check solar enable threshold AND
+					// that there are no charger faults reported.
 					else if( is_solar_enable_threshold() ){
 
 						log_v_debug_P( PSTR("entering solar charge: %u mV %u lux"), solar_volts, light_sensor_u32_read() );
@@ -524,27 +560,28 @@ PT_BEGIN( pt );
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_DC ){
 
-			if( !enable_dc_charge ){						
+			if( !enable_dc_charge ){					
+
+				log_v_error_P( PSTR("DC charge is not enabled!") );
 
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
-
-
-			if( charge_timer < CHARGE_HOLD_TIME ){
+			else if( charge_timer < CHARGE_HOLD_TIME ){
 
 				charge_timer++;
 			}
-			else{
+			else if( batt_b_is_batt_fault() ){
 
-				// check if no longer charging:
-				if( batt_b_is_charge_complete() ){
+				next_state = SOLAR_MODE_FAULT;
+			}
+			// check if no longer charging:
+			else if( batt_b_is_charge_complete() ){
 
-					next_state = SOLAR_MODE_FULL_CHARGE;
-				}
-				else if( !batt_b_is_charging() ){
+				next_state = SOLAR_MODE_FULL_CHARGE;
+			}
+			else if( !batt_b_is_charging() ){
 
-					next_state = SOLAR_MODE_DISCHARGE;
-				}
+				next_state = SOLAR_MODE_DISCHARGE;
 			}
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
@@ -553,37 +590,12 @@ PT_BEGIN( pt );
 
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
+			// check if no longer charging:
+			else if( batt_b_is_batt_fault() ){
 
-			// if( bq25895_b_is_boost_enabled() ){
-
-
-			// }
-
-			// mppt is running in bq25895 adc loop,
-			// nothing to do here.
-
-			// if( !mppt_b_is_running() ){
-
-			// 	// tilt control loop goes here
-			// 	// (not the motion control, but target angle selection)
-			// 	// solar_tilt_v_optimize_step();
-			// 	solar_tilt_v_set_tilt_angle( 45 );
-			// }
-
-			// if( solar_tilt_b_is_moving() ){
-
-			// 	mppt_v_disable();	
-			// }
-			// else{
-
-			// 	if( mppt_enabled ){
-
-			// 		mppt_v_enable();		
-			// 	}
-			// }
-
-			// check if no longer charging:a
-			if( batt_b_is_charge_complete() ){
+				next_state = SOLAR_MODE_FAULT;
+			}
+			else if( batt_b_is_charge_complete() ){
 
 				next_state = SOLAR_MODE_FULL_CHARGE;
 			}
@@ -600,33 +612,6 @@ PT_BEGIN( pt );
 
 				// switch to discharge state
 				next_state = SOLAR_MODE_DISCHARGE;
-			}
-		}
-		else if( solar_state == SOLAR_MODE_SHUTDOWN ){
-
-			// check tilt angle
-
-			if( ( solar_tilt_u8_get_tilt_angle() == 0 ) || solar_tilt_b_is_manual() ){
-				// note that units that do not have the tilt system
-				// will always report 0 angle, so the shutdown
-				// state will take effect immediately.
-
-				// panel is closed
-				sys_v_initiate_shutdown( 5 );
-
-				THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
-
-				batt_v_shutdown_power();
-				// if on battery power, this should not return
-				// as the power will be cut off.
-				// if an external power source was plugged in during
-				// the shutdown, then this will return.
-
-				// we will delay here and wait
-				// for the reboot thread to reboot the system.
-				TMR_WAIT( pt, 120000 ); 
-
-				log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
 			}
 		}
 		else{
@@ -667,9 +652,6 @@ PT_BEGIN( pt );
 			// set up any init conditions for entry to next state
 			if( next_state == SOLAR_MODE_SHUTDOWN ){
 
-				// set tilt system to close the panel
-				solar_tilt_v_set_tilt_angle( 0 );	
-
 				// don't change GFX state, just leave it
 				// on whatever it was set to when shutting down.
 				// if it was off, there is no reason to turn
@@ -684,15 +666,9 @@ PT_BEGIN( pt );
 			}
 			else if( next_state == SOLAR_MODE_DISCHARGE ){
 
-				// set tilt system to close the panel
-				solar_tilt_v_set_tilt_angle( 0 );	
-
 				gfx_v_set_system_enable( TRUE );	
 			}
 			else if( next_state == SOLAR_MODE_FULL_CHARGE ){
-
-				// set tilt system to close the panel
-				solar_tilt_v_set_tilt_angle( 0 );	
 
 				gfx_v_set_system_enable( TRUE );	
 			}
@@ -711,6 +687,8 @@ PT_BEGIN( pt );
 				// can't really see them anyway!
 				gfx_v_set_system_enable( FALSE );
 
+				// wait until pixel power shuts off
+				THREAD_WAIT_WHILE( pt, pixelpower_b_pixels_enabled() );
 
 				enable_charge( next_state );
 
@@ -732,14 +710,9 @@ PT_BEGIN( pt );
 					disable_solar_vbus();
 				}
 
-				// solar_tilt_v_optimize_reset();
-
 				TMR_WAIT( pt, 100 );
 
 				disable_charge();
-
-				// set tilt system to close the panel
-				request_close_panel();
 			}
 			// check if leaving DC charge mode
 			else if( ( solar_state == SOLAR_MODE_CHARGE_DC ) &&
@@ -759,4 +732,221 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+
+
+
+static uint8_t solar_cycle;
+static catbus_string_t cycle_name;
+
+
+static PGM_P get_cycle_name( uint8_t state ){
+
+	if( state == SOLAR_CYCLE_UNKNOWN ){
+
+		return PSTR("unknown");
+	}
+	else if( state == SOLAR_CYCLE_DAY ){
+
+		return PSTR("day");
+	}
+	else if( state == SOLAR_CYCLE_DUSK ){
+
+		return PSTR("dusk");
+	}
+	else if( state == SOLAR_CYCLE_TWILIGHT ){
+
+		return PSTR("twilight");
+	}
+	else if( state == SOLAR_CYCLE_NIGHT ){
+
+		return PSTR("night");
+	}
+	else if( state == SOLAR_CYCLE_DAWN ){
+
+		return PSTR("dawn");
+	}
+	else{
+
+		return PSTR("invalid");
+	}
+}
+
+static void apply_cycle_name( void ){
+
+	strncpy_P( cycle_name.str, get_cycle_name( solar_cycle ), sizeof(cycle_name.str) );
+}
+
+
+
+static uint8_t cycle_threshold_counter;
+static uint16_t cycle_countdown;
+
+static uint32_t day_threshold = 1000 * 1000;
+static uint32_t dusk_threshold = 100 * 1000;
+static uint32_t twilight_threshold = 10 * 1000;
+static uint32_t dawn_threshold = 10 * 1000;
+
+static uint16_t twilight_countdown = 300;
+
+KV_SECTION_OPT kv_meta_t solar_cycle_opt_kv[] = {
+	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_cycle,			0,  "solar_cycle" },
+	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&cycle_name,			0,  "solar_cycle_name" },
+
+	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&day_threshold,			0,  "solar_day_threshold" },
+	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&dusk_threshold,		0,  "solar_dusk_threshold" },
+	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&twilight_threshold,	0,  "solar_twilight_threshold" },
+	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&dawn_threshold,		0,  "solar_dawn_threshold" },
+
+	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&twilight_countdown,	0,  "solar_twilight_countdown" },
+};
+
+/*
+
+State ordering:
+
+day
+dusk
+twilight
+night
+dawn
+
+repeat
+
+
+*/
+
+PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+	kv_v_add_db_info( solar_cycle_opt_kv, sizeof(solar_cycle_opt_kv) );
+
+
+
+	solar_cycle = SOLAR_CYCLE_UNKNOWN;
+	// candidate_next_cycle = SOLAR_CYCLE_UNKNOWN;
+
+	TMR_WAIT( pt, 10000 );
+
+	while(1){
+
+		TMR_WAIT( pt, SOLAR_CYCLE_POLLING_RATE );
+
+		uint32_t light_level = light_sensor_u32_read();
+
+		uint8_t next_cycle = SOLAR_CYCLE_UNKNOWN;
+
+		if( solar_cycle == SOLAR_CYCLE_DAY ){
+
+			if( light_level < dusk_threshold ){
+
+				cycle_threshold_counter++;
+
+				if( cycle_threshold_counter >= SOLAR_CYCLE_VALIDITY_THRESH ){
+
+					next_cycle = SOLAR_CYCLE_DUSK;
+					cycle_threshold_counter = 0;
+				}
+			}
+			else{
+
+				cycle_threshold_counter = 0;
+			}
+		}
+		else if( solar_cycle == SOLAR_CYCLE_DUSK ){
+
+			if( light_level < twilight_threshold ){
+
+				cycle_threshold_counter++;
+
+				if( cycle_threshold_counter >= SOLAR_CYCLE_VALIDITY_THRESH ){
+
+					next_cycle = SOLAR_CYCLE_TWILIGHT;
+					cycle_countdown = twilight_countdown;
+					cycle_threshold_counter = 0;
+				}
+			}
+			else if( light_level > day_threshold ){
+
+				next_cycle = SOLAR_CYCLE_DAY;
+				cycle_threshold_counter = 0;
+			}
+			else{
+
+				cycle_threshold_counter = 0;
+			}
+		}
+		else if( solar_cycle == SOLAR_CYCLE_TWILIGHT ){
+
+			cycle_countdown--;
+
+			if( cycle_countdown == 0 ){
+
+				next_cycle = SOLAR_CYCLE_NIGHT;
+			}
+		}
+		else if( solar_cycle == SOLAR_CYCLE_NIGHT ){
+
+			if( light_level > dawn_threshold ){
+
+				cycle_threshold_counter++;
+
+				if( cycle_threshold_counter >= SOLAR_CYCLE_VALIDITY_THRESH ){
+
+					next_cycle = SOLAR_CYCLE_DAWN;
+					cycle_threshold_counter = 0;
+				}
+			}
+			else{
+
+				cycle_threshold_counter = 0;
+			}
+		}
+		else if( solar_cycle == SOLAR_CYCLE_DAWN ){
+
+			if( light_level > day_threshold ){
+
+				cycle_threshold_counter++;
+
+				if( cycle_threshold_counter >= SOLAR_CYCLE_VALIDITY_THRESH ){
+
+					next_cycle = SOLAR_CYCLE_DAY;
+					cycle_threshold_counter = 0;
+				}
+			}
+			else{
+
+				cycle_threshold_counter = 0;
+			}
+		}
+		else{ // unknown state
+
+			if( light_level > day_threshold ){
+
+				next_cycle = SOLAR_CYCLE_DAY;
+			}
+			else if( light_level < twilight_threshold ){
+
+				next_cycle = SOLAR_CYCLE_NIGHT;
+			}
+			else if( light_level < dusk_threshold ){
+
+				next_cycle = SOLAR_CYCLE_DUSK;
+			}
+		}
+
+		if( ( next_cycle != SOLAR_CYCLE_UNKNOWN ) && ( next_cycle != solar_cycle ) ){
+
+			log_v_debug_P( PSTR("Changing solar cycle from: %d to: %d"), solar_cycle, next_cycle );
+
+			solar_cycle = next_cycle;
+		}
+
+		apply_cycle_name();
+	}
+
+PT_END( pt );
+}
+
 

@@ -56,6 +56,7 @@ static const led_profile_t led_profiles[] = {
         0, // pix count
         0, // pix size x
         0, // pix size y
+        {""}, // vm prog
     },
     {
         LED_UNIT_TYPE_STRAND50,
@@ -63,6 +64,15 @@ static const led_profile_t led_profiles[] = {
         50, // pix count
         50, // pix size x
         1, // pix size y
+        {"rainbow.fxb"}, // vm prog
+    },
+    {
+        LED_UNIT_TYPE_SUNSTREAK,
+        PIX_MODE_WS2811, // led type
+        366, // pix count
+        122, // pix size x
+        3, // pix size y
+        {""}, // vm prog
     },
 };
 
@@ -73,7 +83,15 @@ static const led_unit_t led_units[] = {
         LED_UNIT_TYPE_NONE,
     },
     {
+        1145795934,
+        LED_UNIT_TYPE_SUNSTREAK,
+    },
+    {
         1146042388,
+        LED_UNIT_TYPE_STRAND50,
+    },
+    {
+        1145896795,
         LED_UNIT_TYPE_STRAND50,
     }
 };
@@ -140,6 +158,34 @@ static void load_profile( uint8_t type ){
 
 
     // set up pixel profile
+
+    catbus_i8_set( __KV__pix_count,     CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_count, sizeof(profile->pix_count) );
+    catbus_i8_set( __KV__pix_size_x,    CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_size_x, sizeof(profile->pix_size_x) );
+    catbus_i8_set( __KV__pix_size_y,    CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_size_y, sizeof(profile->pix_size_y) );
+
+
+    // Should add a max dimmer setting too
+
+    // enable and reset VM
+    bool vm_run = TRUE;
+
+    if( profile->vm_prog.str[0] == 0 ){
+
+        // no program is selected - leave VM controls alone
+    }
+    else{
+
+        catbus_i8_set( __KV__vm_prog,       CATBUS_TYPE_STRING32, (catbus_string_t *)&profile->vm_prog, sizeof(profile->vm_prog) );
+
+        catbus_i8_set( __KV__vm_run,        CATBUS_TYPE_BOOL, &vm_run, sizeof(vm_run) );
+    }
+
+
+    bool vm_reset = TRUE;
+    catbus_i8_set( __KV__vm_reset,      CATBUS_TYPE_BOOL, &vm_reset, sizeof(vm_reset) );
+
+
+    log_v_info_P( PSTR("TODO: Verify pixel profile settings!") );
 
 }
 
@@ -239,7 +285,7 @@ void led_detect_v_run_detect( void ){
 
         detect_miss_count = 0;
     }
-    else if( detect_miss_count >= LED_MAX_DETECT_MISS_COUNT ){
+    else if( led_detected && ( detect_miss_count >= LED_MAX_DETECT_MISS_COUNT ) ){
 
         // detection miss, probably actually unplugged
         led_id = 0;

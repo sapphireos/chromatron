@@ -48,6 +48,7 @@ SYSTEM_HASHES = {catbus_string_hash(k): k for k in SYSTEM_KEYS}
 
 
 import random
+from sapphire.common.util import to_thread
 
 
 class BaseClient(object):
@@ -67,6 +68,13 @@ class BaseClient(object):
         self._connected_host = host
         if host is not None:
             self.connect(host)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+        return False
 
     def __str__(self):
         return f'BaseClient({self._connected_host})'
@@ -145,6 +153,8 @@ class BaseClient(object):
 
         self._connected_host = host
 
+    def close(self):
+        self._sock.close()
 
 class Client(BaseClient):
     def __init__(self, host=None, universe=0, **kwargs):
@@ -913,6 +923,132 @@ class Client(BaseClient):
             d[response.filename] = {'size': response.filesize, 'flags': response.flags, 'filename': response.filename}
 
         return d
+
+
+import threading
+from copy import deepcopy
+
+class BackgroundClient(threading.Thread):
+    def __init__(self, host, rate=2.0, semaphore=None):
+        super().__init__()
+
+        self._host = host
+        self._client = Client(host)
+        self._rate = rate
+        self._semaphore = semaphore
+
+        self._keys = ['wifi_rssi']
+        self._set_kv = {}
+        self._data = {}
+        self._last_update = None
+        self._connection_failed = False
+
+        self._lock = threading.Lock()
+
+        self._stop_event = threading.Event()
+
+        self.daemon = True
+        self.start()
+
+    def _subscribe_keys(self, keys=[]):
+        for k in keys:
+            if k not in self._keys:
+                self._keys.append(k)
+
+    def subscribe_keys(self, keys=[]):
+        with self._lock:
+            self._subscribe_keys(keys)
+            
+    def set_keys(self, data={}):
+        with self._lock:
+            self._set_kv.update(data)   
+
+            # setting a key implies subscribing to it
+            self._subscribe_keys(self._set_kv.keys())
+            
+    def _update_kv(self, keys=None):
+        if keys is None:
+            keys = self._keys
+
+        try:
+            data = self._client.get_keys(keys)
+
+            with self._lock:
+                self._data.update(data)
+
+        except KeyError:
+            pass
+
+
+    def poll(self):
+        if self._semaphore:
+            self._semaphore.acquire()
+
+        try:
+            if len(self._set_kv) > 0:
+                with self._lock:
+                    kv = deepcopy(self._set_kv)
+                    self._set_kv = {}
+
+                self._client.set_keys(**kv)
+            
+            self._update_kv()
+
+            self._last_update = time.time()
+
+        except NoResponseFromHost:
+            print(f"{self._host} failed")
+            self._connection_failed = True 
+            
+        finally:
+            if self._semaphore:
+                self._semaphore.release()
+
+        
+
+    @property
+    def data(self):
+        with self._lock:
+            return deepcopy(self._data)
+
+    def run(self):
+        while not self._stop_event.is_set():
+    
+            self.poll()
+
+            time.sleep(self._rate)
+
+    def stop(self):
+        self._stop_event.set()
+        
+
+# class AsyncClient(Client):
+#     async def ping(self):
+#         return await to_thread(super().ping())
+
+#     async def lookup_hash(self, *args, **kwargs):
+#         return await to_thread(super().lookup_hash, *args, **kwargs)
+
+#     async def get_directory(self, *args, **kwargs):
+#         return await to_thread(super().get_directory, *args, **kwargs)
+
+#     async def discover(self, *args, **kwargs):
+#         return await to_thread(super().discover, *args, **kwargs)
+
+#     async def get_meta(self, *args, **kwargs):
+#         return await to_thread(super().get_meta, *args, **kwargs)
+
+#     async def get_keys(self, *args, **kwargs):
+#         return await to_thread(super().get_keys, *args, **kwargs)
+
+#     # async def get_key(self, *args, **kwargs):
+#         # return await to_thread(super().get_key, *args, **kwargs)
+#     async def get_key(self, key):
+#         try:
+#             return (await self.get_keys(key))[key]
+
+#         except KeyError:
+#             raise KeyError(key)
 
 
 if __name__ == '__main__':

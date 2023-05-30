@@ -406,58 +406,102 @@ class PortMonitorArray(ArrayField):
         super().__init__(_field=field, **kwargs)
 
 
-class BattRecordStart(StructField):
+# class BattRecordStart(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint8Field(_name="flags"),
+#                   Uint16Field(_name="record_id"),
+#                   Uint8Field(_name="rate")]
+
+#         super().__init__(_fields=fields, **kwargs)
+
+# class BattRecordData(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint8Field(_name="flags"),
+#                   Uint8Field(_name="volts"),
+#                   Uint8Field(_name="pix_power"),
+#                   Int8Field(_name="temp")]
+
+#         super().__init__(_fields=fields, **kwargs)
+
+# BATT_RECORD_TYPE_BLANK      = 0b00000000
+# BATT_RECORD_TYPE_IDLE       = 0b00100000
+# BATT_RECORD_TYPE_DISCHARGE  = 0b10000000
+# BATT_RECORD_TYPE_CHARGE     = 0b01000000
+# BATT_RECORD_TYPE_START      = 0b11000000
+
+# class BattRecordDataArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = BattRecordData
+
+#         super().__init__(_field=field, **kwargs)
+
+#     def unpack(self, buffer):
+#         array_len = self._length
+#         self._fields = []
+
+#         count = 0
+
+#         while len(buffer) > 0:
+#             if buffer[0] == BATT_RECORD_TYPE_START:
+#                 field = BattRecordStart()
+
+#             else:
+#                 field = self._field()
+
+#             self._fields.append(field.unpack(buffer))
+
+#             buffer = buffer[field.size():]
+#             count += 1
+
+#             if ( array_len > 0 ) and ( count >= array_len ):
+#                 break
+
+#         return self
+
+class TelemetryDataEntry(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint8Field(_name="flags"),
-                  Uint16Field(_name="record_id"),
-                  Uint8Field(_name="rate")]
+        fields = [Uint64Field(_name="src_addr"),
+                  Int16Field(_name="rssi"),
+                  Int16Field(_name="snr"),
+                  Uint32Field(_name="time_since_last_contact"),
+                  StringField(_name="name", _length=32),
+
+                  Uint8Field(_name="flags"),
+                  Uint32Field(_name="sample"),
+                  Uint32Field(_name="sys_time"),
+                  Int16Field(_name="base_rssi"),
+                  Int16Field(_name="base_snr"),
+                  Uint16Field(_name="vbus_volts"),
+                  Uint16Field(_name="batt_volts"),
+                  Uint16Field(_name="charge_current"),
+                  Uint32Field(_name="als"),
+                  Int8Field(_name="batt_temp"),
+                  Int8Field(_name="case_temp"),
+                  Int8Field(_name="ambient_temp"),
+                  Uint8Field(_name="batt_fault"),
+                  Uint16Field(_name="pixel_power"),
+                  Uint8Field(_name="vm_status"),
+        ]
 
         super().__init__(_fields=fields, **kwargs)
 
-class BattRecordData(StructField):
+class TelemetryDataEntryArray(ArrayField):
     def __init__(self, **kwargs):
-        fields = [Uint8Field(_name="flags"),
-                  Uint8Field(_name="volts"),
-                  Uint8Field(_name="pix_power"),
-                  Int8Field(_name="temp")]
-
-        super().__init__(_fields=fields, **kwargs)
-
-BATT_RECORD_TYPE_BLANK      = 0b00000000
-BATT_RECORD_TYPE_IDLE       = 0b00100000
-BATT_RECORD_TYPE_DISCHARGE  = 0b10000000
-BATT_RECORD_TYPE_CHARGE     = 0b01000000
-BATT_RECORD_TYPE_START      = 0b11000000
-
-class BattRecordDataArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = BattRecordData
+        field = TelemetryDataEntry
 
         super().__init__(_field=field, **kwargs)
 
-    def unpack(self, buffer):
-        array_len = self._length
-        self._fields = []
+class TelemetryConfigEntry(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint16Field(_name="padding")]
 
-        count = 0
+        super().__init__(_fields=fields, **kwargs)
 
-        while len(buffer) > 0:
-            if buffer[0] == BATT_RECORD_TYPE_START:
-                field = BattRecordStart()
+class TelemetryConfigEntryArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = TelemetryConfigEntry
 
-            else:
-                field = self._field()
-
-            self._fields.append(field.unpack(buffer))
-
-            buffer = buffer[field.size():]
-            count += 1
-
-            if ( array_len > 0 ) and ( count >= array_len ):
-                break
-
-        return self
-
+        super().__init__(_field=field, **kwargs)
 
 
 

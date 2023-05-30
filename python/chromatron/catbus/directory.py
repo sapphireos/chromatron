@@ -76,9 +76,8 @@ class Directory(CatbusService):
 
         except KeyError:
             if host:
-                c = Client(host)
-
-                key = c.lookup_hash(hashed_key)
+                with Client(host) as c:                
+                    key = c.lookup_hash(hashed_key)
 
                 if len(key) == 0:
                     raise KeyError(hashed_key)
@@ -116,10 +115,9 @@ class Directory(CatbusService):
                 return
 
             def update_info(msg, host):
-                c = Client(host)
-
-                name = c.get_key(META_TAG_NAME)
-                location = c.get_key(META_TAG_LOC)
+                with Client(host) as c:
+                    name = c.get_key(META_TAG_NAME)
+                    location = c.get_key(META_TAG_LOC)
 
                 info = {'host': tuple(host),
                         'name': name,

@@ -192,7 +192,7 @@ KV_SECTION_OPT kv_meta_t fuel_gauge_info_kv[] = {
 
 static uint16_t batt_volts_filter[FUEL_GAUGE_VOLTS_FILTER_DEPTH];
 static uint8_t batt_volts_filter_index;
-static uint16_t filtered_batt_volts;
+static uint32_t filtered_batt_volts;
 
 
 PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) );
@@ -293,12 +293,23 @@ PT_BEGIN( pt );
 
 
         // update soc
-        batt_soc = util_u16_linear_interp( 
-                        filtered_batt_volts, 
-                        SOC_MIN_VOLTS, 
-                        0,
-                        SOC_MAX_VOLTS,
-                        100 );
+        if( filtered_batt_volts >= SOC_MAX_VOLTS ){
+
+            batt_soc = 100;
+        }
+        else if( filtered_batt_volts <= SOC_MIN_VOLTS ){
+
+            batt_soc = 0;
+        }
+        else{
+            
+            batt_soc = util_u16_linear_interp( 
+                            filtered_batt_volts, 
+                            SOC_MIN_VOLTS, 
+                            0,
+                            SOC_MAX_VOLTS,
+                            100 );
+        }
 
         // update state machine:
 

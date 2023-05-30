@@ -1870,6 +1870,7 @@ def main():
     parser.add_argument("--load_esp32", action="store_true", help="Load to ESP32")
     parser.add_argument("--load_esp32_loader", action="store_true", help="Load bootloader to ESP32")
     parser.add_argument("--monitor", action="store_true", help="Run serial monitor")
+    parser.add_argument("--reconnect", action="store_true", help="Auto reconnect serial monitor")
     parser.add_argument("--port", action="store", default=None, help="Set serial port")
     parser.add_argument("--force_single_core", action="store_true", default=False, help="Force single core on ESP32")
 
@@ -2090,7 +2091,7 @@ def main():
             return
 
     if args["monitor"]:
-        serial_monitor.monitor(portname=args['port'])
+        serial_monitor.monitor(portname=args['port'], reconnect=args['reconnect'])
         return
 
     # check if setting target

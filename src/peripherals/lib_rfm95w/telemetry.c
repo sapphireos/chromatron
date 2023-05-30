@@ -25,23 +25,38 @@
 
 #include "sapphire.h"
 
+#include "config.h"
 #include "telemetry.h"
 #include "rf_mac.h"
+
+#include "vm.h"
 
 #ifdef ESP32
 
 static bool telemetry_enable;
-// static bool telemetry_station_enable;
+static bool telemetry_station_enable;
 
 KV_SECTION_META kv_meta_t telemetry_info_kv[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemetry_enable,           0,   "telemetry_enable" },
-    // { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemetry_station_enable,   0,   "telemetry_station_enable" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &telemetry_station_enable,   0,   "telemetry_station_enable" },
 };
 
 
-PT_THREAD( telemetry_rx_thread( pt_t *pt, void *state ) );
-PT_THREAD( telemetry_tx_thread( pt_t *pt, void *state ) );
-// PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) );
+static list_t remote_stations_list;
+
+static int16_t base_rssi;
+static int16_t base_snr;
+
+static uint16_t beacon_timeout;
+
+// PT_THREAD( telemetry_rx_thread( pt_t *pt, void *state ) );
+// PT_THREAD( telemetry_tx_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemetry_remote_station_rx_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemetry_remote_station_tx_thread( pt_t *pt, void *state ) );
+
+PT_THREAD( telemetry_beacon_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemetry_base_station_rx_thread( pt_t *pt, void *state ) );
+PT_THREAD( telemetry_base_station_tx_thread( pt_t *pt, void *state ) );
 
 void telemetry_v_init( void ){
 
@@ -49,6 +64,8 @@ void telemetry_v_init( void ){
 
         return;
     }
+
+    list_v_init( &remote_stations_list );
 
     if( !telemetry_enable ){
 
@@ -60,48 +77,167 @@ void telemetry_v_init( void ){
         return;
     }
     
-    // if( telemetry_station_enable ){
+    if( telemetry_station_enable ){
 
-    //     thread_t_create( telemetry_base_station_thread,
-    //                  PSTR("telemetry_base_station"),
-    //                  0,
-    //                  0 );
-    // }  
-    // else{
-
-        thread_t_create( telemetry_rx_thread,
-                     PSTR("telemetry_rx"),
+        thread_t_create( telemetry_base_station_tx_thread,
+                     PSTR("telemetry_base_station_tx"),
                      0,
                      0 );
 
-        thread_t_create( telemetry_tx_thread,
-                     PSTR("telemetry_tx"),
+        thread_t_create( telemetry_base_station_rx_thread,
+                     PSTR("telemetry_base_station_rx"),
                      0,
                      0 );
-    // }
+
+       thread_t_create( telemetry_beacon_thread,
+                 PSTR("telemetry_beacon"),
+                 0,
+                 0 );
+    }  
+    else{
+
+        thread_t_create( telemetry_remote_station_rx_thread,
+             PSTR("telemetry_remote_station_rx"),
+             0,
+             0 );
+
+        thread_t_create( telemetry_remote_station_tx_thread,
+             PSTR("telemetry_remote_station_tx"),
+             0,
+             0 );
+
+        // thread_t_create( telemetry_rx_thread,
+        //              PSTR("telemetry_rx"),
+        //              0,
+        //              0 );
+
+        // thread_t_create( telemetry_tx_thread,
+        //              PSTR("telemetry_tx"),
+        //              0,
+        //              0 );
+    }
 }
 
-typedef struct __attribute__((packed)){
-    uint32_t sys_time;
-    uint64_t src_addr;
-    int16_t rssi;
-    int16_t snr;
-    telemetry_msg_0_t msg;
-} telemtry_log_0_t;
+
+// typedef struct __attribute__((packed)){
+//     uint32_t sys_time;
+//     uint64_t src_addr;
+//     int16_t rssi;
+//     int16_t snr;
+//     telemetry_msg_0_t msg;
+// } telemtry_log_0_t;
 
 
-static file_t log_f;
+// static file_t log_f;
 
-PT_THREAD( telemetry_rx_thread( pt_t *pt, void *state ) )
+// PT_THREAD( telemetry_rx_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
+
+//     log_f = fs_f_open_P( PSTR("telemetry_log"), FS_MODE_CREATE_IF_NOT_FOUND | FS_MODE_WRITE_APPEND );
+
+//     if( log_f < 0 ){
+
+//         THREAD_EXIT( pt );
+//     }
+
+//     while( 1 ){
+
+//         THREAD_WAIT_WHILE( pt, !rf_mac_b_rx_available() );
+
+//         rf_mac_rx_pkt_t pkt;
+//         uint8_t buf[RFM95W_FIFO_LEN];
+
+//         rf_mac_i8_get_rx( &pkt, buf, sizeof(buf) );
+
+//         rf_mac_header_0_t *header =(rf_mac_header_0_t *)buf;
+//         uint32_t *data = (uint32_t *)&buf[sizeof(rf_mac_header_0_t)];
+
+//         telemtry_log_0_t log_data;
+
+//         log_data.sys_time = tmr_u32_get_system_time_ms();
+//         log_data.src_addr = header->src_addr;
+//         log_data.rssi = pkt.rssi;
+//         log_data.snr = pkt.snr;
+//         log_data.msg = *(telemetry_msg_0_t *)data;
+
+//         fs_i16_write( log_f, &log_data, sizeof(log_data) );
+
+//         // log_v_debug_P( PSTR("received %u %d bytes rssi: %d snr: %d"), *data, pkt.len, pkt.rssi, pkt.snr );
+//     }
+
+// PT_END( pt );
+// }
+
+// PT_THREAD( telemetry_tx_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
+    
+//     static uint16_t sample;
+//     sample = 0;
+
+//     while( 1 ){
+
+//         TMR_WAIT( pt, 60000 * 5 + rnd_u16_get_int() );       
+
+//         telemetry_msg_0_t msg;
+//         msg.sample = sample;
+//         sample++;
+
+//         catbus_i8_get( __KV__batt_volts,            CATBUS_TYPE_UINT16, &msg.batt_volts );
+//         catbus_i8_get( __KV__batt_charge_current,   CATBUS_TYPE_UINT16, &msg.charge_current );
+//         catbus_i8_get( __KV__veml7700_filtered_als, CATBUS_TYPE_UINT32, &msg.als );
+//         catbus_i8_get( __KV__batt_temp,             CATBUS_TYPE_INT8,   &msg.batt_temp );
+//         catbus_i8_get( __KV__batt_case_temp,        CATBUS_TYPE_INT8,   &msg.case_temp );
+//         catbus_i8_get( __KV__batt_ambient_temp,     CATBUS_TYPE_INT8,   &msg.ambient_temp );
+//         catbus_i8_get( __KV__batt_fault,            CATBUS_TYPE_INT8,   &msg.batt_fault );
+
+//         telemtry_log_0_t log_data;
+
+//         log_data.sys_time = tmr_u32_get_system_time_ms();
+//         log_data.src_addr = 0; // local node
+//         log_data.rssi = 0;
+//         log_data.snr = 0;
+//         log_data.msg = msg;
+
+//         fs_i16_write( log_f, &log_data, sizeof(log_data) );
+
+
+//         rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
+
+//     }
+
+// PT_END( pt );
+// }
+
+
+static uint32_t beacons_received;
+
+KV_SECTION_OPT kv_meta_t telemetry_remote_opt[] = {
+    { CATBUS_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &beacons_received,           0,   "telemetry_beacons_received" },
+    { CATBUS_TYPE_INT16,  0, KV_FLAGS_READ_ONLY,  &base_rssi,                  0,   "telemetry_base_rssi" },
+    { CATBUS_TYPE_INT16,  0, KV_FLAGS_READ_ONLY,  &base_snr,                   0,   "telemetry_base_snr" },
+};
+
+
+static void transmit_name( void ){    
+
+    telemetry_msg_response_name_t msg = {
+        TELEMETRY_FLAGS_RESPONSE,
+        cfg_u64_get_device_id(),
+    };
+
+    catbus_i8_get( __KV__meta_tag_name,          CATBUS_TYPE_STRING32, &msg.name );
+
+    rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
+
+}
+
+PT_THREAD( telemetry_remote_station_rx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    log_f = fs_f_open_P( PSTR("telemetry_log"), FS_MODE_CREATE_IF_NOT_FOUND | FS_MODE_WRITE_APPEND );
-
-    if( log_f < 0 ){
-
-        THREAD_EXIT( pt );
-    }
+    kv_v_add_db_info( telemetry_remote_opt, sizeof(telemetry_remote_opt) );
 
     while( 1 ){
 
@@ -110,89 +246,343 @@ PT_BEGIN( pt );
         rf_mac_rx_pkt_t pkt;
         uint8_t buf[RFM95W_FIFO_LEN];
 
-        rf_mac_i8_get_rx( &pkt, buf, sizeof(buf) );
+        if( rf_mac_i8_get_rx( &pkt, buf, sizeof(buf) ) < 0 ){
 
-        rf_mac_header_0_t *header =(rf_mac_header_0_t *)buf;
-        uint32_t *data = (uint32_t *)&buf[sizeof(rf_mac_header_0_t)];
+            continue;
+        }
 
-        telemtry_log_0_t log_data;
+        // rf_mac_header_0_t *header =(rf_mac_header_0_t *)buf;
+        uint8_t *flags = (uint8_t *)&buf[sizeof(rf_mac_header_0_t)];
 
-        log_data.sys_time = tmr_u32_get_system_time_ms();
-        log_data.src_addr = header->src_addr;
-        log_data.rssi = pkt.rssi;
-        log_data.snr = pkt.snr;
-        log_data.msg = *(telemetry_msg_0_t *)data;
+        // check for beacon
+        if( *flags & TELEMETRY_FLAGS_BEACON ){
 
-        fs_i16_write( log_f, &log_data, sizeof(log_data) );
+            beacon_timeout = 0;
+            
+            beacons_received++;
 
-        // log_v_debug_P( PSTR("received %u %d bytes rssi: %d snr: %d"), *data, pkt.len, pkt.rssi, pkt.snr );
+            base_rssi = pkt.rssi;
+            base_snr = pkt.snr;
+        }
+        else if( *flags & TELEMETRY_FLAGS_REQUEST ){
+
+            telemetry_msg_request_name_t *msg = (telemetry_msg_request_name_t *)flags;
+
+            if( cfg_u64_get_device_id() == msg->device_id ){
+
+                transmit_name();
+            }
+        }
     }
 
 PT_END( pt );
 }
 
-PT_THREAD( telemetry_tx_thread( pt_t *pt, void *state ) )
+PT_THREAD( telemetry_remote_station_tx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
-    static uint16_t sample;
+
+    static uint32_t sample;
     sample = 0;
+
+    beacon_timeout = 0;
+
+    // don't transmit if there are no beacons
+    THREAD_WAIT_WHILE( pt, beacons_received == 0 );
+
+    TMR_WAIT( pt, 2000 + ( rnd_u16_get_int() >> 4 ) );
 
     while( 1 ){
 
-        TMR_WAIT( pt, 60000 * 5 + rnd_u16_get_int() );       
+        telemetry_msg_remote_data_0_t msg;
+        memset( &msg, 0, sizeof(msg) );
 
-        telemetry_msg_0_t msg;
+        msg.flags = TELEMETRY_FLAGS_REMOTE;
         msg.sample = sample;
         sample++;
 
+        catbus_i8_get( __KV__sys_time,              CATBUS_TYPE_UINT32, &msg.sys_time );
+
+        catbus_i8_get( __KV__batt_vbus_volts,       CATBUS_TYPE_UINT16, &msg.vbus_volts );
         catbus_i8_get( __KV__batt_volts,            CATBUS_TYPE_UINT16, &msg.batt_volts );
         catbus_i8_get( __KV__batt_charge_current,   CATBUS_TYPE_UINT16, &msg.charge_current );
         catbus_i8_get( __KV__veml7700_filtered_als, CATBUS_TYPE_UINT32, &msg.als );
         catbus_i8_get( __KV__batt_temp,             CATBUS_TYPE_INT8,   &msg.batt_temp );
         catbus_i8_get( __KV__batt_case_temp,        CATBUS_TYPE_INT8,   &msg.case_temp );
         catbus_i8_get( __KV__batt_ambient_temp,     CATBUS_TYPE_INT8,   &msg.ambient_temp );
-        catbus_i8_get( __KV__batt_fault,            CATBUS_TYPE_INT8,   &msg.batt_fault );
+        catbus_i8_get( __KV__batt_fault,            CATBUS_TYPE_UINT8,  &msg.batt_fault );
 
-        telemtry_log_0_t log_data;
+        catbus_i8_get( __KV__pixel_power,           CATBUS_TYPE_UINT16, &msg.pixel_power );
 
-        log_data.sys_time = tmr_u32_get_system_time_ms();
-        log_data.src_addr = 0; // local node
-        log_data.rssi = 0;
-        log_data.snr = 0;
-        log_data.msg = msg;
+        uint8_t vm_status = 0;
 
-        fs_i16_write( log_f, &log_data, sizeof(log_data) );
+        for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
 
+            if( vm_b_is_vm_running( i ) ){
+
+                vm_status |= ( 1 << i );
+            }
+        }
+
+        msg.vm_status = vm_status;
+
+        msg.base_rssi = base_rssi;
+        msg.base_snr = base_snr;
 
         rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
+
+
+        TMR_WAIT( pt, 16000 + ( rnd_u16_get_int() >> 3 ) );
+        // TMR_WAIT( pt, 5100 );
+
+        beacon_timeout++;
+
+        if( beacon_timeout > TELEMETRY_BEACON_TIMEOUT ){
+
+            log_v_info_P( PSTR("Telemetry lost beacon") );
+            beacons_received = 0;
+
+            THREAD_RESTART( pt );
+        }
+    }
+
+PT_END( pt );
+}
+
+
+
+
+// BASE STATION:
+
+
+static uint32_t beacons_sent;
+static uint32_t remote0_rx;
+
+KV_SECTION_OPT kv_meta_t telemetry_basestation_opt[] = {
+    { CATBUS_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY,  &beacons_sent,               0,   "telemetry_beacons_sent" },
+};
+
+
+
+static uint32_t telemetry_data_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &remote_stations_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &remote_stations_list );
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
+
+static void transmit_beacon( void ){
+
+    telemetry_msg_beacon_t msg = {
+        TELEMETRY_FLAGS_BEACON,
+        0
+    };
+
+    rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
+
+
+    beacons_sent++;
+}
+
+static void transmit_name_request( uint64_t device_id ){
+
+    telemetry_msg_request_name_t msg = {
+        TELEMETRY_FLAGS_REQUEST,
+        device_id
+    };
+
+    rf_mac_i8_send( 0, (uint8_t *)&msg, sizeof(msg) );
+}
+
+
+PT_THREAD( telemetry_beacon_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while( 1 ){
+
+        TMR_WAIT( pt, 17000 + ( rnd_u16_get_int() >> 3 ) );
+        // TMR_WAIT( pt, 4000 );
+        
+        transmit_beacon();
+    }
+
+PT_END( pt );
+}
+
+
+void load_telemetry_config( void ){
+
+    file_t f = fs_f_open_P( PSTR("telemetry_config"), FS_MODE_READ_ONLY );
+
+    if( f < 0 ){
+
+        // reset_config();
+
+        goto done;
+    }
+
+
+
+done:
+    
+    if( f > 0 ){
+
+        f = fs_f_close( f );
+    }
+}
+
+
+PT_THREAD( telemetry_base_station_tx_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    kv_v_add_db_info( telemetry_basestation_opt, sizeof(telemetry_basestation_opt) );
+
+    while( 1 ){
+
+        TMR_WAIT( pt, 1000 );
+
+        // process remote station data
+
+        list_node_t ln = remote_stations_list.head;
+        list_node_t next_ln;
+
+        while( ln > 0 ){
+
+            next_ln = list_ln_next( ln );
+
+            telemetry_data_entry_t *entry = list_vp_get_data( ln );
+
+            entry->time_since_last_contact++;
+    
+            ln = next_ln;
+        }   
+
 
     }
 
 PT_END( pt );
 }
 
-// PT_THREAD( telemetry_base_station_thread( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
 
-//     static uint32_t count;
-//     count = 0;
-    
-//     while( 1 ){
+telemetry_data_entry_t* search_remotes( uint64_t src_addr ){
 
-//         TMR_WAIT( pt, 1000 );
+    list_node_t ln = remote_stations_list.head;
+    list_node_t next_ln;
 
-//         rf_mac_i8_send( 0, (uint8_t *)&count, sizeof(count) );
+    while( ln > 0 ){
 
-//         log_v_debug_P( PSTR("send %u"), count );
-//         count++;
-//     }
+        next_ln = list_ln_next( ln );
 
-// PT_END( pt );
-// }
+        telemetry_data_entry_t *entry = list_vp_get_data( ln );
 
+        if( entry->src_addr == src_addr ){
 
+            return entry;
+        }
+
+        ln = next_ln;
+    }   
+
+    return 0;
+}
+
+PT_THREAD( telemetry_base_station_rx_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    fs_f_create_virtual( PSTR("telemetry_data"), telemetry_data_vfile_handler );
+
+    while( 1 ){
+
+        THREAD_WAIT_WHILE( pt, !rf_mac_b_rx_available() );
+
+        rf_mac_rx_pkt_t pkt;
+        uint8_t buf[RFM95W_FIFO_LEN];
+
+        if( rf_mac_i8_get_rx( &pkt, buf, sizeof(buf) ) < 0 ){
+
+            continue;
+        }
+
+        // rf_mac_header_0_t *header =(rf_mac_header_0_t *)buf;
+        uint8_t *flags = (uint8_t *)&buf[sizeof(rf_mac_header_0_t)];
+        uint8_t payload_len = pkt.len - sizeof(rf_mac_header_0_t);
+
+        // check for remote data
+        if( *flags & TELEMETRY_FLAGS_REMOTE ){
+
+            // bounds check
+            if( payload_len != sizeof(telemetry_msg_remote_data_0_t) ){
+                
+                continue;
+            }
+
+            remote0_rx++;
+
+            telemetry_msg_remote_data_0_t *msg = (telemetry_msg_remote_data_0_t *)flags;
+
+            telemetry_data_entry_t *entry = search_remotes( pkt.src_addr );
+
+            if( entry == 0 ){
+
+                list_node_t ln = list_ln_create_node( 0, sizeof(telemetry_data_entry_t) );
+
+                if( ln < 0 ){
+
+                    THREAD_EXIT( pt );
+                }
+
+                list_v_insert_tail( &remote_stations_list, ln );
+
+                entry = list_vp_get_data( ln );
+
+                memset( entry, 0, sizeof(telemetry_data_entry_t) );
+            }
+
+            entry->src_addr = pkt.src_addr;
+            entry->rssi = pkt.rssi;
+            entry->snr = pkt.snr;
+            entry->msg = *msg;
+            entry->time_since_last_contact = 0;
+
+            if( entry->name.str[0] == 0 ){
+
+                transmit_name_request( entry->src_addr );
+            }
+        }
+        else if( *flags & TELEMETRY_FLAGS_RESPONSE ){
+
+            telemetry_msg_response_name_t *msg = (telemetry_msg_response_name_t *)flags;
+
+            telemetry_data_entry_t *entry = search_remotes( msg->device_id );
+
+            if( entry != 0 ){
+
+                memcpy( entry->name.str, msg->name.str, sizeof(entry->name) );
+            }
+        }
+    }
+
+PT_END( pt );
+}
 
 
 

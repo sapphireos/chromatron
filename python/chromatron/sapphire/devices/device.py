@@ -669,6 +669,22 @@ class Device(object):
 
         return info
 
+    def get_telemetry_config(self):
+        data = self.get_file("telemetry_config")
+
+        info = sapphiredata.TelemetryConfigEntryArray()
+        info.unpack(data)
+
+        return info
+
+    def get_telemetry_data(self):
+        data = self.get_file("telemetry_data")
+
+        info = sapphiredata.TelemetryDataEntryArray()
+        info.unpack(data)
+
+        return info
+
     def get_port_monitor(self):
         data = self.get_file("portinfo")
 
@@ -1815,70 +1831,87 @@ class Device(object):
         except DeviceCommsErrorException:
             return "Lost connection!"
 
-
-
-    def cli_batt_recorder_info(self, line):
+    def cli_telemetry_info(self, line):
         try:
-            data = self.get_batt_records()
+            data = self.get_telemetry_data()
 
         except OSError:
-            # file not found
             return
 
-        data_sets = {}
-        rates = {}
+        s = ''
+        # s = '\nKey                     Rate (ms)\n'
 
-        record_id = None
         for item in data:
+            s += f'{item}\n'
+            
+        #     s += f'{self._client.lookup_hash(item.hash)[item.hash]:20}   {item.rate}\n'
 
-            if isinstance(item, sapphiredata.BattRecordStart):
-                record_id = item.record_id
-
-                data_sets[record_id] = []
-                rates[record_id] = item.rate * 10
-
-            elif record_id is not None:
-                data_sets[record_id].append(item)
+        return s
 
 
-        # get remaining data
-        for item in data:
-            if isinstance(item, sapphiredata.BattRecordStart):
-                break
 
-            data_sets[record_id].append(item)
+    # def cli_batt_recorder_info(self, line):
+    #     try:
+    #         data = self.get_batt_records()
+
+    #     except OSError:
+    #         # file not found
+    #         return
+
+    #     data_sets = {}
+    #     rates = {}
+
+    #     record_id = None
+    #     for item in data:
+
+    #         if isinstance(item, sapphiredata.BattRecordStart):
+    #             record_id = item.record_id
+
+    #             data_sets[record_id] = []
+    #             rates[record_id] = item.rate * 10
+
+    #         elif record_id is not None:
+    #             data_sets[record_id].append(item)
+
+
+    #     # get remaining data
+    #     for item in data:
+    #         if isinstance(item, sapphiredata.BattRecordStart):
+    #             break
+
+    #         data_sets[record_id].append(item)
 
         
-        print('')
-        print('ID     Status      Volts Power   Temp')
+    #     print('')
+    #     print('ID     Status      Volts Power   Temp')
 
-        # for item in data:
-        for record_id, data in data_sets.items():
-            print(f'Record ID: {record_id} Rate: {rates[record_id]}')
+    #     # for item in data:
+    #     for record_id, data in data_sets.items():
+    #         print(f'Record ID: {record_id} Rate: {rates[record_id]}')
             
-            for item in data:
-                record_type = item.flags
+    #         for item in data:
+    #             record_type = item.flags
 
-                volts = 2500 + item.volts * 8
-                power = item.pix_power * 64
-                temp = item.temp
+    #             volts = 2500 + item.volts * 8
+    #             power = item.pix_power * 64
+    #             temp = item.temp
 
-                status = 'idle'
+    #             status = 'idle'
 
-                if record_type == sapphiredata.BATT_RECORD_TYPE_BLANK:
-                    continue
+    #             if record_type == sapphiredata.BATT_RECORD_TYPE_BLANK:
+    #                 continue
 
-                elif record_type == sapphiredata.BATT_RECORD_TYPE_DISCHARGE:
-                    status = 'discharge'
+    #             elif record_type == sapphiredata.BATT_RECORD_TYPE_DISCHARGE:
+    #                 status = 'discharge'
 
-                elif record_type == sapphiredata.BATT_RECORD_TYPE_CHARGE:
-                    status = 'charge'
+    #             elif record_type == sapphiredata.BATT_RECORD_TYPE_CHARGE:
+    #                 status = 'charge'
 
-                print(f'{record_id:5}  {status:9}   {volts:4}  {power:5} {temp:4}')
+    #             print(f'{record_id:5}  {status:9}   {volts:4}  {power:5} {temp:4}')
 
-            print('')
+    #         print('')
 
-        return ''
+    #     return ''
 
 def createDevice(**kwargs):
     return Device(**kwargs)
