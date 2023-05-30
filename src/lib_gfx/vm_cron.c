@@ -42,6 +42,7 @@ static datetime_t cron_now;
 static uint32_t cron_seconds;
 static list_t cron_list;
 
+static uint8_t replay_state;
 
 PT_THREAD( cron_thread( pt_t *pt, void *state ) );
 
@@ -126,6 +127,11 @@ static bool job_ready( datetime_t *now, cron_job_t *job ){
 }
 
 void vm_cron_v_unload( uint8_t vm_id ){
+
+    // clear replay state
+    replay_state &= ~( 1 << vm_id );
+    // this will signal to the replay thread to terminate if it is running
+
 
     list_node_t ln = cron_list.head;
     list_node_t next_ln;
@@ -238,19 +244,22 @@ PT_BEGIN( pt );
 
     if( !cfg_b_get_boolean( __KV__enable_time_sync ) ){
 
-        THREAD_EXIT( pt );
+        // clear replay state
+        replay_state &= ~( 1 << state->vm_id );
+
+        goto done;
     }
 
     // wait for time sync
-    THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() );
+    THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() && ( ( replay_state & ( 1 << state->vm_id ) ) != 0 ) );
 
     // init clock to 24 hours ago
     ntp_ts_t ntp_now = ntp_t_local_now();
     state->cron_seconds = ntp_now.seconds - ( 24 * 60 * 60 );
     datetime_v_seconds_to_datetime( state->cron_seconds, &state->cron_time );
 
-    
-    while(1){
+    // process unless replay state is cleared
+    while( ( replay_state & ( 1 << state->vm_id ) ) != 0 ){
 
         ntp_ts_t ntp_local_now = ntp_t_local_now();
 
@@ -287,12 +296,16 @@ next:
 
             if( state->cron_seconds >= ntp_local_now.seconds ){
 
-                THREAD_EXIT( pt );
+                goto done;
             }
         }
         
         TMR_WAIT( pt, 20 );
     }
+
+done:
+    // clear replay state
+    replay_state &= ~( 1 << state->vm_id );
 
 PT_END( pt );
 }
@@ -339,6 +352,21 @@ void vm_cron_v_load( uint8_t vm_id, vm_state_t *state, file_t f ){
 
         list_v_insert_tail( &cron_list, ln );
     }
+
+
+    /*
+    Need to check if cron replay is already running!
+
+
+    */
+    if( ( replay_state & ( 1 << vm_id ) ) != 0 ){
+
+        // replay thread is already running!
+
+        return;
+    }
+
+    replay_state |= ( 1 << vm_id );
 
     replay_state_t replay_state;
     replay_state.vm_id = vm_id;
