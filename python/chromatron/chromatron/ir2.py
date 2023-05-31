@@ -5118,6 +5118,13 @@ class irFunc(IR):
         logging.debug(f'GVN in {i} iterations. Eliminated {delta} instructions.')
 
     def optimize_branches(self):
+
+        # !!!! THIS IS BROKEN
+
+        logging.error('optimize_branches is not working properly!')
+
+        return
+
         count = 0
 
         for block in self.blocks.values():

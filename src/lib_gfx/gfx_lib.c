@@ -1093,6 +1093,173 @@ static uint16_t* _gfx_u16p_get_array_ptr( uint8_t attr ){
     return ptr;
 }
 
+// void gfx_v_pixel_move( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
+
+// }
+
+static void _gfx_v_set_pixel_op( uint16_t index, uint8_t attr, int32_t a ){
+
+    if( attr == PIX_ARRAY_ATTR_HUE ){
+
+        a %= 65536;
+
+        _gfx_v_set_hue_1d( a, index );    
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
+
+        if( a > 65535 ){
+
+            a = 65535;
+        }
+        else if( a < 0 ){
+
+            a = 0;
+        }
+
+        _gfx_v_set_sat_1d( a, index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
+
+        if( a > 65535 ){
+
+            a = 65535;
+        }
+        else if( a < 0 ){
+
+            a = 0;
+        }
+
+        _gfx_v_set_hs_fade_1d( a, index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
+
+        if( a > 65535 ){
+
+            a = 65535;
+        }
+        else if( a < 0 ){
+
+            a = 0;
+        }
+
+        _gfx_v_set_v_fade_1d( a, index );
+    }   
+    else if( attr == PIX_ARRAY_ATTR_VAL ){
+
+        if( a > 65535 ){
+
+            a = 65535;
+        }
+        else if( a < 0 ){
+
+            a = 0;
+        }
+
+        _gfx_v_set_val_1d( a, index );
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+}
+
+void gfx_v_pixel_add( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
+    
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    int32_t a = ptr[index] + src;
+
+    _gfx_v_set_pixel_op( index, attr, a ); 
+}
+
+void gfx_v_pixel_sub( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
+
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    int32_t a = ptr[index] - src;
+
+    _gfx_v_set_pixel_op( index, attr, a ); 
+}
+
+void gfx_v_pixel_mul( uint8_t obj, uint16_t index, uint8_t attr, int32_t src, catbus_type_t8 type ){
+    
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    int32_t a = ptr[index] * src;
+
+    if( ( attr != PIX_ARRAY_ATTR_HS_FADE ) &&
+        ( attr != PIX_ARRAY_ATTR_V_FADE ) &&
+        ( type == CATBUS_TYPE_FIXED16 ) ){
+
+        a = ( (int64_t)src * a ) / 65536;
+    }
+    else{
+
+        a *= src;    
+    }
+
+    _gfx_v_set_pixel_op( index, attr, a ); 
+}
+
+void gfx_v_pixel_div( uint8_t obj, uint16_t index, uint8_t attr, int32_t src, catbus_type_t8 type ){
+    
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    int32_t a = ptr[index] / src;
+
+    _gfx_v_set_pixel_op( index, attr, a ); 
+}
+
+void gfx_v_pixel_mod( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
+    
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    int32_t a = ptr[index] % src;
+
+    _gfx_v_set_pixel_op( index, attr, a );     
+}
+
+
 void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
 
     if( obj >= pix_array_count ){
