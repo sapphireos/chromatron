@@ -2683,6 +2683,7 @@ opcode_pmul_hue:
     DECODE_1I2RS;
 
     index = registers[opcode_1i2rs->reg1];
+    
     gfx_v_pixel_mul( 0, index, PIX_ARRAY_ATTR_HUE, registers[opcode_1i2rs->reg2], opcode_1i2rs->imm1 );
 
     // value = gfx_u16_get_hue_1d( index );
@@ -2704,6 +2705,7 @@ opcode_pmul_sat:
     DECODE_1I2RS;
 
     index = registers[opcode_1i2rs->reg1];
+    
     gfx_v_pixel_mul( 0, index, PIX_ARRAY_ATTR_SAT, registers[opcode_1i2rs->reg2], opcode_1i2rs->imm1 );
 
     // value = gfx_u16_get_sat_1d( index );
@@ -2725,6 +2727,7 @@ opcode_pmul_val:
     DECODE_1I2RS;
 
     index = registers[opcode_1i2rs->reg1];
+    
     gfx_v_pixel_mul( 0, index, PIX_ARRAY_ATTR_VAL, registers[opcode_1i2rs->reg2], opcode_1i2rs->imm1 );
 
     // value = gfx_u16_get_val_1d( index );
@@ -2827,25 +2830,28 @@ opcode_pdiv_hue:
 
     index = registers[opcode_1i2rs->reg1];
 
-    value = gfx_u16_get_hue_1d( index );
+    gfx_v_pixel_div( 0, index, PIX_ARRAY_ATTR_HUE, registers[opcode_1i2rs->reg2], opcode_1i2rs->imm1 );
 
-    if( registers[opcode_1i2rs->reg2] == 0 ){
 
-        value = 0;
-    }
-    else{
+    // value = gfx_u16_get_hue_1d( index );
 
-        if( opcode_1i2rs->imm1 == CATBUS_TYPE_FIXED16 ){
+    // if( registers[opcode_1i2rs->reg2] == 0 ){
 
-            value = ( (int64_t)value * 65536 ) / registers[opcode_1i2rs->reg2];
-        }
-        else{
+    //     value = 0;
+    // }
+    // else{
 
-            value /= registers[opcode_1i2rs->reg2];    
-        }
-    }
+    //     if( opcode_1i2rs->imm1 == CATBUS_TYPE_FIXED16 ){
 
-    gfx_v_set_hue_1d( value, index );
+    //         value = ( (int64_t)value * 65536 ) / registers[opcode_1i2rs->reg2];
+    //     }
+    //     else{
+
+    //         value /= registers[opcode_1i2rs->reg2];    
+    //     }
+    // }
+
+    // gfx_v_set_hue_1d( value, index );
 
     DISPATCH;
 
@@ -2854,25 +2860,27 @@ opcode_pdiv_sat:
 
     index = registers[opcode_1i2rs->reg1];
 
-    value = gfx_u16_get_sat_1d( index );
+    gfx_v_pixel_div( 0, index, PIX_ARRAY_ATTR_SAT, registers[opcode_1i2rs->reg2], opcode_1i2rs->imm1 );
 
-    if( registers[opcode_1i2rs->reg2] == 0 ){
+    // value = gfx_u16_get_sat_1d( index );
 
-        value = 0;
-    }
-    else{
+    // if( registers[opcode_1i2rs->reg2] == 0 ){
 
-        if( opcode_1i2rs->imm1 == CATBUS_TYPE_FIXED16 ){
+    //     value = 0;
+    // }
+    // else{
 
-            value = ( (int64_t)value * 65536 ) / registers[opcode_1i2rs->reg2];
-        }
-        else{
+    //     if( opcode_1i2rs->imm1 == CATBUS_TYPE_FIXED16 ){
 
-            value /= registers[opcode_1i2rs->reg2];    
-        }
-    }
+    //         value = ( (int64_t)value * 65536 ) / registers[opcode_1i2rs->reg2];
+    //     }
+    //     else{
 
-    gfx_v_set_sat_1d( value, index );
+    //         value /= registers[opcode_1i2rs->reg2];    
+    //     }
+    // }
+
+    // gfx_v_set_sat_1d( value, index );
 
     DISPATCH;
 
@@ -2881,25 +2889,28 @@ opcode_pdiv_val:
 
     index = registers[opcode_1i2rs->reg1];
 
-    value = gfx_u16_get_val_1d( index );
+    gfx_v_pixel_div( 0, index, PIX_ARRAY_ATTR_VAL, registers[opcode_1i2rs->reg2], opcode_1i2rs->imm1 );
 
-    if( registers[opcode_1i2rs->reg2] == 0 ){
 
-        value = 0;
-    }
-    else{
+    // value = gfx_u16_get_val_1d( index );
 
-        if( opcode_1i2rs->imm1 == CATBUS_TYPE_FIXED16 ){
+    // if( registers[opcode_1i2rs->reg2] == 0 ){
 
-            value = ( (int64_t)value * 65536 ) / registers[opcode_1i2rs->reg2];
-        }
-        else{
+    //     value = 0;
+    // }
+    // else{
 
-            value /= registers[opcode_1i2rs->reg2];    
-        }
-    }
+    //     if( opcode_1i2rs->imm1 == CATBUS_TYPE_FIXED16 ){
 
-    gfx_v_set_val_1d( value, index );
+    //         value = ( (int64_t)value * 65536 ) / registers[opcode_1i2rs->reg2];
+    //     }
+    //     else{
+
+    //         value /= registers[opcode_1i2rs->reg2];    
+    //     }
+    // }
+
+    // gfx_v_set_val_1d( value, index );
 
     DISPATCH;
 
@@ -2908,19 +2919,22 @@ opcode_pdiv_hs_fade:
 
     index = registers[opcode_1i2rs->reg1];
 
-    value = gfx_u16_get_hs_fade_1d( index );
+    gfx_v_pixel_div( 0, index, PIX_ARRAY_ATTR_HS_FADE, registers[opcode_1i2rs->reg2], opcode_1i2rs->imm1 );
 
-    if( registers[opcode_1i2rs->reg2] == 0 ){
 
-        value = 0;
-    }
-    else{
+    // value = gfx_u16_get_hs_fade_1d( index );
 
-        value /= registers[opcode_1i2rs->reg2];    
-    }
+    // if( registers[opcode_1i2rs->reg2] == 0 ){
+
+    //     value = 0;
+    // }
+    // else{
+
+    //     value /= registers[opcode_1i2rs->reg2];    
+    // }
     
 
-    gfx_v_set_hs_fade_1d( value, index );
+    // gfx_v_set_hs_fade_1d( value, index );
 
     DISPATCH;
 
@@ -2929,19 +2943,22 @@ opcode_pdiv_v_fade:
 
     index = registers[opcode_1i2rs->reg1];
 
-    value = gfx_u16_get_v_fade_1d( index );
+    gfx_v_pixel_div( 0, index, PIX_ARRAY_ATTR_V_FADE, registers[opcode_1i2rs->reg2], opcode_1i2rs->imm1 );
 
-    if( registers[opcode_1i2rs->reg2] == 0 ){
 
-        value = 0;
-    }
-    else{
+    // value = gfx_u16_get_v_fade_1d( index );
 
-        value /= registers[opcode_1i2rs->reg2];    
-    }
+    // if( registers[opcode_1i2rs->reg2] == 0 ){
+
+    //     value = 0;
+    // }
+    // else{
+
+    //     value /= registers[opcode_1i2rs->reg2];    
+    // }
     
 
-    gfx_v_set_v_fade_1d( value, index );
+    // gfx_v_set_v_fade_1d( value, index );
 
     DISPATCH;
 
@@ -3000,11 +3017,14 @@ opcode_pmod_hue:
 
     index = registers[opcode_2ac->dest];
 
-    value = gfx_u16_get_hue_1d( index );
+    gfx_v_pixel_mod( 0, index, PIX_ARRAY_ATTR_HUE, registers[opcode_2ac->op1] );
 
-    value %= registers[opcode_2ac->op1];
 
-    gfx_v_set_hue_1d( value, index );
+    // value = gfx_u16_get_hue_1d( index );
+
+    // value %= registers[opcode_2ac->op1];
+
+    // gfx_v_set_hue_1d( value, index );
 
     DISPATCH;
 
@@ -3013,11 +3033,14 @@ opcode_pmod_sat:
 
     index = registers[opcode_2ac->dest];
 
-    value = gfx_u16_get_sat_1d( index );
+    gfx_v_pixel_mod( 0, index, PIX_ARRAY_ATTR_SAT, registers[opcode_2ac->op1] );
 
-    value %= registers[opcode_2ac->op1];
 
-    gfx_v_set_sat_1d( value, index );
+    // value = gfx_u16_get_sat_1d( index );
+
+    // value %= registers[opcode_2ac->op1];
+
+    // gfx_v_set_sat_1d( value, index );
 
     DISPATCH;
 
@@ -3026,11 +3049,13 @@ opcode_pmod_val:
 
     index = registers[opcode_2ac->dest];
 
-    value = gfx_u16_get_val_1d( index );
+    gfx_v_pixel_mod( 0, index, PIX_ARRAY_ATTR_VAL, registers[opcode_2ac->op1] );
 
-    value %= registers[opcode_2ac->op1];
+    // value = gfx_u16_get_val_1d( index );
 
-    gfx_v_set_val_1d( value, index );
+    // value %= registers[opcode_2ac->op1];
+
+    // gfx_v_set_val_1d( value, index );
 
     DISPATCH;
 
@@ -3039,11 +3064,13 @@ opcode_pmod_hs_fade:
 
     index = registers[opcode_2ac->dest];
 
-    value = gfx_u16_get_hs_fade_1d( index );
+    gfx_v_pixel_mod( 0, index, PIX_ARRAY_ATTR_HS_FADE, registers[opcode_2ac->op1] );
 
-    value %= registers[opcode_2ac->op1];
+    // value = gfx_u16_get_hs_fade_1d( index );
 
-    gfx_v_set_hs_fade_1d( value, index );
+    // value %= registers[opcode_2ac->op1];
+
+    // gfx_v_set_hs_fade_1d( value, index );
 
     DISPATCH;
 
@@ -3052,11 +3079,13 @@ opcode_pmod_v_fade:
 
     index = registers[opcode_2ac->dest];
 
-    value = gfx_u16_get_v_fade_1d( index );
+    gfx_v_pixel_mod( 0, index, PIX_ARRAY_ATTR_V_FADE, registers[opcode_2ac->op1] );
 
-    value %= registers[opcode_2ac->op1];
+    // value = gfx_u16_get_v_fade_1d( index );
 
-    gfx_v_set_v_fade_1d( value, index );
+    // value %= registers[opcode_2ac->op1];
+
+    // gfx_v_set_v_fade_1d( value, index );
 
     DISPATCH;
 
