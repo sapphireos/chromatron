@@ -122,7 +122,17 @@ static uint32_t cycles;
 // then we decode the suspend (which bumps the PC to again point
 // to the current resume isntruction), and THEN bump the PC to point
 // to the next instruction after resume
-#define DECODE_RESUME pc -= 8; DECODE_SUSPEND; pc += 8;
+// note that the SUSPEND instruction is 64 bits,
+// while RESUME is 32 bits.
+// The PC is walked back by 64 bits to point to the SUSPEND.
+// The decode for SUSPEND will advance PC by 64 bits, so now it
+// is pointing to RESUME, which is a 32 bit instruction.
+// Then we advance by 32 bits to point to the next instruction
+// after RESUME.
+// If the size of SUSPEND changes, the pc decrement needs to update
+// but the increment (pc += 4) stays the same as long as RESUME is a
+// 32 bit instruction.
+#define DECODE_RESUME pc -= 8; DECODE_SUSPEND; pc += 4;
 
 typedef struct __attribute__((packed)){
     uint8_t opcode;
@@ -1225,6 +1235,8 @@ opcode_ref:
         ref.ref.pool = POOL_FUNCTIONS;   
     }
     else{
+
+        trace_printf("Bad storage pool!\r\n");
 
         return VM_STATUS_BAD_STORAGE_POOL;
     }
