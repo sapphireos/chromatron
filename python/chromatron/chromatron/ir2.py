@@ -5716,8 +5716,10 @@ class irFunc(IR):
 
                         elif not isinstance(ir, irControlFlow):
                         # else:
-                            variant_inputs = [i for i in ir.get_input_vars() if i in info['body_vars']]
-
+                            # include refs as variant inputs, as they will often point to objects outside of the VM and 
+                            # can change during loop iteration across yields.
+                            variant_inputs = [i for i in ir.get_input_vars() if i in info['body_vars'] or isinstance(i.var, varRef)]
+                            
                             if len(variant_inputs) == 0:
                                 header_code.append(ir)
                                 block_code.remove(ir)
@@ -5771,7 +5773,7 @@ class irFunc(IR):
                     
                     # add code to loop header
                     for ir in header_code:
-                        logging.debug(f'LICM: Moving: {ir} from {ir.block.name}')
+                        logging.debug(f'LICM: Moving: {type(ir)} {ir} from {ir.block.name}')
 
                         ir.block = header
                         header.code.insert(insert_index, ir)
