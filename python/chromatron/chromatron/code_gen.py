@@ -1402,12 +1402,14 @@ OPT_LEVELS = {
     'all': [OptPasses.SSA, OptPasses.GVN, OptPasses.LOOP, OptPasses.LS_SCHED],
 }
 
-# OPT_LEVELS['default'] = OPT_LEVELS['all']
+OPT_LEVELS['default'] = OPT_LEVELS['all']
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.GVN, OptPasses.LOOP]
+# OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LS_SCHED, OptPasses.LOOP]
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LS_SCHED]
-# OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.GVN]
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LOOP]
-OPT_LEVELS['default'] = [OptPasses.SSA]
+
+# OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.GVN]
+# OPT_LEVELS['default'] = [OptPasses.SSA]
 
 
 def main():

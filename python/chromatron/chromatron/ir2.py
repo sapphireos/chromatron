@@ -5084,38 +5084,38 @@ class irFunc(IR):
 
         logging.info(f'GVN completed in {i} passes.  Removed {original_count - new_count} instructions.')
 
-        return
+        # return
 
         
-        MAX_GVN_ITERATIONS = 100
+        # MAX_GVN_ITERATIONS = 100
 
-        changed = True
-        i = 0
-        while changed and i <= MAX_GVN_ITERATIONS:
-            i += 1
-            changed = self.leader_block.gvn_analyze(pass_number=i)
+        # changed = True
+        # i = 0
+        # while changed and i <= MAX_GVN_ITERATIONS:
+        #     i += 1
+        #     changed = self.leader_block.gvn_analyze(pass_number=i)
                 
-            # we may have eliminated instructions, or entire blocks:
-            # relink blocks, prune, verify, recalc dominance, and re-analyze loops
-            self.leader_block.relink_blocks()
-            self.leader_block.prune_unreachable_blocks()
-            self.verify_block_assignments()
-            self.verify_block_links()
-            self.recalc_defines()
-            self.recalc_dominators()
-            self.analyze_loops()
+        #     # we may have eliminated instructions, or entire blocks:
+        #     # relink blocks, prune, verify, recalc dominance, and re-analyze loops
+        #     self.leader_block.relink_blocks()
+        #     self.leader_block.prune_unreachable_blocks()
+        #     self.verify_block_assignments()
+        #     self.verify_block_links()
+        #     self.recalc_defines()
+        #     self.recalc_dominators()
+        #     self.analyze_loops()
 
-            with open(f"GVN_pass_{i}.fxir", 'w') as f:
-                f.write(str(self))
+        #     with open(f"GVN_pass_{i}.fxir", 'w') as f:
+        #         f.write(str(self))
 
 
-        if i >= MAX_GVN_ITERATIONS:
-            raise CompilerFatal(f'GVN failed to complete after {i} iterations')
+        # if i >= MAX_GVN_ITERATIONS:
+        #     raise CompilerFatal(f'GVN failed to complete after {i} iterations')
 
-        new_count = len(self.get_code_from_blocks())
-        delta = original_count - new_count
+        # new_count = len(self.get_code_from_blocks())
+        # delta = original_count - new_count
 
-        logging.debug(f'GVN in {i} iterations. Eliminated {delta} instructions.')
+        # logging.debug(f'GVN in {i} iterations. Eliminated {delta} instructions.')
 
     def optimize_branches(self):
 
