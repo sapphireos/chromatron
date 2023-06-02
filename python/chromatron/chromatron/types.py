@@ -262,6 +262,11 @@ class varPixelArray(varObject):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+class varPixelChannel(varObject):
+    def __init__(self, *args, channel=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.channel = channel
+
 class varFunction(varObject):
     def __init__(self, *args, func=None, **kwargs):
         super().__init__(*args, data_type='func', **kwargs)
@@ -517,7 +522,7 @@ _BASE_TYPES = {
     'funcref': varFunctionRef(),
     'Function': varFunctionRef(),
     'ref': varRef(),
-    'PixelArray': varPixelArray(),
+    'PixelArray': varPixelArray(), # needs to be a ref, not an object!
 }
 
 class TypeManager(object):

@@ -12,32 +12,55 @@
 
     
 def pixel_func(array: PixelArray):
-    # for i in array.count:
-        # pass
-    # print(array.count)
+    pass
+#     # for i in array.count:
+#         # pass
+#     # print(array.count)
 
-    # array.val = 1.0
-    # more_pixel_func(array)
-    # print(array)
-    # pass
+#     # array.val = 1.0
+#     # more_pixel_func(array)
+#     # print(array)
+#     # pass
 
-    for i in array.count:
-        array[i].hue = i * 0.1
-        # array[i].hue = 0.1
-    #     pass
+#     for i in array.count:
+#         array[i].hue = i * 0.1
+#         # array[i].hue = 0.1
+#     #     pass
 
 
 
 def init():
+    # pixels.hue = 0.0
+
+    pa = PixelArray()[2]
+    # pa[1] = p1
+    # pa[1].hue = 0.5
+
+    # assert p1[0].hue == 0.5
+    # assert p1[1].hue == 0.5
+    # assert p1[2].hue == 0.5
+
+    return
+    
+    # pixels.val.sine(0.1)
+
+
     # pixels.val = 0.5
-    pixel_func(pixels)
+    # pixel_func(pixels)
     # pixel_func(p1)
 
-    # array = PixelArray()
+    array = PixelArray()
     # array = pixels
 
+
+    # TEST CASE HERE!!!!
+    print(array.count)
+
+    # still broken:
+    pixel_func(array)
+
     # for i in array.count:
-    #     pass
+        # pass
 
 # a = Number()
 # b = Number()

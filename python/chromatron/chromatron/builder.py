@@ -337,6 +337,18 @@ class Builder(object):
                 else:
                     self.assign(var, var.init_val, lineno=lineno)
 
+            elif isinstance(var.var, varObjectRef):
+                const = 0
+
+                # set up init value:
+                if var.init_val is not None:
+                    const = var.init_val
+
+                ir = irLoadConst(var, const, lineno=lineno)
+                self.append_node(ir)
+
+                self.add_var_to_symbol_table(var)
+
             else:
                 self.add_var_to_symbol_table(var)
 
@@ -559,7 +571,7 @@ class Builder(object):
            isinstance(params[0], VarContainer) and \
            isinstance(params[0].var, varObjectRef):
 
-            if params[0].var.target.name == 'db':
+            if params[0].var.target is not None and params[0].var.target.name == 'db':
                 db_call = True
 
         if not db_call:
@@ -811,6 +823,19 @@ class Builder(object):
                 result.lookups = value.lookups
                 value.lookups = []
                 ir = irObjectLoad(var, result, value.attr, lineno=lineno)
+
+            elif len(value.lookups) == 0 and value.attr is not None and value.attr.name in PIXEL_VECTORS:
+                raise Exception
+                var = self.add_temp(data_type='objref', lineno=lineno)
+                var.target = value
+
+                ir = irLoadRef(var, value.var, lineno=lineno)
+
+            elif value.attr is None:
+                var = self.add_temp(data_type='objref', lineno=lineno)
+                var.target = value
+
+                ir = irLoadRef(var, value.var, lineno=lineno)
 
             else:
                 ir = irObjectLoad(var, value, value.attr, lineno=lineno)

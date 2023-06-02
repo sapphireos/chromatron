@@ -41,6 +41,14 @@ PIXEL_FIELDS = {
     'palette': 'i32',
 }
 
+PIXEL_VECTORS = [
+    'hue',
+    'sat',
+    'val',
+    'hs_fade',
+    'v_fade',
+]
+
 PIXEL_SCALARS = [
     # 'is_v_fading', 
     # 'is_hs_fading',
@@ -4622,7 +4630,8 @@ class irFunc(IR):
         # this is just a basic check, it does not
         # perform a dataflow analysis
         outputs = self.get_output_vars()
-        for i in self.get_input_vars():
+        inputs = self.get_input_vars()
+        for i in inputs:
             if i not in outputs and i not in self.params:
                 raise CompilerFatal(f'Variable {i} used without define')
 
@@ -6842,7 +6851,7 @@ class irObjectLoad(IR):
             
             # check for erroneous array loads
             if len(self.value.lookups) == 0 and \
-                attr in ['hue', 'sat', 'val', 'v_fade', 'hs_fade']:
+                attr in PIXEL_VECTORS:
 
                 raise SyntaxError(f'Cannot load from array: {attr}', lineno=self.lineno)
             

@@ -955,6 +955,7 @@ class CodeGenPass1(ast.NodeVisitor):
             # return self.create_GenericObject(node)
 
         return cg1DeclareVar(type="pixref", lineno=node.lineno)
+        # return cg1DeclareVar(type="PixelArray", lineno=node.lineno)
 
     # def create_GenericObject(self, node):
     #     args = [self.visit(a) for a in node.args]
@@ -1402,14 +1403,14 @@ OPT_LEVELS = {
     'all': [OptPasses.SSA, OptPasses.GVN, OptPasses.LOOP, OptPasses.LS_SCHED],
 }
 
-OPT_LEVELS['default'] = OPT_LEVELS['all']
+# OPT_LEVELS['default'] = OPT_LEVELS['all']
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.GVN, OptPasses.LOOP]
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LS_SCHED, OptPasses.LOOP]
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LS_SCHED]
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LOOP]
 
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.GVN]
-# OPT_LEVELS['default'] = [OptPasses.SSA]
+OPT_LEVELS['default'] = [OptPasses.SSA]
 
 
 def main():
