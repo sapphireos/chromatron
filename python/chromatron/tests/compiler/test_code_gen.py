@@ -3968,12 +3968,37 @@ def init():
 
 """
 
+test_pixelarray_as_func_arg = """
+
+def more_pixel_func(array: PixelArray):
+    array.val = 0.75
+    array[0].val = 0.9
+
+def pixel_func(array: PixelArray):
+    array.val = 0.25
+    more_pixel_func(array)
+
+def init():
+    pixels.val = 0.5
+    pixel_func(pixels)
+
+"""
+
+
 class HSVArrayTests(object):
     def assertEqual(self, actual, expected):
         assert actual == expected
 
     def run_test(self, program, opt_passes=[OptPasses.SSA]):
         pass
+
+    def test_pixelarray_as_func_arg(self, opt_passes):
+        hsv = self.run_test(test_pixelarray_as_func_arg, opt_passes=opt_passes)
+
+        self.assertEqual(hsv['val'][0], 58982)        
+
+        for val in hsv['val'][1:]:
+            self.assertEqual(val, 49152)        
 
     def test_pix_load_from_pix_2(self, opt_passes):
         hsv = self.run_test(test_pix_load_from_pix_2, opt_passes=opt_passes)

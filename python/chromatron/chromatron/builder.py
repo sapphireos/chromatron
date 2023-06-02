@@ -773,14 +773,18 @@ class Builder(object):
         elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
             is_db = False
             if value.target is not None and value.target.data_type == 'PixelArray':
-                try:
-                    data_type = PIXEL_FIELDS[value.attr.name]
+                if value.attr is not None:
+                    try:
+                        data_type = PIXEL_FIELDS[value.attr.name]
 
-                except KeyError:
-                    raise SyntaxError(f'Unknown attribute for PixelArray: {value.target.name} -> {value.attr.name}', lineno=lineno)
+                    except KeyError:
+                        raise SyntaxError(f'Unknown attribute for PixelArray: {value.target.name} -> {value.attr.name}', lineno=lineno)
 
-                var = self.add_temp(data_type=data_type, lineno=lineno)
+                    var = self.add_temp(data_type=data_type, lineno=lineno)
 
+                else:
+                    return value
+                
             elif value.target is not None and value.target.data_type == 'obj' and value.target.name == 'db':
                 is_db = True
                 if target_type is not None and target_type != 'objref':

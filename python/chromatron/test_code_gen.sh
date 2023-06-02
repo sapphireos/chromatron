@@ -8,6 +8,8 @@ PYTHONPATH=. python3 -m pytest -n auto --cov=chromatron --cov-config=tests/.cove
 
 # PYTHONPATH=. python3 -m pytest -n auto tests/compiler/* -m local -v -x
 
+# PYTHONPATH=. python3 -m pytest -n auto tests/compiler/test_code_gen.py::TestHSVArrayLocal::test_pixelarray_as_func_arg -m local -v -x
+
 # device tests:
 # PYTHONPATH=. python3 -m pytest --cov=chromatron --cov-config=tests/.coveragerc --cov-report=html tests/compiler/test_device.py -v -x
 

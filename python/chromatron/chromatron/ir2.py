@@ -6606,6 +6606,9 @@ class irObjectStore(IR):
 
         self.attr = attr
 
+        if self.attr is None:
+            raise CompilerFatal("attr cannot be None on object store")
+
     def __str__(self):
         return f'{self.target}.{self.attr.name} =(object) {self.value}'
 
@@ -6714,6 +6717,9 @@ class irObjectLoad(IR):
         self.lookups = value.var.lookups
     
         self.attr = attr
+
+        if self.attr is None:
+            raise CompilerFatal("attr cannot be None on object load")
 
     def __str__(self):
         return f'{self.target} =(object) {self.value}.{self.attr.name}'
@@ -6847,6 +6853,9 @@ class irObjectOp(IR):
         self.target = target
         self.value = value
         self.attr = attr
+
+        if self.attr is None:
+            raise CompilerFatal("attr cannot be None on object op")
 
     def __str__(self):
         return f'{self.target}.{self.attr.name} {self.op}=(object) {self.value}'
