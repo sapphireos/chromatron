@@ -3625,6 +3625,9 @@ class irBlock(IR):
 
             new_var = self.type_manager.create_var_from_type(var_name, var.data_type, lineno=-1)
 
+            if isinstance(new_var.var, varRef):
+                new_var.target = var.target
+
             new_var.convert_to_ssa(self.ssa_next_val)
 
             self.defines[var_name] = new_var.var
@@ -3674,12 +3677,18 @@ class irBlock(IR):
 
                 values = list(sorted(set(values), key=lambda a: a[0].name))
 
-                assert len(values) > 0
 
-                phi = irPhi(ir.var, values, lineno=ir.lineno)
-                phi.block = self
+                # assert len(values) > 0
+                if len(values) > 0:
 
-                new_code.append(phi)
+                    phi = irPhi(ir.var, values, lineno=ir.lineno)
+                    phi.block = self
+
+                    new_code.append(phi)
+
+                else:
+                    undef = irUndefinedPhi(ir.var, self, lineno=ir.lineno)
+                    new_code.append(undef)
 
             else:
                 new_code.append(ir)
@@ -6090,6 +6099,18 @@ class irIncompletePhi(IR):
 
     def __str__(self):
         return f'{self.var} = Incomplete PHI() @ {self.block.name}'
+
+class irUndefinedPhi(IR):
+    def __init__(self, var, block, **kwargs):
+        super().__init__(**kwargs)
+        self.var = var
+        self.block = block
+
+    def __str__(self):
+        return f'{self.var} = Undefined PHI() @ {self.block.name}'
+
+    def generate(self):
+        return None
 
 class irNop(IR):
     def __init__(self, **kwargs):

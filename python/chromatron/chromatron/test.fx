@@ -3,14 +3,29 @@
 
 # p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-def more_pixel_func(array: PixelArray):
-    array[0].val = 1.0
+# def more_pixel_func(array: PixelArray):
+#     # array.val = 0.5
+#     # array[0].val = 1.0
+    
+#     for i in array.count:
+#         pass
 
+    
 def pixel_func(array: PixelArray):
+    # for i in array.count:
+        # pass
+    # print(array.count)
+
     # array.val = 1.0
     # more_pixel_func(array)
-    print(array)
+    # print(array)
     # pass
+
+    for i in array.count:
+        array[i].hue = i * 0.1
+        # array[i].hue = 0.1
+    #     pass
+
 
 
 def init():
@@ -18,9 +33,11 @@ def init():
     pixel_func(pixels)
     # pixel_func(p1)
 
+    # array = PixelArray()
+    # array = pixels
 
-
-
+    # for i in array.count:
+    #     pass
 
 # a = Number()
 # b = Number()
