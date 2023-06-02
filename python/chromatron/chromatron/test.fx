@@ -1,12 +1,18 @@
 
-def pixel_func(array):
+# THIS NEEDS A TEST CASE!
+
+# p1 = PixelArray(2, 12, size_x=3, size_y=4)
+
+
+def pixel_func(array: PixelArray):
     # array.val = 1.0
     print(array)
 
 
 def init():
-    # pixel_func(pixels)
+    pixels.val = 0.5
     pixel_func(pixels)
+    # pixel_func(p1)
 
 
 

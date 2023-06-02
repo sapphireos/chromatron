@@ -2322,7 +2322,7 @@ class insPrint(BaseInstruction):
     def execute(self, vm):
         value = vm.registers[self.op1.reg]
 
-        print(value)    
+        print(f'PRINT: {value}')    
             
     def assemble(self):
         return OpcodeFormat1AC(self.mnemonic, self.op1.assemble(), lineno=self.lineno)
@@ -2347,7 +2347,7 @@ class insPrintRef(BaseInstruction):
 
         value = ref.pool[ref.addr]
 
-        print(value)
+        print(f'PRINTREF: {value}')    
             
     def assemble(self):
         return OpcodeFormat1AC(self.mnemonic, self.op1.assemble(), lineno=self.lineno)

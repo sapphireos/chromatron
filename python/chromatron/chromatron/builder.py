@@ -683,10 +683,12 @@ class Builder(object):
                 dest = func.params[i]
                 
                 if isinstance(src.var, varRef) and not isinstance(dest.var, varRef):
-                    raise SyntaxError(f'Type mismatch, cannot pass {src.target.data_type} into function expecting {dest.var.data_type}', lineno=lineno)
+                    if src.var.target.data_type != dest.var.data_type:
+                        raise SyntaxError(f'Type mismatch, cannot pass {src.target.data_type} into function expecting {dest.var.data_type}', lineno=lineno)
 
                 elif not isinstance(src.var, varRef) and isinstance(dest.var, varRef):
-                    raise SyntaxError(f'Type mismatch, cannot pass {src.var.data_type} into function expecting {dest.target.data_type}', lineno=lineno)
+                    if src.var.data_type != dest.var.target.data_type:
+                        raise SyntaxError(f'Type mismatch, cannot pass {src.var.data_type} into function expecting {dest.target.data_type}', lineno=lineno)
 
                 elif isinstance(src.var, varRef) and isinstance(dest.var, varRef):
                     if src.target.data_type != dest.target.data_type:
