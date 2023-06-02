@@ -1,4 +1,17 @@
 
+def pixel_func(array):
+    # array.val = 1.0
+    print(array)
+
+
+def init():
+    # pixel_func(pixels)
+    pixel_func(pixels)
+
+
+
+
+
 # a = Number()
 # b = Number()
 
@@ -36,12 +49,12 @@
 #     pixels.count += 1
 #     c = pixels.count
 
-@schedule(hours=23, minutes=0, seconds=0)
-def dim_evening():
-    # db.gfx_sub_dimmer = 16384
-    # pass
-    # fx_debug += 1
-    pixels.hue = 0.0
+# @schedule(hours=23, minutes=0, seconds=0)
+# def dim_evening():
+#     # db.gfx_sub_dimmer = 16384
+#     # pass
+#     # fx_debug += 1
+#     pixels.hue = 0.0
 
 
 # db('fx_db', 'uint8', 1)
