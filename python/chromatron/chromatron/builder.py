@@ -494,15 +494,21 @@ class Builder(object):
     def add_func_arg(self, func, name, data_type='i32', dimensions=[], lineno=None):
         var = self._build_var(name, data_type=data_type, dimensions=dimensions, lineno=lineno)
         
-        if isinstance(var.var, varComposite):
-            ref = self._build_var(name, data_type='ref', lineno=lineno)
+        if isinstance(var.var, varObject):
+            ref = self._build_var(name, data_type='objref', lineno=lineno)
             ref.target = var.var
 
             self.add_var_to_symbol_table(ref)
 
             var = ref
 
-            # self.add_var_to_symbol_table(var.var)
+        elif isinstance(var.var, varComposite):
+            ref = self._build_var(name, data_type='ref', lineno=lineno)
+            ref.target = var.var
+
+            self.add_var_to_symbol_table(ref)
+
+            var = ref
 
         else:
             self.add_var_to_symbol_table(var)
