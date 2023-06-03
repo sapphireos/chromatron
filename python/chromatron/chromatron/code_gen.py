@@ -286,7 +286,7 @@ class cg1Module(cg1Node):
                     # kw = {k: v.build(builder) for k, v in list(node.value.kw.items())}
                     kw = {k: v.name for k, v in list(node.value.kw.items())}
 
-                    builder.generic_object(node.target.name, node.value.name, kw, lineno=node.lineno)
+                    builder.generic_object(node.target.name, node.value.name, is_global=True, kw=kw, lineno=node.lineno)
 
                 elif isinstance(node.value, cg1Const):
                     if isinstance(node.value.name, float):
@@ -954,8 +954,8 @@ class CodeGenPass1(ast.NodeVisitor):
 
             # return self.create_GenericObject(node)
 
-        return cg1DeclareVar(type="pixref", lineno=node.lineno)
-        # return cg1DeclareVar(type="PixelArray", lineno=node.lineno)
+        # return cg1DeclareVar(type="pixref", lineno=node.lineno)
+        return cg1DeclareVar(type="PixelArray", lineno=node.lineno)
 
     # def create_GenericObject(self, node):
     #     args = [self.visit(a) for a in node.args]

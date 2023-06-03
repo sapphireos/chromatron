@@ -420,8 +420,8 @@ class Builder(object):
         
             return var.var
 
-    def generic_object(self, name, data_type, kw={}, lineno=None):
-        return self.declare_var(name, data_type, keywords=kw, lineno=lineno)
+    def generic_object(self, name, data_type, is_global=False, kw={}, lineno=None):
+        return self.declare_var(name, data_type, is_global=is_global, keywords=kw, lineno=lineno)
 
     def push_symbol_table(self):
         sym = SymbolTable(self.symbol_tables[0])
