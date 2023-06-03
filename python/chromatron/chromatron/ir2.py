@@ -6613,9 +6613,9 @@ class irObjectLookup(IR):
         result = self.result.generate()
         lookups = [l.generate() for l in self.lookups]
 
-        if target.var.data_type == 'pixref' or \
-           target.var.target.data_type == 'pixref' or \
-           target.var.target.data_type == 'PixelArray':
+        if target.var.data_type == 'PixelArray' or \
+           target.var.target.data_type == 'PixelArray' or \
+           target.var.target.data_type == 'pixobj':
 
             if len(lookups) == 1:
                 return insPixelLookup1(result, target, lookups, lineno=self.lineno)
@@ -6626,6 +6626,8 @@ class irObjectLookup(IR):
             else:
                 raise CompilerFatal(f'VM does not have an instruction coded for {len(lookups)} indexes')
 
+        else:
+            raise CompilerFatal(f'No matching instruction for object lookup: {self}')
 
 class irObjectStore(IR):
     def __init__(self, target, value, attr, **kwargs):

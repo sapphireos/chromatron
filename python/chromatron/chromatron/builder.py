@@ -784,7 +784,7 @@ class Builder(object):
 
         elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
             is_db = False
-            if value.target is not None and value.target.data_type == 'PixelArray':
+            if value.target is not None and value.target.data_type == 'pixobj':
                 if value.attr is not None:
                     try:
                         data_type = PIXEL_FIELDS[value.attr.name]

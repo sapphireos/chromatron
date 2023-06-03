@@ -1,12 +1,17 @@
 
+meow1 = PixelArray(0, 1, mirror='pixels')
+meow2 = PixelArray(1, 2, mirror='meow1')
+meow3 = PixelArray(0, 1, mirror=pixels)
+meow4 = PixelArray(1, 2, mirror=meow1)
 
-a = Number(publish=True)
+# a = Number(publish=True)
 # b = Number(publish=True)
 # c = Number(publish=True)
 # d = Number(publish=True)
 
 def init():
-    a = pixels[1].is_hs_fading
+    pass
+    # a = pixels[1].is_hs_fading
 
     # pixels[1].hue = 0.5
 
