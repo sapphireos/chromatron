@@ -63,7 +63,7 @@ PIXEL_SCALARS = [
 ]
 
 OBJECT_FIELDS = {
-    'PixelArray': PIXEL_FIELDS
+    'pixobj': PIXEL_FIELDS
 }
 
 

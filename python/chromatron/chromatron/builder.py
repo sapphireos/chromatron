@@ -223,6 +223,10 @@ class Builder(object):
         # return ir
     
     def _build_var(self, name, data_type=None, dimensions=[], keywords={}, lineno=None):
+        # this constrct should really be in codegen....
+        if data_type == 'PixelArray' and len(keywords) > 0:
+            data_type = 'pixobj'
+
         return self.type_manager.create_var_from_type(name, data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
 
 

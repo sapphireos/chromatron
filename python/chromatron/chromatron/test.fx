@@ -1,17 +1,15 @@
 
-p1 = PixelArray(2, 12, size_x=3, size_y=4)
+def more_pixel_func(array: PixelArray):
+    for i in array.count:
+        array[i].hue = 0.1
 
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-d = Number(publish=True)
+def pixel_func(array: PixelArray):
+    more_pixel_func(array)
 
 def init():
-    a = p1.index
-    b = p1.count
-    c = p1.size_x
-    d = p1.size_y
-    
+    pixels.hue = 0.5
+    pixel_func(pixels)
+
 # THIS NEEDS A TEST CASE!
 
 # p1 = PixelArray(2, 12, size_x=3, size_y=4)
