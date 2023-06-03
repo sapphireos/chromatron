@@ -1,4 +1,23 @@
 
+
+a = Number(publish=True)
+# b = Number(publish=True)
+# c = Number(publish=True)
+# d = Number(publish=True)
+
+def init():
+    a = pixels[1].is_hs_fading
+
+    # pixels[1].hue = 0.5
+
+    # b = pixels[1].is_hs_fading
+    # c = pixels[0].is_hs_fading
+
+    # pixels.hue = 1.0
+    # d = pixels[0].is_hs_fading
+
+    
+
 # THIS NEEDS A TEST CASE!
 
 # p1 = PixelArray(2, 12, size_x=3, size_y=4)
@@ -29,20 +48,20 @@
 
 
 
-def init():
-    pixels.hue = 0.0
+# def init():
+#     pixels.hue = 0.5
 
-    # pa = PixelArray()[2]
-    # pa[1] = p1
-    # pa[1].hue = 0.5
+#     # pa = PixelArray()[2]
+#     # pa[1] = p1
+#     # pa[1].hue = 0.5
 
-    # assert p1[0].hue == 0.5
-    # assert p1[1].hue == 0.5
-    # assert p1[2].hue == 0.5
+#     # assert p1[0].hue == 0.5
+#     # assert p1[1].hue == 0.5
+#     # assert p1[2].hue == 0.5
 
-    return
+#     return
     
-    # pixels.val.sine(0.1)
+#     # pixels.val.sine(0.1)
 
 
     # pixels.val = 0.5

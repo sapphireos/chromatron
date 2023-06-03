@@ -1630,13 +1630,13 @@ class Builder(object):
         elif isinstance(target, VarContainer) and isinstance(target.var, varObjectRef) and target.target is not None:
             target_type = target.target.data_type
 
-        elif isinstance(target, VarContainer) and isinstance(target.var, varObjectRef) and target.target is None:
-            if target.data_type == 'pixref':
-                target_type = 'PixelArray'
+        # elif isinstance(target, VarContainer) and isinstance(target.var, varObjectRef) and target.target is None:
+            # if target.data_type == 'pixref':
+                # target_type = 'PixelArray'
 
-        elif isinstance(target, VarContainer) and isinstance(target.var, varOffset):
-            if target.target.data_type == 'pixref':
-                target_type = 'PixelArray'
+        # elif isinstance(target, VarContainer) and isinstance(target.var, varOffset):
+            # if target.target.data_type == 'pixref':
+                # target_type = 'PixelArray'
 
         if target_type in OBJECT_FIELDS:
             attr_type = OBJECT_FIELDS[target_type][attr]

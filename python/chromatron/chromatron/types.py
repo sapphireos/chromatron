@@ -521,7 +521,7 @@ _BASE_TYPES = {
     'strref': varStringRef(),
     'obj': varObject(),
     'objref': varObjectRef(),
-    'pixref': varObjectRef(),
+    # 'pixref': varObjectRef(),
     'func': varFunction(),
     'funcref': varFunctionRef(),
     'Function': varFunctionRef(),

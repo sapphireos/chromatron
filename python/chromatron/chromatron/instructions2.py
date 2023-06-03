@@ -272,7 +272,7 @@ class insProgram(object):
 
         # self.pixel_arrays = {p.name: p for p in self.objects if p.data_type == 'PixelArray'}
         self.pixel_arrays = {}
-        pixel_objects = sorted([p for p in self.objects if p.data_type == 'PixelArray'], key=lambda x: x.addr.addr)
+        pixel_objects = sorted([p for p in self.objects if p.data_type == 'pixobj'], key=lambda x: x.addr.addr)
 
         pixel_names_addrs = {p.name: p.addr.addr for p in pixel_objects}
         pixel_arrays = []
