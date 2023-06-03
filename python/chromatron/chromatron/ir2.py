@@ -487,7 +487,7 @@ class irProgram(IR):
 
             addr += g.size
 
-        pix_arrays = {p.name: p for p in self.global_symbols.symbols.values() if p.data_type == 'PixelArray'}
+        pix_arrays = {p.name: p for p in self.global_symbols.symbols.values() if p.data_type == 'pixobj'}
         pix_arrays['pixels'].addr = irAddr(pix_arrays['pixels'], 0, StorageType.PIXEL_ARRAY)
         pix_addr = 1
 

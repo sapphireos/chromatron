@@ -262,10 +262,10 @@ class varPixelArray(varObject):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-class varPixelChannel(varObject):
-    def __init__(self, *args, channel=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.channel = channel
+# class varPixelChannel(varObject):
+#     def __init__(self, *args, channel=None, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.channel = channel
 
 class varFunction(varObject):
     def __init__(self, *args, func=None, **kwargs):
@@ -330,6 +330,10 @@ class varFunctionRef(varRef):
     @property
     def scalar_type(self):
         return self.data_type
+
+class varPixelArrayRef(varObjectRef):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 class varArray(varComposite):
     def __init__(self, *args, element=None, length=1, **kwargs):
@@ -522,7 +526,8 @@ _BASE_TYPES = {
     'funcref': varFunctionRef(),
     'Function': varFunctionRef(),
     'ref': varRef(),
-    'PixelArray': varPixelArray(), # needs to be a ref, not an object!
+    'pixobj': varPixelArray(),
+    'PixelArray': varPixelArrayRef(),
 }
 
 class TypeManager(object):

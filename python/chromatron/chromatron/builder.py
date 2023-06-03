@@ -86,7 +86,7 @@ class Builder(object):
 
         self.type_manager = TypeManager()
 
-        self.declare_var('pixels', data_type='PixelArray', is_global=True, lineno=-1)
+        self.declare_var('pixels', data_type='pixobj', is_global=True, lineno=-1)
         self.declare_var('db', data_type='obj', is_global=True, lineno=-1)
 
     def __str__(self):
