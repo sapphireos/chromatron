@@ -514,20 +514,21 @@ class Builder(object):
             ref = self._build_var(name, data_type='objref', lineno=lineno)
             ref.target = var.var
 
-            self.add_var_to_symbol_table(ref)
-
             var = ref
 
         elif isinstance(var.var, varComposite):
             ref = self._build_var(name, data_type='ref', lineno=lineno)
             ref.target = var.var
 
-            self.add_var_to_symbol_table(ref)
-
             var = ref
 
-        else:
-            self.add_var_to_symbol_table(var)
+        elif isinstance(var.var, varPixelArrayRef):
+            # Adding the target this way to get the data type to work
+            # in downstream code is not great, but is a consequence of
+            # the inelegance in how we're making references work.
+            var.target = self.get_var('pixels')
+
+        self.add_var_to_symbol_table(var)
 
         func.params.append(var)
 

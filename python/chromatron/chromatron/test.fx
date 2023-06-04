@@ -1,14 +1,23 @@
 
-def more_pixel_func(array: PixelArray):
-    for i in array.count:
-        array[i].hue = 0.1
+# def more_pixel_func(array: PixelArray):
+#     for i in array.count:
+#         array[i].hue = 0.1
 
-def pixel_func(array: PixelArray):
-    more_pixel_func(array)
+# def pixel_func(array: PixelArray):
+#     # pass
+#     more_pixel_func(array)
+
+# p1 = PixelArray(3, 2) # 2 pixels starting at index 3 (4th pixel in array)
 
 def init():
-    pixels.hue = 0.5
-    pixel_func(pixels)
+    # pixels.hue = 0.5
+    # array = PixelArray()
+    # array = pixels
+    # array.hue = 0.5
+
+    # pixel_func(pixels)
+    pa = PixelArray()[2]
+    # pa[1] = p1
 
 # THIS NEEDS A TEST CASE!
 
