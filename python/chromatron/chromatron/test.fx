@@ -11,8 +11,8 @@
 #         pass
 
     
-def pixel_func(array: PixelArray):
-    return
+# def pixel_func(array: PixelArray):
+    # return
     # for i in array.count:
         # pass
     # print(array.count)
@@ -28,15 +28,15 @@ def pixel_func(array: PixelArray):
     #     pass
 
 
-p1 = PixelArray(2, 12, size_x=3, size_y=4)
+# p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
 def init():
-    array = PixelArray()
+    # array = PixelArray()
 
     # uninitialized pixref should point to main pixel array:
     # a = array.count
 
-    array = pixels
+    # array = pixels
 
     # b = array.count
 
@@ -46,8 +46,8 @@ def init():
 
 
 # def init():
-#     array = PixelArray()
-#     array = pixels
+    # array = PixelArray()
+    # array = pixels
 
 
 #     # TEST CASE HERE!!!!
@@ -55,7 +55,14 @@ def init():
 
     # still broken:
     # pixel_func(pixels)
-    pixel_func(array)
+    # pixel_func(array)
+
+    ch = PixelChannel()
+    ch = pixels.hue
+    # print(ch)
+    # print(pixels.val)
+
+    # ch = 1.0
 
     # for i in array.count:
     #     pass

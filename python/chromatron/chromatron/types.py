@@ -335,6 +335,10 @@ class varPixelArrayRef(varObjectRef):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+class varPixelChannelRef(varObjectRef):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
 class varArray(varComposite):
     def __init__(self, *args, element=None, length=1, **kwargs):
         super().__init__(*args, data_type=f'{element.data_type}[{length}]', **kwargs)
@@ -528,6 +532,8 @@ _BASE_TYPES = {
     'pixobj': varPixelArray(),
     'pixref': varPixelArrayRef(),
     'PixelArray': varPixelArrayRef(),
+    'pixchref': varPixelChannelRef(),
+    'PixelChannel': varPixelChannelRef(),
 }
 
 class TypeManager(object):

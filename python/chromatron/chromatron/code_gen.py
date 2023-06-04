@@ -720,6 +720,7 @@ class CodeGenPass1(ast.NodeVisitor):
             'Function': self._handle_Function,
             'Struct': self._handle_Struct,
             'PixelArray': self._handle_PixelArray,
+            'PixelChannel': self._handle_PixelChannel,
             # 'Palette': self.create_GenericObject,
         }
 
@@ -887,10 +888,13 @@ class CodeGenPass1(ast.NodeVisitor):
 
             return cg1GenericObject('pixobj', kwargs, lineno=node.lineno)
 
-            # return self.create_GenericObject(node)
-
         return cg1DeclareVar(type="pixref", lineno=node.lineno)
-        # return cg1DeclareVar(type="PixelArray", lineno=node.lineno)
+
+    def _handle_PixelChannel(self, node):
+        if len(node.args) > 0 or len(node.keywords) > 0:
+            raise SyntaxError(f'{node.func.id} cannot be created.', lineno=node.lineno)
+
+        return cg1DeclareVar(type="pixchref", lineno=node.lineno)
 
     # def create_GenericObject(self, node):
     #     args = [self.visit(a) for a in node.args]

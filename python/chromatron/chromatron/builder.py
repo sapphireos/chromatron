@@ -292,6 +292,19 @@ class Builder(object):
 
                 self.add_var_to_symbol_table(var)
 
+            elif isinstance(var.var, varPixelChannelRef):
+                # default pixelchannel ref is initialized to main pixel array val attribute
+                value = self.get_var('pixels')
+
+                ir = irLoadRef(var, value, lineno=lineno)
+                var.target = value
+                attr = irAttribute('val', data_type=PIXEL_FIELDS['val'], lineno=lineno)
+                var.attr = attr
+
+                self.append_node(ir)
+
+                self.add_var_to_symbol_table(var)
+
             elif isinstance(var.var, varObjectRef):
                 const = 0
 
@@ -776,9 +789,9 @@ class Builder(object):
                 ir = irObjectLoad(var, result, value.attr, lineno=lineno)
 
             elif len(value.lookups) == 0 and value.attr is not None and value.attr.name in PIXEL_VECTORS:
-                raise Exception
                 var = self.add_temp(data_type='objref', lineno=lineno)
                 var.target = value
+                var.attr = value.attr
 
                 ir = irLoadRef(var, value.var, lineno=lineno)
 
