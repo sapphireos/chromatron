@@ -1,4 +1,4 @@
-
+meow1 = PixelArray(0, 1, mirror='pixels')
 # def more_pixel_func(array: PixelArray):
 #     for i in array.count:
 #         array[i].hue = 0.1

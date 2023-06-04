@@ -950,12 +950,12 @@ class CodeGenPass1(ast.NodeVisitor):
             if len(node.args) >= 2:
                 kwargs['count'] = args[1]
 
-            return cg1GenericObject(node.func.id, kwargs, lineno=node.lineno)
+            return cg1GenericObject('pixobj', kwargs, lineno=node.lineno)
 
             # return self.create_GenericObject(node)
 
-        # return cg1DeclareVar(type="pixref", lineno=node.lineno)
-        return cg1DeclareVar(type="PixelArray", lineno=node.lineno)
+        return cg1DeclareVar(type="pixref", lineno=node.lineno)
+        # return cg1DeclareVar(type="PixelArray", lineno=node.lineno)
 
     # def create_GenericObject(self, node):
     #     args = [self.visit(a) for a in node.args]

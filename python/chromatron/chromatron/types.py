@@ -521,13 +521,12 @@ _BASE_TYPES = {
     'strref': varStringRef(),
     'obj': varObject(),
     'objref': varObjectRef(),
-    # 'pixref': varObjectRef(),
     'func': varFunction(),
     'funcref': varFunctionRef(),
     'Function': varFunctionRef(),
     'ref': varRef(),
     'pixobj': varPixelArray(),
-    'PixelArray': varPixelArrayRef(),
+    'pixref': varPixelArrayRef(),
 }
 
 class TypeManager(object):
