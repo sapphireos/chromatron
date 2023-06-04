@@ -1,23 +1,23 @@
-meow1 = PixelArray(0, 1, mirror='pixels')
-# def more_pixel_func(array: PixelArray):
-#     for i in array.count:
-#         array[i].hue = 0.1
 
-# def pixel_func(array: PixelArray):
-#     # pass
-#     more_pixel_func(array)
+p1 = PixelArray(3, 2) # 2 pixels starting at index 3 (4th pixel in array)
 
-# p1 = PixelArray(3, 2) # 2 pixels starting at index 3 (4th pixel in array)
+def obj_store_lookup():
+    pixels.hue = 0.0
+
+    pa = PixelArray()[2]
+    pa[1] = p1
+
+    p = PixelArray()
+    p = pa[1]
+    
+    p.hue = 0.5    
+
+    assert p1[0].hue == 0.5
+    assert p1[1].hue == 0.5
+    assert p1[2].hue == 0.5
 
 def init():
-    # pixels.hue = 0.5
-    # array = PixelArray()
-    # array = pixels
-    # array.hue = 0.5
-
-    # pixel_func(pixels)
-    pa = PixelArray()[2]
-    # pa[1] = p1
+    obj_store_lookup()
 
 # THIS NEEDS A TEST CASE!
 

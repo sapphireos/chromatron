@@ -527,6 +527,7 @@ _BASE_TYPES = {
     'ref': varRef(),
     'pixobj': varPixelArray(),
     'pixref': varPixelArrayRef(),
+    'PixelArray': varPixelArrayRef(),
 }
 
 class TypeManager(object):

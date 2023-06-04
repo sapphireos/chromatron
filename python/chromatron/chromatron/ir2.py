@@ -6613,8 +6613,8 @@ class irObjectLookup(IR):
         result = self.result.generate()
         lookups = [l.generate() for l in self.lookups]
 
-        if target.var.data_type == 'PixelArray' or \
-           target.var.target.data_type == 'PixelArray' or \
+        if target.var.data_type == 'pixref' or \
+           target.var.target.data_type == 'pixref' or \
            target.var.target.data_type == 'pixobj':
 
             if len(lookups) == 1:
@@ -6686,8 +6686,8 @@ class irObjectStore(IR):
         value = self.value.generate()
 
         # pixel array reference
-        if target.var.data_type == 'PixelArray' or \
-           target.var.target.data_type == 'PixelArray' or \
+        if target.var.data_type == 'pixref' or \
+           target.var.target.data_type == 'pixref' or \
            target.var.target.data_type == 'pixobj':
 
             attr = self.attr.name
@@ -6827,8 +6827,8 @@ class irObjectLoad(IR):
 
         """
 
-        if value.var.data_type == 'PixelArray' or \
-           value.var.target.data_type == 'PixelArray' or \
+        if value.var.data_type == 'pixref' or \
+           value.var.target.data_type == 'pixref' or \
            value.var.target.data_type == 'pixobj':
 
             attr = self.attr.name
@@ -6919,8 +6919,8 @@ class irObjectOp(IR):
         target = self.target.generate()
         value = self.value.generate()
 
-        if target.var.data_type == 'PixelArray' or \
-           target.var.target.data_type == 'PixelArray' or \
+        if target.var.data_type == 'pixref' or \
+           target.var.target.data_type == 'pixref' or \
            target.var.target.data_type == 'pixobj':
 
             attr = self.attr.name
