@@ -27,6 +27,9 @@
         # array[i].hue = 0.1
     #     pass
 
+# def pixelfunc(channel: PixelChannel):
+    # print(channel.count)
+    # channel.val = 1.0
 
 # p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
@@ -57,8 +60,16 @@ def init():
     # pixel_func(pixels)
     # pixel_func(array)
 
+    # pixels.val = 1.0
+
     ch = PixelChannel()
     ch = pixels.hue
+    # print(ch.count)
+
+    ch = 1.0
+
+    # pixelfunc(ch)
+
     # print(ch)
     # print(pixels.val)
 

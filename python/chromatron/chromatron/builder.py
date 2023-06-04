@@ -489,6 +489,14 @@ class Builder(object):
             # the inelegance in how we're making references work.
             var.target = self.get_var('pixels')
 
+        elif isinstance(var.var, varPixelChannelRef):
+            # Adding the target this way to get the data type to work
+            # in downstream code is not great, but is a consequence of
+            # the inelegance in how we're making references work.
+            var.target = self.get_var('pixels')
+            attr = irAttribute('val', data_type=PIXEL_FIELDS['val'], lineno=lineno)
+            var.attr = attr
+
         self.add_var_to_symbol_table(var)
 
         func.params.append(var)
@@ -789,11 +797,13 @@ class Builder(object):
                 ir = irObjectLoad(var, result, value.attr, lineno=lineno)
 
             elif len(value.lookups) == 0 and value.attr is not None and value.attr.name in PIXEL_VECTORS:
-                var = self.add_temp(data_type='objref', lineno=lineno)
-                var.target = value
-                var.attr = value.attr
+                # var = self.add_temp(data_type='objref', lineno=lineno)
+                # var.target = value
+                # var.attr = value.attr
 
-                ir = irLoadRef(var, value.var, lineno=lineno)
+                # ir = irLoadRef(var, value.var, lineno=lineno)
+
+                return value
 
             elif value.attr is None:
                 # var = self.add_temp(data_type='objref', lineno=lineno)
@@ -954,6 +964,18 @@ class Builder(object):
 
             else:
                 raise CompilerFatal(target)
+
+        elif isinstance(target, VarContainer) and \
+             isinstance(target.var, varPixelChannelRef):
+
+            target.attr = value.attr
+
+            if len(value.lookups) > 0:
+                raise CompilerFatal
+
+            target.lookups = []
+
+            ir = irAssign(target, value, lineno=lineno)
 
         elif isinstance(target, VarContainer) and \
              isinstance(target.var, varObjectRef):
