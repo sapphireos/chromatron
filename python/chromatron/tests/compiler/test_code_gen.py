@@ -2175,8 +2175,13 @@ def pixfunc(array: PixelArray):
 def pixfunc2(array: PixelArray):
     b = array.count
 
+def pixfunc3(array: PixelArray):
+    c = array.count
+
 def init():
     array = PixelArray()
+    pixfunc3(array)
+
     array = p1
 
     pixfunc(array)
@@ -2195,6 +2200,7 @@ class CompilerTests(object):
             expected={
                 'a': 12,
                 'b': 16,
+                'c': 16,
             })
 
     def test_pixref_load(self, opt_passes):
