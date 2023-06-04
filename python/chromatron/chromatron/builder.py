@@ -54,7 +54,7 @@ class Builder(object):
         self.funcs = {}
         self.scope_depth = 0
         self.labels = {}
-        # self.globals = {}
+        
         # self.named_consts = {}
         self.structs = {}
         self.strings = {}
@@ -74,8 +74,6 @@ class Builder(object):
         self.loop_loop = []
         self.loop_end = []
 
-        # self.locals = {}
-        # self.refs = {}
         self.current_lookup = []
         self.current_attr = []
         self.current_func = None
@@ -117,20 +115,6 @@ class Builder(object):
         self.add_var_to_symbol_table(var)
 
         return var
-
-        # ir = irVar(name, datatype=data_type, lineno=lineno)
-        # ir.is_temp = True
-
-        # return ir
-    
-    def add_ref(self, target, lookups=[], lineno=None):
-        # ir = irVar(target.name, lineno=lineno)
-        # ir.lookups = lookups
-        # ir.is_ref = True
-        # ir.ref = target
-        
-        # return ir    
-        pass
     
     def add_const(self, value, data_type=None, lineno=None):
         if value is True:
@@ -146,9 +130,6 @@ class Builder(object):
         except KeyError:
             pass
     
-        # if name in self.current_func.consts:
-        #     return copy(self.current_func.consts[name])
-
         if isinstance(value, int):
             data_type = 'i32'
 
@@ -162,7 +143,6 @@ class Builder(object):
             assert False
 
         var = self._build_var(name, data_type, lineno=lineno)
-        # var.const = True
         var.value = value
 
 
@@ -177,16 +157,7 @@ class Builder(object):
         ir = irLoadConst(var, value, lineno=lineno)
         self.append_node(ir)
 
-        # self.current_func.consts[name] = var
-
         return var
-
-        # ir = irVar(name, data_type, lineno=lineno)
-        # ir.is_const = True
-
-        # self.current_func.consts[name] = ir
-
-        # return ir
 
     def add_named_const(self, name, value, data_type=None, lineno=None):
         if value is True:
@@ -207,20 +178,11 @@ class Builder(object):
             assert False
 
         var = self._build_var(name, data_type, lineno=lineno)
-        # var.const = True
         var.value = value
 
-        # self.current_func.consts[name] = var
         self.add_var_to_symbol_table(var)
 
         return var
-
-        # ir = irVar(str(value), data_type, lineno=lineno)
-        # ir.is_const = True
-
-        # self.named_consts[name] = ir
-
-        # return ir
     
     def _build_var(self, name, data_type=None, dimensions=[], keywords={}, lineno=None):
         # this constrct should really be in codegen....
@@ -228,24 +190,6 @@ class Builder(object):
             data_type = 'pixobj'
 
         return self.type_manager.create_var_from_type(name, data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
-
-
-        # if data_type in PRIMITIVE_TYPES:
-        #     return irVar(name, data_type, dimensions, lineno=lineno)
-
-        # elif data_type == 'str':
-        #     # var = irString(name, lineno=lineno, **keywords) 
-
-        #     var = irVar(name, data_type, dimensions, lineno=lineno)
-        #     var.is_ref = True
-        #     var.ref = self.strings[keywords['init_val']]
-
-        #     return var
-
-        # elif data_type in self.structs:
-        #     return self.structs[data_type](name, dimensions, lineno=lineno)
-
-        # raise CompilerFatal(f'Unknown type {data_type}')
 
     def declare_var(self, name, data_type='i32', dimensions=[], keywords={}, is_global=False, lineno=None):
         if name in ARRAY_FUNCS or name in THREAD_FUNCS:
@@ -474,8 +418,6 @@ class Builder(object):
     def func(self, func_name, returns=None, **kwargs):
         sym = self.push_symbol_table()
 
-        # func = irFunc(*args, symbol_table=sym, type_manager=self.type_manager, source_code=self.source, **kwargs)
-        # self.funcs[func.name] = func
         func = self.funcs[func_name]
         func.symbol_table = sym
 
@@ -486,7 +428,6 @@ class Builder(object):
         func_label = self.label(f'func:{func.name}', lineno=kwargs['lineno'])
         self.position_label(func_label)
 
-        # self.declare_var(func.name, data_type='func', is_global=True, lineno=kwargs['lineno'])
         try:
             func_var = self.get_var(func.name, lineno=kwargs['lineno'])
 
@@ -663,9 +604,7 @@ class Builder(object):
 
                     loaded_ref = self.load_value(ref, lineno=lineno)
                     length = self.add_const(ref.length, lineno=lineno)
-                    #params.append(length)
-                    # print(func, params, ref)
-
+                    
                     if func == 'len':
                         # we already know the array length, so this is just an assign
                         ir = irAssign(result, length, lineno=lineno)
@@ -883,23 +822,11 @@ class Builder(object):
         # however, for the assign, the assignment target will 
         # have priority.
 
-        # print target, value
-        # print target.get_base_type(), value.get_base_type()
-
         # check if value is const 0
         # if so, we don't need to convert, 0 has the same binary representation
         # in all data types
         if value.value == 0:
             pass
-
-        # elif isinstance(value, varStringLiteral):
-        #     pass
-
-        # check for special case of a database target.
-        # we don't know the type of the database target, the 
-        # database itself will do the conversion.
-        # elif target.get_base_type() == 'db':
-            # pass
 
         # check if target is a offset and value is scalar:
         elif (isinstance(value, VarContainer) and isinstance(target, VarContainer) and \
@@ -935,47 +862,10 @@ class Builder(object):
 
         # check if base types don't match, if not, then do a conversion.
         elif target.scalar_type != value.scalar_type:
-            # check if one of the types is gfx16.  if it is,
-            # then we don't do a conversion
-            # if (target.scalar_type == 'gfx16') or \
-            #    (value.scalar_type == 'gfx16'):
-            #    pass
-               
-            # else:
-
             temp = self.add_temp(lineno=lineno, data_type=target.scalar_type)
             ir = irConvertType(temp, value, lineno=lineno)
             self.append_node(ir)
             value = temp
-
-            # convert value to target type and replace value with result
-            # first, check if we created a temp reg.  if we did, just
-            # do the conversion in place to avoid creating another, unnecessary
-            # temp reg.
-
-            # if value.temp:
-            #     # check if one of the types is gfx16.  if it is,
-            #     # then we don't do a conversion
-            #     if (target.get_base_type() == 'gfx16') or \
-            #        (value.get_base_type() == 'gfx16'):
-            #        pass
-
-            #     else:
-            #         ir = irConvertTypeInPlace(value, target.get_base_type(), lineno=lineno)
-            #         self.append_node(ir)
-
-            # else:
-            #     # check if one of the types is gfx16.  if it is,
-            #     # then we don't do a conversion
-            #     if (target.get_base_type() == 'gfx16') or \
-            #        (value.get_base_type() == 'gfx16'):
-            #        pass
-                   
-            #     else:
-            #         temp = self.add_temp(lineno=lineno, data_type=target.get_base_type())
-            #         ir = irConvertType(temp, value, lineno=lineno)
-            #         self.append_node(ir)
-            #         value = temp
 
         return value
 
@@ -985,7 +875,6 @@ class Builder(object):
         # special handling for formatted strings
         if isinstance(value, irFormatString):
             value.target = self.load_value(target, lineno=lineno)
-            # value.target = target
 
             self.append_node(value)
 
@@ -1107,8 +996,6 @@ class Builder(object):
         return target
 
     def binop_string(self, op, left, right, target_type='i32', lineno=None):
-        # target = self.add_temp(data_type=target_type, lineno=lineno)
-
         if left.data_type != 'strref':
             raise SyntaxError(f'Invalid operand for string operation: {left.name}', lineno=lineno)
 
@@ -1130,8 +1017,6 @@ class Builder(object):
 
     def formatted_string(self, string, parameters=[], lineno=None):
         ir = irFormatString(self.load_value(string, lineno=lineno), parameters, lineno=lineno)
-
-        # self.append_node(ir)
 
         return ir
 
@@ -1340,10 +1225,6 @@ class Builder(object):
                     # raise SyntaxError(f'Init values only implemented for scalar types and strings', var.lineno)
 
                     pass
-
-                    # for v in var.init_val:
-                    #     ir = irLoadConst(init_var, v, lineno=var.lineno)
-                    #     init_func.body.insert(1, ir)
 
                 else:
                     ir = irLoadConst(init_var, var.init_val, lineno=var.lineno)
@@ -1634,14 +1515,6 @@ class Builder(object):
 
         elif isinstance(target, VarContainer) and isinstance(target.var, varObjectRef) and target.target is not None:
             target_type = target.target.data_type
-
-        # elif isinstance(target, VarContainer) and isinstance(target.var, varObjectRef) and target.target is None:
-            # if target.data_type == 'pixref':
-                # target_type = 'PixelArray'
-
-        # elif isinstance(target, VarContainer) and isinstance(target.var, varOffset):
-            # if target.target.data_type == 'pixref':
-                # target_type = 'PixelArray'
 
         if target_type in OBJECT_FIELDS:
             attr_type = OBJECT_FIELDS[target_type][attr]
