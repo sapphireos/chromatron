@@ -282,16 +282,11 @@ class Builder(object):
                     self.assign(var, var.init_val, lineno=lineno)
 
             elif isinstance(var.var, varPixelArrayRef):
-                const = 0
-
-                # set up init value:
-                if var.init_val is not None:
-                    const = var.init_val
-
                 # default pixelarray ref is initialized to main pixel array
                 value = self.get_var('pixels')
 
                 ir = irLoadRef(var, value, lineno=lineno)
+                var.target = value
 
                 self.append_node(ir)
 
@@ -788,16 +783,29 @@ class Builder(object):
                 ir = irLoadRef(var, value.var, lineno=lineno)
 
             elif value.attr is None:
-                var = self.add_temp(data_type='objref', lineno=lineno)
-                var.target = value
+                # var = self.add_temp(data_type='objref', lineno=lineno)
+                # var.target = value
 
-                ir = irLoadRef(var, value.var, lineno=lineno)
+                # ir = irLoadRef(var, value.var, lineno=lineno)
+
+                # already an object ref... why were we loading another ref here?
+
+                return value
 
             else:
                 ir = irObjectLoad(var, value, value.attr, lineno=lineno)
 
             self.append_node(ir)
 
+            return var
+
+        elif isinstance(value, varPixelArray):
+            var = self.add_temp(data_type='pixref', lineno=lineno)
+            var.target = value
+
+            ir = irLoadRef(var, value, lineno=lineno)
+            self.append_node(ir)
+            
             return var
 
         elif isinstance(value, varObject):

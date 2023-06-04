@@ -2160,9 +2160,42 @@ def init():
     
 """
 
+
+test_pixref_funcarg = """
+
+p1 = PixelArray(2, 12, size_x=3, size_y=4)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+
+def pixfunc(array: PixelArray):
+    a = array.count
+
+def pixfunc2(array: PixelArray):
+    b = array.count
+
+def init():
+    array = PixelArray()
+    array = p1
+
+    pixfunc(array)
+    pixfunc2(pixels)
+
+"""
+
+
 class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
+
+    def test_pixref_funcarg(self, opt_passes):
+        self.run_test(test_pixref_funcarg,
+            opt_passes=opt_passes,
+            expected={
+                'a': 12,
+                'b': 16,
+            })
 
     def test_pixref_load(self, opt_passes):
         self.run_test(test_pixref_load,
