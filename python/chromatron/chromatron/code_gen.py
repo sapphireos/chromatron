@@ -236,8 +236,6 @@ class cg1Var(cg1Node):
         except KeyError:
             raise SyntaxError(f'Variable {self.name} not declared', lineno=self.lineno)
             
-            # return cg1ForwardVar(self, lineno=self.lineno)
-
     def __str__(self):
         return "cg1Var:%s=%s" % (self.name, self.type)
 
@@ -438,15 +436,7 @@ class cg1Call(cg1CodeNode):
         self.keywords = keywords
 
     def build(self, builder, target_type=None):
-        # try:
         params = [p.build(builder) for p in self.params]
-
-        # except VariableNotDeclared as e:
-        #     if self.target in THREAD_FUNCS:
-        #         raise SyntaxError("Parameter '%s' not found for function '%s'.  Thread functions require string parameters." % (e.var, self.target), self.lineno)
-
-        #     else:
-        #         raise
 
         try:
             target = self.target.build(builder)
@@ -721,7 +711,6 @@ class CodeGenPass1(ast.NodeVisitor):
             'String': self._handle_String,
             'StringBuf': self._handle_StringBuf,
             'Function': self._handle_Function,
-            # 'Array': self._handle_Array,
             'Struct': self._handle_Struct,
             'PixelArray': self._handle_PixelArray,
             # 'Palette': self.create_GenericObject,
@@ -851,67 +840,6 @@ class CodeGenPass1(ast.NodeVisitor):
                 keywords['strlen'] = length
 
             return cg1DeclareStr(type='strbuf', keywords=keywords, lineno=node.lineno)
-
-
-        # if len(node.args) > 0 or len(node.keywords) > 0:
-        #     keywords = {}
-        #     for kw in node.keywords:
-        #         keywords[kw.arg] = kw.value.value
-
-        #     if len(node.args) > 0:
-        #         if isinstance(node.args[0], ast.Str):
-        #             init_val = node.args[0].s
-        #             keywords['init_val'] = cg1StrLiteral(init_val, lineno=node.lineno)
-
-        #         else:
-        #             length = node.args[0].n
-        #             keywords['length'] = length
-
-        #     return cg1DeclareStr(type="str", keywords=keywords, lineno=node.lineno)
-
-        # else:
-        #     return cg1DeclareStr(type="str", lineno=node.lineno)
-    
-    # def _handle_Array(self, node):
-    #     dims = [a.n for a in node.args]
-
-    #     data_type = 'i32'
-    #     keywords = {}
-        
-    #     for kw in node.keywords:
-    #         if kw.arg == 'type':
-    #             try:
-    #                 data_type = kw.value.func.id
-
-    #             except AttributeError:
-    #                 data_type = kw.value.id
-
-    #             break
-
-    #     if data_type == 'Number':
-    #         data_type = 'i32'
-
-    #     elif data_type == 'Fixed16':
-    #         data_type = 'f16'
-
-    #     elif data_type == 'String':
-    #         data_type = 'str'
-        
-    #     for kw in node.keywords:
-    #         if kw.arg == 'type':
-    #             continue
-                
-    #         if kw.arg == 'init_val':
-    #             if data_type == 'f16':
-    #                 keywords[kw.arg] = [int(a.n * 65536) for a in kw.value.elts] # convert to fixed16
-
-    #             else:
-    #                 keywords[kw.arg] = [a.n for a in kw.value.elts]
-
-    #         else:
-    #             keywords[kw.arg] = kw.value.id
-
-    #     return cg1DeclareArray(type=data_type, dimensions=dims, keywords=keywords, lineno=node.lineno)
 
     def _handle_Struct(self, node):
         fields = {}
@@ -1236,17 +1164,6 @@ class CodeGenPass1(ast.NodeVisitor):
 
     def visit_JoinedStr(self, node):
         raise SyntaxError(f'f-string syntax not supported.', lineno=node.lineno)
-
-        # for val in node.values:
-        #     visited = self.visit(val)
-
-        #     if isinstance(visited, cg1StrLiteral):
-        #         print(visited.s, len(visited.s))
-
-        #     else:
-        #         print(visited)
-
-        # return cg1FormatStr('meow', lineno=node.lineno)
 
     def generic_visit(self, node):
         raise NotImplementedError(node)
