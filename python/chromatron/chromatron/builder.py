@@ -966,7 +966,8 @@ class Builder(object):
                 raise CompilerFatal(target)
 
         elif isinstance(target, VarContainer) and \
-             isinstance(target.var, varPixelChannelRef):
+             isinstance(target.var, varPixelChannelRef) and \
+             isinstance(value.var, varObjectRef):
 
             target.attr = value.attr
 
