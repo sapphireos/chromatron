@@ -185,10 +185,6 @@ class Builder(object):
         return var
     
     def _build_var(self, name, data_type=None, dimensions=[], keywords={}, lineno=None):
-        # this constrct should really be in codegen....
-        if data_type == 'pixref' and len(keywords) > 0:
-            data_type = 'pixobj'
-
         return self.type_manager.create_var_from_type(name, data_type, dimensions=dimensions, keywords=keywords, lineno=lineno)
 
     def declare_var(self, name, data_type='i32', dimensions=[], keywords={}, is_global=False, lineno=None):
@@ -284,6 +280,22 @@ class Builder(object):
 
                 else:
                     self.assign(var, var.init_val, lineno=lineno)
+
+            elif isinstance(var.var, varPixelArrayRef):
+                const = 0
+
+                # set up init value:
+                if var.init_val is not None:
+                    const = var.init_val
+
+                # default pixelarray ref is initialized to main pixel array
+                value = self.get_var('pixels')
+
+                ir = irLoadRef(var, value, lineno=lineno)
+
+                self.append_node(ir)
+
+                self.add_var_to_symbol_table(var)
 
             elif isinstance(var.var, varObjectRef):
                 const = 0

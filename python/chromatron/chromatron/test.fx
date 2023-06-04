@@ -1,24 +1,4 @@
 
-p1 = PixelArray(3, 2) # 2 pixels starting at index 3 (4th pixel in array)
-
-def obj_store_lookup():
-    pixels.hue = 0.0
-
-    pa = PixelArray()[2]
-    pa[1] = p1
-
-    p = PixelArray()
-    p = pa[1]
-    
-    p.hue = 0.5    
-
-    assert p1[0].hue == 0.5
-    assert p1[1].hue == 0.5
-    assert p1[2].hue == 0.5
-
-def init():
-    obj_store_lookup()
-
 # THIS NEEDS A TEST CASE!
 
 # p1 = PixelArray(2, 12, size_x=3, size_y=4)
@@ -48,39 +28,40 @@ def init():
 #     #     pass
 
 
+p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-# def init():
-#     pixels.hue = 0.5
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
 
-#     # pa = PixelArray()[2]
-#     # pa[1] = p1
-#     # pa[1].hue = 0.5
+def init():
+    array = PixelArray()
 
-#     # assert p1[0].hue == 0.5
-#     # assert p1[1].hue == 0.5
-#     # assert p1[2].hue == 0.5
+    # uninitialized pixref should point to main pixel array:
+    a = array.count
 
-#     return
-    
-#     # pixels.val.sine(0.1)
-
-
-    # pixels.val = 0.5
-    # pixel_func(pixels)
-    # pixel_func(p1)
-
-    # array = PixelArray()
     # array = pixels
 
+    # b = array.count
 
-    # TEST CASE HERE!!!!
-    # print(array.count)
+    # array = p1
+
+    # c = array.count
+
+
+# def init():
+#     array = PixelArray()
+#     array = pixels
+
+
+#     # TEST CASE HERE!!!!
+#     print(array.count)
 
     # still broken:
     # pixel_func(array)
 
     # for i in array.count:
-        # pass
+    #     pass
 
 # a = Number()
 # b = Number()

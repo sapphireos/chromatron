@@ -284,7 +284,14 @@ class cg1Module(cg1Node):
                     # kw = {k: v.build(builder) for k, v in list(node.value.kw.items())}
                     kw = {k: v.name for k, v in list(node.value.kw.items())}
 
-                    builder.generic_object(node.target.name, node.value.name, is_global=True, kw=kw, lineno=node.lineno)
+                    data_type = node.value.name
+
+                    # check if declaring a PixelArray *object* instead
+                    # of a ref:
+                    if data_type == 'pixref' and len(kw) > 0:
+                        data_type = 'pixobj'                    
+
+                    builder.generic_object(node.target.name, data_type, is_global=True, kw=kw, lineno=node.lineno)
 
                 elif isinstance(node.value, cg1Const):
                     if isinstance(node.value.name, float):
@@ -1326,8 +1333,8 @@ OPT_LEVELS = {
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LS_SCHED]
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LOOP]
 
-# OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.GVN]
-OPT_LEVELS['default'] = [OptPasses.SSA]
+OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.GVN]
+# OPT_LEVELS['default'] = [OptPasses.SSA]
 
 
 def main():

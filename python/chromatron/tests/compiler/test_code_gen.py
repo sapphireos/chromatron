@@ -2135,9 +2135,43 @@ def init():
 
 """
 
+
+test_pixref_load = """
+
+p1 = PixelArray(2, 12, size_x=3, size_y=4)
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+
+def init():
+    array = PixelArray()
+
+    # uninitialized pixref should point to main pixel array:
+    a = array.count
+
+    array = pixels
+
+    b = array.count
+
+    array = p1
+
+    c = array.count
+    
+"""
+
 class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
+
+    def test_pixref_load(self, opt_passes):
+        self.run_test(test_pixref_load,
+            opt_passes=opt_passes,
+            expected={
+                'a': 16,
+                'b': 16,
+                'c': 12,
+            })
 
     def test_formatted_string(self, opt_passes):
         self.run_test(test_formatted_string,
