@@ -39,9 +39,19 @@ MAX_UINT32 = 4294967295
 
 MAX_UINT16 = 65535
 
-
 CYCLE_LIMIT = 100000
 
+
+PIXEL_VECTORS = {
+    'hue': 1,
+    'sat': 2,
+    'val': 3,
+    'hs_fade': 4,
+    'v_fade': 5,
+    'reserved1': 6,
+    'reserved2': 7,
+    'reserved3': 8,
+}
 
 PIXEL_ATTR_INDEXES = { # this should match gfx_pixel_array_t in gfx_lib.h
     'count':    0,
@@ -643,12 +653,14 @@ class insFunc(object):
 
         return self.program.get_pool(pool_type)
 
-    def get_pixel_array(self, index):
+    def get_pixel_array(self, addr):
         try:
-            return list(self.pixel_arrays.values())[index]
+            index = int(addr / len(PIXEL_VECTORS))
 
         except TypeError:
-            return list(self.pixel_arrays.values())[index.addr]
+            index = int(addr.addr / len(PIXEL_VECTORS))
+        
+        return list(self.pixel_arrays.values())[index]
 
     def calc_index(self, indexes=[], pixel_array='pixels'):
         try:
@@ -2862,6 +2874,35 @@ class insPixelStoreHSFade(insPixelStore):
 class insPixelStoreVFade(insPixelStore):
     mnemonic = 'PSTORE_V_FADE'
 
+class insPixelStoreSelect(insPixelStore):
+    mnemonic = 'PSTORE_SELECT'
+
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+        value = vm.registers[self.value.reg]
+
+        pixel_array = vm.get_pixel_array(ref)
+
+        attr = ref % len(PIXEL_VECTORS)
+
+        for k, v in PIXEL_VECTORS.items():
+            if v == attr:
+                attr = k
+                break
+
+        instructions = {
+            'hue': insPixelStoreHue,
+            'sat': insPixelStoreSat,
+            'val': insPixelStoreVal,
+            'hs_fade': insPixelStoreHSFade,
+            'v_fade': insPixelStoreVFade,
+        }
+
+        ins = instructions[attr](self.pixel_ref, attr, self.value, lineno=self.lineno)
+        
+        ins.execute(vm)
+
+
 # class insPixelStoreAttr(insPixelStore):
 #     mnemonic = 'PSTORE_ATTR'
     
@@ -3022,6 +3063,34 @@ class insVPixelStoreHSFade(insVPixelStore):
 class insVPixelStoreVFade(insVPixelStore):
     mnemonic = 'VSTORE_V_FADE'
     
+class insVPixelStoreSelect(insVPixelStore):
+    mnemonic = 'VSTORE_SELECT'
+
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+        value = vm.registers[self.value.reg]
+
+        pixel_array = vm.get_pixel_array(ref)
+
+        attr = ref.addr % len(PIXEL_VECTORS)
+        
+        for k, v in PIXEL_VECTORS.items():
+            if v == attr:
+                attr = k
+                break
+
+        instructions = {
+            'hue': insVPixelStoreHue,
+            'sat': insVPixelStoreSat,
+            'val': insVPixelStoreVal,
+            'hs_fade': insVPixelStoreHSFade,
+            'v_fade': insVPixelStoreVFade,
+        }
+
+        ins = instructions[attr](self.pixel_ref, attr, self.value, lineno=self.lineno)
+        
+        ins.execute(vm)
+
 class insPixelLoad(BaseInstruction):
     mnemonic = 'PLOAD'
 

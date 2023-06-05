@@ -969,12 +969,12 @@ class Builder(object):
              isinstance(target.var, varPixelChannelRef) and \
              isinstance(value.var, varObjectRef):
 
-            target.attr = value.attr
+            # target.attr = value.attr
 
-            if len(value.lookups) > 0:
-                raise CompilerFatal
+            # if len(value.lookups) > 0:
+                # raise CompilerFatal
 
-            target.lookups = []
+            # target.lookups = []
 
             ir = irAssign(target, value, lineno=lineno)
 
@@ -987,7 +987,12 @@ class Builder(object):
                     is_db = True
 
                 if len(target.lookups) > 0 and not is_db:
-                    result = self.add_temp(data_type='objref', lineno=lineno)
+                    data_type = 'objref'
+
+                    if isinstance(target.var, varPixelChannelRef):
+                        data_type = 'pixchref'
+
+                    result = self.add_temp(data_type=data_type, lineno=lineno)
                     
                     if target.target:
                         result.target = target.target

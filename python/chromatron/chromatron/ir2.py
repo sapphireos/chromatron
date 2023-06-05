@@ -41,14 +41,6 @@ PIXEL_FIELDS = {
     'palette': 'i32',
 }
 
-PIXEL_VECTORS = [
-    'hue',
-    'sat',
-    'val',
-    'hs_fade',
-    'v_fade',
-]
-
 PIXEL_SCALARS = [
     # 'is_v_fading', 
     # 'is_hs_fading',
@@ -489,11 +481,11 @@ class irProgram(IR):
 
         pix_arrays = {p.name: p for p in self.global_symbols.symbols.values() if p.data_type == 'pixobj'}
         pix_arrays['pixels'].addr = irAddr(pix_arrays['pixels'], 0, StorageType.PIXEL_ARRAY)
-        pix_addr = 1
+        pix_addr = len(PIXEL_VECTORS)
 
         for p in [a for a in pix_arrays.values() if a.name != 'pixels']:
             p.addr = irAddr(p, pix_addr, StorageType.PIXEL_ARRAY)
-            pix_addr += 1
+            pix_addr += len(PIXEL_VECTORS)
 
         func_addr = 0
         for f in [g for g in self.global_symbols.symbols.values() if isinstance(g, varFunction)]:
@@ -6685,6 +6677,20 @@ class irObjectStore(IR):
         target = self.target.generate()
         value = self.value.generate()
 
+        # pixel channel reference:
+        if target.var.data_type == 'pixchref':
+            attr = self.attr.name
+
+            if attr in PIXEL_VECTORS:
+                if len(target.var.lookups) == 0:
+                    return insVPixelStoreSelect(target.var, attr, value, lineno=self.lineno)
+
+                else:
+                    return insPixelStoreSelect(target.var, attr, value, lineno=self.lineno)
+
+            # non-vector, go to next block
+            # for the attribute store
+
         # pixel array reference
         if target.var.data_type == 'pixref' or \
            target.var.target.data_type == 'pixref' or \
@@ -7209,7 +7215,17 @@ class irLoadRef(IR):
         return [self.target]
 
     def generate(self):
-        return insLoadRef(self.target.generate(), self.ref.generate(), lineno=self.lineno)
+        target = self.target.generate()
+        ref = self.ref.generate()
+
+        if isinstance(target.var.var, varObjectRef) and \
+           target.var.target.data_type == 'pixobj' and \
+           target.var.attr is not None and \
+           target.var.attr.name in PIXEL_VECTORS:
+
+            ref.addr += PIXEL_VECTORS[target.var.attr.name]
+
+        return insLoadRef(target, ref, lineno=self.lineno)
         
 # Load register from memory
 class irLoad(IR):

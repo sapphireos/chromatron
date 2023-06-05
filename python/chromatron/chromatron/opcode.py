@@ -111,11 +111,14 @@ opcodes = {
     'PSTORE_VAL':           0x62,
     'PSTORE_HS_FADE':       0x63,
     'PSTORE_V_FADE':        0x64,
+    'PSTORE_SELECT':        0x65,
+
     'VSTORE_HUE':           0x68,
     'VSTORE_SAT':           0x69,
     'VSTORE_VAL':           0x6A,
     'VSTORE_HS_FADE':       0x6B,
     'VSTORE_V_FADE':        0x6C,
+    'VSTORE_SELECT':        0x6D,
 
     'PLOAD_HUE':            0x70,
     'PLOAD_SAT':            0x71,

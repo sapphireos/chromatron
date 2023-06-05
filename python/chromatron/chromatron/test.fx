@@ -66,7 +66,12 @@ def init():
     ch = pixels.hue
     # print(ch.count)
 
-    ch = 1.0
+    ch = 0.5
+    # ch.count = 12
+    # print(ch)
+    ch[1] = 1.0
+    # ch[ch.count - 1] = 0.25
+    # ch[-1] = 0.25
 
     # pixelfunc(ch)
 
