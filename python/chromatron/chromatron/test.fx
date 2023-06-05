@@ -65,7 +65,8 @@ def init():
     ch = PixelChannel()
     
     ch = pixels.hue
-    ch = 0.5
+    # print(ch)
+    # ch = 0.5
 
     # print(ch.count)
 

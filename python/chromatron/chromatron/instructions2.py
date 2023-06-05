@@ -2357,7 +2357,11 @@ class insPrintRef(BaseInstruction):
 
             return
 
-        value = ref.pool[ref.addr]
+        addr = ref.addr
+        if ref.pool.name == '_pixels':
+            addr = int(ref.addr / len(PIXEL_VECTORS))
+
+        value = ref.pool[addr]
 
         print(f'PRINTREF: {value}')    
             
