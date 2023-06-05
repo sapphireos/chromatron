@@ -6833,6 +6833,17 @@ class irObjectLoad(IR):
 
         """
 
+        # pixel channel reference:
+        if value.var.data_type == 'pixchref':
+            attr = self.attr.name
+
+            if attr in PIXEL_VECTORS:
+                if len(value.var.lookups) != 0:
+                    return insPixelLoadSelect(target, value.var, attr, lineno=self.lineno)
+
+            # non-vector, go to next block
+            # for the attribute store
+
         if value.var.data_type == 'pixref' or \
            value.var.target.data_type == 'pixref' or \
            value.var.target.data_type == 'pixobj':

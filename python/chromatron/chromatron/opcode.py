@@ -125,6 +125,7 @@ opcodes = {
     'PLOAD_VAL':            0x72,
     'PLOAD_HS_FADE':        0x73,
     'PLOAD_V_FADE':         0x74,
+    'PLOAD_SELECT':         0x75,
     # 'VLOAD_HUE':            0x78,
     # 'VLOAD_SAT':            0x79,
     # 'VLOAD_VAL':            0x7A,

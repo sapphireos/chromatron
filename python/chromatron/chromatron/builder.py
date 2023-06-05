@@ -781,7 +781,12 @@ class Builder(object):
                 var = self.add_temp(data_type='var', lineno=lineno)
 
             if len(value.lookups) > 0 and not is_db:
-                result = self.add_temp(data_type='objref', lineno=lineno)
+                data_type = 'objref'
+
+                if value.var.data_type == 'pixchref':
+                    data_type = value.var.data_type
+
+                result = self.add_temp(data_type=data_type, lineno=lineno)
                     
                 if value.target:
                     result.target = value.target

@@ -63,13 +63,21 @@ def init():
     # pixels.val = 1.0
 
     ch = PixelChannel()
+    
     ch = pixels.hue
+    ch = 0.5
+
     # print(ch.count)
 
-    ch = 0.5
+    # temp = Fixed16()
+
+    # temp = ch[3]
+    # print(temp)
+
+    # ch = 0.5
     # ch.count = 12
     # print(ch)
-    ch[1] = 1.0
+    ch[2] = 1.0
     # ch[ch.count - 1] = 0.25
     # ch[-1] = 0.25
 

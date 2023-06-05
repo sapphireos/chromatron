@@ -3164,6 +3164,30 @@ class insPixelLoadAttr(insPixelLoad):
     def assemble(self):
         return OpcodeFormat1Imm2RegS(self.mnemonic, PIXEL_ATTR_INDEXES[self.attr], self.pixel_index.reg, self.target.assemble(), lineno=self.lineno)
 
+class insPixelLoadSelect(insPixelLoad):
+    mnemonic = 'PLOAD_SELECT'
+
+    def __init__(self, target, pixel_index, attr, **kwargs):
+        super().__init__(target, pixel_index, attr, **kwargs)
+        
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_index.reg]
+
+        print(ref)
+
+        # value = 0
+
+        # if self.attr == 'is_v_fading':
+        #     if vm.gfx_data['val'][ref] != 0:
+        #         value = 1
+
+        # elif self.attr == 'is_hs_fading':
+        #     if vm.gfx_data['hue'][ref] != 0:
+        #         value = 1
+
+        # vm.registers[self.target.reg] = value
+
+
 
 class insPixelAdd(BaseInstruction):
     mnemonic = 'PADD'
