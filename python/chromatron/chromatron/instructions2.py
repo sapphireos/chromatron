@@ -921,6 +921,7 @@ class insAddr(BaseInstruction):
         self.addr = addr
         self.var = var
         self.storage = storage
+        self.index = 0
 
         assert addr >= 0 and addr <= MAX_UINT16
 
@@ -2857,10 +2858,10 @@ class insPixelStore(BaseInstruction):
         elif value > 65535:
             value = 65535
 
-        assert isinstance(ref, int)
+        assert isinstance(ref.index, int)
 
         # if we got an index, this is an indexed access
-        array[ref] = value
+        array[ref.index] = value
 
     def assemble(self):
         # we don't encode attribute, the opcode itself will encode that
@@ -3180,11 +3181,11 @@ class insPixelLoadAttr(insPixelLoad):
         value = 0
 
         if self.attr == 'is_v_fading':
-            if vm.gfx_data['val'][ref] != 0:
+            if vm.gfx_data['val'][ref.index] != 0:
                 value = 1
 
         elif self.attr == 'is_hs_fading':
-            if vm.gfx_data['hue'][ref] != 0:
+            if vm.gfx_data['hue'][ref.index] != 0:
                 value = 1
 
         vm.registers[self.target.reg] = value
@@ -3234,7 +3235,7 @@ class insPixelAdd(BaseInstruction):
         return "%s %s.%s += %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
 
     def execute(self, vm):
-        index = vm.registers[self.pixel_index.reg]
+        index = vm.registers[self.pixel_index.reg].index
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
@@ -3273,7 +3274,7 @@ class insPixelSub(BaseInstruction):
         return "%s %s.%s -= %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
 
     def execute(self, vm):
-        index = vm.registers[self.pixel_index.reg]
+        index = vm.registers[self.pixel_index.reg].index
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
@@ -3292,7 +3293,7 @@ class insPixelSubHue(insPixelSub):
     mnemonic = 'PSUB_HUE'
 
     def execute(self, vm):
-        index = vm.registers[self.pixel_index.reg]
+        index = vm.registers[self.pixel_index.reg].index
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
@@ -3328,7 +3329,7 @@ class insPixelMul(BaseInstruction):
         return "%s %s.%s *= %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
 
     def execute(self, vm):
-        index = vm.registers[self.pixel_index.reg]
+        index = vm.registers[self.pixel_index.reg].index
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
@@ -3353,7 +3354,7 @@ class insPixelMulHue(insPixelMul):
     mnemonic = 'PMUL_HUE'
 
     def execute(self, vm):
-        index = vm.registers[self.pixel_index.reg]
+        index = vm.registers[self.pixel_index.reg].index
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
@@ -3396,7 +3397,7 @@ class insPixelDiv(BaseInstruction):
         return "%s %s.%s /= %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
 
     def execute(self, vm):
-        index = vm.registers[self.pixel_index.reg]
+        index = vm.registers[self.pixel_index.reg].index
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
@@ -3425,7 +3426,7 @@ class insPixelDivHue(insPixelDiv):
     mnemonic = 'PDIV_HUE'
 
     def execute(self, vm):
-        index = vm.registers[self.pixel_index.reg]
+        index = vm.registers[self.pixel_index.reg].index
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]
@@ -3469,7 +3470,7 @@ class insPixelMod(BaseInstruction):
         return "%s %s.%s %%= %s" % (self.mnemonic, self.pixel_index, self.attr, self.value)
 
     def execute(self, vm):
-        index = vm.registers[self.pixel_index.reg]
+        index = vm.registers[self.pixel_index.reg].index
         value = vm.registers[self.value.reg]
 
         array = vm.gfx_data[self.attr]

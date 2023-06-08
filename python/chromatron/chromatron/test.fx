@@ -1,4 +1,21 @@
 
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+
+def init():
+    a = pixels[1].is_v_fading
+
+    pixels[1].val = 0.5
+
+    b = pixels[1].is_v_fading
+    c = pixels[0].is_v_fading
+
+    pixels.val = 1.0
+    d = pixels[0].is_v_fading
+
+
 # THIS NEEDS A TEST CASE!
 
 # p1 = PixelArray(2, 12, size_x=3, size_y=4)
@@ -33,7 +50,7 @@
 
 # p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-def init():
+# def init():
     # array = PixelArray()
 
     # uninitialized pixref should point to main pixel array:
@@ -62,22 +79,22 @@ def init():
 
     # pixels.val = 1.0
 
-    ch = PixelChannel()
+    # ch = PixelChannel()
     
-    ch = pixels.hue
-    # print(ch)
-    ch = 0.5
-
-    # print(ch.count)
-
-    # temp = Fixed16()
-
-    # temp = ch[3]
-    # print(temp)
-
-    print(ch[2])
-
+    # ch = pixels.hue
+    # # print(ch)
     # ch = 0.5
+
+    # # print(ch.count)
+
+    # # temp = Fixed16()
+
+    # # temp = ch[3]
+    # # print(temp)
+
+    # print(ch[2])
+
+    # # ch = 0.5
     # ch.count = 12
     # print(ch)
     # ch[2] = 1.0
