@@ -1201,7 +1201,8 @@ class Builder(object):
             ir = irVectorOp(op, target, value, lineno=lineno)
             self.append_node(ir)
 
-        elif target.data_type == 'objref':
+        # elif target.data_type == 'objref':
+        elif isinstance(target.var, varObjectRef):
             is_db = False
             if target.target is not None and target.target.data_type == 'obj' and target.target.name == 'db':
                 is_db = True
