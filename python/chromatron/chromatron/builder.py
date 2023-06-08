@@ -298,8 +298,8 @@ class Builder(object):
 
                 ir = irLoadRef(var, value, lineno=lineno)
                 var.target = value
-                attr = irAttribute('val', data_type=PIXEL_FIELDS['val'], lineno=lineno)
-                var.attr = attr
+                # attr = irAttribute('val', data_type=PIXEL_FIELDS['val'], lineno=lineno)
+                # var.attr = attr
 
                 self.append_node(ir)
 
@@ -494,8 +494,8 @@ class Builder(object):
             # in downstream code is not great, but is a consequence of
             # the inelegance in how we're making references work.
             var.target = self.get_var('pixels')
-            attr = irAttribute('val', data_type=PIXEL_FIELDS['val'], lineno=lineno)
-            var.attr = attr
+            #attr = irAttribute('val', data_type=PIXEL_FIELDS['val'], lineno=lineno)
+            #var.attr = attr
 
         self.add_var_to_symbol_table(var)
 
@@ -889,7 +889,7 @@ class Builder(object):
         elif (isinstance(value, VarContainer) and isinstance(target, VarContainer) and \
               isinstance(value.var, varScalar) and isinstance(target.var, varRef)):
 
-            if target.attr.data_type is not None and target.attr.data_type != 'gfx16':
+            if target.attr is not None and target.attr.data_type is not None and target.attr.data_type != 'gfx16':
                 temp = self.add_temp(lineno=lineno, data_type=target.attr.data_type)
                 ir = irConvertType(temp, value, lineno=lineno)
                 self.append_node(ir)
@@ -995,7 +995,8 @@ class Builder(object):
                     data_type = 'objref'
 
                     if isinstance(target.var, varPixelChannelRef):
-                        data_type = 'pixchref'
+                        # data_type = 'pixchref'
+                        raise CompilerFatal
 
                     result = self.add_temp(data_type=data_type, lineno=lineno)
                     
@@ -1017,6 +1018,27 @@ class Builder(object):
                     ir = irObjectStore(target, value, target.attr, lineno=lineno)
 
                 target.attr = None
+
+            elif isinstance(target.var, varPixelChannelRef):
+                if len(target.lookups) > 0:
+                    result = self.add_temp(data_type='pixchref', lineno=lineno)
+                    
+                    if target.target:
+                        result.target = target.target
+
+                    else:
+                        result.target = target
+                    
+                    ir = irObjectLookup(result, target, lookups=target.lookups, lineno=lineno)
+                    self.append_node(ir)
+
+                    result.lookups = target.lookups # object store may need to know if there are any lookups for instruction selection
+                    target.lookups = []
+
+                    ir = irVectorAssign(result, value, lineno=lineno)
+
+                else:
+                    ir = irVectorAssign(target, value, lineno=lineno)
 
             else:
                 if isinstance(value.var, varScalar):
@@ -1614,7 +1636,12 @@ class Builder(object):
             # object access direct from an object requires the reference be loaded
             # p1(PixelArray)
 
-            var = self.add_temp(data_type='objref', lineno=lineno)
+            data_type = 'objref'
+
+            if isinstance(target, varPixelArray):
+                data_type = 'pixchref'
+
+            var = self.add_temp(data_type=data_type, lineno=lineno)
             var.target = target
             var.attr = self.current_attr.pop(0)[-1]
 

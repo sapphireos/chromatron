@@ -1,4 +1,11 @@
 
+def init():
+    pixels.v_fade = 500
+    pixels.v_fade *= 2
+
+
+
+    
 # THIS NEEDS A TEST CASE!
 
 # p1 = PixelArray(2, 12, size_x=3, size_y=4)
@@ -47,30 +54,32 @@
 
     # c = array.count
 
-def pixelfunc(ch: PixelChannel):
-    ch = 0.5
+# def pixelfunc(ch: PixelChannel):
+#     ch = 0.5
 
-def init():
-    # array = PixelArray()
-    # array = pixels
+# def init():
+#     # array = PixelArray()
+#     # array = pixels
 
 
-#     # TEST CASE HERE!!!!
-#     print(array.count)
+# #     # TEST CASE HERE!!!!
+# #     print(array.count)
 
-    # still broken:
-    # pixel_func(pixels)
-    # pixel_func(array)
+#     # still broken:
+#     # pixel_func(pixels)
+#     # pixel_func(array)
 
-    # pixels.val = 1.0
+#     # pixels.val = 1.0
 
-    ch = PixelChannel()
+#     ch = PixelChannel()
     
-    ch = pixels.hue
-    # # print(ch)
-    # ch = 0.5
+#     ch = pixels.hue
+#     # # print(ch)
+#     # ch[1] = 0.5
 
-    pixelfunc(ch)
+#     # ch = 0.5
+
+#     pixelfunc(ch)
     
     # # print(ch.count)
 

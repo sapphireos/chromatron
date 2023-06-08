@@ -6436,7 +6436,15 @@ class irVectorAssign(IR):
         return []
 
     def generate(self):
-        return insVectorMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
+        if isinstance(self.target.var, varPixelChannelRef):
+            if len(self.target.lookups) > 0:
+                return insPixelStoreSelect(self.target.generate(), None, self.value.generate(), lineno=self.lineno)
+
+            else:
+                return insVPixelStoreSelect(self.target.generate(), None, self.value.generate(), lineno=self.lineno)
+
+        else:
+            return insVectorMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
 
 class irVectorOp(IR):
     def __init__(self, op, target, value, **kwargs):
@@ -6676,20 +6684,6 @@ class irObjectStore(IR):
     def generate(self):
         target = self.target.generate()
         value = self.value.generate()
-
-        # pixel channel reference:
-        if target.var.data_type == 'pixchref':
-            attr = self.attr.name
-
-            if attr in PIXEL_VECTORS:
-                if len(target.var.lookups) == 0:
-                    return insVPixelStoreSelect(target.var, attr, value, lineno=self.lineno)
-
-                else:
-                    return insPixelStoreSelect(target.var, attr, value, lineno=self.lineno)
-
-            # non-vector, go to next block
-            # for the attribute store
 
         # pixel array reference
         if target.var.data_type == 'pixref' or \
@@ -7186,6 +7180,12 @@ class irLoadRef(IR):
         self.target = target
         self.ref = ref
 
+        try:
+            self.attr = target.var.attr
+
+        except AttributeError:
+            self.attr = None
+
         if isinstance(ref, VarContainer):
             raise CompilerFatal
 
@@ -7198,7 +7198,7 @@ class irLoadRef(IR):
 
     @property
     def gvn_expr(self):
-        return f'loadref {self.ref}'
+        return f'loadref {self.ref}.{self.attr}'
 
     def gvn_process(self, VN):
         if self.ref in VN:
