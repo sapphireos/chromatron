@@ -3141,7 +3141,7 @@ class insPixelLoad(BaseInstruction):
             raise CompilerFatal(f'Unknown attribute: {self.attr}')
 
         array = vm.gfx_data[self.attr]
-        value = array[ref]
+        value = array[ref.index]
 
         vm.registers[self.target.reg] = value
     
@@ -3199,23 +3199,26 @@ class insPixelLoadSelect(insPixelLoad):
         super().__init__(target, pixel_index, attr, **kwargs)
         
     def execute(self, vm):
-        ref = vm.registers[self.pixel_index.reg]
+        pixel_ref = vm.registers[self.pixel_index.reg]
 
-        print(ref)
+        attr = pixel_ref.attr
 
-        # value = 0
+        for k, v in PIXEL_VECTORS.items():
+            if v == attr:
+                attr = k
+                break
 
-        # if self.attr == 'is_v_fading':
-        #     if vm.gfx_data['val'][ref] != 0:
-        #         value = 1
+        instructions = {
+            'hue': insPixelLoadHue,
+            'sat': insPixelLoadSat,
+            'val': insPixelLoadVal,
+            'hs_fade': insPixelLoadHSFade,
+            'v_fade': insPixelLoadVFade,
+        }
 
-        # elif self.attr == 'is_hs_fading':
-        #     if vm.gfx_data['hue'][ref] != 0:
-        #         value = 1
-
-        # vm.registers[self.target.reg] = value
-
-
+        ins = instructions[attr](self.target, self.pixel_index, attr, lineno=self.lineno)
+        
+        ins.execute(vm)
 
 class insPixelAdd(BaseInstruction):
     mnemonic = 'PADD'
