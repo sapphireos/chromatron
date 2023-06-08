@@ -1,21 +1,4 @@
 
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-d = Number(publish=True)
-
-def init():
-    a = pixels[1].is_v_fading
-
-    pixels[1].val = 0.5
-
-    b = pixels[1].is_v_fading
-    c = pixels[0].is_v_fading
-
-    pixels.val = 1.0
-    d = pixels[0].is_v_fading
-
-
 # THIS NEEDS A TEST CASE!
 
 # p1 = PixelArray(2, 12, size_x=3, size_y=4)
@@ -64,8 +47,10 @@ def init():
 
     # c = array.count
 
+def pixelfunc(ch: PixelChannel):
+    ch = 0.5
 
-# def init():
+def init():
     # array = PixelArray()
     # array = pixels
 
@@ -79,12 +64,14 @@ def init():
 
     # pixels.val = 1.0
 
-    # ch = PixelChannel()
+    ch = PixelChannel()
     
-    # ch = pixels.hue
+    ch = pixels.hue
     # # print(ch)
     # ch = 0.5
 
+    pixelfunc(ch)
+    
     # # print(ch.count)
 
     # # temp = Fixed16()
