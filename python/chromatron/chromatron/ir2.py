@@ -481,11 +481,11 @@ class irProgram(IR):
 
         pix_arrays = {p.name: p for p in self.global_symbols.symbols.values() if p.data_type == 'pixobj'}
         pix_arrays['pixels'].addr = irAddr(pix_arrays['pixels'], 0, StorageType.PIXEL_ARRAY)
-        pix_addr = len(PIXEL_VECTORS)
+        pix_addr = 1
 
         for p in [a for a in pix_arrays.values() if a.name != 'pixels']:
             p.addr = irAddr(p, pix_addr, StorageType.PIXEL_ARRAY)
-            pix_addr += len(PIXEL_VECTORS)
+            pix_addr += 1
 
         func_addr = 0
         for f in [g for g in self.global_symbols.symbols.values() if isinstance(g, varFunction)]:
@@ -7234,7 +7234,7 @@ class irLoadRef(IR):
            target.var.attr is not None and \
            target.var.attr.name in PIXEL_VECTORS:
 
-            ref.addr += PIXEL_VECTORS[target.var.attr.name]
+            ref.index = PIXEL_VECTORS[target.var.attr.name]
 
         return insLoadRef(target, ref, lineno=self.lineno)
         

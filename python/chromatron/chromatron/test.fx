@@ -75,7 +75,7 @@ def init():
     # temp = ch[3]
     # print(temp)
 
-    # ch = 0.5
+    ch = 0.5
     # ch.count = 12
     # print(ch)
     ch[2] = 1.0

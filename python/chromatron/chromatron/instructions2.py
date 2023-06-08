@@ -655,10 +655,10 @@ class insFunc(object):
 
     def get_pixel_array(self, addr):
         try:
-            index = int(addr / len(PIXEL_VECTORS))
+            index = int(addr)
 
         except TypeError:
-            index = int(addr.addr / len(PIXEL_VECTORS))
+            index = int(addr.addr)
         
         return list(self.pixel_arrays.values())[index]
 
@@ -940,21 +940,43 @@ class insAddr(BaseInstruction):
 class insRef(BaseInstruction):
     mnemonic = '_REF'
 
-    def __init__(self, addr=None, pool: list=None, **kwargs):
+    def __init__(self, addr=None, pool: list=None, index=0, **kwargs):
         super().__init__(**kwargs)
         self.addr = addr
         self.pool = pool
+        self.index = index
 
         assert addr >= 0 and addr <= MAX_UINT16
 
     def __str__(self):
-        return f"Ref({self.addr}@{self.pool.name})"
+        return f"Ref({self.addr}@{self.pool.name}[{self.index}])"
 
     def dereference(self):
         return self.pool[self.addr]
     
     def assemble(self):
         raise CompilerFatal
+
+# pseudo instruction - does not actually produce an opcode
+class insPixelIndex(BaseInstruction):
+    mnemonic = '_PIXELINDEX'
+
+    def __init__(self, index=0, attr=0, **kwargs):
+        super().__init__(**kwargs)
+        self.index = index
+        self.attr = attr
+
+        assert index >= 0 and index <= MAX_UINT16
+
+    def __str__(self):
+        return f"PixelIndex([{self.index}].{self.attr})"
+
+    # def dereference(self):
+        # return self.pool[self.addr]
+    
+    def assemble(self):
+        raise CompilerFatal
+
 
 
 class insNop(BaseInstruction):
@@ -1112,7 +1134,7 @@ class insLoadRef(BaseInstruction):
     def execute(self, vm):
         pool = vm.get_pool(self.src.storage)
 
-        ref = insRef(self.src.addr, pool, lineno=self.src.lineno)
+        ref = insRef(self.src.addr, pool=pool, index=self.src.index, lineno=self.src.lineno)
 
         vm.registers[self.dest.reg] = ref
 
@@ -2786,7 +2808,9 @@ class insPixelLookup(BaseInstruction):
 
         index = vm.calc_index(indexes, ref)
 
-        vm.registers[self.result.reg] = index
+        pixel_index = insPixelIndex(index, ref.index, lineno=self.lineno)
+
+        vm.registers[self.result.reg] = pixel_index
 
     def assemble(self):
         raise NotImplementedError
@@ -2853,7 +2877,7 @@ class insPixelStoreHue(insPixelStore):
 
         array = vm.gfx_data[self.attr]
 
-        assert isinstance(ref, int)
+        assert isinstance(ref.index, int)
 
         if value == 65536:
             # this is a shortcut to allow assignment 1.0 to be maximum, instead
@@ -2861,10 +2885,10 @@ class insPixelStoreHue(insPixelStore):
             value = 65535
 
         # if we got an index, this is an indexed access
-        array[ref] = value
+        array[ref.index] = value
 
         # hue will wrap around
-        array[ref] %= 65536        
+        array[ref.index] %= 65536
 
 class insPixelStoreVal(insPixelStore):
     mnemonic = 'PSTORE_VAL'
@@ -2882,12 +2906,12 @@ class insPixelStoreSelect(insPixelStore):
     mnemonic = 'PSTORE_SELECT'
 
     def execute(self, vm):
-        ref = vm.registers[self.pixel_ref.reg]
+        pixel_ref = vm.registers[self.pixel_ref.reg]
         value = vm.registers[self.value.reg]
 
-        pixel_array = vm.get_pixel_array(ref)
+        pixel_array = vm.get_pixel_array(0)
 
-        attr = ref % len(PIXEL_VECTORS)
+        attr = pixel_ref.attr
 
         for k, v in PIXEL_VECTORS.items():
             if v == attr:
@@ -3076,7 +3100,7 @@ class insVPixelStoreSelect(insVPixelStore):
 
         pixel_array = vm.get_pixel_array(ref)
 
-        attr = ref.addr % len(PIXEL_VECTORS)
+        attr = ref.index
         
         for k, v in PIXEL_VECTORS.items():
             if v == attr:

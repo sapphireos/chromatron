@@ -195,6 +195,42 @@ typedef struct __attribute__((packed)){
 #define POOL_FUNCTIONS          3
 #define POOL_LOCAL              4
 
+/*
+
+Changes for reference and pixel lookup:
+
+
+Reference is currently 16 bits pool and 16 bits address.
+There is no way we'll use 16 bits of pool space.
+
+Change to an 8 bit pool, 16 bits of address, and 8 bits 
+of index.
+
+The index can mean whatever the selected pool needs it to be.
+Most pools will be 0.
+The pixel pool will use it for attribute selection.
+
+
+Similar story for pixel lookup.
+Right now, pixel lookup just loads a 32 bit index (for the master
+array).
+
+
+Pixel lookup should load an encoded value with the pixel index
+in 16 bits, an 8 bit attribute selector, and 8 bits of reserved
+for later use.
+
+It's similar to the ref, but still distince: a Ref cannot
+provide an index into the pixel array.
+
+The pixel lookup index on the other hand cannot specify any object
+other than the master pixel array, but it can index within it
+and also select an attribute.
+
+
+*/
+
+
 typedef struct __attribute__((packed)){
     uint16_t pool;
     uint16_t addr;
