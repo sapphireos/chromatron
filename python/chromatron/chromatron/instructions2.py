@@ -3221,6 +3221,52 @@ class insPixelLoadSelect(insPixelLoad):
         
         ins.execute(vm)
 
+
+class insPixelOpSelect(BaseInstruction):
+    mnemonic = 'POP_SELECT'
+
+    def __init__(self, op, pixel_ref, value, **kwargs):
+        super().__init__(**kwargs)
+            
+        self.op = op
+        self.pixel_ref = pixel_ref
+        self.value = value
+
+    def __str__(self):
+        return "%s %s %s= %s" % (self.mnemonic, self.pixel_ref, self.op, self.value)
+
+    def execute(self, vm):
+        ref = vm.registers[self.pixel_ref.reg]
+        pixel_array = vm.get_pixel_array(0)
+
+        value = vm.registers[self.value.reg]
+
+        attr = ref.attr
+
+        for k, v in PIXEL_VECTORS.items():
+            if v == attr:
+                attr = k
+                break
+
+
+        instructions = {
+            'add': {
+                'hue': insPixelAddHue,
+                'sat': insPixelAddSat,
+                'val': insPixelAddVal,
+                'hs_fade': insPixelAddHSFade,
+                'v_fade': insPixelAddVFade,
+            }
+        }
+
+        ins = instructions[self.op][attr](self.pixel_ref, attr, self.value, lineno=self.lineno)
+        
+        ins.execute(vm)
+
+    def assemble(self):
+        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+
+
 class insPixelAdd(BaseInstruction):
     mnemonic = 'PADD'
 
@@ -3533,18 +3579,40 @@ class insVPixelOpSelect(BaseInstruction):
                 'val': insVPixelAddVal,
                 'hs_fade': insVPixelAddHSFade,
                 'v_fade': insVPixelAddVFade,
-            }
+            },
+            'sub': {
+                'hue': insVPixelSubHue,
+                'sat': insVPixelSubSat,
+                'val': insVPixelSubVal,
+                'hs_fade': insVPixelSubHSFade,
+                'v_fade': insVPixelSubVFade,
+            },
+            'mul': {
+                'hue': insVPixelMulHue,
+                'sat': insVPixelMulSat,
+                'val': insVPixelMulVal,
+                'hs_fade': insVPixelMulHSFade,
+                'v_fade': insVPixelMulVFade,
+            },
+            'div': {
+                'hue': insVPixelDivHue,
+                'sat': insVPixelDivSat,
+                'val': insVPixelDivVal,
+                'hs_fade': insVPixelDivHSFade,
+                'v_fade': insVPixelDivVFade,
+            },
+            'mod': {
+                'hue': insVPixelModHue,
+                'sat': insVPixelModSat,
+                'val': insVPixelModVal,
+                'hs_fade': insVPixelModHSFade,
+                'v_fade': insVPixelModVFade,
+            },
         }
 
         ins = instructions[self.op][attr](self.pixel_ref, attr, self.value, lineno=self.lineno)
         
         ins.execute(vm)
-
-        # array = vm.gfx_data[attr]
-
-        # for i in range(pixel_array['count']):
-        #     idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
-        #     self.array_func(array, idx, value)
 
     def assemble(self):
         return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)

@@ -4114,6 +4114,31 @@ def init():
 
 """
 
+
+
+test_pixel_channel_vector_op = """
+
+def init():
+    ch = PixelChannel()
+
+    ch = pixels.hue
+    ch = 0.1
+    ch += 0.4
+
+"""
+
+
+test_pixel_channel_pixel_op = """
+
+def init():
+    ch = PixelChannel()
+
+    ch = pixels.hue
+    ch = 0.1
+    ch[1] += 0.4
+
+"""
+
 class HSVArrayTests(object):
     def assertEqual(self, actual, expected):
         assert actual == expected
@@ -4121,6 +4146,24 @@ class HSVArrayTests(object):
     def run_test(self, program, opt_passes=[OptPasses.SSA]):
         pass
 
+    def test_pixel_channel_pixel_op(self, opt_passes):
+        hsv = self.run_test(test_pixel_channel_pixel_op, opt_passes=opt_passes)
+
+        i = 0
+        for val in hsv['hue']:
+            if i == 1:
+                self.assertEqual(val, 32767)
+
+            else:
+                self.assertEqual(val, 6553)        
+
+            i += 1
+
+    def test_pixel_channel_vector_op(self, opt_passes):
+        hsv = self.run_test(test_pixel_channel_vector_op, opt_passes=opt_passes)
+
+        for val in hsv['hue']:
+            self.assertEqual(val, 32767)      
 
     def test_pixel_channel_func(self, opt_passes):
         hsv = self.run_test(test_pixel_channel_func, opt_passes=opt_passes)

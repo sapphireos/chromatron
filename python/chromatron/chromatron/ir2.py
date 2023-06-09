@@ -6484,7 +6484,11 @@ class irVectorOp(IR):
 
     def generate(self):
         if isinstance(self.target.var, varPixelChannelRef):
-            return insVPixelOpSelect(self.op, self.target.generate(), self.value.generate(), lineno=self.lineno)
+            if len(self.target.lookups) > 0:
+                return insPixelOpSelect(self.op, self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+            else:
+                return insVPixelOpSelect(self.op, self.target.generate(), self.value.generate(), lineno=self.lineno)
 
         ops = {
             'add': insVectorAdd,

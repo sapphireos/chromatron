@@ -1208,7 +1208,12 @@ class Builder(object):
                 is_db = True
 
             if len(target.lookups) > 0 and not is_db:
-                result = self.add_temp(data_type='objref', lineno=lineno)
+                data_type = 'objref'
+
+                if isinstance(target.var, varPixelChannelRef):
+                    data_type = 'pixchref'
+
+                result = self.add_temp(data_type=data_type, lineno=lineno)
                 
                 if target.target:
                     result.target = target.target
@@ -1222,7 +1227,12 @@ class Builder(object):
                 result.lookups = target.lookups # object op may need to know if there are any lookups for instruction selection
                 target.lookups = []
 
-                ir = irObjectOp(op, result, value, target.attr, lineno=lineno)
+                if isinstance(target.var, varPixelChannelRef):
+                    ir = irVectorOp(op, result, value, lineno=lineno)
+
+                else:
+                    ir = irObjectOp(op, result, value, target.attr, lineno=lineno)
+
                 self.append_node(ir)
 
             elif target.target is not None and target.target.data_type == 'obj' and target.target.name == 'db':
@@ -1245,7 +1255,7 @@ class Builder(object):
                     # must copy target, so SSA conversion will work
                     self.assign(copy(target), result, lineno=lineno)
 
-                elif isinstance(target.var, varPixelChannelRef):                    
+                elif isinstance(target.var, varPixelChannelRef) and target.attr is None:                    
                     ir = irVectorOp(op, target, value, lineno=lineno)
                 
                     self.append_node(ir)

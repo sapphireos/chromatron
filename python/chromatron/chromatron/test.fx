@@ -52,6 +52,9 @@
 #     ch = 0.5
 
 def init():
+    # pixels.val = 20
+    pixels.val -= 2
+
 #     # array = PixelArray()
 #     # array = pixels
 
@@ -65,11 +68,12 @@ def init():
 
 #     # pixels.val = 1.0
 
-    ch = PixelChannel()
+    # ch = PixelChannel()
     
-    ch = pixels.hue
+    # ch = pixels.val
+    # ch -= 2
 
-    ch[1] += 0.1
+    # ch[1] += 0.1
 
 #     # # print(ch)
 #     # ch[1] = 0.5
