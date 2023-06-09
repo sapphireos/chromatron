@@ -257,6 +257,7 @@ class insProgram(object):
             'start_thread': self.start_thread,
             'strlen': self.strlen,
             'strcmp': self.strcmp,
+            'pix_sine': self.pix_sine,
             # 'len': self.array_len,
             # 'avg': self.array_avg,
             # 'sum': self.array_sum,
@@ -443,6 +444,14 @@ class insProgram(object):
             return 1
 
         return 0
+
+
+    def pix_sine(self, vm, param0=0):
+        ref = param0
+
+        pixel_array = self.get_pixel_array(ref.addr)
+
+        
 
 
     # def array_len(self, vm, param0, length):

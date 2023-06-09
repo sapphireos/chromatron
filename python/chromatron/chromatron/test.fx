@@ -1,4 +1,27 @@
 
+side1 = PixelArray(0, 48, reverse=True)
+side2 = PixelArray(48, 48, mirror=side1, reverse=False)
+
+
+def init():
+    pixels.val = 1.0
+    pixels.sat = 1.0
+    pixels.hue = 0.0
+
+
+x = Fixed16()
+
+def loop():
+    for i in side1.count:
+        pixels[i].hue = sine(i * 0.015 + x)
+
+        # side1[i].val = sine(i * 0.02 + x)
+
+    x += 0.002
+
+
+
+
 
 # THIS NEEDS A TEST CASE!
 
@@ -51,9 +74,24 @@
 # def pixelfunc(ch: PixelChannel):
 #     ch = 0.5
 
-def init():
+# def psine(ch: PixelChannel):
+#     inc = Fixed16()
+#     inc = 1.0 / ch.count
+
+#     for i in ch.count:
+#         ch[i] = i * inc
+
+# def init():
+#     # sine(pixels.val)
+
+#     ch = PixelChannel()
+#     ch = pixels.hue
+
+#     # ch[1] = test_lib_call()
+#     pix_sine(ch)
+
     # pixels.val = 20
-    pixels.val -= 2
+    # pixels.val -= 2
 
 #     # array = PixelArray()
 #     # array = pixels
