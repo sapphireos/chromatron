@@ -1,11 +1,5 @@
 
-def init():
-    pixels.v_fade = 500
-    pixels.v_fade *= 2
 
-
-
-    
 # THIS NEEDS A TEST CASE!
 
 # p1 = PixelArray(2, 12, size_x=3, size_y=4)
@@ -57,7 +51,7 @@ def init():
 # def pixelfunc(ch: PixelChannel):
 #     ch = 0.5
 
-# def init():
+def init():
 #     # array = PixelArray()
 #     # array = pixels
 
@@ -71,9 +65,12 @@ def init():
 
 #     # pixels.val = 1.0
 
-#     ch = PixelChannel()
+    ch = PixelChannel()
     
-#     ch = pixels.hue
+    ch = pixels.hue
+
+    ch[1] += 0.1
+
 #     # # print(ch)
 #     # ch[1] = 0.5
 

@@ -1237,13 +1237,18 @@ class Builder(object):
             else:
                 if target.target is not None and \
                    target.target.name == 'pixels' and \
+                   target.attr is not None and \
                    target.attr.name in PIXEL_SCALARS:
 
                     result = self.binop(op, target, value, lineno=lineno)
 
                     # must copy target, so SSA conversion will work
                     self.assign(copy(target), result, lineno=lineno)
-                    
+
+                elif isinstance(target.var, varPixelChannelRef):                    
+                    ir = irVectorOp(op, target, value, lineno=lineno)
+                
+                    self.append_node(ir)
                 else:
                     ir = irObjectOp(op, target, value, target.attr, lineno=lineno)
                 

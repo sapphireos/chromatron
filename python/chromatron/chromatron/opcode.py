@@ -132,6 +132,9 @@ opcodes = {
     # 'VLOAD_HS_FADE':        0x7B,
     # 'VLOAD_V_FADE':         0x7C,
     
+    'POP_SELECT':           0x7E,
+    'VOP_SELECT':           0x7F,
+
     'PADD_HUE':             0x80,
     'PADD_SAT':             0x81,
     'PADD_VAL':             0x82,
