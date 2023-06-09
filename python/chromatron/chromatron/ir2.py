@@ -8281,3 +8281,48 @@ class irDBCall(irCallType):
         call_ins = insDBCall(self.target.generate(), self.key.generate(), [], self.func_name, lineno=self.lineno)
 
         return call_ins
+
+
+class irPixCall(irCallType):
+    def __init__(self, target, pixel_ref, params, func_name, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.pixel_ref = pixel_ref
+        self.params = params
+        self.func_name = func_name
+
+    def __str__(self):
+        params = params_to_string(self.params)
+        s = f'PIXCALL {self.pixel_ref}.{self.func_name}:{self.target}({params})'
+
+        return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        for i in range(len(self.params)):
+            if self.params[i] in VN:
+                replacement = VN[VN[self.params[i]]]
+
+                if self.params[i] != replacement:
+                    debug_print(f"replace lcall param {self.params[i]} with {replacement}")
+
+                    self.params[i] = replacement
+
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace lcall target {self.target} with {replacement}")
+
+                self.target = replacement
+
+    def get_input_vars(self):
+        inputs = [self.target, self.pixel_ref]
+        inputs.extend(self.params)
+        return inputs
+
+    def generate(self):        
+        params = [a.generate() for a in self.params]
+
+        return insPixCall(self.target.generate(), self.pixel_ref.generate(), params, self.func_name, lineno=self.lineno)
+

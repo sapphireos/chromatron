@@ -86,6 +86,7 @@ opcodes = {
     'LKP2':                 0x42,
     'LKP3':                 0x43,
 
+    'PIXCALL':              0x46,
     'DBCALL':               0x47,
 
     'CALL0':                0x48,

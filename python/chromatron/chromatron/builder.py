@@ -646,6 +646,10 @@ class Builder(object):
                 else: 
                     raise SyntaxError(f'Array function {func} not supported for string target.', lineno=lineno)
 
+            elif isinstance(params[0].var, varPixelChannelRef):
+                pixel_ref = params.pop(0)
+                ir = irPixCall(func_const, pixel_ref, params, func, lineno=lineno)
+
             else:
                 ir = irLibCall(func_const, params, func, lineno=lineno)
             
@@ -700,7 +704,11 @@ class Builder(object):
                 ir = irCall(func, params, lineno=lineno)
                 self.append_node(ir)
 
-        if isinstance(ir, irCallType):
+        if isinstance(ir, irPixCall):
+            # pix call returns the pixel ref so we can chain calls on the object:
+            return ir.pixel_ref
+
+        elif isinstance(ir, irCallType):
             ir = irLoadRetVal(result, lineno=lineno)
             self.append_node(ir)
 

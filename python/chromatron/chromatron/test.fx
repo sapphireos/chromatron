@@ -118,7 +118,12 @@ p1 = PixelArray(2, 12, size_x=3, size_y=4)
 def init():
     # pfunc(pixels.hue)
 
-    pixels.sat.pix_sine()
+    # p1.sat.pix_sine(1.0).pix_add(0.5)
+    p1.sat.pix_add(0.5)
+    # ch = PixelChannel()
+    # ch.hue.pix_sine(0.2)
+
+    # p1.sat += 0.5
 
     # freq = Fixed16()
     # freq = 1.0

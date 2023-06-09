@@ -258,6 +258,7 @@ class insProgram(object):
             'strlen': self.strlen,
             'strcmp': self.strcmp,
             'pix_sine': self.pix_sine,
+            'pix_add': self.pix_add,
             # 'len': self.array_len,
             # 'avg': self.array_avg,
             # 'sum': self.array_sum,
@@ -446,15 +447,26 @@ class insProgram(object):
         return 0
 
 
-    def pix_sine(self, vm, param0=0):
-        ref = param0
+    def pix_sine(self, vm, count=0, index=0, pix_val=0, freq=1.0):
+        # ref = param0
 
-        print("PIX_SINE", ref)
+        # print("PIX_SINE", ref, param1)
 
         # pixel_array = self.get_pixel_array(ref.addr)
 
-        
+        freq /= 65536.0
 
+        import math
+
+        inc = count / freq
+
+        return int(math.sin(index * inc) * 32768) + 32768
+        
+    def pix_add(self, vm, count=0, index=0, pix_val=0, value=1.0):
+        # value /= 65536.0
+
+        return pix_val + value
+        
 
     # def array_len(self, vm, param0, length):
     #     return length
@@ -2790,6 +2802,55 @@ class insDBCall(BaseInstruction):
                 self.target.assemble(), 
                 self.key.assemble(), 
                 lineno=self.lineno)
+
+class insPixCall(BaseInstruction):
+    mnemonic = 'PIXCALL'
+
+    def __init__(self, target, pixel_ref, params=[], func_name=None, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.pixel_ref = pixel_ref
+        self.params = params
+        self.func_name = func_name
+
+    def __str__(self):
+        params = ''
+        for param in self.params:
+            params += '%s, ' % (param)
+        params = params[:len(params) - 2]
+
+        return "%s %s %s.{%s} (%s)" % (self.mnemonic, self.target, self.pixel_ref, self.func_name, params)
+
+    def execute(self, vm):
+        if self.func_name not in vm.library_funcs:
+            vm.ret_val = 0
+            return
+
+        target = vm.library_funcs[self.func_name]
+        pixel_ref = vm.registers[self.pixel_ref.reg]
+        pixel_array = vm.get_pixel_array(pixel_ref)
+
+        params = [vm.registers[p.reg] for p in self.params]
+
+        attr = pixel_ref.index
+        
+        for k, v in PIXEL_VECTORS.items():
+            if v == attr:
+                attr = k
+                break
+
+        array = vm.gfx_data[attr]
+
+        for i in range(pixel_array['count']):
+            idx = vm.calc_index(indexes=[i], pixel_array=pixel_array)
+            
+            array[idx] = target(vm, pixel_array['count'], idx, array[idx], *params) % 65536
+
+        # vm.ret_val = target(vm, *params)
+
+    def assemble(self):
+        # raise NotImplementedError
+        return OpcodeFormatNop(self.mnemonic, lineno=self.lineno)
 
 class insPixelLookup(BaseInstruction):
     mnemonic = 'PLOOKUP'
