@@ -119,7 +119,7 @@ def init():
     # pfunc(pixels.hue)
 
     # p1.sat.pix_sine(1.0).pix_add(0.5)
-    p1.sat.pix_add(0.5)
+    p1.sat.pix_sine(1.0).pix_add(0.5)
     # ch = PixelChannel()
     # ch.hue.pix_sine(0.2)
 

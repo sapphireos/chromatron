@@ -646,7 +646,7 @@ class Builder(object):
                 else: 
                     raise SyntaxError(f'Array function {func} not supported for string target.', lineno=lineno)
 
-            elif isinstance(params[0].var, varPixelChannelRef):
+            elif len(params) > 0 and isinstance(params[0].var, varPixelChannelRef):
                 pixel_ref = params.pop(0)
                 ir = irPixCall(func_const, pixel_ref, params, func, lineno=lineno)
 
