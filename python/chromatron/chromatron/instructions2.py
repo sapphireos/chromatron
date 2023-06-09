@@ -449,7 +449,9 @@ class insProgram(object):
     def pix_sine(self, vm, param0=0):
         ref = param0
 
-        pixel_array = self.get_pixel_array(ref.addr)
+        print("PIX_SINE", ref)
+
+        # pixel_array = self.get_pixel_array(ref.addr)
 
         
 

@@ -1,27 +1,4 @@
 
-side1 = PixelArray(0, 48, reverse=True)
-side2 = PixelArray(48, 48, mirror=side1, reverse=False)
-
-
-def init():
-    pixels.val = 1.0
-    pixels.sat = 1.0
-    pixels.hue = 0.0
-
-
-x = Fixed16()
-
-def loop():
-    for i in side1.count:
-        pixels[i].hue = sine(i * 0.015 + x)
-
-        # side1[i].val = sine(i * 0.02 + x)
-
-    x += 0.002
-
-
-
-
 
 # THIS NEEDS A TEST CASE!
 
@@ -74,21 +51,94 @@ def loop():
 # def pixelfunc(ch: PixelChannel):
 #     ch = 0.5
 
-# def psine(ch: PixelChannel):
-#     inc = Fixed16()
-#     inc = 1.0 / ch.count
+"""
+def psine(ch: PixelChannel):
+    freq = Fixed16()
+    freq = 1.0
 
-#     for i in ch.count:
-#         ch[i] = i * inc
+    phase = Fixed16()
+    phase = 0.5
 
-# def init():
-#     # sine(pixels.val)
+    amplitude = Fixed16()
+    amplitude = 1.0
 
-#     ch = PixelChannel()
-#     ch = pixels.hue
 
-#     # ch[1] = test_lib_call()
-#     pix_sine(ch)
+    inc = Fixed16()
+    inc = freq / ch.count
+
+    for i in ch.count:
+        ch[i] = sine(i * inc + phase) * amplitude
+
+
+
+def psine(ch: PixelChannel):
+    freq = Fixed16()
+    freq = 1.0
+
+    phase = Fixed16()
+    phase = 0.5
+
+    amplitude = Fixed16()
+    amplitude = 1.0
+
+    inc = Fixed16()
+    inc = freq / ch.count
+
+    for i in ch.count:
+        ch[i] = sine(i * inc).add(phase).mul(amplitude)
+
+
+    pixels.val.sine(freq).add(phase).mul(amplitude)
+"""
+
+
+"""
+input to a pixel func:
+
+
+pixels.val.sine(freq, phase)
+
+
+
+shader style?
+
+
+def sine(index, rate)
+    
+
+
+"""
+
+
+# def pfunc(ch: PixelChannel):
+    # ch = 0.25
+
+p1 = PixelArray(2, 12, size_x=3, size_y=4)
+
+def init():
+    # pfunc(pixels.hue)
+
+    pixels.sat.pix_sine()
+
+    # freq = Fixed16()
+    # freq = 1.0
+
+    # phase = Fixed16()
+    # phase = 0.5
+
+    # amplitude = Fixed16()
+    # amplitude = 1.0
+
+    # pixels.val.sine(freq).add(phase).mul(amplitude)
+
+
+    # sine(pixels.val)
+
+    # ch = PixelChannel()
+    # ch = pixels.hue
+
+    # # ch[1] = test_lib_call()
+    # psine(ch)
 
     # pixels.val = 20
     # pixels.val -= 2

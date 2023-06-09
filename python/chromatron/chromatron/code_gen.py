@@ -909,12 +909,17 @@ class CodeGenPass1(ast.NodeVisitor):
     #     return cg1GenericObject(node.func.id, args, kwargs, lineno=node.lineno)
 
     def visit_Call(self, node):
+        obj = None
         if isinstance(node.func, ast.Subscript):
             func = self.visit(node.func)
             
         else:
-            ref = None
-            func = node.func.id
+            try:
+                func = node.func.id
+
+            except AttributeError:
+                func = node.func.attr
+                obj = self.visit(node.func.value)
 
         if func in self._declarations:
             return self._declarations[func](node)
@@ -930,6 +935,10 @@ class CodeGenPass1(ast.NodeVisitor):
                 kwargs.update(kw)
 
             args = list(map(self.visit, node.args))
+
+            if obj is not None:
+                args.insert(0, obj)
+
             return cg1Call(func, args, kwargs, lineno=node.lineno)
 
         else:
