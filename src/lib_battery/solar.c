@@ -180,10 +180,13 @@ void solar_v_init( void ){
                      0,
                      0 );
 
-	thread_t_create( solar_cycle_thread,
-                     PSTR("solar_cycle"),
-                     0,
-                     0 );
+	if( enable_solar_charge ){
+
+		thread_t_create( solar_cycle_thread,
+	                     PSTR("solar_cycle"),
+	                     0,
+	                     0 );
+	}
 }
 
 bool solar_b_has_patch_board( void ){
