@@ -30,6 +30,7 @@
 #include "list.h"
 #include "sockets.h"
 #include "hal_io.h"
+#include "random.h"
 
 #include "hal_arp.h"
 
@@ -1078,10 +1079,14 @@ PT_BEGIN( pt );
                     else if( scan_backoff < 64 ){
 
                         scan_backoff *= 2;
+
+                        TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // add 2 seconds of random delay
                     }
                     else if( scan_backoff < 192 ){
 
                         scan_backoff += 64;
+
+                        TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // add 4 seconds of random delay
                     }
 
                     goto end;
