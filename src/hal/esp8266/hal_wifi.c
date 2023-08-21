@@ -134,6 +134,7 @@ static list_t rx_list;
 static list_t arp_q_list;
 
 static char hostname[32];
+static uint8_t disconnect_reason;
 
 void wifi_handle_event_cb(System_Event_t *evt)
 {
@@ -149,6 +150,7 @@ void wifi_handle_event_cb(System_Event_t *evt)
             evt->event_info.disconnected.ssid,
             evt->event_info.disconnected.reason);*/
 
+            disconnect_reason = evt->event_info.disconnected.reason;
             connected = FALSE;
             // log_v_debug_P( PSTR("wifi disconnected") );
             break;
@@ -1080,11 +1082,15 @@ PT_BEGIN( pt );
 
                         scan_backoff *= 2;
 
+                        log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
+
                         TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // add 2 seconds of random delay
                     }
                     else if( scan_backoff < 192 ){
 
                         scan_backoff += 64;
+
+                        log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
 
                         TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // add 4 seconds of random delay
                     }
@@ -1240,7 +1246,7 @@ end:
 
     THREAD_WAIT_WHILE( pt, wifi_b_connected()  && !wifi_shutdown );
     
-    log_v_debug_P( PSTR("Wifi disconnected. Last RSSI: %d ch: %d"), wifi_rssi, wifi_channel );
+    log_v_debug_P( PSTR("Wifi disconnected: %d Last RSSI: %d ch: %d"), disconnect_reason, wifi_rssi, wifi_channel );
 
     wifi_v_reset_scan_timeout();
 
