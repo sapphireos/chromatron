@@ -230,6 +230,10 @@ int8_t sapphire_i8_init( void ){
 
     log_v_info_P( PSTR("SapphireOS start") );
 
+    #ifdef DISABLE_SAFE_MODE
+    log_v_critical_P( PSTR("!!! SAFE MODE DISABLED !!!") );
+    #endif
+
     trace_printf( "SapphireOS ready\r\n" );
 
     trace_printf( "HW Rev: %u\r\n", io_u8_get_board_rev() );
