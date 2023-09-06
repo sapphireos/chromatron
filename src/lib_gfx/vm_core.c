@@ -473,7 +473,7 @@ static int8_t _vm_i8_run_stream(
 
         &&opcode_trap,              // 68
         &&opcode_trap,              // 69
-        &&opcode_trap,              // 70
+        &&opcode_pixcall,           // 70
         &&opcode_dbcall,            // 71
 
         &&opcode_call0,             // 72
@@ -509,7 +509,7 @@ static int8_t _vm_i8_run_stream(
         &&opcode_pstore_val,        // 98
         &&opcode_pstore_hs_fade,    // 99
         &&opcode_pstore_v_fade,     // 100
-        &&opcode_trap,              // 101
+        &&opcode_pstore_select,     // 101
         &&opcode_trap,              // 102
         &&opcode_trap,              // 103
         
@@ -518,16 +518,16 @@ static int8_t _vm_i8_run_stream(
         &&opcode_vstore_val,        // 106
         &&opcode_vstore_hs_fade,    // 107
         &&opcode_vstore_v_fade,     // 108
-        &&opcode_trap,              // 109
+        &&opcode_vstore_select,     // 109
         &&opcode_trap,              // 110
         &&opcode_trap,              // 111
 
         &&opcode_pload_hue,         // 112
         &&opcode_pload_sat,         // 113
         &&opcode_pload_val,         // 114
-        &&opcode_trap,              // 115
-        &&opcode_trap,              // 116
-        &&opcode_trap,              // 117
+        &&opcode_pload_hs_fade,     // 115
+        &&opcode_pload_v_fade,      // 116
+        &&opcode_pload_select,      // 117
         &&opcode_trap,              // 118
         &&opcode_trap,              // 119
         &&opcode_trap,              // 120
@@ -536,8 +536,8 @@ static int8_t _vm_i8_run_stream(
         &&opcode_trap,              // 123
         &&opcode_trap,              // 124
         &&opcode_trap,              // 125
-        &&opcode_trap,              // 126
-        &&opcode_trap,              // 127
+        &&opcode_pop_select,        // 126
+        &&opcode_vop_select,        // 127
 
         &&opcode_padd_hue,          // 128
         &&opcode_padd_sat,          // 129
@@ -2441,6 +2441,21 @@ opcode_pload_val:
 
     DISPATCH;
 
+opcode_pload_hs_fade:
+    DECODE_2AC;
+
+    registers[opcode_2ac->dest] = gfx_u16_get_hs_fade_1d( registers[opcode_2ac->op1] );
+
+    DISPATCH;
+
+opcode_pload_v_fade:
+    DECODE_2AC;
+
+    registers[opcode_2ac->dest] = gfx_u16_get_v_fade_1d( registers[opcode_2ac->op1] );
+
+    DISPATCH;
+
+
 opcode_padd_hue:
     DECODE_2AC;
 
@@ -3325,6 +3340,21 @@ opcode_vsum:
     }
 
     registers[opcode_vector->target] = value;
+
+    DISPATCH;
+
+
+opcode_pixcall:
+opcode_pstore_select:
+opcode_vstore_select:
+
+opcode_pload_select:
+
+opcode_pop_select:
+opcode_vop_select:
+
+
+    DECODE_2AC;    
 
     DISPATCH;
 
