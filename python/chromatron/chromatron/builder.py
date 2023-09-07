@@ -764,6 +764,7 @@ class Builder(object):
 
         elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
             is_db = False
+
             if value.target is not None and value.target.data_type == 'pixobj':
                 if value.attr is not None:
                     try:
@@ -773,6 +774,9 @@ class Builder(object):
                         raise SyntaxError(f'Unknown attribute for PixelArray: {value.target.name} -> {value.attr.name}', lineno=lineno)
 
                     var = self.add_temp(data_type=data_type, lineno=lineno)
+
+                elif value.data_type == 'pixchref':
+                    var = self.add_temp(data_type='gfx16', lineno=lineno)
 
                 else:
                     return value
@@ -791,8 +795,14 @@ class Builder(object):
             if len(value.lookups) > 0 and not is_db:
                 data_type = 'objref'
 
+                attr = value.attr
+
                 if value.var.data_type == 'pixchref':
                     data_type = value.var.data_type
+
+                    # a *bit* of a hack here,
+                    # so we can reuse irObjectLoad for pixel channel refs
+                    attr = irAttribute('pixchref', lineno=lineno)
 
                 result = self.add_temp(data_type=data_type, lineno=lineno)
                     
@@ -807,7 +817,7 @@ class Builder(object):
                 
                 result.lookups = value.lookups
                 value.lookups = []
-                ir = irObjectLoad(var, result, value.attr, lineno=lineno)
+                ir = irObjectLoad(var, result, attr, lineno=lineno)
 
             elif len(value.lookups) == 0 and value.attr is not None and value.attr.name in PIXEL_VECTORS:
                 # var = self.add_temp(data_type='objref', lineno=lineno)

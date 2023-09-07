@@ -109,13 +109,35 @@ def sine(index, rate)
 
 """
 
+a = Fixed16()
+
+
 
 def init():
     ch = PixelChannel()
-
     ch = pixels.hue
-    ch = 0.1
-    ch[1] += 0.4
+
+    pixels.hue = 0.5
+
+    pixels[1].hue = 1234
+
+    a = ch[1]
+    # a = pixels[1].hue
+
+    print(a)
+    a = 0.1
+    print(a)
+
+    pixels.count = 1
+    a = pixels.count
+
+
+    pixels.count = pixels.count + 1
+    # a = pixels.count
+
+    # pixels.count += 1
+    # a = pixels.count
+
 
 
 # def pfunc(ch: PixelChannel):

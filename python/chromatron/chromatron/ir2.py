@@ -6838,7 +6838,7 @@ class irObjectLoad(IR):
         if value.var.data_type == 'pixchref':
             attr = self.attr.name
 
-            if attr in PIXEL_VECTORS:
+            if attr == 'pixchref':
                 if len(value.var.lookups) != 0:
                     return insPixelLoadSelect(target, value.var, attr, lineno=self.lineno)
 
