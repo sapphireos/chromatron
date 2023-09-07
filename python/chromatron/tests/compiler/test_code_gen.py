@@ -2190,9 +2190,45 @@ def init():
 """
 
 
+test_pload = """
+
+a = Number(publish=True)
+b = Number(publish=True)
+c = Number(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+
+def init():
+    pixels.hue = 0.1
+    pixels.sat = 0.2
+    pixels.val = 0.3
+
+    pixels.hs_fade = 123
+    pixels.v_fade = 456
+
+    a = pixels[1].hue
+    b = pixels[1].sat
+    c = pixels[1].val
+    d = pixels[1].hs_fade
+    e = pixels[1].v_fade
+
+"""
+
+
 class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
+
+    def test_pload(self, opt_passes):
+        self.run_test(test_pload,
+            opt_passes=opt_passes,
+            expected={
+                'a': 0.0999908447265625,
+                'b': 0.1999969482421875,
+                'c': 0.29998779296875,
+                'd': 123,
+                'e': 456,
+            })
 
     def test_pixref_funcarg(self, opt_passes):
         self.run_test(test_pixref_funcarg,

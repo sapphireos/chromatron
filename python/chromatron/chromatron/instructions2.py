@@ -2540,6 +2540,9 @@ class insCall(BaseInstruction):
 class insCall0(insCall):
     mnemonic = 'CALL0'
 
+    def execute(self, vm):
+        super().execute(vm)
+
     def assemble(self):
         return OpcodeFormat1Imm(
             self.mnemonic,
@@ -2548,6 +2551,9 @@ class insCall0(insCall):
 
 class insCall1(insCall):
     mnemonic = 'CALL1'
+
+    def execute(self, vm):
+        super().execute(vm)
 
     def assemble(self):
         return OpcodeFormat1Imm1Reg(
@@ -2558,6 +2564,9 @@ class insCall1(insCall):
 
 class insCall2(insCall):
     mnemonic = 'CALL2'
+
+    def execute(self, vm):
+        super().execute(vm)
 
     def assemble(self):
         return OpcodeFormat1Imm2Reg(
@@ -2570,6 +2579,9 @@ class insCall2(insCall):
 class insCall3(insCall):
     mnemonic = 'CALL3'
 
+    def execute(self, vm):
+        super().execute(vm)
+
     def assemble(self):
         return OpcodeFormat1Imm3Reg(
             self.mnemonic,
@@ -2581,6 +2593,9 @@ class insCall3(insCall):
 
 class insCall4(insCall):
     mnemonic = 'CALL4'
+
+    def execute(self, vm):
+        super().execute(vm)
 
     def assemble(self):
         return OpcodeFormat1Imm4Reg(
@@ -2630,6 +2645,9 @@ class insIndirectCall0(insIndirectCall):
 class insIndirectCall1(insIndirectCall):
     mnemonic = 'ICALL1'
 
+    def execute(self, vm):
+        super().execute(vm)
+
     def assemble(self):
         return OpcodeFormat2AC(
             self.mnemonic,
@@ -2639,6 +2657,9 @@ class insIndirectCall1(insIndirectCall):
 
 class insIndirectCall2(insIndirectCall):
     mnemonic = 'ICALL2'
+
+    def execute(self, vm):
+        super().execute(vm)
 
     def assemble(self):
         return OpcodeFormat3AC(
@@ -2651,6 +2672,9 @@ class insIndirectCall2(insIndirectCall):
 class insIndirectCall3(insIndirectCall):
     mnemonic = 'ICALL3'
 
+    def execute(self, vm):
+        super().execute(vm)
+
     def assemble(self):
         return OpcodeFormat4AC(
             self.mnemonic,
@@ -2662,6 +2686,9 @@ class insIndirectCall3(insIndirectCall):
 
 class insIndirectCall4(insIndirectCall):
     mnemonic = 'ICALL4'
+
+    def execute(self, vm):
+        super().execute(vm)
 
     def assemble(self):
         return OpcodeFormat5AC(
@@ -2708,6 +2735,9 @@ class insLibCall(BaseInstruction):
 class insLibCall0(insLibCall):
     mnemonic = 'LCALL0'
 
+    def execute(self, vm):
+        super().execute(vm)
+
     def assemble(self):
         return OpcodeFormat1AC(
             self.mnemonic, 
@@ -2716,6 +2746,9 @@ class insLibCall0(insLibCall):
 
 class insLibCall1(insLibCall):
     mnemonic = 'LCALL1'
+
+    def execute(self, vm):
+        super().execute(vm)
 
     def assemble(self):
         return OpcodeFormat2AC(
@@ -2726,6 +2759,9 @@ class insLibCall1(insLibCall):
 
 class insLibCall2(insLibCall):
     mnemonic = 'LCALL2'
+
+    def execute(self, vm):
+        super().execute(vm)
 
     def assemble(self):
         return OpcodeFormat3AC(
@@ -2738,6 +2774,9 @@ class insLibCall2(insLibCall):
 class insLibCall3(insLibCall):
     mnemonic = 'LCALL3'
 
+    def execute(self, vm):
+        super().execute(vm)
+
     def assemble(self):
         return OpcodeFormat4AC(
             self.mnemonic,
@@ -2749,6 +2788,9 @@ class insLibCall3(insLibCall):
 
 class insLibCall4(insLibCall):
     mnemonic = 'LCALL4'
+
+    def execute(self, vm):
+        super().execute(vm)
 
     def assemble(self):
         return OpcodeFormat5AC(
@@ -2891,11 +2933,17 @@ class insPixelLookup(BaseInstruction):
 class insPixelLookup1(insPixelLookup):
     mnemonic = 'PLOOKUP1'
 
+    def execute(self, vm):
+        super().execute(vm)
+
     def assemble(self):
         return OpcodeFormat3AC(self.mnemonic, self.result.assemble(), self.pixel_ref.reg, self.indexes[0].assemble(), lineno=self.lineno)
 
 class insPixelLookup2(insPixelLookup):
     mnemonic = 'PLOOKUP2'
+
+    def execute(self, vm):
+        super().execute(vm)
 
     def assemble(self):
         return OpcodeFormat4AC(self.mnemonic, self.result.assemble(), self.pixel_ref.reg, self.indexes[0].assemble(), self.indexes[1].assemble(), lineno=self.lineno)
@@ -2966,14 +3014,26 @@ class insPixelStoreHue(insPixelStore):
 class insPixelStoreVal(insPixelStore):
     mnemonic = 'PSTORE_VAL'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelStoreSat(insPixelStore):
     mnemonic = 'PSTORE_SAT'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insPixelStoreHSFade(insPixelStore):
     mnemonic = 'PSTORE_HS_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelStoreVFade(insPixelStore):
     mnemonic = 'PSTORE_V_FADE'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insPixelStoreSelect(insPixelStore):
     mnemonic = 'PSTORE_SELECT'
@@ -3155,14 +3215,26 @@ class insVPixelStoreHue(insVPixelStore):
 class insVPixelStoreVal(insVPixelStore):
     mnemonic = 'VSTORE_VAL'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insVPixelStoreSat(insVPixelStore):
     mnemonic = 'VSTORE_SAT'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insVPixelStoreHSFade(insVPixelStore):
     mnemonic = 'VSTORE_HS_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insVPixelStoreVFade(insVPixelStore):
     mnemonic = 'VSTORE_V_FADE'
+
+    def execute(self, vm):
+        super().execute(vm)
     
 class insVPixelStoreSelect(insVPixelStore):
     mnemonic = 'VSTORE_SELECT'
@@ -3226,17 +3298,33 @@ class insPixelLoad(BaseInstruction):
 class insPixelLoadHue(insPixelLoad):
     mnemonic = 'PLOAD_HUE'
 
+    def execute(self, vm):
+            super().execute(vm)
+
+
 class insPixelLoadVal(insPixelLoad):
     mnemonic = 'PLOAD_VAL'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insPixelLoadSat(insPixelLoad):
     mnemonic = 'PLOAD_SAT'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelLoadHSFade(insPixelLoad):
     mnemonic = 'PLOAD_HS_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelLoadVFade(insPixelLoad):
     mnemonic = 'PLOAD_V_FADE'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insPixelLoadAttr(insPixelLoad):
     mnemonic = 'PLOAD_ATTR'
@@ -3365,17 +3453,32 @@ class insPixelAdd(BaseInstruction):
 class insPixelAddHue(insPixelAdd):
     mnemonic = 'PADD_HUE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelAddSat(insPixelAdd):
     mnemonic = 'PADD_SAT'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insPixelAddVal(insPixelAdd):
     mnemonic = 'PADD_VAL'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelAddHSFade(insPixelAdd):
     mnemonic = 'PADD_HS_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelAddVFade(insPixelAdd):
     mnemonic = 'PADD_V_FADE'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 
 class insPixelSub(BaseInstruction):
@@ -3422,15 +3525,26 @@ class insPixelSubHue(insPixelSub):
 class insPixelSubSat(insPixelSub):
     mnemonic = 'PSUB_SAT'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelSubVal(insPixelSub):
     mnemonic = 'PSUB_VAL'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insPixelSubHSFade(insPixelSub):
     mnemonic = 'PSUB_HS_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelSubVFade(insPixelSub):
     mnemonic = 'PSUB_V_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
 
 class insPixelMul(BaseInstruction):
     mnemonic = 'PMUL'
@@ -3490,15 +3604,26 @@ class insPixelMulHue(insPixelMul):
 class insPixelMulSat(insPixelMul):
     mnemonic = 'PMUL_SAT'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelMulVal(insPixelMul):
     mnemonic = 'PMUL_VAL'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insPixelMulHSFade(insPixelMul):
     mnemonic = 'PMUL_HS_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelMulVFade(insPixelMul):
     mnemonic = 'PMUL_V_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
 
 class insPixelDiv(BaseInstruction):
     mnemonic = 'PDIV'
@@ -3564,15 +3689,26 @@ class insPixelDivHue(insPixelDiv):
 class insPixelDivSat(insPixelDiv):
     mnemonic = 'PDIV_SAT'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelDivVal(insPixelDiv):
     mnemonic = 'PDIV_VAL'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insPixelDivHSFade(insPixelDiv):
     mnemonic = 'PDIV_HS_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelDivVFade(insPixelDiv):
     mnemonic = 'PDIV_V_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
 
 class insPixelMod(BaseInstruction):
     mnemonic = 'PMOD'
@@ -3605,17 +3741,32 @@ class insPixelMod(BaseInstruction):
 class insPixelModHue(insPixelMod):
     mnemonic = 'PMOD_HUE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelModSat(insPixelMod):
     mnemonic = 'PMOD_SAT'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insPixelModVal(insPixelMod):
     mnemonic = 'PMOD_VAL'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelModHSFade(insPixelMod):
     mnemonic = 'PMOD_HS_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insPixelModVFade(insPixelMod):
     mnemonic = 'PMOD_V_FADE'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insVPixelOpSelect(BaseInstruction):
     mnemonic = 'VOP_SELECT'
@@ -3741,15 +3892,26 @@ class insVPixelAddHue(insVPixelAdd):
 class insVPixelAddSat(insVPixelAdd):
     mnemonic = 'VADD_SAT'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insVPixelAddVal(insVPixelAdd):
     mnemonic = 'VADD_VAL'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insVPixelAddHSFade(insVPixelAdd):
     mnemonic = 'VADD_HS_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insVPixelAddVFade(insVPixelAdd):
     mnemonic = 'VADD_V_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
 
 class insVPixelSub(BaseInstruction):
     mnemonic = 'VSUB'
@@ -3803,15 +3965,26 @@ class insVPixelSubHue(insVPixelSub):
 class insVPixelSubSat(insVPixelSub):
     mnemonic = 'VSUB_SAT'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insVPixelSubVal(insVPixelSub):
     mnemonic = 'VSUB_VAL'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insVPixelSubHSFade(insVPixelSub):
     mnemonic = 'VSUB_HS_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insVPixelSubVFade(insVPixelSub):
     mnemonic = 'VSUB_V_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
 
 class insVPixelMul(BaseInstruction):
     mnemonic = 'VMUL'
@@ -4118,15 +4291,26 @@ class insVPixelModHue(insVPixelMod):
 class insVPixelModSat(insVPixelMod):
     mnemonic = 'VMOD_SAT'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insVPixelModVal(insVPixelMod):
     mnemonic = 'VMOD_VAL'
+
+    def execute(self, vm):
+        super().execute(vm)
 
 class insVPixelModHSFade(insVPixelMod):
     mnemonic = 'VMOD_HS_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
+
 class insVPixelModVFade(insVPixelMod):
     mnemonic = 'VMOD_V_FADE'
 
+    def execute(self, vm):
+        super().execute(vm)
 
 
 class insConvMov(insMov):
