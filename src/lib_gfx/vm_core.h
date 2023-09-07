@@ -242,6 +242,16 @@ typedef union{
     uint32_t n;
 } vm_reference_t;
 
+typedef struct __attribute__((packed)){
+    uint8_t reserved;
+    uint8_t attr;
+    uint16_t index;
+} vm_packed_pixel_index_t;
+
+typedef union{
+    vm_packed_pixel_index_t pixindex;
+    uint32_t n;
+} vm_pixel_index_t;
 
 typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t vm_id;

@@ -1053,6 +1053,13 @@ static int8_t _vm_i8_run_stream(
     vm_reference_t ref;
     vm_reference_t dest_ref;
     vm_reference_t src_ref;
+    vm_pixel_index_t pixel_index;
+
+    ref.n = 0;
+    dest_ref.n = 0;
+    src_ref.n = 0;
+    pixel_index.n = 0;
+
 
     void *ptr_void;
     char *src_s;
@@ -2226,7 +2233,10 @@ opcode_plookup1:
 
     ref.n = registers[opcode_3ac->op1];
 
-    registers[opcode_3ac->dest] = gfx_u16_calc_index( ref.ref.addr, registers[opcode_3ac->op2], 65535 );
+    pixel_index.pixindex.index = gfx_u16_calc_index( ref.ref.addr, registers[opcode_3ac->op2], 65535 );
+    pixel_index.pixindex.attr = ref.ref.index; // ref index is attribute - we are translating here
+
+    registers[opcode_3ac->dest] = pixel_index.n;
     
     DISPATCH;
 
@@ -2235,7 +2245,10 @@ opcode_plookup2:
     
     ref.n = registers[opcode_4ac->op1];
 
-    registers[opcode_4ac->dest] = gfx_u16_calc_index( ref.ref.addr, registers[opcode_4ac->op2], registers[opcode_4ac->op3] );
+    pixel_index.pixindex.index = gfx_u16_calc_index( ref.ref.addr, registers[opcode_4ac->op2], registers[opcode_4ac->op3] );
+    pixel_index.pixindex.attr = ref.ref.index; // ref index is attribute - we are translating here
+
+    registers[opcode_4ac->dest] = pixel_index.n;
     
     DISPATCH;
 
@@ -2250,8 +2263,10 @@ opcode_vstore_attr:
 
 opcode_pload_attr:
     DECODE_1I2RS;
+
+    pixel_index.n = registers[opcode_1i2rs->reg1];
     
-    registers[opcode_1i2rs->reg2] = gfx_i32_get_pixel_attr_single( registers[opcode_1i2rs->reg1], opcode_1i2rs->imm1 );    
+    registers[opcode_1i2rs->reg2] = gfx_i32_get_pixel_attr_single( pixel_index.pixindex.index, opcode_1i2rs->imm1 );    
 
     DISPATCH;
 
@@ -2268,7 +2283,7 @@ opcode_pstore_hue:
     DECODE_2AC;
 
     value = registers[opcode_2ac->op1];
-    index = registers[opcode_2ac->dest];
+    pixel_index.n = registers[opcode_2ac->dest];
 
     if( value == 65536 ){
 
@@ -2280,7 +2295,7 @@ opcode_pstore_hue:
     // wrap hue
     value %= 65536;
 
-    gfx_v_set_hue_1d( value, index );
+    gfx_v_set_hue_1d( value, pixel_index.pixindex.index );
 
     DISPATCH;
 
@@ -3350,15 +3365,17 @@ opcode_pixcall:
     goto opcode_trap;
 
 opcode_pstore_select:
-    DECODE_2AC;    
+    goto opcode_trap;
 
-    value = registers[opcode_2ac->op1];
-    ref.n = registers[opcode_2ac->dest];
+    // DECODE_2AC;    
 
-    
+    // value = registers[opcode_2ac->op1];
+    // ref.n = registers[opcode_2ac->dest];
 
 
-    DISPATCH;
+
+
+    // DISPATCH;
 
 
 opcode_vstore_select:
