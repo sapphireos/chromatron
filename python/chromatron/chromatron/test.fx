@@ -116,16 +116,16 @@ c = Number(publish=True)
 d = Number(publish=True)
 
 def init():
-    a = pixels[1].is_hs_fading
+    # a = pixels[1].is_hs_fading
 
-    pixels[1].hue = 0.5
+    # pixels[1].hue = 0.5
 
-    b = pixels[1].is_hs_fading
-    c = pixels[0].is_hs_fading
+    # b = pixels[1].is_hs_fading
+    # c = pixels[0].is_hs_fading
 
-    pixels.hue = 1.0
-    d = pixels[0].is_hs_fading
-
+    # pixels.hue = 1.0
+    # d = pixels[0].is_hs_fading
+    pixels[1].hue += 0.1
 
 
 # def pfunc(ch: PixelChannel):
