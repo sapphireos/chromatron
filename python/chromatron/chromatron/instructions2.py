@@ -1163,7 +1163,14 @@ class insLoadRef(BaseInstruction):
         vm.registers[self.dest.reg] = ref
 
     def assemble(self):
-        return OpcodeFormat2Imm1Reg(self.mnemonic, self.src.addr, self.src.storage.value, self.dest.assemble(), lineno=self.lineno)
+        addr = self.src.addr
+        pool = self.src.storage.value
+        index = self.src.index
+
+        if pool > 255 or index > 255:
+            raise CompilerFatal
+
+        return OpcodeFormat3Imm1Reg(self.mnemonic, addr, pool, index, self.dest.assemble(), lineno=self.lineno)
 
 class insLoadGlobalImmediate(BaseInstruction):
     mnemonic = 'LDGI'

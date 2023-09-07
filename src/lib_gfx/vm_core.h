@@ -232,7 +232,8 @@ and also select an attribute.
 
 
 typedef struct __attribute__((packed)){
-    uint16_t pool;
+    uint8_t pool;
+    uint8_t index;
     uint16_t addr;
 } vm_packed_reference_t;
 

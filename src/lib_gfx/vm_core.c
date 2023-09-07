@@ -1070,7 +1070,7 @@ static int8_t _vm_i8_run_stream(
     opcode_5ac_t *opcode_5ac;
     opcode_1i_t *opcode_1i;
     opcode_1i1r_t *opcode_1i1r;
-    opcode_2i1r_t *opcode_2i1r;
+    // opcode_2i1r_t *opcode_2i1r;
     opcode_3i1r_t *opcode_3i1r;
     opcode_1i2r_t *opcode_1i2r;
     opcode_1i2rs_t *opcode_1i2rs;
@@ -1207,30 +1207,32 @@ opcode_stgi:
 
 
 opcode_ref:
-    DECODE_2I1R;    
+    DECODE_3I1R;    
 
     // imm1 = addr
     // imm2 = storage pool
+    // imm3 = storage index
 
-    ref.ref.addr = opcode_2i1r->imm1;
+    ref.ref.addr = opcode_3i1r->imm1;
+    ref.ref.index = opcode_3i1r->imm3;
 
-    if( opcode_2i1r->imm2 == POOL_GLOBAL ){
+    if( opcode_3i1r->imm2 == POOL_GLOBAL ){
 
         ref.ref.pool = POOL_GLOBAL;   
     }
-    else if( opcode_2i1r->imm2 == POOL_PIXEL_ARRAY ){
+    else if( opcode_3i1r->imm2 == POOL_PIXEL_ARRAY ){
 
         ref.ref.pool = POOL_PIXEL_ARRAY;   
     }
-    else if( opcode_2i1r->imm2 == POOL_LOCAL ){
+    else if( opcode_3i1r->imm2 == POOL_LOCAL ){
 
         ref.ref.pool = N_STATIC_POOLS + call_depth;   
     }
-    else if( opcode_2i1r->imm2 == POOL_STRING_LITERALS ){
+    else if( opcode_3i1r->imm2 == POOL_STRING_LITERALS ){
 
         ref.ref.pool = POOL_STRING_LITERALS;   
     }
-    else if( opcode_2i1r->imm2 == POOL_FUNCTIONS ){
+    else if( opcode_3i1r->imm2 == POOL_FUNCTIONS ){
 
         ref.ref.pool = POOL_FUNCTIONS;   
     }
@@ -1241,7 +1243,7 @@ opcode_ref:
         return VM_STATUS_BAD_STORAGE_POOL;
     }
     
-    registers[opcode_2i1r->reg1] = ref.n;    
+    registers[opcode_3i1r->reg1] = ref.n;    
 
     DISPATCH;    
 
@@ -3354,6 +3356,7 @@ opcode_pstore_select:
     ref.n = registers[opcode_2ac->dest];
 
     
+
 
     DISPATCH;
 
