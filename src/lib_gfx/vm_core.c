@@ -3345,18 +3345,30 @@ opcode_vsum:
 
 
 opcode_pixcall:
+    goto opcode_trap;
+
 opcode_pstore_select:
-opcode_vstore_select:
-
-opcode_pload_select:
-
-opcode_pop_select:
-opcode_vop_select:
-
-
     DECODE_2AC;    
 
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    
+
     DISPATCH;
+
+
+opcode_vstore_select:
+    goto opcode_trap;
+    
+opcode_pload_select:
+    goto opcode_trap;
+
+opcode_pop_select:
+    goto opcode_trap;
+
+opcode_vop_select:
+    goto opcode_trap;
 
 
 
