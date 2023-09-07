@@ -3091,12 +3091,12 @@ class insVPixelLoad(BaseInstruction):
     def __str__(self):
         return "%s %s = %s.%s" % (self.mnemonic, self.target, self.pixel_ref, self.attr)
 
-    def execute(self, vm):
-        ref = vm.registers[self.pixel_ref.reg]
+    # def execute(self, vm):
+    #     ref = vm.registers[self.pixel_ref.reg]
         
-        pixel_array = vm.get_pixel_array(ref)
+    #     pixel_array = vm.get_pixel_array(ref)
 
-        vm.registers[self.target.reg] = pixel_array[self.attr]
+    #     vm.registers[self.target.reg] = pixel_array[self.attr]
 
 # load attribute from vector
 # this is similar to PLOAD_ATTR, but retrieves attributes from the entire array.
