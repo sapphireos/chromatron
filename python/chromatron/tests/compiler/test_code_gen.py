@@ -2241,14 +2241,14 @@ class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
 
-    # def test_pixel_channel_load(self, opt_passes):
-    #     self.run_test(test_pixel_channel_load,
-    #         opt_passes=opt_passes,
-    #         expected={
-    #             'a': 0.0999908447265625,
-    #             'b': 0.1999969482421875,
-    #             'c': 0.0999908447265625,
-    #         })
+    def test_pixel_channel_load(self, opt_passes):
+        self.run_test(test_pixel_channel_load,
+            opt_passes=opt_passes,
+            expected={
+                'a': 0.0999908447265625,
+                'b': 0.1999969482421875,
+                'c': 0.0999908447265625,
+            })
 
     def test_pload(self, opt_passes):
         self.run_test(test_pload,
