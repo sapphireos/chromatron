@@ -2767,6 +2767,26 @@ int32_t gfx_i32_get_pixel_attr_single( uint16_t index, uint8_t attr ){
 
         return gfx_u16_get_is_hs_fading( index, 65535, 0 );
     }
+    else if( attr == PIX_ARRAY_ATTR_HUE ){
+
+        return gfx_u16_get_hue_1d( index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
+
+        return gfx_u16_get_sat_1d( index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_VAL ){
+
+        return gfx_u16_get_val_1d( index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
+
+        return gfx_u16_get_hs_fade_1d( index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
+
+        return gfx_u16_get_v_fade_1d( index );
+    }
 
     return 0;    
 }

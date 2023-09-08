@@ -3146,9 +3146,9 @@ opcode_pstore_select:
     DECODE_2AC;    
 
     value = registers[opcode_2ac->op1];
-    ref.n = registers[opcode_2ac->dest];
+    pixel_index.n = registers[opcode_2ac->dest];
 
-    gfx_v_pixel_store( 0, ref.ref.addr, ref.ref.index, value );
+    gfx_v_pixel_store( 0, pixel_index.index.index, pixel_index.index.attr, value );
 
     DISPATCH;
 
@@ -3166,7 +3166,20 @@ opcode_vstore_select:
     DISPATCH;
     
 opcode_pload_select:
-    goto opcode_trap;
+    // goto opcode_trap;
+
+    DECODE_2AC;    
+    
+    // ref.n = registers[opcode_2ac->op1];
+    // value = registers[opcode_2ac->dest];
+
+    pixel_index.n = registers[opcode_2ac->op1];
+
+    registers[opcode_2ac->dest] = gfx_i32_get_pixel_attr_single( pixel_index.pixindex.index, pixel_index.pixindex.attr );
+
+    DISPATCH;
+
+    
 
 opcode_pop_select:
     goto opcode_trap;
