@@ -3148,7 +3148,7 @@ opcode_pstore_select:
     value = registers[opcode_2ac->op1];
     pixel_index.n = registers[opcode_2ac->dest];
 
-    gfx_v_pixel_store( 0, pixel_index.index.index, pixel_index.index.attr, value );
+    gfx_v_pixel_store( 0, pixel_index.pixindex.index, pixel_index.pixindex.attr, value );
 
     DISPATCH;
 
