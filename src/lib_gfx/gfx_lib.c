@@ -1275,6 +1275,18 @@ void gfx_v_pixel_mod( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
     _gfx_v_set_pixel_op( index, attr, a );     
 }
 
+void gfx_v_pixel_store( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
+
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    _gfx_v_set_pixel_op( index, attr, src );     
+}
 
 void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
 

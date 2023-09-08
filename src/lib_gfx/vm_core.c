@@ -3141,21 +3141,29 @@ opcode_pixcall:
     goto opcode_trap;
 
 opcode_pstore_select:
-    goto opcode_trap;
+    // goto opcode_trap;
 
-    // DECODE_2AC;    
+    DECODE_2AC;    
 
-    // value = registers[opcode_2ac->op1];
-    // ref.n = registers[opcode_2ac->dest];
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
 
+    gfx_v_pixel_store( 0, ref.ref.addr, ref.ref.index, value );
 
-
-
-    // DISPATCH;
+    DISPATCH;
 
 
 opcode_vstore_select:
-    goto opcode_trap;
+    // goto opcode_trap;
+
+    DECODE_2AC;    
+
+    value = registers[opcode_2ac->op1];
+    ref.n = registers[opcode_2ac->dest];
+
+    gfx_v_array_move( 0, ref.ref.index, value );
+
+    DISPATCH;
     
 opcode_pload_select:
     goto opcode_trap;

@@ -110,24 +110,26 @@ def sine(index, rate)
 """
 
 
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-d = Number(publish=True)
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Fixed16(publish=True)
+i = Number(publish=True)
 
 def init():
-    # a = pixels[1].is_hs_fading
+    pixels[0].val = 0.1
+    pixels[1].val = 0.2
+    pixels[2].val = 0.3
+    pixels[3].val = 0.4
 
-    # pixels[1].hue = 0.5
+    a = pixels[0].val
+    b = pixels[1].val
+    i = 2
+    c = pixels[2].val
+    d = pixels[i + 1].val
 
-    # b = pixels[1].is_hs_fading
-    # c = pixels[0].is_hs_fading
-
-    # pixels.hue = 1.0
-    # d = pixels[0].is_hs_fading
-    pixels[1].hue += 0.1
-
-
+    
 # def pfunc(ch: PixelChannel):
     # ch = 0.25
 
