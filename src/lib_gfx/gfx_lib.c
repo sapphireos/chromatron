@@ -1209,7 +1209,7 @@ void gfx_v_pixel_mul( uint8_t obj, uint16_t index, uint8_t attr, int32_t src, ca
     index += pix_arrays[obj].index;
     index %= pix_count;
 
-    int32_t a = ptr[index] * src;
+    int32_t a = ptr[index];
 
     if( ( attr != PIX_ARRAY_ATTR_HS_FADE ) &&
         ( attr != PIX_ARRAY_ATTR_V_FADE ) &&
