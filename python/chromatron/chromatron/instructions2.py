@@ -3405,6 +3405,7 @@ class insPixelOpSelect(BaseInstruction):
         self.op = op
         self.pixel_ref = pixel_ref
         self.value = value
+        self.data_type = value.var.data_type
 
     def __str__(self):
         return "%s %s %s= %s" % (self.mnemonic, self.pixel_ref, self.op, self.value)
@@ -3819,6 +3820,7 @@ class insVPixelOpSelect(BaseInstruction):
         self.op = op
         self.pixel_ref = pixel_ref
         self.value = value
+        self.data_type = value.var.data_type
 
     def __str__(self):
         return "%s %s %s= %s" % (self.mnemonic, self.pixel_ref, self.op, self.value)
