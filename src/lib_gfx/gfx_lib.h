@@ -66,11 +66,11 @@ typedef struct  __attribute__((packed)){
 #define ARRAY_OBJ_TYPE      0
 #define PIX_OBJ_TYPE        1
 
-#define PIX_ARRAY_ATTR_HUE        0
-#define PIX_ARRAY_ATTR_SAT        1
-#define PIX_ARRAY_ATTR_VAL        2
-#define PIX_ARRAY_ATTR_HS_FADE    3
-#define PIX_ARRAY_ATTR_V_FADE     4
+#define PIX_ARRAY_ATTR_HUE        1
+#define PIX_ARRAY_ATTR_SAT        2
+#define PIX_ARRAY_ATTR_VAL        3
+#define PIX_ARRAY_ATTR_HS_FADE    4
+#define PIX_ARRAY_ATTR_V_FADE     5
 
 // note this needs to pad to 32 bit alignment!
 typedef struct  __attribute__((packed)){

@@ -2192,9 +2192,9 @@ def init():
 
 test_pload = """
 
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
 d = Number(publish=True)
 e = Number(publish=True)
 
@@ -2218,9 +2218,9 @@ def init():
 
 test_pixel_channel_load = """
 
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
 
 def init():
     ch = PixelChannel()
