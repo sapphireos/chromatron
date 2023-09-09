@@ -201,6 +201,15 @@ typedef struct __attribute__((packed)){
     uint8_t opcode;
     uint16_t imm1;
     uint16_t imm2;
+    uint8_t reg1;
+    uint8_t reg2;
+} opcode_2i2r_t;
+#define DECODE_2I2R opcode_2i2r = (opcode_2i2r_t *)pc; pc += 8;
+
+typedef struct __attribute__((packed)){
+    uint8_t opcode;
+    uint16_t imm1;
+    uint16_t imm2;
     uint16_t imm3;
     uint8_t reg1;
 } opcode_3i1r_t;
@@ -1047,6 +1056,7 @@ static int8_t _vm_i8_run_stream(
     uint16_t index;
     uint16_t count;
     uint16_t stride;
+    uint16_t op;
     int32_t params[8];
     int32_t dest_str_len;
     uint64_t context_bits;
@@ -1078,6 +1088,7 @@ static int8_t _vm_i8_run_stream(
     opcode_1i_t *opcode_1i;
     opcode_1i1r_t *opcode_1i1r;
     // opcode_2i1r_t *opcode_2i1r;
+    opcode_2i2r_t *opcode_2i2r;
     opcode_3i1r_t *opcode_3i1r;
     opcode_1i2r_t *opcode_1i2r;
     opcode_1i2rs_t *opcode_1i2rs;
@@ -3136,13 +3147,7 @@ opcode_vsum:
 
     DISPATCH;
 
-
-opcode_pixcall:
-    goto opcode_trap;
-
 opcode_pstore_select:
-    // goto opcode_trap;
-
     DECODE_2AC;    
 
     value = registers[opcode_2ac->op1];
@@ -3154,8 +3159,6 @@ opcode_pstore_select:
 
 
 opcode_vstore_select:
-    // goto opcode_trap;
-
     DECODE_2AC;    
 
     value = registers[opcode_2ac->op1];
@@ -3166,27 +3169,78 @@ opcode_vstore_select:
     DISPATCH;
     
 opcode_pload_select:
-    // goto opcode_trap;
-
     DECODE_2AC;    
     
-    // ref.n = registers[opcode_2ac->op1];
-    // value = registers[opcode_2ac->dest];
-
     pixel_index.n = registers[opcode_2ac->op1];
 
     registers[opcode_2ac->dest] = gfx_i32_get_pixel_attr_single( pixel_index.pixindex.index, pixel_index.pixindex.attr );
 
     DISPATCH;
 
-    
-
 opcode_pop_select:
-    goto opcode_trap;
+    DECODE_2I2R;    
+    
+    pixel_index.n = registers[opcode_2i2r->reg1];
+    value = registers[opcode_2i2r->reg2];
+
+    op = opcode_2i2r->imm1;
+
+    if( op == PIX_OP_ADD ){
+
+        gfx_v_pixel_add( 0, pixel_index.pixindex.index, pixel_index.pixindex.attr, value );
+    }
+    else if( op == PIX_OP_SUB ){
+
+        gfx_v_pixel_sub( 0, pixel_index.pixindex.index, pixel_index.pixindex.attr, value );
+    }
+    else if( op == PIX_OP_MUL ){
+
+        gfx_v_pixel_mul( 0, pixel_index.pixindex.index, pixel_index.pixindex.attr, value, opcode_2i2r->imm2 );
+    }
+    else if( op == PIX_OP_DIV ){
+
+        gfx_v_pixel_div( 0, pixel_index.pixindex.index, pixel_index.pixindex.attr, value, opcode_2i2r->imm2 );
+    }
+    else if( op == PIX_OP_MOD ){
+
+        gfx_v_pixel_mod( 0, pixel_index.pixindex.index, pixel_index.pixindex.attr, value );
+    }
+
+    DISPATCH;
 
 opcode_vop_select:
-    goto opcode_trap;
+    DECODE_2I2R;    
+    
+    ref.n = registers[opcode_2i2r->reg1];
+    value = registers[opcode_2i2r->reg2];
 
+    op = opcode_2i2r->imm1;
+
+    if( op == PIX_OP_ADD ){
+
+        gfx_v_array_add( ref.ref.addr, ref.ref.index, value );
+    }
+    else if( op == PIX_OP_SUB ){
+
+        gfx_v_array_sub( ref.ref.addr, ref.ref.index, value );
+    }
+    else if( op == PIX_OP_MUL ){
+
+        gfx_v_array_mul( ref.ref.addr, ref.ref.index, value, opcode_2i2r->imm2 );
+    }
+    else if( op == PIX_OP_DIV ){
+
+        gfx_v_array_div( ref.ref.addr, ref.ref.index, value, opcode_2i2r->imm2 );
+    }
+    else if( op == PIX_OP_MOD ){
+
+        gfx_v_array_mod( ref.ref.addr, ref.ref.index, value );
+    }
+
+    DISPATCH;
+
+opcode_pixcall:
+    goto opcode_trap;
 
 
 opcode_trap:

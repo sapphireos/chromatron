@@ -72,6 +72,12 @@ typedef struct  __attribute__((packed)){
 #define PIX_ARRAY_ATTR_HS_FADE    4
 #define PIX_ARRAY_ATTR_V_FADE     5
 
+#define PIX_OP_ADD                1
+#define PIX_OP_SUB                2
+#define PIX_OP_MUL                3
+#define PIX_OP_DIV                4
+#define PIX_OP_MOD                5
+
 // note this needs to pad to 32 bit alignment!
 typedef struct  __attribute__((packed)){
     int32_t count;

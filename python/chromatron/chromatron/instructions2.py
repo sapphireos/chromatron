@@ -41,6 +41,13 @@ MAX_UINT16 = 65535
 
 CYCLE_LIMIT = 100000
 
+PIXEL_OPS = {
+    'add': 1,
+    'sub': 2,
+    'mul': 3,
+    'div': 4,
+    'mod': 5,
+}
 
 PIXEL_VECTORS = {
     'hue': 1,
@@ -3423,7 +3430,35 @@ class insPixelOpSelect(BaseInstruction):
                 'val': insPixelAddVal,
                 'hs_fade': insPixelAddHSFade,
                 'v_fade': insPixelAddVFade,
-            }
+            },
+            'sub': {
+                'hue': insPixelSubHue,
+                'sat': insPixelSubSat,
+                'val': insPixelSubVal,
+                'hs_fade': insPixelSubHSFade,
+                'v_fade': insPixelSubVFade,
+            },
+            'mul': {
+                'hue': insPixelMulHue,
+                'sat': insPixelMulSat,
+                'val': insPixelMulVal,
+                'hs_fade': insPixelMulHSFade,
+                'v_fade': insPixelMulVFade,
+            },
+            'div': {
+                'hue': insPixelDivHue,
+                'sat': insPixelDivSat,
+                'val': insPixelDivVal,
+                'hs_fade': insPixelDivHSFade,
+                'v_fade': insPixelDivVFade,
+            },
+            'mod': {
+                'hue': insPixelModHue,
+                'sat': insPixelModSat,
+                'val': insPixelModVal,
+                'hs_fade': insPixelModHSFade,
+                'v_fade': insPixelModVFade,
+            },
         }
 
         ins = instructions[self.op][attr](self.pixel_ref, attr, self.value, lineno=self.lineno)
@@ -3431,7 +3466,7 @@ class insPixelOpSelect(BaseInstruction):
         ins.execute(vm)
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat2Imm2Reg(self.mnemonic, PIXEL_OPS[self.op], get_type_id(self.data_type), self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 
 class insPixelAdd(BaseInstruction):
@@ -3845,7 +3880,7 @@ class insVPixelOpSelect(BaseInstruction):
         ins.execute(vm)
 
     def assemble(self):
-        return OpcodeFormat2AC(self.mnemonic, self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
+        return OpcodeFormat2Imm2Reg(self.mnemonic, PIXEL_OPS[self.op], get_type_id(self.data_type), self.pixel_ref.reg, self.value.assemble(), lineno=self.lineno)
 
 class insVPixelAdd(BaseInstruction):
     mnemonic = 'VADD'

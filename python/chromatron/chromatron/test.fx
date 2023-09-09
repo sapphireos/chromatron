@@ -111,22 +111,12 @@ def sine(index, rate)
 
 
 
-a = Number(publish=True)
-b = Number(publish=True)
-c = Number(publish=True)
-
 def init():
     ch = PixelChannel()
+
     ch = pixels.hue
-    
-    pixels.hue = 0.1
-    pixels[1].hue = 0.2
-
-    a = ch[0]
-    b = ch[1]
-    c = ch[2]
-
-
+    ch = 0.1
+    ch[1] += 0.4
 
 
 
