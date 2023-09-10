@@ -1,160 +1,65 @@
 
-
-# db('fx_sequence_prog', 'i32', 1)
-# sync('fx_sequence_prog', ['street_lamp'], 1000)
-
-fx_dawn = Number(publish=True)
-fx_dusk = Number(publish=True)
-fx_night = Number(publish=True)
-fx_day = Number(publish=True)
+# receive('test_array', 'fft', ['audio'])
+receive('fft', 'fft', ['audio'])
+db('fft', 'uint16', 16)
 
 
-# def clear_states():
-#     fx_dawn = 0
-#     fx_dusk = 0
-#     fx_night = 0
-#     fx_day = 0
+def init():
+    pixels.val = 0.0
+    pixels.sat = 1.0
 
-# def set_dawn():
-#     clear_states()
-#     fx_dawn = 1
-
-# def set_dusk():
-#     clear_states()
-#     fx_dusk = 1
-
-# def set_night():
-#     clear_states()
-#     fx_night = 1
-
-# def set_day():
-#     clear_states()
-#     fx_day = 1
-#     db.gfx_enable = False
+    pixels.v_fade = 0
+    pixels.hs_fade = 0
 
 
-# def init():
-#     start_thread('sequencer')
-#     start_thread('light_sequencer')
+def fft_sum():
+    s = Number()
+    s = 0
 
-#     # start up in day mode
-#     set_day()
+    for _i in len(db.fft):
+        s += db.fft[_i]
 
+    return s
 
+def loop():
+    pixels.v_fade = 300
+    pixels.val = 0.0
 
-current_prog = Number()
+    height = Number()
+    base_hue = Number()
+    hue = Number()
+    hue = base_hue
 
-def set_prog(prog_index):
-    if prog_index == current_prog:
-        return
+    fft_sum = Number()
+    fft_sum = fft_sum()
 
-#     vm_stop()
+    max_height = Number()
 
-#     # dawn and dusk programs
-#     if prog_index < 0:
-#         if prog_index == -1:
-#             # this is power down
-#             db.gfx_enable = False
+    for i in pixels.size_x:
+        if db.fft[i + 3] > max_height:
+            max_height = db.fft[i + 3]
 
-#             current_prog = prog_index
+        height = db.fft[i + 3] / (max_height / pixels.size_y)
 
-#             return
+        for h in height:
+            pixels[i][(pixels.size_y - 1) - h].v_fade = 50
+            pixels[i][(pixels.size_y - 1) - h].val = 1.0
 
-#         elif prog_index == -2:
-#             db.vm_prog = 'cyber_low_pulse'
+        for y in pixels.size_y:
+            pixels[i][y].hue = hue
 
-#         elif prog_index == -3:
-#             db.vm_prog = 'cyber_sparkle'
+        hue += fft_sum / 2
 
-#         elif prog_index == -4:
-#             db.vm_prog = 'cyber_high_pulse'
-
-
-#     # graphic programs
-#     else:
-#         prog_index %= 4
-
-#         if prog_index == 0:
-#             db.vm_prog = "cyber_light"
-
-#         elif prog_index == 1:
-#             db.vm_prog = "cyber_light2"
-
-#         elif prog_index == 2:
-#             db.vm_prog = "cyber_sparkle"
-
-#         elif prog_index == 3:
-#             db.vm_prog = "pods_intense"
+    base_hue += fft_sum / 8
 
 
-#     db.gfx_enable = True
-#     vm_start()
+    if max_height > 128:
+        max_height -= 1
 
-#     current_prog = prog_index
+    else:
+        max_height = 128
 
-# test_als = Number(publish=True)
-
-# def light_sequencer():
-#     while True:
-#         delay(5000)
-
-#         als = Number()
-#         als = db.veml7700_filtered_als
-#         # als = test_als
-
-#         if fx_day:
-#             if als < 50000:
-#                 set_dusk()
-#                 set_prog(-2) # pulse
-
-#         elif fx_dusk:
-#             if als < 5000: # switch to night mode
-#                 set_night()
-
-#             elif als < 10000:
-#                 set_prog(-3) # sparkle
-
-#             elif als > 100000:
-#                 set_day()
-
-#         elif fx_night:
-#             if als > 15000:
-#                 set_dawn()
-#                 set_prog(-2) # pulse
-
-#         elif fx_dawn:
-#             if als > 200000:
-#                 set_day()
-
-#             elif als > 30000:
-#                 set_prog(-1)
-
-#                 delay(5000)
-#                 vm_stop()
-
-
-
-def sequencer():
-    set_prog(db.fx_sequence_prog)
-    
-    # while True:
-    #     if fx_night:
-            
-    #         db.fx_sequence_prog = rand()
-
-    #         if db.batt_soc < 30: # low power mode
-    #             set_prog(-4) # high pulse
-
-    #         else:
-                
-
-
-    #         delay(rand(60000, 900000))
-
-    #     else:
-    #         delay(1000)
-
-
+        
 
 # THIS NEEDS A TEST CASE!
 

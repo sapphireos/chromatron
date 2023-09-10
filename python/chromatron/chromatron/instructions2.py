@@ -613,9 +613,20 @@ class insFunc(object):
         s += "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
         lines_printed = []
         for ins in self.code:
+            # NOTE
+            # We don't track *which* source file each instruction corresponds to, we only
+            # have the original script.  This means that any imports may refer to line numbers
+            # that don't exist.
+            # If that happens we'll just skip the source.
+
             if ins.lineno >= 0 and ins.lineno not in lines_printed and not isinstance(ins, insLabel):
                 s += f'________________________________________________________\n'
-                s += f' {ins.lineno}: {self.source_code[ins.lineno - 1].strip()}\n'
+                try:
+                    s += f' {ins.lineno}: {self.source_code[ins.lineno - 1].strip()}\n'
+
+                except IndexError:
+                    s += f' {ins.lineno}: "Missing source"\n'
+
                 lines_printed.append(ins.lineno)
 
             s += f'\t{ins}\n'
@@ -1442,8 +1453,6 @@ class insLoadDBIndexed(BaseInstruction):
         self.src = src
 
         self.data_type = self.dest.var.data_type
-
-        assert self.data_type != 'gfx16'
 
         self.lookup = lookup
 
