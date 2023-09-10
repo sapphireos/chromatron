@@ -5957,6 +5957,14 @@ class irPixCall(irCallType):
 
                 self.target = replacement
 
+        if self.pixel_ref in VN:
+            replacement = VN[VN[self.pixel_ref]]
+
+            if self.pixel_ref != replacement:
+                debug_print(f"replace pixcall pixel_ref {self.pixel_ref} with {replacement}")
+
+                self.pixel_ref = replacement
+
     def get_input_vars(self):
         inputs = [self.target, self.pixel_ref]
         inputs.extend(self.params)
