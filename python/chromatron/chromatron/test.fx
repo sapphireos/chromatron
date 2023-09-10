@@ -1,4 +1,10 @@
 
+send('gfx_enable', 'swipe_state', ['quadrant'], 100)
+
+
+def init():
+    pass
+
 
 # THIS NEEDS A TEST CASE!
 
@@ -111,21 +117,21 @@ def sine(index, rate)
 
 
 
-# def pfunc(ch: PixelChannel):
-    # ch = 0.25
+# # def pfunc(ch: PixelChannel):
+#     # ch = 0.25
 
-p1 = PixelArray(2, 12, size_x=3, size_y=4)
+# p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-def init():
-    # pfunc(pixels.hue)
+# def init():
+#     # pfunc(pixels.hue)
 
-    # p1.sat.pix_sine(1.0).pix_add(0.5)
-    # p1.sat.pix_sine(1.0).pix_add(0.5)
-    ch = PixelChannel()
-    # ch = pixels.hue
-    ch = p1.hue
-    # ch[1] = 0.1
-    ch.pix_add(0.1)
+#     # p1.sat.pix_sine(1.0).pix_add(0.5)
+#     # p1.sat.pix_sine(1.0).pix_add(0.5)
+#     ch = PixelChannel()
+#     # ch = pixels.hue
+#     ch = p1.hue
+#     # ch[1] = 0.1
+#     ch.pix_add(0.1)
     
 
     # p1.sat += 0.5
