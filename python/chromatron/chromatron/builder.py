@@ -783,7 +783,7 @@ class Builder(object):
                 
             elif value.target is not None and value.target.data_type == 'obj' and value.target.name == 'db':
                 is_db = True
-                if target_type is not None and target_type != 'objref':
+                if target_type is not None and target_type not in ['objref', 'pixchref']:
                     var = self.add_temp(data_type=target_type, lineno=lineno)
 
                 else:

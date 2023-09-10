@@ -1,9 +1,16 @@
 
-send('gfx_enable', 'swipe_state', ['quadrant'], 100)
-
 
 def init():
-    pass
+    # pixels.hue = (  db.batt_soc * 21823 ) / 100
+    # a = Number()
+    # a = db.batt_soc
+    # pixels.hue = a
+    # pixels.hue = db.batt_soc
+
+    db.kv_test_key = 123
+
+    pixels.hue = (  db.kv_test_key * 21823 ) / 100
+    # pixels.hue = 123
 
 
 # THIS NEEDS A TEST CASE!
