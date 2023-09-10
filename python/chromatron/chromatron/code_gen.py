@@ -257,7 +257,7 @@ class cg1Module(cg1Node):
         self.module = None
         self.ctx = {}
 
-    def build(self, builder=None, script_name='', source=[]):
+    def build(self, builder=None, script_name='', source=[], path=os.getcwd()):
         if builder == None:
             builder = Builder(script_name=script_name, source=source)
 
@@ -268,7 +268,7 @@ class cg1Module(cg1Node):
             if isinstance(node, cg1Import):
                 # load imported files and pass to builder
                 for file in node.names:
-                    with open(file, 'r') as f:
+                    with open(os.path.join(path, file), 'r') as f:
                         cg1 = CodeGenPass1()
                         module = cg1(f.read()).build(builder)
 
@@ -1192,7 +1192,7 @@ class CodeGenPass1(ast.NodeVisitor):
 def parse(source):
     return ast.parse(source)
 
-def compile_text(source, debug_print=False, summarize=False, script_name='', opt_passes=OptPasses.SSA):
+def compile_text(source, debug_print=False, summarize=False, script_name='', path=os.getcwd(), opt_passes=OptPasses.SSA):
     import colored_traceback
     colored_traceback.add_hook()
     
@@ -1209,7 +1209,7 @@ def compile_text(source, debug_print=False, summarize=False, script_name='', opt
         print(pformat_ast(cg1_data))
 
 
-    ir_program = cg1_data.build(script_name=script_name, source=source)
+    ir_program = cg1_data.build(script_name=script_name, source=source, path=path)
 
     e = None
     try:
@@ -1295,11 +1295,12 @@ def compile_text(source, debug_print=False, summarize=False, script_name='', opt
 
 def compile_script(path, debug_print=False, opt_passes=OptPasses.SSA):
     script_name = os.path.split(path)[1]
+    base_path = os.path.abspath(os.path.dirname(path))
 
     logging.info(f'Compiling {script_name}')
 
     with open(path) as f:
-        return compile_text(f.read(), script_name=script_name, debug_print=debug_print, opt_passes=opt_passes)
+        return compile_text(f.read(), script_name=script_name, debug_print=debug_print, path=base_path, opt_passes=opt_passes)
 
 def run_script(path, debug_print=False, opt_passes=OptPasses.SSA):
     ins_program = compile_script(path, debug_print=debug_print, opt_passes=opt_passes)
@@ -1370,7 +1371,7 @@ def main():
     logging.info(f'Optimization passes: {opt_passes}')
 
 
-    try:
+    if os.path.isfile(path):
         program = run_script(path, debug_print=True, opt_passes=opt_passes)
         # program = compile_script(path, debug_print=True, opt_passes=opt_level)
         # program.simulate()
@@ -1386,7 +1387,7 @@ def main():
         except IndexError:
             pass
 
-    except IOError:
+    else:
         # path was a directory
 
         # compile and summarize all files
@@ -1396,41 +1397,43 @@ def main():
         errors = 0
         error_files = {}
 
-        for fpath in os.listdir(path):
-            fname, ext = os.path.splitext(fpath)
+        for root, dirs, files in os.walk(path):
+            for fpath in os.listdir(root):
+                fname, ext = os.path.splitext(fpath)
 
-            if ext != '.fx':
-                continue
+                if ext != '.fx':
+                    continue
 
-            with open(os.path.join(path, fpath)) as f:
-                print('\n*********************************')
-                print(fpath)
-                print('---------------------------------')
-                text = f.read()
-                try:
-                    program = compile_text(text, summarize=False)
-                    image = program.assemble()
-                    image.render()
+                full_path = os.path.join(root, fpath)
+                with open(full_path) as f:
+                    print('\n*********************************')
+                    print(fpath)
+                    print('---------------------------------')
+                    text = f.read()
+                    try:
+                        program = compile_text(text, summarize=False, path=root)
+                        image = program.assemble()
+                        image.render()
 
-                    stats[fpath] = {'code': image.header.code_len,
-                                    'local_data': image.header.local_data_len,
-                                    'global_data': image.header.global_data_len,
-                                    'constant': image.header.constant_len,
-                                    'stream': len(image.stream)}
+                        stats[full_path] = {'code': image.header.code_len,
+                                            'local_data': image.header.local_data_len,
+                                            'global_data': image.header.global_data_len,
+                                            'constant': image.header.constant_len,
+                                            'stream': len(image.stream)}
 
-                    success += 1
+                        success += 1
 
-                except SyntaxError as e:
-                    errors += 1
-                    error_files[fpath] = e
-                    print("SyntaxError:", e)
-                    # raise
+                    except SyntaxError as e:
+                        errors += 1
+                        error_files[full_path] = e
+                        print("SyntaxError:", e)
+                        # raise
 
-                except Exception as e:
-                    errors += 1
-                    error_files[fpath] = e
-                    print("Exception:", e)
-                    # raise
+                    except Exception as e:
+                        errors += 1
+                        error_files[full_path] = e
+                        print("Exception:", e)
+                        # raise
 
         print('')
         for param in ['code', 'local_data', 'global_data', 'constant', 'stream']:

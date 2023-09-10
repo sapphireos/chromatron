@@ -1,14 +1,60 @@
+import shard_arrays.fx
+
+
+def hue_blaster():
+    while True:
+        delay(rand(4000, 10000))
+
+        hue = Fixed16()
+        hue = rand()
+
+        r = Number()
+
+        r = rand()
+        for i in array1.count:
+            array1[i + r].hue = hue
+
+            delay(20)
+
+        delay(1500)
+        r = rand()
+        for i in array2.count:
+            array1[array2.count - (i + r)].hue = hue
+
+            delay(20)
+
+        delay(1500)
+        r = rand()
+        for i in array3.count:
+            array1[i + r].hue = hue
+
+            delay(20)
+
+
 
 
 def init():
-    db.fx_sync = rand()
-    print(db.fx_sync)
+    pixels.val = 0.0
+    pixels.sat = 1.0
+    pixels.hue = 0.0
 
-    db.fx_sync = rand()
-    print(db.fx_sync)
+    pixels.hs_fade = 500
+    pixels.v_fade = 800
 
-    db.fx_sync = rand()
-    print(db.fx_sync)
+    start_thread('hue_blaster')
+
+
+cursor = Number()
+
+def loop():
+
+    pixels.val -= 0.010
+
+    array1[cursor].val = 1.0    
+    array2[cursor].val = 1.0    
+    array3[cursor].val = 1.0    
+
+    cursor += 1
 
     # pixels.hue = rand()
 
