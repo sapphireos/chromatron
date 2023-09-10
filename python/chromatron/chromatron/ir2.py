@@ -5076,9 +5076,9 @@ class irFunc(IR):
 
             # changed = False
 
-        if self.name == 'init':
-            with open(f"GVN.fxir", 'w') as f:
-                f.write(str(self))
+        # if self.name == 'init':
+        #     with open(f"GVN.fxir", 'w') as f:
+        #         f.write(str(self))
 
         # we may have eliminated instructions, or entire blocks:
         # relink blocks, prune, verify, recalc dominance, and re-analyze loops
@@ -5239,8 +5239,8 @@ class irFunc(IR):
         
         self.init_vars()
 
-        with open("initial_construction.fxir", 'w') as f:
-            f.write(str(self))
+        # with open("initial_construction.fxir", 'w') as f:
+        #     f.write(str(self))
 
         # self.render_dominator_tree()
         # self.render_graph()
@@ -5287,14 +5287,14 @@ class irFunc(IR):
             self.render_graph('ssa')
 
 
-            with open("SSA_construction.fxir", 'w') as f:
-                f.write(str(self))
+            # with open("SSA_construction.fxir", 'w') as f:
+                # f.write(str(self))
 
             if OptPasses.LS_SCHED in opt_passes:
                 self.schedule_load_stores()        
             
-                with open("ls_sched_construction.fxir", 'w') as f:
-                    f.write(str(self))
+                # with open("ls_sched_construction.fxir", 'w') as f:
+                    # f.write(str(self))
 
             # self.render_graph()
 
@@ -5320,8 +5320,8 @@ class irFunc(IR):
             if OptPasses.LOOP in opt_passes:
                 self.loop_invariant_code_motion()
 
-                with open("LICM_construction.fxir", 'w') as f:
-                    f.write(str(self))
+                # with open("LICM_construction.fxir", 'w') as f:
+                    # f.write(str(self))
 
 
             self.render_graph('ssa_after_opt')

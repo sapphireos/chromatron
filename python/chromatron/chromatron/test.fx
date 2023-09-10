@@ -111,25 +111,21 @@ def sine(index, rate)
 
 
 
-def init():
-    pixels[1].hue = 20
-    pixels[1].hue *= 2
-
-
 # def pfunc(ch: PixelChannel):
     # ch = 0.25
 
-# p1 = PixelArray(2, 12, size_x=3, size_y=4)
+p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-# def init():
+def init():
     # pfunc(pixels.hue)
 
     # p1.sat.pix_sine(1.0).pix_add(0.5)
     # p1.sat.pix_sine(1.0).pix_add(0.5)
-    # ch = PixelChannel()
-    # ch = pixels.hue
+    ch = PixelChannel()
+    ch = pixels.hue
     # ch[1] = 0.1
-    # ch.hue.pix_sine(0.2)
+    ch.pix_sine(0.2)
+    
 
     # p1.sat += 0.5
 
