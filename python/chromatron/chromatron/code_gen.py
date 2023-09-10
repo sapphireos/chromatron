@@ -257,7 +257,7 @@ class cg1Module(cg1Node):
         self.module = None
         self.ctx = {}
 
-    def build(self, builder=None, script_name='', source=[], path=os.getcwd()):
+    def build(self, builder=None, script_name='', source=[], path=os.getcwd(), is_import=False):
         if builder == None:
             builder = Builder(script_name=script_name, source=source)
 
@@ -270,7 +270,7 @@ class cg1Module(cg1Node):
                 for file in node.names:
                     with open(os.path.join(path, file), 'r') as f:
                         cg1 = CodeGenPass1()
-                        module = cg1(f.read()).build(builder)
+                        module = cg1(f.read()).build(builder, is_import=True)
 
             # assign global vars to table
             elif isinstance(node, cg1DeclarationBase):
@@ -379,7 +379,8 @@ class cg1Module(cg1Node):
         for func in funcs:
             func.build(builder)
 
-        return builder.finish_module()
+        if not is_import:
+            return builder.finish_module()
 
 class cg1NoOp(cg1CodeNode):
     def build(self, builder, target_type=None):
@@ -1341,14 +1342,14 @@ OPT_LEVELS = {
     'all': [OptPasses.SSA, OptPasses.GVN, OptPasses.LOOP, OptPasses.LS_SCHED],
 }
 
-# OPT_LEVELS['default'] = OPT_LEVELS['all']
+OPT_LEVELS['default'] = OPT_LEVELS['all']
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.GVN, OptPasses.LOOP]
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LS_SCHED, OptPasses.LOOP]
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LS_SCHED]
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LOOP]
 
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.GVN]
-OPT_LEVELS['default'] = [OptPasses.SSA]
+# OPT_LEVELS['default'] = [OptPasses.SSA]
 
 
 def main():
