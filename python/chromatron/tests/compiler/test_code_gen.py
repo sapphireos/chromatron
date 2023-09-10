@@ -4225,6 +4225,18 @@ def init():
 
 """
 
+test_pixel_channel_from_db = """
+
+def init():
+    db.kv_test_key = 123
+    ch = PixelChannel()
+
+    ch = pixels.hue
+
+    ch = db.kv_test_key * 2
+
+"""
+
 class HSVArrayTests(object):
     def assertEqual(self, actual, expected):
         assert actual == expected
@@ -4232,8 +4244,14 @@ class HSVArrayTests(object):
     def run_test(self, program, opt_passes=[OptPasses.SSA]):
         pass
 
-    def test_pixel_array_from_db22(self, opt_passes):
-        hsv = self.run_test(test_pixel_array_from_db22, opt_passes=opt_passes)
+    def test_pixel_channel_from_db(self, opt_passes):
+        hsv = self.run_test(test_pixel_channel_from_db, opt_passes=opt_passes)
+
+        for val in hsv['hue']:
+            self.assertEqual(val, 246)  
+
+    def test_pixel_array_from_db2(self, opt_passes):
+        hsv = self.run_test(test_pixel_array_from_db2, opt_passes=opt_passes)
 
         for val in hsv['hue']:
             self.assertEqual(val, 246)  

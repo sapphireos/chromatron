@@ -1,17 +1,11 @@
 
-
 def init():
-    # pixels.hue = (  db.batt_soc * 21823 ) / 100
-    # a = Number()
-    # a = db.batt_soc
-    # pixels.hue = a
-    # pixels.hue = db.batt_soc
-
     db.kv_test_key = 123
+    ch = PixelChannel()
 
-    pixels.hue = (  db.kv_test_key * 21823 ) / 100
-    # pixels.hue = 123
+    ch = pixels.hue
 
+    ch = db.kv_test_key * 2
 
 # THIS NEEDS A TEST CASE!
 
