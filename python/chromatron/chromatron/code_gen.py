@@ -1394,7 +1394,7 @@ def main():
 
         success = 0
         errors = 0
-        error_files = []
+        error_files = {}
 
         for fpath in os.listdir(path):
             fname, ext = os.path.splitext(fpath)
@@ -1422,12 +1422,13 @@ def main():
 
                 except SyntaxError as e:
                     errors += 1
-                    # print("SyntaxError:", e)
-                    raise
+                    error_files[fpath] = e
+                    print("SyntaxError:", e)
+                    # raise
 
                 except Exception as e:
                     errors += 1
-                    error_files.append(fpath)
+                    error_files[fpath] = e
                     print("Exception:", e)
                     # raise
 
@@ -1446,8 +1447,8 @@ def main():
 
         if errors > 0:
             print(f'\nFiles with errors:')
-            for file in error_files:
-                print(f'\t{file}')
+            for file, error in error_files.items():
+                print(f'\t{file}: {type(error)} {error}')
 
 profile = False
 if __name__ == '__main__':
