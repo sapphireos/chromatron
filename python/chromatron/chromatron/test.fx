@@ -1,89 +1,158 @@
-import shard_arrays.fx
 
 
-def hue_blaster():
-    while True:
-        delay(rand(4000, 10000))
+# db('fx_sequence_prog', 'i32', 1)
+# sync('fx_sequence_prog', ['street_lamp'], 1000)
 
-        hue = Fixed16()
-        hue = rand()
-
-        r = Number()
-
-        r = rand()
-        for i in array1.count:
-            array1[i + r].hue = hue
-
-            delay(20)
-
-        delay(1500)
-        r = rand()
-        for i in array2.count:
-            array1[array2.count - (i + r)].hue = hue
-
-            delay(20)
-
-        delay(1500)
-        r = rand()
-        for i in array3.count:
-            array1[i + r].hue = hue
-
-            delay(20)
+fx_dawn = Number(publish=True)
+fx_dusk = Number(publish=True)
+fx_night = Number(publish=True)
+fx_day = Number(publish=True)
 
 
+# def clear_states():
+#     fx_dawn = 0
+#     fx_dusk = 0
+#     fx_night = 0
+#     fx_day = 0
+
+# def set_dawn():
+#     clear_states()
+#     fx_dawn = 1
+
+# def set_dusk():
+#     clear_states()
+#     fx_dusk = 1
+
+# def set_night():
+#     clear_states()
+#     fx_night = 1
+
+# def set_day():
+#     clear_states()
+#     fx_day = 1
+#     db.gfx_enable = False
 
 
-def init():
-    pixels.val = 0.0
-    pixels.sat = 1.0
-    pixels.hue = 0.0
+# def init():
+#     start_thread('sequencer')
+#     start_thread('light_sequencer')
 
-    pixels.hs_fade = 500
-    pixels.v_fade = 800
-
-    start_thread('hue_blaster')
+#     # start up in day mode
+#     set_day()
 
 
-cursor = Number()
 
-def loop():
+current_prog = Number()
 
-    pixels.val -= 0.010
+def set_prog(prog_index):
+    if prog_index == current_prog:
+        return
 
-    array1[cursor].val = 1.0    
-    array2[cursor].val = 1.0    
-    array3[cursor].val = 1.0    
+#     vm_stop()
 
-    cursor += 1
+#     # dawn and dusk programs
+#     if prog_index < 0:
+#         if prog_index == -1:
+#             # this is power down
+#             db.gfx_enable = False
 
-    # pixels.hue = rand()
+#             current_prog = prog_index
 
-# def hue():
+#             return
+
+#         elif prog_index == -2:
+#             db.vm_prog = 'cyber_low_pulse'
+
+#         elif prog_index == -3:
+#             db.vm_prog = 'cyber_sparkle'
+
+#         elif prog_index == -4:
+#             db.vm_prog = 'cyber_high_pulse'
+
+
+#     # graphic programs
+#     else:
+#         prog_index %= 4
+
+#         if prog_index == 0:
+#             db.vm_prog = "cyber_light"
+
+#         elif prog_index == 1:
+#             db.vm_prog = "cyber_light2"
+
+#         elif prog_index == 2:
+#             db.vm_prog = "cyber_sparkle"
+
+#         elif prog_index == 3:
+#             db.vm_prog = "pods_intense"
+
+
+#     db.gfx_enable = True
+#     vm_start()
+
+#     current_prog = prog_index
+
+# test_als = Number(publish=True)
+
+# def light_sequencer():
 #     while True:
-#         delay(10000)
+#         delay(5000)
 
-#         fx_local = rand()
-#         db.fx_sync = fx_local
+#         als = Number()
+#         als = db.veml7700_filtered_als
+#         # als = test_als
+
+#         if fx_day:
+#             if als < 50000:
+#                 set_dusk()
+#                 set_prog(-2) # pulse
+
+#         elif fx_dusk:
+#             if als < 5000: # switch to night mode
+#                 set_night()
+
+#             elif als < 10000:
+#                 set_prog(-3) # sparkle
+
+#             elif als > 100000:
+#                 set_day()
+
+#         elif fx_night:
+#             if als > 15000:
+#                 set_dawn()
+#                 set_prog(-2) # pulse
+
+#         elif fx_dawn:
+#             if als > 200000:
+#                 set_day()
+
+#             elif als > 30000:
+#                 set_prog(-1)
+
+#                 delay(5000)
+#                 vm_stop()
 
 
-# cursor = Number()
 
-# def loop():
-#     # use db load for reads.
-#     # local var reads can
-#     # create race conditions
+def sequencer():
+    set_prog(db.fx_sequence_prog)
+    
+    # while True:
+    #     if fx_night:
+            
+    #         db.fx_sequence_prog = rand()
 
-#     # note the temp read is a bug
-#     # should be fixed in FX3
-#     temp = Fixed16()
-#     temp = db.fx_sync
+    #         if db.batt_soc < 30: # low power mode
+    #             set_prog(-4) # high pulse
 
-#     pixels[cursor].hue = temp
-
-
-#     cursor += 1
+    #         else:
+                
 
 
+    #         delay(rand(60000, 900000))
+
+    #     else:
+    #         delay(1000)
 
 
 

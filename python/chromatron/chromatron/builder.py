@@ -545,7 +545,7 @@ class Builder(object):
            isinstance(params[0], VarContainer) and \
            isinstance(params[0].var, varObjectRef):
 
-            if params[0].var.target is not None and params[0].var.target.name == 'db':
+            if params[0].var.target is not None and params[0].var.target.name == 'db' and func_name not in self.funcs:
                 db_call = True
 
         if not db_call:

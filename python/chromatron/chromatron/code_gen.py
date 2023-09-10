@@ -1452,7 +1452,7 @@ def main():
         if errors > 0:
             print(f'\nFiles with errors:')
             for file, error in error_files.items():
-                print(f'\t{file}: {type(error)} {error}')
+                print(f'\t{file:64}: {str(type(error)):24} {error}')
 
 profile = False
 if __name__ == '__main__':
