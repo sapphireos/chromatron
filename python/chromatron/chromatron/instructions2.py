@@ -1515,8 +1515,6 @@ class insStoreDB(BaseInstruction):
         if self.data_type == 'strlit':
             self.data_type = 'str'
 
-        assert self.data_type != 'gfx16'
-
         assert len(dest.var.lookups) == 0
 
         assert self.src is not None

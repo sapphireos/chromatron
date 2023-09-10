@@ -1,11 +1,45 @@
 
+
 def init():
-    db.kv_test_key = 123
-    ch = PixelChannel()
+    db.fx_sync = rand()
+    print(db.fx_sync)
 
-    ch = pixels.hue
+    db.fx_sync = rand()
+    print(db.fx_sync)
 
-    ch = db.kv_test_key * 2
+    db.fx_sync = rand()
+    print(db.fx_sync)
+
+    # pixels.hue = rand()
+
+# def hue():
+#     while True:
+#         delay(10000)
+
+#         fx_local = rand()
+#         db.fx_sync = fx_local
+
+
+# cursor = Number()
+
+# def loop():
+#     # use db load for reads.
+#     # local var reads can
+#     # create race conditions
+
+#     # note the temp read is a bug
+#     # should be fixed in FX3
+#     temp = Fixed16()
+#     temp = db.fx_sync
+
+#     pixels[cursor].hue = temp
+
+
+#     cursor += 1
+
+
+
+
 
 # THIS NEEDS A TEST CASE!
 
