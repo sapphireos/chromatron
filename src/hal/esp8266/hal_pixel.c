@@ -30,6 +30,7 @@
 #include "pixel.h"
 #include "pixel_vars.h"
 #include "graphics.h"
+#include "timers.h"
 
 #include "logging.h"
 
@@ -148,10 +149,34 @@ PT_BEGIN( pt );
             THREAD_EXIT( pt );
         }
 
-        // wait while pixels are zero output
-        while( gfx_b_is_output_zero() ){
+        if( gfx_b_is_output_zero() ){
 
-            THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
+            // we are going to shut down the pixel drivers, and then
+            // wait until the gfx system indicates there is
+            // non-zero output again.
+
+            // FIRST:
+            // wait a bit to allow the coprocessor to drive 0s onto
+            // the pixel bus.  since the coproc pixel update timing
+            // is not synchronized with the host, we can just wait for
+            // a few update cycles to make sure it has been done.
+            TMR_WAIT( pt, 50 );
+
+            // SECOND: 
+            // signal coprocessor should shut down pixel drivers.
+            // this is done by setting the coproc pixel count to 0.
+            coproc_i32_call1( OPCODE_PIX_SET_COUNT, 0 );
+         
+            // THIRD:
+            // wait while pixels are zero output:
+            while( gfx_b_is_output_zero() ){
+
+                THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
+            }
+
+            // FOURTH:
+            // signal coproc to re-enable pixel drivers
+            coproc_i32_call1( OPCODE_PIX_SET_COUNT, gfx_u16_get_pix_count() );
         }
     }
 

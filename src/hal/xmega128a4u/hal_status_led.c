@@ -57,7 +57,7 @@ void reset_all( void ){
     LED_RED_PORT.OUTSET = ( 1 << LED_RED_PIN );
 }
 
-void hal_status_led_v_init( void ){f
+void hal_status_led_v_init( void ){
     
     reset_all();
 }
