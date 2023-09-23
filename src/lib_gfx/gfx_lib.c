@@ -3138,27 +3138,34 @@ void gfx_v_sync_array( void ){
     uint16_t dimmed_val;
     uint16_t curved_sat;
 
-    // PWM modes will use pixel 0 and need 16 bits.
-    // for simplicity's sake, and to avoid a compare-branch in the
-    // HSV converversion loop, we'll just always compute the 16 bit values
-    // here, and then go on with the 8 bit arrays.
-
-    dimmed_val = gfx_u16_get_dimmed_val( val[0] );
-    curved_sat = gfx_u16_get_curved_sat( sat[0] );
-
-    gfx_v_hsv_to_rgb(
-        hue[0],
-        sat[0],
-        dimmed_val,
-        &pix0_16bit_red,
-        &pix0_16bit_green,
-        &pix0_16bit_blue
-    );
-
     zero_output = TRUE;
 
+    // analog:
+    if( pix_mode == PIX_MODE_ANALOG ){
+
+        // PWM modes will use pixel 0 and need 16 bits.
+
+        dimmed_val = gfx_u16_get_dimmed_val( val[0] );
+        curved_sat = gfx_u16_get_curved_sat( sat[0] );
+
+        gfx_v_hsv_to_rgb(
+            hue[0],
+            sat[0],
+            dimmed_val,
+            &pix0_16bit_red,
+            &pix0_16bit_green,
+            &pix0_16bit_blue
+        );
+
+        if( ( pix0_16bit_red != 0 ) ||
+            ( pix0_16bit_green != 0 ) ||
+            ( pix0_16bit_blue != 0 ) ){
+
+            zero_output = FALSE;            
+        }
+    }
     // RBGW:
-    if( pix_mode == PIX_MODE_SK6812_RGBW ){
+    else if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
         for( uint16_t i = 0; i < pix_count; i++ ){
 
