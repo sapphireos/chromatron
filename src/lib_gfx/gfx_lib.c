@@ -3175,7 +3175,8 @@ void gfx_v_sync_array( void ){
                 &b,
                 &w
             );
-      
+        
+            // convert to 8 bit channels
             r /= 256;
             g /= 256;
             b /= 256;
@@ -3213,6 +3214,7 @@ void gfx_v_sync_array( void ){
                 &b
             );
       
+            // convert to 8 bit channels
             r /= 256;
             g /= 256;
             b /= 256;
@@ -3246,15 +3248,18 @@ void gfx_v_sync_array( void ){
                 &g,
                 &b
             );
-      
+        
+            // convert to 10 bit channels
             r /= 64;
             g /= 64;
             b /= 64;
 
+            // compute dither
             dither =  ( r & 0x0003 ) << 4;
             dither |= ( g & 0x0003 ) << 2;
             dither |= ( b & 0x0003 );
 
+            // convert down to 8 bit channels
             r /= 4;
             g /= 4;
             b /= 4;
