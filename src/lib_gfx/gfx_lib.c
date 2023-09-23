@@ -3157,6 +3157,7 @@ void gfx_v_sync_array( void ){
 
     zero_output = TRUE;
 
+    // RBGW:
     if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
         for( uint16_t i = 0; i < pix_count; i++ ){
@@ -3194,7 +3195,46 @@ void gfx_v_sync_array( void ){
             array_misc[i] = w;
         }
     }
-    else{
+    // RGB without dithering:
+    else if( !pix_dither ){ // if dithering is NOT enabled (the usual case)
+
+        for( uint16_t i = 0; i < pix_count; i++ ){
+
+            // process master dimmer
+            dimmed_val = gfx_u16_get_dimmed_val( val[i] );
+            curved_sat = gfx_u16_get_curved_sat( sat[i] );
+
+            gfx_v_hsv_to_rgb(
+                hue[i],
+                curved_sat,
+                dimmed_val,
+                &r,
+                &g,
+                &b
+            );
+      
+            r /= 64;
+            g /= 64;
+            b /= 64;
+
+            r /= 4;
+            g /= 4;
+            b /= 4;
+
+            if( ( r != 0 ) ||
+                ( g != 0 ) ||
+                ( b != 0 ) ){
+
+                zero_output = FALSE;     
+            }
+        
+            array_red[i] = r;
+            array_green[i] = g;
+            array_blue[i] = b;
+        }
+    }
+    // RGB with dithering:
+    else{ // if dithering is enabled
 
         for( uint16_t i = 0; i < pix_count; i++ ){
 
