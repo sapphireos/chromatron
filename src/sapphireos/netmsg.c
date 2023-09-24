@@ -68,6 +68,7 @@ KV_SECTION_META kv_meta_t netmsg_info_kv[] = {
 };
 
 
+#ifndef ENABLE_COPROCESSOR
 static netmsg_port_monitor_t port_monitors[NETMSG_N_PORT_MONITORS];
 
 static netmsg_port_monitor_t* get_port_monitor( netmsg_state_t *state ){
@@ -113,6 +114,7 @@ static netmsg_port_monitor_t* get_port_monitor( netmsg_state_t *state ){
 
     return ptr;
 }
+#endif
 
 void ( *netmsg_v_receive_msg )( netmsg_t msg );
 
@@ -151,7 +153,7 @@ ROUTING_TABLE_START routing_table_entry_t route_start = {
 
 ROUTING_TABLE_END routing_table_entry_t route_end[] = {};
 
-
+#ifndef ENABLE_COPROCESSOR
 static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     uint32_t ret_val = len;
@@ -179,14 +181,16 @@ static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
     return ret_val;
 }
-
+#endif
 
 // initialize netmsg
 void netmsg_v_init( void ){
 
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
+        #ifndef ENABLE_COPROCESSOR
         fs_f_create_virtual( PSTR("portinfo"), vfile );
+        #endif
     }
 
     netmsg_v_receive_msg = netmsg_v_receive;
@@ -390,7 +394,7 @@ void netmsg_v_receive( netmsg_t netmsg ){
 
             netmsg_udp_dropped++;
         }
-
+        #ifndef ENABLE_COPROCESSOR
         if( sys_u8_get_mode() != SYS_MODE_SAFE ){
         
             // update port monitor
@@ -412,6 +416,7 @@ void netmsg_v_receive( netmsg_t netmsg ){
                 }    
             }
         }
+        #endif
 
 
         // #endif
@@ -456,6 +461,7 @@ int8_t netmsg_i8_transmit_msg( netmsg_t msg ){
 
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
         
+        #ifndef ENABLE_COPROCESSOR
         // update port monitor
         netmsg_port_monitor_t *port_monitor = get_port_monitor( state );
 
@@ -468,6 +474,7 @@ int8_t netmsg_i8_transmit_msg( netmsg_t msg ){
                 port_monitor->tx_count++;    
             }
         }
+        #endif
     }
     
 
@@ -683,6 +690,7 @@ void netmsg_v_tick( void ){
         return;
     }
 
+    #ifndef ENABLE_COPROCESSOR
     for( uint16_t i = 0; i < cnt_of_array(port_monitors); i++ ){
 
         if( port_monitors[i].timeout > 0 ){
@@ -696,5 +704,6 @@ void netmsg_v_tick( void ){
             }
         }
     }
+    #endif
 }
 
