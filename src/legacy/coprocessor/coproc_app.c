@@ -631,6 +631,8 @@ PT_BEGIN( pt );
     fw0_end         = fw0_start + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
     
     hal_wifi_v_init();
+
+    // loadfw_request = TRUE;
      
     // run firmware loader    
     wifi_v_start_loader( loadfw_request );

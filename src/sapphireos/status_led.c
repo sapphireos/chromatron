@@ -240,7 +240,7 @@ void status_led_v_init( void ){
     // HAL INIT
     hal_status_led_v_init();
 
-    #ifndef ENABLE_COPROCESSOR
+    #ifndef DISABLE_STATUS_LED
     thread_t_create( status_led_thread,
                      PSTR("status_led"),
                      0,
