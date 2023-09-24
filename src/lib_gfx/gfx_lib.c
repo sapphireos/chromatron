@@ -3150,7 +3150,7 @@ void gfx_v_sync_array( void ){
 
         gfx_v_hsv_to_rgb(
             hue[0],
-            sat[0],
+            curved_sat,
             dimmed_val,
             &pix0_16bit_red,
             &pix0_16bit_green,
