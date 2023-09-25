@@ -47,11 +47,14 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
-
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
 
-        uint16_t pix_count = gfx_u16_get_pix_count();
+        THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
+
+        if( sys_b_is_shutting_down() ){
+            
+            THREAD_EXIT( pt );
+        }
 
         if( pix_mode == PIX_MODE_ANALOG ){
 
@@ -121,6 +124,8 @@ PT_BEGIN( pt );
 
 
             #ifdef ENABLE_COPROCESSOR
+            uint16_t pix_count = gfx_u16_get_pix_count();
+
             coproc_i32_call1( OPCODE_PIX_LOAD, pix_count );  
 
             while( pix_count > 0 ){
@@ -142,11 +147,6 @@ PT_BEGIN( pt );
             #else
 
             #endif
-        }
-
-        if( sys_b_is_shutting_down() ){
-            
-            THREAD_EXIT( pt );
         }
 
         if( gfx_b_is_output_zero() ){
