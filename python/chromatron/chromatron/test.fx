@@ -1,64 +1,38 @@
 
-# receive('test_array', 'fft', ['audio'])
-receive('fft', 'fft', ['audio'])
-db('fft', 'uint16', 16)
+def hue_shift():
+    while True:
+        temp = Fixed16()
+        temp = rand()
+
+        for i in pixels.count * 4:
+            pixels[rand()].hue = temp
+
+            delay(250)
+
+        pixels.hue = temp
+
+        # delay(30000)
 
 
 def init():
-    pixels.val = 0.0
+    pixels.val = 1.0
     pixels.sat = 1.0
+    pixels.hue = 0.0
 
-    pixels.v_fade = 0
-    pixels.hs_fade = 0
+    pixels.hs_fade = 500
 
+    pixels.v_fade = 100
 
-def fft_sum():
-    s = Number()
-    s = 0
+    start_thread(hue_shift)
 
-    for _i in len(db.fft):
-        s += db.fft[_i]
-
-    return s
+frame = Number()
 
 def loop():
-    pixels.v_fade = 300
-    pixels.val = 0.0
+    # return
+    # for i in pixels.count:
+        # pixels[i].val = noise(i * 16 + frame * 32)
 
-    height = Number()
-    base_hue = Number()
-    hue = Number()
-    hue = base_hue
-
-    fft_sum = Number()
-    fft_sum = fft_sum()
-
-    max_height = Number()
-
-    for i in pixels.size_x:
-        if db.fft[i + 3] > max_height:
-            max_height = db.fft[i + 3]
-
-        height = db.fft[i + 3] / (max_height / pixels.size_y)
-
-        for h in height:
-            pixels[i][(pixels.size_y - 1) - h].v_fade = 50
-            pixels[i][(pixels.size_y - 1) - h].val = 1.0
-
-        for y in pixels.size_y:
-            pixels[i][y].hue = hue
-
-        hue += fft_sum / 2
-
-    base_hue += fft_sum / 8
-
-
-    if max_height > 128:
-        max_height -= 1
-
-    else:
-        max_height = 128
-
+    frame += 1
         
 
 # THIS NEEDS A TEST CASE!

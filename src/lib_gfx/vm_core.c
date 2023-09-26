@@ -1249,7 +1249,7 @@ opcode_suspend:
     for( uint8_t i = 0; i < 48; i++ ){
 
         // check if saving register at this bit position
-        if( context_bits & ( 1 << i ) ){
+        if( context_bits & ( (uint64_t)1 << i ) ){
 
             ptr_i32[index] = registers[i];
 
@@ -1289,7 +1289,7 @@ opcode_resume:
     for( uint8_t i = 0; i < 48; i++ ){
 
         // check if saving register at this bit position
-        if( context_bits & ( 1 << i ) ){
+        if( context_bits & ( (uint64_t)1 << i ) ){
 
             registers[i] = ptr_i32[index];
 

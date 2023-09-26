@@ -2511,11 +2511,11 @@ class insSuspend(BaseInstruction):
         # support for context saves beyond the first 48 registers will require another
         # instruction with additional encoding space.
 
-        context0 = (context_bits >> 0) & 0xffff
-        context1 = (context_bits >> 16) & 0xffff
-        context2 = (context_bits >> 32) & 0xffff
+        context1 = (context_bits >> 0) & 0xffff
+        context2 = (context_bits >> 16) & 0xffff
+        context3 = (context_bits >> 32) & 0xffff
 
-        return OpcodeFormat3Imm1Reg(self.mnemonic, context2, context1, context0, self.delay.assemble(), lineno=self.lineno)
+        return OpcodeFormat3Imm1Reg(self.mnemonic, context1, context2, context3, self.delay.assemble(), lineno=self.lineno)
 
 class insResume(BaseInstruction):
     mnemonic = 'RESUME'
