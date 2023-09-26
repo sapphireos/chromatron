@@ -1246,15 +1246,6 @@ def compile_text(source, debug_print=False, summarize=False, script_name='', pat
                 raise e
 
             raise
-
-    # return
-
-    # if debug_print:
-    #     print(ir_program)
-        
-    #     if ins_program:
-    #         print(ins_program)
-
     if e:
         raise e
 
@@ -1302,6 +1293,22 @@ def compile_script(path, debug_print=False, opt_passes=OptPasses.SSA):
 
     with open(path) as f:
         return compile_text(f.read(), script_name=script_name, debug_print=debug_print, path=base_path, opt_passes=opt_passes)
+
+def build_text(source, debug_print=False, summarize=False, script_name='', path=os.getcwd(), opt_passes=OptPasses.SSA):
+    ins_program = compile_text(source, debug_print=debug_print, summarize=summarize, script_name=schedule, path=path, opt_passes=opt_passes)
+
+    image = ins_program.assemble()
+    stream = image.render()
+
+    return stream
+
+def build_script(path, debug_print=False, opt_passes=OptPasses.SSA):
+    ins_program = compile_script(path, debug_print=debug_print, opt_passes=opt_passes)
+
+    image = ins_program.assemble()
+    stream = image.render()
+
+    return stream
 
 def run_script(path, debug_print=False, opt_passes=OptPasses.SSA):
     ins_program = compile_script(path, debug_print=debug_print, opt_passes=opt_passes)
