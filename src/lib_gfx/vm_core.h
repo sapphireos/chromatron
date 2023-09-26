@@ -30,6 +30,11 @@
 #include "target.h"
 #include "keyvalue.h"
 
+
+#define VM_DEBUG
+
+
+
 #define VM_ISA_VERSION              13
 
 #define VM_MAX_RUN_TIME             500 // milliseconds
@@ -180,6 +185,9 @@ typedef struct __attribute__((packed)){
     uint16_t func_addr;
     uint16_t pc_offset;
     uint64_t tick;
+    #ifdef VM_DEBUG
+    uint32_t run_count;
+    #endif
 } vm_thread_t;
 
 typedef struct __attribute__((packed)){

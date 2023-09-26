@@ -3096,6 +3096,10 @@ int8_t vm_i8_run_tick(
 
             status = vm_i8_run( stream, state->threads[thread].func_addr, state->threads[thread].pc_offset, state );
 
+            #ifdef VM_DEBUG
+            state->threads[thread].run_count++;
+            #endif
+
             elapsed_us += state->last_elapsed_us;
 
             state->current_thread = -1;

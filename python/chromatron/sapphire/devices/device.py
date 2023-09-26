@@ -701,6 +701,13 @@ class Device(object):
 
         return info
 
+    def get_vm_threads(self):
+        data = self.get_file("vm0_threads")
+
+        info = sapphiredata.VMThreadEntryArray()
+        info.unpack(data)
+
+        return info
 
     # helper for testing mostly
     def wait_service(self, service_id, group, state=None, timeout=30.0):
@@ -1848,7 +1855,15 @@ class Device(object):
 
         return s
 
+    def cli_vm_thread_info(self, line):
+        try:
+            data = self.get_vm_threads()
 
+        except OSError:
+            # file not found
+            return
+
+        pprint(data)
 
     # def cli_batt_recorder_info(self, line):
     #     try:

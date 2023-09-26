@@ -406,6 +406,22 @@ class PortMonitorArray(ArrayField):
         super().__init__(_field=field, **kwargs)
 
 
+class VMThreadEntry(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint16Field(_name="func_addr"),
+                  Uint16Field(_name="pc_offset"),
+                  Uint64Field(_name="tick"),
+                  Uint32Field(_name="run_count")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class VMThreadEntryArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = VMThreadEntry
+
+        super().__init__(_field=field, **kwargs)
+
+
 # class BattRecordStart(StructField):
 #     def __init__(self, **kwargs):
 #         fields = [Uint8Field(_name="flags"),
