@@ -31,7 +31,7 @@
 #include "keyvalue.h"
 
 
-#define VM_DEBUG
+// #define VM_DEBUG
 
 
 
