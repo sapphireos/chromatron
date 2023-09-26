@@ -716,8 +716,6 @@ link_handle_t link_l_create(
 		return -1;
 	}
 
-	ASSERT( tag != 0 );
-
 	link_state_t state = link_ls_assemble(
 							mode,
 							source_key,
@@ -738,8 +736,6 @@ link_handle_t link_l_create2( link_state_t *state ){
 
         return -1;
     }
-
-    ASSERT( state->tag != 0 );
 
     link_handle_t lh = link_l_lookup( state );
 
