@@ -1844,8 +1844,6 @@ class Builder(object):
                     'query': query,
                     'tag': tag}
 
-        pprint(new_link)
-
         self.links.append(new_link)
     
     def db(self, name, type, count, lineno=None):
