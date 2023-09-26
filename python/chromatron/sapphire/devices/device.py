@@ -1863,7 +1863,12 @@ class Device(object):
             # file not found
             return
 
-        pprint(data)
+        for item in data:
+            if item.func_addr == 0xffff:
+                continue
+                
+            print(item)
+
 
     # def cli_batt_recorder_info(self, line):
     #     try:
