@@ -734,7 +734,7 @@ PT_BEGIN( pt );
 
     if( state->vm_return ){
 
-        log_v_debug_P( PSTR("VM load fail: %d"), state->vm_return );
+        log_v_debug_P( PSTR("VM load fail: %d %s"), state->vm_return, state->program_fname );
 
         goto exit;
     }
