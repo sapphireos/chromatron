@@ -1324,7 +1324,7 @@ def run_script(path, debug_print=False, opt_passes=OptPasses.SSA):
 
     pprint.pprint(ins_program.gfx_data)
     pprint.pprint(ins_program.dump_globals())
-    pprint.pprint(ins_program.db)
+    pprint.pprint(ins_program.vm_db)
 
     image = ins_program.assemble()
     stream = image.render()

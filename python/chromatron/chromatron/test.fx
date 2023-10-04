@@ -1,39 +1,8 @@
 
-def hue_shift():
-    while True:
-        temp = Fixed16()
-        temp = rand()
-
-        for i in pixels.count * 4:
-            pixels[rand()].hue = temp
-
-            delay(250)
-
-        pixels.hue = temp
-
-        # delay(30000)
-
-
 def init():
-    pixels.val = 1.0
-    pixels.sat = 1.0
-    pixels.hue = 0.0
+    db.vm_prog = "meow"
+    # print(db.vm_prog)
 
-    pixels.hs_fade = 500
-
-    pixels.v_fade = 100
-
-    start_thread(hue_shift)
-
-frame = Number()
-
-def loop():
-    # return
-    # for i in pixels.count:
-        # pixels[i].val = noise(i * 16 + frame * 32)
-
-    frame += 1
-        
 
 # THIS NEEDS A TEST CASE!
 

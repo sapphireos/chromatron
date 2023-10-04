@@ -105,6 +105,7 @@ bool type_b_is_string( catbus_type_t8 type ){
         case CATBUS_TYPE_STRING32:
         case CATBUS_TYPE_STRING64:
         case CATBUS_TYPE_STRING512:
+        case CATBUS_TYPE_STRREF:
         case CATBUS_TYPE_MAC48:
         case CATBUS_TYPE_MAC64:
         case CATBUS_TYPE_KEY128:
