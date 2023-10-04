@@ -272,6 +272,16 @@ static void start_transfer( void ){
 PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+    
+    // start up with pixel power enabled
+    if( pixelpower_b_power_control_enabled() ){
+
+        // re-enable pixel power
+        pixelpower_v_enable_pixels();
+
+        // wait until pixels have been re-enabled
+        THREAD_WAIT_WHILE( pt, !pixelpower_b_pixels_enabled() );
+    }
 
     while(1){
 
@@ -279,7 +289,8 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
 
         // check if output is zero
-        if( gfx_b_is_output_zero() || ( pixelpower_b_power_control_enabled() && !pixelpower_b_pixels_enabled() ) ){
+        // if( gfx_b_is_output_zero() || ( pixelpower_b_power_control_enabled() && !pixelpower_b_pixels_enabled() ) ){
+        if( gfx_b_is_output_zero() ){
 
             // check if pixels are POWERED:
             if( pixelpower_b_pixels_enabled() ){
@@ -309,7 +320,8 @@ PT_BEGIN( pt );
             }
 
             // wait while pixels are zero output
-            while( gfx_b_is_output_zero() || ( pixelpower_b_power_control_enabled() && !pixelpower_b_pixels_enabled() ) ){
+            // while( gfx_b_is_output_zero() || ( pixelpower_b_power_control_enabled() && !pixelpower_b_pixels_enabled() ) ){
+            while( gfx_b_is_output_zero() ){
 
                 THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
 
