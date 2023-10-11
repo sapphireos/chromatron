@@ -33,7 +33,7 @@ static void ICACHE_FLASH_ATTR loop(os_event_t *events) {
  
     thread_core();
 
-    os_delay_us(100);
+    os_delay_us(10);
     system_os_post(LOOP_PRIO, 0, 0 );
 }
  

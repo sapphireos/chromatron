@@ -592,7 +592,7 @@ static bool is_low_power_mode( void ){
 }
 
 static void apply_power_save_mode( void ){
-    return;
+
     // set power state
     if( is_low_power_mode() ){
 

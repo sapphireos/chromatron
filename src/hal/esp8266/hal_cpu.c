@@ -134,8 +134,37 @@ void cpu_v_remap_isrs( void ){
 
 }
 
+#define SLEEP_THRESHOLD 2
+#define MAX_SLEEP_PERIOD 20
+
 void cpu_v_sleep( void ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        os_delay_us(100);
+
+        return;
+    }
+
+    uint32_t delta = thread_u32_get_next_alarm_delta();
+
+    // if next thread alarm is more than SLEEP_THRESHOLD ms away, we can sleep for at least SLEEP_THRESHOLD ms.
+    if( delta >= SLEEP_THRESHOLD ){
+
+        uint32_t sleep_time = delta;
+
+        // MAX_SLEEP_PERIOD ms should be set to give us a reasonable polling rate for threads that don't use timers.
+        if( sleep_time > MAX_SLEEP_PERIOD ){
+
+            sleep_time = MAX_SLEEP_PERIOD;
+        }
+
+        os_delay_us(sleep_time * 1000);
+    }   
+    else{
+
+        os_delay_us(100);
+    }
 }
 
 bool cpu_b_osc_fail( void ){
