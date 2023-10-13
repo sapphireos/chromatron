@@ -178,10 +178,12 @@ bool cpu_b_osc_fail( void ){
 
 void cpu_v_set_clock_speed_low( void ){
 
+    system_update_cpu_freq( SYS_CPU_80MHZ );
 }
 
 void cpu_v_set_clock_speed_high( void ){
 
+    system_update_cpu_freq( SYS_CPU_160MHZ );
 }
 
 uint32_t cpu_u32_get_clock_speed( void ){
