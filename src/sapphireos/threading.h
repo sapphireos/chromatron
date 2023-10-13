@@ -166,9 +166,12 @@ uint32_t thread_u32_get_next_alarm_delta( void );
 #endif
 
 #if defined(ESP8266) || defined(ESP32)
-void thread_core( void );
+int32_t thread_core( void );
 #endif
 
+#ifdef ESP8266
+void thread_v_add_sleep_time( uint32_t sleep_time );
+#endif
 
 #define THREAD_SLEEP( pt ) \
 	PT_SLEEP( pt ); \

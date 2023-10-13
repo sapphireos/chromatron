@@ -208,10 +208,11 @@ PT_BEGIN( pt );
     gfx_v_process_faders();
     gfx_v_sync_array();
     calc_pixel_power();
-    pixel_v_signal();
 
     THREAD_WAIT_WHILE( pt, pix_u8_get_mode() == 0 );
 
+    pixel_v_signal();
+    
     thread_v_create_timed_signal( GFX_SIGNAL_0, 20 );
 
     static uint32_t start;

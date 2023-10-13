@@ -156,6 +156,7 @@ KV_SECTION_META kv_meta_t thread_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.task_time,       0,  "thread_task_time" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.sleep_time,      0,  "thread_sleep_time" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.scheduler_loops, 0,  "thread_loops" },
+    // { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &signals, 0,  "thread_signals" },
 };
 
 
@@ -807,7 +808,7 @@ static void process_signalled_threads( void ){
 //     }
 // }
 
-void thread_core( void ){
+int32_t thread_core( void ){
 
     // set sleep flag
     thread_flags |= FLAGS_SLEEP;
@@ -862,12 +863,27 @@ void thread_core( void ){
 
     mem2_v_collect_garbage();        
 
+    if( loops < 0xffff ){
+
+        loops++;
+    }
+
     // ********************************************************************
     // Check for sleep conditions
     //
     // If no IRQ threads, and all threads are asleep, enter sleep mode
     // ********************************************************************
     #ifdef ENABLE_POWER
+    #ifdef ESP8266
+
+    if( ( thread_flags & FLAGS_SLEEP ) &&
+        ( thread_u16_get_signals() == 0 )  ){
+
+        return thread_u32_get_next_alarm_delta();
+    }
+
+    #else
+
     if( ( thread_flags & FLAGS_SLEEP ) &&
         ( thread_u16_get_signals() == 0 ) ){
 
@@ -879,17 +895,23 @@ void thread_core( void ){
 
         sleep_us += tmr_u32_elapsed_time_us( sleep_start );
     }
+
+    #endif
     #endif
 
     #ifdef __SIM__
     break;
     #endif
 
-    if( loops < 0xffff ){
-
-        loops++;
-    }
+    return 0;
 }
+
+#ifdef ESP8266
+void thread_v_add_sleep_time( uint32_t sleep_time ){
+
+    sleep_us += sleep_time;
+}
+#endif
 
 // start the thread scheduler
 void thread_start( void ){
