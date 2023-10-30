@@ -68,9 +68,12 @@ class Worker(threading.Thread):
 
 			try:
 				while True:
-					host, host_key = self._herder.get_work_item()
+					host, host_key, set_data = self._herder.get_work_item()
 				
 					self.client.connect(host)
+
+					self.client.set_keys(**set_data)
+
 					kv = self.client.get_keys(*request_keys)
 
 					kv_data[host_key] = kv
@@ -84,7 +87,7 @@ class Worker(threading.Thread):
 
 
 class CatHerder(threading.Thread):
-	def __init__(self, workers=1, rate=1.0):
+	def __init__(self, workers=4, rate=1.0):
 		super().__init__()
 
 		self._max_workers = workers
@@ -93,12 +96,13 @@ class CatHerder(threading.Thread):
 		self._query = []
 		self._request_keys = []
 		self._kv_data = {}
+		self._set_kv_data = {}
 
 		self._directory = Directory()
 		
 		self._lock = threading.Lock()
 		self._stop_event = threading.Event()
-		self._timer_event = threading.Event()
+		self._trigger_event = threading.Event()
 		
 		self._work_q = []
 		self._workers = []
@@ -140,6 +144,21 @@ class CatHerder(threading.Thread):
 		with self._lock:
 			return copy(self._kv_data)
 
+	def set_keys(self, kv_data={}):
+		with self._lock:
+			for host_key in self.directory:
+				if host_key not in self._set_kv_data:
+					self._set_kv_data[host_key] = kv_data
+
+				else:
+					self._set_kv_data[host_key].update(kv_data)
+
+		self._trigger()
+
+	def _trigger(self):
+		self._trigger_event.set()
+		self._trigger_event.clear()
+
 	def update_kv(self, kv_data={}):
 		directory = self.directory
 
@@ -152,13 +171,22 @@ class CatHerder(threading.Thread):
 	def get_work_item(self):
 		with self._lock:
 			try:
-				return self._work_q.pop(0)
+				host, host_key = self._work_q.pop(0)
+
+				try:
+					set_data = self._set_kv_data[host_key]
+					del self._set_kv_data[host_key]
+
+				except KeyError:
+					set_data = {}
+
+				return host, host_key, set_data
 
 			except IndexError:
 				raise WorkQueueEmpty
 
 	def wait_for_timer(self):
-		self._timer_event.wait()
+		self._trigger_event.wait()
 
 	@property
 	def directory(self):
@@ -175,27 +203,31 @@ class CatHerder(threading.Thread):
 			work_q = []
 
 			with self._lock:
-				for host_str, device in self.directory.items():
+				for host_key, device in self.directory.items():
 					if not query_tags(self._query, device['query']):
+						# no match, make sure this device is not tracked
+						if host_key in self._kv_data:
+							logging.info(f'Pruned: {host_key}')
+							del self._kv_data[host_key]
+
 						continue
 
 					host = device['host']
 
-					work_q.append((host, host_str))
+					work_q.append((host, host_key))
 
 					# print(host, device['name'], device['query'], self._query)
 
 				self._work_q = work_q
 
-			self._timer_event.set()
-			self._timer_event.clear()
+			self._trigger()
 
 
 		for worker in self._workers:
 			worker.stop()
 
 		# set timer event so workers will stop
-		self._timer_event.set()
+		self._trigger_event.set()
 
 		logging.info(f'Herder exit')
 
@@ -288,14 +320,21 @@ if __name__ == "__main__":
 	c = CatHerder()
 
 	c.query = ['living_room']
-	c.request_keys = ['wifi_rssi', 'gfx_max_dimmer', 'gfx_sub_dimmer']
+	c.request_keys = ['wifi_rssi', 'gfx_max_dimmer', 'gfx_sub_dimmer', 'kv_test_key']
 
+	i = 0
 
 	while True:
 		try:
 			time.sleep(1.0)
 
-			pprint(c.data)
+			# pprint(c.data)
+			# for host_key, info in c.data.items():
+			# 	print(info['name'], info['kv_test_key'])
+
+			# c.set_keys({'kv_test_key': i})
+
+			i += 1
 
 		except KeyboardInterrupt:
 			break
