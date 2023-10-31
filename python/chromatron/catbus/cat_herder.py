@@ -81,6 +81,9 @@ class Worker(threading.Thread):
 			except WorkQueueEmpty:
 				pass
 
+			except KeyError:
+				pass
+
 			self._herder.update_kv(kv_data)
 
 		logging.info(f'Worker exit')
