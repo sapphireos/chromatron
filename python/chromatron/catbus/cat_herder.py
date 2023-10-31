@@ -99,7 +99,7 @@ class CatHerder(threading.Thread):
 
 		self._query = []
 		self._request_keys = []
-		self._kv_data = {}
+		self._read_kv_data = {}
 		self._set_kv_data = {}
 		self._device_set = {}
 
@@ -147,16 +147,22 @@ class CatHerder(threading.Thread):
 	@property
 	def data(self):
 		with self._lock:
-			return copy(self._kv_data)
+			return copy(self._read_kv_data)
 
 	def set_keys(self, kv_data={}):
 		with self._lock:
-			for host_key in self.directory:
+			for host_key in self._device_set:
 				if host_key not in self._set_kv_data:
 					self._set_kv_data[host_key] = kv_data
 
 				else:
 					self._set_kv_data[host_key].update(kv_data)
+
+				if host_key not in self._read_kv_data:
+					self._read_kv_data[host_key] = kv_data
+
+				else:
+					self._read_kv_data[host_key].update(kv_data)
 
 		self._trigger()
 
@@ -167,11 +173,21 @@ class CatHerder(threading.Thread):
 	def update_kv(self, kv_data={}):
 		directory = self.directory
 
-		for k, v in kv_data.items():
-			v.update(directory[k])
+		for host_key, v in kv_data.items():
+			v.update(directory[host_key])
 
 		with self._lock:
-			self._kv_data.update(kv_data)
+			self._read_kv_data.update(kv_data)
+
+			# for host_key, data in kv_data.items():
+			# 	for k, v in data.items():
+			# 		# are we about to apply an update?
+			# 		if host_key in self._set_kv_data and k in self._set_kv_data[host_key]:
+			# 			# skip updating the read set
+			# 			continue
+
+			# 		self._read_kv_data[host_key][k] = v
+
 
 	def get_work_item(self):
 		with self._lock:
@@ -217,9 +233,9 @@ class CatHerder(threading.Thread):
 				for host_key, device in self.directory.items():
 					if not query_tags(self._query, device['query']):
 						# no match, make sure this device is not tracked
-						if host_key in self._kv_data:
+						if host_key in self._read_kv_data:
 							logging.info(f'Pruned: {host_key}')
-							del self._kv_data[host_key]
+							del self._read_kv_data[host_key]
 
 						continue
 
@@ -311,7 +327,7 @@ class CatHerder(threading.Thread):
 
 # 			# update data
 # 			with self._lock:
-# 				self._kv_data = {}
+# 				self._read_kv_data = {}
 
 
 
