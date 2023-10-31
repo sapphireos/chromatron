@@ -120,22 +120,22 @@ class CatHerder(threading.Thread):
 		super().join()
 
 	@property
-	def query(self):
+	def query(self) -> dict:
 		with self._lock:
 			return copy(self._query)
 
 	@query.setter
-	def query(self, value):
+	def query(self, value: list):
 		with self._lock:
 			self._query = copy(value)
 
 	@property
-	def request_keys(self):
+	def request_keys(self) -> list:
 		with self._lock:
 			return copy(self._request_keys)
 
 	@request_keys.setter
-	def request_keys(self, value):
+	def request_keys(self, value: list):
 		with self._lock:
 			self._request_keys = copy(value)	
 
