@@ -74,14 +74,15 @@ class Worker(threading.Thread):
 
 					self.client.set_keys(**set_data)
 
-					kv = self.client.get_keys(*request_keys)
+					try:
+						kv = self.client.get_keys(*request_keys)
+
+					except KeyError:
+						continue
 
 					kv_data[host_key] = kv
 
 			except WorkQueueEmpty:
-				pass
-
-			except KeyError:
 				pass
 
 			self._herder.update_kv(kv_data)
@@ -332,7 +333,7 @@ if __name__ == "__main__":
 
 	c = CatHerder()
 
-	c.query = ['living_room']
+	# c.query = ['living_room']
 	c.request_keys = ['wifi_rssi', 'gfx_max_dimmer', 'gfx_sub_dimmer', 'kv_test_key']
 
 	i = 0
