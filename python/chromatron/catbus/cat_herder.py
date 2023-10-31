@@ -72,9 +72,10 @@ class Worker(threading.Thread):
 				
 					self.client.connect(host)
 
-					self.client.set_keys(**set_data)
-
 					try:
+						if len(set_data) > 0:
+							self.client.set_keys(**set_data)
+							
 						kv = self.client.get_keys(*request_keys)
 
 					except KeyError:
