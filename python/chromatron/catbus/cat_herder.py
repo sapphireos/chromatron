@@ -100,6 +100,7 @@ class CatHerder(threading.Thread):
 		self._request_keys = []
 		self._kv_data = {}
 		self._set_kv_data = {}
+		self._device_set = {}
 
 		self._directory = Directory()
 		
@@ -195,6 +196,11 @@ class CatHerder(threading.Thread):
 	def directory(self):
 		return self._directory.get_directory()
 
+	@property
+	def device_set(self):
+		with self._lock:
+			return self._device_set
+
 	def run(self):
 		logging.info(f'Starting Herder')
 
@@ -204,6 +210,7 @@ class CatHerder(threading.Thread):
 			time.sleep(self._rate)
 
 			work_q = []
+			device_set = {}
 
 			with self._lock:
 				for host_key, device in self.directory.items():
@@ -215,12 +222,15 @@ class CatHerder(threading.Thread):
 
 						continue
 
+					device_set[host_key] = device
+
 					host = device['host']
 
 					work_q.append((host, host_key))
 
 					# print(host, device['name'], device['query'], self._query)
 
+				self._device_set = device_set
 				self._work_q = work_q
 
 			self._trigger()
