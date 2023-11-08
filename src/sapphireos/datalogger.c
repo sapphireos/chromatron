@@ -284,6 +284,12 @@ static int8_t record_data( datalog_entry_t *entry, uint32_t timestamp ){
 
 static void flush( void ){
 
+    // check for empty buffer
+    if( buffer_offset == 0 ){
+
+        return;
+    }
+
     if( datalog_handle <= 0 ){
 
         return;
@@ -411,6 +417,20 @@ PT_BEGIN( pt );
 
                     // queue for transmission
                     flush();
+
+                    if( buffer_offset == 0 ){
+
+                        datalog_v2_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
+
+                        // memset( buf_meta_ptr, 0, mem2_u16_get_size( datalog_buffer_handle ) );
+
+                        // get NTP time
+                        ntp_v_get_timestamp( &ntp_base, &systime_base );
+
+                        buf_meta_ptr->ntp_base = ntp_base;
+
+                        buffer_offset += sizeof(datalog_v2_meta_t);
+                    }
 
                     record_data( entry_ptr, timestamp );
                 }
