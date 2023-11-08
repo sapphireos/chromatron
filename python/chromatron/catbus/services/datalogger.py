@@ -120,102 +120,21 @@ class Datalogger(MsgFlowReceiver):
         self.directory = c.get_directory()
 
     def on_receive(self, host, data):
-        timestamp = datetime.utcnow()
+        try:
+            timestamp = datetime.utcnow()
 
-        header = DatalogHeader().unpack(data)
+            header = DatalogHeader().unpack(data)
 
-        if header.magic != DATALOG_MAGIC:
-            logging.warning("Invalid message received")
-
-            return
-
-        if header.version == 1:
-            unpacked_data = DatalogMessageV1().unpack(data).data
-            # print(host, unpacked_data)
-
-            host = (host[0], CATBUS_MAIN_PORT)
-
-            # note this will only work with services running on 
-            # port 44632, generally only devices, not Python servers.
-            try:
-                info = self.directory[str(host)]
-
-            except KeyError:
-                return
-
-            key = self.kv._server.resolve_hash(unpacked_data.data.meta.hash, host)
-
-            value = unpacked_data.data.value
-            # print(key, value)
-
-            tags = {'name': info['name'],
-                    'location': info['location']}
-
-            json_body = [
-                {
-                    "measurement": key,
-                    "tags": tags,
-                    "time": timestamp.isoformat(),
-                    "fields": {
-                        "value": value
-                    }
-                }
-            ]
-
-            self.influx.write_points(json_body)
-
-        elif header.version == 2:            
-            host = (host[0], CATBUS_MAIN_PORT)
-
-            # print("V2")
-            # print(header)
-
-            # slice past header
-            data = data[header.size():]
-
-            # get meta
-            meta = DatalogMetaV2().unpack(data)
-
-            if (header.flags & DATALOG_FLAGS_NTP_SYNC) == 0:
-                ntp_base = timestamp
-
-            else:
-                ntp_base = util.ntp_to_datetime(meta.ntp_base.seconds, meta.ntp_base.fraction)
-            
-            # print(meta, header)
-            # print(ntp_base, timestamp)
-
-            delta = abs(timestamp - ntp_base)
-
-            # check delta for validity
-            if delta.total_seconds() > 600.0: # more than 10 minutes apart
-                logging.error(f'Timestamp mismatch: {timestamp} {ntp_base}')
+            if header.magic != DATALOG_MAGIC:
+                logging.warning("Invalid message received")
 
                 return
 
-            data = data[meta.size():] # slice buffer
+            if header.version == 1:
+                unpacked_data = DatalogMessageV1().unpack(data).data
+                # print(host, unpacked_data)
 
-            item_count = 0
-
-            points = []
-
-            # extract chunks
-            while len(data) > 0:
-                chunk = DatalogDataV2().unpack(data)
-
-                # print(chunk)
-
-                # sanity check ntp offset:
-                if chunk.ntp_offset > 600000: # 10 minutes is pretty reasonable
-                    logging.error(f'Invalid ntp offset: {chunk.ntp_offset}')
-
-                    return
-
-                delta = timedelta(seconds=chunk.ntp_offset / 1000.0)
-
-                ntp_timestamp = ntp_base + delta
-                # print(ntp_timestamp)
-
+                host = (host[0], CATBUS_MAIN_PORT)
 
                 # note this will only work with services running on 
                 # port 44632, generally only devices, not Python servers.
@@ -225,17 +144,130 @@ class Datalogger(MsgFlowReceiver):
                 except KeyError:
                     return
 
-                key = self.kv._server.resolve_hash(chunk.data.meta.hash, host)
+                key = self.kv._server.resolve_hash(unpacked_data.data.meta.hash, host)
 
-                value = chunk.data.value
-                # print(ntp_timestamp, key, value)
-                # logging.info(f'{key:20}: {value:8} @ {ntp_timestamp}')
+                value = unpacked_data.data.value
+                # print(key, value)
 
                 tags = {'name': info['name'],
                         'location': info['location']}
 
+                json_body = [
+                    {
+                        "measurement": key,
+                        "tags": tags,
+                        "time": timestamp.isoformat(),
+                        "fields": {
+                            "value": value
+                        }
+                    }
+                ]
+
+                self.influx.write_points(json_body)
+
+            elif header.version == 2:            
+                host = (host[0], CATBUS_MAIN_PORT)
+
+                # print("V2")
+                # print(header)
+
+                # slice past header
+                data = data[header.size():]
+
+                # get meta
+                meta = DatalogMetaV2().unpack(data)
+
+                if (header.flags & DATALOG_FLAGS_NTP_SYNC) == 0:
+                    ntp_base = timestamp
+
+                else:
+                    ntp_base = util.ntp_to_datetime(meta.ntp_base.seconds, meta.ntp_base.fraction)
+                
+                # print(meta, header)
+                # print(ntp_base, timestamp)
+
+                delta = abs(timestamp - ntp_base)
+
+                # check delta for validity
+                if delta.total_seconds() > 600.0: # more than 10 minutes apart
+                    logging.error(f'Timestamp mismatch: {timestamp} {ntp_base}')
+
+                    return
+
+                data = data[meta.size():] # slice buffer
+
+                item_count = 0
+
+                points = []
+
+                # extract chunks
+                while len(data) > 0:
+                    chunk = DatalogDataV2().unpack(data)
+
+                    # print(chunk)
+
+                    # sanity check ntp offset:
+                    if chunk.ntp_offset > 600000: # 10 minutes is pretty reasonable
+                        logging.error(f'Invalid ntp offset: {chunk.ntp_offset}')
+
+                        return
+
+                    delta = timedelta(seconds=chunk.ntp_offset / 1000.0)
+
+                    ntp_timestamp = ntp_base + delta
+                    # print(ntp_timestamp)
+
+
+                    # note this will only work with services running on 
+                    # port 44632, generally only devices, not Python servers.
+                    try:
+                        info = self.directory[str(host)]
+
+                    except KeyError:
+                        return
+
+                    key = self.kv._server.resolve_hash(chunk.data.meta.hash, host)
+
+                    value = chunk.data.value
+                    # print(ntp_timestamp, key, value)
+                    # logging.info(f'{key:20}: {value:8} @ {ntp_timestamp}')
+
+                    tags = {'name': info['name'],
+                            'location': info['location']}
+
+                    json_body = {
+                        "measurement": key,
+                        "tags": tags,
+                        "time": ntp_timestamp.isoformat(),
+                        "fields": {
+                            "value": value
+                        }
+                    }
+
+                    points.append(json_body)
+
+                    data = data[chunk.size():]                
+
+                    item_count += 1
+
+                self.influx.write_points(points)
+
+                # print(f'received {item_count} items')
+
+            elif header.version == 3:            
+                # slice past header
+                data = data[header.size():]
+
+                msg = DatalogDataV3().unpack(data)
+                value = msg.data.value
+
+                ntp_timestamp = util.ntp_to_datetime(msg.ntp_timestamp.seconds, msg.ntp_timestamp.fraction)
+
+                tags = {'name': msg.name,
+                        'location': msg.location}
+
                 json_body = {
-                    "measurement": key,
+                    "measurement": msg.key,
                     "tags": tags,
                     "time": ntp_timestamp.isoformat(),
                     "fields": {
@@ -243,41 +275,14 @@ class Datalogger(MsgFlowReceiver):
                     }
                 }
 
-                points.append(json_body)
+                self.influx.write_points([json_body])
 
-                data = data[chunk.size():]                
+            else:
+                logging.warning(f"Unknown message version: {header.version}")
 
-                item_count += 1
-
-            self.influx.write_points(points)
-
-            # print(f'received {item_count} items')
-
-        elif header.version == 3:            
-            # slice past header
-            data = data[header.size():]
-
-            msg = DatalogDataV3().unpack(data)
-            value = msg.data.value
-
-            ntp_timestamp = util.ntp_to_datetime(msg.ntp_timestamp.seconds, msg.ntp_timestamp.fraction)
-
-            tags = {'name': msg.name,
-                    'location': msg.location}
-
-            json_body = {
-                "measurement": msg.key,
-                "tags": tags,
-                "time": ntp_timestamp.isoformat(),
-                "fields": {
-                    "value": value
-                }
-            }
-
-            self.influx.write_points([json_body])
-
-        else:
-            logging.warning(f"Unknown message version: {header.version}")
+        except Exception as e:
+            logging.error(f'Exception from: {host} with data: {data}')
+            logging.exception(e)
 
 
 class DataloggerClient(MsgflowClient):
