@@ -976,7 +976,13 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
             // app hasn't received data, so we bail out and this new data
             // gets dropped.
 
-            log_v_debug_P( PSTR("dropped to: %u from %u"), dgram->lport, state->raddr.port );
+            log_v_debug_P( PSTR("dropped to: %u from %d.%d.%d.%d:%u"), 
+                dgram->lport, 
+                state->raddr.ipaddr.ip3,
+                state->raddr.ipaddr.ip2,
+                state->raddr.ipaddr.ip1,
+                state->raddr.ipaddr.ip0,
+                state->raddr.port );
 
             return SOCK_STATUS_PORT_BUF_FULL;
         }
@@ -1004,7 +1010,13 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
             // app hasn't received data, so we bail out and this new data
             // gets dropped.
 
-            log_v_debug_P( PSTR("dropped to: %u from %u"), dgram->lport, state->raddr.port );
+            log_v_debug_P( PSTR("dropped to: %u from %d.%d.%d.%d:%u"), 
+                dgram->lport, 
+                state->raddr.ipaddr.ip3,
+                state->raddr.ipaddr.ip2,
+                state->raddr.ipaddr.ip1,
+                state->raddr.ipaddr.ip0,
+                state->raddr.port );
 
             return SOCK_STATUS_PORT_BUF_FULL;
         }
