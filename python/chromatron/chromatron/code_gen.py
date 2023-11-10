@@ -1233,19 +1233,19 @@ def compile_text(source, debug_print=False, summarize=False, script_name='', pat
         raise e
 
     # save IR to file
-    debug_filename = f'{script_name}_{opt_passes}.fxir'
-    with open(debug_filename, 'w') as f:
-        try:
-            f.write(str(ir_program))
+    # debug_filename = f'{script_name}_{opt_passes}.fxir'
+    # with open(debug_filename, 'w') as f:
+    #     try:
+    #         f.write(str(ir_program))
 
-            if ins_program:
-                f.write(str(ins_program))
+    #         if ins_program:
+    #             f.write(str(ins_program))
 
-        except AttributeError:
-            if e:
-                raise e
+    #     except AttributeError:
+    #         if e:
+    #             raise e
 
-            raise
+    #         raise
     if e:
         raise e
 
