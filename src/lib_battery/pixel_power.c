@@ -108,7 +108,18 @@ static bool is_vbus_valid( void ){
 
     uint16_t vbus = batt_u16_get_vbus_volts();
 
-    return vbus < PIXEL_POWER_MAX_VBUS;
+    if( vbus >= PIXEL_POWER_MAX_VBUS ){
+
+        //overvoltage
+        // verify VBUS status
+
+        if( bq25895_u8_get_vbus_status() != 7 ){
+
+            return FALSE;
+        }
+    }
+
+    return TRUE;
 }
 
 
@@ -160,6 +171,7 @@ PT_BEGIN( pt );
         if( !is_vbus_valid() ){
             
             pixels_off();
+            log_v_debug_P( PSTR("pixel power disabled! VBUS") );
 
             TMR_WAIT( pt, 20 );
 
@@ -203,6 +215,8 @@ PT_BEGIN( pt );
             }
             #endif
 
+            log_v_debug_P( PSTR("pixel power enabled!") );
+
             pixels_enabled = TRUE;
         }
 
@@ -212,6 +226,8 @@ PT_BEGIN( pt );
 
         // check if pixels should be DISabled:
         if( request_pixels_disabled ){
+
+            log_v_debug_P( PSTR("pixel power disabled!") );
 
             pixels_off();
         }

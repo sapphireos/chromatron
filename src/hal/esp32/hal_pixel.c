@@ -314,6 +314,7 @@ PT_BEGIN( pt );
 
                     // shut down pixel power
                     pixelpower_v_disable_pixels();
+                    log_v_debug_P( PSTR("disable pixel power") );
 
                     THREAD_WAIT_WHILE( pt, pixelpower_b_pixels_enabled() );
                 }
@@ -332,6 +333,7 @@ PT_BEGIN( pt );
 
                 // re-enable pixel power
                 pixelpower_v_enable_pixels();
+                log_v_debug_P( PSTR("enable pixel power") );
 
                 // wait until pixels have been re-enabled
                 THREAD_WAIT_WHILE( pt, !pixelpower_b_pixels_enabled() );
@@ -349,6 +351,8 @@ PT_BEGIN( pt );
         if( !pixelpower_b_pixels_enabled() ){
 
             log_v_error_P( PSTR("Pixels are still unpowered!") );
+
+            TMR_WAIT( pt, 600000 );
 
             continue;
         }
