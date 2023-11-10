@@ -1291,7 +1291,7 @@ class Builder(object):
     def finish_module(self):
         # check if there is no init function
         if 'init' not in self.funcs:
-            logging.warning(f'No init function specified!')
+            # logging.warning(f'No init function specified!')
 
             self.declare_func('init', lineno=-1)
             func = self.func('init', lineno=-1)
