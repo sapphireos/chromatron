@@ -513,14 +513,20 @@ void pixel_v_enable( void ){
 
 void pixel_v_disable( void ){
 
-    PIXEL_EN_PORT.OUTCLR = ( 1 << PIXEL_EN_PIN );
+    // PIXEL_EN_PORT.OUTCLR = ( 1 << PIXEL_EN_PIN );
 
     // disable port
-    PIXEL_DATA_PORT.CTRLB &= ~USART_TXEN_bm;
+    // PIXEL_DATA_PORT.CTRLB &= ~USART_TXEN_bm;
 
     // un-invert
     PIX_CLK_PORT.PIN3CTRL &= ~PORT_INVEN_bm;
     PIX_CLK_PORT.PIN1CTRL &= ~PORT_INVEN_bm;
+
+    // drive high
+    // this lets the pixels idle with a defined state on the data lines
+    // to avoid noise.
+    PIX_CLK_PORT.OUTSET = ( 1 << PIX_CLK_PIN );
+    PIX_DATA_PORT.OUTSET = ( 1 << PIX_DATA_PIN );
 
     pixels_enabled = FALSE;
 }
