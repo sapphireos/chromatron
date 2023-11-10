@@ -347,12 +347,15 @@ PT_BEGIN( pt );
         }
 
 
-        // check that pixels are enabled here and log a message if not
+        // check that pixels are enabled here and deal with it if not
         if( !pixelpower_b_pixels_enabled() ){
 
             log_v_error_P( PSTR("Pixels are still unpowered!") );
 
-            TMR_WAIT( pt, 600000 );
+            // generally, this isn't supposed to happen.
+            // but we can just request to turn them back on and
+            // jump back up the loop for the next frame.
+            pixelpower_v_enable_pixels();
 
             continue;
         }
