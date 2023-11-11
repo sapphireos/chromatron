@@ -1724,7 +1724,7 @@ PT_BEGIN( pt );
 
 
         uint8_t prev_faults = batt_fault;
-        bool was_charging = batt_charging;
+        // bool was_charging = batt_charging;
 
         // read all registers
         bq25895_v_read_all();
