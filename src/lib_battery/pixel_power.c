@@ -171,8 +171,7 @@ PT_BEGIN( pt );
         if( !is_vbus_valid() ){
             
             pixels_off();
-            log_v_debug_P( PSTR("pixel power disabled! VBUS") );
-
+            
             TMR_WAIT( pt, 20 );
 
             continue;
@@ -215,7 +214,7 @@ PT_BEGIN( pt );
             }
             #endif
 
-            log_v_debug_P( PSTR("pixel power enabled!") );
+            // log_v_debug_P( PSTR("pixel power enabled!") );
 
             pixels_enabled = TRUE;
         }
@@ -227,7 +226,7 @@ PT_BEGIN( pt );
         // check if pixels should be DISabled:
         if( request_pixels_disabled ){
 
-            log_v_debug_P( PSTR("pixel power disabled!") );
+            // log_v_debug_P( PSTR("pixel power disabled!") );
 
             pixels_off();
         }

@@ -276,11 +276,14 @@ PT_BEGIN( pt );
     // start up with pixel power enabled
     if( pixelpower_b_power_control_enabled() ){
 
-        // re-enable pixel power
-        pixelpower_v_enable_pixels();
+        if( !gfx_b_is_output_zero() ){ // if graphics is non-zero output:
 
-        // wait until pixels have been re-enabled
-        THREAD_WAIT_WHILE( pt, !pixelpower_b_pixels_enabled() );
+            // enable pixel power
+            pixelpower_v_enable_pixels();
+
+            // wait until pixels have been re-enabled
+            THREAD_WAIT_WHILE( pt, !pixelpower_b_pixels_enabled() );
+        }
     }
 
     while(1){
@@ -314,7 +317,6 @@ PT_BEGIN( pt );
 
                     // shut down pixel power
                     pixelpower_v_disable_pixels();
-                    log_v_debug_P( PSTR("disable pixel power") );
 
                     THREAD_WAIT_WHILE( pt, pixelpower_b_pixels_enabled() );
                 }
@@ -333,7 +335,6 @@ PT_BEGIN( pt );
 
                 // re-enable pixel power
                 pixelpower_v_enable_pixels();
-                log_v_debug_P( PSTR("enable pixel power") );
 
                 // wait until pixels have been re-enabled
                 THREAD_WAIT_WHILE( pt, !pixelpower_b_pixels_enabled() );
@@ -344,7 +345,7 @@ PT_BEGIN( pt );
 
             // signal so we process pixels immediately
             pixel_v_signal();
-        }
+        } // end of block ZERO OUTPUT
 
 
         // check that pixels are enabled here and deal with it if not
