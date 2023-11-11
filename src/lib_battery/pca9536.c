@@ -50,8 +50,6 @@ int8_t pca9536_i8_init( void ){
     // set all low
     i2c_v_write_reg8( PCA9536_I2C_ADDR, PCA9536_REG_OUTPUT, 0xf0 );
 
-    log_v_info_P( PSTR("PCA9536 detected") );
-
     return 0;
 }
 
