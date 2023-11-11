@@ -1848,6 +1848,10 @@ PT_BEGIN( pt );
                 // reduce current by half
                 current_fast_charge_setting = get_fast_charge_current() / 2;
             }
+            else if( batt_temp <= BQ25895_CHARGE_TEMP_LIMIT_LOWER ){
+
+                current_fast_charge_setting = get_fast_charge_current();
+            }
 
             // if current setting is changing, apply it
             if( current_fast_charge_setting != prev_fast_charge_setting ){

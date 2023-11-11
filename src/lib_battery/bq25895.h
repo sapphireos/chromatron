@@ -40,6 +40,7 @@
 // #define BQ25895_SOFT_START_CHARGE_INCREMENT 10
 
 #define BQ25895_CHARGE_TEMP_LIMIT		38
+#define BQ25895_CHARGE_TEMP_LIMIT_LOWER	36
 
 // NOTE! The datasheet lists the address as 0x6B in the serial Interface
 // overview, but then lists it as 0x6A in the register description.
