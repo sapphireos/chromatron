@@ -522,11 +522,11 @@ void pixel_v_disable( void ){
     PIX_CLK_PORT.PIN3CTRL &= ~PORT_INVEN_bm;
     PIX_CLK_PORT.PIN1CTRL &= ~PORT_INVEN_bm;
 
-    // drive high
+    // drive IO low, which drives pixels high
     // this lets the pixels idle with a defined state on the data lines
     // to avoid noise.
-    PIX_CLK_PORT.OUTSET = ( 1 << PIX_CLK_PIN );
-    PIX_DATA_PORT.OUTSET = ( 1 << PIX_DATA_PIN );
+    PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN );
+    PIX_DATA_PORT.OUTCLR = ( 1 << PIX_DATA_PIN );
 
     pixels_enabled = FALSE;
 }
