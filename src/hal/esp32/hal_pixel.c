@@ -292,8 +292,8 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
 
         // check if output is zero
-        // if( gfx_b_is_output_zero() || ( pixelpower_b_power_control_enabled() && !pixelpower_b_pixels_enabled() ) ){
-        if( gfx_b_is_output_zero() ){
+        // only if power control is enabled!
+        if( gfx_b_is_output_zero() && pixelpower_b_power_control_enabled() ){
 
             // check if pixels are POWERED:
             if( pixelpower_b_pixels_enabled() ){
@@ -345,7 +345,7 @@ PT_BEGIN( pt );
 
             // signal so we process pixels immediately
             pixel_v_signal();
-        } // end of block ZERO OUTPUT
+        } // end of block ZERO OUTPUT && power control enabled
 
 
         // check that pixels are enabled here and deal with it if not
