@@ -23,6 +23,8 @@
 
 #include "sapphire.h"
 
+#include "vm.h"
+
 #include "vm_sequencer.h"
 
 static uint8_t seq_time_mode;
@@ -37,6 +39,12 @@ static uint16_t seq_random_time_min;
 static uint16_t seq_random_time_max;
 
 static uint16_t seq_time_remaining;
+
+static bool seq_trigger;
+
+
+#define N_SLOTS 8
+
 
 KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
 
@@ -60,6 +68,8 @@ KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&seq_random_time_max,  0,                  "seq_random_time_max" },
 
 	{ CATBUS_TYPE_UINT16,   0, 0, 					&seq_time_remaining,   0,                  "seq_time_remaining" },
+
+	{ CATBUS_TYPE_BOOL,     0, 0, 					&seq_trigger,     	   0,                  "seq_trigger" },
 
     // { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[0],          0,                  "vm_reset" },
     // { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[0],            0,                  "vm_run" },
@@ -101,6 +111,67 @@ KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
 
 static void run_step( void ){
 
+	if( seq_select_mode == VM_SEQ_SELECT_MODE_NEXT ){
+
+		seq_current_step++;
+	}
+	else if( seq_select_mode == VM_SEQ_SELECT_MODE_RANDOM ){
+
+		seq_current_step = rnd_u16_range( N_SLOTS );
+	}
+	else{
+
+		log_v_error_P( PSTR("Invalid select mode!") );
+
+		return;
+	}
+
+	seq_current_step %= N_SLOTS;
+
+	char progname[FFS_FILENAME_LEN];
+	memset( progname, 0, sizeof(progname) );
+
+	if( seq_current_step == 0 ){
+
+		kv_i8_get( __KV__seq_slot_0, progname, sizeof(progname) );
+	}
+	else if( seq_current_step == 1 ){
+
+		kv_i8_get( __KV__seq_slot_1, progname, sizeof(progname) );
+	}
+	else if( seq_current_step == 2 ){
+
+		kv_i8_get( __KV__seq_slot_2, progname, sizeof(progname) );
+	}
+	else if( seq_current_step == 3 ){
+
+		kv_i8_get( __KV__seq_slot_3, progname, sizeof(progname) );
+	}
+	else if( seq_current_step == 4 ){
+
+		kv_i8_get( __KV__seq_slot_4, progname, sizeof(progname) );
+	}
+	else if( seq_current_step == 5 ){
+
+		kv_i8_get( __KV__seq_slot_5, progname, sizeof(progname) );
+	}
+	else if( seq_current_step == 6 ){
+
+		kv_i8_get( __KV__seq_slot_6, progname, sizeof(progname) );
+	}
+	else if( seq_current_step == 7 ){
+
+		kv_i8_get( __KV__seq_slot_7, progname, sizeof(progname) );
+	}
+	else{
+
+		log_v_error_P( PSTR("Invalid sequencer step!") );
+
+		return;
+	}
+
+	vm_v_run_prog( progname, 0 ); // run new program on slot 0
+
 
 }
 
@@ -109,38 +180,71 @@ PT_THREAD( vm_sequencer_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 	
-	THREAD_WAIT_WHILE( pt, seq_time_mode != VM_SEQ_TIME_MODE_STOPPED );
-
-    if( seq_time_mode == VM_SEQ_TIME_MODE_INTERVAL ){
-
-    	seq_time_remaining = seq_interval_time;
-    }
-
-	
 	while(1){
 
-        thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+		TMR_WAIT( pt, 100 );
 
-        if( seq_time_remaining == 0 ){
+		seq_running = FALSE;
 
-        	THREAD_RESTART( pt );
-        }
+		THREAD_WAIT_WHILE( pt, seq_time_mode == VM_SEQ_TIME_MODE_STOPPED );
 
-        seq_time_remaining--;
+		seq_running = TRUE;
 
-        if( seq_time_remaining == 0 ){
+		if( seq_time_mode == VM_SEQ_TIME_MODE_INTERVAL ){
 
-        	// time is up
-        	run_step();
-        }
+			seq_time_remaining = seq_interval_time;
+	    }
+	    else if( seq_time_mode == VM_SEQ_TIME_MODE_RANDOM ){
 
-        // while( seq_time_mode != VM_SEQ_TIME_MODE_STOPPED ){
+	    	uint16_t temp = seq_random_time_max - seq_random_time_min;
 
-        	
-		// }
-	}
-	
+	    	seq_time_remaining = seq_random_time_min + rnd_u16_range( temp );
+	    }	
+	   	else if( seq_time_mode == VM_SEQ_TIME_MODE_MANUAL ){
+
+	    	THREAD_WAIT_WHILE( pt, 
+	    		( seq_time_mode == VM_SEQ_TIME_MODE_MANUAL ) &&
+	    		( seq_trigger == FALSE ) );
+
+			if( seq_time_mode != VM_SEQ_TIME_MODE_MANUAL ){
+
+				seq_trigger = FALSE;
+
+				continue;
+			}	
+
+			if( seq_trigger ){
+
+				seq_trigger = FALSE;
+
+				run_step();
+			}
+
+			continue;
+	    }
+	    else{
+
+			log_v_error_P( PSTR("Invalid time mode!") );	    	
+	    }
+
+	    thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 );
+
+	    while( ( ( seq_time_mode == VM_SEQ_TIME_MODE_INTERVAL ) ||
+	    	     ( seq_time_mode == VM_SEQ_TIME_MODE_RANDOM ) ) &&
+			   ( seq_time_remaining > 0 ) ){
+
+			thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
+	        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+	        seq_time_remaining--;
+
+	        if( seq_time_remaining == 0 ){
+
+	        	run_step();
+	        }
+		}
+	}	
+		
 	
 PT_END( pt );
 }
