@@ -38,6 +38,7 @@
 #include "vm.h"
 #include "vm_core.h"
 #include "vm_cron.h"
+#include "vm_sequencer.h"
 
 #ifdef ENABLE_GFX
 
@@ -1318,6 +1319,7 @@ void vm_v_init( void ){
                      0 );
 
     vm_cron_v_init();
+    vm_seq_v_init();
 
     #ifdef VM_DEBUG
     fs_f_create_virtual( PSTR("vm0_threads"), threads_vfile );
