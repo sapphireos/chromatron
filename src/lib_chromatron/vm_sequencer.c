@@ -109,7 +109,56 @@ KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
     // { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
 };
 
-static void run_step( void ){
+
+static int8_t get_program_for_slot( uint8_t slot, char progname[FFS_FILENAME_LEN] ){
+
+	ASSERT( progname != 0 );
+
+	memset( progname, 0, FFS_FILENAME_LEN );
+
+	if( seq_current_step == 0 ){
+
+		kv_i8_get( __KV__seq_slot_0, progname, FFS_FILENAME_LEN );
+	}
+	else if( seq_current_step == 1 ){
+
+		kv_i8_get( __KV__seq_slot_1, progname, FFS_FILENAME_LEN );
+	}
+	else if( seq_current_step == 2 ){
+
+		kv_i8_get( __KV__seq_slot_2, progname, FFS_FILENAME_LEN );
+	}
+	else if( seq_current_step == 3 ){
+
+		kv_i8_get( __KV__seq_slot_3, progname, FFS_FILENAME_LEN );
+	}
+	else if( seq_current_step == 4 ){
+
+		kv_i8_get( __KV__seq_slot_4, progname, FFS_FILENAME_LEN );
+	}
+	else if( seq_current_step == 5 ){
+
+		kv_i8_get( __KV__seq_slot_5, progname, FFS_FILENAME_LEN );
+	}
+	else if( seq_current_step == 6 ){
+
+		kv_i8_get( __KV__seq_slot_6, progname, FFS_FILENAME_LEN );
+	}
+	else if( seq_current_step == 7 ){
+
+		kv_i8_get( __KV__seq_slot_7, progname, FFS_FILENAME_LEN );
+	}
+	else{
+
+		log_v_error_P( PSTR("Invalid sequencer step!") );
+
+		return -1;
+	}
+
+	return 0;
+}
+
+static int8_t _run_step( void ){
 
 	if( seq_select_mode == VM_SEQ_SELECT_MODE_NEXT ){
 
@@ -123,7 +172,7 @@ static void run_step( void ){
 
 		log_v_error_P( PSTR("Invalid select mode!") );
 
-		return;
+		return -1;
 	}
 
 	seq_current_step %= N_SLOTS;
@@ -167,12 +216,46 @@ static void run_step( void ){
 
 		log_v_error_P( PSTR("Invalid sequencer step!") );
 
-		return;
+		return -2;
 	}
+
+	// if progname is empty:
+	if( progname[0] == 0 ){
+
+		return -3;
+	}
+
+	// check that program exists on filesystem:
+	if( !fs_b_exists_id( fs_i8_get_file_id( progname ) ) ){
+
+		return -4;
+	}
+
+	// in theory the program will run
 
 	vm_v_run_prog( progname, 0 ); // run new program on slot 0
 
+	return 0;
+}
 
+
+static void run_step(void){
+
+	// only try so many times to get a valid program
+	// this is how we deal with not filling up all of the slots,
+	// if it selects an empty slot it just runs the stepping algorithm
+	// again until it finds one (or gives up)
+	uint8_t tries = 32;
+
+	while(tries > 0){
+
+		if(_run_step() == 0){
+
+			return;
+		}
+
+		tries--;
+	}
 }
 
 
