@@ -304,21 +304,7 @@ PT_BEGIN( pt );
 	    		( seq_trigger == FALSE ) );
 
 	    	process_manual_input();
-
-		// 	if( seq_time_mode != VM_SEQ_TIME_MODE_MANUAL ){
-
-		// 		seq_trigger = FALSE;
-
-		// 		continue;
-		// 	}	
-
-		// 	if( seq_trigger ){
-
-		// 		seq_trigger = FALSE;
-
-		// 		run_step();
-		// 	}
-
+	    	
 			continue;
 	    }
 	    else{
