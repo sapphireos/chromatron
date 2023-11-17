@@ -258,6 +258,20 @@ static void run_step(void){
 	}
 }
 
+static bool process_manual_input( void ){
+
+	if( seq_trigger ){
+
+		seq_trigger = FALSE;
+
+		run_step();
+
+		return TRUE;
+	}
+
+	return TRUE;
+}
+
 
 PT_THREAD( vm_sequencer_thread( pt_t *pt, void *state ) )
 {
@@ -289,19 +303,21 @@ PT_BEGIN( pt );
 	    		( seq_time_mode == VM_SEQ_TIME_MODE_MANUAL ) &&
 	    		( seq_trigger == FALSE ) );
 
-			if( seq_time_mode != VM_SEQ_TIME_MODE_MANUAL ){
+	    	process_manual_input();
 
-				seq_trigger = FALSE;
+		// 	if( seq_time_mode != VM_SEQ_TIME_MODE_MANUAL ){
 
-				continue;
-			}	
+		// 		seq_trigger = FALSE;
 
-			if( seq_trigger ){
+		// 		continue;
+		// 	}	
 
-				seq_trigger = FALSE;
+		// 	if( seq_trigger ){
 
-				run_step();
-			}
+		// 		seq_trigger = FALSE;
+
+		// 		run_step();
+		// 	}
 
 			continue;
 	    }
@@ -317,7 +333,7 @@ PT_BEGIN( pt );
 			   ( seq_time_remaining > 0 ) ){
 
 			thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
-	        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+	        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && process_manual_input() );
 
 	        seq_time_remaining--;
 
