@@ -178,43 +178,8 @@ static int8_t _run_step( void ){
 	seq_current_step %= N_SLOTS;
 
 	char progname[FFS_FILENAME_LEN];
-	memset( progname, 0, sizeof(progname) );
 
-	if( seq_current_step == 0 ){
-
-		kv_i8_get( __KV__seq_slot_0, progname, sizeof(progname) );
-	}
-	else if( seq_current_step == 1 ){
-
-		kv_i8_get( __KV__seq_slot_1, progname, sizeof(progname) );
-	}
-	else if( seq_current_step == 2 ){
-
-		kv_i8_get( __KV__seq_slot_2, progname, sizeof(progname) );
-	}
-	else if( seq_current_step == 3 ){
-
-		kv_i8_get( __KV__seq_slot_3, progname, sizeof(progname) );
-	}
-	else if( seq_current_step == 4 ){
-
-		kv_i8_get( __KV__seq_slot_4, progname, sizeof(progname) );
-	}
-	else if( seq_current_step == 5 ){
-
-		kv_i8_get( __KV__seq_slot_5, progname, sizeof(progname) );
-	}
-	else if( seq_current_step == 6 ){
-
-		kv_i8_get( __KV__seq_slot_6, progname, sizeof(progname) );
-	}
-	else if( seq_current_step == 7 ){
-
-		kv_i8_get( __KV__seq_slot_7, progname, sizeof(progname) );
-	}
-	else{
-
-		log_v_error_P( PSTR("Invalid sequencer step!") );
+	if( get_program_for_slot( seq_current_step, progname ) < 0 ){
 
 		return -2;
 	}
@@ -304,7 +269,7 @@ PT_BEGIN( pt );
 	    		( seq_trigger == FALSE ) );
 
 	    	process_manual_input();
-	    	
+
 			continue;
 	    }
 	    else{
