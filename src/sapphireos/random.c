@@ -231,5 +231,5 @@ uint16_t rnd_u16_range_with_seed( uint64_t *seed, uint16_t range ){
 
 uint16_t rnd_u16_range( uint16_t range ){
 
-    return rnd_u16_range( range ) & 0xffff;
+    return rnd_u32_range( range ) & 0xffff;
 }
