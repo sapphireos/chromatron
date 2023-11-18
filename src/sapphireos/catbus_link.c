@@ -716,8 +716,6 @@ link_handle_t link_l_create(
 		return -1;
 	}
 
-	ASSERT( tag != 0 );
-
 	link_state_t state = link_ls_assemble(
 							mode,
 							source_key,
@@ -738,8 +736,6 @@ link_handle_t link_l_create2( link_state_t *state ){
 
         return -1;
     }
-
-    ASSERT( state->tag != 0 );
 
     link_handle_t lh = link_l_lookup( state );
 
@@ -1651,7 +1647,7 @@ PT_BEGIN( pt );
 
             if( kv_i8_get_catbus_meta( msg->hash, &meta ) < 0 ){
 
-                log_v_error_P( PSTR("rx hash not found!") );
+                log_v_error_P( PSTR("rx hash 0x%08x not found!"), msg->hash );
 
                 goto end;
             }
@@ -1678,7 +1674,7 @@ PT_BEGIN( pt );
 
             if( catbus_i8_array_set( msg->hash, msg->data.meta.type, 0, array_len, &msg->data.data, msg_data_len ) < 0 ){
 
-                log_v_error_P( PSTR("data fail") );
+                log_v_error_P( PSTR("data fail: 0c%08x"), msg->hash );
 
                 goto end;
             }

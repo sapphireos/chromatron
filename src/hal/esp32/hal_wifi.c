@@ -30,6 +30,7 @@
 #include "list.h"
 #include "sockets.h"
 #include "hal_io.h"
+#include "random.h"
 
 #include "hal_arp.h"
 
@@ -1094,10 +1095,18 @@ station_mode:
                     else if( scan_backoff < 64 ){
 
                         scan_backoff *= 2;
+
+                        log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
+
+                        TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // add 2 seconds of random delay
                     }
                     else if( scan_backoff < 192 ){
 
                         scan_backoff += 64;
+
+                        log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
+
+                        TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // add 4 seconds of random delay
                     }
 
                     goto end;
@@ -1312,7 +1321,7 @@ end:
 
     THREAD_WAIT_WHILE( pt, wifi_b_connected() && !wifi_shutdown );
     
-    log_v_debug_P( PSTR("Wifi disconnected. Last RSSI: %d ch: %d"), wifi_rssi, wifi_channel );
+    log_v_debug_P( PSTR("Wifi disconnected: %d Last RSSI: %d ch: %d"), disconnect_reason, wifi_rssi, wifi_channel );
 
     wifi_v_reset_scan_timeout();
 

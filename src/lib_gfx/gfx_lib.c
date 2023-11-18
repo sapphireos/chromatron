@@ -1209,7 +1209,7 @@ void gfx_v_pixel_mul( uint8_t obj, uint16_t index, uint8_t attr, int32_t src, ca
     index += pix_arrays[obj].index;
     index %= pix_count;
 
-    int32_t a = ptr[index] * src;
+    int32_t a = ptr[index];
 
     if( ( attr != PIX_ARRAY_ATTR_HS_FADE ) &&
         ( attr != PIX_ARRAY_ATTR_V_FADE ) &&
@@ -1275,6 +1275,18 @@ void gfx_v_pixel_mod( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
     _gfx_v_set_pixel_op( index, attr, a );     
 }
 
+void gfx_v_pixel_store( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
+
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    _gfx_v_set_pixel_op( index, attr, src );     
+}
 
 void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
 
@@ -2755,6 +2767,26 @@ int32_t gfx_i32_get_pixel_attr_single( uint16_t index, uint8_t attr ){
 
         return gfx_u16_get_is_hs_fading( index, 65535, 0 );
     }
+    else if( attr == PIX_ARRAY_ATTR_HUE ){
+
+        return gfx_u16_get_hue_1d( index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
+
+        return gfx_u16_get_sat_1d( index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_VAL ){
+
+        return gfx_u16_get_val_1d( index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
+
+        return gfx_u16_get_hs_fade_1d( index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
+
+        return gfx_u16_get_v_fade_1d( index );
+    }
 
     return 0;    
 }
@@ -3106,26 +3138,34 @@ void gfx_v_sync_array( void ){
     uint16_t dimmed_val;
     uint16_t curved_sat;
 
-    // PWM modes will use pixel 0 and need 16 bits.
-    // for simplicity's sake, and to avoid a compare-branch in the
-    // HSV converversion loop, we'll just always compute the 16 bit values
-    // here, and then go on with the 8 bit arrays.
-
-    dimmed_val = gfx_u16_get_dimmed_val( val[0] );
-    curved_sat = gfx_u16_get_curved_sat( sat[0] );
-
-    gfx_v_hsv_to_rgb(
-        hue[0],
-        sat[0],
-        dimmed_val,
-        &pix0_16bit_red,
-        &pix0_16bit_green,
-        &pix0_16bit_blue
-    );
-
     zero_output = TRUE;
 
-    if( pix_mode == PIX_MODE_SK6812_RGBW ){
+    // analog:
+    if( pix_mode == PIX_MODE_ANALOG ){
+
+        // PWM modes will use pixel 0 and need 16 bits.
+
+        dimmed_val = gfx_u16_get_dimmed_val( val[0] );
+        curved_sat = gfx_u16_get_curved_sat( sat[0] );
+
+        gfx_v_hsv_to_rgb(
+            hue[0],
+            curved_sat,
+            dimmed_val,
+            &pix0_16bit_red,
+            &pix0_16bit_green,
+            &pix0_16bit_blue
+        );
+
+        if( ( pix0_16bit_red != 0 ) ||
+            ( pix0_16bit_green != 0 ) ||
+            ( pix0_16bit_blue != 0 ) ){
+
+            zero_output = FALSE;            
+        }
+    }
+    // RBGW:
+    else if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
         for( uint16_t i = 0; i < pix_count; i++ ){
 
@@ -3142,7 +3182,8 @@ void gfx_v_sync_array( void ){
                 &b,
                 &w
             );
-      
+        
+            // convert to 8 bit channels
             r /= 256;
             g /= 256;
             b /= 256;
@@ -3162,7 +3203,8 @@ void gfx_v_sync_array( void ){
             array_misc[i] = w;
         }
     }
-    else{
+    // RGB without dithering:
+    else if( !pix_dither ){ // if dithering is NOT enabled (the usual case)
 
         for( uint16_t i = 0; i < pix_count; i++ ){
 
@@ -3179,14 +3221,52 @@ void gfx_v_sync_array( void ){
                 &b
             );
       
+            // convert to 8 bit channels
+            r /= 256;
+            g /= 256;
+            b /= 256;
+
+            if( ( r != 0 ) ||
+                ( g != 0 ) ||
+                ( b != 0 ) ){
+
+                zero_output = FALSE;     
+            }
+        
+            array_red[i] = r;
+            array_green[i] = g;
+            array_blue[i] = b;
+        }
+    }
+    // RGB with dithering:
+    else{ // if dithering is enabled
+
+        for( uint16_t i = 0; i < pix_count; i++ ){
+
+            // process master dimmer
+            dimmed_val = gfx_u16_get_dimmed_val( val[i] );
+            curved_sat = gfx_u16_get_curved_sat( sat[i] );
+
+            gfx_v_hsv_to_rgb(
+                hue[i],
+                curved_sat,
+                dimmed_val,
+                &r,
+                &g,
+                &b
+            );
+        
+            // convert to 10 bit channels
             r /= 64;
             g /= 64;
             b /= 64;
 
+            // compute dither
             dither =  ( r & 0x0003 ) << 4;
             dither |= ( g & 0x0003 ) << 2;
             dither |= ( b & 0x0003 );
 
+            // convert down to 8 bit channels
             r /= 4;
             g /= 4;
             b /= 4;

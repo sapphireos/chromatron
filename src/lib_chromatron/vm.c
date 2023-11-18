@@ -38,6 +38,7 @@
 #include "vm.h"
 #include "vm_core.h"
 #include "vm_cron.h"
+#include "vm_sequencer.h"
 
 #ifdef ENABLE_GFX
 
@@ -71,6 +72,41 @@ int8_t vm_i8_kv_handler(
 
     return 0;
 }
+
+#ifdef VM_DEBUG
+static uint32_t threads_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    // get state for VM 0
+    vm_state_t *state = vm_p_get_state();
+
+    if( state == 0 ){
+
+        return 0;
+    }
+
+    uint8_t *thread_p = (uint8_t *)state->threads;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            // len = list_u16_flatten( &query_list, pos, ptr, len );
+            memcpy( ptr, thread_p + pos, len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = sizeof(state->threads);
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
+#endif
 
 
 KV_SECTION_META kv_meta_t vm_info_kv[] = {
@@ -699,7 +735,7 @@ PT_BEGIN( pt );
 
     if( state->vm_return ){
 
-        log_v_debug_P( PSTR("VM load fail: %d"), state->vm_return );
+        log_v_debug_P( PSTR("VM load fail: %d %s"), state->vm_return, state->program_fname );
 
         goto exit;
     }
@@ -1283,6 +1319,12 @@ void vm_v_init( void ){
                      0 );
 
     vm_cron_v_init();
+    vm_seq_v_init();
+
+    #ifdef VM_DEBUG
+    fs_f_create_virtual( PSTR("vm0_threads"), threads_vfile );
+    #endif
+
     #endif
 }
 

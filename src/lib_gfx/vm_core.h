@@ -30,6 +30,11 @@
 #include "target.h"
 #include "keyvalue.h"
 
+
+// #define VM_DEBUG
+
+
+
 #define VM_ISA_VERSION              13
 
 #define VM_MAX_RUN_TIME             500 // milliseconds
@@ -180,6 +185,9 @@ typedef struct __attribute__((packed)){
     uint16_t func_addr;
     uint16_t pc_offset;
     uint64_t tick;
+    #ifdef VM_DEBUG
+    uint32_t run_count;
+    #endif
 } vm_thread_t;
 
 typedef struct __attribute__((packed)){
@@ -232,7 +240,8 @@ and also select an attribute.
 
 
 typedef struct __attribute__((packed)){
-    uint16_t pool;
+    uint8_t pool;
+    uint8_t index;
     uint16_t addr;
 } vm_packed_reference_t;
 
@@ -241,6 +250,16 @@ typedef union{
     uint32_t n;
 } vm_reference_t;
 
+typedef struct __attribute__((packed)){
+    uint8_t reserved;
+    uint8_t attr;
+    uint16_t index;
+} vm_packed_pixel_index_t;
+
+typedef union{
+    vm_packed_pixel_index_t pixindex;
+    uint32_t n;
+} vm_pixel_index_t;
 
 typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t vm_id;

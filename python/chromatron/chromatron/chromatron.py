@@ -494,11 +494,11 @@ class Chromatron(object):
         self.stop_vm(vm_index)
 
         if bin_data:
-            code = code_gen.compile_text(bin_data).stream
+            code = code_gen.build_text(bin_data)
             bin_filename = 'vm.fxb'
 
         elif filename:
-            code = code_gen.compile_script(filename).stream
+            code = code_gen.build_script(filename)
             bin_filename = os.path.split(filename)[1] + 'b'
 
             # write out .fxb file
@@ -1579,7 +1579,7 @@ def compile(ctx, filename, debug):
     click.echo('Compiling: %s' % (filename))
 
     try:
-        code = code_gen.compile_script(filename, debug_print=debug).stream
+        code = code_gen.build_script(filename, debug_print=debug)
 
     except IOError:
         click.secho("No such file", fg=ERROR_COLOR)

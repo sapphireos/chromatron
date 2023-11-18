@@ -2190,9 +2190,76 @@ def init():
 """
 
 
+test_pload = """
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+d = Number(publish=True)
+e = Number(publish=True)
+
+def init():
+    pixels.hue = 0.1
+    pixels.sat = 0.2
+    pixels.val = 0.3
+
+    pixels.hs_fade = 123
+    pixels.v_fade = 456
+
+    a = pixels[1].hue
+    b = pixels[1].sat
+    c = pixels[1].val
+    d = pixels[1].hs_fade
+    e = pixels[1].v_fade
+
+"""
+
+
+
+test_pixel_channel_load = """
+
+a = Fixed16(publish=True)
+b = Fixed16(publish=True)
+c = Fixed16(publish=True)
+
+def init():
+    ch = PixelChannel()
+    ch = pixels.hue
+    
+    pixels.hue = 0.1
+    pixels[1].hue = 0.2
+
+    a = ch[0]
+    b = ch[1]
+    c = ch[2]
+
+
+"""
+
+
 class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
+
+    def test_pixel_channel_load(self, opt_passes):
+        self.run_test(test_pixel_channel_load,
+            opt_passes=opt_passes,
+            expected={
+                'a': 0.0999908447265625,
+                'b': 0.1999969482421875,
+                'c': 0.0999908447265625,
+            })
+
+    def test_pload(self, opt_passes):
+        self.run_test(test_pload,
+            opt_passes=opt_passes,
+            expected={
+                'a': 0.0999908447265625,
+                'b': 0.1999969482421875,
+                'c': 0.29998779296875,
+                'd': 123,
+                'e': 456,
+            })
 
     def test_pixref_funcarg(self, opt_passes):
         self.run_test(test_pixref_funcarg,
@@ -4139,12 +4206,61 @@ def init():
 
 """
 
+
+test_pixel_array_from_db = """
+
+def init():
+    db.kv_test_key = 123
+
+    pixels.hue = db.kv_test_key
+
+"""
+
+test_pixel_array_from_db2 = """
+
+def init():
+    db.kv_test_key = 123
+
+    pixels.hue = db.kv_test_key * 2
+
+"""
+
+test_pixel_channel_from_db = """
+
+def init():
+    db.kv_test_key = 123
+    ch = PixelChannel()
+
+    ch = pixels.hue
+
+    ch = db.kv_test_key * 2
+
+"""
+
 class HSVArrayTests(object):
     def assertEqual(self, actual, expected):
         assert actual == expected
 
     def run_test(self, program, opt_passes=[OptPasses.SSA]):
         pass
+
+    def test_pixel_channel_from_db(self, opt_passes):
+        hsv = self.run_test(test_pixel_channel_from_db, opt_passes=opt_passes)
+
+        for val in hsv['hue']:
+            self.assertEqual(val, 246)  
+
+    def test_pixel_array_from_db2(self, opt_passes):
+        hsv = self.run_test(test_pixel_array_from_db2, opt_passes=opt_passes)
+
+        for val in hsv['hue']:
+            self.assertEqual(val, 246)  
+
+    def test_pixel_array_from_db(self, opt_passes):
+        hsv = self.run_test(test_pixel_array_from_db, opt_passes=opt_passes)
+
+        for val in hsv['hue']:
+            self.assertEqual(val, 123)      
 
     def test_pixel_channel_pixel_op(self, opt_passes):
         hsv = self.run_test(test_pixel_channel_pixel_op, opt_passes=opt_passes)

@@ -953,12 +953,12 @@ static int8_t _kv_i8_internal_set(
 
     const void *ptr = data;
 
+    int diff = 0;
+
     // check if parameter has a pointer
     if( meta->ptr != 0 ){
 
         meta->ptr += ( index * type_u16_size( meta->type ) );
-
-        int diff = 0;
 
         ATOMIC;
 
@@ -1013,7 +1013,11 @@ static int8_t _kv_i8_internal_set(
 
                 _kv_i8_persist_set( meta, hash, data, copy_len );
             }
-            else{
+            else if( diff != 0 ){
+                // if we have a ptr, then we have done a comparison
+                // against the original data.
+                // only signal the persist thread if the value
+                // is actually changing.
 
                 // signal thread to persist in background
                 run_persist = TRUE;

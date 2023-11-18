@@ -32,7 +32,7 @@
 
 #ifdef AVR
 #include "hal_esp8266.h"
-#include "hal_status_led.h"
+#include "status_led.h"
 #endif
 
 // bootloader shared memory

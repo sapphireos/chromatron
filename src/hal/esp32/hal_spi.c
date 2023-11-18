@@ -117,8 +117,16 @@ void spi_v_release( void ){
 
 	// tristate all IO
 	// io_v_set_mode( HAL_PIXEL_MISO, IO_MODE_INPUT );
-    io_v_set_mode( HAL_PIXEL_MOSI, IO_MODE_INPUT );
-    io_v_set_mode( HAL_PIXEL_SCK, IO_MODE_INPUT );
+    // io_v_set_mode( HAL_PIXEL_MOSI, IO_MODE_INPUT );
+    // io_v_set_mode( HAL_PIXEL_SCK, IO_MODE_INPUT );
+
+    // hold IO low.
+    // if we tristate, noise can flip pixels on to a random state.
+    io_v_set_mode( HAL_PIXEL_MOSI, IO_MODE_OUTPUT );
+    io_v_set_mode( HAL_PIXEL_SCK, IO_MODE_OUTPUT );
+
+    io_v_digital_write( HAL_PIXEL_MOSI, 0 );
+    io_v_digital_write( HAL_PIXEL_SCK, 0 );
 }
 
 void spi_v_set_freq( uint8_t channel, uint32_t freq ){

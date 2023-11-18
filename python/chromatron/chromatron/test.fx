@@ -1,4 +1,8 @@
 
+def init():
+    db.vm_prog = "meow"
+    # print(db.vm_prog)
+
 
 # THIS NEEDS A TEST CASE!
 
@@ -110,18 +114,23 @@ def sine(index, rate)
 """
 
 
-# def pfunc(ch: PixelChannel):
-    # ch = 0.25
 
-p1 = PixelArray(2, 12, size_x=3, size_y=4)
+# # def pfunc(ch: PixelChannel):
+#     # ch = 0.25
 
-def init():
-    # pfunc(pixels.hue)
+# p1 = PixelArray(2, 12, size_x=3, size_y=4)
 
-    # p1.sat.pix_sine(1.0).pix_add(0.5)
-    p1.sat.pix_sine(1.0).pix_add(0.5)
-    # ch = PixelChannel()
-    # ch.hue.pix_sine(0.2)
+# def init():
+#     # pfunc(pixels.hue)
+
+#     # p1.sat.pix_sine(1.0).pix_add(0.5)
+#     # p1.sat.pix_sine(1.0).pix_add(0.5)
+#     ch = PixelChannel()
+#     # ch = pixels.hue
+#     ch = p1.hue
+#     # ch[1] = 0.1
+#     ch.pix_add(0.1)
+    
 
     # p1.sat += 0.5
 

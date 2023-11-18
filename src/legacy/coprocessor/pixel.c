@@ -69,6 +69,8 @@ static uint8_t pix_buf_A[PIX_DMA_BUF_SIZE];
 static uint8_t pix_buf_B[PIX_DMA_BUF_SIZE];
 static uint8_t dither_cycle;
 
+static bool pixels_enabled = FALSE;
+
 static const PROGMEM uint8_t ws2811_lookup[256][3] = {
     #include "ws2811_lookup.txt"
 };
@@ -289,9 +291,22 @@ static uint8_t setup_pixel_buffer( uint8_t *buf, uint8_t len ){
 static void pixel_v_start_frame( void ){
 
     if( ( pix_mode == PIX_MODE_ANALOG ) || ( pix_mode == PIX_MODE_OFF ) || ( pix_count == 0 ) ){
+    
+        if( pixels_enabled ){
+
+            // disable pixel drivers to save some power on switching
+            pixel_v_disable();
+        }        
 
         return;
     }
+
+    if( !pixels_enabled ){
+        // if needed, re-enable the pixel drivers
+
+        pixel_v_enable();
+    }
+
 
     apa102_trailer = FALSE;
 
@@ -492,18 +507,28 @@ void pixel_v_enable( void ){
 
         PIX_CLK_PORT.PIN3CTRL |= PORT_INVEN_bm;
     }
+
+    pixels_enabled = TRUE;
 }
 
 void pixel_v_disable( void ){
 
-    PIXEL_EN_PORT.OUTCLR = ( 1 << PIXEL_EN_PIN );
+    // PIXEL_EN_PORT.OUTCLR = ( 1 << PIXEL_EN_PIN );
 
     // disable port
-    PIXEL_DATA_PORT.CTRLB &= ~USART_TXEN_bm;
+    // PIXEL_DATA_PORT.CTRLB &= ~USART_TXEN_bm;
 
     // un-invert
     PIX_CLK_PORT.PIN3CTRL &= ~PORT_INVEN_bm;
     PIX_CLK_PORT.PIN1CTRL &= ~PORT_INVEN_bm;
+
+    // drive IO low, which drives pixels high
+    // this lets the pixels idle with a defined state on the data lines
+    // to avoid noise.
+    PIX_CLK_PORT.OUTCLR = ( 1 << PIX_CLK_PIN );
+    PIX_DATA_PORT.OUTCLR = ( 1 << PIX_DATA_PIN );
+
+    pixels_enabled = FALSE;
 }
 
 void pixel_v_init( void ){

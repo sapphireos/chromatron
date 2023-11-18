@@ -22,19 +22,63 @@ static PROGMEM __attribute__((aligned(4))) uint8_t coproc_fw[] = {
 
 #ifndef BOOTLOADER
 
+static os_timer_t delay_timer;
+#define ONCE 0
+#define REPEAT 1
+
+static uint32_t sleep_start;
 
 #define LOOP_PRIO 1
 #define LOOP_QUEUE_LEN 4
 
 static os_event_t loop_q[LOOP_QUEUE_LEN];
 
+void timer_func(void* arg) {
+    (void)arg;
+
+    os_timer_disarm(&delay_timer);
+
+    if( sleep_start != 0 ){
+
+        thread_v_add_sleep_time( tmr_u32_elapsed_time_us( sleep_start ) );
+        sleep_start = 0;
+    }
+
+    system_os_post(LOOP_PRIO, 0, 0 );
+}
+
+#define MAX_SLEEP_PERIOD 20
+
 //Main code function
 static void ICACHE_FLASH_ATTR loop(os_event_t *events) {
  
-    thread_core();
+    int32_t sleep_time = thread_core();
+    sleep_start = 0;
 
-    os_delay_us(100);
-    system_os_post(LOOP_PRIO, 0, 0 );
+    if( sleep_time < 0 ){
+
+        sleep_time = 0;
+    }
+    else if( sleep_time > MAX_SLEEP_PERIOD ){
+
+        sleep_time = MAX_SLEEP_PERIOD;
+    }
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        system_os_post(LOOP_PRIO, 0, 0 );        
+    }
+    else if( sleep_time > 0 ){
+
+        sleep_start = tmr_u32_get_system_time_us();
+
+        os_timer_setfn(&delay_timer, (os_timer_func_t*)&timer_func, 0);
+        os_timer_arm(&delay_timer, sleep_time, ONCE);
+    }
+    else{
+
+        system_os_post(LOOP_PRIO, 0, 0 );        
+    }
 }
  
 
@@ -73,7 +117,7 @@ void ICACHE_FLASH_ATTR user_init(void)
 
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2);
 
-    system_update_cpu_freq( SYS_CPU_160MHZ );
+    // system_update_cpu_freq( SYS_CPU_160MHZ );
 
 
     #ifdef ENABLE_COPROCESSOR

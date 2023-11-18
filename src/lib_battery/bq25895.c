@@ -61,9 +61,7 @@ static uint16_t boost_voltage;
 static uint16_t vindpm;
 static uint16_t iindpm;
 
-#ifdef BQ25895_SOFT_START
 static uint16_t current_fast_charge_setting;
-#endif
 
 // true if MCU system power is sourced from the boost converter
 static bool mcu_source_pmid;
@@ -92,9 +90,9 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &charge_status,              0,  "batt_charge_status" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_current,        0,  "batt_charge_current" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_instant_charge_current,0,  "batt_charge_current_instant" },
-    #ifdef BQ25895_SOFT_START
+    
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &current_fast_charge_setting,0,  "batt_charge_current_setting" },
-    #endif
+    
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &batt_charge_power,          0,  "batt_charge_power" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &batt_fault,                 0,  "batt_fault" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &vbus_status,                0,  "batt_vbus_status" },
@@ -382,6 +380,8 @@ void bq25895_v_set_fast_charge_current( uint16_t current ){
 
         current = 5056;
     }
+
+    current_fast_charge_setting = current;
 
     uint8_t data = ( (uint32_t)current * 127 ) / 8128;
 
@@ -1232,6 +1232,30 @@ static void init_boost_converter( void ){
     bq25895_v_set_boost_voltage( boost_voltage );
 }
 
+static uint16_t get_fast_charge_current(void){
+
+    // default to 0.5C rate:
+    uint32_t fast_charge_current = batt_u16_get_nameplate_capacity() / 2;
+
+    if( fast_charge_current > BQ25895_MAX_FAST_CHARGE_CURRENT ){
+
+        fast_charge_current = BQ25895_MAX_FAST_CHARGE_CURRENT;
+    }
+
+    // set default max current to the cell count setting
+    if( batt_max_charge_current == 0 ){
+
+        batt_max_charge_current = fast_charge_current;
+    }
+    // apply maximum charge current, if the allowable cell current would exceed it
+    else if( fast_charge_current > batt_max_charge_current ){
+
+        fast_charge_current = batt_max_charge_current;
+    }
+
+    return fast_charge_current;
+}
+
 static void init_charger( void ){
 
     log_v_debug_P( PSTR("Init charger") );
@@ -1259,31 +1283,14 @@ static void init_charger( void ){
     bq25895_v_set_inlim( 3250 ); // 3.25 A is maximum input
     bq25895_v_set_pre_charge_current( 160 );
     
-    // default to 0.5C rate:
-    uint32_t fast_charge_current = batt_u16_get_nameplate_capacity() / 2;
-
-    if( fast_charge_current > BQ25895_MAX_FAST_CHARGE_CURRENT ){
-
-        fast_charge_current = BQ25895_MAX_FAST_CHARGE_CURRENT;
-    }
-
-    // set default max current to the cell count setting
-    if( batt_max_charge_current == 0 ){
-
-        batt_max_charge_current = fast_charge_current;
-    }
-    // apply maximum charge current, if the allowable cell current would exceed it
-    else if( fast_charge_current > batt_max_charge_current ){
-
-        fast_charge_current = batt_max_charge_current;
-    }
-
-    #ifdef BQ25895_SOFT_START
-    current_fast_charge_setting = BQ25895_SOFT_START_INITIAL_CHARGE;
-    bq25895_v_set_fast_charge_current( BQ25895_SOFT_START_INITIAL_CHARGE );
-    #else
+    uint32_t fast_charge_current = get_fast_charge_current();
+    
+    // #ifdef BQ25895_SOFT_START
+    // current_fast_charge_setting = BQ25895_SOFT_START_INITIAL_CHARGE;
+    // bq25895_v_set_fast_charge_current( BQ25895_SOFT_START_INITIAL_CHARGE );
+    // #else
     bq25895_v_set_fast_charge_current( fast_charge_current );
-    #endif
+    // #endif
 
     bq25895_v_set_termination_current( BQ25895_TERM_CURRENT );
 
@@ -1717,7 +1724,7 @@ PT_BEGIN( pt );
 
 
         uint8_t prev_faults = batt_fault;
-        bool was_charging = batt_charging;
+        // bool was_charging = batt_charging;
 
         // read all registers
         bq25895_v_read_all();
@@ -1811,30 +1818,46 @@ PT_BEGIN( pt );
                 bq25895_v_print_regs();
             }
 
-            #ifdef BQ25895_SOFT_START
-            if( bq25895_b_is_charging() ){
+                
+            uint16_t prev_fast_charge_setting = current_fast_charge_setting;
 
-                if( current_fast_charge_setting < batt_max_charge_current ){
+            // #ifdef BQ25895_SOFT_START
+            // if( bq25895_b_is_charging() ){
 
-                    current_fast_charge_setting += BQ25895_SOFT_START_CHARGE_INCREMENT;
-                }
+            //     if( current_fast_charge_setting < batt_max_charge_current ){
 
-                if( current_fast_charge_setting > batt_max_charge_current ){
+            //         current_fast_charge_setting += BQ25895_SOFT_START_CHARGE_INCREMENT;
+            //     }
 
-                    current_fast_charge_setting = batt_max_charge_current;
-                }
+            //     if( current_fast_charge_setting > batt_max_charge_current ){
 
-                bq25895_v_set_fast_charge_current( current_fast_charge_setting );
+            //         current_fast_charge_setting = batt_max_charge_current;
+            //     }
+            // }
+            // else if( was_charging ){ // was charging, but now we're not
+
+            //     // if not charging, reset the slow start ramp
+
+            //     current_fast_charge_setting = BQ25895_SOFT_START_INITIAL_CHARGE;   
+            // }
+            // #endif
+
+            // apply thermal limiter
+            if( batt_temp >= BQ25895_CHARGE_TEMP_LIMIT ){
+
+                // reduce current by half
+                current_fast_charge_setting = get_fast_charge_current() / 2;
             }
-            else if( was_charging ){ // was charging, but now we're not
+            else if( batt_temp <= BQ25895_CHARGE_TEMP_LIMIT_LOWER ){
 
-                // if not charging, reset the slow start ramp
+                current_fast_charge_setting = get_fast_charge_current();
+            }
 
-                current_fast_charge_setting = BQ25895_SOFT_START_INITIAL_CHARGE;
+            // if current setting is changing, apply it
+            if( current_fast_charge_setting != prev_fast_charge_setting ){
 
                 bq25895_v_set_fast_charge_current( current_fast_charge_setting );   
             }
-            #endif
 
 
             // run MPPT

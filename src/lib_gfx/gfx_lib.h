@@ -66,11 +66,17 @@ typedef struct  __attribute__((packed)){
 #define ARRAY_OBJ_TYPE      0
 #define PIX_OBJ_TYPE        1
 
-#define PIX_ARRAY_ATTR_HUE        0
-#define PIX_ARRAY_ATTR_SAT        1
-#define PIX_ARRAY_ATTR_VAL        2
-#define PIX_ARRAY_ATTR_HS_FADE    3
-#define PIX_ARRAY_ATTR_V_FADE     4
+#define PIX_ARRAY_ATTR_HUE        1
+#define PIX_ARRAY_ATTR_SAT        2
+#define PIX_ARRAY_ATTR_VAL        3
+#define PIX_ARRAY_ATTR_HS_FADE    4
+#define PIX_ARRAY_ATTR_V_FADE     5
+
+#define PIX_OP_ADD                1
+#define PIX_OP_SUB                2
+#define PIX_OP_MUL                3
+#define PIX_OP_DIV                4
+#define PIX_OP_MOD                5
 
 // note this needs to pad to 32 bit alignment!
 typedef struct  __attribute__((packed)){
@@ -136,6 +142,7 @@ void gfx_v_pixel_sub( uint8_t obj, uint16_t index, uint8_t attr, int32_t src );
 void gfx_v_pixel_mul( uint8_t obj, uint16_t index, uint8_t attr, int32_t src, catbus_type_t8 type );
 void gfx_v_pixel_div( uint8_t obj, uint16_t index, uint8_t attr, int32_t src, catbus_type_t8 type );
 void gfx_v_pixel_mod( uint8_t obj, uint16_t index, uint8_t attr, int32_t src );
+void gfx_v_pixel_store( uint8_t obj, uint16_t index, uint8_t attr, int32_t src );
 
 uint16_t gfx_u16_get_dimmed_val( uint16_t _val );
 

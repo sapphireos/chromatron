@@ -545,7 +545,7 @@ class Builder(object):
            isinstance(params[0], VarContainer) and \
            isinstance(params[0].var, varObjectRef):
 
-            if params[0].var.target is not None and params[0].var.target.name == 'db':
+            if params[0].var.target is not None and params[0].var.target.name == 'db' and func_name not in self.funcs:
                 db_call = True
 
         if not db_call:
@@ -764,6 +764,7 @@ class Builder(object):
 
         elif isinstance(value, VarContainer) and isinstance(value.var, varObjectRef):
             is_db = False
+
             if value.target is not None and value.target.data_type == 'pixobj':
                 if value.attr is not None:
                     try:
@@ -774,12 +775,15 @@ class Builder(object):
 
                     var = self.add_temp(data_type=data_type, lineno=lineno)
 
+                elif value.data_type == 'pixchref':
+                    var = self.add_temp(data_type='gfx16', lineno=lineno)
+
                 else:
                     return value
                 
             elif value.target is not None and value.target.data_type == 'obj' and value.target.name == 'db':
                 is_db = True
-                if target_type is not None and target_type != 'objref':
+                if target_type is not None and target_type not in ['objref', 'pixchref']:
                     var = self.add_temp(data_type=target_type, lineno=lineno)
 
                 else:
@@ -791,8 +795,14 @@ class Builder(object):
             if len(value.lookups) > 0 and not is_db:
                 data_type = 'objref'
 
+                attr = value.attr
+
                 if value.var.data_type == 'pixchref':
                     data_type = value.var.data_type
+
+                    # a *bit* of a hack here,
+                    # so we can reuse irObjectLoad for pixel channel refs
+                    attr = irAttribute('pixchref', lineno=lineno)
 
                 result = self.add_temp(data_type=data_type, lineno=lineno)
                     
@@ -807,7 +817,7 @@ class Builder(object):
                 
                 result.lookups = value.lookups
                 value.lookups = []
-                ir = irObjectLoad(var, result, value.attr, lineno=lineno)
+                ir = irObjectLoad(var, result, attr, lineno=lineno)
 
             elif len(value.lookups) == 0 and value.attr is not None and value.attr.name in PIXEL_VECTORS:
                 # var = self.add_temp(data_type='objref', lineno=lineno)
@@ -1281,7 +1291,7 @@ class Builder(object):
     def finish_module(self):
         # check if there is no init function
         if 'init' not in self.funcs:
-            logging.warning(f'No init function specified!')
+            # logging.warning(f'No init function specified!')
 
             self.declare_func('init', lineno=-1)
             func = self.func('init', lineno=-1)
@@ -1833,8 +1843,6 @@ class Builder(object):
                     'dest': dest,
                     'query': query,
                     'tag': tag}
-
-        pprint(new_link)
 
         self.links.append(new_link)
     
