@@ -37,6 +37,7 @@
 
 #define LINK_MAX_LINKS						16
 #define LINK_MAX_OBJECTS                    32
+#define LINK_MAX_STATS                      LINK_MAX_OBJECTS
 
 #define LINK_SERVICE                        __KV__link
 
@@ -47,6 +48,7 @@
 #define LINK_CONSUMER_TIMEOUT               64000
 #define LINK_PRODUCER_TIMEOUT               64000
 #define LINK_REMOTE_TIMEOUT                 32000
+#define LINK_STAT_TIMEOUT                   32000
 
 #define LINK_MIN_TICK_RATE                  20
 #define LINK_MAX_TICK_RATE                  2000
@@ -93,6 +95,11 @@ typedef struct __attribute__((packed)){
 
     uint64_t hash; // must be last!
 } link_state_t;
+
+typedef struct __attribute__((packed)){
+    catbus_hash_t32 local_key;
+    int32_t timeout;
+} link_stats_t;
 
 
 typedef struct __attribute__((packed)){
@@ -197,6 +204,8 @@ link_handle_t link_l_create(
 link_handle_t link_l_create2( link_state_t *state );
 
 uint8_t link_u8_count( void );
+
+bool link_b_is_linked( catbus_hash_t32 key );
 
 void link_v_delete( link_handle_t link );
 void link_v_delete_by_tag( catbus_hash_t32 tag );

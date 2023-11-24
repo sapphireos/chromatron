@@ -30,6 +30,7 @@
 #include "vm_lib.h"
 #include "io.h"
 #include "gfx_lib.h"
+#include "catbus_link.h"
 #include "pixel_mapper.h"
 #include "vm.h"
 #include "vm_core.h"
@@ -527,6 +528,16 @@ int8_t vm_lib_i8_libcall_built_in(
             break;
 
         #endif
+
+        case __KV__linked:
+            if( param_len != 1 ){
+
+                break;
+            }
+
+            *result = link_b_is_linked( params[0] );
+
+            break;
 
         case __KV__clear:
             gfx_v_clear();
