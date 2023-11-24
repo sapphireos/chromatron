@@ -59,7 +59,7 @@ static uint8_t int_time;
 
 #define FILTER_RATIO 16
 
-KV_SECTION_META kv_meta_t veml7700_kv[] = {
+KV_SECTION_OPT kv_meta_t veml7700_kv[] = {
     {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &als,               0, "veml7700_als"},   
     {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &white,             0, "veml7700_white"},   
     {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &filtered_als,      0, "veml7700_filtered_als"},   
@@ -297,6 +297,9 @@ PT_BEGIN( pt );
     _write_reg16( VEML7700_REG_PSM, 0 );
 
     log_v_info_P( PSTR("VEML7700 detected") );
+
+    // add DB entries if the sensor exists
+    kv_v_add_db_info( veml7700_kv, sizeof(veml7700_kv) );
 
     
     // veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_25ms );
