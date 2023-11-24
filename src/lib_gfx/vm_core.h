@@ -309,8 +309,6 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
 
     vm_thread_t threads[VM_MAX_THREADS];
     
-    // uint32_t yield;
-
     int32_t current_thread;
     
     uint32_t max_cycles;
@@ -329,10 +327,8 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t db_start;
 
     uint16_t cron_count;
-    // uint16_t cron_start;
 
     uint16_t last_cron;
-    // uint16_t padding;
 
     uint16_t pix_obj_start;
     uint16_t pix_obj_count;
