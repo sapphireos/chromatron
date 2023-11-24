@@ -535,7 +535,15 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            *result = link_b_is_linked( params[0] );
+            // param0 is a string
+            ref.n = params[0];
+
+            // dereference to pool:
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+
+            str = (char *)ptr;
+
+            *result = link_b_is_linked( hash_u32_string( str ) );
 
             break;
 
