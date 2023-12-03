@@ -38,6 +38,10 @@
 #define ADC_CHANNEL_VCC         14 // VCC
 #define ADC_CHANNEL_VSUPPLY     3 // divided VIN measurement
 
+// note the internal temp sensor on the XMEGA A4 is useless
+// without a room temperature calibration
+#define ADC_CHANNEL_TEMP        15 // internal temperature sensor
+
 #endif
 
 // #define ADC_CHANNEL_VSUPPLY     (IO_PIN_ANALOG_COUNT) 	   // divided VIN measurement
