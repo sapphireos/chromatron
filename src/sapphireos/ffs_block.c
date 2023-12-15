@@ -594,10 +594,10 @@ bool ffs_block_b_is_in_list( block_t *head, block_t block ){
 }
 
 // return size of list
-uint8_t ffs_block_u8_list_size( block_t *head ){
+uint16_t ffs_block_u16_list_size( block_t *head ){
 
     block_t cur_block = *head;
-    uint8_t count = 0;
+    uint16_t count = 0;
     block_info_t *blocks = get_block_ptr();
 
     while( cur_block != FFS_BLOCK_INVALID ){
@@ -613,7 +613,7 @@ uint8_t ffs_block_u8_list_size( block_t *head ){
     return count;
 }
 
-block_t ffs_block_fb_get_block( block_t *head, uint8_t index ){
+block_t ffs_block_fb_get_block( block_t *head, uint16_t index ){
 
 	ASSERT( index < _total_blocks );
 

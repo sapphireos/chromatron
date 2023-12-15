@@ -94,8 +94,8 @@ void ffs_block_v_remove_from_list( block_t *head, block_t block );
 bool ffs_block_b_is_block_free( block_t block );
 bool ffs_block_b_is_block_dirty( block_t block );
 bool ffs_block_b_is_in_list( block_t *head, block_t block );
-uint8_t ffs_block_u8_list_size( block_t *head );
-block_t ffs_block_fb_get_block( block_t *head, uint8_t index );
+uint16_t ffs_block_u16_list_size( block_t *head );
+block_t ffs_block_fb_get_block( block_t *head, uint16_t index );
 block_t ffs_block_fb_next( block_t block );
 
 uint8_t ffs_block_u8_read_flags( block_t block );
