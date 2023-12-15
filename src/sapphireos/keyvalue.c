@@ -773,6 +773,16 @@ void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
             goto done;
         }
 
+        // check if persist flag is set
+        if( ( opt_meta.flags & KV_FLAGS_PERSIST ) == 0 ){
+
+            // running through the persist file is very slow,
+            // so we want to skip that if this entry
+            // isn't valid for persistence.
+
+            goto done;
+        }
+
         uint16_t size = kv_u16_get_size_meta( &opt_meta );
 
         if( size == CATBUS_TYPE_SIZE_INVALID ){
