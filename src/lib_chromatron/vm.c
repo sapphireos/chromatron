@@ -723,7 +723,8 @@ PT_BEGIN( pt );
     get_program_fname( state->vm_id, state->program_fname );
 
     trace_printf( PSTR("Starting VM thread: %s\r\n"), state->program_fname );
-
+    // log_v_debug_P( PSTR("Starting VM thread: %s"), state->program_fname );
+    
     // reset VM data
     reset_published_data( state->vm_id );
 
