@@ -121,6 +121,27 @@ void pixelpower_v_init( void ){
     disable_pixel_power_fet();
     #endif
 
+    // check if hardware has power control:
+    if( solar_b_has_charger2_board() ){
+
+    }
+    else if( batt_b_is_mcp73831_enabled() ){
+
+    }
+    #if defined(ESP32)
+    else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+
+    }
+    #endif
+    else{
+
+        pixels_enabled = TRUE;
+
+        // this hardware does not have power control
+
+        return;
+    }
+
     kv_v_add_db_info( pixelpower_info_kv, sizeof(pixelpower_info_kv) );
 
     thread_t_create( pixel_power_thread,

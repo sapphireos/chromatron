@@ -755,6 +755,8 @@ PT_BEGIN( pt );
         goto exit;
     }
 
+    log_v_debug_P( PSTR("VM ready: %s"), state->program_fname );
+
     #ifdef ENABLE_TIME_SYNC
     // set initial checkpoint
     vm0_checkpoint = state->vm_state.frame_number;

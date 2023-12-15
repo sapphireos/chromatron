@@ -225,6 +225,8 @@ PT_BEGIN( pt );
     static block_t block;
     block = free_scan_list;
 
+    TMR_WAIT( pt, 500 ); // give other parts of the system time to start up
+
     while( block != FFS_BLOCK_INVALID ){
 
         TMR_WAIT( pt, 10 );

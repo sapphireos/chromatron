@@ -850,9 +850,13 @@ PT_BEGIN( pt );
 
     if( shut_down_state <= 0 ){
 
+        log_v_debug_P( PSTR("Rebooting now...") );
+
         reboot( TRUE );    
     }
     else{
+
+        log_v_debug_P( PSTR("Shutdown state reached") );
 
         shut_down_state = 2;
 
