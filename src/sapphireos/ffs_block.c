@@ -64,6 +64,10 @@ uint16_t _dirty_blocks;
 static block_t free_list;
 static block_t dirty_list;
 
+#ifdef FLASH_FS_TIMING
+static block_t free_scan_list;
+#endif
+
 static uint8_t flash_fs_soft_io_errors;
 static uint8_t flash_fs_hard_io_errors;
 static uint32_t flash_fs_block_allocs;
@@ -86,6 +90,9 @@ KV_SECTION_META kv_meta_t ffs_block_timing_info_kv[] = {
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_timing_ffs_free_scan,         0,  "flash_fs_timing_ffs_free_scan" },    
 };
 
+
+PT_THREAD( free_scan_thread( pt_t *pt, void *state ) );
+
 #endif
 
 
@@ -107,6 +114,10 @@ void ffs_block_v_init( void ){
     // initialize data structures
 	free_list = FFS_BLOCK_INVALID;
 	dirty_list = FFS_BLOCK_INVALID;
+
+    #ifdef FLASH_FS_TIMING
+    free_scan_list = FFS_BLOCK_INVALID;
+    #endif
 
 	_free_blocks = 0;
 	_dirty_blocks = 0;
@@ -161,7 +172,11 @@ void ffs_block_v_init( void ){
         if( flags == FFS_FLAGS_FREE ){
 
             // add to free list
+            #ifdef FLASH_FS_TIMING
+            ffs_block_v_add_to_list( &free_scan_list, i );
+            #else
             ffs_block_v_add_to_list( &free_list, i );
+            #endif
         }
         // check if marked as dirty
         else if( ~flags & FFS_FLAG_DIRTY ){
@@ -200,15 +215,102 @@ void ffs_block_v_init( void ){
     #endif
 }
 
+
+
+#ifdef FLASH_FS_TIMING
+PT_THREAD( free_scan_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    static block_t block;
+    block = free_scan_list;
+
+    while( block != FFS_BLOCK_INVALID ){
+
+        TMR_WAIT( pt, 10 );
+
+        bool block_ok = TRUE;
+
+        // check all data in block
+        uint8_t data[256] __attribute__((aligned(4)));
+        uint32_t addr = FFS_BLOCK_ADDRESS( block );
+
+        for( uint8_t j = 0; j < FLASH_FS_ERASE_BLOCK_SIZE / 256; j++ ){
+
+            sys_v_wdt_reset();
+
+            flash25_v_read( addr, data, sizeof(data) );
+
+            for( uint16_t h = 0; h < sizeof(data); h++ ){
+
+                if( data[h] != 0xff ){
+
+                    block_ok = FALSE;
+
+                    ffs_block_v_remove_from_list( &free_scan_list, block );                        
+                    ffs_block_v_set_dirty( block );
+
+                    goto scan_next_block;
+                }
+            }
+
+            addr += sizeof(data);
+        }
+        // loop exit if block is OK
+
+        if( block_ok ){   
+            
+            // move from scan list to free list
+            ffs_block_v_remove_from_list( &free_scan_list, block );
+            ffs_block_v_add_to_list( &free_list, block );
+        }   
+
+
+scan_next_block:
+
+        block = ffs_block_fb_next( block );
+    }
+
+
+PT_END( pt );
+}
+#endif
+
+
 int8_t ffs_block_i8_verify_free_space( void ){
 
     trace_printf("Verify free space...\r\n");
 
+    uint16_t scan_count;
+
+    #ifdef FLASH_FS_TIMING
+    block_t block = free_scan_list;
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        scan_count = 65535; // scans all blocks
+    }
+    else{
+
+        scan_count = 8; // number of blocks to scan
+
+        thread_t_create( free_scan_thread, PSTR("free_scan"), 0, 0 );
+    }
+    
+    #else
     block_t block = free_list;
+    scan_count = 65535; // scans all blocks
+    #endif
 
     bool errors = FALSE;
 
-    while( block != FFS_BLOCK_INVALID ){
+    while( ( block != FFS_BLOCK_INVALID ) && ( scan_count > 0 ) ){
+
+        scan_count--;
+
+        #ifdef FLASH_FS_TIMING
+        bool block_ok = TRUE;
+        #endif
 
         // check all data in block
         uint8_t data[256] __attribute__((aligned(4)));
@@ -225,8 +327,15 @@ int8_t ffs_block_i8_verify_free_space( void ){
                 if( data[h] != 0xff ){
 
                     errors = TRUE;
+                    
+                    #ifdef FLASH_FS_TIMING
+                    block_ok = FALSE;
 
+                    ffs_block_v_remove_from_list( &free_scan_list, block );
+                    #else
                     ffs_block_v_remove_from_list( &free_list, block );
+                    #endif
+
                     ffs_block_v_set_dirty( block );
 
                     goto scan_next_block;
@@ -235,6 +344,17 @@ int8_t ffs_block_i8_verify_free_space( void ){
 
             addr += sizeof(data);
         }
+        // loop exit if block is OK
+
+        #ifdef FLASH_FS_TIMING
+        if( block_ok ){
+
+            // move from scan list to free list
+            ffs_block_v_remove_from_list( &free_scan_list, block );
+            ffs_block_v_add_to_list( &free_list, block );
+        }   
+        #endif
+
 
 scan_next_block:
 
