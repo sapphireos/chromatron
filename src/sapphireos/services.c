@@ -1467,6 +1467,11 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
+        if( sys_b_is_shutting_down() ){
+
+            THREAD_EXIT( pt );
+        }
+
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
             continue;
@@ -1566,6 +1571,11 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, ( !wifi_b_connected() ) || ( service_count() == 0 ) );
 
         TMR_WAIT( pt, 1000 );
+
+        if( sys_b_is_shutting_down() ){
+
+            THREAD_EXIT( pt );
+        }
     
         list_node_t ln = service_list.head;
 

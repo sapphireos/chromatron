@@ -361,11 +361,25 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !msgflow_b_connected( msgflow ) || ( datalog_handle < 0 ) );
 
+        if( sys_b_is_shutting_down() ){
+
+            msgflow_v_close( msgflow );
+
+            THREAD_EXIT( pt );
+        }
+
         log_v_debug_P( PSTR("Datalogger connected") );
 
         thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
         while( msgflow_b_connected( msgflow ) && ( datalog_handle > 0 ) ){
+
+            if( sys_b_is_shutting_down() ){
+
+                msgflow_v_close( msgflow );
+
+                THREAD_EXIT( pt );
+            }
 
             ticks++;
 
