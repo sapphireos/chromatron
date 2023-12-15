@@ -408,6 +408,9 @@ PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+	static uint8_t seconds_counter;
+	seconds_counter = 10;
+
 	// wait if battery is not connected (this could also be a charge system fault)
 	THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
 
@@ -436,16 +439,29 @@ PT_BEGIN( pt );
 
 	while(1){
 
-		TMR_WAIT( pt, SOLAR_CONTROL_POLLING_RATE );
+		TMR_WAIT( pt, SOLAR_CONTROL_POLLING_RATE ); // 100 ms
+
+		if( seconds_counter == 0 ){
+
+			seconds_counter = 10; // reload counter
+		}
+
+		seconds_counter--;
 
 		static uint8_t next_state;
 		next_state = solar_state;
 
 		if( solar_state == SOLAR_MODE_SHUTDOWN ){
 
-			sys_v_initiate_shutdown( 5 );
+			sys_v_initiate_shutdown( 3 );
 
 			THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+
+			log_v_debug_P( PSTR("Power off") );
+
+			pixelpower_v_system_shutdown();
+
+			_delay_ms( 50 );			
 
 			batt_v_shutdown_power();
 			// if on battery power, this should not return
@@ -472,7 +488,10 @@ PT_BEGIN( pt );
 		}
 		else if( solar_state == SOLAR_MODE_STOPPED ){
 
-			charge_timer++;
+			if( seconds_counter == 0 ){
+
+				charge_timer++;	
+			}
 
 			// charge timer exceeded
 			if( charge_timer >= STOPPED_TIME ){
@@ -486,7 +505,10 @@ PT_BEGIN( pt );
 
 			if( charge_timer < FAULT_HOLD_TIME ){
 
-				charge_timer++;
+				if( seconds_counter == 0 ){
+
+					charge_timer++;	
+				}
 			}
 			else if( !batt_b_is_batt_fault() ){
 
@@ -501,7 +523,10 @@ PT_BEGIN( pt );
 			// poor VBUS input (low light or bad adapter)
 			if( charge_timer < DISCHARGE_HOLD_TIME ){
 
-				charge_timer++;
+				if( seconds_counter == 0 ){
+
+					charge_timer++;	
+				}
 			}
 
 			// check for fault?
@@ -571,7 +596,10 @@ PT_BEGIN( pt );
 			}
 			else if( charge_timer < CHARGE_HOLD_TIME ){
 
-				charge_timer++;
+				if( seconds_counter == 0 ){
+
+					charge_timer++;	
+				}
 			}
 			else if( batt_b_is_batt_fault() ){
 
@@ -632,7 +660,10 @@ PT_BEGIN( pt );
 		}
 		else if( is_charging() ){
 
-			charge_timer++;
+			if( seconds_counter == 0 ){
+
+				charge_timer++;	
+			}
 
 			// charge timer exceeded
 			if( charge_timer >= MAX_CHARGE_TIME ){

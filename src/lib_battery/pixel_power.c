@@ -65,44 +65,6 @@ static void disable_pixel_power_fet( void ){
 }
 #endif
 
-void pixelpower_v_init( void ){
-
-    // pixel power system defaults to OFF if power control is enabled
-    pixels_enabled = FALSE;
-    power_control_enabled = TRUE;
-
-    #if defined(ESP32)
-    disable_pixel_power_fet();
-    #endif
-
-    kv_v_add_db_info( pixelpower_info_kv, sizeof(pixelpower_info_kv) );
-
-    thread_t_create( pixel_power_thread,
-                     PSTR("pixel_power_control"),
-                     0,
-                     0 );
-}
-
-
-void pixelpower_v_enable_pixels( void ){
-
-    request_pixels_enabled = TRUE;
-}
-
-void pixelpower_v_disable_pixels( void ){
-
-    request_pixels_disabled = TRUE;
-}
-
-bool pixelpower_b_pixels_enabled( void ){
-
-    return pixels_enabled;
-}
-
-bool pixelpower_b_power_control_enabled( void ){
-
-    return power_control_enabled;
-}
 
 static bool is_vbus_valid( void ){
 
@@ -148,6 +110,53 @@ static void pixels_off( void ){
     request_pixels_disabled = FALSE;
 }
 
+
+void pixelpower_v_init( void ){
+
+    // pixel power system defaults to OFF if power control is enabled
+    pixels_enabled = FALSE;
+    power_control_enabled = TRUE;
+
+    #if defined(ESP32)
+    disable_pixel_power_fet();
+    #endif
+
+    kv_v_add_db_info( pixelpower_info_kv, sizeof(pixelpower_info_kv) );
+
+    thread_t_create( pixel_power_thread,
+                     PSTR("pixel_power_control"),
+                     0,
+                     0 );
+}
+
+
+void pixelpower_v_enable_pixels( void ){
+
+    request_pixels_enabled = TRUE;
+}
+
+void pixelpower_v_disable_pixels( void ){
+
+    request_pixels_disabled = TRUE;
+}
+
+bool pixelpower_b_pixels_enabled( void ){
+
+    return pixels_enabled;
+}
+
+bool pixelpower_b_power_control_enabled( void ){
+
+    return power_control_enabled;
+}
+
+// to be used only when shutting down the system
+// for power off or a reboot.
+// this is cut pixel power immediately.
+void pixelpower_v_system_shutdown( void ){
+
+    pixels_off();
+}
 
 
 PT_THREAD( pixel_power_thread( pt_t *pt, void *state ) )

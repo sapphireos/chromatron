@@ -48,13 +48,7 @@ PT_BEGIN( pt );
     while(1){
 
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
-
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
-
-        if( sys_b_is_shutting_down() ){
-            
-            THREAD_EXIT( pt );
-        }
 
         if( pix_mode == PIX_MODE_ANALOG ){
 

@@ -38,6 +38,7 @@ void pixelpower_v_disable_pixels( void );
 
 // bool pixelpower_b_pixels_enabled( void ); // see note above
 
+void pixelpower_v_system_shutdown( void );
 
 
 #endif

@@ -842,7 +842,7 @@ PT_BEGIN( pt );
     usb_v_shutdown();
     #endif
 
-    log_v_debug_P( PSTR("Ldr Cmd: %x Mode: %d"), boot_data.loader_command, boot_data.boot_mode );
+    log_v_debug_P( PSTR("Ldr Cmd: %x Mode: %d State: %d"), boot_data.loader_command, boot_data.boot_mode, shut_down_state );
 
     log_v_flush();
 
