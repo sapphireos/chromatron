@@ -74,6 +74,22 @@ KV_SECTION_META kv_meta_t ffs_block_info_kv[] = {
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &flash_fs_hard_io_errors,        0,  "flash_fs_hard_io_errors" },
 };
 
+
+
+
+#ifdef FLASH_FS_TIMING
+static uint32_t flash_fs_timing_ffs_block_scan;
+static uint32_t flash_fs_timing_ffs_free_scan;
+
+KV_SECTION_META kv_meta_t ffs_block_timing_info_kv[] = {
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_timing_ffs_block_scan,         0,  "flash_fs_timing_ffs_block_scan" },    
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_timing_ffs_free_scan,         0,  "flash_fs_timing_ffs_free_scan" },    
+};
+
+#endif
+
+
+
 static inline block_info_t *get_block_ptr( void ) __attribute__((always_inline));
 
 static inline block_info_t *get_block_ptr( void ){
@@ -127,6 +143,10 @@ void ffs_block_v_init( void ){
 
     trace_printf("Block scan...\r\n");
 
+    #ifdef FLASH_FS_TIMING
+    uint32_t start_time = tmr_u32_get_system_time_ms();
+    #endif
+
     ffs_block_meta_t meta;
 
     // scan and verify all block headers
@@ -168,8 +188,16 @@ void ffs_block_v_init( void ){
         }
     }
 
+    #ifdef FLASH_FS_TIMING
+    flash_fs_timing_ffs_block_scan = tmr_u32_elapsed_time_ms( start_time );
+    #endif
+
     // verify free space
     ffs_block_i8_verify_free_space();
+
+    #ifdef FLASH_FS_TIMING
+    flash_fs_timing_ffs_free_scan = tmr_u32_elapsed_time_ms( flash_fs_timing_ffs_block_scan );
+    #endif
 }
 
 int8_t ffs_block_i8_verify_free_space( void ){

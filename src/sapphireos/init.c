@@ -103,7 +103,7 @@ int8_t sapphire_i8_init( void ){
     // this is needed for flash fs timing
     tmr_v_init();
 
-    uint32_t start_time = tmr_u32_get_system_time_us();
+    uint32_t start_time = tmr_u32_get_system_time_ms();
 
     #endif
 
