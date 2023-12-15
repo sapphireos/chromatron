@@ -85,9 +85,13 @@ KV_SECTION_META kv_meta_t ffs_block_info_kv[] = {
 static uint32_t flash_fs_timing_ffs_block_scan;
 static uint32_t flash_fs_timing_ffs_free_scan;
 
+static uint32_t debug_init_scan;
+
 KV_SECTION_META kv_meta_t ffs_block_timing_info_kv[] = {
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_timing_ffs_block_scan,         0,  "flash_fs_timing_ffs_block_scan" },    
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_timing_ffs_free_scan,         0,  "flash_fs_timing_ffs_free_scan" },    
+
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &debug_init_scan,         0,  "debug_init_scan" },    
 };
 
 
@@ -349,6 +353,8 @@ int8_t ffs_block_i8_verify_free_space( void ){
         #ifdef FLASH_FS_TIMING
         if( block_ok ){
 
+            // debug_init_scan++;
+
             // move from scan list to free list
             ffs_block_v_remove_from_list( &free_scan_list, block );
             ffs_block_v_add_to_list( &free_list, block );
@@ -359,7 +365,12 @@ int8_t ffs_block_i8_verify_free_space( void ){
 scan_next_block:
 
         block = ffs_block_fb_next( block );
+
+        // debug_init_scan = block;
     }
+
+        debug_init_scan = ffs_block_u8_list_size(&free_scan_list);
+
 
     if( errors ){
 
