@@ -43,6 +43,10 @@ typedef struct __attribute__((packed)){
 
 #define FFS_FILE_META_SIZE ( sizeof(ffs_file_meta0_t) + sizeof(ffs_file_meta1_t) )
 
+#ifdef FLASH_FS_TIMING
+extern uint32_t flash_fs_boot_time;
+#endif
+
 
 void ffs_v_init( void );
 void ffs_v_mount( void );

@@ -98,6 +98,15 @@ int8_t sapphire_i8_init( void ){
     // init CRC module
     crc_v_init();
 
+    #ifdef FLASH_FS_TIMING
+    // init timers
+    // this is needed for flash fs timing
+    tmr_v_init();
+
+    uint32_t start_time = tmr_u32_get_system_time_us();
+
+    #endif
+
     // init flash driver
     flash25_v_init();
 
@@ -238,6 +247,10 @@ int8_t sapphire_i8_init( void ){
 
     trace_printf( "HW Rev: %u\r\n", io_u8_get_board_rev() );
 
+    #ifdef FLASH_FS_TIMING
+    flash_fs_boot_time = tmr_u32_elapsed_time_ms( start_time );
+    #endif
+
     // return system OK
     return 0;
 }
@@ -252,10 +265,12 @@ void sapphire_run( void ){
     usb_v_init();
     #endif
 
+    #ifndef FLASH_FS_TIMING
     // init timers
 	// do this just before starting the scheduler so that we won't miss the
 	// first timer interrupt
 	tmr_v_init();
+    #endif
 
     // enable watchdog timer
     sys_v_init_watchdog();

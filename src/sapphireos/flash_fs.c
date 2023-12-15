@@ -131,11 +131,27 @@ speed hit, but the ESP based devices have enough memory.
 
 #include "flash_fs.h"
 
+#include "keyvalue.h"
+
 // #define NO_EVENT_LOGGING
 #include "event_log.h"
 
 static bool ffs_fail;
 static uint8_t board_type;
+
+#ifdef FLASH_FS_TIMING
+static uint32_t flash_fs_timing_block_init;
+static uint32_t flash_fs_timing_page_init;
+
+uint32_t flash_fs_boot_time;
+
+KV_SECTION_META kv_meta_t flash_fs_info_kv[] = {
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_boot_time,         0,  "flash_fs_timing_boot_time" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_timing_block_init, 0,  "flash_fs_timing_block_init" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_timing_page_init,  0,  "flash_fs_timing_page_init" },
+};
+
+#endif
 
 void ffs_v_init( void ){
 
@@ -203,9 +219,22 @@ void ffs_v_mount( void ){
 
     trace_printf("Mounting FlashFS\r\n");
 
+    #ifdef FLASH_FS_TIMING
+    uint32_t start_time = tmr_u32_get_system_time_ms();
+    #endif
     
     ffs_block_v_init();
+
+    #ifdef FLASH_FS_TIMING
+    flash_fs_timing_block_init = tmr_u32_elapsed_time_ms( start_time );
+    #endif
+
     ffs_page_v_init();
+
+    #ifdef FLASH_FS_TIMING
+    flash_fs_timing_page_init = tmr_u32_elapsed_time_ms( flash_fs_timing_block_init );
+    #endif
+
     #endif
 }
 

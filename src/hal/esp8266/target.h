@@ -103,6 +103,8 @@
 
 #define FLASH_FS_MAX_USER_FILES 64
 
+#define FLASH_FS_TIMING
+
 #define FFS_ALIGN32
 
 // virtual fs
