@@ -831,6 +831,8 @@ PT_BEGIN( pt );
 
 	   TMR_WAIT( pt, 1000 );
 
+       log_v_info_P( PSTR("delay: %d"), reboot_delay );
+
        reboot_delay--;
     }
 
