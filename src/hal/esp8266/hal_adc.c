@@ -50,6 +50,13 @@ static int8_t hal_adc_kv_handler(
             uint16_t mv = adc_u16_read_vcc();
             memcpy( data, &mv, sizeof(mv) );
         }
+        #ifdef ENABLE_COPROCESSOR
+        else if( hash == __KV__coproc_temp ){
+
+            uint16_t val = adc_u16_read_mv( ADC_CHANNEL_TEMP );
+            memcpy( data, &val, sizeof(val) );
+        }
+        #endif
     }
 
     return 0;
@@ -57,6 +64,9 @@ static int8_t hal_adc_kv_handler(
 
 KV_SECTION_META kv_meta_t hal_adc_kv[] = {
     { CATBUS_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, hal_adc_kv_handler,   "vcc" },
+    #ifdef ENABLE_COPROCESSOR
+    { CATBUS_TYPE_UINT16,      0, KV_FLAGS_READ_ONLY, 0, hal_adc_kv_handler,   "coproc_temp" },
+    #endif
 };
 
 

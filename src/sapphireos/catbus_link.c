@@ -97,6 +97,8 @@ static list_t producer_list;
 static list_t remote_list;
 static socket_t sock;
 
+static mem_handle_t stats_handle;
+
 
 #ifdef TEST_MODE
 static uint8_t test_link_mode;
@@ -994,6 +996,30 @@ void link_v_delete_by_hash( uint64_t hash ){
 }
 
 
+// check if a key is linked to another node (regardless of link mode)
+bool link_b_is_linked( catbus_hash_t32 key ){
+
+    if( stats_handle <= 0 ){
+
+        return FALSE;
+    }
+
+    // search for a matching stat entry.
+    // if there is, this key is currently linked.
+
+    link_stats_t* stats = mem2_vp_get_ptr( stats_handle );
+
+    for( uint8_t i = 0; i < LINK_MAX_STATS; i++ ){
+
+        if( stats->local_key == key ){
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
 
 static link_handle_t _link_l_lookup_sync( catbus_hash_t32 key ){
 
@@ -1294,6 +1320,65 @@ static void process_remote_timeouts( uint32_t elapsed_ms ){
         }
 
         ln = next_ln;
+    }
+}
+
+static void update_stats_sent_key( catbus_hash_t32 key ){
+
+    if( stats_handle <= 0 ){
+
+        return;
+    }
+
+    link_stats_t* stats = mem2_vp_get_ptr( stats_handle );
+
+    for( uint8_t i = 0; i < LINK_MAX_STATS; i++ ){
+
+        if( stats->local_key == key ){
+
+            stats->timeout = LINK_STAT_TIMEOUT;
+
+            return;
+        }
+    }
+
+    // key not found:
+    for( uint8_t i = 0; i < LINK_MAX_STATS; i++ ){
+
+        // add key
+        if( stats->local_key == 0 ){
+
+            stats->local_key = key;
+            stats->timeout = LINK_STAT_TIMEOUT;
+
+            return;
+        }
+    }
+}
+
+static void update_stats_received_key( catbus_hash_t32 key ){
+
+    update_stats_sent_key( key );
+}
+
+static void process_stats_timeouts( uint32_t elapsed_ms ){
+
+    if( stats_handle <= 0 ){
+
+        return;
+    }
+
+    link_stats_t* stats = mem2_vp_get_ptr( stats_handle );
+
+    for( uint8_t i = 0; i < LINK_MAX_STATS; i++ ){
+
+        stats->timeout -= elapsed_ms;
+
+        if( stats->timeout <= 0 ){
+
+            stats->timeout = 0;
+            stats->local_key = 0;
+        }
     }
 }
 
@@ -1678,6 +1763,8 @@ PT_BEGIN( pt );
 
                 goto end;
             }
+
+            update_stats_received_key( msg->hash );
         }
         else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_DATA ){
 
@@ -2147,6 +2234,8 @@ static void transmit_to_consumers( link_handle_t link, link_data_msg_buf_t *msg_
 
                 log_v_error_P( PSTR("socket send failed, possibly out of memory") );
             }
+
+            update_stats_sent_key( link_state->dest_key );
         }
 
         ln = next_ln;
@@ -2174,6 +2263,8 @@ static void transmit_producer_data( uint64_t hash, catbus_meta_t *meta, uint8_t 
     memcpy( &msg->data.data, data, data_len );
 
     sock_i16_sendto_m( sock, h, raddr );
+
+    update_stats_sent_key( meta->hash );
 
     // trace_printf("LINK: transmit producer data: %d.%d.%d.%d\n", raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );   
 }
@@ -2387,9 +2478,25 @@ PT_BEGIN( pt );
 
     load_links_from_file();
 
+    if(stats_handle > 0){
+
+        mem2_v_free( stats_handle );
+    }
+
     THREAD_WAIT_WHILE( pt, ( link_u8_count() == 0 ) &&
                            ( producer_count() == 0 ) );
 
+    if( stats_handle <= 0 ){
+
+        // allocate memory for stats
+        stats_handle = mem2_h_alloc( sizeof(link_stats_t) * LINK_MAX_STATS );
+
+        if( stats_handle <= 0 ){
+
+            // uh, bummer?
+        }
+    }
+    
     // init alarm
     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
@@ -2433,6 +2540,7 @@ PT_BEGIN( pt );
         process_consumer_timeouts( elapsed_time );
         process_producer_timeouts( elapsed_time );
         process_remote_timeouts( elapsed_time );
+        process_stats_timeouts( elapsed_time );
         
         list_node_t ln;
 

@@ -30,6 +30,7 @@
 #include "vm_lib.h"
 #include "io.h"
 #include "gfx_lib.h"
+#include "catbus_link.h"
 #include "pixel_mapper.h"
 #include "vm.h"
 #include "vm_core.h"
@@ -87,31 +88,6 @@ int8_t vm_lib_i8_libcall_built_in(
                 *result = temp1 + rnd_u16_range_with_seed( &state->rng_seed, temp0 );
             }
 
-            /*
-            else if( param_len == 1 ){
-
-                temp0 = params[0];
-                temp1 = 0;
-            }
-            else{
-
-                temp0 = params[1] - params[0];
-                temp1 = params[0];
-            }
-
-            // check for divide by 0, or negative spread
-            if( temp0 <= 0 ){
-
-                // just return the offset
-                *result = temp1;
-                
-            }
-            else{
-            
-                *result = temp1 + ( rnd_u16_get_int_with_seed( &state->rng_seed ) % temp0 );
-            }
-            */
-
             break;
 
 		case __KV__test_lib_call:
@@ -137,124 +113,6 @@ int8_t vm_lib_i8_libcall_built_in(
             }
             
             break;
-
-      	// case __KV__min:
-       //      if( param_len != 2 ){
-
-       //          break;
-       //      }
-
-       //      array_len = params[1];
-
-       //      temp0 = params[0];
-
-       //      // second param is array len
-       //      for( int32_t i = 1; i < array_len; i++ ){
-
-       //      	temp1 = params[0] + i;
-
-       //      	if( temp1 < temp0 ){
-
-       //      		temp0 = temp1;
-       //      	}
-       //      }
-
-       //      *result = temp0;
-       //      break;
-
-       //  case __KV__max:
-       //      if( param_len != 2 ){
-
-       //          break;
-       //      }
-
-       //      array_len = params[1];
-
-       //      temp0 = params[0];
-
-       //      // second param is array len
-       //      for( int32_t i = 1; i < array_len; i++ ){
-
-       //          temp1 = params[0] + i;
-
-       //          if( temp1 > temp0 ){
-
-       //              temp0 = temp1;
-       //          }
-       //      }
-
-       //      *result = temp0;
-       //      break;
-
-       //  case __KV__sum:
-       //      if( param_len != 2 ){
-
-       //          break;
-       //      }
-
-       //      array_len = params[1];
-
-       //      // second param is array len
-       //      for( int32_t i = 0; i < array_len; i++ ){
-
-       //          *result += params[0] + i;
-       //      }
-
-       //      break;
-
-       //  case __KV__avg:
-       //      if( param_len != 2 ){
-
-       //          break;
-       //      }
-
-       //      // check for divide by zero
-       //      if( params[0] == 0 ){
-
-       //          break;
-       //      }
-
-       //      array_len = params[1];
-
-       //      // second param is array len
-       //      for( int32_t i = 0; i < array_len; i++ ){
-
-       //          *result += params[0] + i;
-       //      }
-
-       //      *result /= array_len;
-
-       //      break;
-
-        case __KV__yield:
-
-            // state->yield = 1;
-            break;
-
-        // case __KV__delay:
-        //     // default to yield (no delay) if no parameters
-        //     if( param_len < 1 ){
-
-        //         temp0 = 0;
-        //     }
-        //     else{
-        //         // first parameter is delay time, all other params ignored
-        //         temp0 = params[0];
-        //     }
-
-        //     // bounds check
-        //     if( temp0 < VM_MIN_DELAY ){
-
-        //         temp0 = VM_MIN_DELAY;
-        //     }
-
-        //     // set up delay
-        //     state->threads[state->current_thread].tick += temp0;
-
-        //     // delay also yields
-        //     // state->yield = 1;
-
-        //     break;
 
         case __KV__start_thread:
             if( param_len != 1 ){
@@ -282,17 +140,6 @@ int8_t vm_lib_i8_libcall_built_in(
                 if( vm_thread->func_addr == 0xffff ){
 
                     memset( vm_thread, 0, sizeof(vm_thread_t) );
-
-                    // vm_thread->context_h = mem2_h_alloc2( func_table[ref.ref.addr].frame_size, MEM_TYPE_VM_THREAD_CONTEXT );
-
-                    // if( vm_thread->context_h <= 0 ){
-
-                    //     log_v_critical_P( PSTR("VM thread alloc fail") );
-
-                    //     break;
-                    // }
-
-                    // memset( mem2_vp_get_ptr( vm_thread->context_h ), 0, mem2_u16_get_size( vm_thread->context_h ) );
 
                     vm_thread->func_addr = func_addr;
                     vm_thread->tick = state->tick;
@@ -327,13 +174,6 @@ int8_t vm_lib_i8_libcall_built_in(
                 vm_thread_t *vm_thread = (vm_thread_t *)&state->threads[i];
 
                 if( vm_thread->func_addr == func_addr ){
-
-                    // if( vm_thread->context_h > 0 ){
-
-                    //     mem2_v_free( vm_thread->context_h );
-
-                    //     vm_thread->context_h = -1;
-                    // }
 
                     vm_thread->func_addr = 0xffff;
 
@@ -688,6 +528,24 @@ int8_t vm_lib_i8_libcall_built_in(
             break;
 
         #endif
+
+        case __KV__linked:
+            if( param_len != 1 ){
+
+                break;
+            }
+
+            // param0 is a string
+            ref.n = params[0];
+
+            // dereference to pool:
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+
+            str = (char *)ptr;
+
+            *result = link_b_is_linked( hash_u32_string( str ) );
+
+            break;
 
         case __KV__clear:
             gfx_v_clear();

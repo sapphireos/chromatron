@@ -2915,9 +2915,6 @@ int8_t vm_i8_run(
 
     #endif
 
-    // reset yield
-    // state->yield = 0;
-
     state->frame_number++;
 
     state->return_val = 0;
