@@ -90,7 +90,7 @@ KV_SECTION_OPT kv_meta_t button_ui_opt_kv[] = {
     #endif
 };
 
-
+PT_THREAD( vbus_startup_thread( pt_t *pt, void *state ) );
 PT_THREAD( button_thread( pt_t *pt, void *state ) );
 
 
@@ -153,6 +153,11 @@ void button_v_init( void ){
 
         io_v_set_mode( batt_ui_button, IO_MODE_INPUT_PULLUP );     
     }
+
+    thread_t_create( vbus_startup_thread,
+                     PSTR("vbus_startup"),
+                     0,
+                     0 );
 
     thread_t_create( button_thread,
                      PSTR("button"),
@@ -374,12 +379,14 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-
-PT_THREAD( button_thread( pt_t *pt, void *state ) )
+PT_THREAD( vbus_startup_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-     if( batt_b_enabled() ){
+    if( batt_b_enabled() ){
+
+        // wait if battery is not connected (this could also be a charge system fault)
+        THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
 
         // if started on vbus:
         if( batt_b_startup_on_vbus() ){
@@ -387,7 +394,15 @@ PT_BEGIN( pt );
             shutdown_on_vbus_unplug = TRUE;
         }
     }
-    
+
+PT_END( pt );
+}
+
+
+PT_THREAD( button_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
     while(1){
 
         TMR_WAIT( pt, BUTTON_CHECK_TIMING );
