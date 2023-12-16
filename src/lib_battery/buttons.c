@@ -346,6 +346,14 @@ PT_BEGIN( pt );
     static uint8_t counter;
     counter = 0;
 
+    /*
+    
+
+    TODO This needs a graphic!
+    
+    
+    */
+
     #define POLL_RATE 100
     #define CHECK_TIME 5000 // in millseconds!
 
