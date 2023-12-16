@@ -364,6 +364,7 @@ PT_BEGIN( pt );
         if( sys_b_is_shutting_down() ){
 
             msgflow_v_close( msgflow );
+            msgflow = -1;
 
             THREAD_EXIT( pt );
         }
@@ -377,6 +378,7 @@ PT_BEGIN( pt );
             if( sys_b_is_shutting_down() ){
 
                 msgflow_v_close( msgflow );
+                msgflow = -1;
 
                 THREAD_EXIT( pt );
             }

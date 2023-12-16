@@ -645,6 +645,7 @@ shutdown:
         TMR_WAIT( pt, 50 );
 
         sock_v_release( state->sock );
+        state->sock = -1;
     }
 
     if( state->tx_thread > 0 ){
