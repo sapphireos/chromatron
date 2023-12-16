@@ -6,7 +6,7 @@
     "config_defaults":    "",
     "app_elf":            "bootloader.elf",
     "app_bin":            "bootloader.bin",
-    "git_revision":       "v4.4.2-12-gf003244ba1",
+    "git_revision":       "v4.4.2-12-gf003244ba1-dirty",
     "target":             "esp32",
     "rev":                "0",
     "phy_data_partition": "",

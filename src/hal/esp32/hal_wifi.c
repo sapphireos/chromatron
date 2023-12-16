@@ -978,6 +978,7 @@ PT_BEGIN( pt );
     log_v_debug_P( PSTR("ARP table size: %d queueing: %d queue len: %d"), ARP_TABLE_SIZE, ARP_QUEUEING, ARP_QUEUE_LEN );
 
     static uint16_t scan_timeout;
+    static uint32_t wifi_connect_start;
 
     connected = FALSE;
     wifi_rssi = -127;
@@ -1033,6 +1034,8 @@ station_mode:
             esp_wifi_start();
 
             apply_power_save_mode();
+
+            wifi_connect_start = tmr_u32_get_system_time_ms();
             
             // check if we can try a fast connect with the last connected router
             if( wifi_router >= 0 ){
@@ -1308,7 +1311,7 @@ end:
 
             char ssid[WIFI_SSID_LEN];
             wifi_v_get_ssid( ssid );
-            log_v_debug_P( PSTR("Wifi connected to: %s ch: %d"), ssid, wifi_channel );
+            log_v_debug_P( PSTR("Wifi connected to: %s ch: %d time: %d ms"), ssid, wifi_channel, tmr_u32_elapsed_time_ms( wifi_connect_start ) );
         }
         else{
 
