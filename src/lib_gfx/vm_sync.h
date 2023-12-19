@@ -88,6 +88,9 @@ typedef struct __attribute__((packed)){
 void vm_sync_v_init( void );
 void vm_sync_v_reset( void );
 
+void vm_sync_v_hold( void );
+void vm_sync_v_unhold( void );
+
 bool vm_sync_b_is_leader( void );
 bool vm_sync_b_is_follower( void );
 bool vm_sync_b_is_synced( void );

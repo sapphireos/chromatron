@@ -41,6 +41,8 @@ static uint8_t sync_state;
 #define STATE_SYNCING       1
 #define STATE_SYNC 	        2
 
+static bool hold_sync;
+
 static int16_t sync_data_remaining;
 
 int8_t vmsync_i8_kv_handler(
@@ -119,7 +121,21 @@ void vm_sync_v_reset( void ){
         return;
     }
 
-    log_v_debug_P( PSTR("sync reset") );
+    // log_v_debug_P( PSTR("sync reset") );
+}
+
+void vm_sync_v_hold( void ){
+
+    vm_sync_v_reset();
+
+    hold_sync = TRUE;
+}
+
+void vm_sync_v_unhold( void ){
+
+    vm_sync_v_reset();
+
+    hold_sync = FALSE;   
 }
 
 bool vm_sync_b_is_leader( void ){
@@ -520,6 +536,8 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
+        THREAD_WAIT_WHILE( pt, hold_sync );
+
         // wait until time sync
         THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
 
@@ -571,6 +589,7 @@ PT_BEGIN( pt );
             THREAD_WAIT_WHILE( pt, 
                 services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 
                 vm_b_is_vm_running( 0 ) &&
+                ( sync_state == STATE_SYNC ) &&
                 thread_b_alarm_set() );
 
             if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){

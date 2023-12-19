@@ -24,6 +24,7 @@
 #include "sapphire.h"
 
 #include "vm.h"
+#include "vm_sync.h"
 
 #include "vm_sequencer.h"
 
@@ -46,6 +47,10 @@ static bool seq_trigger;
 #define N_SLOTS 8
 
 
+#define SLOT_STARTUP 253
+#define SLOT_SHUTDOWN 254
+
+
 KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
 
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "seq_slot_0" },
@@ -56,6 +61,9 @@ KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "seq_slot_5" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "seq_slot_6" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "seq_slot_7" },
+
+	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "seq_slot_startup" },
+	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "seq_slot_shutdown" },
 
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_PERSIST,  	&seq_time_mode,        0,                  "seq_time_mode" },
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_PERSIST,  	&seq_select_mode,      0,                  "seq_select_mode" },
@@ -111,6 +119,14 @@ static int8_t get_program_for_slot( uint8_t slot, char progname[FFS_FILENAME_LEN
 
 		kv_i8_get( __KV__seq_slot_7, progname, FFS_FILENAME_LEN );
 	}
+	else if( seq_current_step == SLOT_STARTUP ){
+
+		kv_i8_get( __KV__seq_slot_startup, progname, FFS_FILENAME_LEN );
+	}
+	else if( seq_current_step == SLOT_SHUTDOWN ){
+
+		kv_i8_get( __KV__seq_slot_shutdown, progname, FFS_FILENAME_LEN );
+	}
 	else{
 
 		log_v_error_P( PSTR("Invalid sequencer step!") );
@@ -119,6 +135,51 @@ static int8_t get_program_for_slot( uint8_t slot, char progname[FFS_FILENAME_LEN
 	}
 
 	return 0;
+}
+
+static int8_t _run_program( char progname[FFS_FILENAME_LEN] ){
+
+	// if progname is empty:
+	if( progname[0] == 0 ){
+
+		return -3;
+	}
+
+	// check that program exists on filesystem:
+	if( !fs_b_exists_id( fs_i8_get_file_id( progname ) ) ){
+
+		return -4;
+	}
+
+	// in theory the program will run
+
+	vm_v_run_prog( progname, 0 ); // run new program on slot 0
+
+	return 0;
+}
+
+static int8_t _run_startup( void ){
+
+	char progname[FFS_FILENAME_LEN];
+
+	if( get_program_for_slot( SLOT_STARTUP, progname ) < 0 ){
+
+		return -2;
+	}
+
+	return _run_program( progname );	
+}
+
+static int8_t _run_shutdown( void ){
+
+	char progname[FFS_FILENAME_LEN];
+
+	if( get_program_for_slot( SLOT_SHUTDOWN, progname ) < 0 ){
+
+		return -2;
+	}
+
+	return _run_program( progname );	
 }
 
 static int8_t _run_step( void ){
@@ -147,23 +208,7 @@ static int8_t _run_step( void ){
 		return -2;
 	}
 
-	// if progname is empty:
-	if( progname[0] == 0 ){
-
-		return -3;
-	}
-
-	// check that program exists on filesystem:
-	if( !fs_b_exists_id( fs_i8_get_file_id( progname ) ) ){
-
-		return -4;
-	}
-
-	// in theory the program will run
-
-	vm_v_run_prog( progname, 0 ); // run new program on slot 0
-
-	return 0;
+	return _run_program( progname );
 }
 
 
@@ -204,14 +249,31 @@ static bool process_manual_input( void ){
 PT_THREAD( vm_sequencer_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+	// run startup program, if available
+	if( _run_startup() == 0 ){
+
+		vm_sync_v_hold();
+
+		THREAD_WAIT_WHILE( pt, vm_b_is_vm_running( 0 ) );
+
+		vm_sync_v_unhold();
+	} 
 	
-	while(1){
+	while( !sys_b_is_shutting_down() ){
 
 		TMR_WAIT( pt, 100 );
 
 		seq_running = FALSE;
 
-		THREAD_WAIT_WHILE( pt, seq_time_mode == VM_SEQ_TIME_MODE_STOPPED );
+		THREAD_WAIT_WHILE( pt, 
+			( seq_time_mode == VM_SEQ_TIME_MODE_STOPPED ) &&
+			!sys_b_is_shutting_down() );
+
+       	if( sys_b_is_shutting_down() ){
+
+       		break;
+       	}
 
 		seq_running = TRUE;
 
@@ -247,7 +309,15 @@ PT_BEGIN( pt );
 			   ( seq_time_remaining > 0 ) ){
 
 			thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
-	        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && process_manual_input() );
+	        THREAD_WAIT_WHILE( pt, 
+	        	thread_b_alarm_set() && 
+	        	!sys_b_is_shutting_down() &&
+	        	process_manual_input() );
+
+	       	if( sys_b_is_shutting_down() ){
+
+	       		break;
+	       	}
 
 	        seq_time_remaining--;
 
@@ -257,6 +327,21 @@ PT_BEGIN( pt );
 	        }
 		}
 	}	
+
+	if( sys_b_is_shutting_down() ){
+
+		// system shut down
+
+		// run shutdown program, if available
+		if( _run_shutdown() == 0 ){
+
+			vm_sync_v_hold();
+
+			THREAD_WAIT_WHILE( pt, vm_b_is_vm_running( 0 ) );
+
+			vm_sync_v_unhold();
+		} 
+	}
 		
 	
 PT_END( pt );
