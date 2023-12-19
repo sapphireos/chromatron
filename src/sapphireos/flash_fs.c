@@ -153,6 +153,52 @@ KV_SECTION_META kv_meta_t flash_fs_info_kv[] = {
 
 #endif
 
+#ifdef FLASH_FS_CACHE
+
+typedef struct{
+    ffs_file_t file_id;
+    uint16_t page;
+    uint8_t data[FFS_PAGE_DATA_SIZE];
+    uint8_t len;
+    uint32_t age;
+} cache_entry_t;
+
+static mem_handle_t cache_h;
+
+
+void init_cache( void ){
+
+
+}
+
+cache_entry_t get_cache_entry( ffs_file_t file, uint16_t page ){
+
+    return 0;
+}
+
+void flush_file( ffs_file_t file ){
+
+
+}
+
+void flush_all( void ){
+
+
+}
+
+// void invalidate_file( ffs_file_t file ){
+
+// }
+
+int8_t update_cache( ffs_file_t file, uint16_t page, uint8_t *data, uint8_t len ){
+
+    return -1;
+}
+
+#endif
+
+
+
 void ffs_v_init( void ){
 
     #ifdef ENABLE_FFS
