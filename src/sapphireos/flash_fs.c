@@ -155,42 +155,240 @@ KV_SECTION_META kv_meta_t flash_fs_info_kv[] = {
 
 #ifdef FLASH_FS_CACHE
 
-typedef struct{
+#include "random.h"
+
+static uint32_t flash_fs_cache_hits;
+static uint32_t flash_fs_cache_misses;
+
+KV_SECTION_OPT kv_meta_t flash_fs_cache_kv[] = {
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_cache_hits,         0,  "flash_fs_cache_hits" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_cache_misses,         0,  "flash_fs_cache_misses" },    
+};
+
+
+#define N_CACHE_ENTRIES 16
+
+typedef struct __attribute__((packed)){
     ffs_file_t file_id;
     uint16_t page;
     uint8_t data[FFS_PAGE_DATA_SIZE];
     uint8_t len;
-    uint32_t age;
+    uint8_t age;
+    bool dirty;
 } cache_entry_t;
 
 static mem_handle_t cache_h;
 
-
 void init_cache( void ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
+    cache_h = mem2_h_alloc2( N_CACHE_ENTRIES * sizeof(cache_entry_t), MEM_TYPE_FS_PAGE_CACHE );
+
+    if( cache_h <= 0 ){
+
+        return;
+    }
+
+    kv_v_add_db_info( flash_fs_cache_kv, sizeof(flash_fs_cache_kv) );
+
+    cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
+
+    for( uint8_t i = 0; i < N_CACHE_ENTRIES; i++ ){
+
+        entry[i].file_id = -1;
+    }
 
 }
 
-cache_entry_t get_cache_entry( ffs_file_t file, uint16_t page ){
+cache_entry_t* get_cache_entry( ffs_file_t file, uint16_t page ){
+
+    if( cache_h <= 0 ){
+
+        return 0;
+    }
+
+    cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
+
+    for( uint8_t i = 0; i < N_CACHE_ENTRIES; i++ ){
+
+        if( ( entry[i].file_id == file ) && ( entry[i].page == page ) ){
+
+            return &entry[i];
+        }
+    }
 
     return 0;
 }
 
-void flush_file( ffs_file_t file ){
+cache_entry_t* get_free_entry( void ){
 
+    if( cache_h <= 0 ){
 
+        return 0;
+    }
+
+    cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
+
+    for( uint8_t i = 0; i < N_CACHE_ENTRIES; i++ ){
+
+        if( entry[i].file_id < 0 ){
+
+            return &entry[i];
+        }
+    }
+
+    return 0;
 }
 
-void flush_all( void ){
 
+// void flush_page( cache_entry_t *entry ){
 
-}
+//     // if( ffs_page_i8_write( entry->file_id, entry->page, 0, data, write_len ) != FFS_STATUS_OK ){
+
+//     //     // error
+//     //     return FFS_STATUS_ERROR;
+//     // }
+// }
+
+// void flush_file( ffs_file_t file ){
+
+//     // if( cache_h <= 0 ){
+
+//     //     return;
+//     // }
+
+//     // cache_entry_t *ptr = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
+
+//     // for( uint8_t i = 0; i < N_CACHE_ENTRIES; i++ ){
+
+//     //     if( ( ptr[i].file_id == file ) && ( ptr[i].dirty ) ){
+
+            
+//     //     }
+//     // }
+
+// }
+
+// void flush_all( void ){
+
+//     // if( cache_h <= 0 ){
+
+//     //     return;
+//     // }
+
+// }
 
 // void invalidate_file( ffs_file_t file ){
 
 // }
 
-int8_t update_cache( ffs_file_t file, uint16_t page, uint8_t *data, uint8_t len ){
+void evict( void ){
+
+    if( cache_h <= 0 ){
+
+        return;
+    }
+
+    // random choice
+    uint8_t index = rnd_u16_range( N_CACHE_ENTRIES );
+
+    cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
+    entry[index].file_id = -1;
+}
+
+void invalidate( ffs_file_t file_id, uint16_t page ){
+
+    if( cache_h <= 0 ){
+
+        return;
+    }
+
+    cache_entry_t *entry = get_cache_entry( file_id, page );
+
+    if( entry == 0 ){
+
+        return;
+    }
+
+    entry->file_id = -1;
+}
+
+void invalidate_file( ffs_file_t file_id ){
+
+    if( cache_h <= 0 ){
+
+        return;
+    }
+
+    cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
+
+    for( uint8_t i = 0; i < N_CACHE_ENTRIES; i++ ){
+
+        if( entry[i].file_id == file_id ){
+
+            entry[i].file_id = -1;
+        }
+    }
+
+}
+
+
+int8_t read_into_cache( ffs_file_t file_id, uint16_t page, uint8_t *data, uint8_t len ){
+
+    if( cache_h <= 0 ){
+
+        return -1;
+    }
+
+    cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
+
+    // check if page is already in cache
+    for( uint8_t i = 0; i < N_CACHE_ENTRIES; i++ ){
+
+        if( ( entry[i].file_id == file_id ) && ( entry[i].page == page ) ){
+
+            // match, update data
+            memcpy( &entry->data, data, len );
+            entry->len = len;
+            entry->age = 0;
+
+            // memcpy( &entry->data[offset], data, len );
+
+            // adjust length if appending data
+            // if( ( offset + len ) > entry->len ){
+
+            //     entry->len = offset + len;
+            // }
+
+            return 0;
+        }
+    }
+
+    // page not found
+    entry = get_free_entry();
+
+    if( entry == 0 ){
+
+        // evict an entry
+        evict();
+
+        entry = get_free_entry();
+    }
+
+    if( entry != 0 ){
+
+        memcpy( &entry->data, data, len );
+    
+        entry->len = len;
+        entry->age = 0;
+        entry->dirty = FALSE;
+        entry->page = page;
+        entry->file_id = file_id;
+    }
 
     return -1;
 }
@@ -246,6 +444,10 @@ void ffs_v_init( void ){
     ffs_v_mount();
 
     ffs_gc_v_init();
+
+    #ifdef FLASH_FS_CACHE
+    init_cache();
+    #endif
 
     trace_printf("FlashFS files: %u free space: %u ver: %d\r\n", ffs_u32_get_file_count(), ffs_u32_get_free_space(), fs_version );
 
@@ -574,6 +776,10 @@ ffs_file_t ffs_i8_create_file( char filename[] ){
         return file;
     }
 
+    #ifdef FLASH_FS_CACHE
+    invalidate_file( file );
+    #endif
+
     // we have a valid file
 
     uint8_t buf[FFS_PAGE_DATA_SIZE];
@@ -653,6 +859,10 @@ int8_t ffs_i8_delete_file( ffs_file_t file_id ){
     #ifdef ENABLE_FFS
     ASSERT( file_id < FFS_MAX_FILES );
 
+    #ifdef FLASH_FS_CACHE
+    invalidate_file( file_id );
+    #endif
+
     return ffs_page_i8_delete_file( file_id );
     #else
     return FFS_STATUS_ERROR;
@@ -714,17 +924,46 @@ int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_
         // calculate file page
         uint16_t file_page = ( position / FFS_PAGE_DATA_SIZE ) + FFS_FILE_PAGE_DATA_0;
 
+        uint8_t *page_data = 0;
+        uint8_t page_len = 0;
+
+    #ifdef FLASH_FS_CACHE
+        cache_entry_t *cache_entry = get_cache_entry( file_id, file_page );
+
+        if( cache_entry != 0 ){
+
+            // hit
+            page_data = cache_entry->data;
+            page_len = cache_entry->len;
+
+            flash_fs_cache_hits++;
+        }
+        else{
+
+            // miss
+
+            flash_fs_cache_misses++;
+
+    #endif
+            // read page
+            if( ffs_page_i8_read( file_id, file_page ) < 0 ){
+
+                return FFS_STATUS_ERROR;
+            }
+
+            ffs_page_t *page = ffs_page_p_get_cached_page();
+            page_data = page->data;
+            page_len = page->len;
+
+    #ifdef FLASH_FS_CACHE
+
+            read_into_cache( file_id, file_page, page_data, page_len );
+        }
+    #endif
+
         // calculate offset
         uint8_t offset = position % FFS_PAGE_DATA_SIZE;
-
-        // read page
-        if( ffs_page_i8_read( file_id, file_page ) < 0 ){
-
-            return FFS_STATUS_ERROR;
-        }
-
-        ffs_page_t *page = ffs_page_p_get_cached_page();
-
+        
         uint8_t read_len = FFS_PAGE_DATA_SIZE;
 
         // bounds check on requested length
@@ -735,15 +974,15 @@ int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_
 
         // check that the computed offset fits within the page
         // if not, the page is corrupt
-        if( offset > page->len ){
+        if( offset > page_len ){
 
             return FFS_STATUS_ERROR;
         }
 
         // bounds check on page size and offset
-        if( read_len > ( page->len - offset ) ){
+        if( read_len > ( page_len - offset ) ){
 
-            read_len = ( page->len - offset );
+            read_len = ( page_len - offset );
         }
 
         // bounds check on end of file
@@ -759,7 +998,7 @@ int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_
         }
 
         // copy data
-        memcpy( data, &page->data[offset], read_len );
+        memcpy( data, &page_data[offset], read_len );
 
         total_read  += read_len;
         data        += read_len;
@@ -831,6 +1070,10 @@ int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, 
         // calculate offset
         uint8_t offset = position % FFS_PAGE_DATA_SIZE;
 
+        #ifdef FLASH_FS_CACHE
+        // invalidate cache entry when writing:
+        invalidate( file_id, file_page );
+        #endif
 
         uint8_t write_len = FFS_PAGE_DATA_SIZE;
 
@@ -864,3 +1107,7 @@ int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, 
     #endif
 }
 
+void ffs_v_close( ffs_file_t file_id ){
+
+    invalidate_file( file_id );
+}
