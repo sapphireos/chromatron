@@ -963,7 +963,7 @@ int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_
 
         // calculate offset
         uint8_t offset = position % FFS_PAGE_DATA_SIZE;
-        
+
         uint8_t read_len = FFS_PAGE_DATA_SIZE;
 
         // bounds check on requested length
@@ -1109,5 +1109,7 @@ int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, 
 
 void ffs_v_close( ffs_file_t file_id ){
 
+    #ifdef FLASH_FS_CACHE
     invalidate_file( file_id );
+    #endif
 }
