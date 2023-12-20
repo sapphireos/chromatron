@@ -813,6 +813,10 @@ int32_t thread_core( void ){
     // set sleep flag
     thread_flags |= FLAGS_SLEEP;
 
+    // process signals first
+    process_timed_signals();
+    process_signalled_threads();
+
     // ********************************************************************
     // Process Waiting threads
     //
@@ -821,13 +825,6 @@ int32_t thread_core( void ){
     list_node_t ln = thread_list.head;
 
     while( ln >= 0 ){
-
-        process_timed_signals();
-        process_signalled_threads();
-
-        #ifdef ENABLE_USB
-        usb_v_poll();
-        #endif
 
         list_node_state_t *ln_state = mem2_vp_get_ptr_fast( ln );
 
@@ -857,6 +854,13 @@ int32_t thread_core( void ){
             // run the thread
             run_thread( ln, state );
         }
+
+        process_timed_signals();
+        process_signalled_threads();
+
+        #ifdef ENABLE_USB
+        usb_v_poll();
+        #endif
 
         ln = ln_state->next;
     }
