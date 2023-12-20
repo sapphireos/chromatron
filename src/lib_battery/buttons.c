@@ -154,10 +154,14 @@ void button_v_init( void ){
         io_v_set_mode( batt_ui_button, IO_MODE_INPUT_PULLUP );     
     }
 
+    #ifdef ENABLE_VBUS_SHUTDOWN
+
     thread_t_create( vbus_startup_thread,
                      PSTR("vbus_startup"),
                      0,
                      0 );
+
+    #endif
 
     thread_t_create( button_thread,
                      PSTR("button"),
@@ -336,6 +340,7 @@ static bool _button_b_button_down( uint8_t ch ){
     return TRUE;
 }
 
+#ifdef ENABLE_VBUS_SHUTDOWN
 
 PT_THREAD( vbus_shutdown_thread( pt_t *pt, void *state ) )
 {
@@ -405,6 +410,8 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+#endif
 
 
 PT_THREAD( button_thread( pt_t *pt, void *state ) )
@@ -481,6 +488,7 @@ PT_BEGIN( pt );
 
         if( batt_b_enabled() ){
 
+            #ifdef ENABLE_VBUS_SHUTDOWN
             // if started on vbus:
             if( shutdown_on_vbus_unplug ){
 
@@ -497,6 +505,7 @@ PT_BEGIN( pt );
                                      0 );
                 }
             }
+            #endif
 
             // check for shutdown
             if( button_hold_duration[0] >= BUTTON_SHUTDOWN_TIME ){
