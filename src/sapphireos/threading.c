@@ -822,6 +822,13 @@ int32_t thread_core( void ){
 
     while( ln >= 0 ){
 
+        process_timed_signals();
+        process_signalled_threads();
+
+        #ifdef ENABLE_USB
+        usb_v_poll();
+        #endif
+
         list_node_state_t *ln_state = mem2_vp_get_ptr_fast( ln );
 
         thread_state_t *state = (thread_state_t *)&ln_state->data;
@@ -852,13 +859,6 @@ int32_t thread_core( void ){
         }
 
         ln = ln_state->next;
-
-        process_timed_signals();
-        process_signalled_threads();
-
-        #ifdef ENABLE_USB
-        usb_v_poll();
-        #endif
     }
 
     mem2_v_collect_garbage();        
