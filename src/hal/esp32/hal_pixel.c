@@ -272,6 +272,9 @@ static void start_transfer( void ){
 PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    // make sure pixel drivers are enabled
+    _pixel_v_configure();
     
     // start up with pixel power enabled
     if( pixelpower_b_power_control_enabled() ){
