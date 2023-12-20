@@ -250,12 +250,14 @@ PT_THREAD( vm_sequencer_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+	THREAD_WAIT_WHILE( pt, seq_time_mode == VM_SEQ_TIME_MODE_STOPPED );
+
 	// run startup program, if available
 	if( _run_startup() == 0 ){
 
 		vm_sync_v_hold();
 
-		THREAD_WAIT_WHILE( pt, vm_b_is_vm_running( 0 ) );
+		THREAD_WAIT_WHILE( pt, vm_b_is_vm_running( 0 ) && !sys_b_is_shutting_down() );
 
 		vm_sync_v_unhold();
 	} 
@@ -328,7 +330,7 @@ PT_BEGIN( pt );
 		}
 	}	
 
-	if( sys_b_is_shutting_down() ){
+	if( sys_b_is_shutting_down() && ( seq_time_mode != VM_SEQ_TIME_MODE_STOPPED ) ){
 
 		// system shut down
 
