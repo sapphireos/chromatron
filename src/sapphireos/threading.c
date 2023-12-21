@@ -761,10 +761,12 @@ void run_thread( thread_t thread, thread_state_t *state ){
 }
 
 
-static void process_timed_signals( void ){
+static uint32_t process_timed_signals( void ){
 
     uint32_t now = tmr_u32_get_system_time_us();
     uint32_t elapsed = tmr_u32_elapsed_times( last_timed_signal_check, now );
+
+    uint32_t min_time_remaining = 0xffffffff;
 
     for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
 
@@ -781,9 +783,18 @@ static void process_timed_signals( void ){
 
             signals |= ( 1 << timed_signals[i].signal );
         }
+        
+        if( timed_signals[i].ticks < min_time_remaining ){
+
+            // track minimum time left on any timed signal
+
+            min_time_remaining = timed_signals[i].ticks;
+        }
     }
 
     last_timed_signal_check = now;
+
+    return min_time_remaining / 1000; // convert to milliseconds
 }
 
 static void process_signalled_threads( void ){
@@ -849,7 +860,7 @@ int32_t thread_core( void ){
     thread_flags |= FLAGS_SLEEP;
 
     // process signals first
-    process_timed_signals();
+    uint32_t timed_signals_ms_remaining = process_timed_signals();
     process_signalled_threads();
 
     // ********************************************************************
@@ -890,7 +901,7 @@ int32_t thread_core( void ){
             run_thread( ln, state );
         }
 
-        process_timed_signals();
+        timed_signals_ms_remaining = process_timed_signals();
         process_signalled_threads();
 
         #ifdef ENABLE_USB
@@ -918,7 +929,15 @@ int32_t thread_core( void ){
     if( ( thread_flags & FLAGS_SLEEP ) &&
         ( thread_u16_get_signals() == 0 )  ){
 
-        return thread_u32_get_next_alarm_delta();
+        uint32_t next_alarm_delta = thread_u32_get_next_alarm_delta();
+
+        // check if timed signal is sooner
+        if( timed_signals_ms_remaining < next_alarm_delta ){
+
+            next_alarm_delta = timed_signals_ms_remaining;   
+        }
+
+        return next_alarm_delta;
     }
 
     #else
