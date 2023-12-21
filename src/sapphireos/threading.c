@@ -503,9 +503,24 @@ void thread_v_create_timed_signal( uint8_t signum, uint8_t rate ){
         return;
     }
 
+    // check if signal is already registered
+    for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
+
+        if( timed_signals[i].signal == signum ){
+
+            // update rate
+            timed_signals[i].rate = rate * 1000; // convert to microseconds
+            timed_signals[i].ticks = timed_signals[i].rate;
+
+            return;
+        }
+    }
+
     for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
 
         if( timed_signals[i].rate == 0 ){
+
+            // add signal
 
             timed_signals[i].signal = signum;
             timed_signals[i].rate = rate * 1000; // convert to microseconds
@@ -517,6 +532,26 @@ void thread_v_create_timed_signal( uint8_t signum, uint8_t rate ){
 
     // no signals available
     ASSERT( FALSE );
+}
+
+void thread_v_destroy_timed_signal( uint8_t signum ){
+
+    // cannot use timed signals in safe mode
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
+    for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
+
+        if( timed_signals[i].signal == signum ){
+
+            timed_signals[i].signal = 0;
+            timed_signals[i].rate = 0;
+
+            return;
+        }
+    }
 }
 
 uint8_t thread_u8_get_run_cause( void ){

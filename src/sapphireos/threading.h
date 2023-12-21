@@ -148,6 +148,7 @@ void thread_v_set_signal_flag( void );
 void thread_v_clear_signal_flag( void );
 uint16_t thread_u16_get_signals( void );
 void thread_v_create_timed_signal( uint8_t signum, uint8_t rate );
+void thread_v_destroy_timed_signal( uint8_t signum );
 
 uint8_t thread_u8_get_run_cause( void );
 
