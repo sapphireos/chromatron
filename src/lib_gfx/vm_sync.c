@@ -188,6 +188,7 @@ static void send_sync( sock_addr_t *raddr ){
     msg.header.sync_group_hash  = sync_group_hash;
 
     msg.header.program_name_hash= state->program_name_hash;
+    msg.header.program_file_hash= state->file_hash;
     msg.sync_tick               = vm_u64_get_sync_tick();
     msg.net_time                = vm_u32_get_sync_time();
 
@@ -240,6 +241,7 @@ static void send_data( int32_t *data, uint16_t len, uint64_t tick, uint16_t offs
     msg->header.flags            = 0;
     msg->header.sync_group_hash  = sync_group_hash;
     msg->header.program_name_hash= state->program_name_hash;
+    msg->header.program_file_hash= state->file_hash;
 
     msg->tick                    = tick;
     msg->offset                  = offset;
@@ -266,6 +268,7 @@ static void send_request( bool request_data ){
     msg.header.flags            = 0;
     msg.header.sync_group_hash  = sync_group_hash;
     msg.header.program_name_hash= state->program_name_hash;
+    msg.header.program_file_hash= state->file_hash;
 
     msg.request_data            = request_data;
 
@@ -352,6 +355,16 @@ PT_BEGIN( pt );
                 continue;
             }
 
+            // confirm program hash
+            if( header->program_file_hash != vm_state->file_hash ){
+
+                vm_sync_v_reset();
+
+                log_v_error_P( PSTR("program hash mismatch") );
+
+                continue;
+            }
+
             if( msg->max_threads > VM_MAX_THREADS ) {
 
                 vm_sync_v_reset();
@@ -420,6 +433,12 @@ PT_BEGIN( pt );
 
                 continue;
             }
+
+            // confirm program hash
+            if( header->program_file_hash != vm_state->file_hash ){
+
+                continue;
+            }
             
             // send sync
             send_sync( &raddr );
@@ -478,6 +497,12 @@ PT_BEGIN( pt );
 
             // confirm program name
             if( header->program_name_hash != vm_state->program_name_hash ){
+
+                continue;
+            }
+
+            // confirm program hash
+            if( header->program_file_hash != vm_state->file_hash ){
 
                 continue;
             }

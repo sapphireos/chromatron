@@ -29,7 +29,7 @@
 #ifdef ENABLE_TIME_SYNC
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
-#define SYNC_PROTOCOL_VERSION           	7
+#define SYNC_PROTOCOL_VERSION           	8
 
 #define SYNC_SERVICE                        __KV__vmsync
 
@@ -46,6 +46,7 @@ typedef struct __attribute__((packed)){
     uint8_t padding;
     uint32_t sync_group_hash;
     uint32_t program_name_hash;
+    uint32_t program_file_hash;
 } vm_sync_msg_header_t;
 
 typedef struct __attribute__((packed)){
