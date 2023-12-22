@@ -1097,6 +1097,7 @@ static void stop_vm( uint8_t vm_id ){
         thread_v_kill( thread );
     }
 
+    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
     vm_run[vm_id] = FALSE;
 
     vm_run_time[vm_id]      = 0;
@@ -1256,6 +1257,9 @@ void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){
     kv_i8_set( hash, prog, FFS_FILENAME_LEN );
 
     log_v_info_P( PSTR("Starting %s on VM: %d"), prog, vm_id );
+    
+    
+    stop_vm( vm_id );
 
     vm_run[vm_id] = TRUE;
     vm_reset[vm_id] = TRUE;
