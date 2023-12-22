@@ -259,13 +259,9 @@ PT_BEGIN( pt );
 
 		vm_sync_v_hold();
 
-		log_v_debug_P( PSTR("startup") );
-
 		TMR_WAIT( pt, 100 );
 
 		THREAD_WAIT_WHILE( pt, vm_b_is_vm_running( 0 ) && !sys_b_is_shutting_down() );
-
-		log_v_debug_P( PSTR("halt") );
 
 		vm_sync_v_unhold();
 

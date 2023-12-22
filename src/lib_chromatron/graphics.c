@@ -245,16 +245,16 @@ PT_BEGIN( pt );
         // and the LED detection line.
         led_detect_v_run_detect();
 
-        if( sys_b_is_shutting_down() ){
+        // if( sys_b_is_shutting_down() ){
 
-            gfx_v_shutdown_graphic();
-            calc_pixel_power();
-            apply_power_limit();
+        //     gfx_v_shutdown_graphic();
+        //     calc_pixel_power();
+        //     apply_power_limit();
             
-            pixel_v_signal();        
+        //     pixel_v_signal();        
 
-            THREAD_EXIT( pt );
-        }
+        //     THREAD_EXIT( pt );
+        // }
 
         
         gfx_v_process_faders();
