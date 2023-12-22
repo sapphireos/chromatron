@@ -303,7 +303,13 @@ PT_BEGIN( pt );
 
 	    	THREAD_WAIT_WHILE( pt, 
 	    		( seq_time_mode == VM_SEQ_TIME_MODE_MANUAL ) &&
+	    		!sys_b_is_shutting_down() &&
 	    		( seq_trigger == FALSE ) );
+
+	    	if( sys_b_is_shutting_down() ){
+
+	    		break;
+	    	}
 
 	    	process_manual_input();
 
