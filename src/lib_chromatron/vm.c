@@ -1144,7 +1144,7 @@ PT_BEGIN( pt );
 
                     // this isn't actually an error, it is the VM
                     // signalling the script has requested a stop.
-                    log_v_debug_P( PSTR("VM %d halted"), i );
+                    // log_v_debug_P( PSTR("VM %d halted"), i );
                 }
                 else{
 
