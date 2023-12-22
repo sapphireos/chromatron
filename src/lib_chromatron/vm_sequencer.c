@@ -87,43 +87,43 @@ static int8_t get_program_for_slot( uint8_t slot, char progname[FFS_FILENAME_LEN
 
 	memset( progname, 0, FFS_FILENAME_LEN );
 
-	if( seq_current_step == 0 ){
+	if( slot == 0 ){
 
 		kv_i8_get( __KV__seq_slot_0, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 1 ){
+	else if( slot == 1 ){
 
 		kv_i8_get( __KV__seq_slot_1, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 2 ){
+	else if( slot == 2 ){
 
 		kv_i8_get( __KV__seq_slot_2, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 3 ){
+	else if( slot == 3 ){
 
 		kv_i8_get( __KV__seq_slot_3, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 4 ){
+	else if( slot == 4 ){
 
 		kv_i8_get( __KV__seq_slot_4, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 5 ){
+	else if( slot == 5 ){
 
 		kv_i8_get( __KV__seq_slot_5, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 6 ){
+	else if( slot == 6 ){
 
 		kv_i8_get( __KV__seq_slot_6, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 7 ){
+	else if( slot == 7 ){
 
 		kv_i8_get( __KV__seq_slot_7, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == SLOT_STARTUP ){
+	else if( slot == SLOT_STARTUP ){
 
 		kv_i8_get( __KV__seq_slot_startup, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == SLOT_SHUTDOWN ){
+	else if( slot == SLOT_SHUTDOWN ){
 
 		kv_i8_get( __KV__seq_slot_shutdown, progname, FFS_FILENAME_LEN );
 	}
@@ -167,7 +167,9 @@ static int8_t _run_startup( void ){
 		return -2;
 	}
 
-	return _run_program( progname );	
+	int8_t status = _run_program( progname );
+
+	return status;	
 }
 
 static int8_t _run_shutdown( void ){
