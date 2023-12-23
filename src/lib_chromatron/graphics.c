@@ -68,7 +68,7 @@ KV_SECTION_META kv_meta_t gfx_info_kv[] = {
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 
 
-static uint8_t fx_rainbow[] __attribute__((aligned(4))) = {
+static const uint8_t fx_rainbow[] __attribute__((aligned(4))) = {
     #include "rainbow.fx.carray"
 };
 
