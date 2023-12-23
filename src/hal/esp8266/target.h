@@ -93,7 +93,7 @@
 // #define ENABLE_LIST_ATOMIC
 
 // memory
-#define MAX_MEM_HANDLES         255
+#define MAX_MEM_HANDLES         192
 #define MEM_MAX_STACK           4096
 #define MEM_HEAP_SIZE			16384
 
