@@ -198,6 +198,7 @@ static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
                 info.runs           = state->runs;
                 info.line           = state->pt.lc;
                 info.alarm          = state->alarm;
+                info.max_time       = state->max_time;
 
                 // get offset info page
                 uint16_t offset = pos - ( page * sizeof(info) );
@@ -330,6 +331,7 @@ static thread_t make_thread( PT_THREAD( ( *thread )( pt_t *pt, void *state ) ),
     state->run_time = 0;
     state->runs     = 0;
     state->alarm    = 0;
+    state->max_time = 0;
 
     // copy data (if present)
     if( initial_data != 0 ){
@@ -702,6 +704,11 @@ void run_thread( thread_t thread, thread_state_t *state ){
         if( state->runs < 0xffffffff ){
 
             state->runs++;
+        }
+
+        if( elapsed_us > state->max_time ){
+
+            state->max_time = elapsed_us;
         }
     }
 

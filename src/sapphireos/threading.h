@@ -77,6 +77,7 @@ typedef struct{
     uint32_t alarm;
     uint32_t run_time;
     uint32_t runs;
+    uint32_t max_time;
 } thread_state_t;
 
 typedef struct __attribute__((packed)){
@@ -88,7 +89,8 @@ typedef struct __attribute__((packed)){
     uint32_t runs;
     uint16_t line;
     uint64_t alarm;
-    uint8_t reserved[24];
+    uint32_t max_time;
+    uint8_t reserved[20];
 } thread_info_t;
 
 #define THREAD_FLAGS_WAITING		0b00000001
