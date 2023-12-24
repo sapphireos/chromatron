@@ -25,6 +25,7 @@
 #ifndef _BUTTONS_H
 #define _BUTTONS_H
 
+// #define ENABLE_VBUS_SHUTDOWN
 
 void button_v_init( void );
 

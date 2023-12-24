@@ -76,6 +76,7 @@ setup(
         "filelock==3.0.12",
         "influxdb==5.3.1",
         "colorama==0.4.6",
+        "graphviz==0.20.1",
     ],
 
     entry_points='''

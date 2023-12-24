@@ -68,7 +68,7 @@ KV_SECTION_META kv_meta_t gfx_info_kv[] = {
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 
 
-static uint8_t fx_rainbow[] __attribute__((aligned(4))) = {
+static const uint8_t fx_rainbow[] __attribute__((aligned(4))) = {
     #include "rainbow.fx.carray"
 };
 
@@ -245,16 +245,16 @@ PT_BEGIN( pt );
         // and the LED detection line.
         led_detect_v_run_detect();
 
-        if( sys_b_is_shutting_down() ){
+        // if( sys_b_is_shutting_down() ){
 
-            gfx_v_shutdown_graphic();
-            calc_pixel_power();
-            apply_power_limit();
+        //     gfx_v_shutdown_graphic();
+        //     calc_pixel_power();
+        //     apply_power_limit();
             
-            pixel_v_signal();        
+        //     pixel_v_signal();        
 
-            THREAD_EXIT( pt );
-        }
+        //     THREAD_EXIT( pt );
+        // }
 
         
         gfx_v_process_faders();
@@ -282,6 +282,11 @@ void gfx_v_init( void ){
 
     gfxlib_v_init();
 
+    thread_t_create( gfx_control_thread,
+            PSTR("gfx_control"),
+            0,
+            0 );
+
     pixel_v_init();
 
     #ifdef ENABLE_TIME_SYNC
@@ -292,9 +297,5 @@ void gfx_v_init( void ){
 
     fs_f_create_virtual( PSTR("_rainbow.fxb"), fx_rainbow_vfile_handler );
 
-    thread_t_create( gfx_control_thread,
-                PSTR("gfx_control"),
-                0,
-                0 );
     #endif
 }

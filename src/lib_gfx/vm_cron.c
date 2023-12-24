@@ -379,6 +379,11 @@ void vm_cron_v_start_jobs( uint8_t vm_id ){
         return;
     }
 
+    if( !cfg_b_get_boolean( __KV__enable_ntp_sync ) ){
+
+        return;
+    }
+
     replay_state |= ( 1 << vm_id );
 
     replay_state_t replay_state;

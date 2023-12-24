@@ -756,7 +756,7 @@ PT_BEGIN( pt );
         goto exit;
     }
 
-    log_v_debug_P( PSTR("VM ready: %s"), state->program_fname );
+    // log_v_debug_P( PSTR("VM ready: %s"), state->program_fname );
 
     #ifdef ENABLE_TIME_SYNC
     // set initial checkpoint
@@ -994,7 +994,7 @@ PT_BEGIN( pt );
         if( state->vm_return == VM_STATUS_HALT ){
 
             vm_status[state->vm_id] = VM_STATUS_HALT;
-            log_v_debug_P( "VM %d halted\r\n", state->vm_id );
+            // log_v_debug_P( "VM %d halted\r\n", state->vm_id );
             goto exit;
         }
         else if( state->vm_return < 0 ){
@@ -1097,6 +1097,7 @@ static void stop_vm( uint8_t vm_id ){
         thread_v_kill( thread );
     }
 
+    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
     vm_run[vm_id] = FALSE;
 
     vm_run_time[vm_id]      = 0;
@@ -1143,7 +1144,7 @@ PT_BEGIN( pt );
 
                     // this isn't actually an error, it is the VM
                     // signalling the script has requested a stop.
-                    log_v_debug_P( PSTR("VM %d halted"), i );
+                    // log_v_debug_P( PSTR("VM %d halted"), i );
                 }
                 else{
 
@@ -1255,7 +1256,10 @@ void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){
 
     kv_i8_set( hash, prog, FFS_FILENAME_LEN );
 
-    log_v_info_P( PSTR("Starting %s on VM: %d"), prog, vm_id );
+    // log_v_info_P( PSTR("Starting %s on VM: %d"), prog, vm_id );
+    
+    
+    stop_vm( vm_id );
 
     vm_run[vm_id] = TRUE;
     vm_reset[vm_id] = TRUE;

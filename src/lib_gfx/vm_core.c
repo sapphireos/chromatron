@@ -3329,6 +3329,7 @@ int8_t vm_i8_load_program(
     memset( state, 0, sizeof(vm_state_t) );
 
     state->vm_id = vm_id;
+    state->file_hash = file_hash;
 
     // reset thread state
     for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){

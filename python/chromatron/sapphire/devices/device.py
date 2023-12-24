@@ -973,7 +973,7 @@ class Device(object):
         else:
             info = self.get_thread_info()
 
-        s = "\nAddr      Line  Flags  Data         Time     Runs   Avg  CPU Name\n"
+        s = "\nAddr      Line  Flags  Data         Time     Runs   Avg    Max  CPU Name\n"
 
         total_run_time = 0
         for n in info:
@@ -1016,7 +1016,7 @@ class Device(object):
 
             cpu_usage = (n.run_time / float(total_run_time)) * 100.0
 
-            s += "%8x  %4d   %5s %4d %12d %8d %5d %4.1f %s\n" % \
+            s += "%8x  %4d   %5s %4d %12d %8d %5d %6d %4.1f %s\n" % \
                 (n.addr,
                  n.line,
                  flags,
@@ -1024,6 +1024,7 @@ class Device(object):
                  n.run_time,
                  n.runs,
                  avg_time,
+                 n.max_time,
                  cpu_usage,
                  n.name)
 

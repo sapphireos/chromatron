@@ -198,6 +198,7 @@ static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
                 info.runs           = state->runs;
                 info.line           = state->pt.lc;
                 info.alarm          = state->alarm;
+                info.max_time       = state->max_time;
 
                 // get offset info page
                 uint16_t offset = pos - ( page * sizeof(info) );
@@ -330,6 +331,7 @@ static thread_t make_thread( PT_THREAD( ( *thread )( pt_t *pt, void *state ) ),
     state->run_time = 0;
     state->runs     = 0;
     state->alarm    = 0;
+    state->max_time = 0;
 
     // copy data (if present)
     if( initial_data != 0 ){
@@ -503,9 +505,24 @@ void thread_v_create_timed_signal( uint8_t signum, uint8_t rate ){
         return;
     }
 
+    // check if signal is already registered
+    for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
+
+        if( timed_signals[i].signal == signum ){
+
+            // update rate
+            timed_signals[i].rate = rate * 1000; // convert to microseconds
+            timed_signals[i].ticks = timed_signals[i].rate;
+
+            return;
+        }
+    }
+
     for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
 
         if( timed_signals[i].rate == 0 ){
+
+            // add signal
 
             timed_signals[i].signal = signum;
             timed_signals[i].rate = rate * 1000; // convert to microseconds
@@ -517,6 +534,26 @@ void thread_v_create_timed_signal( uint8_t signum, uint8_t rate ){
 
     // no signals available
     ASSERT( FALSE );
+}
+
+void thread_v_destroy_timed_signal( uint8_t signum ){
+
+    // cannot use timed signals in safe mode
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
+    for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
+
+        if( timed_signals[i].signal == signum ){
+
+            timed_signals[i].signal = 0;
+            timed_signals[i].rate = 0;
+
+            return;
+        }
+    }
 }
 
 uint8_t thread_u8_get_run_cause( void ){
@@ -668,6 +705,11 @@ void run_thread( thread_t thread, thread_state_t *state ){
 
             state->runs++;
         }
+
+        if( elapsed_us > state->max_time ){
+
+            state->max_time = elapsed_us;
+        }
     }
 
     // check returned thread state
@@ -726,10 +768,12 @@ void run_thread( thread_t thread, thread_state_t *state ){
 }
 
 
-static void process_timed_signals( void ){
+static uint32_t process_timed_signals( void ){
 
     uint32_t now = tmr_u32_get_system_time_us();
     uint32_t elapsed = tmr_u32_elapsed_times( last_timed_signal_check, now );
+
+    uint32_t min_time_remaining = 0xffffffff;
 
     for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
 
@@ -746,9 +790,18 @@ static void process_timed_signals( void ){
 
             signals |= ( 1 << timed_signals[i].signal );
         }
+        
+        if( timed_signals[i].ticks < min_time_remaining ){
+
+            // track minimum time left on any timed signal
+
+            min_time_remaining = timed_signals[i].ticks;
+        }
     }
 
     last_timed_signal_check = now;
+
+    return min_time_remaining / 1000; // convert to milliseconds
 }
 
 static void process_signalled_threads( void ){
@@ -813,6 +866,10 @@ int32_t thread_core( void ){
     // set sleep flag
     thread_flags |= FLAGS_SLEEP;
 
+    // process signals first
+    uint32_t timed_signals_ms_remaining = process_timed_signals();
+    process_signalled_threads();
+
     // ********************************************************************
     // Process Waiting threads
     //
@@ -851,14 +908,14 @@ int32_t thread_core( void ){
             run_thread( ln, state );
         }
 
-        ln = ln_state->next;
-
-        process_timed_signals();
+        timed_signals_ms_remaining = process_timed_signals();
         process_signalled_threads();
 
         #ifdef ENABLE_USB
         usb_v_poll();
         #endif
+
+        ln = ln_state->next;
     }
 
     mem2_v_collect_garbage();        
@@ -879,7 +936,15 @@ int32_t thread_core( void ){
     if( ( thread_flags & FLAGS_SLEEP ) &&
         ( thread_u16_get_signals() == 0 )  ){
 
-        return thread_u32_get_next_alarm_delta();
+        uint32_t next_alarm_delta = thread_u32_get_next_alarm_delta();
+
+        // check if timed signal is sooner
+        if( timed_signals_ms_remaining < next_alarm_delta ){
+
+            next_alarm_delta = timed_signals_ms_remaining;   
+        }
+
+        return next_alarm_delta;
     }
 
     #else

@@ -114,7 +114,8 @@ class ThreadInfoField(StructField):
                   Uint32Field(_name="runs"),
                   Uint16Field(_name="line"),
                   Uint64Field(_name="alarm"),
-                  ArrayField(_name="reserved", _field=Uint8Field, _length=24)]
+                  Uint32Field(_name="max_time"),
+                  ArrayField(_name="reserved", _field=Uint8Field, _length=20)]
 
         super(ThreadInfoField, self).__init__(_fields=fields, **kwargs)
 

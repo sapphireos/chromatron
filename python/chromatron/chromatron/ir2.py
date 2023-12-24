@@ -5844,7 +5844,7 @@ class irLibCall(irCallType):
     def generate(self):        
         params = [a.generate() for a in self.params]
 
-        if self.target == 'halt':
+        if self.func_name == 'halt':
             return insHalt(lineno=self.lineno)
 
         else:

@@ -262,6 +262,8 @@ typedef union{
 } vm_pixel_index_t;
 
 typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
+    uint32_t file_hash;
+
     uint16_t vm_id;
     uint16_t code_start;
 

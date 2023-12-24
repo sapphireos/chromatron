@@ -87,43 +87,43 @@ static int8_t get_program_for_slot( uint8_t slot, char progname[FFS_FILENAME_LEN
 
 	memset( progname, 0, FFS_FILENAME_LEN );
 
-	if( seq_current_step == 0 ){
+	if( slot == 0 ){
 
 		kv_i8_get( __KV__seq_slot_0, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 1 ){
+	else if( slot == 1 ){
 
 		kv_i8_get( __KV__seq_slot_1, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 2 ){
+	else if( slot == 2 ){
 
 		kv_i8_get( __KV__seq_slot_2, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 3 ){
+	else if( slot == 3 ){
 
 		kv_i8_get( __KV__seq_slot_3, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 4 ){
+	else if( slot == 4 ){
 
 		kv_i8_get( __KV__seq_slot_4, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 5 ){
+	else if( slot == 5 ){
 
 		kv_i8_get( __KV__seq_slot_5, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 6 ){
+	else if( slot == 6 ){
 
 		kv_i8_get( __KV__seq_slot_6, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == 7 ){
+	else if( slot == 7 ){
 
 		kv_i8_get( __KV__seq_slot_7, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == SLOT_STARTUP ){
+	else if( slot == SLOT_STARTUP ){
 
 		kv_i8_get( __KV__seq_slot_startup, progname, FFS_FILENAME_LEN );
 	}
-	else if( seq_current_step == SLOT_SHUTDOWN ){
+	else if( slot == SLOT_SHUTDOWN ){
 
 		kv_i8_get( __KV__seq_slot_shutdown, progname, FFS_FILENAME_LEN );
 	}
@@ -167,7 +167,9 @@ static int8_t _run_startup( void ){
 		return -2;
 	}
 
-	return _run_program( progname );	
+	int8_t status = _run_program( progname );
+
+	return status;	
 }
 
 static int8_t _run_shutdown( void ){
@@ -250,14 +252,24 @@ PT_THREAD( vm_sequencer_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+	THREAD_WAIT_WHILE( pt, seq_time_mode == VM_SEQ_TIME_MODE_STOPPED );
+
 	// run startup program, if available
 	if( _run_startup() == 0 ){
 
 		vm_sync_v_hold();
 
-		THREAD_WAIT_WHILE( pt, vm_b_is_vm_running( 0 ) );
+		TMR_WAIT( pt, 100 );
+
+		THREAD_WAIT_WHILE( pt, vm_b_is_vm_running( 0 ) && !sys_b_is_shutting_down() );
 
 		vm_sync_v_unhold();
+
+		if( !sys_b_is_shutting_down() ){
+
+			seq_current_step = N_SLOTS - 1; // in select next mode, this will wrap and select slot 0
+			run_step();
+		}
 	} 
 	
 	while( !sys_b_is_shutting_down() ){
@@ -291,7 +303,13 @@ PT_BEGIN( pt );
 
 	    	THREAD_WAIT_WHILE( pt, 
 	    		( seq_time_mode == VM_SEQ_TIME_MODE_MANUAL ) &&
+	    		!sys_b_is_shutting_down() &&
 	    		( seq_trigger == FALSE ) );
+
+	    	if( sys_b_is_shutting_down() ){
+
+	    		break;
+	    	}
 
 	    	process_manual_input();
 
@@ -328,7 +346,7 @@ PT_BEGIN( pt );
 		}
 	}	
 
-	if( sys_b_is_shutting_down() ){
+	if( sys_b_is_shutting_down() && ( seq_time_mode != VM_SEQ_TIME_MODE_STOPPED ) ){
 
 		// system shut down
 
