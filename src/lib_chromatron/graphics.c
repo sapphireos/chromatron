@@ -282,6 +282,11 @@ void gfx_v_init( void ){
 
     gfxlib_v_init();
 
+    thread_t_create( gfx_control_thread,
+            PSTR("gfx_control"),
+            0,
+            0 );
+
     pixel_v_init();
 
     #ifdef ENABLE_TIME_SYNC
@@ -292,9 +297,5 @@ void gfx_v_init( void ){
 
     fs_f_create_virtual( PSTR("_rainbow.fxb"), fx_rainbow_vfile_handler );
 
-    thread_t_create( gfx_control_thread,
-                PSTR("gfx_control"),
-                0,
-                0 );
     #endif
 }
