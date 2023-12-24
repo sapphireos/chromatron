@@ -27,8 +27,9 @@
 
 void controller_v_init( void );
 
-#define CONTROLLER_PORT         23456
+#define CONTROLLER_PORT         44701
 
+#define CONTROLLER_LEADER_CYCLES 5
 
 #define CONTROLLER_MSG_MAGIC    0x34651177
 #define CONTROLLER_MSG_VERSION  1
@@ -40,8 +41,12 @@ typedef struct __attribute__((packed)){
 } controller_header_t;
 
 
+#define CONTROLLER_FLAGS_IS_LEADER      0x0001
+#define CONTROLLER_FLAGS_DROP_LEADER    0x0010
+
 typedef struct __attribute__((packed)){
     controller_header_t header;
+    uint16_t flags;
     uint16_t priority;
     uint64_t uptime;
     uint64_t device_id;

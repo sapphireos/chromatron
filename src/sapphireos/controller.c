@@ -23,6 +23,7 @@
  */
 
 #include "sapphire.h"
+#include "config.h"
 
 #include "controller.h"
 
@@ -33,11 +34,13 @@ static socket_t sock;
 static bool controller_enabled;
 static bool is_leader;
 static bool is_follower;
+static ip_addr4_t leader_ip;
 
 KV_SECTION_META kv_meta_t controller_kv[] = {
     { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_leader, 			0,  "controller_is_leader" },
     { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_follower, 		0,  "controller_is_follower" },
     { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_enabled, 0,  "controller_enable_leader" },
+    { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_READ_ONLY, &leader_ip, 			0,  "controller_leader_ip" },
 };
 
 PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) );
@@ -104,26 +107,49 @@ static void send_msg( uint8_t msgtype, uint8_t *msg, uint8_t len, sock_addr_t *r
 	sock_i16_sendto( sock, msg, len, raddr );
 }
 
-static void send_announce( void ){
+static void send_announce( bool drop ){
 
-	sock_addr_t raddr;
-    raddr.ipaddr = ip_a_addr(255, 255, 255, 255);
-    raddr.port = CONTROLLER_PORT;
+    uint16_t flags = 0;
+
+    if( drop ){
+
+    	flags |= CONTROLLER_FLAGS_DROP_LEADER;
+    }
 
 	controller_msg_announce_t msg = {
 		{ 0 },
+		flags,
 		get_priority(),
 		tmr_u64_get_system_time_us(),
 		cfg_u64_get_device_id(),
 	};
 
+	sock_addr_t raddr;
+    raddr.ipaddr = ip_a_addr(255, 255, 255, 255);
+    raddr.port = CONTROLLER_PORT;
+
 	send_msg( CONTROLLER_MSG_ANNOUNCE, (uint8_t *)&msg, sizeof(msg), &raddr );
 }
 
 static void process_announce( controller_msg_announce_t *msg ){
-	
-	
-	
+
+	if( msg->flags & CONTROLLER_FLAGS_DROP_LEADER ){
+
+		if( is_follower ){
+
+			is_follower = FALSE;
+
+			log_v_debug_P( PSTR("dropped leader: %d.%d.%d.%d"),
+				leader_ip.ip3, 
+				leader_ip.ip2, 
+				leader_ip.ip1, 
+				leader_ip.ip0
+			);
+
+			leader_ip = ip_a_addr( 0, 0, 0, 0 );
+		}
+	}
+
 }
 
 PT_THREAD( controller_server_thread( pt_t *pt, void *state ) )
@@ -180,22 +206,38 @@ PT_END( pt );
 PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-	
-	while(1){
 
-		// wait until controller is enabled
-		THREAD_WAIT_WHILE( pt, !controller_enabled );
+	static uint8_t counter;
+	counter = 0;
+
+	// wait until controller is enabled
+	THREAD_WAIT_WHILE( pt, !controller_enabled );
+	
+	send_announce( TRUE ); // drop leader
+	TMR_WAIT( pt, rnd_u16_get_int() >> 9 );
+	send_announce( TRUE ); // drop leader
+	TMR_WAIT( pt, rnd_u16_get_int() >> 9 );
+	send_announce( TRUE ); // drop leader
+
+	while( controller_enabled ){
+
+		counter = 0;
 
 		// initial connection loop
-		while( !is_leader && !is_follower && controller_enabled ){
+		while( !is_leader && !is_follower && controller_enabled && counter < CONTROLLER_LEADER_CYCLES ){
 
 			TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
 
-			send_announce();
+			send_announce( FALSE );
+
+			counter++;
 		}
 
 		THREAD_YIELD( pt );
 	}
+
+	// we get here if controller mode is disabled while running
+	THREAD_RESTART( pt );
     
 PT_END( pt );
 }
