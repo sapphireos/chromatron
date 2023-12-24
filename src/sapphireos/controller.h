@@ -43,7 +43,8 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     controller_header_t header;
     uint16_t priority;
-    uint64_t uptime;    
+    uint64_t uptime;
+    uint64_t device_id;
 }  controller_msg_announce_t;
 #define CONTROLLER_MSG_ANNOUNCE     1
 

@@ -30,13 +30,14 @@
 
 static socket_t sock;
 
+static bool controller_enabled;
 static bool is_leader;
 static bool is_follower;
 
 KV_SECTION_META kv_meta_t controller_kv[] = {
-    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_leader, 		0,  "controller_is_leader" },
-    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_follower, 	0,  "controller_is_follower" },
-    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   0, 			    0,  "controller_enable_leader" },
+    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_leader, 			0,  "controller_is_leader" },
+    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_follower, 		0,  "controller_is_follower" },
+    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_enabled, 0,  "controller_enable_leader" },
 };
 
 PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) );
@@ -73,7 +74,7 @@ void controller_v_init( void ){
 static uint16_t get_priority( void ){
 
 	// check if leader is enabled, if not, return 0 and we are follower only
-	if( !kv_b_get_boolean( __KV__controller_enable_leader ) ){
+	if( !controller_enabled ){
 
 		return 0;
 	}
@@ -91,7 +92,7 @@ static uint16_t get_priority( void ){
 	return priority;
 }
 
-static void send_msg( uint8_t msgtype, uint8_t *msg, uint8_t len, sock_addr_t raddr ){
+static void send_msg( uint8_t msgtype, uint8_t *msg, uint8_t len, sock_addr_t *raddr ){
 
 	controller_header_t *header = (controller_header_t *)msg;
 
@@ -100,13 +101,77 @@ static void send_msg( uint8_t msgtype, uint8_t *msg, uint8_t len, sock_addr_t ra
 	header->msg_type 	= msgtype;
 	header->reserved    = 0;
 
-	sock_i16_sendto( sock, msg, len, &raddr );
+	sock_i16_sendto( sock, msg, len, raddr );
+}
+
+static void send_announce( void ){
+
+	sock_addr_t raddr;
+    raddr.ipaddr = ip_a_addr(255, 255, 255, 255);
+    raddr.port = CONTROLLER_PORT;
+
+	controller_msg_announce_t msg = {
+		{ 0 },
+		get_priority(),
+		tmr_u64_get_system_time_us(),
+		cfg_u64_get_device_id(),
+	};
+
+	send_msg( CONTROLLER_MSG_ANNOUNCE, (uint8_t *)&msg, sizeof(msg), &raddr );
+}
+
+static void process_announce( controller_msg_announce_t *msg ){
+	
+	
+	
 }
 
 PT_THREAD( controller_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
    	
+   	while(1){
+
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+
+        uint16_t error = CATBUS_STATUS_OK;
+
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+            goto end;
+        }
+
+        controller_header_t *header = sock_vp_get_data( sock );
+
+        // verify message
+        if( header->magic != CONTROLLER_MSG_MAGIC ){
+
+            goto end;
+        }
+
+        if( header->version != CONTROLLER_MSG_VERSION ){
+
+            goto end;
+        }
+
+        sock_addr_t raddr;
+        sock_v_get_raddr( sock, &raddr );
+
+        if( header->msg_type == CONTROLLER_MSG_ANNOUNCE ){
+
+        	process_announce( (controller_msg_announce_t *)header );
+        }
+        else{
+
+        	// invalid message
+        	log_v_error_P( PSTR("Invalid msg: %d"), header->msg_type );
+        }
+
+
+    end:
+
+    	THREAD_YIELD( pt );
+	}
     
 PT_END( pt );
 }
@@ -116,8 +181,22 @@ PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 	
-	
-    	
+	while(1){
+
+		// wait until controller is enabled
+		THREAD_WAIT_WHILE( pt, !controller_enabled );
+
+		// initial connection loop
+		while( !is_leader && !is_follower && controller_enabled ){
+
+			TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
+
+			send_announce();
+		}
+
+		THREAD_YIELD( pt );
+	}
+    
 PT_END( pt );
 }
 
