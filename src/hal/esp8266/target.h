@@ -45,6 +45,7 @@
 #define ENABLE_TIME_SYNC
 #define ENABLE_MSGFLOW
 #define ENABLE_SERVICES
+#define ENABLE_CONTROLLER
 #endif
 
 

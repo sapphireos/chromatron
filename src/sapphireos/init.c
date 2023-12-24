@@ -76,6 +76,10 @@
 #include "datalogger.h"
 #endif
 
+#ifdef ENABLE_CONTROLLER
+#include "controller.h"
+#endif
+
 #include "init.h"
 
 
@@ -210,6 +214,10 @@ int8_t sapphire_i8_init( void ){
 
 
     catbus_v_init();
+
+    #ifdef ENABLE_CONTROLLER
+    controller_v_init();
+    #endif
 
     #ifdef ENABLE_TIME_SYNC
     time_v_init();
