@@ -30,6 +30,7 @@
 void button_v_init( void );
 
 bool button_b_is_button_pressed( uint8_t button );
+bool button_b_peek_button_pressed( uint8_t button );
 bool button_b_is_button_hold( uint8_t button );
 bool button_b_is_button_released( uint8_t button );
 bool button_b_is_button_hold_released( uint8_t button );

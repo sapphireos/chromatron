@@ -169,6 +169,23 @@ void button_v_init( void ){
                      0 );
 }
 
+// peek is same as "is", but doesn;t clear state
+bool button_b_peek_button_pressed( uint8_t button ){
+
+    if( button >= MAX_BUTTONS ){
+
+        return FALSE;
+    }
+
+    uint8_t event = button_event[button];
+
+    if( event == BUTTON_EVENT_PRESSED ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
 
 bool button_b_is_button_pressed( uint8_t button ){
 
@@ -483,7 +500,7 @@ PT_BEGIN( pt );
             wifi_v_reset_scan_timeout();
 
             // override quiet mode on status LED
-            status_led_v_override();
+            //status_led_v_override();
         }
 
         if( batt_b_enabled() ){

@@ -27,6 +27,7 @@
 #include "vm_sync.h"
 
 #include "vm_sequencer.h"
+#include "buttons.h"
 
 static uint8_t seq_time_mode;
 static uint8_t seq_select_mode;
@@ -309,6 +310,28 @@ PT_BEGIN( pt );
 	    	if( sys_b_is_shutting_down() ){
 
 	    		break;
+	    	}
+
+	    	process_manual_input();
+
+			continue;
+	    }
+	    else if( seq_time_mode == VM_SEQ_TIME_MODE_BUTTON ){
+
+	    	THREAD_WAIT_WHILE( pt, 
+	    		( seq_time_mode == VM_SEQ_TIME_MODE_BUTTON ) &&
+	    		!sys_b_is_shutting_down() &&
+	    		!button_b_peek_button_pressed( 0 ) &&
+	    		( seq_trigger == FALSE ) );
+
+	    	if( sys_b_is_shutting_down() ){
+
+	    		break;
+	    	}
+
+	    	if( button_b_is_button_pressed( 0 ) ){
+
+	    		seq_trigger = TRUE;
 	    	}
 
 	    	process_manual_input();
