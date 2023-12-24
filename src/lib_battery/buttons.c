@@ -228,6 +228,22 @@ bool button_b_is_button_hold( uint8_t button ){
     return FALSE;
 }
 
+bool button_b_peek_button_released( uint8_t button ){
+
+    if( button >= MAX_BUTTONS ){
+
+        return FALSE;
+    }
+
+    uint8_t event = button_event[button];
+
+    if( event == BUTTON_EVENT_RELEASED ){
+
+        return TRUE;
+    }
+    
+    return FALSE;
+}
 
 bool button_b_is_button_released( uint8_t button ){
 

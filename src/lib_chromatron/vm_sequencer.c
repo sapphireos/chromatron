@@ -321,7 +321,7 @@ PT_BEGIN( pt );
 	    	THREAD_WAIT_WHILE( pt, 
 	    		( seq_time_mode == VM_SEQ_TIME_MODE_BUTTON ) &&
 	    		!sys_b_is_shutting_down() &&
-	    		!button_b_peek_button_pressed( 0 ) &&
+	    		!button_b_peek_button_released( 0 ) &&
 	    		( seq_trigger == FALSE ) );
 
 	    	if( sys_b_is_shutting_down() ){
@@ -329,7 +329,7 @@ PT_BEGIN( pt );
 	    		break;
 	    	}
 
-	    	if( button_b_is_button_pressed( 0 ) ){
+	    	if( button_b_is_button_released( 0 ) ){
 
 	    		seq_trigger = TRUE;
 	    	}
