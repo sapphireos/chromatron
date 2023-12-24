@@ -27,6 +27,29 @@
 
 #include "controller.h"
 
+
+/*
+
+Controller selection algorithm:
+
+Broadcast announcement, flags = 0
+Existing leader(s) will respond with their announcement (with flags = LEADER)
+
+If receiving a valid leader, wait for additional responses and then select
+the best leader, then enter follower mode.
+
+If we don't receive any leaders, there are not any yet.
+If we receive an announce for a better leader (flags = 0 or otherwise), 
+stop sending announcements and wait until that leader sets its flag.
+If we didn't receive any better announcements in that time frame,
+switch to leader mode and start announcing periodically with the leader flag.
+
+If there is still no leader after some amount of time, reset the state machine
+and start over.
+
+*/
+
+
 #ifdef ENABLE_CONTROLLER
 
 static socket_t sock;
@@ -148,7 +171,10 @@ static void process_announce( controller_msg_announce_t *msg ){
 
 			leader_ip = ip_a_addr( 0, 0, 0, 0 );
 		}
+
+		return;
 	}
+
 
 }
 
