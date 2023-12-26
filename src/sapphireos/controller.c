@@ -32,20 +32,58 @@
 
 Controller selection algorithm:
 
-Broadcast announcement, flags = 0
-Existing leader(s) will respond with their announcement (with flags = LEADER)
 
-If receiving a valid leader, wait for additional responses and then select
-the best leader, then enter follower mode.
+Election States:
 
-If we don't receive any leaders, there are not any yet.
-If we receive an announce for a better leader (flags = 0 or otherwise), 
-stop sending announcements and wait until that leader sets its flag.
-If we didn't receive any better announcements in that time frame,
-switch to leader mode and start announcing periodically with the leader flag.
+Follower: node is a follower
+	This is the default state, even if there is no leader
+Candidate: node is a candidate to become leader	
+Leader: node is the leader
 
-If there is still no leader after some amount of time, reset the state machine
-and start over.
+
+Candidates broadcast their announcements with their
+priorities and follower count.
+
+Candidates and passives will select the highest priority
+and highest follower count (priority first, then count)
+and register with that node, increasing its follower count.
+
+Candidates that switch to follower will send a message to drop
+their followers.
+
+Followers will also send a deregister message to their candidates
+when they switch.
+
+After a timeout, candidates with non-zero follower counts will
+switch to leader.
+
+If a node is a leader and hears a better leader, it will
+reset its state machine and drop its followers
+
+
+Messages:
+
+Announce: Broadcast candidacy or leadership.  
+Contains priority and follower count.
+
+Drop: Inform a follower that this node is not a leader.
+
+Status: Update follower status for a candidate or leader.
+Status is unicast and will perform a join operation on that
+leader/candidate.  Status is sent periodically and will reset
+the follower timeout.  Status is only send to the current leader
+for that follower.
+
+Leave: A follower informs a leader that it is leaving.
+This purges the follower from the leader.  It is also
+optional, merely withholding status will trigger a purge
+by the timeout, but the leave operation accomplishes the 
+task more quickly.
+
+
+
+
+
 
 */
 
@@ -55,19 +93,42 @@ and start over.
 static socket_t sock;
 
 static bool controller_enabled;
-static bool is_leader;
-static bool is_follower;
+// static bool is_leader;
+// static bool is_follower;
+
+static uint8_t controller_state;
+#define STATE_FOLLOWER 	0
+#define STATE_CANDIDATE 1
+#define STATE_LEADER 	2
+
 static ip_addr4_t leader_ip;
+static uint64_t leader_uptime;
+static uint16_t leader_priority;
+static uint16_t leader_follower_count;
+// static uint64_t leader_timestamp;
 
 KV_SECTION_META kv_meta_t controller_kv[] = {
-    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_leader, 			0,  "controller_is_leader" },
-    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_follower, 		0,  "controller_is_follower" },
+    // { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_leader, 			0,  "controller_is_leader" },
+    // { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_follower, 		0,  "controller_is_follower" },
+    { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &controller_state, 	0,  "controller_state" },
     { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_enabled, 0,  "controller_enable_leader" },
     { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_READ_ONLY, &leader_ip, 			0,  "controller_leader_ip" },
+    // { CATBUS_TYPE_UINT64, 	0, KV_FLAGS_READ_ONLY, &leader_uptime, 		0,  "controller_leader_uptime" },
+    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_follower_count, 	0,  "controller_leader_follower_count" },
+    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_priority, 	0,  "controller_leader_priority" },
 };
 
 PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) );
 PT_THREAD( controller_server_thread( pt_t *pt, void *state ) );
+
+
+static void reset_leader( void ){
+
+	leader_ip = ip_a_addr(0,0,0,0);
+	leader_priority = 0;
+	leader_uptime = 0;
+}
+
 
 void controller_v_init( void ){
 
@@ -95,6 +156,16 @@ void controller_v_init( void ){
                      0 );
 
 
+}
+
+static bool is_candidate( void ){
+
+	return controller_enabled && ip_b_is_zeroes( leader_ip );
+}
+
+static uint16_t get_follower_count( void ){
+
+	return 0;
 }
 
 static uint16_t get_priority( void ){
@@ -130,21 +201,29 @@ static void send_msg( uint8_t msgtype, uint8_t *msg, uint8_t len, sock_addr_t *r
 	sock_i16_sendto( sock, msg, len, raddr );
 }
 
-static void send_announce( bool drop ){
+static void send_announce( void ){
+
+	if( controller_state == STATE_FOLLOWER ){
+
+		log_v_error_P( PSTR("cannot send announce as follower!") );
+
+		return;
+	}
 
     uint16_t flags = 0;
 
-    if( drop ){
+    // if( is_leader ){
 
-    	flags |= CONTROLLER_FLAGS_DROP_LEADER;
-    }
+    // 	flags |= CONTROLLER_FLAGS_IS_LEADER;
+    // }
 
 	controller_msg_announce_t msg = {
 		{ 0 },
 		flags,
 		get_priority(),
-		tmr_u64_get_system_time_us(),
-		cfg_u64_get_device_id(),
+		get_follower_count(),
+		// tmr_u64_get_system_time_us(),
+		// cfg_u64_get_device_id(),
 	};
 
 	sock_addr_t raddr;
@@ -154,27 +233,246 @@ static void send_announce( bool drop ){
 	send_msg( CONTROLLER_MSG_ANNOUNCE, (uint8_t *)&msg, sizeof(msg), &raddr );
 }
 
-static void process_announce( controller_msg_announce_t *msg ){
+static void send_status( void ){
 
-	if( msg->flags & CONTROLLER_FLAGS_DROP_LEADER ){
+	if( controller_state == STATE_LEADER ){
 
-		if( is_follower ){
-
-			is_follower = FALSE;
-
-			log_v_debug_P( PSTR("dropped leader: %d.%d.%d.%d"),
-				leader_ip.ip3, 
-				leader_ip.ip2, 
-				leader_ip.ip1, 
-				leader_ip.ip0
-			);
-
-			leader_ip = ip_a_addr( 0, 0, 0, 0 );
-		}
+		log_v_error_P( PSTR("cannot send status as leader!") );
 
 		return;
 	}
 
+	if( ip_b_is_zeroes( leader_ip ) ){
+
+		log_v_error_P( PSTR("cannot send status, no leader!") );
+
+		return;
+	}
+
+	controller_msg_status_t msg = {
+		{ 0 },
+	};
+
+	sock_addr_t raddr;
+    raddr.ipaddr = ip_a_addr(255, 255, 255, 255);
+    raddr.port = CONTROLLER_PORT;
+
+	send_msg( CONTROLLER_MSG_STATUS, (uint8_t *)&msg, sizeof(msg), &raddr );
+}
+
+static void send_leave( void ){
+
+	if( controller_state == STATE_LEADER ){
+
+		log_v_error_P( PSTR("cannot send leave as leader!") );
+
+		return;
+	}
+
+	if( ip_b_is_zeroes( leader_ip ) ){
+
+		log_v_error_P( PSTR("cannot send leave, no leader!") );
+
+		return;
+	}
+
+	controller_msg_leave_t msg = {
+		{ 0 },
+	};
+
+	sock_addr_t raddr;
+    raddr.ipaddr = leader_ip;
+    raddr.port = CONTROLLER_PORT;
+
+	send_msg( CONTROLLER_MSG_LEAVE, (uint8_t *)&msg, sizeof(msg), &raddr );
+}
+
+static void send_drop( ip_addr4_t ip ){
+
+	controller_msg_drop_t msg = {
+		{ 0 },
+	};
+
+	sock_addr_t raddr;
+    raddr.ipaddr = ip;
+    raddr.port = CONTROLLER_PORT;
+
+	send_msg( CONTROLLER_MSG_DROP, (uint8_t *)&msg, sizeof(msg), &raddr );
+}
+
+static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr ){
+
+	bool update_leader = FALSE;
+
+	// check if this is the first leader/candidate we've seen
+	if( !ip_b_is_zeroes( leader_ip ) ){
+
+		update_leader = TRUE;
+	}
+	// check if already tracking this leader:
+	else if( !ip_b_is_zeroes( leader_ip ) && ip_b_addr_compare( raddr->ipaddr, leader_ip ) ){
+
+		update_leader = TRUE;
+	}
+	// check better priority:
+	else if( msg->priority > leader_priority ){
+
+		update_leader = TRUE;
+	}
+	// check same priority
+	else if( msg->priority == leader_priority ){
+
+		// is follower count better?
+		if( msg->follower_count > leader_follower_count ){
+
+			update_leader = TRUE;	
+		}
+		// is follower count the same?
+		else if( msg->follower_count == leader_follower_count ){
+
+			// choose lowest IP to resolve an 
+			// even follower count.
+			uint32_t msg_ip_u32 = ip_u32_to_int( raddr->ipaddr );
+			uint32_t leader_ip_u32 = ip_u32_to_int( leader_ip );
+
+			if( msg_ip_u32 < leader_ip_u32 ){
+
+				update_leader = TRUE;	
+			}
+		}
+	}
+
+
+	if( update_leader ){
+
+		// check if switching leaders
+		if( !ip_b_addr_compare( leader_ip, raddr->ipaddr ) ){
+
+			log_v_debug_P( PSTR("Switching leader to: %d.%d.%d.%d"),
+				raddr->ipaddr.ip3, 
+				raddr->ipaddr.ip2, 
+				raddr->ipaddr.ip1, 
+				raddr->ipaddr.ip0
+			);
+
+			// if we were tracking a pre-existing leader,
+			// inform it that we are leaving.
+			if( !ip_b_is_zeroes( leader_ip ) ){
+
+				// byeeeeeeeeee
+				send_leave();	
+			}
+		}
+
+		leader_ip 				= raddr->ipaddr;
+		leader_priority 		= msg->priority;
+		leader_follower_count 	= msg->follower_count;
+	}
+
+
+
+
+
+	// 	// check priority and uptime:
+	// 	else if( msg->priorty > leader_priority ){
+	// 		// better priority, select new leader
+
+	// 		new_leader = TRUE;
+	// 	}
+	// 	else if( msg->priorty == leader_priority ){
+
+	// 		// matching priority, use better uptime
+	// 		if( msg->uptime > leader_uptime ){
+
+	// 			new_leader = TRUE;
+	// 		}
+	// 	}
+
+
+
+
+
+	// if( msg->flags & CONTROLLER_FLAGS_DROP_LEADER ){
+
+	// 	if( is_follower ){
+
+	// 		is_follower = FALSE;
+
+	// 		log_v_debug_P( PSTR("dropped leader: %d.%d.%d.%d"),
+	// 			leader_ip.ip3, 
+	// 			leader_ip.ip2, 
+	// 			leader_ip.ip1, 
+	// 			leader_ip.ip0
+	// 		);
+
+	// 		reset_leader();
+	// 	}
+	// }
+	// else if( msg->flags & CONTROLLER_FLAGS_IS_LEADER ){
+	// 	// this message comes from a leader
+
+	// }
+	// else{
+
+	// 	bool new_leader = FALSE;
+
+	// 	// possible leader node
+
+	// 	// check if already tracking this possible leader:
+	// 	if( !ip_b_is_zeroes( leader_ip ) && ip_b_addr_compare( raddr.ipaddr, leader_ip ) ){
+
+	// 		// update tracking
+	// 		leader_timestamp = tmr_u64_get_system_time_us();
+
+	// 		// track new loader
+	// 		leader_uptime = msg->update;
+	// 		leader_priority = msg->priority;
+	// 	}
+	// 	// check priority and uptime:
+	// 	else if( msg->priorty > leader_priority ){
+	// 		// better priority, select new leader
+
+	// 		new_leader = TRUE;
+	// 	}
+	// 	else if( msg->priorty == leader_priority ){
+
+	// 		// matching priority, use better uptime
+	// 		if( msg->uptime > leader_uptime ){
+
+	// 			new_leader = TRUE;
+	// 		}
+	// 	}
+
+
+	// 	if( new_leader ){
+
+	// 		leader_timestamp = tmr_u64_get_system_time_us();
+
+	// 		// track new loader
+	// 		leader_ip = raddr->ipaddr;
+	// 		leader_uptime = msg->update;
+	// 		leader_priority = msg->priority;
+
+	// 		log_v_debug_P( PSTR("track leader: %d.%d.%d.%d"),
+	// 			leader_ip.ip3, 
+	// 			leader_ip.ip2, 
+	// 			leader_ip.ip1, 
+	// 			leader_ip.ip0
+	// 		);
+	// 	}
+	// }
+}
+
+
+static void process_status( controller_msg_status_t *msg, sock_addr_t *raddr ){
+
+}
+
+static void process_leave( controller_msg_leave_t *msg, sock_addr_t *raddr ){
+
+}
+
+static void process_drop( controller_msg_drop_t *msg, sock_addr_t *raddr ){
 
 }
 
@@ -211,7 +509,19 @@ PT_BEGIN( pt );
 
         if( header->msg_type == CONTROLLER_MSG_ANNOUNCE ){
 
-        	process_announce( (controller_msg_announce_t *)header );
+        	process_announce( (controller_msg_announce_t *)header, &raddr );
+        }
+        else if( header->msg_type == CONTROLLER_MSG_DROP ){
+
+        	process_drop( (controller_msg_drop_t *)header, &raddr );
+        }
+        else if( header->msg_type == CONTROLLER_MSG_STATUS ){
+
+        	process_status( (controller_msg_status_t *)header, &raddr );
+        }
+        else if( header->msg_type == CONTROLLER_MSG_LEAVE ){
+
+        	process_leave( (controller_msg_leave_t *)header, &raddr );
         }
         else{
 
@@ -232,35 +542,57 @@ PT_END( pt );
 PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-	static uint8_t counter;
-	counter = 0;
-
+	
 	// wait until controller is enabled
 	THREAD_WAIT_WHILE( pt, !controller_enabled );
 	
-	send_announce( TRUE ); // drop leader
-	TMR_WAIT( pt, rnd_u16_get_int() >> 9 );
-	send_announce( TRUE ); // drop leader
-	TMR_WAIT( pt, rnd_u16_get_int() >> 9 );
-	send_announce( TRUE ); // drop leader
 
-	while( controller_enabled ){
 
-		counter = 0;
 
-		// initial connection loop
-		while( !is_leader && !is_follower && controller_enabled && counter < CONTROLLER_LEADER_CYCLES ){
 
-			TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
 
-			send_announce( FALSE );
 
-			counter++;
-		}
 
-		THREAD_YIELD( pt );
-	}
+	// while( controller_enabled && !is_leader && !is_follower ){
+
+	// 	// random delay:
+	// 	TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
+
+	// 	// broadcast announcement
+	// 	send_announce( FALSE );
+	// }
+	
+
+	// static uint8_t counter;
+	// counter = 0;
+
+	// // wait until controller is enabled
+	// THREAD_WAIT_WHILE( pt, !controller_enabled );
+	
+	// send_announce( TRUE ); // drop leader
+	// TMR_WAIT( pt, rnd_u16_get_int() >> 9 );
+	// send_announce( TRUE ); // drop leader
+	// TMR_WAIT( pt, rnd_u16_get_int() >> 9 );
+	// send_announce( TRUE ); // drop leader
+
+	// while( controller_enabled ){
+
+	// 	counter = 0;
+
+	// 	// initial connection loop
+	// 	while( !is_leader && !is_follower && controller_enabled && counter < CONTROLLER_LEADER_CYCLES ){
+
+	// 		TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
+
+	// 		send_announce( FALSE );
+
+	// 		counter++;
+	// 	}
+
+	// 	THREAD_YIELD( pt );
+	// }
+
+
 
 	// we get here if controller mode is disabled while running
 	THREAD_RESTART( pt );
