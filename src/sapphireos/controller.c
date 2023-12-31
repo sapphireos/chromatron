@@ -51,7 +51,7 @@ and register with that node, increasing its follower count.
 Candidates that switch to follower will send a message to drop
 their followers.
 
-Followers will also send a deregister message to their candidates
+Followers will also send a leave message to their candidates
 when they switch.
 
 After a timeout, candidates with non-zero follower counts will
@@ -367,9 +367,8 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 		leader_ip 				= raddr->ipaddr;
 		leader_priority 		= msg->priority;
 		leader_follower_count 	= msg->follower_count;
+
 	}
-
-
 
 
 
@@ -466,9 +465,33 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 
 static void process_status( controller_msg_status_t *msg, sock_addr_t *raddr ){
 
+	if( controller_state == STATE_FOLLOWER ){
+
+		// we are a follower, we don't care about status.
+
+		// this is mostly erroneous, the sender will
+		// figure out we aren't a leader eventually.
+		// we won't send a drop message in this case
+		// since we aren't changing our own state.
+
+		return;
+	}
+
+	// add or update this node's tracking information
+
+
 }
 
 static void process_leave( controller_msg_leave_t *msg, sock_addr_t *raddr ){
+
+	if( controller_state == STATE_FOLLOWER ){
+
+		// we are a follower, we don't care about leave.
+
+		return;
+	}
+
+	// remove this node from tracking
 
 }
 
@@ -543,8 +566,43 @@ PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 	
+	// if enabled, start out as a candidate
+	if( controller_enabled ){
+
+		controller_state = STATE_CANDIDATE;
+	}	
+
+	while( controller_state == STATE_CANDIDATE ){
+
+		// random delay:
+		TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
+
+		// broadcast announcement
+		send_announce();
+	}
+
+	while( controller_state == STATE_LEADER ){
+
+		// random delay:
+		TMR_WAIT( pt, rnd_u16_get_int() >> 4 );
+
+		// broadcast announcement
+		send_announce();
+	}
+
+	while( controller_state == STATE_FOLLOWER ){
+
+		TMR_WAIT( pt, 1000 );
+	}
+
+
+	TMR_WAIT( pt, 100 );
+
+
+
+	
 	// wait until controller is enabled
-	THREAD_WAIT_WHILE( pt, !controller_enabled );
+	// THREAD_WAIT_WHILE( pt, !controller_enabled );
 	
 
 
