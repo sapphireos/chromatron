@@ -41,6 +41,20 @@ Candidate: node is a candidate to become leader
 Leader: node is the leader
 
 
+Announce messages every 2 seconds
+
+Init:
+Start in follower state.
+Wait 10 seconds, if no leader, wait some random delay, then start
+announce and switch to candidate state (if controller leader mode)
+
+
+Leader loss:
+Go back to init
+
+
+
+
 Candidates broadcast their announcements with their
 priorities and follower count.
 
@@ -102,10 +116,8 @@ static uint8_t controller_state;
 #define STATE_LEADER 	2
 
 static ip_addr4_t leader_ip;
-static uint64_t leader_uptime;
 static uint16_t leader_priority;
 static uint16_t leader_follower_count;
-// static uint64_t leader_timestamp;
 
 KV_SECTION_META kv_meta_t controller_kv[] = {
     // { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_leader, 			0,  "controller_is_leader" },
@@ -113,29 +125,172 @@ KV_SECTION_META kv_meta_t controller_kv[] = {
     { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &controller_state, 	0,  "controller_state" },
     { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_enabled, 0,  "controller_enable_leader" },
     { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_READ_ONLY, &leader_ip, 			0,  "controller_leader_ip" },
-    // { CATBUS_TYPE_UINT64, 	0, KV_FLAGS_READ_ONLY, &leader_uptime, 		0,  "controller_leader_uptime" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_follower_count, 	0,  "controller_leader_follower_count" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_priority, 	0,  "controller_leader_priority" },
 };
 
+typedef struct{
+	ip_addr4_t ip;
+	uint16_t timeout;
+} follower_t;
+
+static list_t follower_list;
+
+
 PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) );
 PT_THREAD( controller_server_thread( pt_t *pt, void *state ) );
 
+static void update_follower_timeouts( void ){
+
+	list_node_t ln = follower_list.head;
+
+    while( ln > 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        follower_t *follower = (follower_t *)list_vp_get_data( ln );
+
+        if( follower->timeout > 0 ){
+
+        	follower->timeout--;
+
+        	if( follower->timeout == 0 ){
+
+	    		log_v_debug_P( PSTR("Follower timed out: %d.%d.%d.%d"),
+					follower->ip.ip3, 
+					follower->ip.ip2, 
+					follower->ip.ip1, 
+					follower->ip.ip0
+				 );
+
+        		list_v_remove( &follower_list, ln );
+	            list_v_release_node( ln );
+        	}
+        }
+
+        ln = next_ln;
+    }	
+}
+
+static void remove_follower( ip_addr4_t follower_ip ){
+
+	list_node_t ln = follower_list.head;
+
+    while( ln > 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        follower_t *follower = (follower_t *)list_vp_get_data( ln );
+
+        if( ip_b_addr_compare( follower_ip, follower->ip ) ){
+
+        	log_v_debug_P( PSTR("Removing follower: %d.%d.%d.%d"),
+				follower_ip.ip3, 
+				follower_ip.ip2, 
+				follower_ip.ip1, 
+				follower_ip.ip0
+			);
+
+    		list_v_remove( &follower_list, ln );
+            list_v_release_node( ln );
+        }
+
+        ln = next_ln;
+    }	
+}
+
+static void update_follower( ip_addr4_t follower_ip ){
+
+	// search for follower:
+	// if found, update
+	// if not found, add
+	list_node_t ln = follower_list.head;
+
+    while( ln > 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        follower_t *follower = (follower_t *)list_vp_get_data( ln );
+
+        if( ip_b_addr_compare( follower_ip, follower->ip ) ){
+
+        	follower->timeout = CONTROLLER_FOLLOWER_TIMEOUT;
+
+        	return;
+        }
+
+        ln = next_ln;
+    }		
+
+    follower_t follower = {
+    	follower_ip,
+		CONTROLLER_FOLLOWER_TIMEOUT,
+    };
+
+    // not found, add:
+    ln = list_ln_create_node( &follower, sizeof(follower) );
+
+    if( ln < 0 ){
+
+        return;
+    }
+
+ 	list_v_insert_tail( &follower_list, ln );   
+}
 
 static void reset_leader( void ){
 
 	leader_ip = ip_a_addr(0,0,0,0);
 	leader_priority = 0;
-	leader_uptime = 0;
+	leader_follower_count = 0;
 }
 
+static uint16_t get_follower_count( void ){
+
+	return list_u8_count( &follower_list );
+}
+
+static uint16_t get_priority( void ){
+
+	// check if leader is enabled, if not, return 0 and we are follower only
+	if( !controller_enabled ){
+
+		return 0;
+	}
+
+	uint16_t priority = 0;
+
+	// set base priorities
+
+	#ifdef ESP32
+	priority = 256;
+	#else
+	priority = 128;
+	#endif
+
+	return priority;
+}
+
+static void vote( ip_addr4_t ip, uint16_t priority, uint16_t follower_count ){
+
+	leader_ip = ip;
+	leader_priority = priority;
+	leader_follower_count = follower_count;
+}
+
+static void vote_self( void ){
+
+	vote( cfg_ip_get_ipaddr(), get_priority(), get_follower_count() );
+}
 
 void controller_v_init( void ){
 
 	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
 		return;
-    }	
+    }
+
+    list_v_init( &follower_list );	
 
     // create socket
     sock = sock_s_create( SOS_SOCK_DGRAM );
@@ -161,32 +316,6 @@ void controller_v_init( void ){
 static bool is_candidate( void ){
 
 	return controller_enabled && ip_b_is_zeroes( leader_ip );
-}
-
-static uint16_t get_follower_count( void ){
-
-	return 0;
-}
-
-static uint16_t get_priority( void ){
-
-	// check if leader is enabled, if not, return 0 and we are follower only
-	if( !controller_enabled ){
-
-		return 0;
-	}
-
-	uint16_t priority = 0;
-
-	// set base priorities
-
-	#ifdef ESP32
-	priority = 256;
-	#else
-	priority = 128;
-	#endif
-
-	return priority;
 }
 
 static void send_msg( uint8_t msgtype, uint8_t *msg, uint8_t len, sock_addr_t *raddr ){
@@ -235,7 +364,7 @@ static void send_announce( void ){
 
 static void send_status( void ){
 
-	if( controller_state == STATE_LEADER ){
+	if( controller_state != STATE_LEADER ){
 
 		log_v_error_P( PSTR("cannot send status as leader!") );
 
@@ -310,7 +439,8 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 		update_leader = TRUE;
 	}
 	// check if already tracking this leader:
-	else if( !ip_b_is_zeroes( leader_ip ) && ip_b_addr_compare( raddr->ipaddr, leader_ip ) ){
+	else if( !ip_b_is_zeroes( leader_ip ) && 
+		     ip_b_addr_compare( raddr->ipaddr, leader_ip ) ){
 
 		update_leader = TRUE;
 	}
@@ -342,7 +472,6 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 		}
 	}
 
-
 	if( update_leader ){
 
 		// check if switching leaders
@@ -359,15 +488,26 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 			// inform it that we are leaving.
 			if( !ip_b_is_zeroes( leader_ip ) ){
 
+				log_v_debug_P( PSTR("Leaving previous leader") );
+
 				// byeeeeeeeeee
 				send_leave();	
 			}
+			// check if we were *a* leader, but this one is better
+			else if( ip_b_addr_compare( cfg_ip_get_ipaddr(), leader_ip ) ){
+
+				log_v_debug_P( PSTR("Dropping all followers") );
+
+				// drop followers
+				send_drop( ip_a_addr(255,255,255,255) );
+				send_drop( ip_a_addr(255,255,255,255) );
+				send_drop( ip_a_addr(255,255,255,255) );
+
+				list_v_destroy( &follower_list );
+			}
 		}
 
-		leader_ip 				= raddr->ipaddr;
-		leader_priority 		= msg->priority;
-		leader_follower_count 	= msg->follower_count;
-
+		vote( raddr->ipaddr, msg->priority, msg->follower_count );
 	}
 
 
@@ -478,8 +618,7 @@ static void process_status( controller_msg_status_t *msg, sock_addr_t *raddr ){
 	}
 
 	// add or update this node's tracking information
-
-
+	update_follower( raddr->ipaddr );
 }
 
 static void process_leave( controller_msg_leave_t *msg, sock_addr_t *raddr ){
@@ -492,11 +631,23 @@ static void process_leave( controller_msg_leave_t *msg, sock_addr_t *raddr ){
 	}
 
 	// remove this node from tracking
-
+	remove_follower( raddr->ipaddr );
 }
 
 static void process_drop( controller_msg_drop_t *msg, sock_addr_t *raddr ){
 
+	// check if this is from our leader
+	if( ip_b_addr_compare( leader_ip, raddr->ipaddr ) ){
+
+		log_v_debug_P( PSTR("Dropping leader: %d.%d.%d.%d"),
+			raddr->ipaddr.ip3, 
+			raddr->ipaddr.ip2, 
+			raddr->ipaddr.ip1, 
+			raddr->ipaddr.ip0
+		);
+
+		reset_leader();
+	}
 }
 
 PT_THREAD( controller_server_thread( pt_t *pt, void *state ) )
@@ -570,12 +721,18 @@ PT_BEGIN( pt );
 	if( controller_enabled ){
 
 		controller_state = STATE_CANDIDATE;
+
+		vote_self();
 	}	
+	else{
+
+		controller_state = STATE_FOLLOWER;
+	}
 
 	while( controller_state == STATE_CANDIDATE ){
 
 		// random delay:
-		TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
+		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 - 3048 ms
 
 		// broadcast announcement
 		send_announce();
@@ -584,7 +741,7 @@ PT_BEGIN( pt );
 	while( controller_state == STATE_LEADER ){
 
 		// random delay:
-		TMR_WAIT( pt, rnd_u16_get_int() >> 4 );
+		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 to 3048 ms
 
 		// broadcast announcement
 		send_announce();
@@ -592,12 +749,19 @@ PT_BEGIN( pt );
 
 	while( controller_state == STATE_FOLLOWER ){
 
-		TMR_WAIT( pt, 1000 );
-	}
+		// random delay:
+		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 to 3048 ms
 
+		if( !ip_b_is_zeroes( leader_ip) ){
+
+			// send status
+			send_status();	
+		}
+	}
 
 	TMR_WAIT( pt, 100 );
 
+	THREAD_RESTART( pt );
 
 
 	

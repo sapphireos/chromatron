@@ -31,6 +31,8 @@ void controller_v_init( void );
 
 // #define CONTROLLER_LEADER_CYCLES 5
 
+#define CONTROLLER_FOLLOWER_TIMEOUT 60
+
 #define CONTROLLER_MSG_MAGIC    0x34651177
 #define CONTROLLER_MSG_VERSION  1
 typedef struct __attribute__((packed)){
