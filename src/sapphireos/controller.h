@@ -33,7 +33,7 @@ void controller_v_init( void );
 
 #define CONTROLLER_FOLLOWER_TIMEOUT 60
 
-#define CONTROLLER_MSG_MAGIC    0x34651177
+#define CONTROLLER_MSG_MAGIC    0x4C525443 // 'CTRL'
 #define CONTROLLER_MSG_VERSION  1
 typedef struct __attribute__((packed)){
     uint32_t magic;

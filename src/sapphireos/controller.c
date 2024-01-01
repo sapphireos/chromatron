@@ -638,34 +638,37 @@ PT_BEGIN( pt );
 		controller_state = STATE_FOLLOWER;
 	}
 
-	while( controller_state == STATE_CANDIDATE ){
+	// random delay:
+	TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // 0 - 4096 ms
 
-		// random delay:
-		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 - 3048 ms
+	while( controller_state == STATE_CANDIDATE ){
 
 		// broadcast announcement
 		send_announce();
+
+		// random delay:
+		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 - 3048 ms
 	}
 
 	while( controller_state == STATE_LEADER ){
 
-		// random delay:
-		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 to 3048 ms
-
 		// broadcast announcement
 		send_announce();
+
+		// random delay:
+		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 to 3048 ms
 	}
 
 	while( controller_state == STATE_FOLLOWER ){
-
-		// random delay:
-		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 to 3048 ms
 
 		if( !ip_b_is_zeroes( leader_ip) ){
 
 			// send status
 			send_status();	
 		}
+
+		// random delay:
+		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 to 3048 ms
 	}
 
 	TMR_WAIT( pt, 100 );
