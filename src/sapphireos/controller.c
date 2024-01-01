@@ -114,19 +114,22 @@ static uint8_t controller_state;
 #define STATE_FOLLOWER 	0
 #define STATE_CANDIDATE 1
 #define STATE_LEADER 	2
+#define STATE_RESET     3
+
 
 static ip_addr4_t leader_ip;
 static uint16_t leader_priority;
 static uint16_t leader_follower_count;
+static uint16_t leader_timeout;
 
 KV_SECTION_META kv_meta_t controller_kv[] = {
     // { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_leader, 			0,  "controller_is_leader" },
     // { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_follower, 		0,  "controller_is_follower" },
-    { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &controller_state, 	0,  "controller_state" },
-    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_enabled, 0,  "controller_enable_leader" },
-    { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_READ_ONLY, &leader_ip, 			0,  "controller_leader_ip" },
-    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_follower_count, 	0,  "controller_leader_follower_count" },
-    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_priority, 	0,  "controller_leader_priority" },
+    { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &controller_state, 		0,  "controller_state" },
+    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_enabled, 	0,  "controller_enable_leader" },
+    { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_READ_ONLY, &leader_ip, 				0,  "controller_leader_ip" },
+    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_follower_count, 	0,  "controller_follower_count" },
+    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_priority, 		0,  "controller_leader_priority" },
 };
 
 typedef struct{
@@ -139,6 +142,8 @@ static list_t follower_list;
 
 PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) );
 PT_THREAD( controller_server_thread( pt_t *pt, void *state ) );
+PT_THREAD( controller_timeout_thread( pt_t *pt, void *state ) );
+
 
 static void update_follower_timeouts( void ){
 
@@ -276,6 +281,7 @@ static void vote( ip_addr4_t ip, uint16_t priority, uint16_t follower_count ){
 	leader_ip = ip;
 	leader_priority = priority;
 	leader_follower_count = follower_count;
+	leader_timeout = CONTROLLER_FOLLOWER_TIMEOUT;
 }
 
 static void vote_self( void ){
@@ -310,13 +316,16 @@ void controller_v_init( void ){
                      0,
                      0 );
 
-
+    thread_t_create( controller_timeout_thread,
+                     PSTR("controller_timeout"),
+                     0,
+                     0 );
 }
 
-static bool is_candidate( void ){
+// static bool is_candidate( void ){
 
-	return controller_enabled && ip_b_is_zeroes( leader_ip );
-}
+// 	return controller_enabled && ip_b_is_zeroes( leader_ip );
+// }
 
 static void send_msg( uint8_t msgtype, uint8_t *msg, uint8_t len, sock_addr_t *raddr ){
 
@@ -625,11 +634,15 @@ PT_END( pt );
 PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+	static uint32_t start_time;
 	
 	// if enabled, start out as a candidate
 	if( controller_enabled ){
 
 		controller_state = STATE_CANDIDATE;
+
+		start_time = tmr_u32_get_system_time_ms();
 
 		vote_self();
 	}	
@@ -648,6 +661,13 @@ PT_BEGIN( pt );
 
 		// random delay:
 		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 - 3048 ms
+			
+		// check if we are leader after timeout
+		if( ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) &&
+			tmr_u32_elapsed_time_ms( start_time ) > 20000 ){
+
+			controller_state = STATE_LEADER;
+		}
 	}
 
 	while( controller_state == STATE_LEADER ){
@@ -677,6 +697,35 @@ PT_BEGIN( pt );
     
 PT_END( pt );
 }
+
+
+PT_THREAD( controller_timeout_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+   	
+   	while(1){
+
+   		TMR_WAIT( pt, 1000 );
+
+   		update_follower_timeouts();
+
+   		if( ( leader_timeout > 0 ) && 
+   			( !ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) ) ){
+
+   			leader_timeout--;
+
+   			if( leader_timeout == 0 ){
+
+   				controller_state = STATE_RESET;
+
+   				reset_leader();
+   			}
+   		}
+	}
+    
+PT_END( pt );
+}
+
 
 
 
