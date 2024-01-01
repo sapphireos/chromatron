@@ -107,14 +107,13 @@ task more quickly.
 static socket_t sock;
 
 static bool controller_enabled;
-// static bool is_leader;
-// static bool is_follower;
 
 static uint8_t controller_state;
-#define STATE_FOLLOWER 	0
-#define STATE_CANDIDATE 1
-#define STATE_LEADER 	2
-#define STATE_RESET     3
+#define STATE_IDLE 		0
+#define STATE_FOLLOWER 	1
+#define STATE_CANDIDATE 2
+#define STATE_LEADER 	3
+#define STATE_RESET     255
 
 
 static ip_addr4_t leader_ip;
@@ -123,8 +122,6 @@ static uint16_t leader_follower_count;
 static uint16_t leader_timeout;
 
 KV_SECTION_META kv_meta_t controller_kv[] = {
-    // { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_leader, 			0,  "controller_is_leader" },
-    // { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_READ_ONLY, &is_follower, 		0,  "controller_is_follower" },
     { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &controller_state, 		0,  "controller_state" },
     { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_enabled, 	0,  "controller_enable_leader" },
     { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_READ_ONLY, &leader_ip, 				0,  "controller_leader_ip" },
@@ -350,10 +347,10 @@ static void send_announce( void ){
 
     uint16_t flags = 0;
 
-    // if( is_leader ){
+    if( controller_state == STATE_LEADER ){
 
-    // 	flags |= CONTROLLER_FLAGS_IS_LEADER;
-    // }
+    	flags |= CONTROLLER_FLAGS_IS_LEADER;
+    }
 
 	controller_msg_announce_t msg = {
 		{ 0 },
@@ -636,6 +633,11 @@ PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
 	static uint32_t start_time;
+
+	controller_state = STATE_IDLE;
+
+	// start in idle state, to wait for announce messages
+
 	
 	// if enabled, start out as a candidate
 	if( controller_enabled ){
@@ -665,6 +667,8 @@ PT_BEGIN( pt );
 		// check if we are leader after timeout
 		if( ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) &&
 			tmr_u32_elapsed_time_ms( start_time ) > 20000 ){
+
+			log_v_debug_P( PSTR("Electing self as leader") );
 
 			controller_state = STATE_LEADER;
 		}
@@ -708,6 +712,8 @@ PT_BEGIN( pt );
    		TMR_WAIT( pt, 1000 );
 
    		update_follower_timeouts();
+
+   		leader_follower_count = get_follower_count();
 
    		if( ( leader_timeout > 0 ) && 
    			( !ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) ) ){
