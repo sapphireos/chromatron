@@ -35,10 +35,31 @@ Controller selection algorithm:
 
 Election States:
 
+Idle: Node has initialized and is waiting for something to do.
 Follower: node is a follower
 	This is the default state, even if there is no leader
 Candidate: node is a candidate to become leader	
 Leader: node is the leader
+
+
+State transitions:
+
+Idle:
+	-> Follower: on timeout, leader is available
+	-> Candidate: on timeout, leader is not available, and leader mode enabled
+
+Follower:
+	-> Idle: on timeout (no announcements received)
+	-> Idle: drop message received from leader
+
+Candidate:
+	-> Follower: on timeout, better leader is available
+	-> Leader: on timeout, no better leader found
+
+Leader:
+	-> Idle: Better leader found
+	-> Idle: Follower count reaches zero
+
 
 
 Announce messages every 2 seconds
