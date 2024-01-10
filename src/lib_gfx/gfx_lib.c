@@ -2265,7 +2265,7 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         // 2D access, this is easier because we already know y
         else{
 
-            if( y & 1 ){
+            if( ( y % pix_arrays[obj].size_y ) & 1 ){
 
                 x = ( pix_arrays[obj].size_x - 1 ) - ( x % pix_arrays[obj].size_x );
             }
