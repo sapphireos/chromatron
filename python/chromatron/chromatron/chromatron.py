@@ -523,6 +523,7 @@ class Chromatron(object):
 
 
         if start:
+            self.reset_vm(vm_index) # also reset to clear status
             self.start_vm(vm_index)
 
     def reset_vm(self, vm_index=0):
