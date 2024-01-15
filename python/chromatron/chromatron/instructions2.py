@@ -327,12 +327,20 @@ class insProgram(object):
             else:
                 pix_mirror = -1
 
+            if 'reverse' in p.keywords:
+                pix_reverse = p.keywords['reverse']
+
+            else:
+                pix_reverse = 0
+
+
             array = {
                 'count': pix_count,
                 'index': pix_index,
                 'size_x': pix_size_x,
                 'size_y': pix_size_y,
                 'mirror': pix_mirror,
+                'reverse': pix_reverse,
             }
 
             for k, v in PIXEL_ATTR_INDEXES.items():
