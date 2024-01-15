@@ -391,7 +391,7 @@ static void send_announce( void ){
 
 static void send_status( void ){
 
-	if( controller_state != STATE_LEADER ){
+	if( controller_state == STATE_LEADER ){
 
 		log_v_error_P( PSTR("cannot send status as leader!") );
 
