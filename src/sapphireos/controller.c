@@ -141,6 +141,7 @@ static uint8_t leader_flags;
 static uint16_t leader_priority;
 static uint16_t leader_follower_count;
 static uint16_t leader_timeout;
+static uint32_t leader_uptime;
 
 KV_SECTION_META kv_meta_t controller_kv[] = {
     { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &controller_state, 		0,  "controller_state" },
@@ -151,6 +152,7 @@ KV_SECTION_META kv_meta_t controller_kv[] = {
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_follower_count, 	0,  "controller_follower_count" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_priority, 		0,  "controller_leader_priority" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_timeout, 		0,  "controller_leader_timeout" },
+    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_uptime,  		0,  "controller_leader_uptime" },
 };
 
 typedef struct{
@@ -314,6 +316,7 @@ static void reset_leader( void ){
 	leader_priority = 0;
 	leader_follower_count = 0;
 	leader_flags = 0;
+	leader_uptime = 0;
 }
 
 static uint16_t get_follower_count( void ){
@@ -374,7 +377,9 @@ static void vote( ip_addr4_t ip, uint16_t priority, uint16_t follower_count, uin
 	}
 	else if( controller_state == STATE_CANDIDATE ){
 
-		if( leader_change ){
+		// if candidate change, and we are no longer the candidate,
+		// switch to voter state
+		if( leader_change && !ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) ){
 
 			set_state( STATE_VOTER );
 		}
@@ -784,7 +789,7 @@ PT_BEGIN( pt );
 			set_state( STATE_CANDIDATE );
 			
 			reset_leader();	
-			leader_ip = cfg_ip_get_ipaddr();		
+			vote_self();		
 		}
 		// else if( !ip_b_is_zeroes( leader_ip ) ){
 
@@ -849,14 +854,17 @@ PT_BEGIN( pt );
 	// LEADER
 	while( controller_state == STATE_LEADER ){
 
-		THREAD_WAIT_WHILE( pt, controller_state == STATE_LEADER );
+		// broadcast announcement
+		send_announce();
+
+		// random delay:
+		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 - 3048 ms
 	}
 
 
 	THREAD_RESTART( pt );
 
 
-	
 
 	// set_state( STATE_IDLE );
 
@@ -951,6 +959,12 @@ PT_BEGIN( pt );
    				reset_leader();
    			}
    		}
+
+   		if( ( controller_state == STATE_LEADER ) ||
+			( controller_state == STATE_FOLLOWER ) ){
+
+			leader_uptime++;
+		}
 	}
     
 PT_END( pt );

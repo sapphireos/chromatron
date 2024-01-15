@@ -15,6 +15,7 @@
         "-g3",
         "-Wall",
         "-fno-strict-aliasing",
+        "-Wunused-function",
         "-Wno-unused",
         "-Wno-main",
         "-Wno-unknown-pragmas",
