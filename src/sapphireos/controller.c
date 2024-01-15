@@ -201,7 +201,10 @@ static void apply_state_name( void ){
 
 static void set_state( uint8_t state ){
 
+	if( controller_state != state ){
 
+		log_v_debug_P( PSTR("changing state from %d to %d"), controller_state, state );
+	}
 
 	controller_state = state;
 	apply_state_name();
@@ -383,6 +386,9 @@ static void vote( ip_addr4_t ip, uint16_t priority, uint16_t follower_count, uin
 			set_state( STATE_VOTER );
 		}
 	}
+	else if( controller_state == STATE_VOTER ){
+
+	}
 	else{
 
 		log_v_debug_P( PSTR("vote on unhandled state: %d"), controller_state );
@@ -552,22 +558,26 @@ static void send_drop( ip_addr4_t ip ){
 
 static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr ){
 
+	uint8_t reason = 0;
 	bool update_leader = FALSE;
 
 	// check if this is the first leader/candidate we've seen
 	if( !ip_b_is_zeroes( leader_ip ) ){
 
+		reason = 1;
 		update_leader = TRUE;
 	}
 	// check if already tracking this leader:
 	else if( !ip_b_is_zeroes( leader_ip ) && 
 		     ip_b_addr_compare( raddr->ipaddr, leader_ip ) ){
 
+		reason = 2;
 		update_leader = TRUE;
 	}
 	// check better priority:
 	else if( msg->priority > leader_priority ){
 
+		reason = 3;
 		update_leader = TRUE;
 	}
 	// check same priority
@@ -576,6 +586,7 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 		// is follower count better?
 		if( msg->follower_count > leader_follower_count ){
 
+			reason = 4;
 			update_leader = TRUE;	
 		}
 		// is follower count the same?
@@ -588,6 +599,7 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 
 			if( msg_ip_u32 < leader_ip_u32 ){
 
+				reason = 5;
 				update_leader = TRUE;	
 			}
 		}
@@ -598,18 +610,24 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 		// check if switching leaders
 		if( !ip_b_addr_compare( leader_ip, raddr->ipaddr ) ){
 
-			log_v_debug_P( PSTR("Switching leader to: %d.%d.%d.%d"),
+			log_v_debug_P( PSTR("Switching leader to: %d.%d.%d.%d reason: %d"),
 				raddr->ipaddr.ip3, 
 				raddr->ipaddr.ip2, 
 				raddr->ipaddr.ip1, 
-				raddr->ipaddr.ip0
+				raddr->ipaddr.ip0,
+				reason
 			);
 
 			// if we were tracking a pre-existing leader,
 			// inform it that we are leaving.
 			if( !ip_b_is_zeroes( leader_ip ) ){
 
-				log_v_debug_P( PSTR("Leaving previous leader") );
+				log_v_debug_P( PSTR("Leaving previous leader: %d.%d.%d.%d"),
+					raddr->ipaddr.ip3, 
+					raddr->ipaddr.ip2, 
+					raddr->ipaddr.ip1, 
+					raddr->ipaddr.ip0
+				);
 
 				// byeeeeeeeeee
 				send_leave();	
