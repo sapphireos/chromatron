@@ -562,7 +562,7 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 	bool update_leader = FALSE;
 
 	// check if this is the first leader/candidate we've seen
-	if( !ip_b_is_zeroes( leader_ip ) ){
+	if( ip_b_is_zeroes( leader_ip ) ){
 
 		reason = 1;
 		update_leader = TRUE;
