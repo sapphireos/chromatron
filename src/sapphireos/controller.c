@@ -515,7 +515,7 @@ static void send_status( void ){
 	};
 
 	sock_addr_t raddr;
-    raddr.ipaddr = ip_a_addr(255, 255, 255, 255);
+    raddr.ipaddr = leader_ip;
     raddr.port = CONTROLLER_PORT;
 
 	send_msg( CONTROLLER_MSG_STATUS, (uint8_t *)&msg, sizeof(msg), &raddr );
@@ -700,6 +700,7 @@ static void process_drop( controller_msg_drop_t *msg, sock_addr_t *raddr ){
 		);
 
 		reset_leader();
+		set_state( STATE_IDLE );
 	}
 }
 
@@ -833,7 +834,10 @@ PT_BEGIN( pt );
 	// FOLLOWER
 	while( controller_state == STATE_FOLLOWER ){
 
-		THREAD_WAIT_WHILE( pt, controller_state == STATE_FOLLOWER );
+		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 + ( rnd_u16_get_int() >> 5 )  ); // 2000 - 4048 ms
+		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && controller_state == STATE_FOLLOWER );
+
+		send_status();
 	}
 
 	// CANDIDATE
@@ -868,73 +872,6 @@ PT_BEGIN( pt );
 
 
 	THREAD_RESTART( pt );
-
-
-
-	// set_state( STATE_IDLE );
-
-	// // start in idle state, to wait for announce messages
-
-	
-	// // if enabled, start out as a candidate
-	// if( controller_enabled ){
-
-	// 	set_state( STATE_CANDIDATE );
-
-	// 	start_time = tmr_u32_get_system_time_ms();
-
-	// 	vote_self();
-	// }	
-	// else{
-
-	// 	set_state( STATE_FOLLOWER );
-	// }
-
-	// // random delay:
-	// TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // 0 - 4096 ms
-
-	// while( controller_state == STATE_CANDIDATE ){
-
-	// 	// broadcast announcement
-	// 	send_announce();
-
-	// 	// random delay:
-	// 	TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 - 3048 ms
-			
-	// 	// check if we are leader after timeout
-	// 	if( ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) &&
-	// 		tmr_u32_elapsed_time_ms( start_time ) > 20000 ){
-
-	// 		log_v_debug_P( PSTR("Electing self as leader") );
-
-	// 		set_state( STATE_LEADER );
-	// 	}
-	// }
-
-	// while( controller_state == STATE_LEADER ){
-
-	// 	// broadcast announcement
-	// 	send_announce();
-
-	// 	// random delay:
-	// 	TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 to 3048 ms
-	// }
-
-	// while( controller_state == STATE_FOLLOWER ){
-
-	// 	if( !ip_b_is_zeroes( leader_ip) ){
-
-	// 		// send status
-	// 		send_status();	
-	// 	}
-
-	// 	// random delay:
-	// 	TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 to 3048 ms
-	// }
-
-	// TMR_WAIT( pt, 100 );
-
-	// THREAD_RESTART( pt );
     
 PT_END( pt );
 }
