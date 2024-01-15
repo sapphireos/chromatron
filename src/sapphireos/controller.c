@@ -837,7 +837,10 @@ PT_BEGIN( pt );
 		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 + ( rnd_u16_get_int() >> 5 )  ); // 2000 - 4048 ms
 		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && controller_state == STATE_FOLLOWER );
 
-		send_status();
+		if( controller_state == STATE_FOLLOWER ){
+		
+			send_status();
+		}
 	}
 
 	// CANDIDATE
@@ -883,8 +886,9 @@ PT_BEGIN( pt );
    	
    	while(1){
 
-   		TMR_WAIT( pt, 1000 );
-
+   		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 );
+   		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
+   		
    		if( sys_b_is_shutting_down() ){
 
    			if( controller_state == STATE_FOLLOWER ){
@@ -899,12 +903,17 @@ PT_BEGIN( pt );
 				send_drop( ip_a_addr(255,255,255,255) );
    			}
 
+   			set_state( STATE_IDLE );
+
         	THREAD_EXIT( pt );
         }
 
    		update_follower_timeouts();
 
-   		leader_follower_count = get_follower_count();
+   		if( controller_state == STATE_LEADER ){
+   			
+   			leader_follower_count = get_follower_count();
+   		}
 
    		if( ( leader_timeout > 0 ) && 
    			( !ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) ) ){
