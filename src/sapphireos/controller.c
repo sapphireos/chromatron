@@ -711,6 +711,11 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
+        if( sys_b_is_shutting_down() ){
+
+        	THREAD_EXIT( pt );
+        }
+
         uint16_t error = CATBUS_STATUS_OK;
 
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
@@ -942,6 +947,23 @@ PT_BEGIN( pt );
    	while(1){
 
    		TMR_WAIT( pt, 1000 );
+
+   		if( sys_b_is_shutting_down() ){
+
+   			if( controller_state == STATE_FOLLOWER ){
+
+   				send_leave();
+   			}
+   			else if( controller_state == STATE_LEADER ){
+
+   				// drop followers
+				send_drop( ip_a_addr(255,255,255,255) );
+				send_drop( ip_a_addr(255,255,255,255) );
+				send_drop( ip_a_addr(255,255,255,255) );
+   			}
+
+        	THREAD_EXIT( pt );
+        }
 
    		update_follower_timeouts();
 
