@@ -36,17 +36,25 @@ Controller selection algorithm:
 Election States:
 
 Idle: Node has initialized and is waiting for something to do.
-Follower: node is a follower
-	This is the default state, even if there is no leader
+	This is the default state
+Voter: node is voting for a candidate
+Follower: node is a follower of a specific leader
 Candidate: node is a candidate to become leader	
 Leader: node is the leader
 
 
 State transitions:
+(in priority order)
 
 Idle:
-	-> Follower: on timeout, leader is available
+	-> Follower: leader is available
+	-> Voter: on timeout, candidate is available
 	-> Candidate: on timeout, leader is not available, and leader mode enabled
+
+Voter:
+	-> Idle: on timeout (no announcements received)
+	-> Idle: drop message received from candidate
+	-> Follower: leader is available
 
 Follower:
 	-> Idle: on timeout (no announcements received)
@@ -63,17 +71,6 @@ Leader:
 
 
 Announce messages every 2 seconds
-
-Init:
-Start in follower state.
-Wait 10 seconds, if no leader, wait some random delay, then start
-announce and switch to candidate state (if controller leader mode)
-
-
-Leader loss:
-Go back to init
-
-
 
 
 Candidates broadcast their announcements with their
@@ -131,14 +128,16 @@ static bool controller_enabled;
 
 static uint8_t controller_state;
 #define STATE_IDLE 		0
-#define STATE_FOLLOWER 	1
-#define STATE_CANDIDATE 2
-#define STATE_LEADER 	3
+#define STATE_VOTER	    1
+#define STATE_FOLLOWER 	2
+#define STATE_CANDIDATE 3
+#define STATE_LEADER 	4
 
 
 static catbus_string_t state_name;
 
 static ip_addr4_t leader_ip;
+static uint8_t leader_flags;
 static uint16_t leader_priority;
 static uint16_t leader_follower_count;
 static uint16_t leader_timeout;
@@ -148,8 +147,10 @@ KV_SECTION_META kv_meta_t controller_kv[] = {
     { CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, &state_name,				0,  "controller_state_text" },
     { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_enabled, 	0,  "controller_enable_leader" },
     { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_READ_ONLY, &leader_ip, 				0,  "controller_leader_ip" },
+    { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &leader_flags, 			0,  "controller_leader_flags" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_follower_count, 	0,  "controller_follower_count" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_priority, 		0,  "controller_leader_priority" },
+    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_timeout, 		0,  "controller_leader_timeout" },
 };
 
 typedef struct{
@@ -160,7 +161,7 @@ typedef struct{
 static list_t follower_list;
 
 
-PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) );
+PT_THREAD( controller_state_thread( pt_t *pt, void *state ) );
 PT_THREAD( controller_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( controller_timeout_thread( pt_t *pt, void *state ) );
 
@@ -170,6 +171,10 @@ static PGM_P get_state_name( uint8_t state ){
 	if( state == STATE_IDLE ){
 
 		return PSTR("idle");
+	}
+	else if( state == STATE_VOTER ){
+
+		return PSTR("voter");
 	}
 	else if( state == STATE_FOLLOWER ){
 
@@ -195,6 +200,8 @@ static void apply_state_name( void ){
 }
 
 static void set_state( uint8_t state ){
+
+
 
 	controller_state = state;
 	apply_state_name();
@@ -303,6 +310,7 @@ static void reset_leader( void ){
 	leader_ip = ip_a_addr(0,0,0,0);
 	leader_priority = 0;
 	leader_follower_count = 0;
+	leader_flags = 0;
 }
 
 static uint16_t get_follower_count( void ){
@@ -331,17 +339,66 @@ static uint16_t get_priority( void ){
 	return priority;
 }
 
-static void vote( ip_addr4_t ip, uint16_t priority, uint16_t follower_count ){
+static void vote( ip_addr4_t ip, uint16_t priority, uint16_t follower_count, uint8_t flags ){
+
+	bool leader_change = !ip_b_addr_compare( ip, leader_ip );
 
 	leader_ip = ip;
 	leader_priority = priority;
 	leader_follower_count = follower_count;
 	leader_timeout = CONTROLLER_FOLLOWER_TIMEOUT;
+	leader_flags = flags;
+
+	// check state:
+	if( controller_state == STATE_IDLE ){
+
+		// we have a candidate, now we vote for it:
+		if( flags & CONTROLLER_FLAGS_IS_LEADER ){
+			
+			set_state( STATE_FOLLOWER );
+		}
+		else{
+
+			set_state( STATE_VOTER );
+		}
+	}
+	else if( controller_state == STATE_FOLLOWER ){
+		
+		if( leader_change ){
+
+			log_v_debug_P( PSTR("leader change, still a follower") );	
+		}
+	}
+	else if( controller_state == STATE_CANDIDATE ){
+
+		if( leader_change ){
+
+			set_state( STATE_VOTER );
+		}
+	}
+	else if( controller_state == STATE_LEADER ){
+
+		if( leader_change ){
+
+			set_state( STATE_VOTER );
+		}
+	}
+	else{
+
+		log_v_debug_P( PSTR("vote on unhandled state: %d"), controller_state );
+	}
 }
 
 static void vote_self( void ){
 
-	vote( cfg_ip_get_ipaddr(), get_priority(), get_follower_count() );
+	uint8_t flags = 0;
+
+	if( controller_state == STATE_LEADER ){
+
+		flags |= CONTROLLER_FLAGS_IS_LEADER;
+	}
+
+	vote( cfg_ip_get_ipaddr(), get_priority(), get_follower_count(), flags );
 }
 
 void controller_v_init( void ){
@@ -366,8 +423,8 @@ void controller_v_init( void ){
                      0 );
 
 
-    thread_t_create( controller_announce_thread,
-                     PSTR("controller_announce"),
+    thread_t_create( controller_state_thread,
+                     PSTR("controller_state_machine"),
                      0,
                      0 );
 
@@ -571,7 +628,7 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 			}
 		}
 
-		vote( raddr->ipaddr, msg->priority, msg->follower_count );
+		vote( raddr->ipaddr, msg->priority, msg->follower_count, msg->flags );
 	}
 }
 
@@ -686,34 +743,73 @@ PT_END( pt );
 }
 
 
-PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) )
+PT_THREAD( controller_state_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
 	static uint32_t start_time;
 
+	// start in idle state, to wait for announce messages
 	set_state( STATE_IDLE );
 
-	// start in idle state, to wait for announce messages
+	// wait for timeout or leader/candidate is available
+	thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_IDLE_TIMEOUT * 1000 );
+	// THREAD_WAIT_WHILE( thread_b_alarm_set() );
+	THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && controller_state == STATE_IDLE );
 
-	
-	// if enabled, start out as a candidate
-	if( controller_enabled ){
+	if( thread_b_alarm() ){
+		// timeout!
 
-		set_state( STATE_CANDIDATE );
+		// check if leader is enabled:
+		if( controller_enabled ){
 
-		start_time = tmr_u32_get_system_time_ms();
+			set_state( STATE_CANDIDATE );
+			
+			reset_leader();	
+			leader_ip = cfg_ip_get_ipaddr();		
+		}
+		// else if( !ip_b_is_zeroes( leader_ip ) ){
 
-		vote_self();
-	}	
+		// 	// we have a candidate leader
+		// 	set_state( STATE_VOTER );
+			
+
+		// }
+		else{
+
+			// no leader found
+			// timeout, restart
+			THREAD_RESTART( pt );
+		}
+	}
 	else{
 
-		set_state( STATE_FOLLOWER );
+		// state change
+
 	}
 
-	// random delay:
-	TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // 0 - 4096 ms
+	// VOTER
+	while( controller_state == STATE_VOTER ){
 
+		thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_ELECTION_TIMEOUT * 1000 );
+		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && controller_state == STATE_VOTER );
+
+		if( thread_b_alarm() ){
+			
+			// reset to idle
+			set_state( STATE_IDLE );
+			reset_leader();
+		}	
+	}
+
+	// FOLLOWER
+	while( controller_state == STATE_FOLLOWER ){
+
+		THREAD_WAIT_WHILE( pt, controller_state == STATE_FOLLOWER );
+	}
+
+	// CANDIDATE
+	start_time = tmr_u32_get_system_time_ms();
 	while( controller_state == STATE_CANDIDATE ){
 
 		// broadcast announcement
@@ -724,7 +820,7 @@ PT_BEGIN( pt );
 			
 		// check if we are leader after timeout
 		if( ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) &&
-			tmr_u32_elapsed_time_ms( start_time ) > 20000 ){
+			tmr_u32_elapsed_time_ms( start_time ) > CONTROLLER_ELECTION_TIMEOUT * 1000 ){
 
 			log_v_debug_P( PSTR("Electing self as leader") );
 
@@ -732,30 +828,82 @@ PT_BEGIN( pt );
 		}
 	}
 
+	// LEADER
 	while( controller_state == STATE_LEADER ){
 
-		// broadcast announcement
-		send_announce();
-
-		// random delay:
-		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 to 3048 ms
+		THREAD_WAIT_WHILE( pt, controller_state == STATE_LEADER );
 	}
 
-	while( controller_state == STATE_FOLLOWER ){
-
-		if( !ip_b_is_zeroes( leader_ip) ){
-
-			// send status
-			send_status();	
-		}
-
-		// random delay:
-		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 to 3048 ms
-	}
-
-	TMR_WAIT( pt, 100 );
 
 	THREAD_RESTART( pt );
+
+
+	
+
+	// set_state( STATE_IDLE );
+
+	// // start in idle state, to wait for announce messages
+
+	
+	// // if enabled, start out as a candidate
+	// if( controller_enabled ){
+
+	// 	set_state( STATE_CANDIDATE );
+
+	// 	start_time = tmr_u32_get_system_time_ms();
+
+	// 	vote_self();
+	// }	
+	// else{
+
+	// 	set_state( STATE_FOLLOWER );
+	// }
+
+	// // random delay:
+	// TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // 0 - 4096 ms
+
+	// while( controller_state == STATE_CANDIDATE ){
+
+	// 	// broadcast announcement
+	// 	send_announce();
+
+	// 	// random delay:
+	// 	TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 - 3048 ms
+			
+	// 	// check if we are leader after timeout
+	// 	if( ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) &&
+	// 		tmr_u32_elapsed_time_ms( start_time ) > 20000 ){
+
+	// 		log_v_debug_P( PSTR("Electing self as leader") );
+
+	// 		set_state( STATE_LEADER );
+	// 	}
+	// }
+
+	// while( controller_state == STATE_LEADER ){
+
+	// 	// broadcast announcement
+	// 	send_announce();
+
+	// 	// random delay:
+	// 	TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 to 3048 ms
+	// }
+
+	// while( controller_state == STATE_FOLLOWER ){
+
+	// 	if( !ip_b_is_zeroes( leader_ip) ){
+
+	// 		// send status
+	// 		send_status();	
+	// 	}
+
+	// 	// random delay:
+	// 	TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 to 3048 ms
+	// }
+
+	// TMR_WAIT( pt, 100 );
+
+	// THREAD_RESTART( pt );
     
 PT_END( pt );
 }
