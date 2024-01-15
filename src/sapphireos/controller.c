@@ -134,8 +134,9 @@ static uint8_t controller_state;
 #define STATE_FOLLOWER 	1
 #define STATE_CANDIDATE 2
 #define STATE_LEADER 	3
-#define STATE_RESET     255
 
+
+static catbus_string_t state_name;
 
 static ip_addr4_t leader_ip;
 static uint16_t leader_priority;
@@ -144,6 +145,7 @@ static uint16_t leader_timeout;
 
 KV_SECTION_META kv_meta_t controller_kv[] = {
     { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &controller_state, 		0,  "controller_state" },
+    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, &state_name,				0,  "controller_state_text" },
     { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_enabled, 	0,  "controller_enable_leader" },
     { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_READ_ONLY, &leader_ip, 				0,  "controller_leader_ip" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_follower_count, 	0,  "controller_follower_count" },
@@ -162,6 +164,41 @@ PT_THREAD( controller_announce_thread( pt_t *pt, void *state ) );
 PT_THREAD( controller_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( controller_timeout_thread( pt_t *pt, void *state ) );
 
+
+static PGM_P get_state_name( uint8_t state ){
+
+	if( state == STATE_IDLE ){
+
+		return PSTR("idle");
+	}
+	else if( state == STATE_FOLLOWER ){
+
+		return PSTR("follower");
+	}
+	else if( state == STATE_CANDIDATE ){
+
+		return PSTR("candidate");
+	}
+	else if( state == STATE_LEADER ){
+
+		return PSTR("leader");
+	}
+	else{
+
+		return PSTR("unknown");
+	}
+}
+
+static void apply_state_name( void ){
+
+	strncpy_P( state_name.str, get_state_name( controller_state ), sizeof(state_name.str) );
+}
+
+static void set_state( uint8_t state ){
+
+	controller_state = state;
+	apply_state_name();
+}
 
 static void update_follower_timeouts( void ){
 
@@ -655,7 +692,7 @@ PT_BEGIN( pt );
 
 	static uint32_t start_time;
 
-	controller_state = STATE_IDLE;
+	set_state( STATE_IDLE );
 
 	// start in idle state, to wait for announce messages
 
@@ -663,7 +700,7 @@ PT_BEGIN( pt );
 	// if enabled, start out as a candidate
 	if( controller_enabled ){
 
-		controller_state = STATE_CANDIDATE;
+		set_state( STATE_CANDIDATE );
 
 		start_time = tmr_u32_get_system_time_ms();
 
@@ -671,7 +708,7 @@ PT_BEGIN( pt );
 	}	
 	else{
 
-		controller_state = STATE_FOLLOWER;
+		set_state( STATE_FOLLOWER );
 	}
 
 	// random delay:
@@ -691,7 +728,7 @@ PT_BEGIN( pt );
 
 			log_v_debug_P( PSTR("Electing self as leader") );
 
-			controller_state = STATE_LEADER;
+			set_state( STATE_LEADER );
 		}
 	}
 
@@ -743,7 +780,7 @@ PT_BEGIN( pt );
 
    			if( leader_timeout == 0 ){
 
-   				controller_state = STATE_RESET;
+   				set_state( STATE_IDLE );
 
    				reset_leader();
    			}
