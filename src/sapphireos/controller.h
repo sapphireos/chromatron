@@ -42,7 +42,7 @@ typedef struct __attribute__((packed)){
 } controller_header_t;
 
 
-// #define CONTROLLER_FLAGS_IS_LEADER      0x0001
+#define CONTROLLER_FLAGS_IS_LEADER      0x0001
 // #define CONTROLLER_FLAGS_DROP_LEADER    0x0010
 
 typedef struct __attribute__((packed)){
