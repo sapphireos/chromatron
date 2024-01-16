@@ -265,6 +265,7 @@ void coproc_v_dispatch(
     else if( hdr->opcode == OPCODE_CLEAR_ERROR_FLAGS ){
 
         coproc_v_clear_error_flags();
+        cfg_v_erase_error_log();
     }
     else if( hdr->opcode == OPCODE_GET_BOOT_MODE ){
 

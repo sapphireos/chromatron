@@ -249,8 +249,6 @@ void coproc_v_init( void ){
     		coproc_i32_call0( OPCODE_GET_ERROR_OPCODE ),
     		coproc_i32_call0( OPCODE_GET_ERROR_LENGTH )
     	);
-
-	    coproc_i32_call0( OPCODE_CLEAR_ERROR_FLAGS );
 	}
 
 	if( reset_source == RESET_SOURCE_WATCHDOG ){
@@ -260,6 +258,11 @@ void coproc_v_init( void ){
 		coproc_i32_callp( OPCODE_GET_ERROR_LOG, (uint8_t *)error_log, COPROC_FLASH_XFER_LEN ); 
 		
 		log_v_error_P( PSTR("coproc log: %s"), error_log );
+	}
+
+	if( ( err_flags != 0 ) || ( reset_source == RESET_SOURCE_WATCHDOG ) ){
+
+		coproc_i32_call0( OPCODE_CLEAR_ERROR_FLAGS );
 	}
 	#endif
 }
