@@ -229,7 +229,7 @@ void coproc_v_init( void ){
     memset( coproc_firmware_version, 0, FW_VER_LEN );
     coproc_v_fw_version( coproc_firmware_version );
     uint8_t err_flags = coproc_i32_call0( OPCODE_GET_ERROR_FLAGS );
-    log_v_debug_P( 
+    log_v_info_P( 
     	PSTR("coproc ver: %s reset: %u boot: %u"), 
     	coproc_firmware_version, 
     	coproc_i32_call0( OPCODE_GET_RESET_SOURCE ),
@@ -237,7 +237,7 @@ void coproc_v_init( void ){
 
     if( err_flags != 0 ){
 
-    	log_v_debug_P( PSTR("Coproc error flags: 0x%0x opcode: %d"),
+    	log_v_error_P( PSTR("coproc error flags: 0x%0x opcode: 0x%0x"),
     		err_flags,
     		coproc_i32_call0( OPCODE_GET_ERROR_OPCODE ) 
     	);
