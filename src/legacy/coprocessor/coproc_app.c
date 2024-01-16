@@ -823,7 +823,10 @@ PT_BEGIN( pt );
         coproc_hdr_t hdr;
         coproc_v_receive_block( (uint8_t *)&hdr, TRUE );
 
-        ASSERT( hdr.sof == COPROC_SOF );
+        if( hdr.sof != COPROC_SOF ){
+
+            coproc_v_set_error_flags( COPROC_ERROR_BAD_SOF, current_opcode, current_length );
+        }
 
         current_opcode = hdr.opcode;
         current_length = hdr.length;
