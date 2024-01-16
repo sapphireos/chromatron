@@ -51,6 +51,7 @@ KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
     { CATBUS_TYPE_BOOL,      0, 0,  &loadfw_request, 0,  "request_load_wifi_firmware" },
 
     { CATBUS_TYPE_UINT32,    0, 0,   0,                  cfg_i8_kv_handler,   "coproc_error_flags" },
+    { CATBUS_TYPE_UINT8,     0, 0,   0,                  cfg_i8_kv_handler,   "coproc_error_opcode" },
 
     // backup wifi keys.
     // if these aren't present in the KV index, the config module won't find them.
@@ -71,11 +72,12 @@ static uint32_t flash_len;
 static i2c_setup_t i2c_setup;
 static uint8_t response[COPROC_BUF_SIZE];
 
-void coproc_v_set_error_flags( uint32_t flags ){
+void coproc_v_set_error_flags( uint32_t flags, uint8_t opcode ){
 
     err_flags |= flags;
 
     cfg_v_set( __KV__coproc_error_flags, &err_flags );
+    cfg_v_set( __KV__coproc_error_opcode, &opcode );
 }
 
 void coproc_v_clear_error_flags( void ){
@@ -83,6 +85,9 @@ void coproc_v_clear_error_flags( void ){
     uint32_t flags = 0;
     err_flags = 0;
     cfg_v_set( __KV__coproc_error_flags, &flags );
+
+    uint8_t opcode = 0;
+    cfg_v_set( __KV__coproc_error_opcode, &opcode );
 }
 
 uint32_t get_err_flags( void ){
@@ -93,6 +98,13 @@ uint32_t get_err_flags( void ){
     return flags;
 }
 
+uint32_t get_err_opcode( void ){
+
+    uint32_t opcode = 0;
+    cfg_i8_get( __KV__coproc_error_opcode, &opcode );
+
+    return opcode;
+}
 
 static uint32_t map_flash_addr( uint32_t flash_addr ){
 
@@ -219,6 +231,10 @@ void coproc_v_dispatch(
     else if( hdr->opcode == OPCODE_GET_ERROR_FLAGS ){
 
         *retval = get_err_flags();
+    }
+    else if( hdr->opcode == OPCODE_GET_ERROR_OPCODE ){
+
+        *retval = get_err_opcode();
     }
     else if( hdr->opcode == OPCODE_CLEAR_ERROR_FLAGS ){
 
@@ -762,7 +778,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
-        coproc_v_set_error_flags( COPROC_ERROR_SYNC_FAIL );
+        coproc_v_set_error_flags( COPROC_ERROR_SYNC_FAIL, 0 );
 
         // watchdog timeout here
         while(1);
@@ -851,7 +867,7 @@ PT_BEGIN( pt );
 
                 if( hal_wifi_i8_usart_receive( pix_buf, sizeof(pix_buf), 1000000 ) != 0 ){
 
-                    coproc_v_set_error_flags( COPROC_ERROR_PIX_STALL );
+                    coproc_v_set_error_flags( COPROC_ERROR_PIX_STALL, current_opcode );
                     while(1);
                 }
 

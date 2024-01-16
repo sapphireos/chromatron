@@ -60,6 +60,7 @@ typedef struct __attribute__((packed)){
 #define OPCODE_SAFE_MODE     		0x0A
 #define OPCODE_GET_ERROR_FLAGS		0x0B
 #define OPCODE_CLEAR_ERROR_FLAGS	0x0C
+#define OPCODE_GET_ERROR_OPCODE		0x0D
 
 #define OPCODE_IO_SET_MODE			0x10
 #define OPCODE_IO_GET_MODE			0x11
@@ -181,10 +182,10 @@ int32_t coproc_i32_callp2( uint8_t opcode, int32_t param0, int32_t param1, uint8
 #define COPROC_ERROR_IMAGE_CRC	0x20000000
 
 #ifdef AVR
-void coproc_v_set_error_flags( uint32_t flags );
+void coproc_v_set_error_flags( uint32_t flags, uint8_t opcode );
 void coproc_v_clear_error_flags( void );
 #else
-#define coproc_v_set_error_flags( a )
+#define coproc_v_set_error_flags( a, b )
 #define coproc_v_clear_error_flags()
 #endif
 

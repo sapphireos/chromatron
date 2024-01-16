@@ -120,7 +120,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
-		coproc_v_set_error_flags( COPROC_ERROR_RX_FAIL );
+		coproc_v_set_error_flags( COPROC_ERROR_RX_FAIL, current_opcode );
 
 		// BOOM!
 		while(1);
@@ -166,7 +166,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
-		coproc_v_set_error_flags( COPROC_ERROR_CRC_FAIL );
+		coproc_v_set_error_flags( COPROC_ERROR_CRC_FAIL, current_opcode );
 
 		#endif
 
@@ -208,7 +208,7 @@ void coproc_v_sync( void ){
 
 	if( usart_i16_get_byte( UART_CHANNEL ) != COPROC_VERSION ){
 
-		coproc_v_set_error_flags( COPROC_ERROR_VERSION );
+		coproc_v_set_error_flags( COPROC_ERROR_VERSION, 0 );
 
 		// lets hope this was a bus error and rebooting will recover
 		sys_reboot();
@@ -230,13 +230,17 @@ void coproc_v_init( void ){
     coproc_v_fw_version( coproc_firmware_version );
     uint8_t err_flags = coproc_i32_call0( OPCODE_GET_ERROR_FLAGS );
     log_v_debug_P( 
-    	PSTR("coproc ver: %s reset: %u boot: %u flags: 0x%0x"), 
+    	PSTR("coproc ver: %s reset: %u boot: %u"), 
     	coproc_firmware_version, 
     	coproc_i32_call0( OPCODE_GET_RESET_SOURCE ),
-    	coproc_i32_call0( OPCODE_GET_BOOT_MODE ),
-	    err_flags );
+    	coproc_i32_call0( OPCODE_GET_BOOT_MODE ) );
 
     if( err_flags != 0 ){
+
+    	log_v_debug_P( PSTR("Coproc error flags: 0x%0x opcode: %d"),
+    		err_flags,
+    		coproc_i32_call0( OPCODE_GET_ERROR_OPCODE ) 
+    	);
 
 	    coproc_i32_call0( OPCODE_CLEAR_ERROR_FLAGS );
 	}
@@ -414,7 +418,7 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 
 	if( coproc_crc != 0 ){
 
-		coproc_v_set_error_flags( COPROC_ERROR_IMAGE_CRC );
+		coproc_v_set_error_flags( COPROC_ERROR_IMAGE_CRC, 0 );
 
 		ASSERT( FALSE );
 	}
