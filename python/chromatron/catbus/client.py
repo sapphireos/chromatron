@@ -83,7 +83,7 @@ class BaseClient(object):
     def local_port(self):
         return self._sock.getsockname()[1]
 
-    def _exchange(self, msg, host=None, timeout=0.3, tries=16):
+    def _exchange(self, msg, host=None, timeout=0.2, tries=32):
         msg.header.universe = self.universe
 
         self._sock.settimeout(timeout)
@@ -126,6 +126,9 @@ class BaseClient(object):
 
             except socket.error:
                 pass
+
+            timeout += 0.1
+            self._sock.settimeout(timeout)
 
         raise NoResponseFromHost(msg.header.msg_type, host)
 
