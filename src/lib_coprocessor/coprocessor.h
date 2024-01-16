@@ -62,7 +62,7 @@ typedef struct __attribute__((packed)){
 #define OPCODE_CLEAR_ERROR_FLAGS	0x0C
 #define OPCODE_GET_ERROR_OPCODE		0x0D
 #define OPCODE_GET_ERROR_LENGTH		0x0E
-
+#define OPCODE_GET_ERROR_LOG		0x0F
 
 #define OPCODE_IO_SET_MODE			0x10
 #define OPCODE_IO_GET_MODE			0x11

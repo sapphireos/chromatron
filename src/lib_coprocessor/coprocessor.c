@@ -221,6 +221,7 @@ void coproc_v_sync( void ){
 
 void coproc_v_init( void ){
 
+	#ifdef ESP8266
 	if( !sync ){
 
 		return;
@@ -229,12 +230,17 @@ void coproc_v_init( void ){
 	char coproc_firmware_version[FW_VER_LEN];
     memset( coproc_firmware_version, 0, FW_VER_LEN );
     coproc_v_fw_version( coproc_firmware_version );
+    
     uint8_t err_flags = coproc_i32_call0( OPCODE_GET_ERROR_FLAGS );
-    log_v_info_P( 
+    uint8_t reset_source = coproc_i32_call0( OPCODE_GET_RESET_SOURCE );
+    uint8_t coproc_boot_mode = coproc_i32_call0( OPCODE_GET_BOOT_MODE );
+
+    log_v_debug_P( 
     	PSTR("coproc ver: %s reset: %u boot: %u"), 
     	coproc_firmware_version, 
-    	coproc_i32_call0( OPCODE_GET_RESET_SOURCE ),
-    	coproc_i32_call0( OPCODE_GET_BOOT_MODE ) );
+    	reset_source,
+    	coproc_boot_mode
+    );
 
     if( err_flags != 0 ){
 
@@ -246,6 +252,16 @@ void coproc_v_init( void ){
 
 	    coproc_i32_call0( OPCODE_CLEAR_ERROR_FLAGS );
 	}
+
+	if( reset_source == RESET_SOURCE_WATCHDOG ){
+
+		char error_log[COPROC_FLASH_XFER_LEN];
+
+		coproc_i32_callp( OPCODE_GET_ERROR_LOG, (uint8_t *)error_log, sizeof(error_log) ); 
+		
+		log_v_error_P( PSTR("coproc log: %s"), error_log );
+	}
+	#endif
 }
 
 

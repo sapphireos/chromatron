@@ -253,6 +253,15 @@ void coproc_v_dispatch(
 
         *retval = get_err_length();
     }
+    else if( hdr->opcode == OPCODE_GET_ERROR_LOG ){
+        
+        cfg_error_log_t error_log;
+        cfg_v_read_error_log( &error_log );
+
+        memcpy( response, error_log.log, COPROC_FLASH_XFER_LEN );
+
+        *response_len = flash_len;
+    }
     else if( hdr->opcode == OPCODE_CLEAR_ERROR_FLAGS ){
 
         coproc_v_clear_error_flags();
