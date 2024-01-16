@@ -791,7 +791,7 @@ static uint32_t process_timed_signals( void ){
             signals |= ( 1 << timed_signals[i].signal );
         }
         
-        if( timed_signals[i].ticks < min_time_remaining ){
+        if( timed_signals[i].ticks < (int32_t)min_time_remaining ){
 
             // track minimum time left on any timed signal
 
