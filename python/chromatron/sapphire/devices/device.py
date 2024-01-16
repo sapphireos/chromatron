@@ -1836,7 +1836,7 @@ class Device(object):
                 except KeyboardInterrupt:
                     return ""
 
-        except DeviceCommsErrorException:
+        except (DeviceCommsErrorException, NoResponseFromHost):
             return "Lost connection!"
 
     def cli_telemetry_info(self, line):
