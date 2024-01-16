@@ -822,6 +822,8 @@ PT_BEGIN( pt );
     // main message loop
     while(1){
 
+        sys_v_wdt_reset();
+
         THREAD_YIELD( pt );
 
         THREAD_WAIT_WHILE( pt, !hal_wifi_b_usart_rx_available() );
