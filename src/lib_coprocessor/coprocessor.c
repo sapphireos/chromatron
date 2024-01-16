@@ -240,8 +240,8 @@ void coproc_v_init( void ){
 
     	log_v_error_P( PSTR("coproc error flags: 0x%0x opcode: 0x%0x len: %d"),
     		err_flags,
-    		coproc_i32_call0( OPCODE_GET_ERROR_OPCODE )
-    		coproc_i32_call0( OPCODE_GET_ERROR_LENGTH ),
+    		coproc_i32_call0( OPCODE_GET_ERROR_OPCODE ),
+    		coproc_i32_call0( OPCODE_GET_ERROR_LENGTH )
     	);
 
 	    coproc_i32_call0( OPCODE_CLEAR_ERROR_FLAGS );
