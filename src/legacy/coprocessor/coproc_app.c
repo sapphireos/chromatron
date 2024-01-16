@@ -847,21 +847,27 @@ PT_BEGIN( pt );
 
                 uint8_t temp_r, temp_g, temp_b, temp_d;
                 uint8_t pix_buf[4];
-                memset( pix_buf, 0, sizeof(pix_buf) );
+                // memset( pix_buf, 0, sizeof(pix_buf) );
 
-                for( uint8_t i = 0; i < cnt_of_array(pix_buf); i++ ){
-                    
-                    uint32_t start = tmr_u32_get_system_time_ms();
-                    while( !hal_wifi_b_usart_rx_available() && ( tmr_u32_elapsed_time_ms( start ) < 500 ) );
+                if( hal_wifi_i8_usart_receive( pix_buf, sizeof(pix_buf), 1000000 ) != 0 ){
 
-                    if( !hal_wifi_b_usart_rx_available() ){
-
-                        coproc_v_set_error_flags( COPROC_ERROR_PIX_STALL );
-                        while(1);
-                    }
-
-                    pix_buf[i] = hal_wifi_i16_usart_get_char();
+                    coproc_v_set_error_flags( COPROC_ERROR_PIX_STALL );
+                    while(1);
                 }
+
+                // for( uint8_t i = 0; i < cnt_of_array(pix_buf); i++ ){
+                    
+                //     uint32_t start = tmr_u32_get_system_time_ms();
+                //     while( !hal_wifi_b_usart_rx_available() && ( tmr_u32_elapsed_time_ms( start ) < 500 ) );
+
+                //     if( !hal_wifi_b_usart_rx_available() ){
+
+                //         coproc_v_set_error_flags( COPROC_ERROR_PIX_STALL );
+                //         while(1);
+                //     }
+
+                //     pix_buf[i] = hal_wifi_i16_usart_get_char();
+                // }
 
                 // while( !hal_wifi_b_usart_rx_available() );
                 // temp_r = hal_wifi_i16_usart_get_char();
