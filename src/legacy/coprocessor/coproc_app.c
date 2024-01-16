@@ -826,6 +826,7 @@ PT_BEGIN( pt );
         if( hdr.sof != COPROC_SOF ){
 
             coproc_v_set_error_flags( COPROC_ERROR_BAD_SOF, current_opcode, current_length );
+            while(1);
         }
 
         current_opcode = hdr.opcode;
