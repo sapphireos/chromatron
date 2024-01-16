@@ -121,7 +121,13 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
-		coproc_v_set_error_flags( COPROC_ERROR_RX_FAIL, current_opcode, current_length );
+		uint8_t err_flags = COPROC_ERROR_RX_FAIL;
+		if( header ){
+
+			err_flags |= COPROC_ERROR_HEADER;
+		}
+
+		coproc_v_set_error_flags( err_flags, current_opcode, current_length );
 
 		// BOOM!
 		while(1);
@@ -167,7 +173,13 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
-		coproc_v_set_error_flags( COPROC_ERROR_CRC_FAIL, current_opcode, current_length );
+		uint8_t err_flags = COPROC_ERROR_CRC_FAIL;
+		if( header ){
+
+			err_flags |= COPROC_ERROR_HEADER;
+		}
+
+		coproc_v_set_error_flags( err_flags, current_opcode, current_length );
 
 		#endif
 
@@ -254,10 +266,14 @@ void coproc_v_init( void ){
 	if( reset_source == RESET_SOURCE_WATCHDOG ){
 
 		char error_log[COPROC_FLASH_XFER_LEN];
+		memset( error_log, 0, sizeof(error_log) );
 
 		coproc_i32_callp( OPCODE_GET_ERROR_LOG, (uint8_t *)error_log, COPROC_FLASH_XFER_LEN ); 
-		
-		log_v_error_P( PSTR("coproc log: %s"), error_log );
+			
+		if( error_log[0] != 0xff ){
+
+			log_v_error_P( PSTR("coproc log: %s"), error_log );
+		}
 	}
 
 	if( ( err_flags != 0 ) || ( reset_source == RESET_SOURCE_WATCHDOG ) ){
