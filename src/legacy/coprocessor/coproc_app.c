@@ -52,6 +52,7 @@ KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
 
     { CATBUS_TYPE_UINT32,    0, 0,   0,                  cfg_i8_kv_handler,   "coproc_error_flags" },
     { CATBUS_TYPE_UINT8,     0, 0,   0,                  cfg_i8_kv_handler,   "coproc_error_opcode" },
+    { CATBUS_TYPE_UINT8,     0, 0,   0,                  cfg_i8_kv_handler,   "coproc_error_length" },
 
     // backup wifi keys.
     // if these aren't present in the KV index, the config module won't find them.
@@ -72,12 +73,13 @@ static uint32_t flash_len;
 static i2c_setup_t i2c_setup;
 static uint8_t response[COPROC_BUF_SIZE];
 
-void coproc_v_set_error_flags( uint32_t flags, uint8_t opcode ){
+void coproc_v_set_error_flags( uint32_t flags, uint8_t opcode, uint8_t length ){
 
     err_flags |= flags;
 
     cfg_v_set( __KV__coproc_error_flags, &err_flags );
     cfg_v_set( __KV__coproc_error_opcode, &opcode );
+    cfg_v_set( __KV__coproc_error_length, &length );
 }
 
 void coproc_v_clear_error_flags( void ){
@@ -88,6 +90,9 @@ void coproc_v_clear_error_flags( void ){
 
     uint8_t opcode = 0;
     cfg_v_set( __KV__coproc_error_opcode, &opcode );
+
+    uint8_t length = 0;
+    cfg_v_set( __KV__coproc_error_length, &length );
 }
 
 uint32_t get_err_flags( void ){
@@ -104,6 +109,14 @@ uint32_t get_err_opcode( void ){
     cfg_i8_get( __KV__coproc_error_opcode, &opcode );
 
     return opcode;
+}
+
+uint32_t get_err_length( void ){
+
+    uint32_t length = 0;
+    cfg_i8_get( __KV__coproc_error_length, &length );
+
+    return length;
 }
 
 static uint32_t map_flash_addr( uint32_t flash_addr ){
@@ -235,6 +248,10 @@ void coproc_v_dispatch(
     else if( hdr->opcode == OPCODE_GET_ERROR_OPCODE ){
 
         *retval = get_err_opcode();
+    }
+    else if( hdr->opcode == OPCODE_GET_ERROR_LENGTH ){
+
+        *retval = get_err_length();
     }
     else if( hdr->opcode == OPCODE_CLEAR_ERROR_FLAGS ){
 
@@ -635,6 +652,7 @@ PT_END( pt );
 
 
 uint8_t current_opcode;
+uint8_t current_length;
 
 
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
@@ -778,7 +796,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
-        coproc_v_set_error_flags( COPROC_ERROR_SYNC_FAIL, 0 );
+        coproc_v_set_error_flags( COPROC_ERROR_SYNC_FAIL, current_opcode, current_length );
 
         // watchdog timeout here
         while(1);
@@ -800,6 +818,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, !hal_wifi_b_usart_rx_available() );
 
         current_opcode = 0;
+        current_length = 0;
 
         coproc_hdr_t hdr;
         coproc_v_receive_block( (uint8_t *)&hdr, TRUE );
@@ -807,6 +826,7 @@ PT_BEGIN( pt );
         ASSERT( hdr.sof == COPROC_SOF );
 
         current_opcode = hdr.opcode;
+        current_length = hdr.length;
 
         uint8_t buf[COPROC_BUF_SIZE];
 
@@ -867,7 +887,7 @@ PT_BEGIN( pt );
 
                 if( hal_wifi_i8_usart_receive( pix_buf, sizeof(pix_buf), 1000000 ) != 0 ){
 
-                    coproc_v_set_error_flags( COPROC_ERROR_PIX_STALL, current_opcode );
+                    coproc_v_set_error_flags( COPROC_ERROR_PIX_STALL, current_opcode, current_length );
                     while(1);
                 }
 
