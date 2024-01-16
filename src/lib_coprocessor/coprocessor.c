@@ -257,7 +257,7 @@ void coproc_v_init( void ){
 
 		char error_log[COPROC_FLASH_XFER_LEN];
 
-		coproc_i32_callp( OPCODE_GET_ERROR_LOG, (uint8_t *)error_log, sizeof(error_log) ); 
+		coproc_i32_callp( OPCODE_GET_ERROR_LOG, (uint8_t *)error_log, COPROC_FLASH_XFER_LEN ); 
 		
 		log_v_error_P( PSTR("coproc log: %s"), error_log );
 	}

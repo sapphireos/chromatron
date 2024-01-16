@@ -260,7 +260,7 @@ void coproc_v_dispatch(
 
         memcpy( response, error_log.log, COPROC_FLASH_XFER_LEN );
 
-        *response_len = flash_len;
+        *response_len = COPROC_FLASH_XFER_LEN;
     }
     else if( hdr->opcode == OPCODE_CLEAR_ERROR_FLAGS ){
 
