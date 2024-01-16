@@ -43,6 +43,7 @@
 static bool loadfw_enable_1;
 static bool loadfw_enable_2;
 static bool loadfw_request;
+static uint32_t err_flags;
 
 
 KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
@@ -72,14 +73,26 @@ static uint8_t response[COPROC_BUF_SIZE];
 
 void coproc_v_set_error_flags( uint32_t flags ){
 
-    cfg_v_set( __KV__coproc_error_flags, &flags );
+    err_flags |= flags;
+
+    cfg_v_set( __KV__coproc_error_flags, &err_flags );
 }
 
 void coproc_v_clear_error_flags( void ){
 
     uint32_t flags = 0;
+    err_flags = 0;
     cfg_v_set( __KV__coproc_error_flags, &flags );
 }
+
+uint32_t get_err_flags( void ){
+
+    uint32_t flags = 0;
+    cfg_i8_get( __KV__coproc_error_flags, &flags );
+
+    return flags;
+}
+
 
 static uint32_t map_flash_addr( uint32_t flash_addr ){
 
@@ -205,7 +218,7 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_GET_ERROR_FLAGS ){
 
-        cfg_i8_get( __KV__coproc_error_flags, retval );
+        *retval = get_err_flags();
     }
     else if( hdr->opcode == OPCODE_CLEAR_ERROR_FLAGS ){
 
@@ -833,34 +846,34 @@ PT_BEGIN( pt );
             while( pix_transfer_count > 0 ){
 
                 uint8_t temp_r, temp_g, temp_b, temp_d;
-                uint8_t pix_buf[4];
-                memset( pix_buf, 0, sizeof(pix_buf) );
+                // uint8_t pix_buf[4];
+                // memset( pix_buf, 0, sizeof(pix_buf) );
 
-                for( uint8_t i = 0; i < cnt_of_array(buf); i++ ){
+                // for( uint8_t i = 0; i < cnt_of_array(pix_buf); i++ ){
                     
-                    uint32_t start = tmr_u32_get_system_time_ms();
-                    while( !hal_wifi_b_usart_rx_available() && ( tmr_u32_elapsed_time_ms( start ) < 500 ) );
+                //     uint32_t start = tmr_u32_get_system_time_ms();
+                //     while( !hal_wifi_b_usart_rx_available() && ( tmr_u32_elapsed_time_ms( start ) < 500 ) );
 
-                    if( !hal_wifi_b_usart_rx_available() ){
+                //     if( !hal_wifi_b_usart_rx_available() ){
 
-                        coproc_v_set_error_flags( COPROC_ERROR_PIX_STALL );
-                        while(1);
-                    }
+                //         coproc_v_set_error_flags( COPROC_ERROR_PIX_STALL );
+                //         while(1);
+                //     }
 
-                    pix_buf[i] = hal_wifi_i16_usart_get_char();
-                }
+                //     pix_buf[i] = hal_wifi_i16_usart_get_char();
+                // }
 
-                // while( !hal_wifi_b_usart_rx_available() );
-                // temp_r = hal_wifi_i16_usart_get_char();
+                while( !hal_wifi_b_usart_rx_available() );
+                temp_r = hal_wifi_i16_usart_get_char();
 
-                // while( !hal_wifi_b_usart_rx_available() );
-                // temp_g = hal_wifi_i16_usart_get_char();
+                while( !hal_wifi_b_usart_rx_available() );
+                temp_g = hal_wifi_i16_usart_get_char();
                 
-                // while( !hal_wifi_b_usart_rx_available() );
-                // temp_b = hal_wifi_i16_usart_get_char();
+                while( !hal_wifi_b_usart_rx_available() );
+                temp_b = hal_wifi_i16_usart_get_char();
                 
-                // while( !hal_wifi_b_usart_rx_available() );
-                // temp_d = hal_wifi_i16_usart_get_char();                
+                while( !hal_wifi_b_usart_rx_available() );
+                temp_d = hal_wifi_i16_usart_get_char();                
 
                 pix_transfer_count--;
 
@@ -869,10 +882,10 @@ PT_BEGIN( pt );
                     hal_wifi_v_usart_send_char( COPROC_SYNC );
                 }
 
-                temp_r = pix_buf[0];
-                temp_g = pix_buf[1];
-                temp_b = pix_buf[2];
-                temp_d = pix_buf[3];
+                // temp_r = pix_buf[0];
+                // temp_g = pix_buf[1];
+                // temp_b = pix_buf[2];
+                // temp_d = pix_buf[3];
 
                 ATOMIC;
                 *r++ = temp_r;
@@ -895,6 +908,8 @@ void app_v_init( void ){
     loadfw_enable_1 = FALSE;
     loadfw_enable_2 = FALSE;
     loadfw_request = FALSE;
+
+    err_flags = get_err_flags();
 
     #ifndef ENABLE_WIFI
     thread_t_create( app_thread,
