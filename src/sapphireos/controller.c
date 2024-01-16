@@ -419,6 +419,8 @@ void controller_v_init( void ){
 		return;
     }
 
+    return;
+
     list_v_init( &follower_list );	
 
     // create socket

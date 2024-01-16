@@ -366,8 +366,8 @@ class Device(object):
         except KeyError:
             raise NotASapphireDevice()                
 
-        if get_all:
-            self.get_all_kv()
+        # if get_all:
+        #     self.get_all_kv()
 
         self.device_id = self.get_key('device_id')            
         self.name = self.get_key('meta_tag_name')

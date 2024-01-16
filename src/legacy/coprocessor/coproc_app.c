@@ -823,21 +823,22 @@ PT_BEGIN( pt );
             while( pix_transfer_count > 0 ){
 
                 uint8_t temp_r, temp_g, temp_b, temp_d;
-                uint8_t buf[4];
+                uint8_t pix_buf[4];
+                memset( pix_buf, 0, sizeof(pix_buf) );
 
-                for( uint8_t i = 0; i < cnt_of_array(buf); i++ ){
+                // for( uint8_t i = 0; i < cnt_of_array(buf); i++ ){
                     
-                    uint32_t start = tmr_u32_get_system_time_ms();
-                    while( !hal_wifi_b_usart_rx_available() && ( tmr_u32_elapsed_time_ms( start ) < 500 ) );
+                //     uint32_t start = tmr_u32_get_system_time_ms();
+                //     while( !hal_wifi_b_usart_rx_available() && ( tmr_u32_elapsed_time_ms( start ) < 500 ) );
 
-                    if( !hal_wifi_b_usart_rx_available() ){
+                //     if( !hal_wifi_b_usart_rx_available() ){
 
-                        coproc_set_error_flags( COPROC_ERROR_PIX_STALL );
-                        while(1);
-                    }
+                //         coproc_set_error_flags( COPROC_ERROR_PIX_STALL );
+                //         while(1);
+                //     }
 
-                    buf[i] = hal_wifi_i16_usart_get_char();
-                }
+                //     buf[i] = hal_wifi_i16_usart_get_char();
+                // }
 
                 // temp_r = hal_wifi_i16_usart_get_char();
 
