@@ -121,7 +121,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
-		uint8_t err_flags = COPROC_ERROR_RX_FAIL;
+		uint32_t err_flags = COPROC_ERROR_RX_FAIL;
 		if( header ){
 
 			err_flags |= COPROC_ERROR_HEADER;
@@ -173,7 +173,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
-		uint8_t err_flags = COPROC_ERROR_CRC_FAIL;
+		uint32_t err_flags = COPROC_ERROR_CRC_FAIL;
 		if( header ){
 
 			err_flags |= COPROC_ERROR_HEADER;
