@@ -29,6 +29,9 @@
 #include "time_ntp.h"
 #include "sntp.h"
 
+#define NO_LOGGING
+
+
 /*
 
 Track long term sync delay and elapsed differences.

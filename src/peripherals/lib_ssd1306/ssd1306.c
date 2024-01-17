@@ -401,12 +401,13 @@ PT_BEGIN( pt );
         ssd1306_v_home();
         ssd1306_v_clear();
 
+        #ifdef ENABLE_CATBUS_LINK
         char iso8601[ISO8601_STRING_MIN_LEN];
         ntp_ts_t ntp = ntp_t_local_now();
         datetime_t now;
         datetime_v_seconds_to_datetime( ntp.seconds, &now );
         datetime_v_to_iso8601( iso8601, sizeof(iso8601), &now );
-
+        #endif
 
         uint16_t batt_volts = 0;
         kv_i8_get( __KV__batt_volts, &batt_volts, sizeof(batt_volts) );

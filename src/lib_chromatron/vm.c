@@ -672,11 +672,13 @@ static void kill_vm( uint8_t vm_id ){
     // clear links
     for( uint16_t i = 0; i < vm_state->link_count; i++ ){
 
+        #ifdef ENABLE_CATBUS_LINK
         if( vm_state->links[i] > 0 ){
 
             link_v_delete( vm_state->links[i] );
             vm_state->links[i] = 0;
         }
+        #endif
     }
 
     for( uint16_t i = 0; i < VM_MAX_THREADS; i++ ){

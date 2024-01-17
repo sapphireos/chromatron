@@ -619,13 +619,14 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 		// check if switching leaders
 		if( !ip_b_addr_compare( leader_ip, raddr->ipaddr ) ){
 
-			log_v_debug_P( PSTR("Switching leader to: %d.%d.%d.%d reason: %d flags: 0x%0x"),
+			log_v_debug_P( PSTR("Switching leader to: %d.%d.%d.%d reason: %d flags: 0x%0x followers: %d"),
 				raddr->ipaddr.ip3, 
 				raddr->ipaddr.ip2, 
 				raddr->ipaddr.ip1, 
 				raddr->ipaddr.ip0,
 				reason,
-				msg->flags
+				msg->flags,
+				msg->follower_count
 			);
 
 			// check if we were *a* leader, but this one is better
@@ -836,6 +837,10 @@ PT_BEGIN( pt );
 			// reset to idle
 			set_state( STATE_IDLE );
 			reset_leader();
+		}
+		else{
+
+			log_v_debug_P( PSTR("state: %d"), controller_state );
 		}	
 	}
 
