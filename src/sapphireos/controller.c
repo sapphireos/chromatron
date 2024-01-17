@@ -397,6 +397,13 @@ static void vote( ip_addr4_t ip, uint16_t priority, uint16_t follower_count, uin
 	}
 	else if( controller_state == STATE_VOTER ){
 
+		if( !leader_change ){
+
+			if( flags & CONTROLLER_FLAGS_IS_LEADER ){
+		
+				set_state( STATE_FOLLOWER );	
+			}
+		}
 	}
 	else{
 
@@ -620,11 +627,15 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 		// check if switching leaders
 		if( !ip_b_addr_compare( leader_ip, raddr->ipaddr ) ){
 
-			log_v_debug_P( PSTR("Switching leader to: %d.%d.%d.%d reason: %d flags: 0x%0x followers: %d"),
+			log_v_debug_P( PSTR("Switching leader to: %d.%d.%d.%d from %d.%d.%d.%d reason: %d flags: 0x%0x followers: %d"),
 				raddr->ipaddr.ip3, 
 				raddr->ipaddr.ip2, 
 				raddr->ipaddr.ip1, 
 				raddr->ipaddr.ip0,
+				leader_ip.ip3,
+				leader_ip.ip2,
+				leader_ip.ip1,
+				leader_ip.ip0,
 				reason,
 				msg->flags,
 				msg->follower_count
@@ -648,10 +659,10 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 			else if( !ip_b_is_zeroes( leader_ip ) ){
 
 				log_v_debug_P( PSTR("Leaving previous leader: %d.%d.%d.%d"),
-					raddr->ipaddr.ip3, 
-					raddr->ipaddr.ip2, 
-					raddr->ipaddr.ip1, 
-					raddr->ipaddr.ip0
+					leader_ip.ip3,
+					leader_ip.ip2,
+					leader_ip.ip1,
+					leader_ip.ip0
 				);
 
 				// byeeeeeeeeee
