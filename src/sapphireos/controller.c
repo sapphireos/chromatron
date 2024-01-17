@@ -213,7 +213,7 @@ static void _set_state( uint8_t state ){
 }
 
 #define set_state( state ) \
-	if( controller_state != state ){ log_v_debug_P( PSTR("changing state from %d to %d"), controller_state, state ); } \
+	if( controller_state != state ){ log_v_debug_P( PSTR("changing state from %s to %s"), get_state_name( controller_state ), get_state_name( state ) ); } \
 	_set_state( state )
 
 static void update_follower_timeouts( void ){
@@ -619,12 +619,13 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 		// check if switching leaders
 		if( !ip_b_addr_compare( leader_ip, raddr->ipaddr ) ){
 
-			log_v_debug_P( PSTR("Switching leader to: %d.%d.%d.%d reason: %d"),
+			log_v_debug_P( PSTR("Switching leader to: %d.%d.%d.%d reason: %d flags: 0x%0x"),
 				raddr->ipaddr.ip3, 
 				raddr->ipaddr.ip2, 
 				raddr->ipaddr.ip1, 
 				raddr->ipaddr.ip0,
-				reason
+				reason,
+				msg->flags
 			);
 
 			// check if we were *a* leader, but this one is better
@@ -819,7 +820,7 @@ PT_BEGIN( pt );
 	else{
 
 		// state change
-
+		ASSERT( controller_state != STATE_IDLE );
 	}
 
 	// VOTER
@@ -830,6 +831,8 @@ PT_BEGIN( pt );
 
 		if( thread_b_alarm() ){
 			
+			log_v_debug_P( PSTR("timeout") );
+
 			// reset to idle
 			set_state( STATE_IDLE );
 			reset_leader();
@@ -898,9 +901,13 @@ PT_BEGIN( pt );
 
    			if( controller_state == STATE_FOLLOWER ){
 
+   				log_v_debug_P( PSTR("follower shutdown") );
+
    				send_leave();
    			}
    			else if( controller_state == STATE_LEADER ){
+
+   				log_v_debug_P( PSTR("leader shutdown") );
 
    				// drop followers
 				send_drop( ip_a_addr(255,255,255,255) );
@@ -926,6 +933,8 @@ PT_BEGIN( pt );
    			leader_timeout--;
 
    			if( leader_timeout == 0 ){
+
+   				log_v_debug_P( PSTR("leader timeout") );
 
    				set_state( STATE_IDLE );
 
