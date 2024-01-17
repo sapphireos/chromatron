@@ -468,9 +468,10 @@ static void send_msg( uint8_t msgtype, uint8_t *msg, uint8_t len, sock_addr_t *r
 
 static void send_announce( void ){
 
-	if( controller_state == STATE_FOLLOWER ){
+	if( ( controller_state != STATE_CANDIDATE ) ||
+		( controller_state != STATE_LEADER ) ){
 
-		log_v_error_P( PSTR("cannot send announce as follower!") );
+		log_v_error_P( PSTR("cannot send announce, invalid state!") );
 
 		return;
 	}
@@ -657,9 +658,9 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 				send_leave();	
 			}
 		}
-
-		vote( raddr->ipaddr, msg->priority, msg->follower_count, msg->flags );
 	}
+
+	vote( raddr->ipaddr, msg->priority, msg->follower_count, msg->flags );
 }
 
 
@@ -787,9 +788,12 @@ PT_BEGIN( pt );
 
 	// start in idle state, to wait for announce messages
 	set_state( STATE_IDLE );
+	reset_leader();
 
 	// wait for wifi
 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+
+	log_v_debug_P( PSTR("controller idle") );
 
 	// wait for timeout or leader/candidate is available
 	thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_IDLE_TIMEOUT * 1000 );
@@ -830,21 +834,22 @@ PT_BEGIN( pt );
 	// VOTER
 	while( controller_state == STATE_VOTER ){
 
-		thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_ELECTION_TIMEOUT * 1000 );
-		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_VOTER ) );
+		// thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_ELECTION_TIMEOUT * 1000 );
+		// THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_VOTER ) );
+		THREAD_WAIT_WHILE( pt, ( controller_state == STATE_VOTER )  );
 
-		if( thread_b_alarm() ){
+		// if( thread_b_alarm() ){
 			
-			log_v_debug_P( PSTR("timeout") );
+		// 	log_v_debug_P( PSTR("timeout") );
 
-			// reset to idle
-			set_state( STATE_IDLE );
-			reset_leader();
-		}
-		else{
+		// 	// reset to idle
+		// 	set_state( STATE_IDLE );
+		// 	reset_leader();
+		// }
+		// else{
 
-			log_v_debug_P( PSTR("state: %d"), controller_state );
-		}	
+		// 	log_v_debug_P( PSTR("state: %d"), controller_state );
+		// }	
 	}
 
 	// FOLLOWER
@@ -867,8 +872,12 @@ PT_BEGIN( pt );
 		send_announce();
 
 		// random delay:
-		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 + ( rnd_u16_get_int() >> 5 )  ); // 1000 - 3048 ms
-		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_CANDIDATE ) );
+		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 
+			500 + ( rnd_u16_get_int() >> 7 )  ); // 500 - 1012 ms
+		
+		THREAD_WAIT_WHILE( pt, 
+			thread_b_alarm_set() && 
+			( controller_state == STATE_CANDIDATE ) );
 
 		// check if we are leader after timeout
 		if( ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) &&
@@ -887,8 +896,12 @@ PT_BEGIN( pt );
 		send_announce();
 
 		// random delay:
-		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 + ( rnd_u16_get_int() >> 5 )  ); // 1000 - 3048 ms
-		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_LEADER ) );
+		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 
+			500 + ( rnd_u16_get_int() >> 7 )  ); // 500 - 1012 ms
+
+		THREAD_WAIT_WHILE( pt, 
+			thread_b_alarm_set() && 
+			( controller_state == STATE_LEADER ) );
 
 	}
 
