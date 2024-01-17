@@ -201,16 +201,20 @@ static void apply_state_name( void ){
 	strncpy_P( state_name.str, get_state_name( controller_state ), sizeof(state_name.str) );
 }
 
-static void set_state( uint8_t state ){
+static void _set_state( uint8_t state ){
 
-	if( controller_state != state ){
+	// if( controller_state != state ){
 
-		log_v_debug_P( PSTR("changing state from %d to %d"), controller_state, state );
-	}
+	// 	log_v_debug_P( PSTR("changing state from %d to %d"), controller_state, state );
+	// }
 
 	controller_state = state;
 	apply_state_name();
 }
+
+#define set_state( state ) \
+	if( controller_state != state ){ log_v_debug_P( PSTR("changing state from %d to %d"), controller_state, state ); } \
+	_set_state( state )
 
 static void update_follower_timeouts( void ){
 
@@ -623,9 +627,22 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 				reason
 			);
 
+			// check if we were *a* leader, but this one is better
+			if( ip_b_addr_compare( cfg_ip_get_ipaddr(), leader_ip ) &&
+					( controller_state == STATE_LEADER ) ){
+
+				log_v_debug_P( PSTR("Dropping all followers") );
+
+				// drop followers
+				send_drop( ip_a_addr(255,255,255,255) );
+				send_drop( ip_a_addr(255,255,255,255) );
+				send_drop( ip_a_addr(255,255,255,255) );
+
+				list_v_destroy( &follower_list );
+			}
 			// if we were tracking a pre-existing leader,
 			// inform it that we are leaving.
-			if( !ip_b_is_zeroes( leader_ip ) ){
+			else if( !ip_b_is_zeroes( leader_ip ) ){
 
 				log_v_debug_P( PSTR("Leaving previous leader: %d.%d.%d.%d"),
 					raddr->ipaddr.ip3, 
@@ -637,18 +654,6 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 				// byeeeeeeeeee
 				send_leave();	
 			}
-			// check if we were *a* leader, but this one is better
-			else if( ip_b_addr_compare( cfg_ip_get_ipaddr(), leader_ip ) ){
-
-				log_v_debug_P( PSTR("Dropping all followers") );
-
-				// drop followers
-				send_drop( ip_a_addr(255,255,255,255) );
-				send_drop( ip_a_addr(255,255,255,255) );
-				send_drop( ip_a_addr(255,255,255,255) );
-
-				list_v_destroy( &follower_list );
-			}
 		}
 
 		vote( raddr->ipaddr, msg->priority, msg->follower_count, msg->flags );
@@ -658,9 +663,9 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 
 static void process_status( controller_msg_status_t *msg, sock_addr_t *raddr ){
 
-	if( controller_state == STATE_FOLLOWER ){
+	if( controller_state != STATE_LEADER ){
 
-		// we are a follower, we don't care about status.
+		// we are not a leader, we don't care about status.
 
 		// this is mostly erroneous, the sender will
 		// figure out we aren't a leader eventually.
@@ -676,9 +681,9 @@ static void process_status( controller_msg_status_t *msg, sock_addr_t *raddr ){
 
 static void process_leave( controller_msg_leave_t *msg, sock_addr_t *raddr ){
 
-	if( controller_state == STATE_FOLLOWER ){
+	if( controller_state != STATE_LEADER ){
 
-		// we are a follower, we don't care about leave.
+		// we are are not a leader, we don't care about leave.
 
 		return;
 	}
