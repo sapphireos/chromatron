@@ -788,6 +788,9 @@ PT_BEGIN( pt );
 	// start in idle state, to wait for announce messages
 	set_state( STATE_IDLE );
 
+	// wait for wifi
+	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+
 	// wait for timeout or leader/candidate is available
 	thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_IDLE_TIMEOUT * 1000 );
 	// THREAD_WAIT_WHILE( thread_b_alarm_set() );
@@ -828,7 +831,7 @@ PT_BEGIN( pt );
 	while( controller_state == STATE_VOTER ){
 
 		thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_ELECTION_TIMEOUT * 1000 );
-		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && controller_state == STATE_VOTER );
+		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_VOTER ) );
 
 		if( thread_b_alarm() ){
 			
@@ -848,7 +851,7 @@ PT_BEGIN( pt );
 	while( controller_state == STATE_FOLLOWER ){
 
 		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 + ( rnd_u16_get_int() >> 5 )  ); // 2000 - 4048 ms
-		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && controller_state == STATE_FOLLOWER );
+		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_FOLLOWER ) );
 
 		if( controller_state == STATE_FOLLOWER ){
 		
@@ -864,8 +867,9 @@ PT_BEGIN( pt );
 		send_announce();
 
 		// random delay:
-		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 - 3048 ms
-			
+		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 + ( rnd_u16_get_int() >> 5 )  ); // 1000 - 3048 ms
+		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_CANDIDATE ) );
+
 		// check if we are leader after timeout
 		if( ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) &&
 			tmr_u32_elapsed_time_ms( start_time ) > CONTROLLER_ELECTION_TIMEOUT * 1000 ){
@@ -883,7 +887,9 @@ PT_BEGIN( pt );
 		send_announce();
 
 		// random delay:
-		TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 5 ) ); // 1000 - 3048 ms
+		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 + ( rnd_u16_get_int() >> 5 )  ); // 1000 - 3048 ms
+		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_LEADER ) );
+
 	}
 
 
@@ -899,8 +905,10 @@ PT_BEGIN( pt );
    	
    	while(1){
 
+   		THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+
    		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 );
-   		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
+   		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() && wifi_b_connected() );
    		
    		if( sys_b_is_shutting_down() ){
 
@@ -921,8 +929,17 @@ PT_BEGIN( pt );
    			}
 
    			set_state( STATE_IDLE );
+   			reset_leader();
 
         	THREAD_EXIT( pt );
+        }
+        else if( !wifi_b_connected() ){
+
+        	// wifi disconnected
+        	set_state( STATE_IDLE );
+   			reset_leader();
+
+   			THREAD_RESTART( pt );
         }
 
    		update_follower_timeouts();
