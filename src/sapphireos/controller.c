@@ -468,7 +468,7 @@ static void send_msg( uint8_t msgtype, uint8_t *msg, uint8_t len, sock_addr_t *r
 
 static void send_announce( void ){
 
-	if( ( controller_state != STATE_CANDIDATE ) ||
+	if( ( controller_state != STATE_CANDIDATE ) &&
 		( controller_state != STATE_LEADER ) ){
 
 		log_v_error_P( PSTR("cannot send announce, invalid state!") );
