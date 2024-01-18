@@ -380,6 +380,17 @@ static void vote( ip_addr4_t ip, uint16_t priority, uint16_t follower_count, uin
 		if( leader_change && 
 			!ip_b_addr_compare( ip, cfg_ip_get_ipaddr() ) ){
 
+			log_v_debug_P( PSTR("voter: %d.%d.%d.%d from %d.%d.%d.%d"),
+					ip.ip3,
+					ip.ip2,
+					ip.ip1,
+					ip.ip0,
+					leader_ip.ip3,
+					leader_ip.ip2,
+					leader_ip.ip1,
+					leader_ip.ip0
+				);
+
 			set_state( STATE_VOTER );
 		}
 	}
@@ -674,7 +685,22 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 		}
 	}
 
-	vote( raddr->ipaddr, msg->priority, msg->follower_count, msg->flags );
+	// changing leader, or updating current leader
+	// avoids changing leader just because we received an announce
+	if( update_leader || ip_b_addr_compare( raddr->ipaddr, leader_ip ) ){
+
+		// if( !ip_b_addr_compare( cfg_ip_get_ipaddr(), raddr->ipaddr ) ){
+			
+		// 	log_v_debug_P( PSTR("vote: %d.%d.%d.%d"),
+		// 		raddr->ipaddr.ip3, 
+		// 		raddr->ipaddr.ip2, 
+		// 		raddr->ipaddr.ip1, 
+		// 		raddr->ipaddr.ip0
+		// 	);
+		// }
+
+		vote( raddr->ipaddr, msg->priority, msg->follower_count, msg->flags );
+	}
 }
 
 
