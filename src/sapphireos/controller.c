@@ -353,12 +353,6 @@ static void vote( ip_addr4_t ip, uint16_t priority, uint16_t follower_count, uin
 
 	bool leader_change = !ip_b_addr_compare( ip, leader_ip );
 
-	leader_ip = ip;
-	leader_priority = priority;
-	leader_follower_count = follower_count;
-	leader_timeout = CONTROLLER_FOLLOWER_TIMEOUT;
-	leader_flags = flags;
-
 	// check state:
 	if( controller_state == STATE_IDLE ){
 
@@ -383,7 +377,8 @@ static void vote( ip_addr4_t ip, uint16_t priority, uint16_t follower_count, uin
 
 		// if candidate change, and we are no longer the candidate,
 		// switch to voter state
-		if( leader_change && !ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) ){
+		if( leader_change && 
+			!ip_b_addr_compare( ip, cfg_ip_get_ipaddr() ) ){
 
 			set_state( STATE_VOTER );
 		}
@@ -409,6 +404,13 @@ static void vote( ip_addr4_t ip, uint16_t priority, uint16_t follower_count, uin
 
 		log_v_debug_P( PSTR("vote on unhandled state: %d"), controller_state );
 	}
+
+
+	leader_ip = ip;
+	leader_priority = priority;
+	leader_follower_count = follower_count;
+	leader_timeout = CONTROLLER_FOLLOWER_TIMEOUT;
+	leader_flags = flags;
 }
 
 static void vote_self( void ){
@@ -419,6 +421,8 @@ static void vote_self( void ){
 
 		flags |= CONTROLLER_FLAGS_IS_LEADER;
 	}
+
+	log_v_debug_P( PSTR("voting self") );
 
 	vote( cfg_ip_get_ipaddr(), get_priority(), get_follower_count(), flags );
 }
@@ -585,8 +589,7 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 		update_leader = TRUE;
 	}
 	// check if already tracking this leader:
-	else if( !ip_b_is_zeroes( leader_ip ) && 
-		     ip_b_addr_compare( raddr->ipaddr, leader_ip ) ){
+	else if( ip_b_addr_compare( raddr->ipaddr, leader_ip ) ){
 
 		reason = 2;
 		update_leader = TRUE;
