@@ -269,7 +269,7 @@ static void _catbus_v_msg_init( catbus_header_t *header,
     header->origin_id       = origin_id;
 }
 
-static void _catbus_v_get_query( catbus_query_t *query ){
+void catbus_v_get_query( catbus_query_t *query ){
 
     for( uint8_t i = 0; i < cnt_of_array(query->tags); i++ ){
 
@@ -328,7 +328,7 @@ static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id )
     msg->flags = 0;
     msg->data_port = sock_u16_get_lport( sock );
 
-    _catbus_v_get_query( &msg->query );
+    catbus_v_get_query( &msg->query );
 
     sock_i16_sendto_m( sock, h, raddr );
 }

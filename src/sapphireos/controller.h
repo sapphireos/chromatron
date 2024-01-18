@@ -65,8 +65,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     controller_header_t header;
-    
-    
+    catbus_query_t query;
 }  controller_msg_status_t;
 #define CONTROLLER_MSG_STATUS       3
 

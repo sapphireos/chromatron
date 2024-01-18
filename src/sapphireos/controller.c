@@ -155,8 +155,9 @@ KV_SECTION_META kv_meta_t controller_kv[] = {
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_uptime,  		0,  "controller_leader_uptime" },
 };
 
-typedef struct{
+typedef struct __attribute__((packed)){
 	ip_addr4_t ip;
+	catbus_query_t query;
 	uint16_t timeout;
 } follower_t;
 
@@ -167,6 +168,27 @@ PT_THREAD( controller_state_thread( pt_t *pt, void *state ) );
 PT_THREAD( controller_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( controller_timeout_thread( pt_t *pt, void *state ) );
 
+
+static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &follower_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &follower_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
 
 static PGM_P get_state_name( uint8_t state ){
 
@@ -275,7 +297,7 @@ static void remove_follower( ip_addr4_t follower_ip ){
     }	
 }
 
-static void update_follower( ip_addr4_t follower_ip ){
+static void update_follower( ip_addr4_t follower_ip, controller_msg_status_t *msg ){
 
 	// search for follower:
 	// if found, update
@@ -290,6 +312,7 @@ static void update_follower( ip_addr4_t follower_ip ){
 
         if( ip_b_addr_compare( follower_ip, follower->ip ) ){
 
+        	follower->query = msg->query;
         	follower->timeout = CONTROLLER_FOLLOWER_TIMEOUT;
 
         	return;
@@ -300,6 +323,7 @@ static void update_follower( ip_addr4_t follower_ip ){
 
     follower_t follower = {
     	follower_ip,
+    	msg->query,
 		CONTROLLER_FOLLOWER_TIMEOUT,
     };
 
@@ -447,6 +471,9 @@ void controller_v_init( void ){
 
     list_v_init( &follower_list );	
 
+    // create vfile
+    fs_f_create_virtual( PSTR("directory"), vfile );
+
     // create socket
     sock = sock_s_create( SOS_SOCK_DGRAM );
 
@@ -540,6 +567,8 @@ static void send_status( void ){
 	controller_msg_status_t msg = {
 		{ 0 },
 	};
+
+	catbus_v_get_query( &msg.query );
 
 	sock_addr_t raddr;
     raddr.ipaddr = leader_ip;
@@ -719,7 +748,7 @@ static void process_status( controller_msg_status_t *msg, sock_addr_t *raddr ){
 	}
 
 	// add or update this node's tracking information
-	update_follower( raddr->ipaddr );
+	update_follower( raddr->ipaddr, msg );
 }
 
 static void process_leave( controller_msg_leave_t *msg, sock_addr_t *raddr ){
