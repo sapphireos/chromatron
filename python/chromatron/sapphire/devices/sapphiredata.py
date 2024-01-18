@@ -423,6 +423,22 @@ class VMThreadEntryArray(ArrayField):
         super().__init__(_field=field, **kwargs)
 
 
+class DirectoryEntry(StructField):
+    def __init__(self, **kwargs):
+        fields = [Ipv4Field(_name="ipaddr"),
+                  ArrayField(_name="query", _field=Uint32Field, _length=8),
+                  Uint16Field(_name="service_flags"),
+                  Uint16Field(_name="timeout")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class DirectoryArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = DirectoryEntry
+
+        super().__init__(_field=field, **kwargs)
+
+
 # class BattRecordStart(StructField):
 #     def __init__(self, **kwargs):
 #         fields = [Uint8Field(_name="flags"),

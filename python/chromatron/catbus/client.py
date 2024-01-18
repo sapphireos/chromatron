@@ -265,7 +265,7 @@ class Client(BaseClient):
                     # ensure file is committed to disk
                     f.flush()
 
-    def lookup_hash(self, *args, skip_cache=False):
+    def lookup_hash(self, *args, skip_cache=False, host=None):
         cache = {}
         
         if not skip_cache:
@@ -315,7 +315,7 @@ class Client(BaseClient):
 
             msg = LookupHashMsg(hashes=hashes)
 
-            response, sender = self._exchange(msg)
+            response, sender = self._exchange(msg, host=host)
 
             for i in range(len(response.keys)):
                 key = response.keys[i]

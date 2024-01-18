@@ -45,15 +45,12 @@ typedef struct __attribute__((packed)){
 
 
 #define CONTROLLER_FLAGS_IS_LEADER      0x0001
-// #define CONTROLLER_FLAGS_DROP_LEADER    0x0010
 
 typedef struct __attribute__((packed)){
     controller_header_t header;
     uint16_t flags;
     uint16_t priority;
     uint16_t follower_count;
-    // uint64_t uptime;
-    // uint64_t device_id;
 }  controller_msg_announce_t;
 #define CONTROLLER_MSG_ANNOUNCE     1
 
@@ -66,8 +63,15 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     controller_header_t header;
     catbus_query_t query;
+    uint16_t service_flags;
 }  controller_msg_status_t;
 #define CONTROLLER_MSG_STATUS       3
+
+#define CONTROLLER_SERVICE_NET_TIME     0x0001
+#define CONTROLLER_SERVICE_NTP_TIME     0x0002
+#define CONTROLLER_SERVICE_GFX_SYNC     0x0004
+#define CONTROLLER_SERVICE_LINK         0x0008
+
 
 typedef struct __attribute__((packed)){
     controller_header_t header;

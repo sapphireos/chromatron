@@ -158,6 +158,7 @@ KV_SECTION_META kv_meta_t controller_kv[] = {
 typedef struct __attribute__((packed)){
 	ip_addr4_t ip;
 	catbus_query_t query;
+	uint16_t service_flags;
 	uint16_t timeout;
 } follower_t;
 
@@ -312,8 +313,9 @@ static void update_follower( ip_addr4_t follower_ip, controller_msg_status_t *ms
 
         if( ip_b_addr_compare( follower_ip, follower->ip ) ){
 
-        	follower->query = msg->query;
-        	follower->timeout = CONTROLLER_FOLLOWER_TIMEOUT;
+        	follower->service_flags = msg->service_flags;
+        	follower->query 		= msg->query;
+        	follower->timeout 		= CONTROLLER_FOLLOWER_TIMEOUT;
 
         	return;
         }
@@ -324,6 +326,7 @@ static void update_follower( ip_addr4_t follower_ip, controller_msg_status_t *ms
     follower_t follower = {
     	follower_ip,
     	msg->query,
+    	msg->service_flags,
 		CONTROLLER_FOLLOWER_TIMEOUT,
     };
 
