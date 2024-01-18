@@ -74,7 +74,11 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 	while( len > 0 ){
 
 		// wait for data
-		while( usart_u8_bytes_available( UART_CHANNEL ) == 0 );
+		uint32_t start = tmr_u32_get_system_time_ms();
+		while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
+			   ( tmr_u32_elapsed_time_ms( start) < 500 ) );
+
+		ASSERT( usart_u8_bytes_available( UART_CHANNEL ) != 0 );
 
 		int16_t byte = usart_i16_get_byte( UART_CHANNEL );
 
@@ -90,7 +94,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 		}
 	}
 	#else 
-	if( hal_wifi_i8_usart_receive( rx_data, len, 10000000 ) != 0 ){
+	if( hal_wifi_i8_usart_receive( rx_data, len, 500000 ) != 0 ){
 
 		sys_v_wdt_reset();		
 		status_led_v_set( 0, STATUS_LED_GREEN );
@@ -180,6 +184,11 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 		}
 
 		coproc_v_set_error_flags( err_flags, current_opcode, current_length );
+
+		#else
+
+		// ESP8266
+		ASSERT(FALSE);
 
 		#endif
 
