@@ -50,7 +50,7 @@ typedef struct __attribute__((packed)){
 
 #define OPCODE_TEST					0x01
 #define OPCODE_REBOOT				0x02
-#define OPCODE_LOAD_DISABLE			0x03
+// #define OPCODE_LOAD_DISABLE			0x03
 #define OPCODE_GET_RESET_SOURCE		0x04
 #define OPCODE_GET_WIFI				0x05
 #define OPCODE_DEBUG_PRINT  		0x06
