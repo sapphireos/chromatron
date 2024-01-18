@@ -38,6 +38,10 @@
 
 #include "coproc_app.h"
 
+
+#include "boot_data.h"
+extern boot_data_t BOOTDATA boot_data;
+
 // static bool boot_esp;
 
 static bool loadfw_enable_1;
@@ -677,6 +681,18 @@ PT_BEGIN( pt );
 
     if( reset_source == RESET_SOURCE_WATCHDOG ){
 
+        // boot loop detection
+        if( boot_data.reboots > 16 ){
+
+            // start USB recovery mode
+            thread_t_create( usart_recovery_thread,
+                     PSTR("usart_recovery"),
+                     0,
+                     0 );
+
+            THREAD_EXIT( pt );
+        }
+
         status_led_v_set( 1, STATUS_LED_RED );
 
         TMR_WAIT( pt, 1000 );
@@ -697,6 +713,10 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 250 );        
         status_led_v_set( 0, STATUS_LED_GREEN );
         TMR_WAIT( pt, 250 );        
+    }
+    else{
+
+        boot_data.reboots = 0;        
     }
 
     
