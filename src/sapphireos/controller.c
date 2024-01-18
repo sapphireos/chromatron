@@ -654,9 +654,9 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 
 				list_v_destroy( &follower_list );
 			}
-			// if we were tracking a pre-existing leader,
+			// if we were tracking a pre-existing leader (that is not us),
 			// inform it that we are leaving.
-			else if( !ip_b_is_zeroes( leader_ip ) ){
+			else if( !ip_b_is_zeroes( leader_ip ) && !ip_b_addr_compare( cfg_ip_get_ipaddr(), leader_ip ) ){
 
 				log_v_debug_P( PSTR("Leaving previous leader: %d.%d.%d.%d"),
 					leader_ip.ip3,
@@ -811,15 +811,16 @@ PT_BEGIN( pt );
 	// THREAD_WAIT_WHILE( thread_b_alarm_set() );
 	THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && controller_state == STATE_IDLE );
 
-	if( thread_b_alarm() ){
+	// on timeout, if still in idle state
+	if( thread_b_alarm() && ( controller_state == STATE_IDLE ) ){
 		// timeout!
 
 		// check if leader is enabled:
 		if( controller_enabled ){
 
 			set_state( STATE_CANDIDATE );
-			
 			reset_leader();	
+			
 			vote_self();		
 		}
 		// else if( !ip_b_is_zeroes( leader_ip ) ){
@@ -831,91 +832,91 @@ PT_BEGIN( pt );
 		// }
 		else{
 
-			// no leader found
-			// timeout, restart
-			THREAD_RESTART( pt );
+			set_state( STATE_IDLE );
+			reset_leader();	
 		}
 	}
 	else{
 
 		// state change
-		ASSERT( controller_state != STATE_IDLE );
 	}
 
-	// VOTER
-	while( controller_state == STATE_VOTER ){
+	while( controller_state != STATE_IDLE ){
 
-		// thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_ELECTION_TIMEOUT * 1000 );
-		// THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_VOTER ) );
-		THREAD_WAIT_WHILE( pt, ( controller_state == STATE_VOTER )  );
+		// VOTER
+		while( controller_state == STATE_VOTER ){
 
-		// if( thread_b_alarm() ){
+			// thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_ELECTION_TIMEOUT * 1000 );
+			// THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_VOTER ) );
+			THREAD_WAIT_WHILE( pt, ( controller_state == STATE_VOTER )  );
+
+			// if( thread_b_alarm() ){
+				
+			// 	log_v_debug_P( PSTR("timeout") );
+
+			// 	// reset to idle
+			// 	set_state( STATE_IDLE );
+			// 	reset_leader();
+			// }
+			// else{
+
+			// 	log_v_debug_P( PSTR("state: %d"), controller_state );
+			// }	
+		}
+
+		// FOLLOWER
+		while( controller_state == STATE_FOLLOWER ){
+
+			thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 + ( rnd_u16_get_int() >> 5 )  ); // 2000 - 4048 ms
+			THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_FOLLOWER ) );
+
+			if( controller_state == STATE_FOLLOWER ){
 			
-		// 	log_v_debug_P( PSTR("timeout") );
+				send_status();
+			}
+		}
 
-		// 	// reset to idle
-		// 	set_state( STATE_IDLE );
-		// 	reset_leader();
-		// }
-		// else{
+		// CANDIDATE
+		start_time = tmr_u32_get_system_time_ms();
+		while( controller_state == STATE_CANDIDATE ){
 
-		// 	log_v_debug_P( PSTR("state: %d"), controller_state );
-		// }	
-	}
+			// broadcast announcement
+			send_announce();
 
-	// FOLLOWER
-	while( controller_state == STATE_FOLLOWER ){
+			// random delay:
+			thread_v_set_alarm( tmr_u32_get_system_time_ms() + 
+				500 + ( rnd_u16_get_int() >> 7 )  ); // 500 - 1012 ms
+			
+			THREAD_WAIT_WHILE( pt, 
+				thread_b_alarm_set() && 
+				( controller_state == STATE_CANDIDATE ) );
 
-		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 + ( rnd_u16_get_int() >> 5 )  ); // 2000 - 4048 ms
-		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_FOLLOWER ) );
+			// check if we are leader after timeout
+			if( ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) &&
+				tmr_u32_elapsed_time_ms( start_time ) > CONTROLLER_ELECTION_TIMEOUT * 1000 ){
 
-		if( controller_state == STATE_FOLLOWER ){
-		
-			send_status();
+				log_v_debug_P( PSTR("Electing self as leader") );
+
+				set_state( STATE_LEADER );
+			}
+		}
+
+		// LEADER
+		while( controller_state == STATE_LEADER ){
+
+			// broadcast announcement
+			send_announce();
+
+			// random delay:
+			thread_v_set_alarm( tmr_u32_get_system_time_ms() + 
+				500 + ( rnd_u16_get_int() >> 7 )  ); // 500 - 1012 ms
+
+			THREAD_WAIT_WHILE( pt, 
+				thread_b_alarm_set() && 
+				( controller_state == STATE_LEADER ) );
+
 		}
 	}
-
-	// CANDIDATE
-	start_time = tmr_u32_get_system_time_ms();
-	while( controller_state == STATE_CANDIDATE ){
-
-		// broadcast announcement
-		send_announce();
-
-		// random delay:
-		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 
-			500 + ( rnd_u16_get_int() >> 7 )  ); // 500 - 1012 ms
-		
-		THREAD_WAIT_WHILE( pt, 
-			thread_b_alarm_set() && 
-			( controller_state == STATE_CANDIDATE ) );
-
-		// check if we are leader after timeout
-		if( ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) &&
-			tmr_u32_elapsed_time_ms( start_time ) > CONTROLLER_ELECTION_TIMEOUT * 1000 ){
-
-			log_v_debug_P( PSTR("Electing self as leader") );
-
-			set_state( STATE_LEADER );
-		}
-	}
-
-	// LEADER
-	while( controller_state == STATE_LEADER ){
-
-		// broadcast announcement
-		send_announce();
-
-		// random delay:
-		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 
-			500 + ( rnd_u16_get_int() >> 7 )  ); // 500 - 1012 ms
-
-		THREAD_WAIT_WHILE( pt, 
-			thread_b_alarm_set() && 
-			( controller_state == STATE_LEADER ) );
-
-	}
-
 
 	THREAD_RESTART( pt );
     
