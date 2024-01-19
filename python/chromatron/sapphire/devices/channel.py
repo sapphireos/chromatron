@@ -535,7 +535,7 @@ class USBUDPChannel(SerialUDPChannel):
     def open(self, host):
         try:
             self.port = serial.Serial(host, baudrate=2000000)
-            self.settimeout(timeout=0.5)
+            self.settimeout(timeout=2.0)
             self.host = self.port.port
 
         except serial.serialutil.SerialException:
