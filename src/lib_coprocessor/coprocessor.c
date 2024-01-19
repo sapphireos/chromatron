@@ -35,6 +35,15 @@
 #include "status_led.h"
 #endif
 
+
+#ifdef ESP8266
+static bool test_mode;
+
+KV_SECTION_META kv_meta_t coproc_test_cfg_kv[] = {
+    { CATBUS_TYPE_BOOL,      0, 0,  &test_mode, 0,  "coproc_test_mode" },
+};
+#endif
+
 // bootloader shared memory
 extern boot_data_t BOOTDATA boot_data;
 
@@ -71,28 +80,67 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 	memset( rx_data, 0, len );
 
 	#ifdef ESP8266
-	while( len > 0 ){
 
-		while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) );
+	if( test_mode ){
 
-		// // wait for data
-		// uint32_t start = tmr_u32_get_system_time_ms();
-		// while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
-		// 	   ( tmr_u32_elapsed_time_ms( start) < 500 ) );
+		if( header ){
 
-		// ASSERT( usart_u8_bytes_available( UART_CHANNEL ) != 0 );
+			// SOF byte, filter for non printable
+			while( len == sizeof(block) ){
 
-		int16_t byte = usart_i16_get_byte( UART_CHANNEL );
+				while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) );
 
-		// waiting for SOF and received printable character instead of start of frame
-		if( header && ( len == sizeof(block) ) && ( byte < 128 ) ){
+				int16_t byte = usart_i16_get_byte( UART_CHANNEL );
 
-			// skip byte			
+				// waiting for SOF and received printable character instead of start of frame
+				if( byte < 128 ){
+
+					// skip byte			
+				}
+				else{
+
+					*rx_data++ = byte;
+					len--;	
+				}	
+			}
+
+			// get rest of header
+			while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) );
+
+			usart_u8_get_bytes( UART_CHANNEL, rx_data, len );
 		}
 		else{
 
-			*rx_data++ = byte;
-			len--;	
+			while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) );
+
+			usart_u8_get_bytes( UART_CHANNEL, rx_data, len );
+		}
+	}
+	else{
+
+		while( len > 0 ){
+
+			while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) );
+
+			// // wait for data
+			// uint32_t start = tmr_u32_get_system_time_ms();
+			// while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
+			// 	   ( tmr_u32_elapsed_time_ms( start) < 500 ) );
+
+			// ASSERT( usart_u8_bytes_available( UART_CHANNEL ) != 0 );
+
+			int16_t byte = usart_i16_get_byte( UART_CHANNEL );
+
+			// waiting for SOF and received printable character instead of start of frame
+			if( header && ( len == sizeof(block) ) && ( byte < 128 ) ){
+
+				// skip byte			
+			}
+			else{
+
+				*rx_data++ = byte;
+				len--;	
+			}
 		}
 	}
 	#else 
@@ -313,6 +361,10 @@ uint8_t coproc_u8_issue(
 	uint8_t *data, 
 	uint8_t len ){
 
+	#ifdef AVR
+	return 0;
+	#else
+
 	if( !sync ){
 
 		return 0;
@@ -369,6 +421,7 @@ uint8_t coproc_u8_issue(
 	// }
 
 	return hdr.length;
+	#endif
 }
 
 // note this function should not return, the coprocessor will hit the reset line.
