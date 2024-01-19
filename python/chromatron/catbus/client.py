@@ -52,11 +52,12 @@ from sapphire.common.util import to_thread
 
 
 class BaseClient(object):
-    def __init__(self, host=None, universe=0, default_port=CATBUS_MAIN_PORT):
+    def __init__(self, host=None, universe=0, default_port=CATBUS_MAIN_PORT, initial_timeout=0.3):
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         self.default_port = default_port
         self.universe = universe
+        self.initial_timeout = initial_timeout
 
         try:
             os.makedirs(firmware_package.data_dir())
@@ -83,7 +84,10 @@ class BaseClient(object):
     def local_port(self):
         return self._sock.getsockname()[1]
 
-    def _exchange(self, msg, host=None, timeout=0.2, tries=16):
+    def _exchange(self, msg, host=None, timeout=None, tries=16):
+        if timeout is None:
+            timeout = self.initial_timeout
+
         msg.header.universe = self.universe
 
         self._sock.settimeout(timeout)
