@@ -81,14 +81,22 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 
 	#ifdef ESP8266
 
+	#define COPROC_RX_TIMEOUT 500
+
 	if( test_mode ){
+
+		uint32_t start = tmr_u32_get_system_time_ms();
 
 		if( header ){
 
 			// SOF byte, filter for non printable
 			while( len == sizeof(block) ){
 
-				while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) );
+				// while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) );
+				while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
+				   	   ( tmr_u32_elapsed_time_ms( start) < COPROC_RX_TIMEOUT ) );
+
+				ASSERT( usart_u8_bytes_available( UART_CHANNEL ) != 0 );
 
 				int16_t byte = usart_i16_get_byte( UART_CHANNEL );
 
@@ -105,13 +113,21 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 			}
 
 			// get rest of header
-			while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) );
+			// while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) );
+			while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) &&
+				   ( tmr_u32_elapsed_time_ms( start) < COPROC_RX_TIMEOUT ) );
+
+			ASSERT( usart_u8_bytes_available( UART_CHANNEL ) >= len );
 
 			usart_u8_get_bytes( UART_CHANNEL, rx_data, len );
 		}
 		else{
 
-			while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) );
+			// while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) );
+			while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) &&
+				   ( tmr_u32_elapsed_time_ms( start) < COPROC_RX_TIMEOUT ) );
+
+			ASSERT( usart_u8_bytes_available( UART_CHANNEL ) >= len );
 
 			usart_u8_get_bytes( UART_CHANNEL, rx_data, len );
 		}
