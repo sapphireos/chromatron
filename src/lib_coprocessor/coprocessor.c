@@ -76,6 +76,12 @@ void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 extern uint8_t current_opcode;
 extern uint8_t current_length;
 
+
+#define COPROC_RX_TIMEOUT 		500 // timeout for most commands
+#define COPROC_ERASE_TIMEOUT 	2000 // extra time for erase fw
+
+static uint16_t receive_timeout = COPROC_ERASE_TIMEOUT;
+
 void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 
 	coproc_block_t block;
@@ -84,8 +90,6 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 	memset( rx_data, 0, len );
 
 	#ifdef ESP8266
-
-	#define COPROC_RX_TIMEOUT 500
 
 	if( test_mode ){
 
@@ -97,7 +101,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 			while( len == sizeof(block) ){
 
 				while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
-				   	   ( tmr_u32_elapsed_time_ms( start) < COPROC_RX_TIMEOUT ) );
+				   	   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
 
 				ASSERT( usart_u8_bytes_available( UART_CHANNEL ) != 0 );
 
@@ -117,7 +121,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 
 			// get rest of header
 			while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) &&
-				   ( tmr_u32_elapsed_time_ms( start) < COPROC_RX_TIMEOUT ) );
+				   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
 
 			ASSERT( usart_u8_bytes_available( UART_CHANNEL ) >= len );
 
@@ -126,7 +130,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 		else{
 
 			while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) &&
-				   ( tmr_u32_elapsed_time_ms( start) < COPROC_RX_TIMEOUT ) );
+				   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
 
 			ASSERT( usart_u8_bytes_available( UART_CHANNEL ) >= len );
 
@@ -387,6 +391,15 @@ uint8_t coproc_u8_issue(
 		return 0;
 	}
 
+	if( opcode == OPCODE_FW_ERASE ){
+
+		receive_timeout = COPROC_ERASE_TIMEOUT;
+	}
+	else{
+
+		receive_timeout = COPROC_RX_TIMEOUT;
+	}
+
 	uint32_t start = tmr_u32_get_system_time_ms();
 
 	coproc_hdr_t hdr;
@@ -482,7 +495,10 @@ uint16_t coproc_u16_fw_crc( void ){
 }
 
 void coproc_v_fw_erase( void ){
-	
+		
+	// this is a long command, so kick the watchdog here just in case
+	sys_v_wdt_reset();
+
 	coproc_i32_call0( OPCODE_FW_ERASE );	
 }
 

@@ -323,6 +323,8 @@ void coproc_v_dispatch(
         *retval = ffs_fw_u16_crc();
     }
     else if( hdr->opcode == OPCODE_FW_ERASE ){
+
+        // This command was timed at 822 ms
         
         status_led_v_set( 1, STATUS_LED_TEAL );
 
