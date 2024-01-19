@@ -38,9 +38,13 @@
 
 #ifdef ESP8266
 static bool test_mode;
+static uint8_t slowest_opcode;
+static uint16_t slowest_time;
 
 KV_SECTION_META kv_meta_t coproc_test_cfg_kv[] = {
-    { CATBUS_TYPE_BOOL,      0, 0,  &test_mode, 0,  "coproc_test_mode" },
+    { CATBUS_TYPE_BOOL,      0, 0,  &test_mode, 		0,  "coproc_test_mode" },
+    { CATBUS_TYPE_UINT8,     0, 0,  &slowest_opcode, 	0,  "coproc_slowest_opcode" },
+    { CATBUS_TYPE_UINT16,    0, 0,  &slowest_time, 		0,  "coproc_slowest_time" },
 };
 #endif
 
@@ -428,10 +432,11 @@ uint8_t coproc_u8_issue(
 
 	uint32_t elapsed = tmr_u32_elapsed_time_ms( start );
 
-	// if( elapsed > 100 ){
+	if( elapsed > slowest_time ){
 
-	// 	log_v_debug_P( PSTR("opcode: 0x%02x %d ms"), opcode, elapsed );
-	// }
+		slowest_opcode = opcode;
+		slowest_time = elapsed;
+	}
 
 	return hdr.length;
 	#endif
