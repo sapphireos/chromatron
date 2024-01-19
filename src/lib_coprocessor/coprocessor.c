@@ -92,7 +92,6 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 			// SOF byte, filter for non printable
 			while( len == sizeof(block) ){
 
-				// while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) );
 				while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
 				   	   ( tmr_u32_elapsed_time_ms( start) < COPROC_RX_TIMEOUT ) );
 
@@ -113,7 +112,6 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 			}
 
 			// get rest of header
-			// while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) );
 			while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) &&
 				   ( tmr_u32_elapsed_time_ms( start) < COPROC_RX_TIMEOUT ) );
 
@@ -123,7 +121,6 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 		}
 		else{
 
-			// while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) );
 			while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) &&
 				   ( tmr_u32_elapsed_time_ms( start) < COPROC_RX_TIMEOUT ) );
 
