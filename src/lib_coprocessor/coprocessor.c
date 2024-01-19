@@ -73,12 +73,14 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 	#ifdef ESP8266
 	while( len > 0 ){
 
-		// wait for data
-		uint32_t start = tmr_u32_get_system_time_ms();
-		while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
-			   ( tmr_u32_elapsed_time_ms( start) < 500 ) );
+		while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) );
 
-		ASSERT( usart_u8_bytes_available( UART_CHANNEL ) != 0 );
+		// // wait for data
+		// uint32_t start = tmr_u32_get_system_time_ms();
+		// while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
+		// 	   ( tmr_u32_elapsed_time_ms( start) < 500 ) );
+
+		// ASSERT( usart_u8_bytes_available( UART_CHANNEL ) != 0 );
 
 		int16_t byte = usart_i16_get_byte( UART_CHANNEL );
 
@@ -316,6 +318,8 @@ uint8_t coproc_u8_issue(
 		return 0;
 	}
 
+	uint32_t start = tmr_u32_get_system_time_ms();
+
 	coproc_hdr_t hdr;
 
 	hdr.sof     = COPROC_SOF;
@@ -356,6 +360,13 @@ uint8_t coproc_u8_issue(
 		data += COPROC_BLOCK_LEN;
 		rx_len -= COPROC_BLOCK_LEN;
 	}
+
+	uint32_t elapsed = tmr_u32_elapsed_time_ms( start );
+
+	// if( elapsed > 100 ){
+
+	// 	log_v_debug_P( PSTR("opcode: 0x%02x %d ms"), opcode, elapsed );
+	// }
 
 	return hdr.length;
 }

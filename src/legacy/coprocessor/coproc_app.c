@@ -344,6 +344,10 @@ void coproc_v_dispatch(
     }
     else if( hdr->opcode == OPCODE_FW_VERSION ){
 
+        // char ver[FW_VER_LEN] = "0.1.850e73bf6";
+
+        // memcpy(response, &ver, FW_VER_LEN);
+
         sys_v_get_fw_version( (char *)response );
         *response_len = FW_VER_LEN;
     }
@@ -673,6 +677,23 @@ PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
 
+    flash_start     = FLASH_FS_FILE_SYSTEM_START + ( (uint32_t)ffs_block_u16_total_blocks() * FLASH_FS_ERASE_BLOCK_SIZE );
+    flash_size      = ( flash25_u32_capacity() - flash_start ) + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
+    fw0_start       = FLASH_FS_FIRMWARE_0_PARTITION_START;
+    fw0_end         = fw0_start + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
+    
+    // MUST INIT WIFI FIRST!
+    hal_wifi_v_init();
+
+
+// start USB recovery mode
+// thread_t_create( usart_recovery_thread,
+//          PSTR("usart_recovery"),
+//          0,
+//          0 );
+
+// THREAD_EXIT( pt );
+
     status_led_v_set( 0, STATUS_LED_RED );
     status_led_v_set( 0, STATUS_LED_GREEN );
     status_led_v_set( 0, STATUS_LED_BLUE );
@@ -681,17 +702,17 @@ PT_BEGIN( pt );
 
     if( reset_source == RESET_SOURCE_WATCHDOG ){
 
-        // boot loop detection
-        if( boot_data.reboots > 16 ){
+        // // boot loop detection
+        // if( boot_data.reboots > 16 ){
 
-            // start USB recovery mode
-            thread_t_create( usart_recovery_thread,
-                     PSTR("usart_recovery"),
-                     0,
-                     0 );
+        //     // start USB recovery mode
+        //     thread_t_create( usart_recovery_thread,
+        //              PSTR("usart_recovery"),
+        //              0,
+        //              0 );
 
-            THREAD_EXIT( pt );
-        }
+        //     THREAD_EXIT( pt );
+        // }
 
         status_led_v_set( 1, STATUS_LED_RED );
 
@@ -714,18 +735,10 @@ PT_BEGIN( pt );
         status_led_v_set( 0, STATUS_LED_GREEN );
         TMR_WAIT( pt, 250 );        
     }
-    else{
+    // else{
 
-        boot_data.reboots = 0;        
-    }
-
-    
-    flash_start     = FLASH_FS_FILE_SYSTEM_START + ( (uint32_t)ffs_block_u16_total_blocks() * FLASH_FS_ERASE_BLOCK_SIZE );
-    flash_size      = ( flash25_u32_capacity() - flash_start ) + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
-    fw0_start       = FLASH_FS_FIRMWARE_0_PARTITION_START;
-    fw0_end         = fw0_start + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
-    
-    hal_wifi_v_init();
+    //     boot_data.reboots = 0;        
+    // }
 
     // loadfw_request = TRUE;
      
