@@ -1014,7 +1014,9 @@ PT_BEGIN( pt );
                 }
                 else{
 
-                    ASSERT( FALSE ); // all requested keys were already checked, so they must exist here
+                    // ASSERT( FALSE ); // all requested keys were already checked, so they must exist here
+                    error = CATBUS_ERROR_KEY_NOT_FOUND;
+                    goto end;
                 }
 
                 hash++;
