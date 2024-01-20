@@ -80,7 +80,9 @@ extern uint8_t current_length;
 #define COPROC_RX_TIMEOUT 		500 // timeout for most commands
 #define COPROC_ERASE_TIMEOUT 	2000 // extra time for erase fw
 
+#ifdef ESP8266
 static uint16_t receive_timeout = COPROC_ERASE_TIMEOUT;
+#endif
 
 void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 
