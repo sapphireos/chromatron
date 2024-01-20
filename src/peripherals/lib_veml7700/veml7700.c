@@ -22,6 +22,8 @@
 
 #include "sapphire.h"
 
+#ifdef ESP32
+
 #include "veml7700.h"
 
 /*
@@ -337,3 +339,5 @@ void veml7700_v_init( void ){
                      0,
                      0 );
 }
+
+#endif

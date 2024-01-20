@@ -24,6 +24,8 @@
 
 #include "sapphire.h"
 
+#ifdef ESP32
+
 #include "datetime.h"
 
 #include "ssd1306.h"
@@ -483,3 +485,4 @@ void ssd1306_v_init( void ){
                      0 );
 }
 
+#endif
