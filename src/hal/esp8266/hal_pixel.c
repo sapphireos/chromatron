@@ -118,9 +118,13 @@ PT_BEGIN( pt );
 
 
             #ifdef ENABLE_COPROCESSOR
+            #define PIXEL_RX_TIMEOUT 500
+
             uint16_t pix_count = gfx_u16_get_pix_count();
 
             coproc_i32_call1( OPCODE_PIX_LOAD, pix_count );  
+
+            uint32_t start = tmr_u32_get_system_time_ms();
 
             while( pix_count > 0 ){
 
@@ -133,8 +137,10 @@ PT_BEGIN( pt );
 
                 if( ( pix_count % COPROC_PIX_WAIT_COUNT ) == 0 ){
 
-                    while( usart_u8_bytes_available( UART_CHANNEL ) == 0 );
-                    usart_i16_get_byte( UART_CHANNEL );                
+                    while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
+                           ( tmr_u32_elapsed_time_ms( start) < PIXEL_RX_TIMEOUT ) );
+
+                    ASSERT( usart_i16_get_byte( UART_CHANNEL ) >= 0 );
                 }
             }
 
