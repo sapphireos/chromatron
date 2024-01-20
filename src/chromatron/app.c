@@ -32,10 +32,9 @@
 #include "battery.h"
 #include "flash_fs.h"
 
+#ifdef ESP32
 #include "veml7700.h"
 #include "ssd1306.h"
-
-#ifdef ESP32
 #include "telemetry.h"
 #endif
 

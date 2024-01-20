@@ -552,6 +552,8 @@ file_t fs_f_close( file_t file ){
 
         // flush the file cache
         // .... if we had one
+
+        ffs_v_close( file );
     }
 
 	mem2_v_free( file );

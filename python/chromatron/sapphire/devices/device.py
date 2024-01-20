@@ -1072,6 +1072,7 @@ class Device(object):
             29: "link_remote",
             30: "kv_opt",
             31: "vm_thread_context",
+            32: "fs_page_cache",
         }
 
         total_size = 0

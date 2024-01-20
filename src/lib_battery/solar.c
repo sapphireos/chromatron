@@ -82,7 +82,7 @@ static uint16_t charge_timer;
 
 #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
 
-
+#ifdef ESP32
 static bool dc_detect;
 static uint8_t dc_detect_filter[SOLAR_DC_FILTER_DEPTH];
 static uint8_t dc_detect_filter_index;
@@ -95,15 +95,19 @@ static uint8_t solar_volts_filter_index;
 
 static uint32_t charge_minimum_light = SOLAR_MIN_CHARGE_LIGHT_DEFAULT;
 
+#endif
+
 KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&state_name,				0,  "solar_control_state_text" },
 
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&patch_board_installed, 	0,  "solar_enable_patch_board" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&charger2_board_installed, 	0,  "solar_enable_charger2" },
-
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
+	
+	#ifdef ESP32
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&patch_board_installed, 	0,  "solar_enable_patch_board" },	
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
+	
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
 
@@ -114,13 +118,17 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY,  &dc_detect,                 0,  "solar_dc_detect" },
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_volts,               0,  "solar_panel_volts" },
 
+	#endif
+
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
 };
 
 
 
-
+#ifdef ESP32
 PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) );
+#endif
+
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) );
 
@@ -175,10 +183,12 @@ void solar_v_init( void ){
                      0,
                      0 );
 
+	#ifdef ESP32
 	thread_t_create( solar_sensor_thread,
                      PSTR("solar_sensor"),
                      0,
                      0 );
+	#endif
 
 	if( enable_solar_charge ){
 
@@ -278,7 +288,7 @@ static void enable_charge( uint8_t target_state ){
 	After confirming it works!
 
 	*/
-
+	#ifdef ESP32
 	if( target_state == SOLAR_MODE_CHARGE_SOLAR ){
 
 		if( mppt_enabled ){
@@ -292,6 +302,9 @@ static void enable_charge( uint8_t target_state ){
 		}
 	}
 	else if( target_state == SOLAR_MODE_CHARGE_DC ){
+	#else
+	if( target_state == SOLAR_MODE_CHARGE_DC ){
+	#endif
 
 		bq25895_v_set_vindpm( 0 );
 
@@ -333,16 +346,18 @@ static void disable_solar_vbus( void ){
 
 static bool is_solar_enable_threshold( void ){
 
+	#ifdef ESP32
 	if( ( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ) &&
 		( light_sensor_u32_read() >= charge_minimum_light ) ){
 
 		return TRUE;
 	}
+	#endif
 
 	return FALSE;
 }
 
-
+#ifdef ESP32
 PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -402,7 +417,7 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
-
+#endif
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
@@ -538,7 +553,7 @@ PT_BEGIN( pt );
 			else{
 
 				// minimum discharge time reached
-
+				#ifdef ESP32
 				if( patch_board_installed ){
 
 					// patch board has a dedicated DC detect signal:
@@ -558,6 +573,9 @@ PT_BEGIN( pt );
 					}
 				}
 				else if( charger2_board_installed ){
+				#else
+				if( charger2_board_installed ){
+				#endif
 
 					// charger2 board is USB powered
 					if( batt_b_is_vbus_connected() ){

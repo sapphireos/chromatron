@@ -44,7 +44,10 @@
 #define ENABLE_LED_DETECT
 #define ENABLE_CONTROLLER
 
+// DEBUG!
+// Turn this off for normal operation!
 #define ENABLE_TRACE
+
 
 // wifi
 #define WIFI_MAX_PORTS          16
@@ -91,6 +94,7 @@
 #define FLASH_FS_MAX_USER_FILES 64
 
 #define FLASH_FS_TIMING
+#define FLASH_FS_CACHE
 
 #define FFS_ALIGN32
 
@@ -134,7 +138,7 @@
 // #define DISABLE_FFS_FW_COPY
 
 // recovery mode
-// #define DISABLE_SAFE_MODE
+#define DISABLE_SAFE_MODE
 
 // #define DISABLE_RECOVERY_MODE
 
