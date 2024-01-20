@@ -166,7 +166,7 @@ KV_SECTION_META kv_meta_t flash_fs_cache_kv[] = {
 };
 
 
-#define N_CACHE_ENTRIES 16
+#define N_CACHE_ENTRIES 64
 
 typedef struct __attribute__((packed)){
     ffs_file_t file_id;
@@ -296,6 +296,9 @@ void evict( void ){
     ASSERT( index < N_CACHE_ENTRIES );
 
     cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
+
+    // trace_printf("Evicting: file %d page: %d index: %d\n", entry[index].file_id, entry[index].page, index );
+
     entry[index].file_id = -1;
 }
 
@@ -354,6 +357,8 @@ int8_t read_into_cache( ffs_file_t file_id, uint16_t page, uint8_t *data, uint8_
             entry->len = len;
             entry->age = 0;
 
+            // trace_printf("Load: file %d page: %d\n", entry[i].file_id, entry[i].page );
+
             // memcpy( &entry->data[offset], data, len );
 
             // adjust length if appending data
@@ -386,6 +391,8 @@ int8_t read_into_cache( ffs_file_t file_id, uint16_t page, uint8_t *data, uint8_
         entry->dirty = FALSE;
         entry->page = page;
         entry->file_id = file_id;
+
+        trace_printf("Load: file %d page: %d\n", entry->file_id, entry->page );
     }
 
     return -1;
