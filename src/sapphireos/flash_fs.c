@@ -160,9 +160,9 @@ KV_SECTION_META kv_meta_t flash_fs_info_kv[] = {
 static uint32_t flash_fs_cache_hits;
 static uint32_t flash_fs_cache_misses;
 
-KV_SECTION_OPT kv_meta_t flash_fs_cache_kv[] = {
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_cache_hits,         0,  "flash_fs_cache_hits" },
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_cache_misses,         0,  "flash_fs_cache_misses" },    
+KV_SECTION_META kv_meta_t flash_fs_cache_kv[] = {
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_cache_hits,           0,  "flash_fs_file_cache_hits" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &flash_fs_cache_misses,         0,  "flash_fs_file_cache_misses" },    
 };
 
 
@@ -192,8 +192,6 @@ void init_cache( void ){
 
         return;
     }
-
-    kv_v_add_db_info( flash_fs_cache_kv, sizeof(flash_fs_cache_kv) );
 
     cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
 

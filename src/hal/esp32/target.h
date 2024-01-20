@@ -90,6 +90,7 @@
 #define FLASH_FS_MAX_USER_FILES 64
 
 #define FLASH_FS_TIMING
+#define FLASH_FS_CACHE
 
 #define FFS_ALIGN32
 
@@ -134,7 +135,7 @@
 #define DISABLE_SLEEP
 
 // recovery mode
-// #define DISABLE_SAFE_MODE
+#define DISABLE_SAFE_MODE
 
 // #define DISABLE_RECOVERY_MODE
 
