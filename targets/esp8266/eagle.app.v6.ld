@@ -210,6 +210,8 @@ SECTIONS
     *lib_gfx/obj/*.o (.text .text.*)
     *lib_battery/obj/*.o (.text .text.*)
     *peripherals/lib_veml7700/obj/*.o (.text .text.*)
+    *peripherals/lib_ssd1306/obj/*.o (.text .text.*)
+    *peripherals/lib_rfm95w/obj/*.o (.text .text.*)
 
     *libat.a:(.literal.* .text.*)
     *libcrypto.a:(.literal.* .text.*)
