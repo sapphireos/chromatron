@@ -130,7 +130,7 @@ typedef struct __attribute__((packed, aligned(4))){
 	uint32_t delay_ms;
 } i2c_setup_t;
 
-#define COPROC_PIX_WAIT_COUNT		48
+#define COPROC_PIX_WAIT_COUNT		16
 
 #define COPROC_FW_INFO_ADDRESS 0x1FC // this must match the offset in the xmega makefile!
 
