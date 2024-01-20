@@ -201,7 +201,6 @@ void init_cache( void ){
 
         entry[i].file_id = -1;
     }
-
 }
 
 cache_entry_t* get_cache_entry( ffs_file_t file, uint16_t page ){
@@ -296,6 +295,8 @@ void evict( void ){
     // random choice
     uint8_t index = rnd_u16_range( N_CACHE_ENTRIES );
 
+    ASSERT( index < N_CACHE_ENTRIES );
+
     cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
     entry[index].file_id = -1;
 }
@@ -333,7 +334,6 @@ void invalidate_file( ffs_file_t file_id ){
             entry[i].file_id = -1;
         }
     }
-
 }
 
 
