@@ -166,7 +166,7 @@ KV_SECTION_META kv_meta_t flash_fs_cache_kv[] = {
 };
 
 
-#define N_CACHE_ENTRIES 64
+#define N_CACHE_ENTRIES 32
 
 typedef struct __attribute__((packed)){
     ffs_file_t file_id;

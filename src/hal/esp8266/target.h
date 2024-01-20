@@ -107,6 +107,7 @@
 #define FLASH_FS_MAX_USER_FILES 64
 
 #define FLASH_FS_TIMING
+#define FLASH_FS_CACHE
 
 #define FFS_ALIGN32
 
