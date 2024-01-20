@@ -313,7 +313,7 @@ class Device(object):
             self._client.connect((self.host, self.port))
 
         elif self.channel_type == 'serial_udp':
-            self._client = Client()
+            self._client = Client(initial_timeout=2.0) # USB serial can be slower than wifi
             # set window to 1, so messages will ping pong over the bridge.
             self._client.set_window(1, 1)
             self._bridge = channel.UDPSerialBridge(self._channel, CATBUS_MAIN_PORT)
@@ -355,7 +355,7 @@ class Device(object):
 
         return d
 
-    def scan(self, get_all=True):    
+    def scan(self, get_all=False):    
         self.get_kv_meta()
 
         # check if this is a chromatron device (running sapphireos)

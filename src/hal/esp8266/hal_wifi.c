@@ -986,6 +986,16 @@ static bool is_ssid_configured( void ){
     
 // }
 
+static bool is_led_quiet_mode( void ){
+
+    if( ( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) ) &&
+        ( tmr_u64_get_system_time_us() > 10000000 ) ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
@@ -1052,7 +1062,10 @@ PT_BEGIN( pt );
                 memset( &scan_config, 0, sizeof(scan_config) );
                 
                 // light LED while scanning since the CPU will freeze
-                io_v_set_esp_led( 1 );
+                if( !is_led_quiet_mode() ){
+                    
+                    io_v_set_esp_led( 1 );
+                }
 
                 wifi_station_disconnect();
                 if( wifi_station_scan( &scan_config, scan_cb ) != TRUE ){

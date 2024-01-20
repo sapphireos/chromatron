@@ -711,7 +711,16 @@ PT_BEGIN( pt );
 				// !!!
 				// on DC charge, might want to leave gfx enabled
 				// so FX patterns can display charge status.
-				gfx_v_set_system_enable( FALSE );
+				// gfx_v_set_system_enable( FALSE );
+
+				if( pixelpower_b_power_control_enabled() ){
+					
+					gfx_v_set_system_enable( FALSE );		
+				}
+				else{		
+					
+					gfx_v_set_system_enable( TRUE );		
+				}
 
 				enable_charge( next_state );
 			}

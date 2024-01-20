@@ -115,8 +115,7 @@ void pixelpower_v_init( void ){
 
     // pixel power system defaults to OFF if power control is enabled
     pixels_enabled = FALSE;
-    power_control_enabled = TRUE;
-
+    
     #if defined(ESP32)
     disable_pixel_power_fet();
     #endif
@@ -124,13 +123,16 @@ void pixelpower_v_init( void ){
     // check if hardware has power control:
     if( solar_b_has_charger2_board() ){
 
+        power_control_enabled = TRUE;
     }
     else if( batt_b_is_mcp73831_enabled() ){
 
+        power_control_enabled = TRUE;
     }
     #if defined(ESP32)
     else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
+        power_control_enabled = TRUE;
     }
     #endif
     else{
