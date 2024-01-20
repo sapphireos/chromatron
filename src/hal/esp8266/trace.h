@@ -23,11 +23,19 @@
 #ifndef _TRACE_H	
 #define _TRACE_H
 
+int dummy_printf(const char* format, ...);
+
+#include "target.h"
+
 #ifndef BOOTLOADER
-#define TRACE_BUF_SIZE 192
-int trace_printf(const char* format, ...);
+    #ifdef ENABLE_TRACE
+        #define TRACE_BUF_SIZE 192
+        int trace_printf(const char* format, ...)
+    #else
+        #define trace_printf dummy_printf
+    #endif
 #else
-#define trace_printf ets_printf
+    #define trace_printf ets_printf
 #endif
 
 #endif

@@ -47,6 +47,9 @@
 #define ENABLE_SERVICES
 #endif
 
+// DEBUG!
+// Turn this off for normal operation!
+// #define ENABLE_TRACE
 
 
 

@@ -43,7 +43,10 @@
 #define ENABLE_BATTERY
 #define ENABLE_LED_DETECT
 
+// DEBUG!
+// Turn this off for normal operation!
 #define ENABLE_TRACE
+
 
 // wifi
 #define WIFI_MAX_PORTS          16
