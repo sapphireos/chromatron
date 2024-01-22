@@ -25,6 +25,8 @@
 
 #include "sapphire.h"
 
+#ifdef ENABLE_PATCH_BOARD
+
 #include "max11645.h"
 
 
@@ -83,3 +85,4 @@ uint16_t max11645_u16_read( uint8_t channel ){
     return ( (uint16_t)( data[0] & 0x0F ) << 8 ) | data[1];
 }
 
+#endif

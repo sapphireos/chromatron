@@ -25,6 +25,8 @@
 
 #include "sapphire.h"
 
+#ifdef ENABLE_PATCH_BOARD
+
 #include "hal_boards.h"
 #include "patch_board.h"
 
@@ -101,3 +103,4 @@ uint16_t patchboard_u16_read_solar_volts( void ){
     return 0;
     #endif
 }
+#endif

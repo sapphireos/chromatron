@@ -62,7 +62,10 @@ charger is reporting a fault.
 
 
 // config parameters:
+#ifdef ENABLE_PATCH_BOARD
 static bool patch_board_installed;
+#endif
+
 static bool charger2_board_installed;
 static bool enable_dc_charge = TRUE;
 static bool enable_solar_charge;
@@ -83,15 +86,18 @@ static uint16_t charge_timer;
 #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
 
 
+static uint16_t solar_vindpm = 5800;
+
+
+#ifdef ENABLE_PATCH_BOARD
 static bool dc_detect;
 static uint8_t dc_detect_filter[SOLAR_DC_FILTER_DEPTH];
 static uint8_t dc_detect_filter_index;
 
-static uint16_t solar_vindpm = 5800;
-
 static uint16_t solar_volts;
 static uint16_t solar_volts_filter[SOLAR_VOLTS_FILTER_DEPTH];
 static uint8_t solar_volts_filter_index;
+#endif
 
 static uint32_t charge_minimum_light = SOLAR_MIN_CHARGE_LIGHT_DEFAULT;
 
@@ -99,7 +105,12 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&state_name,				0,  "solar_control_state_text" },
 
+	#ifdef ENABLE_PATCH_BOARD
+	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_volts,               0,  "solar_panel_volts" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&patch_board_installed, 	0,  "solar_enable_patch_board" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY,  &dc_detect,                 0,  "solar_dc_detect" },
+	#endif
+	
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&charger2_board_installed, 	0,  "solar_enable_charger2" },
 
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
@@ -111,16 +122,15 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&solar_vindpm,  			0,  "solar_vindpm" },
 
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY,  &dc_detect,                 0,  "solar_dc_detect" },
-	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_volts,               0,  "solar_panel_volts" },
-
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
 };
 
 
 
-
+#ifdef ENABLE_PATCH_BOARD
 PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) );
+#endif
+
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) );
 
@@ -149,6 +159,7 @@ void solar_v_init( void ){
 
 	mppt_v_init();
 
+	#ifdef ENABLE_PATCH_BOARD
 	if( patch_board_installed && charger2_board_installed ){
 
 		log_v_error_P( PSTR("Cannot enable patch board and charger2 on the same system") );
@@ -163,6 +174,7 @@ void solar_v_init( void ){
 		
 		patchboard_v_init();
 	}
+	#endif
 
 	if( charger2_board_installed ){
 		
@@ -175,10 +187,12 @@ void solar_v_init( void ){
                      0,
                      0 );
 
+	#ifdef ENABLE_PATCH_BOARD
 	thread_t_create( solar_sensor_thread,
                      PSTR("solar_sensor"),
                      0,
                      0 );
+	#endif
 
 	if( enable_solar_charge ){
 
@@ -189,10 +203,12 @@ void solar_v_init( void ){
 	}
 }
 
+#ifdef ENABLE_PATCH_BOARD
 bool solar_b_has_patch_board( void ){
 
 	return patch_board_installed;
 }
+#endif
 
 bool solar_b_has_charger2_board( void ){
 
@@ -317,32 +333,42 @@ static void disable_charge( void ){
 
 static void enable_solar_vbus( void ){
 
+	#ifdef ENABLE_PATCH_BOARD
 	if( patch_board_installed ){
 
 		patchboard_v_set_solar_en( TRUE );					
 	}	
+	#endif
 }
 
 static void disable_solar_vbus( void ){
 
+	#ifdef ENABLE_PATCH_BOARD
 	if( patch_board_installed ){
 
 		patchboard_v_set_solar_en( FALSE );					
 	}	
+	#endif
 }
 
 static bool is_solar_enable_threshold( void ){
-
+	#ifdef ENABLE_PATCH_BOARD
 	if( ( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ) &&
 		( light_sensor_u32_read() >= charge_minimum_light ) ){
 
 		return TRUE;
 	}
+	#else
+	if( light_sensor_u32_read() >= charge_minimum_light ){
+
+		return TRUE;
+	}
+	#endif
 
 	return FALSE;
 }
 
-
+#ifdef ENABLE_PATCH_BOARD
 PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -402,7 +428,7 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
-
+#endif
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
@@ -538,7 +564,7 @@ PT_BEGIN( pt );
 			else{
 
 				// minimum discharge time reached
-
+				#ifdef ENABLE_PATCH_BOARD
 				if( patch_board_installed ){
 
 					// patch board has a dedicated DC detect signal:
@@ -558,6 +584,9 @@ PT_BEGIN( pt );
 					}
 				}
 				else if( charger2_board_installed ){
+				#else
+				if( charger2_board_installed ){
+				#endif
 
 					// charger2 board is USB powered
 					if( batt_b_is_vbus_connected() ){

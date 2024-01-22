@@ -315,6 +315,7 @@ static bool _button_b_read_button( uint8_t ch ){
         //     return charger2_b_read_spare(); // spare has never been connected on actual hardware
         // }
     }
+    #ifdef ENABLE_PATCH_BOARD
     else if( solar_b_has_patch_board() ){
 
         if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
@@ -326,6 +327,7 @@ static bool _button_b_read_button( uint8_t ch ){
         //     return patchboard_b_read_io2();
         // }
     }
+    #endif
     else if( ffs_u8_read_board_type() == BOARD_TYPE_ESP32_MINI_BUTTONS ){
 
         if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
