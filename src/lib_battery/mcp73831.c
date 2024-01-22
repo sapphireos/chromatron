@@ -25,7 +25,7 @@
 
 #include "sapphire.h"
 
-#ifdef ESP32
+#ifdef ENABLE_BATT_MCP73831
 
 #include "mcp73831.h"
 
@@ -197,42 +197,42 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-#else
+// #else
 
-void mcp73831_v_init( void ){
+// void mcp73831_v_init( void ){
 
-}
+// }
 
-void mcp73831_v_shutdown( void ){
+// void mcp73831_v_shutdown( void ){
 
-}
+// }
 
-void mcp73831_v_enable_pixels( void ){
+// void mcp73831_v_enable_pixels( void ){
 
-}
+// }
 
-void mcp73831_v_disable_pixels( void ){
+// void mcp73831_v_disable_pixels( void ){
 
-}
+// }
 
-uint16_t mcp73831_u16_get_batt_volts( void ){
+// uint16_t mcp73831_u16_get_batt_volts( void ){
 
-    return 0;
-}
+//     return 0;
+// }
 
-uint16_t mcp73831_u16_get_vbus_volts( void ){
+// uint16_t mcp73831_u16_get_vbus_volts( void ){
 
-    return 0;
-}
+//     return 0;
+// }
 
-bool mcp73831_b_is_charge_complete( void ){
+// bool mcp73831_b_is_charge_complete( void ){
 
-    return 0;
-}
+//     return 0;
+// }
 
-bool mcp73831_b_is_charging( void ){
+// bool mcp73831_b_is_charging( void ){
 
-    return 0;
-}
+//     return 0;
+// }
 
 #endif

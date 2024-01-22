@@ -39,9 +39,10 @@
 #ifdef ENABLE_BATTERY
 
 static bool batt_enable;
+
+#ifdef ENABLE_BATT_MCP73831
 static bool batt_enable_mcp73831;
-
-
+#endif
 
 static uint16_t batt_max_charge_voltage = BATT_MAX_FLOAT_VOLTAGE;
 static uint16_t batt_min_discharge_voltage = BATT_CUTOFF_VOLTAGE;
@@ -89,11 +90,13 @@ int8_t batt_kv_handler(
                 batt_max_charge_voltage = BATT_MAX_FLOAT_VOLTAGE;
             }
 
+            #ifdef ENABLE_BATT_MCP73831
             if( batt_enable_mcp73831 ){
 
                 // mcp73831 has a fixed charge voltage:
                 batt_max_charge_voltage = MCP73831_FLOAT_VOLTAGE;
             }
+            #endif
         }
         else if( hash == __KV__batt_min_discharge_voltage ){
 
@@ -123,7 +126,7 @@ KV_SECTION_META kv_meta_t battery_enable_kv[] = {
 
 };
 
-#ifndef ESP8266
+#ifdef ENABLE_BATT_MCP73831
 KV_SECTION_OPT kv_meta_t battery_enable_mcp73831_kv[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable_mcp73831,        0,  "batt_enable_mcp73831" },
 };
@@ -157,15 +160,17 @@ void batt_v_init( void ){
         return;
     }
 
-    #ifndef ESP8266
+    #ifdef ENABLE_BATT_MCP73831
     kv_v_add_db_info( battery_enable_mcp73831_kv, sizeof(battery_enable_mcp73831_kv) );
-    #endif
 
     if( batt_enable_mcp73831 ){
 
         mcp73831_v_init();
     }
     else if( bq25895_i8_init() < 0 ){
+    #else
+    if( bq25895_i8_init() < 0 ){
+    #endif
 
         log_v_warn_P( PSTR("No battery controlled enabled or detected") );
 
@@ -176,13 +181,14 @@ void batt_v_init( void ){
     // only add batt info if a battery controller is actually present
     kv_v_add_db_info( battery_info_kv, sizeof(battery_info_kv) );
 
-
+    #ifdef ENABLE_BATT_MCP73831
     if( batt_enable_mcp73831 ){
 
         // mcp73831 has a fixed charge voltage:
         // need to do this after the KV DB is inited:
         batt_max_charge_voltage = MCP73831_FLOAT_VOLTAGE;
     }
+    #endif
 
 
     set_batt_nameplate_capacity();
@@ -219,49 +225,59 @@ uint16_t batt_u16_get_min_discharge_voltage( void ){
     return batt_min_discharge_voltage;
 }
 
+#ifdef ENABLE_BATT_MCP73831
 bool batt_b_is_mcp73831_enabled( void ){
 
     return batt_enable_mcp73831;
 }
+#endif
 
 void batt_v_enable_charge( void ){
 
+    #ifdef ENABLE_BATT_MCP73831
     if( batt_enable_mcp73831 ){
 
         // MCP73831 has no charge enable control on our boards
         return;
     }
+    #endif
 
     bq25895_v_enable_charger();
 }
 
 void batt_v_disable_charge( void ){
 
+    #ifdef ENABLE_BATT_MCP73831
     if( batt_enable_mcp73831 ){
 
         // MCP73831 has no charge enable control on our boards
         return;
     }
+    #endif
     
     bq25895_v_disable_charger();   
 }
 
 int8_t batt_i8_get_batt_temp( void ){
 
+    #ifdef ENABLE_BATT_MCP73831
     if( batt_enable_mcp73831 ){
 
         return -127;
     }
+    #endif
 
     return bq25895_i8_get_temp();
 }
 
 uint16_t batt_u16_get_vbus_volts( void ){
 
+    #ifdef ENABLE_BATT_MCP73831
     if( batt_enable_mcp73831 ){
 
         return mcp73831_u16_get_vbus_volts();
     }
+    #endif
 
     return bq25895_u16_read_vbus();
 }
@@ -273,20 +289,24 @@ bool batt_b_is_vbus_connected( void ){
 
 uint16_t batt_u16_get_batt_volts( void ){
 
+    #ifdef ENABLE_BATT_MCP73831
     if( batt_enable_mcp73831 ){
 
         return mcp73831_u16_get_batt_volts();
     }
+    #endif
 
     return bq25895_u16_get_batt_voltage();
 }
 
 uint16_t batt_u16_get_charge_current( void ){
 
+    #ifdef ENABLE_BATT_MCP73831
     if( batt_enable_mcp73831 ){
 
         return 0;
     }
+    #endif
 
     return bq25895_u16_get_charge_current();
 }
@@ -298,20 +318,24 @@ uint8_t batt_u8_get_soc( void ){
 
 bool batt_b_is_charging( void ){
 
+    #ifdef ENABLE_BATT_MCP73831
     if( batt_enable_mcp73831 ){
 
         return mcp73831_b_is_charging();        
     }
+    #endif
 
     return bq25895_b_is_charging();
 }
 
 bool batt_b_is_charge_complete( void ){
 
+    #ifdef ENABLE_BATT_MCP73831
     if( batt_enable_mcp73831 ){
 
         return mcp73831_b_is_charge_complete();
     }
+    #endif
 
     return bq25895_u8_get_charge_status() == BQ25895_CHARGE_STATUS_CHARGE_DONE;
 }
@@ -328,10 +352,12 @@ bool batt_b_is_external_power( void ){
 
 bool batt_b_is_batt_fault( void ){
 
+    #ifdef ENABLE_BATT_MCP73831
     if( batt_enable_mcp73831 ){
 
         return 0;
     }
+    #endif
 
     return bq25895_u8_get_faults() != 0;
 }
@@ -346,12 +372,14 @@ void batt_v_shutdown_power( void ){
 
     log_v_info_P( PSTR("Battery shutdown commanded") );
 
+    #ifdef ENABLE_BATT_MCP73831
     if( batt_enable_mcp73831 ){
 
         mcp73831_v_shutdown();
 
         return;
     }
+    #endif
 
     bq25895_v_enable_ship_mode( FALSE );
     bq25895_v_enable_ship_mode( FALSE );

@@ -35,10 +35,6 @@
 
 #define BQ25895_TERM_CURRENT            ( 65 * 2 )
 
-// #define BQ25895_SOFT_START
-// #define BQ25895_SOFT_START_INITIAL_CHARGE   2000
-// #define BQ25895_SOFT_START_CHARGE_INCREMENT 10
-
 #define BQ25895_CHARGE_TEMP_LIMIT		38
 #define BQ25895_CHARGE_TEMP_LIMIT_LOWER	36
 
@@ -259,9 +255,6 @@ uint16_t bq25895_u16_get_iindpm( void );
 bool bq25895_b_get_vindpm( void );
 bool bq25895_b_get_iindpm( void );
 uint16_t bq25895_u16_read_vbus( void );
-// int8_t bq25895_i8_get_case_temp( void );
-// int8_t bq25895_i8_get_ambient_temp( void );
-
 void bq25895_v_enable_charger( void );
 void bq25895_v_disable_charger( void );
 

@@ -93,10 +93,12 @@ static void pixels_off( void ){
 
         charger2_v_set_boost( FALSE );
     }
+    #ifdef ENABLE_BATT_MCP73831
     else if( batt_b_is_mcp73831_enabled() ){
 
         mcp73831_v_disable_pixels();   
     }
+    #endif
     #if defined(ESP32)
     else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
@@ -125,10 +127,12 @@ void pixelpower_v_init( void ){
 
         power_control_enabled = TRUE;
     }
+    #ifdef ENABLE_BATT_MCP73831
     else if( batt_b_is_mcp73831_enabled() ){
 
         power_control_enabled = TRUE;
     }
+    #endif
     #if defined(ESP32)
     else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
@@ -226,10 +230,12 @@ PT_BEGIN( pt );
 
                 charger2_v_set_boost( TRUE );
             }
+            #ifdef ENABLE_BATT_MCP73831
             else if( batt_b_is_mcp73831_enabled() ){
 
                 mcp73831_v_enable_pixels();
             }
+            #endif
             #if defined(ESP32)
             else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
 
