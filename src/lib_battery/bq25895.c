@@ -109,6 +109,82 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
     { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &adc_fail,                   0,  "batt_adc_fails" },
 };
 
+
+#ifdef ENABLE_AUX_BATTERY
+
+static uint8_t aux_regs[BQ25895_N_REGS];
+static uint16_t aux_batt_volts;
+static uint16_t aux_batt_volts_raw;
+static uint16_t aux_vbus_volts;
+static uint16_t aux_sys_volts;
+static uint16_t aux_batt_charge_current;
+static uint16_t aux_batt_instant_charge_current;
+static uint16_t aux_batt_charge_power;
+static uint16_t aux_batt_max_charge_current;
+static bool aux_batt_charging;
+static uint8_t aux_batt_fault;
+static uint8_t aux_vbus_status;
+static uint8_t aux_charge_status;
+static bool aux_dump_regs;
+static bool aux_boost_enabled;
+
+static uint16_t aux_boost_voltage;
+static uint16_t aux_vindpm;
+static uint16_t aux_iindpm;
+
+static uint16_t aux_current_fast_charge_setting;
+
+// true if MCU system power is sourced from the boost converter
+static bool aux_mcu_source_pmid;
+
+// DEBUG
+static uint16_t aux_adc_time_min = 65535;
+static uint16_t aux_adc_time_max;
+static uint32_t aux_adc_good;
+static uint32_t aux_adc_fail;
+
+static int8_t aux_batt_temp = -127;
+static int16_t aux_batt_temp_state;
+
+static int8_t aux_batt_temp_raw;
+
+
+KV_SECTION_OPT kv_meta_t bq25895_aux_info_kv[] = {
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &aux_batt_temp,                  0,  "batt_aux_temp" },
+    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &aux_batt_temp_raw,              0,  "batt_aux_temp_raw" },
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &aux_batt_charging,              0,  "batt_aux_charging" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_batt_volts,                 0,  "batt_aux_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_batt_volts_raw,             0,  "batt_aux_volts_raw" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_vbus_volts,                 0,  "batt_aux_vbus_volts" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_sys_volts,                  0,  "batt_aux_sys_volts" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &aux_charge_status,              0,  "batt_aux_charge_status" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_batt_charge_current,        0,  "batt_aux_charge_current" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_batt_instant_charge_current,0,  "batt_aux_charge_current_instant" },
+    
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_current_fast_charge_setting,0,  "batt_aux_charge_current_setting" },
+    
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_batt_charge_power,          0,  "batt_aux_charge_power" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &aux_batt_fault,                 0,  "batt_aux_fault" },
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &aux_vbus_status,                0,  "batt_aux_vbus_status" },
+    
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &aux_batt_max_charge_current,    0,  "batt_aux_max_charge_current" },
+    
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &aux_boost_enabled,              0,  "batt_aux_boost_enabled" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &aux_boost_voltage,              0,  "batt_aux_boost_voltage" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_vindpm,                     0,  "batt_aux_vindpm" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_iindpm,                     0,  "batt_aux_iindpm" },
+
+    { CATBUS_TYPE_BOOL,    0, 0,                   &aux_dump_regs,                  0,  "batt_aux_dump_regs" },
+
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_adc_time_min,               0,  "batt_aux_adc_time_min" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_adc_time_max,               0,  "batt_aux_adc_time_max" },
+
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &aux_adc_good,                   0,  "batt_aux_adc_reads" },
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &aux_adc_fail,                   0,  "batt_aux_adc_fails" },
+};
+
+#endif
+
 #define BQ25895_VOLTS_FILTER        32
 #define BQ25895_CURRENT_FILTER      32
 #define BQ25895_THERM_FILTER        32
@@ -118,7 +194,6 @@ static void init_charger( void );
 static void init_boost_converter( void );
 
 
-// PT_THREAD( bat_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( bq25895_mon_thread( pt_t *pt, void *state ) );
 
 
