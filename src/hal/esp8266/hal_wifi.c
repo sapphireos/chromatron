@@ -289,6 +289,28 @@ void hal_wifi_v_init( void ){
  //    wifi_station_connect();
 }
 
+static uint16_t get_rx_buffer_usage( void ){
+
+    uint16_t count = 0;
+
+    list_node_t ln = rx_list.head;
+    
+    while( ln > 0 ){
+
+        count += list_u16_node_size( ln );
+
+        netmsg_state_t *state = netmsg_vp_get_state( ln );
+
+        if( state->data_handle > 0 ){
+
+            count += mem2_u16_get_size( state->data_handle );
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return count;
+}
 
 void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
@@ -310,7 +332,7 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
  //    }
 
     // check rx size
-    if( list_u16_size( &rx_list ) > WIFI_MAX_RX_SIZE ){
+    if( get_rx_buffer_usage() > WIFI_MAX_RX_SIZE ){
 
         log_v_debug_P( PSTR("rx udp buffer full") );     
 
@@ -321,10 +343,8 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
     if( rx_netmsg < 0 ){
 
-        log_v_debug_P( PSTR("rx udp alloc fail: buffer count: %d size: %d"), 
-            list_u8_count( &rx_list ), 
-            list_u16_size( &rx_list ) );     
-
+        log_v_debug_P( PSTR("rx udp alloc fail") );
+        
         goto drop;
     }
     
@@ -400,7 +420,7 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
     list_v_insert_head( &rx_list, rx_netmsg );
 
-    uint16_t q_size = list_u16_size( &rx_list );
+    uint16_t q_size = get_rx_buffer_usage();
     if( q_size > wifi_max_rx_size ){
 
         wifi_max_rx_size = q_size;

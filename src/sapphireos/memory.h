@@ -126,6 +126,7 @@ uint16_t mem2_u16_get_handles_used( void );
 void mem2_v_get_rt_data( mem_rt_data_t *rt_data );
 uint16_t mem2_u16_get_free( void );
 uint16_t mem2_u16_get_dirty( void );
+uint16_t mem2_u16_get_used( void );
 void mem2_v_collect_garbage( void );
 uint16_t mem2_u16_stack_count( void );
 
