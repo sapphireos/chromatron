@@ -42,9 +42,12 @@ try:
         # generate random data
         # data = ''
         data = struct.pack('<L', msg_number)
-        for i in xrange(data_len - 4):
-            data += chr(random.randint(0, 255))
+        # for i in range(data_len - 4):
+            # data += chr(random.randint(0, 255))
             # data += chr(0)
+            # data += 0
+
+        data += bytes([0] * (data_len - 4))
 
         start = time.time()
 
@@ -67,12 +70,12 @@ try:
             if sent > 1:
                 times.append(elapsed * 1000)
 
-            print "S %6d L %6d E %6d R %6d     %04.1f len %3d msg %5d %4x" % (sent, lost, errors, longest_timeout_run, round(elapsed * 1000, 1), data_len, msg_number, msg_number)
+            print("S %6d L %6d E %6d R %6d     %04.1f len %3d msg %5d %4x" % (sent, lost, errors, longest_timeout_run, round(elapsed * 1000, 1), data_len, msg_number, msg_number))
             # raise KeyboardInterrupt
 
             if reply_data != data:
                 errors += 1
-                print "DATA ERROR: %d %d" % (len(reply_data), len(data))
+                print("DATA ERROR: %d %d" % (len(reply_data), len(data)))
                 time.sleep(0.5)
                 # for i in xrange(len(data)):
                 #     if reply_data[i] != data[i]:
@@ -91,17 +94,17 @@ try:
                 longest_timeout_run = timeout_run
 
             lost += 1
-            print "timed out", "S %6d L %6d E %6d R %6d     %04.1f len %3d msg %5d" % (sent, lost, errors, longest_timeout_run, round(elapsed * 1000, 1), data_len, msg_number)
+            print("timed out", "S %6d L %6d E %6d R %6d     %04.1f len %3d msg %5d" % (sent, lost, errors, longest_timeout_run, round(elapsed * 1000, 1), data_len, msg_number))
 
 except KeyboardInterrupt:
     pass
 
 
 
-print ''
-print "sent, lost, errors"
-print sent, lost, errors
-print "min, avg, max, stddev"
-print round(min(times), 1), round(sum(times) / len(times), 1), round(max(times), 1), round(numpy.std(times), 1)
+print('')
+print("sent, lost, errors")
+print(sent, lost, errors)
+print("min, avg, max, stddev")
+print(round(min(times), 1), round(sum(times) / len(times), 1), round(max(times), 1), round(numpy.std(times), 1))
 
 
