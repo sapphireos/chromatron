@@ -861,6 +861,19 @@ uint16_t mem2_u16_get_dirty( void ){
     return temp;
 }
 
+// return amount of dirty memory
+uint16_t mem2_u16_get_used( void ){
+
+    MEM_ATOMIC;
+
+    uint16_t temp = mem_rt_data.used_space;
+
+    MEM_END_ATOMIC;
+
+    return temp;
+}
+
+
 /*
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

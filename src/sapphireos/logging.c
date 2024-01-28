@@ -39,7 +39,7 @@
 
 #ifdef LOG_ENABLE
 
-#ifdef ENABLE_MSGFLOW
+#ifdef ENABLE_LOG_SERVER
 #include "msgflow.h"
 
 static msgflow_t msgflow;
@@ -104,7 +104,7 @@ void log_v_init( void ){
         return;
     }
 
-    #ifdef ENABLE_MSGFLOW
+    #ifdef ENABLE_LOG_SERVER
     thread_t_create( msgflow_init_thread,
                      PSTR("msgflow_init_thread"),
                      0,
@@ -125,7 +125,7 @@ static void append_log( char *buf ){
 
     int str_len = strnlen( buf, LOG_STR_BUF_SIZE );
 
-    #ifdef ENABLE_MSGFLOW
+    #ifdef ENABLE_LOG_SERVER
     if( msgflow > 0 ){
         
         msgflow_b_send( msgflow, buf, str_len );

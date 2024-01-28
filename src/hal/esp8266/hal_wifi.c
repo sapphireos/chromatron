@@ -124,7 +124,6 @@ PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_sender_thread( pt_t *pt, void *state ) );
-PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 
 static struct espconn esp_conn[WIFI_MAX_PORTS];
 static esp_udp udp_conn[WIFI_MAX_PORTS];
@@ -226,12 +225,6 @@ void hal_wifi_v_init( void ){
                     0 );
     }
 
-    thread_t_create_critical( 
-                wifi_echo_thread,
-                PSTR("wifi_echo"),
-                0,
-                0 );
-
 	wifi_get_macaddr( 0, wifi_mac );
 
     uint64_t current_device_id = 0;
@@ -296,6 +289,28 @@ void hal_wifi_v_init( void ){
  //    wifi_station_connect();
 }
 
+static uint16_t get_rx_buffer_usage( void ){
+
+    uint16_t count = 0;
+
+    list_node_t ln = rx_list.head;
+    
+    while( ln > 0 ){
+
+        count += list_u16_node_size( ln );
+
+        netmsg_state_t *state = netmsg_vp_get_state( ln );
+
+        if( state->data_handle > 0 ){
+
+            count += mem2_u16_get_size( state->data_handle );
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return count;
+}
 
 void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
@@ -317,7 +332,9 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
  //    }
 
     // check rx size
-    if( list_u16_size( &rx_list ) > WIFI_MAX_RX_SIZE ){
+    if( get_rx_buffer_usage() > WIFI_MAX_RX_SIZE ){
+
+        log_v_debug_P( PSTR("rx udp buffer full") );     
 
         goto drop;
     }
@@ -326,8 +343,8 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
     if( rx_netmsg < 0 ){
 
-        log_v_debug_P( PSTR("rx udp alloc fail") );     
-
+        log_v_debug_P( PSTR("rx udp alloc fail") );
+        
         goto drop;
     }
     
@@ -403,7 +420,7 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
     list_v_insert_head( &rx_list, rx_netmsg );
 
-    uint16_t q_size = list_u16_size( &rx_list );
+    uint16_t q_size = get_rx_buffer_usage();
     if( q_size > wifi_max_rx_size ){
 
         wifi_max_rx_size = q_size;
@@ -1405,27 +1422,6 @@ PT_BEGIN( pt );
             netmsg_v_release( netmsg );
 
             wifi_arp_msg_fails++;
-        }
-    }
-
-PT_END( pt );
-}
-
-PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-    static socket_t sock;
-
-    sock = sock_s_create( SOS_SOCK_DGRAM );
-    sock_v_bind( sock, 7 );
-
-    while(1){
-
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
-
-        if( sock_i16_sendto( sock, sock_vp_get_data( sock ), sock_i16_get_bytes_read( sock ), 0 ) >= 0 ){
-            
         }
     }
 

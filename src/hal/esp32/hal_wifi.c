@@ -123,7 +123,6 @@ PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) );
-PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 PT_THREAD( brownout_restart_thread( pt_t *pt, void *state ) );
 
 static void event_handler( void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data );
@@ -304,12 +303,6 @@ void hal_wifi_v_init( void ){
     thread_t_create_critical( 
                 wifi_arp_thread,
                 PSTR("wifi_arp"),
-                0,
-                0 );
-
-    thread_t_create_critical( 
-                wifi_echo_thread,
-                PSTR("wifi_echo"),
                 0,
                 0 );
 }
@@ -1386,27 +1379,6 @@ PT_BEGIN( pt );
             TMR_WAIT( pt, ARP_GRATUITOUS_INTERVAL * 1000 );
 
             hal_arp_v_gratuitous_arp();
-        }
-    }
-
-PT_END( pt );
-}
-
-PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-    static socket_t sock;
-
-    sock = sock_s_create( SOS_SOCK_DGRAM );
-    sock_v_bind( sock, 7 );
-
-    while(1){
-
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
-
-        if( sock_i16_sendto( sock, sock_vp_get_data( sock ), sock_i16_get_bytes_read( sock ), 0 ) >= 0 ){
-            
         }
     }
 
