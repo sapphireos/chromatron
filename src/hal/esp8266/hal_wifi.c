@@ -124,7 +124,6 @@ PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_sender_thread( pt_t *pt, void *state ) );
-PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 
 static struct espconn esp_conn[WIFI_MAX_PORTS];
 static esp_udp udp_conn[WIFI_MAX_PORTS];
@@ -225,12 +224,6 @@ void hal_wifi_v_init( void ){
                     0,
                     0 );
     }
-
-    thread_t_create_critical( 
-                wifi_echo_thread,
-                PSTR("wifi_echo"),
-                0,
-                0 );
 
 	wifi_get_macaddr( 0, wifi_mac );
 
@@ -1409,27 +1402,6 @@ PT_BEGIN( pt );
             netmsg_v_release( netmsg );
 
             wifi_arp_msg_fails++;
-        }
-    }
-
-PT_END( pt );
-}
-
-PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-    static socket_t sock;
-
-    sock = sock_s_create( SOS_SOCK_DGRAM );
-    sock_v_bind( sock, 7 );
-
-    while(1){
-
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
-
-        if( sock_i16_sendto( sock, sock_vp_get_data( sock ), sock_i16_get_bytes_read( sock ), 0 ) >= 0 ){
-            
         }
     }
 

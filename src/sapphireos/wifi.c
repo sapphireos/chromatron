@@ -28,12 +28,14 @@
 #include "ip.h"
 #include "threading.h"
 #include "logging.h"
+#include "sockets.h"
 
 #if defined(ENABLE_WIFI) && !defined(AVR)
 
 static ip_addr4_t igmp_groups[WIFI_MAX_IGMP];
 
 
+PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 PT_THREAD( igmp_thread( pt_t *pt, void *state ) );
 
 void wifi_v_init( void ){
@@ -49,8 +51,36 @@ void wifi_v_init( void ){
                      PSTR("igmp"),
                      0,
                      0 );
-   
+    
+    thread_t_create( 
+                wifi_echo_thread,
+                PSTR("wifi_echo"),
+                0,
+                0 );  
 }
+
+
+PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    static socket_t sock;
+
+    sock = sock_s_create( SOS_SOCK_DGRAM );
+    sock_v_bind( sock, 7 );
+
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+
+        if( sock_i16_sendto( sock, sock_vp_get_data( sock ), sock_i16_get_bytes_read( sock ), 0 ) >= 0 ){
+            
+        }
+    }
+
+PT_END( pt );
+}
+
 
 int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
 
