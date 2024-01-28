@@ -42,11 +42,6 @@ try:
         # generate random data
         # data = ''
         data = struct.pack('<L', msg_number)
-        # for i in range(data_len - 4):
-            # data += chr(random.randint(0, 255))
-            # data += chr(0)
-            # data += 0
-
         data += bytes([0] * (data_len - 4))
 
         start = time.time()
