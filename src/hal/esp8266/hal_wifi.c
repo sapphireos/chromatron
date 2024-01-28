@@ -319,6 +319,8 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
     // check rx size
     if( list_u16_size( &rx_list ) > WIFI_MAX_RX_SIZE ){
 
+        log_v_debug_P( PSTR("rx udp buffer full") );     
+
         goto drop;
     }
 
@@ -326,7 +328,9 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
     if( rx_netmsg < 0 ){
 
-        log_v_debug_P( PSTR("rx udp alloc fail") );     
+        log_v_debug_P( PSTR("rx udp alloc fail: buffer count: %d size: %d"), 
+            list_u8_count( &rx_list ), 
+            list_u16_size( &rx_list ) );     
 
         goto drop;
     }
