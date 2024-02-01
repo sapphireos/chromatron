@@ -491,8 +491,6 @@ class Chromatron(object):
         self._device.safe_mode()
 
     def load_vm(self, vm_index=0, filename=None, start=True, bin_data=None):
-        self.stop_vm(vm_index)
-
         if bin_data:
             code = code_gen.build_text(bin_data)
             bin_filename = 'vm.fxb'
@@ -515,16 +513,15 @@ class Chromatron(object):
 
         # change vm program
         if vm_index == 0:
-            s = 'vm_prog'
+            vm_prog_slot = 'vm_prog'
         else:
-            s = 'vm_prog_%d' % (vm_index)
-
-        self.set_key(s, bin_filename)
-
+            vm_prog_slot = 'vm_prog_%d' % (vm_index)
 
         if start:
-            self.reset_vm(vm_index) # also reset to clear status
-            self.start_vm(vm_index)
+            self.set_keys(**{vm_prog_slot: bin_filename, 'vm_run': True, 'vm_reset': True})
+
+        else:
+            self.set_keys({vm_prog_slot: bin_filename, 'vm_run': False})
 
     def reset_vm(self, vm_index=0):
         if vm_index == 0:
@@ -822,6 +819,19 @@ class DeviceGroup(UserDict):
     def sub_dimmer(self, value):
         for d in self.data.values():
             d.sub_dimmer = value
+
+    def load_vm(self, *args, **kwargs):
+        # run load VM in parallel, since it can be slow in large groups
+        threads = []
+
+        for d in self.data.values():
+            t = threading.Thread(target=d.load_vm, args=args, kwargs=kwargs, daemon=True)
+            t.start()
+
+            threads.append(t)
+
+        for t in threads:
+            t.join()
 
     # @property
     # def hue(self):
@@ -1502,16 +1512,22 @@ def load(ctx, filename, live):
     if live:
         click.secho('Live mode', fg='magenta')
 
-
+    
     try:
+        start = time.monotonic()
+
         group.load_vm(n, filename)
-        click.echo('Loaded %s to VM %d on:' % (click.style(filename, fg=VAL_COLOR), n))
+
+        elapsed_ms = int((time.monotonic() - start) * 1000)
+
+        click.echo(f'Loaded {click.style(filename, fg=VAL_COLOR)} to VM {n} in {elapsed_ms} ms on:')
 
         echo_group(group)
 
     except Exception as e:
         click.secho("Error:", fg='magenta')
         click.secho(str(e), fg=ERROR_COLOR)
+        raise
 
 
     if live:
@@ -1519,12 +1535,16 @@ def load(ctx, filename, live):
 
         try:
             while True:
-                time.sleep(0.2)
+                time.sleep(0.1)
 
                 if watcher.changed():
                     try:
+                        start = time.monotonic()
+
                         group.load_vm(n, filename)
-                        click.echo('Loaded %s' % (click.style(filename, fg=VAL_COLOR)))
+                        elapsed_ms = int((time.monotonic() - start) * 1000)
+
+                        click.echo(f'Loaded {click.style(filename, fg=VAL_COLOR)} in {elapsed_ms} ms')
 
                     except Exception as e:
                         click.secho("Error:", fg='magenta')
