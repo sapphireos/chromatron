@@ -2124,6 +2124,61 @@ def init():
 
 """
 
+test_load_pix_attr_while_loop_test = """
+
+a = Number(publish=True)
+b = Number(publish=True)
+
+
+def init():
+    while pixels.is_hs_fading:
+        a = 1
+        break
+
+    pixels.hue = 0.5
+
+    while pixels.is_hs_fading:
+        b = 2
+        break
+
+"""
+
+
+test_load_pix_attr_for_loop_test = """
+
+a = Number(publish=True)
+b = Number(publish=True)
+
+
+def init():
+    for i in pixels.is_hs_fading:
+        a = 1
+        break
+
+    pixels.hue = 0.5
+
+    for i in pixels.is_hs_fading:
+        b = 2
+        break
+
+"""
+
+test_load_pix_attr_if_test = """
+
+a = Number(publish=True)
+b = Number(publish=True)
+
+
+def init():
+    if pixels.is_hs_fading:
+        a = 1
+      
+    pixels.hue = 0.5
+
+    if pixels.is_hs_fading:
+        b = 2
+"""
+
 test_formatted_string = """
 
 a = Number(publish=True)
@@ -2285,6 +2340,30 @@ class CompilerTests(object):
             expected={
                 'a': 456,
                 'b': "test   123 456",
+            })
+
+    def test_load_pix_attr_if_test(self, opt_passes):
+        self.run_test(test_load_pix_attr_if_test,
+            opt_passes=opt_passes,
+            expected={
+                'a': 0,
+                'b': 2,
+            })
+
+    def test_load_pix_attr_for_loop_test(self, opt_passes):
+        self.run_test(test_load_pix_attr_for_loop_test,
+            opt_passes=opt_passes,
+            expected={
+                'a': 0,
+                'b': 2,
+            })
+
+    def test_load_pix_attr_while_loop_test(self, opt_passes):
+        self.run_test(test_load_pix_attr_while_loop_test,
+            opt_passes=opt_passes,
+            expected={
+                'a': 0,
+                'b': 2,
             })
 
     def test_is_hs_fading2(self, opt_passes):
