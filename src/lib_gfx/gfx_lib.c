@@ -2265,8 +2265,8 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         // 2D access, this is easier because we already know y
         else{
 
-            if( ( y % pix_arrays[obj].size_y ) & 1 ){
-
+            // if( ( y % pix_arrays[obj].size_y ) & 1 ){
+            if(y & 1){
                 x = ( pix_arrays[obj].size_x - 1 ) - ( x % pix_arrays[obj].size_x );
             }
         }        
@@ -2588,6 +2588,8 @@ uint16_t gfx_u16_get_is_hs_fading( uint16_t x, uint16_t y, uint8_t obj ){
             uint16_t index = i + pix_arrays[obj].index;
 
             index %= pix_count;
+
+            // log_v_debug_P( PSTR("%d %d"), i, index);
 
             if( ( target_hue[index] != hue[index] ) ||
                 ( target_sat[index] != sat[index] ) ){
