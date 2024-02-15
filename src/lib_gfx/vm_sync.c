@@ -338,7 +338,7 @@ PT_BEGIN( pt );
 
         if( header->type == VM_SYNC_MSG_SYNC ){
 
-            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC") );
+            log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC") );
 
             // are we leader?
             if( vm_sync_b_is_leader() ){
@@ -423,10 +423,12 @@ PT_BEGIN( pt );
                     // log_v_debug_P( PSTR("checkpoint frame mismatch: %u -> %u"), msg->checkpoint, vm_u32_get_checkpoint() );
                 }
             }
+
+            log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC") );
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
-            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_REQ") );
+            log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_REQ") );
 
             // are we leader?
             if( !vm_sync_b_is_leader() ){
@@ -437,11 +439,15 @@ PT_BEGIN( pt );
             // confirm program name
             if( header->program_name_hash != vm_state->program_name_hash ){
 
+                log_v_error_P( PSTR("invalid program hash") );
+
                 continue;
             }
 
             // confirm program hash
             if( header->program_file_hash != vm_state->file_hash ){
+
+                log_v_error_P( PSTR("invalid file hash") );
 
                 continue;
             }
@@ -484,10 +490,10 @@ PT_BEGIN( pt );
                     offset += chunk_size;
                 } 
             }    
+
+            log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC_REQ") );
         }
         else if( header->type == VM_SYNC_MSG_DATA ){
-
-            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_DATA") );
 
             // are we leader?
             if( vm_sync_b_is_leader() ){
@@ -495,14 +501,20 @@ PT_BEGIN( pt );
                 continue;
             }
 
+            log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_DATA") );
+
             // are we syncing?
             if( sync_state != STATE_SYNCING ){
+
+                log_v_error_P( PSTR("invalid sync state") );
 
                 continue;
             }
 
             // confirm program name
             if( header->program_name_hash != vm_state->program_name_hash ){
+
+                log_v_error_P( PSTR("invalid program hash") );
 
                 vm_sync_v_reset();
 
@@ -511,6 +523,8 @@ PT_BEGIN( pt );
 
             // confirm program hash
             if( header->program_file_hash != vm_state->file_hash ){
+
+                log_v_error_P( PSTR("invalid file hash") );
 
                 vm_sync_v_reset();
 
@@ -553,8 +567,12 @@ PT_BEGIN( pt );
 
 
             int32_t *data_ptr = vm_i32p_get_sync_data() + msg->offset;
+
+            log_v_debug_P( PSTR("offset: %d"), msg->offset );
+
             memcpy( data_ptr, &msg->data, data_len );
 
+            log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC_DATA") );
         }
     }
 
