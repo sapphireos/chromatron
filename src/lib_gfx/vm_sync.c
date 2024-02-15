@@ -331,7 +331,7 @@ PT_BEGIN( pt );
 
         vm_state_t *vm_state = vm_p_get_state();
 
-        if( state == 0 ){
+        if( vm_state == 0 ){
 
             continue;
         }
