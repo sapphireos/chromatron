@@ -383,6 +383,13 @@ PT_BEGIN( pt );
             // sync sequencer
             vm_seq_v_set_step( msg->sequencer_step );
 
+            // do we actually get there?
+            // a seq step should change the file hash?
+
+            // NEED TO DELAY HERE
+            // to allow new VM step to load!
+            // ***** vm_state is out of sync at this point!
+
             if( sync_state == STATE_SYNCING ){
 
                 sync_data_remaining = msg->data_len;
