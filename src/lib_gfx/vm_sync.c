@@ -504,11 +504,15 @@ PT_BEGIN( pt );
             // confirm program name
             if( header->program_name_hash != vm_state->program_name_hash ){
 
+                vm_sync_v_reset();
+
                 continue;
             }
 
             // confirm program hash
             if( header->program_file_hash != vm_state->file_hash ){
+
+                vm_sync_v_reset();
 
                 continue;
             }
