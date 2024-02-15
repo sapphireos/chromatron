@@ -2793,8 +2793,6 @@ int32_t gfx_i32_get_pixel_attr_single( uint16_t index, uint8_t attr ){
 
 int32_t gfx_i32_get_pixel_attr( uint8_t obj, uint8_t attr ){
 
-    return 0;
-
     if( attr == PIX_ATTR_IS_V_FADING ){
 
         return gfx_u16_get_is_v_fading( 65535, 65535, obj );
