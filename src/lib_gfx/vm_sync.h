@@ -29,7 +29,7 @@
 #ifdef ENABLE_TIME_SYNC
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
-#define SYNC_PROTOCOL_VERSION           	8
+#define SYNC_PROTOCOL_VERSION           	9
 
 #define SYNC_SERVICE                        __KV__vmsync
 
@@ -62,6 +62,9 @@ typedef struct __attribute__((packed)){
 
     uint32_t checkpoint;
     uint32_t checkpoint_hash;
+
+    uint16_t sequencer_step;
+    uint16_t padding;
     
     uint16_t data_len;
 

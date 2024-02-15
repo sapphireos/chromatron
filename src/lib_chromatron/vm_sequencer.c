@@ -82,6 +82,12 @@ KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
 };
 
 
+
+static bool is_vm_sync( void ){
+
+	return vm_sync_b_is_synced() && vm_sync_b_is_follower();
+}
+
 static int8_t get_program_for_slot( uint8_t slot, char progname[FFS_FILENAME_LEN] ){
 
 	ASSERT( progname != 0 );
@@ -187,7 +193,12 @@ static int8_t _run_shutdown( void ){
 
 static int8_t _run_step( void ){
 
-	if( seq_select_mode == VM_SEQ_SELECT_MODE_NEXT ){
+	// in VM sync mode, the step will be selected externally
+	if( is_vm_sync() ){
+
+		// this is a no-op on the step
+	}
+	else if( seq_select_mode == VM_SEQ_SELECT_MODE_NEXT ){
 
 		seq_current_step++;
 	}
@@ -234,7 +245,7 @@ static void run_step(void){
 	}
 }
 
-static bool process_manual_input( void ){
+static bool process_trigger_input( void ){
 
 	if( seq_trigger ){
 
@@ -247,7 +258,6 @@ static bool process_manual_input( void ){
 
 	return TRUE;
 }
-
 
 PT_THREAD( vm_sequencer_thread( pt_t *pt, void *state ) )
 {
@@ -281,6 +291,7 @@ PT_BEGIN( pt );
 
 		THREAD_WAIT_WHILE( pt, 
 			( seq_time_mode == VM_SEQ_TIME_MODE_STOPPED ) &&
+			( !is_vm_sync() ) &&
 			!sys_b_is_shutting_down() );
 
        	if( sys_b_is_shutting_down() ){
@@ -290,7 +301,16 @@ PT_BEGIN( pt );
 
 		seq_running = TRUE;
 
-		if( seq_time_mode == VM_SEQ_TIME_MODE_INTERVAL ){
+		if( is_vm_sync() ){
+
+	    	THREAD_WAIT_WHILE( pt, 
+	    		( is_vm_sync() ) &&
+	    		!sys_b_is_shutting_down() &&
+	    		( seq_trigger == FALSE ) );
+
+	    	process_trigger_input();
+		}
+		else if( seq_time_mode == VM_SEQ_TIME_MODE_INTERVAL ){
 
 			seq_time_remaining = seq_interval_time;
 	    }
@@ -312,7 +332,7 @@ PT_BEGIN( pt );
 	    		break;
 	    	}
 
-	    	process_manual_input();
+	    	process_trigger_input();
 
 			continue;
 	    }
@@ -334,7 +354,7 @@ PT_BEGIN( pt );
 	    		seq_trigger = TRUE;
 	    	}
 
-	    	process_manual_input();
+	    	process_trigger_input();
 
 			continue;
 	    }
@@ -353,7 +373,7 @@ PT_BEGIN( pt );
 	        THREAD_WAIT_WHILE( pt, 
 	        	thread_b_alarm_set() && 
 	        	!sys_b_is_shutting_down() &&
-	        	process_manual_input() );
+	        	process_trigger_input() );
 
 	       	if( sys_b_is_shutting_down() ){
 
@@ -402,4 +422,18 @@ void vm_seq_v_init( void ){
 
 }
 
+uint8_t vm_seq_u8_get_step( void ){
 
+	return seq_current_step;
+}
+
+uint8_t vm_seq_u8_get_time_mode( void ){
+
+	return seq_time_mode;
+}
+
+void vm_seq_v_set_step( uint8_t step ){
+
+	seq_trigger = TRUE;
+	seq_current_step = step;
+}

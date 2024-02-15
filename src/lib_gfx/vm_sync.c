@@ -32,6 +32,7 @@
 #include "config.h"
 #include "services.h"
 #include "logging.h"
+#include "vm_sequencer.h"
 
 static uint32_t sync_group_hash;
 static socket_t sock = -1;
@@ -179,7 +180,7 @@ static void send_sync( sock_addr_t *raddr ){
     }
 
 
-    vm_sync_msg_sync_t msg;
+    vm_sync_msg_sync_t msg = {0};
 
     msg.header.magic            = SYNC_PROTOCOL_MAGIC;
     msg.header.version          = SYNC_PROTOCOL_VERSION;
@@ -199,6 +200,8 @@ static void send_sync( sock_addr_t *raddr ){
 
     msg.checkpoint              = vm_u32_get_checkpoint();
     msg.checkpoint_hash         = vm_u32_get_checkpoint_hash();
+
+    msg.sequencer_step          = vm_seq_u8_get_step();
     
     msg.data_len                = vm_u16_get_sync_data_len();
     msg.max_threads             = VM_MAX_THREADS;
@@ -376,6 +379,9 @@ PT_BEGIN( pt );
 
             // sync VM
             vm_v_sync( msg->net_time, msg->sync_tick );
+
+            // sync sequencer
+            vm_seq_v_set_step( msg->sequencer_step );
 
             if( sync_state == STATE_SYNCING ){
 
