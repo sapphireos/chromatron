@@ -531,8 +531,13 @@ PT_BEGIN( pt );
                 continue;
             }
 
+
+            log_v_debug_P( PSTR("msg") );
+
             vm_sync_msg_data_t *msg = (vm_sync_msg_data_t *)header;
-            
+                
+            log_v_debug_P( PSTR("len") );
+
             int16_t data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(vm_sync_msg_data_t) - 1 );
 
             if( data_len <= 0 ){
@@ -542,6 +547,7 @@ PT_BEGIN( pt );
                 continue;
             }
 
+            log_v_debug_P( PSTR("rx") );
             log_v_debug_P( PSTR("rx data offset %d / %d len: %d"), msg->offset, sync_data_remaining, data_len );
 
             if( data_len > sync_data_remaining ){
@@ -568,7 +574,7 @@ PT_BEGIN( pt );
 
             int32_t *data_ptr = vm_i32p_get_sync_data() + msg->offset;
 
-            log_v_debug_P( PSTR("offset: %d"), msg->offset );
+            // log_v_debug_P( PSTR("offset: %d"), msg->offset );
 
             memcpy( data_ptr, &msg->data, data_len );
 
