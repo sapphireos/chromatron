@@ -486,7 +486,7 @@ void ffs_fw_v_erase( uint8_t partition, bool immediate ){
         return;
     }
 
-    immediate = TRUE;
+    // immediate = TRUE;
 
     if( !immediate ){
 
