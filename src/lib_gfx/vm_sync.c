@@ -511,6 +511,8 @@ PT_BEGIN( pt );
                 continue;
             }
 
+            log_v_debug_P( PSTR("header: %x state %x"), header, vm_state );
+
             // confirm program name
             if( header->program_name_hash != vm_state->program_name_hash ){
 
@@ -520,6 +522,9 @@ PT_BEGIN( pt );
 
                 continue;
             }
+
+
+            log_v_debug_P( PSTR("hash") );
 
             // confirm program hash
             if( header->program_file_hash != vm_state->file_hash ){
