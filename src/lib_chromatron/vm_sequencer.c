@@ -309,6 +309,8 @@ PT_BEGIN( pt );
 	    		( seq_trigger == FALSE ) );
 
 	    	process_trigger_input();
+
+			log_v_debug_P( PSTR("VM sync SEQ step: %d"), vm_seq_u8_get_step() );
 		}
 		else if( seq_time_mode == VM_SEQ_TIME_MODE_INTERVAL ){
 
