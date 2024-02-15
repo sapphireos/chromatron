@@ -43,6 +43,7 @@ static uint16_t seq_random_time_max;
 static uint16_t seq_time_remaining;
 
 static bool seq_trigger;
+static bool vm_sync;
 
 
 #define N_SLOTS 8
@@ -79,13 +80,15 @@ KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
 	{ CATBUS_TYPE_UINT16,   0, 0, 					&seq_time_remaining,   0,                  "seq_time_remaining" },
 
 	{ CATBUS_TYPE_BOOL,     0, 0, 					&seq_trigger,     	   0,                  "seq_trigger" },
+	{ CATBUS_TYPE_BOOL,     0, 0, 					&vm_sync,         	   0,                  "seq_vm_sync" },
 };
 
 
 
 static bool is_vm_sync( void ){
 
-	return vm_sync_b_is_synced() && vm_sync_b_is_follower();
+	vm_sync = vm_sync_b_is_synced() && vm_sync_b_is_follower();
+	return vm_sync;
 }
 
 static int8_t get_program_for_slot( uint8_t slot, char progname[FFS_FILENAME_LEN] ){
@@ -266,22 +269,25 @@ PT_BEGIN( pt );
 	THREAD_WAIT_WHILE( pt, seq_time_mode == VM_SEQ_TIME_MODE_STOPPED );
 
 	// run startup program, if available
-	if( _run_startup() == 0 ){
+	if( !vm_sync_b_is_synced() ){
+		
+		if( _run_startup() == 0 ){
 
-		vm_sync_v_hold();
+			vm_sync_v_hold();
 
-		TMR_WAIT( pt, 100 );
+			TMR_WAIT( pt, 100 );
 
-		THREAD_WAIT_WHILE( pt, vm_b_is_vm_running( 0 ) && !sys_b_is_shutting_down() );
+			THREAD_WAIT_WHILE( pt, vm_b_is_vm_running( 0 ) && !sys_b_is_shutting_down() );
 
-		vm_sync_v_unhold();
+			vm_sync_v_unhold();
 
-		if( !sys_b_is_shutting_down() ){
+			if( !sys_b_is_shutting_down() ){
 
-			seq_current_step = N_SLOTS - 1; // in select next mode, this will wrap and select slot 0
-			run_step();
-		}
-	} 
+				seq_current_step = N_SLOTS - 1; // in select next mode, this will wrap and select slot 0
+				run_step();
+			}
+		} 
+	}
 	
 	while( !sys_b_is_shutting_down() ){
 
