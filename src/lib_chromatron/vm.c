@@ -820,7 +820,7 @@ PT_BEGIN( pt );
         else if( state->vm_id == 0 ){
             #ifdef ENABLE_TIME_SYNC
             // check if vm is a synced follower
-            if( vm_sync_b_is_follower() ){
+            if( vm_sync_b_is_follower() && vm_sync_b_is_synced() ){
 
                 uint32_t net_time = time_u32_get_network_time();
                 int32_t elapsed = (int64_t)net_time - (int64_t)vm0_sync_ts;

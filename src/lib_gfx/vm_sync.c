@@ -113,18 +113,18 @@ void vm_sync_v_reset( void ){
 
     sync_state = STATE_IDLE;
 
-    // uint32_t old_hash = sync_group_hash;
+    uint32_t old_hash = sync_group_hash;
 
-    services_v_cancel( SYNC_SERVICE, sync_group_hash );
+    // services_v_cancel( SYNC_SERVICE, sync_group_hash );
 
     init_group_hash();// init sync group hash    
 
     // check if hash changed, if so, cancel
     // the previous service
-    // if( old_hash != sync_group_hash ){
+    if( old_hash != sync_group_hash ){
 
-        // services_v_cancel( SYNC_SERVICE, old_hash );    
-    // }
+        services_v_cancel( SYNC_SERVICE, old_hash );    
+    }
 
     if( sync_group_hash == 0 ){
 
@@ -155,11 +155,6 @@ bool vm_sync_b_is_leader( void ){
 
 bool vm_sync_b_is_follower( void ){
 
-    if( sync_state == STATE_IDLE ){
-
-        return FALSE;
-    }
-    
     if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) &&
         !services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
 
@@ -672,7 +667,14 @@ PT_BEGIN( pt );
         // periodic resync
         while( sync_state == STATE_SYNC ){
 
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + SYNC_INTERVAL );
+            uint16_t interval = SYNC_INTERVAL;
+
+            if( vm_seq_b_running() ){
+
+                interval = SYNC_INTERVAL_SEQ;
+            }
+            
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + interval );
 
             THREAD_WAIT_WHILE( pt, 
                 services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 

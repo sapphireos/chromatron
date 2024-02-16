@@ -33,7 +33,9 @@
 
 #define SYNC_SERVICE                        __KV__vmsync
 
+
 #define SYNC_INTERVAL                       4000
+#define SYNC_INTERVAL_SEQ                   1000 // sync interval when sequencer is running
 #define SYNC_CHECKPOINT                     512
 
 #define SYNC_MAX_THREADS                    16

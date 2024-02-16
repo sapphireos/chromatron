@@ -87,7 +87,10 @@ KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
 
 static bool is_vm_sync_follower( void ){
 
-	vm_sync = vm_sync_b_is_synced() && vm_sync_b_is_follower();
+	// vm_sync = vm_sync_b_is_synced() && vm_sync_b_is_follower();
+	
+	vm_sync = vm_sync_b_is_follower();
+
 	return vm_sync;
 }
 
@@ -456,4 +459,9 @@ void vm_seq_v_set_step( uint8_t step ){
 		seq_trigger = TRUE;
 		seq_current_step = step;
 	}
+}
+
+bool vm_seq_b_running( void ){
+
+	return seq_running;	
 }
