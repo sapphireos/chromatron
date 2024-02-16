@@ -85,7 +85,7 @@ KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
 
 
 
-static bool is_vm_sync( void ){
+static bool is_vm_sync_follower( void ){
 
 	vm_sync = vm_sync_b_is_synced() && vm_sync_b_is_follower();
 	return vm_sync;
@@ -163,6 +163,13 @@ static int8_t _run_program( char progname[FFS_FILENAME_LEN] ){
 
 	// in theory the program will run
 
+	// check if VM synced, either leader or follower
+	if( vm_sync_b_is_synced() ){
+
+		// reset sync!
+		vm_sync_v_reset();
+	}
+
 	vm_v_run_prog( progname, 0 ); // run new program on slot 0
 
 	return 0;
@@ -197,7 +204,7 @@ static int8_t _run_shutdown( void ){
 static int8_t _run_step( void ){
 
 	// in VM sync mode, the step will be selected externally
-	if( is_vm_sync() ){
+	if( is_vm_sync_follower() ){
 
 		// this is a no-op on the step
 	}
@@ -297,7 +304,7 @@ PT_BEGIN( pt );
 
 		THREAD_WAIT_WHILE( pt, 
 			( seq_time_mode == VM_SEQ_TIME_MODE_STOPPED ) &&
-			( !is_vm_sync() ) &&
+			( !is_vm_sync_follower() ) &&
 			!sys_b_is_shutting_down() );
 
        	if( sys_b_is_shutting_down() ){
@@ -307,10 +314,10 @@ PT_BEGIN( pt );
 
 		seq_running = TRUE;
 
-		if( is_vm_sync() ){
+		if( is_vm_sync_follower() ){
 
 	    	THREAD_WAIT_WHILE( pt, 
-	    		( is_vm_sync() ) &&
+	    		( is_vm_sync_follower() ) &&
 	    		!sys_b_is_shutting_down() &&
 	    		( seq_trigger == FALSE ) );
 
@@ -374,13 +381,15 @@ PT_BEGIN( pt );
 	    thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 );
 
 	    while( ( ( seq_time_mode == VM_SEQ_TIME_MODE_INTERVAL ) ||
-	    	     ( seq_time_mode == VM_SEQ_TIME_MODE_RANDOM ) ) &&
+	    	     ( seq_time_mode == VM_SEQ_TIME_MODE_RANDOM ) ) && 
+	    	   ( !is_vm_sync_follower() ) &&
 			   ( seq_time_remaining > 0 ) ){
 
 			thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
 	        THREAD_WAIT_WHILE( pt, 
 	        	thread_b_alarm_set() && 
 	        	!sys_b_is_shutting_down() &&
+	        	!is_vm_sync_follower() &&
 	        	process_trigger_input() );
 
 	       	if( sys_b_is_shutting_down() ){
@@ -442,6 +451,9 @@ uint8_t vm_seq_u8_get_time_mode( void ){
 
 void vm_seq_v_set_step( uint8_t step ){
 
-	seq_trigger = TRUE;
-	seq_current_step = step;
+	if( step != seq_current_step ){
+
+		seq_trigger = TRUE;
+		seq_current_step = step;
+	}
 }

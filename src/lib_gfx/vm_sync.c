@@ -113,10 +113,19 @@ void vm_sync_v_reset( void ){
 
     sync_state = STATE_IDLE;
 
+    // uint32_t old_hash = sync_group_hash;
+
     services_v_cancel( SYNC_SERVICE, sync_group_hash );
 
     init_group_hash();// init sync group hash    
-    
+
+    // check if hash changed, if so, cancel
+    // the previous service
+    // if( old_hash != sync_group_hash ){
+
+        // services_v_cancel( SYNC_SERVICE, old_hash );    
+    // }
+
     if( sync_group_hash == 0 ){
 
         return;
@@ -353,6 +362,9 @@ PT_BEGIN( pt );
 
                 vm_sync_v_reset();
 
+                // sync sequencer
+                vm_seq_v_set_step( msg->sequencer_step );
+
                 log_v_error_P( PSTR("program name mismatch") );
 
                 continue;
@@ -448,6 +460,8 @@ PT_BEGIN( pt );
 
                 log_v_error_P( PSTR("invalid program hash") );
 
+                send_sync( &raddr );
+
                 continue;
             }
 
@@ -455,6 +469,8 @@ PT_BEGIN( pt );
             if( header->program_file_hash != vm_state->file_hash ){
 
                 log_v_error_P( PSTR("invalid file hash") );
+
+                send_sync( &raddr );
 
                 continue;
             }
@@ -605,13 +621,14 @@ PT_BEGIN( pt );
 
         vm_sync_v_reset();
 
-        TMR_WAIT( pt, 1000 );
+        TMR_WAIT( pt, 100 );
 
         THREAD_WAIT_WHILE( pt, hold_sync );
 
         // wait until time sync
         THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
 
+        // wait while VM 0 is stopped
         THREAD_WAIT_WHILE( pt, !vm_b_is_vm_running( 0 ) );
 
         services_v_join_team( SYNC_SERVICE, sync_group_hash, 1, sock_u16_get_lport( sock ) );
