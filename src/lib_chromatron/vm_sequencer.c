@@ -321,6 +321,8 @@ PT_BEGIN( pt );
 			}
 		} 
 	}
+
+	_run_step( TRUE );
 	
 	while( !sys_b_is_shutting_down() ){
 
