@@ -52,6 +52,29 @@ static bool vm_sync;
 #define SLOT_STARTUP 253
 #define SLOT_SHUTDOWN 254
 
+static int8_t _run_step( bool select_current_step );
+
+int8_t _vmseq_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_GET ){
+
+    }
+    else if( op == KV_OP_SET ){
+
+    	_run_step( TRUE );
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    return 0;
+}
+
 
 KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
 
@@ -70,7 +93,7 @@ KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_PERSIST,  	&seq_time_mode,        0,                  "seq_time_mode" },
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_PERSIST,  	&seq_select_mode,      0,                  "seq_select_mode" },
 
-	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&seq_current_step,     0,                  "seq_current_step" },
+	{ CATBUS_TYPE_UINT8,    0, 0, 					&seq_current_step,     &_vmseq_kv_handler, "seq_current_step" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY, 	&seq_running,     	   0,                  "seq_running" },
 
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&seq_interval_time,    0,                  "seq_interval_time" },
@@ -204,10 +227,10 @@ static int8_t _run_shutdown( void ){
 	return _run_program( progname );	
 }
 
-static int8_t _run_step( void ){
+static int8_t _run_step( bool select_current_step ){
 
 	// in VM sync mode, the step will be selected externally
-	if( is_vm_sync_follower() ){
+	if( is_vm_sync_follower() || select_current_step ){
 
 		// this is a no-op on the step
 	}
@@ -249,7 +272,7 @@ static void run_step(void){
 
 	while(tries > 0){
 
-		if(_run_step() == 0){
+		if(_run_step( FALSE ) == 0){
 
 			return;
 		}
