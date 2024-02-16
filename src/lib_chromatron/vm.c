@@ -570,6 +570,11 @@ uint32_t vm_u32_get_checkpoint_hash( void ){
     return vm0_checkpoint_hash;
 }
 
+void vm_v_clear_checkpoint( void ){
+
+    vm0_checkpoint_hash = 0;
+}
+
 uint64_t vm_u64_get_tick( void ){
 
     vm_state_t *state = vm_p_get_state();

@@ -48,6 +48,7 @@ uint32_t vm_u32_get_sync_time( void );
 uint64_t vm_u64_get_sync_tick( void );
 uint32_t vm_u32_get_checkpoint( void );
 uint32_t vm_u32_get_checkpoint_hash( void );
+void vm_v_clear_checkpoint( void );
 
 uint64_t vm_u64_get_tick( void );
 uint64_t vm_u64_get_frame( void );

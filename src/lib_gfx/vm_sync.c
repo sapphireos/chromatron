@@ -342,7 +342,7 @@ PT_BEGIN( pt );
 
         if( header->type == VM_SYNC_MSG_SYNC ){
 
-            log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC") );
+            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC") );
 
             // are we leader?
             if( vm_sync_b_is_leader() ){
@@ -390,13 +390,6 @@ PT_BEGIN( pt );
             // sync sequencer
             vm_seq_v_set_step( msg->sequencer_step );
 
-            // do we actually get there?
-            // a seq step should change the file hash?
-
-            // NEED TO DELAY HERE
-            // to allow new VM step to load!
-            // ***** vm_state is out of sync at this point!
-
             if( sync_state == STATE_SYNCING ){
 
                 sync_data_remaining = msg->data_len;
@@ -426,10 +419,12 @@ PT_BEGIN( pt );
                 // verify checkpoint
                 if( vm_u32_get_checkpoint() == msg->checkpoint ){
 
-                    if( vm_u32_get_checkpoint_hash() != msg->checkpoint_hash ){
+                    if( ( vm_u32_get_checkpoint_hash() != msg->checkpoint_hash ) &&
+                        ( vm_u32_get_checkpoint_hash() != 0 ) ){
 
                         log_v_warn_P( PSTR("checkpoint hash mismatch!: %x -> %x @ %u"), msg->checkpoint_hash, vm_u32_get_checkpoint_hash(), vm_u32_get_checkpoint() );
                         vm_sync_v_reset();
+                        vm_v_clear_checkpoint();
                     }
                 }
                 else{
@@ -438,11 +433,11 @@ PT_BEGIN( pt );
                 }
             }
 
-            log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC") );
+            // log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC") );
         }
         else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
-            log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_REQ") );
+            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_REQ") );
 
             // are we leader?
             if( !vm_sync_b_is_leader() ){
@@ -509,7 +504,7 @@ PT_BEGIN( pt );
                 } 
             }    
 
-            log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC_REQ") );
+            // log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC_REQ") );
         }
         else if( header->type == VM_SYNC_MSG_DATA ){
 
