@@ -167,7 +167,7 @@ static int8_t _run_program( char progname[FFS_FILENAME_LEN] ){
 	// in theory the program will run
 
 	// check if VM synced, either leader or follower
-	if( vm_sync_b_is_synced() ){
+	if( vm_sync_b_is_leader() || vm_sync_b_is_follower() ){
 
 		// reset sync!
 		vm_sync_v_reset();
