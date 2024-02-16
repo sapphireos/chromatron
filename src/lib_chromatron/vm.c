@@ -108,6 +108,11 @@ static uint32_t threads_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t
 }
 #endif
 
+#ifdef ENABLE_TIME_SYNC
+static uint32_t vm0_checkpoint;
+static uint32_t vm0_checkpoint_hash;
+#endif
+
 
 KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[0],          0,                  "vm_reset" },
@@ -146,6 +151,11 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     #endif
 
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
+
+    #ifdef ENABLE_TIME_SYNC
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &vm0_checkpoint,       0,                  "gfx_sync_checkpoint_frame" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &vm0_checkpoint_hash,  0,                  "gfx_sync_checkpoint_has" },
+    #endif
 };
 
 static const char* vm_names[VM_MAX_VMS] = {
@@ -539,8 +549,6 @@ typedef struct{
 #ifdef ENABLE_TIME_SYNC
 static uint32_t vm0_sync_ts;
 static uint64_t vm0_sync_ticks;
-static uint32_t vm0_checkpoint;
-static uint32_t vm0_checkpoint_hash;
 
 void vm_v_sync( uint32_t ts, uint64_t ticks ){
 
