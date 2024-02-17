@@ -508,7 +508,16 @@ PT_BEGIN( pt );
 
                     log_v_debug_P( PSTR("sending sync data: %d bytes"), chunk_size );
 
-                    send_data( vm_i32p_get_sync_data(), chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
+                    int32_t *data_ptr = vm_i32p_get_sync_data();
+
+                    if( data_ptr == 0 ){
+
+                        log_v_error_P( PSTR("Bad sync data pointer!") );
+
+                        break;
+                    }
+
+                    send_data( data_ptr, chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
 
                     offset += chunk_size;
                 } 
@@ -534,8 +543,6 @@ PT_BEGIN( pt );
                 continue;
             }
 
-            log_v_debug_P( PSTR("header: %x state %x"), header, vm_state );
-
             // confirm program name
             if( header->program_name_hash != vm_state->program_name_hash ){
 
@@ -545,9 +552,6 @@ PT_BEGIN( pt );
 
                 continue;
             }
-
-
-            log_v_debug_P( PSTR("hash") );
 
             // confirm program hash
             if( header->program_file_hash != vm_state->file_hash ){
@@ -559,13 +563,8 @@ PT_BEGIN( pt );
                 continue;
             }
 
-
-            log_v_debug_P( PSTR("msg") );
-
             vm_sync_msg_data_t *msg = (vm_sync_msg_data_t *)header;
                 
-            log_v_debug_P( PSTR("len") );
-
             int16_t data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(vm_sync_msg_data_t) - 1 );
 
             if( data_len <= 0 ){
@@ -574,9 +573,6 @@ PT_BEGIN( pt );
 
                 continue;
             }
-
-            log_v_debug_P( PSTR("rx") );
-            log_v_debug_P( PSTR("rx data offset %d / %d len: %d"), msg->offset, sync_data_remaining, data_len );
 
             if( data_len > sync_data_remaining ){
 
@@ -600,7 +596,16 @@ PT_BEGIN( pt );
             }   
 
 
-            int32_t *data_ptr = vm_i32p_get_sync_data() + msg->offset;
+            int32_t *data_ptr = vm_i32p_get_sync_data();
+
+            if( data_ptr == 0 ){
+
+                log_v_error_P( PSTR("Bad sync data pointer!") );
+
+                continue;
+            }
+
+            data_ptr += msg->offset;
 
             // log_v_debug_P( PSTR("offset: %d"), msg->offset );
 
