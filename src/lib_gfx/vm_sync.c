@@ -357,10 +357,20 @@ PT_BEGIN( pt );
 
                 vm_sync_v_reset();
 
+                if( vm_seq_u8_get_step() == msg->sequencer_step ){
+
+                    log_v_error_P( PSTR("program name mismatch") );
+                }
+                else{
+
+                    // a sequencer step change is not an error,
+                    // though it is handled the same way.
+
+                    log_v_info_P( PSTR("seq step %d -> %d"), vm_seq_u8_get_step(), msg->sequencer_step );
+                }
+
                 // sync sequencer
                 vm_seq_v_set_step( msg->sequencer_step );
-
-                log_v_error_P( PSTR("program name mismatch") );
 
                 continue;
             }
