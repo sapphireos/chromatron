@@ -517,6 +517,13 @@ PT_BEGIN( pt );
                         break;
                     }
 
+                    if( ( offset + chunk_size ) > vm_u16_get_sync_data_len() ){
+
+                        log_v_error_P( PSTR("Bad sync data len") );
+
+                        break;
+                    }
+
                     send_data( data_ptr, chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
 
                     offset += chunk_size;
@@ -601,6 +608,13 @@ PT_BEGIN( pt );
             if( data_ptr == 0 ){
 
                 log_v_error_P( PSTR("Bad sync data pointer!") );
+
+                continue;
+            }
+
+            if( ( msg->offset + data_len ) > vm_u16_get_sync_data_len() ){
+
+                log_v_error_P( PSTR("Bad sync data len") );
 
                 continue;
             }
