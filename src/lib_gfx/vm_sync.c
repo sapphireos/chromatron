@@ -625,6 +625,8 @@ PT_BEGIN( pt );
 
             memcpy( data_ptr, &msg->data, data_len );
 
+            mem2_v_check_canaries();
+
             log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC_DATA") );
         }
     }
