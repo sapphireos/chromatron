@@ -66,10 +66,31 @@ int8_t vmsync_i8_kv_handler(
     return 0;
 }
 
+static uint32_t checkpoints[SYNC_MAX_CHECKPOINTS];
+static uint32_t checkpoint_hashes[SYNC_MAX_CHECKPOINTS];
+
 KV_SECTION_META kv_meta_t vm_sync_kv[] = {
-    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,   0, vmsync_i8_kv_handler,   "gfx_sync_group" },
-    { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, &sync_state, 0,            "gfx_sync_state" },
+    { CATBUS_TYPE_STRING32, 0,                          KV_FLAGS_PERSIST,   0, vmsync_i8_kv_handler,   "gfx_sync_group" },
+    { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_state, 0,            "gfx_sync_state" },
+    { CATBUS_TYPE_UINT32,   SYNC_MAX_CHECKPOINTS - 1,   KV_FLAGS_READ_ONLY, &checkpoints, 0,           "gfx_sync_checkpoints" },
+    { CATBUS_TYPE_UINT32,   SYNC_MAX_CHECKPOINTS - 1,   KV_FLAGS_READ_ONLY, &checkpoint_hashes, 0,     "gfx_sync_checkpoint_hashes" },
 };
+
+static void update_checkpoints( void ){
+
+    // first entry is latest
+
+    // push all entries down the stack
+
+    for( uint8_t i = SYNC_MAX_CHECKPOINTS - 1; i > 0 ; i-- ){
+
+        checkpoints[i + 1]          = checkpoints[i];
+        checkpoint_hashes[i + 1]    = checkpoint_hashes[i];
+    }
+
+    checkpoints[0] = time_u32_get_network_time();
+    checkpoint_hashes[0] = vm_u32_get_sync_data_hash();
+}
 
 
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) );
@@ -89,6 +110,7 @@ static void init_group_hash( void ){
 void vm_sync_v_init( void ){
 
     COMPILER_ASSERT( SYNC_MAX_THREADS >= VM_MAX_THREADS );
+    COMPILER_ASSERT( sizeof(vm_sync_msg_sync_t) < 512 );
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -662,7 +684,12 @@ PT_BEGIN( pt );
 
             sync_state = STATE_SYNC;
 
-            THREAD_WAIT_WHILE( pt, services_b_is_server( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) );
+            while( services_b_is_server( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){
+
+                TMR_WAIT( pt, 100 );
+
+                update_checkpoints();
+            }
 
             THREAD_RESTART( pt );
         }
