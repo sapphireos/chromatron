@@ -154,7 +154,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
 
     #ifdef ENABLE_TIME_SYNC
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &vm0_checkpoint,       0,                  "gfx_sync_checkpoint_frame" },
-    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &vm0_checkpoint_hash,  0,                  "gfx_sync_checkpoint_has" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &vm0_checkpoint_hash,  0,                  "gfx_sync_checkpoint_hash" },
     #endif
 };
 
