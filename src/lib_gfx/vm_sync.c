@@ -202,8 +202,8 @@ static void send_sync( sock_addr_t *raddr ){
     msg.rng_seed                = state->rng_seed;
     msg.frame_number            = state->frame_number;
 
-    msg.checkpoint              = vm_u32_get_checkpoint();
-    msg.checkpoint_hash         = vm_u32_get_checkpoint_hash();
+    // msg.checkpoint              = vm_u32_get_checkpoint();
+    // msg.checkpoint_hash         = vm_u32_get_checkpoint_hash();
 
     msg.sequencer_step          = vm_seq_u8_get_step();
     
@@ -427,20 +427,20 @@ PT_BEGIN( pt );
             else if( sync_state == STATE_SYNC ){
 
                 // verify checkpoint
-                if( vm_u32_get_checkpoint() == msg->checkpoint ){
+                // if( vm_u32_get_checkpoint() == msg->checkpoint ){
 
-                    if( ( vm_u32_get_checkpoint_hash() != msg->checkpoint_hash ) &&
-                        ( vm_u32_get_checkpoint_hash() != 0 ) ){
+                //     if( ( vm_u32_get_checkpoint_hash() != msg->checkpoint_hash ) &&
+                //         ( vm_u32_get_checkpoint_hash() != 0 ) ){
 
-                        log_v_warn_P( PSTR("checkpoint hash mismatch!: %x -> %x @ %u"), msg->checkpoint_hash, vm_u32_get_checkpoint_hash(), vm_u32_get_checkpoint() );
-                        vm_sync_v_reset();
-                        vm_v_clear_checkpoint();
-                    }
-                }
-                else{
+                //         log_v_warn_P( PSTR("checkpoint hash mismatch!: %x -> %x @ %u"), msg->checkpoint_hash, vm_u32_get_checkpoint_hash(), vm_u32_get_checkpoint() );
+                //         vm_sync_v_reset();
+                //         vm_v_clear_checkpoint();
+                //     }
+                // }
+                // else{
 
-                    // log_v_debug_P( PSTR("checkpoint frame mismatch: %u -> %u"), msg->checkpoint, vm_u32_get_checkpoint() );
-                }
+                //     // log_v_debug_P( PSTR("checkpoint frame mismatch: %u -> %u"), msg->checkpoint, vm_u32_get_checkpoint() );
+                // }
             }
 
             // log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC") );

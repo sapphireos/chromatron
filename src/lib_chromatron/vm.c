@@ -108,10 +108,10 @@ static uint32_t threads_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t
 }
 #endif
 
-#ifdef ENABLE_TIME_SYNC
-static uint32_t vm0_checkpoint;
-static uint32_t vm0_checkpoint_hash;
-#endif
+// #ifdef ENABLE_TIME_SYNC
+// static uint32_t vm0_checkpoint;
+// static uint32_t vm0_checkpoint_hash;
+// #endif
 
 
 KV_SECTION_META kv_meta_t vm_info_kv[] = {
@@ -152,10 +152,10 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
 
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
 
-    #ifdef ENABLE_TIME_SYNC
-    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &vm0_checkpoint,       0,                  "gfx_sync_checkpoint_frame" },
-    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &vm0_checkpoint_hash,  0,                  "gfx_sync_checkpoint_hash" },
-    #endif
+    // #ifdef ENABLE_TIME_SYNC
+    // { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &vm0_checkpoint,       0,                  "gfx_sync_checkpoint_frame" },
+    // { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &vm0_checkpoint_hash,  0,                  "gfx_sync_checkpoint_hash" },
+    // #endif
 };
 
 static const char* vm_names[VM_MAX_VMS] = {
@@ -568,20 +568,20 @@ uint64_t vm_u64_get_sync_tick( void ){
     return vm0_sync_ticks;
 }
 
-uint32_t vm_u32_get_checkpoint( void ){
+// uint32_t vm_u32_get_checkpoint( void ){
 
-    return vm0_checkpoint;
-}
+//     return vm0_checkpoint;
+// }
 
-uint32_t vm_u32_get_checkpoint_hash( void ){
+// uint32_t vm_u32_get_checkpoint_hash( void ){
 
-    return vm0_checkpoint_hash;
-}
+//     return vm0_checkpoint_hash;
+// }
 
-void vm_v_clear_checkpoint( void ){
+// void vm_v_clear_checkpoint( void ){
 
-    vm0_checkpoint_hash = 0;
-}
+//     vm0_checkpoint_hash = 0;
+// }
 
 uint64_t vm_u64_get_tick( void ){
 
@@ -775,8 +775,8 @@ PT_BEGIN( pt );
 
     #ifdef ENABLE_TIME_SYNC
     // set initial checkpoint
-    vm0_checkpoint = state->vm_state.frame_number;
-    vm0_checkpoint_hash = vm_u32_get_sync_data_hash();
+    // vm0_checkpoint = state->vm_state.frame_number;
+    // vm0_checkpoint_hash = vm_u32_get_sync_data_hash();
 
     // log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
     #endif
@@ -943,17 +943,17 @@ PT_BEGIN( pt );
             vm0_sync_ticks = state->vm_state.tick;   
         }
 
-        if( ( state->vm_id == 0 ) && ( vm_sync_b_is_synced() ) ){
+        // if( ( state->vm_id == 0 ) && ( vm_sync_b_is_synced() ) ){
 
-            // check if it is time for a checkpoint
-            if( ( state->vm_state.frame_number % SYNC_CHECKPOINT ) == 0 ){
+        //     // check if it is time for a checkpoint
+        //     if( ( state->vm_state.frame_number % SYNC_CHECKPOINT ) == 0 ){
 
-                vm0_checkpoint = state->vm_state.frame_number;
-                vm0_checkpoint_hash = vm_u32_get_sync_data_hash();
+        //         vm0_checkpoint = state->vm_state.frame_number;
+        //         vm0_checkpoint_hash = vm_u32_get_sync_data_hash();
 
-                // log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
-            }
-        }
+        //         // log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
+        //     }
+        // }
 
         #endif
         
