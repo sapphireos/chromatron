@@ -82,7 +82,7 @@ static void update_checkpoints( void ){
 
     // push all entries down the stack
 
-    for( uint8_t i = SYNC_MAX_CHECKPOINTS - 1; i > 0 ; i-- ){
+    for( uint8_t i = SYNC_MAX_CHECKPOINTS - 2; i > 0 ; i-- ){
 
         checkpoints[i + 1]          = checkpoints[i];
         checkpoint_hashes[i + 1]    = checkpoint_hashes[i];
