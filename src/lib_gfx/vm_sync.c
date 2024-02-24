@@ -224,8 +224,8 @@ static void send_sync( sock_addr_t *raddr ){
     msg.rng_seed                = state->rng_seed;
     msg.frame_number            = state->frame_number;
 
-    // msg.checkpoint              = vm_u32_get_checkpoint();
-    // msg.checkpoint_hash         = vm_u32_get_checkpoint_hash();
+    memcpy( msg.checkpoints, checkpoints, sizeof(msg.checkpoints) );
+    memcpy( msg.checkpoint_hashes, checkpoint_hashes, sizeof(msg.checkpoint_hashes) );
 
     msg.sequencer_step          = vm_seq_u8_get_step();
     
@@ -656,6 +656,21 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+
+
+static uint16_t get_sync_interval( void ){
+
+    uint16_t interval = SYNC_INTERVAL;
+
+    if( vm_seq_b_running() ){
+
+        interval = SYNC_INTERVAL_SEQ;
+    }
+
+    return interval;
+}
+
+
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -678,6 +693,7 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, !services_b_is_available( SYNC_SERVICE, sync_group_hash ) );
 
+        // LEADER:
         if( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
 
             log_v_debug_P( PSTR("VM sync leader") );
@@ -694,6 +710,9 @@ PT_BEGIN( pt );
             THREAD_RESTART( pt );
         }
 
+        // FOLLOWER:
+
+        // do initial sync
         if( sync_state == STATE_IDLE ){
 
             TMR_WAIT( pt, rnd_u16_get_int() >> 5 );
@@ -717,37 +736,47 @@ PT_BEGIN( pt );
             }
         }
 
+        // SYNCED FOLLOWER:
+
         // periodic resync
         while( sync_state == STATE_SYNC ){
-
-            uint16_t interval = SYNC_INTERVAL;
-
-            if( vm_seq_b_running() ){
-
-                interval = SYNC_INTERVAL_SEQ;
-            }
             
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + interval );
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
 
-            THREAD_WAIT_WHILE( pt, 
-                services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 
-                vm_b_is_vm_running( 0 ) &&
-                ( sync_state == STATE_SYNC ) &&
-                thread_b_alarm_set() );
+            // THREAD_WAIT_WHILE( pt, 
+            //     services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 
+            //     vm_b_is_vm_running( 0 ) &&
+            //     ( sync_state == STATE_SYNC ) &&
+            //     thread_b_alarm_set() );
 
-            if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){
+            while( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 
+                   vm_b_is_vm_running( 0 ) &&
+                   ( sync_state == STATE_SYNC ) ){
 
-                send_request( FALSE );
-            }
-            else{
+                if( !thread_b_alarm_set() ){
 
-                break;
+                    send_request( FALSE );
+
+                    thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
+                }
+
+                TMR_WAIT( pt, 100 );
+
+                update_checkpoints();
+
+                // if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){
+
+                //     send_request( FALSE );
+                // }
+                // else{
+
+                //     break;
+                // }
             }
         }
     }
 
 PT_END( pt );
 }
-
 
 #endif
