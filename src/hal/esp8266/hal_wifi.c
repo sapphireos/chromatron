@@ -1428,6 +1428,109 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+void custom_crash_callback( struct rst_info * rst_info, uint32_t stack, uint32_t stack_end ){
+
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+    //     return;
+    // }
+
+    cfg_error_log_t error_log = {0};
+
+    snprintf_P(
+        error_log.log,
+        sizeof(error_log.log), 
+        PSTR("Exception: Reason: %d exccause: %d EPC1: %d EPC2: %d EPC3: %d EXCVADDR: %d DEPC: %d stack: 0x%08x -> 0x%08x"),
+        rst_info->reason,
+        rst_info->exccause,
+        rst_info->epc1,
+        rst_info->epc2,
+        rst_info->epc3,
+        rst_info->excvaddr,
+        rst_info->depc,
+        stack,
+        stack_end
+    );
+
+    cfg_v_write_error_log( &error_log );
+    
+    // log_v_critical_P( PSTR("Exception: Reason: %d exccause: %d EPC1: %d EPC2: %d EPC3: %d EXCVADDR: %d DEPC: %d stack: 0x%08x -> 0x%08x"),
+    //     rst_info->reason,
+    //     rst_info->exccause,
+    //     rst_info->epc1,
+    //     rst_info->epc2,
+    //     rst_info->epc3,
+    //     rst_info->excvaddr,
+    //     rst_info->depc,
+    //     stack,
+    //     stack_end
+    // );
+
+  // Note that 'EEPROM.begin' method is reserving a RAM buffer
+  // The buffer size is SAVE_CRASH_EEPROM_OFFSET + SAVE_CRASH_SPACE_SIZE
+  // EEPROM.begin(EspSaveCrash::_offset + EspSaveCrash::_size);
+
+  // byte crashCounter = EEPROM.read(EspSaveCrash::_offset + SAVE_CRASH_COUNTER);
+  // int16_t writeFrom;
+  // if(crashCounter == 0)
+  // {
+  //   writeFrom = SAVE_CRASH_DATA_SETS;
+  // }
+  // else
+  // {
+  //   EEPROM.get(EspSaveCrash::_offset + SAVE_CRASH_WRITE_FROM, writeFrom);
+  // }
+
+  // // is there free EEPROM space available to save data for this crash?
+  // if (writeFrom + SAVE_CRASH_STACK_TRACE > EspSaveCrash::_size)
+  // {
+  //   return;
+  // }
+
+  // // increment crash counter and write it to EEPROM
+  // EEPROM.write(EspSaveCrash::_offset + SAVE_CRASH_COUNTER, ++crashCounter);
+
+  // // now address EEPROM contents including _offset
+  // writeFrom += EspSaveCrash::_offset;
+
+  // // write crash time to EEPROM
+  // uint32_t crashTime = millis();
+  // EEPROM.put(writeFrom + SAVE_CRASH_CRASH_TIME, crashTime);
+
+  // // write reset info to EEPROM
+  // EEPROM.write(writeFrom + SAVE_CRASH_RESTART_REASON, rst_info->reason);
+  // EEPROM.write(writeFrom + SAVE_CRASH_EXCEPTION_CAUSE, rst_info->exccause);
+
+  // // write epc1, epc2, epc3, excvaddr and depc to EEPROM
+  // EEPROM.put(writeFrom + SAVE_CRASH_EPC1, rst_info->epc1);
+  // EEPROM.put(writeFrom + SAVE_CRASH_EPC2, rst_info->epc2);
+  // EEPROM.put(writeFrom + SAVE_CRASH_EPC3, rst_info->epc3);
+  // EEPROM.put(writeFrom + SAVE_CRASH_EXCVADDR, rst_info->excvaddr);
+  // EEPROM.put(writeFrom + SAVE_CRASH_DEPC, rst_info->depc);
+
+  // // write stack start and end address to EEPROM
+  // EEPROM.put(writeFrom + SAVE_CRASH_STACK_START, stack);
+  // EEPROM.put(writeFrom + SAVE_CRASH_STACK_END, stack_end);
+
+  // // write stack trace to EEPROM
+  // int16_t currentAddress = writeFrom + SAVE_CRASH_STACK_TRACE;
+  // for (uint32_t iAddress = stack; iAddress < stack_end; iAddress++)
+  // {
+  //   byte* byteValue = (byte*) iAddress;
+  //   EEPROM.write(currentAddresss++, *byteValue);
+  //   if (currentAddress - EspSaveCrash::_offset > EspSaveCrash::_size)
+  //   {
+  //     // ToDo: flag an incomplete stack trace written to EEPROM!
+  //     break;
+  //   }
+  // }
+  // // now exclude _offset from address written to EEPROM
+  // currentAddress -= EspSaveCrash::_offset;
+  // EEPROM.put(EspSaveCrash::_offset + SAVE_CRASH_WRITE_FROM, currentAddress);
+
+  // EEPROM.commit();
+}
+
 #else
 
 bool wifi_b_connected( void ){
