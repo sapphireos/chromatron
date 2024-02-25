@@ -1453,7 +1453,9 @@ void custom_crash_callback( struct rst_info * rst_info, uint32_t stack, uint32_t
     );
 
     cfg_v_write_error_log( &error_log );
-    
+
+    ee_v_commit();
+
     // log_v_critical_P( PSTR("Exception: Reason: %d exccause: %d EPC1: %d EPC2: %d EPC3: %d EXCVADDR: %d DEPC: %d stack: 0x%08x -> 0x%08x"),
     //     rst_info->reason,
     //     rst_info->exccause,
