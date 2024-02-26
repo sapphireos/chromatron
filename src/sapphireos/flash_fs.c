@@ -392,7 +392,7 @@ int8_t read_into_cache( ffs_file_t file_id, uint16_t page, uint8_t *data, uint8_
         entry->page = page;
         entry->file_id = file_id;
 
-        trace_printf("Load: file %d page: %d\n", entry->file_id, entry->page );
+        // trace_printf("Load: file %d page: %d\n", entry->file_id, entry->page );
     }
 
     return -1;
