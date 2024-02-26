@@ -138,7 +138,7 @@
 // #define DISABLE_FFS_FW_COPY
 
 // recovery mode
-#define DISABLE_SAFE_MODE
+// #define DISABLE_SAFE_MODE
 
 // #define DISABLE_RECOVERY_MODE
 
