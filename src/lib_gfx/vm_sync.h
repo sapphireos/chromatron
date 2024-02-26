@@ -39,7 +39,7 @@
 #define SYNC_CHECKPOINT                     512
 
 #define SYNC_MAX_THREADS                    16
-#define SYNC_MAX_CHECKPOINTS                8
+#define SYNC_MAX_CHECKPOINTS                16
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
@@ -63,7 +63,7 @@ typedef struct __attribute__((packed)){
     uint64_t rng_seed;
     uint32_t frame_number;
 
-    uint32_t checkpoints[SYNC_MAX_CHECKPOINTS];
+    // uint32_t checkpoints[SYNC_MAX_CHECKPOINTS];
     uint32_t checkpoint_hashes[SYNC_MAX_CHECKPOINTS];
 
     uint16_t sequencer_step;

@@ -46,6 +46,11 @@ static bool hold_sync;
 
 static int16_t sync_data_remaining;
 
+static uint32_t sync_losses;
+static uint8_t sync_least_hits = 255;
+static uint8_t sync_most_hits;
+
+
 int8_t vmsync_i8_kv_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -66,14 +71,18 @@ int8_t vmsync_i8_kv_handler(
     return 0;
 }
 
-static uint32_t checkpoints[SYNC_MAX_CHECKPOINTS];
+// static uint32_t checkpoints[SYNC_MAX_CHECKPOINTS];
 static uint32_t checkpoint_hashes[SYNC_MAX_CHECKPOINTS];
 
 KV_SECTION_META kv_meta_t vm_sync_kv[] = {
     { CATBUS_TYPE_STRING32, 0,                          KV_FLAGS_PERSIST,   0, vmsync_i8_kv_handler,   "gfx_sync_group" },
     { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_state, 0,            "gfx_sync_state" },
-    { CATBUS_TYPE_UINT32,   SYNC_MAX_CHECKPOINTS - 1,   KV_FLAGS_READ_ONLY, &checkpoints, 0,           "gfx_sync_checkpoints" },
+    // { CATBUS_TYPE_UINT32,   SYNC_MAX_CHECKPOINTS - 1,   KV_FLAGS_READ_ONLY, &checkpoints, 0,           "gfx_sync_checkpoints" },
     { CATBUS_TYPE_UINT32,   SYNC_MAX_CHECKPOINTS - 1,   KV_FLAGS_READ_ONLY, &checkpoint_hashes, 0,     "gfx_sync_checkpoint_hashes" },
+
+    { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_least_hits,   0,     "gfx_sync_least_hits" },
+    { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_most_hits,    0,     "gfx_sync_most_hits" },
+    { CATBUS_TYPE_UINT32,   0,                          KV_FLAGS_READ_ONLY, &sync_losses,       0,     "gfx_sync_sync_losses" },
 };
 
 static void update_checkpoints( void ){
@@ -84,36 +93,64 @@ static void update_checkpoints( void ){
 
     for( int8_t i = SYNC_MAX_CHECKPOINTS - 2; i >= 0 ; i-- ){
 
-        checkpoints[i + 1]          = checkpoints[i];
+        // checkpoints[i + 1]          = checkpoints[i];
         checkpoint_hashes[i + 1]    = checkpoint_hashes[i];
     }
 
-    checkpoints[0] = time_u32_get_network_time();
+    // checkpoints[0] = time_u32_get_network_time();
     checkpoint_hashes[0] = vm_u32_get_sync_data_hash();
 }
 
-static uint32_t lookup_checkpoint_hash_for_net_time( uint32_t net_time ){
+static uint8_t count_checkpoints( void ){
 
-    uint32_t best_delta = 0xffffffff;
-    uint32_t best_hash = 0;
+    uint8_t count = 0;
 
-    for( uint8_t i = 0; i < SYNC_MAX_CHECKPOINTS; i++ ){
+    for( int8_t i = 0; i < SYNC_MAX_CHECKPOINTS; i++ ){
 
-        if( checkpoints[i] == 0 ){
+        if( checkpoint_hashes[i] != 0 ){
 
-            continue;
-        }
-
-        uint32_t delta = abs64( (int64_t)net_time - (int64_t)checkpoints[i] );
-
-        if( delta < best_delta ){
-
-            best_delta = delta;
-            best_hash = checkpoint_hashes[i];
+            count++;
         }
     }
 
-    return best_hash;
+    return count;
+}
+
+// static uint32_t lookup_checkpoint_hash_for_net_time( uint32_t net_time ){
+
+//     uint32_t best_delta = 0xffffffff;
+//     uint32_t best_hash = 0;
+
+//     for( uint8_t i = 0; i < SYNC_MAX_CHECKPOINTS; i++ ){
+
+//         if( checkpoints[i] == 0 ){
+
+//             continue;
+//         }
+
+//         uint32_t delta = abs64( (int64_t)net_time - (int64_t)checkpoints[i] );
+
+//         if( delta < best_delta ){
+
+//             best_delta = delta;
+//             best_hash = checkpoint_hashes[i];
+//         }
+//     }
+
+//     return best_hash;
+// }
+
+static int8_t seek_checkpoint( uint32_t hash ){
+
+    for( uint8_t i = 0; i < SYNC_MAX_CHECKPOINTS; i++ ){
+
+        if( checkpoint_hashes[i] == hash ){
+
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 
@@ -248,7 +285,7 @@ static void send_sync( sock_addr_t *raddr ){
     msg.rng_seed                = state->rng_seed;
     msg.frame_number            = state->frame_number;
 
-    memcpy( msg.checkpoints, checkpoints, sizeof(msg.checkpoints) );
+    // memcpy( msg.checkpoints, checkpoints, sizeof(msg.checkpoints) );
     memcpy( msg.checkpoint_hashes, checkpoint_hashes, sizeof(msg.checkpoint_hashes) );
 
     msg.sequencer_step          = vm_seq_u8_get_step();
@@ -474,9 +511,29 @@ PT_BEGIN( pt );
             }
             else if( sync_state == STATE_SYNC ){
 
+                // log_v_debug_P( PSTR("SYNC") );
+
+                if( count_checkpoints() < SYNC_MAX_CHECKPOINTS ){
+
+                    continue;
+                }
+
+                uint8_t hits = 0;
+
                 for( uint8_t i = 0; i < SYNC_MAX_CHECKPOINTS; i++ ){
 
-                    uint32_t local_hash = lookup_checkpoint_hash_for_net_time( msg->checkpoints[i] );
+                    if( seek_checkpoint(msg->checkpoint_hashes[i]) >= 0 ){
+
+                        hits++;
+                    }
+
+                    // log_v_debug_P( PSTR("Local: %d/0x%08x Remote: %d/0x%08x"),
+                    //     checkpoints[i],
+                    //     checkpoint_hashes[i],
+                    //     msg->checkpoints[i],
+                    //     msg->checkpoint_hashes[i] );
+
+                    // uint32_t local_hash = lookup_checkpoint_hash_for_net_time( msg->checkpoints[i] );
 
                     // if( local_hash != msg->checkpoint_hashes[i] ){
 
@@ -489,6 +546,21 @@ PT_BEGIN( pt );
 
                         // break;
                     // }                    
+                }
+
+                if( hits < sync_least_hits ){
+
+                    sync_least_hits = hits;
+                }
+
+                if( hits > sync_most_hits ){
+
+                    sync_most_hits = hits;
+                }
+
+                if( hits == 0 ){
+
+                    sync_losses++;
                 }
 
                 // verify checkpoint
