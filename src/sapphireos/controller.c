@@ -467,6 +467,8 @@ static void vote_self( void ){
 
 void controller_v_init( void ){
 
+	return;
+
 	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
 		return;

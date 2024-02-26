@@ -49,7 +49,7 @@ ptotocol has a ton of state.
 
 #include "services.h"
 
-#define NO_LOGGING
+// #define NO_LOGGING
 
 // #define TEST_MODE
 
@@ -1471,6 +1471,8 @@ PT_BEGIN( pt );
 
         if( sys_b_is_shutting_down() ){
 
+            log_v_debug_P( PSTR("Service server shut down") );
+
             THREAD_EXIT( pt );
         }
 
@@ -1575,6 +1577,8 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 1000 );
 
         if( sys_b_is_shutting_down() ){
+
+            log_v_debug_P( PSTR("Service timer shut down") );
 
             THREAD_EXIT( pt );
         }

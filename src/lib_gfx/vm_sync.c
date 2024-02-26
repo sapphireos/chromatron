@@ -92,6 +92,30 @@ static void update_checkpoints( void ){
     checkpoint_hashes[0] = vm_u32_get_sync_data_hash();
 }
 
+static uint32_t lookup_checkpoint_hash_for_net_time( uint32_t net_time ){
+
+    uint32_t best_delta = 0xffffffff;
+    uint32_t best_hash = 0;
+
+    for( uint8_t i = 0; i < SYNC_MAX_CHECKPOINTS; i++ ){
+
+        if( checkpoints[i] == 0 ){
+
+            continue;
+        }
+
+        uint32_t delta = abs64( (int64_t)net_time - (int64_t)checkpoints[i] );
+
+        if( delta < best_delta ){
+
+            best_delta = delta;
+            best_hash = checkpoint_hashes[i];
+        }
+    }
+
+    return best_hash;
+}
+
 
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
@@ -332,6 +356,8 @@ PT_BEGIN( pt );
     	// check if shutting down
     	if( sys_b_is_shutting_down() ){
 
+            log_v_debug_P( PSTR("VM sync server shut down") );
+
     		THREAD_EXIT( pt );
     	}
 
@@ -447,6 +473,23 @@ PT_BEGIN( pt );
                 // log_v_debug_P( PSTR("sync: vm tick %d sync tick %d"), (int32_t)msg->tick, (int32_t)msg->sync_tick );
             }
             else if( sync_state == STATE_SYNC ){
+
+                for( uint8_t i = 0; i < SYNC_MAX_CHECKPOINTS; i++ ){
+
+                    uint32_t local_hash = lookup_checkpoint_hash_for_net_time( msg->checkpoints[i] );
+
+                    // if( local_hash != msg->checkpoint_hashes[i] ){
+
+                        // log_v_debug_P( PSTR("Local: 0x%08x != 0x%08x Net: %d"), local_hash, msg->checkpoint_hashes[i], msg->checkpoints[i] );
+                        
+                        // for( uint8_t j = 0; j < SYNC_MAX_CHECKPOINTS; j++ ){
+
+                            // log_v_debug_P( PSTR("Local: 0x%08x"),
+                        // }
+
+                        // break;
+                    // }                    
+                }
 
                 // verify checkpoint
                 // if( vm_u32_get_checkpoint() == msg->checkpoint ){
@@ -704,6 +747,13 @@ PT_BEGIN( pt );
 
                 TMR_WAIT( pt, 100 );
 
+                if( sys_b_is_shutting_down() ){
+
+                    log_v_debug_P( PSTR("VM sync shut down") );
+
+                    THREAD_EXIT( pt );
+                }
+
                 update_checkpoints();
             }
 
@@ -722,6 +772,13 @@ PT_BEGIN( pt );
             sync_state = STATE_SYNCING;
 
             while( sync_state == STATE_SYNCING ){
+
+                if( sys_b_is_shutting_down() ){
+
+                    log_v_debug_P( PSTR("VM sync shut down") );
+
+                    THREAD_EXIT( pt );
+                }
 
                 if( ( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ) ||
                     ( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ) ||
@@ -753,16 +810,23 @@ PT_BEGIN( pt );
                    vm_b_is_vm_running( 0 ) &&
                    ( sync_state == STATE_SYNC ) ){
 
+                if( sys_b_is_shutting_down() ){
+
+                    log_v_debug_P( PSTR("VM sync shut down") );
+
+                    THREAD_EXIT( pt );
+                }
+
                 if( !thread_b_alarm_set() ){
 
-                    send_request( FALSE );
+                    // send_request( FALSE );
 
                     thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
                 }
 
                 TMR_WAIT( pt, 100 );
 
-                update_checkpoints();
+                // update_checkpoints();
 
                 // if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){
 
