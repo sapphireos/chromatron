@@ -819,14 +819,14 @@ PT_BEGIN( pt );
 
                 if( !thread_b_alarm_set() ){
 
-                    // send_request( FALSE );
+                    send_request( FALSE );
 
                     thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
                 }
 
                 TMR_WAIT( pt, 100 );
 
-                // update_checkpoints();
+                update_checkpoints();
 
                 // if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){
 
