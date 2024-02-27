@@ -377,7 +377,7 @@ PT_BEGIN( pt );
 
                 if( ( clock_source > NTP_SOURCE_INTERNAL ) && ( delta_ms > ( NTP_MASTER_CLOCK_TIMEOUT * 1000 ) ) ){
 
-                    log_v_info_P( PSTR("NTP master clock desync, changing source to internal: %u"), delta_ms );
+                    log_v_info_P( PSTR("NTP master clock desync, changing source to internal: %u last_sync: %ld"), delta_ms, last_sync_time );
 
                     clock_source = NTP_SOURCE_INTERNAL;           
                 }
@@ -625,6 +625,7 @@ server_done:
     while( is_follower() && ( services_u16_get_leader_priority( NTP_ELECTION_SERVICE, 0 ) > NTP_SOURCE_NONE ) ){
 
         // send sync request
+        log_v_debug_P( PSTR("Send NTP sync request") );
 
         ntp_msg_request_sync_t sync = {
             NTP_PROTOCOL_MAGIC,
@@ -750,6 +751,7 @@ client_done:
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && is_follower() );
     } // /follower
 
+    log_v_debug_P( PSTR("NTP server restart") );
 
     THREAD_RESTART( pt );
 
