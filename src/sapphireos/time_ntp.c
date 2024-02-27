@@ -657,6 +657,8 @@ server_done:
         // check for timeout
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
+            log_v_debug_P( PSTR("request timeout") );
+
             goto client_done;
         }
 
