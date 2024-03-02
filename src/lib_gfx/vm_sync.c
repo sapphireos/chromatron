@@ -890,19 +890,25 @@ PT_BEGIN( pt );
 
                     log_v_debug_P( PSTR("VM sync shut down") );
 
-                    THREAD_EXIT( pt );
+                    // THREAD_EXIT( pt );
                 }
 
                 if( !thread_b_alarm_set() ){
 
+                    log_v_debug_P( PSTR("VM sync request") );
                     send_request( FALSE );
 
                     thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
+
+                    log_v_debug_P( PSTR("VM sync request 2") );
                 }
 
                 TMR_WAIT( pt, 100 );
 
-                update_checkpoints();
+                // if( !sys_b_is_shutting_down() ){
+
+                    update_checkpoints();
+                // }
 
                 // if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){
 

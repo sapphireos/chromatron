@@ -26,7 +26,7 @@
         
 #define _TARGET_H
 
-// #define TRACE
+#define ENABLE_TRACE
 // #define ENABLE_LOG_TO_TRACE_PRINT
 
 // modules
