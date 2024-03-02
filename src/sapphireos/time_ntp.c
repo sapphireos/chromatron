@@ -42,6 +42,12 @@ speeds between devices, which over a long enough
 averaging period, should be discernible.
 
 
+We really don't need NTP to be any better than 1 second or so.
+We have a high precision clock already for VM sync.
+
+What if we switch to a broadcast mode?
+Can broadcast several packets within a few 100 ms, receivers can 
+average them out.
 
 */
 
@@ -659,7 +665,10 @@ server_done:
 
             log_v_debug_P( PSTR("request timeout") );
 
-            goto client_done;
+            // random delay
+            TMR_WAIT( pt, ( rnd_u16_get_int() >> 4 ) + 1000 );
+
+            continue; // retry request
         }
 
         uint32_t *magic = sock_vp_get_data( sock );
@@ -749,7 +758,7 @@ server_done:
         
 
 client_done:
-        thread_v_set_alarm( tmr_u32_get_system_time_ms() + ( NTP_SYNC_INTERVAL * 1000 ) );
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + ( NTP_SYNC_INTERVAL * 1000 ) + rnd_u16_get_int() );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && is_follower() );
     } // /follower
 
