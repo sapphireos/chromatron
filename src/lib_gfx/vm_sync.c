@@ -565,6 +565,8 @@ PT_BEGIN( pt );
                 if( hits == 0 ){
 
                     sync_losses++;
+
+                    vm_sync_v_reset();
                 }
 
                 // verify checkpoint
