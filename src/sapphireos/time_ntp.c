@@ -65,6 +65,9 @@ static uint32_t last_sync_time;
 
 static ip_addr4_t master_ip;
 
+static uint32_t ntp_syncs;
+static uint32_t ntp_timeouts;
+
 // NOTE!
 // tz_offset is in MINUTES, because not all timezones
 // are aligned on the hour.
@@ -134,6 +137,10 @@ KV_SECTION_META kv_meta_t ntp_time_info_kv[] = {
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, 0,                           _ntp_kv_handler,    "ntp_elapsed_last_sync" },
 
     { CATBUS_TYPE_INT16,    0, KV_FLAGS_PERSIST,   &tz_offset,                  0,                  "datetime_tz_offset" },
+
+
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &ntp_syncs,                  0,                  "ntp_syncs" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &ntp_timeouts,               0,                  "ntp_timeouts" },
 };
 
 
@@ -631,7 +638,7 @@ server_done:
     while( is_follower() && ( services_u16_get_leader_priority( NTP_ELECTION_SERVICE, 0 ) > NTP_SOURCE_NONE ) ){
 
         // send sync request
-        log_v_debug_P( PSTR("Send NTP sync request") );
+        // log_v_debug_P( PSTR("Send NTP sync request") );
 
         ntp_msg_request_sync_t sync = {
             NTP_PROTOCOL_MAGIC,
@@ -663,7 +670,9 @@ server_done:
         // check for timeout
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
-            log_v_debug_P( PSTR("request timeout") );
+            ntp_timeouts++;
+
+            // log_v_debug_P( PSTR("request timeout") );
 
             // random delay
             TMR_WAIT( pt, ( rnd_u16_get_int() >> 4 ) + 1000 );
@@ -752,6 +761,8 @@ server_done:
 
             source = reply->source;
         }
+
+        ntp_syncs++;
 
         // set master clock with new timestamps
         ntp_v_set_master_clock( delay_adjusted_ntp, reply_recv_timestamp, source ); 
