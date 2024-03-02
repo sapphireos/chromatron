@@ -37,12 +37,10 @@
 
 
 #ifdef ESP8266
-static bool test_mode;
 static uint8_t slowest_opcode;
 static uint16_t slowest_time;
 
 KV_SECTION_META kv_meta_t coproc_test_cfg_kv[] = {
-    { CATBUS_TYPE_BOOL,      0, 0,  &test_mode, 		0,  "coproc_test_mode" },
     { CATBUS_TYPE_UINT8,     0, 0,  &slowest_opcode, 	0,  "coproc_slowest_opcode" },
     { CATBUS_TYPE_UINT16,    0, 0,  &slowest_time, 		0,  "coproc_slowest_time" },
 };
@@ -93,69 +91,22 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 
 	#ifdef ESP8266
 
-	if( test_mode ){
+	uint32_t start = tmr_u32_get_system_time_ms();
 
-		uint32_t start = tmr_u32_get_system_time_ms();
+	if( header ){
 
-		if( header ){
+		// SOF byte, filter for non printable
+		while( len == sizeof(block) ){
 
-			// SOF byte, filter for non printable
-			while( len == sizeof(block) ){
+			while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
+			   	   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
 
-				while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
-				   	   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
-
-				ASSERT( usart_u8_bytes_available( UART_CHANNEL ) != 0 );
-
-				int16_t byte = usart_i16_get_byte( UART_CHANNEL );
-
-				// waiting for SOF and received printable character instead of start of frame
-				if( byte < 128 ){
-
-					// skip byte			
-				}
-				else{
-
-					*rx_data++ = byte;
-					len--;	
-				}	
-			}
-
-			// get rest of header
-			while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) &&
-				   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
-
-			ASSERT( usart_u8_bytes_available( UART_CHANNEL ) >= len );
-
-			usart_u8_get_bytes( UART_CHANNEL, rx_data, len );
-		}
-		else{
-
-			while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) &&
-				   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
-
-			ASSERT( usart_u8_bytes_available( UART_CHANNEL ) >= len );
-
-			usart_u8_get_bytes( UART_CHANNEL, rx_data, len );
-		}
-	}
-	else{
-
-		while( len > 0 ){
-
-			while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) );
-
-			// // wait for data
-			// uint32_t start = tmr_u32_get_system_time_ms();
-			// while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
-			// 	   ( tmr_u32_elapsed_time_ms( start) < 500 ) );
-
-			// ASSERT( usart_u8_bytes_available( UART_CHANNEL ) != 0 );
+			ASSERT( usart_u8_bytes_available( UART_CHANNEL ) != 0 );
 
 			int16_t byte = usart_i16_get_byte( UART_CHANNEL );
 
 			// waiting for SOF and received printable character instead of start of frame
-			if( header && ( len == sizeof(block) ) && ( byte < 128 ) ){
+			if( byte < 128 ){
 
 				// skip byte			
 			}
@@ -163,9 +114,27 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 
 				*rx_data++ = byte;
 				len--;	
-			}
+			}	
 		}
+
+		// get rest of header
+		while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) &&
+			   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
+
+		ASSERT( usart_u8_bytes_available( UART_CHANNEL ) >= len );
+
+		usart_u8_get_bytes( UART_CHANNEL, rx_data, len );
 	}
+	else{
+
+		while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) &&
+			   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
+
+		ASSERT( usart_u8_bytes_available( UART_CHANNEL ) >= len );
+
+		usart_u8_get_bytes( UART_CHANNEL, rx_data, len );
+	}
+	
 	#else 
 	if( hal_wifi_i8_usart_receive( rx_data, len, 500000 ) != 0 ){
 
