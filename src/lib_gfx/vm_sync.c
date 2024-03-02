@@ -194,6 +194,10 @@ void vm_sync_v_init( void ){
 
 void vm_sync_v_reset( void ){
 
+    sync_losses = 0;
+    sync_most_hits = 0;
+    sync_least_hits = 255;
+
     sync_state = STATE_IDLE;
 
     uint32_t old_hash = sync_group_hash;
@@ -209,10 +213,10 @@ void vm_sync_v_reset( void ){
         services_v_cancel( SYNC_SERVICE, old_hash );    
     }
 
-    if( sync_group_hash == 0 ){
+    // if( sync_group_hash == 0 ){
 
-        return;
-    }
+    //     return;
+    // }
 
     // log_v_debug_P( PSTR("sync reset") );
 }
