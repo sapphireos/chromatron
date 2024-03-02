@@ -879,6 +879,12 @@ PT_BEGIN( pt );
         current_opcode = hdr.opcode;
         current_length = hdr.length;
 
+        if( current_opcode == 0 ){
+
+            coproc_v_set_error_flags( COPROC_ERROR_BAD_OPCODE, current_opcode, current_length );
+            while(1);
+        }
+
         uint8_t buf[COPROC_BUF_SIZE];
 
         uint8_t n_blocks = 0;
