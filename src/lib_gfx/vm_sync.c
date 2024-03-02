@@ -872,53 +872,29 @@ PT_BEGIN( pt );
         // SYNCED FOLLOWER:
 
         // periodic resync
-        while( sync_state == STATE_SYNC ){
-            
-            thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
 
-            // THREAD_WAIT_WHILE( pt, 
-            //     services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 
-            //     vm_b_is_vm_running( 0 ) &&
-            //     ( sync_state == STATE_SYNC ) &&
-            //     thread_b_alarm_set() );
+        while( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 
+               vm_b_is_vm_running( 0 ) &&
+               ( sync_state == STATE_SYNC ) ){
 
-            while( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 
-                   vm_b_is_vm_running( 0 ) &&
-                   ( sync_state == STATE_SYNC ) ){
+            if( sys_b_is_shutting_down() ){
 
-                if( sys_b_is_shutting_down() ){
+                log_v_debug_P( PSTR("VM sync shut down") );
 
-                    log_v_debug_P( PSTR("VM sync shut down") );
-
-                    // THREAD_EXIT( pt );
-                }
-
-                if( !thread_b_alarm_set() ){
-
-                    log_v_debug_P( PSTR("VM sync request") );
-                    send_request( FALSE );
-
-                    thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
-
-                    log_v_debug_P( PSTR("VM sync request 2") );
-                }
-
-                TMR_WAIT( pt, 100 );
-
-                // if( !sys_b_is_shutting_down() ){
-
-                    update_checkpoints();
-                // }
-
-                // if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){
-
-                //     send_request( FALSE );
-                // }
-                // else{
-
-                //     break;
-                // }
+                THREAD_EXIT( pt );
             }
+
+            if( !thread_b_alarm_set() ){
+
+                send_request( FALSE );
+
+                thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
+            }
+
+            TMR_WAIT( pt, 100 );
+
+            update_checkpoints();
         }
     }
 

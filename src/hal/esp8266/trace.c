@@ -46,6 +46,11 @@ int trace_printf(const char* format, ...){
   int ret;
   va_list ap;
 
+  if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+      return 0;
+  }
+
   va_start (ap, format);
 
   char buf[TRACE_BUF_SIZE];

@@ -30,7 +30,7 @@ int dummy_printf(const char* format, ...);
 #ifndef BOOTLOADER
     #ifdef ENABLE_TRACE
         #define TRACE_BUF_SIZE 192
-        int trace_printf(const char* format, ...)
+        int trace_printf(const char* format, ...);
     #else
         #define trace_printf dummy_printf
     #endif

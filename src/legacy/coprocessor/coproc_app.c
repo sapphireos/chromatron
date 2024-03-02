@@ -910,13 +910,7 @@ PT_BEGIN( pt );
 
         if( loadfw_request && loadfw_enable_1 && loadfw_enable_2 ){
 
-            trace_printf( PSTR("valid load sequence\n") );
-
-            THREAD_RESTART( pt );
-        }
-        else if( loadfw_request || loadfw_enable_1 || loadfw_enable_2 ){
-
-            trace_printf( PSTR("invalid load sequence\n") );
+            trace_printf( "valid load sequence\n" );
 
             THREAD_RESTART( pt );
         }

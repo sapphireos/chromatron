@@ -1428,6 +1428,7 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+#if 0
 void custom_crash_callback( struct rst_info * rst_info, uint32_t stack, uint32_t stack_end ){
 
     // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -1532,6 +1533,7 @@ void custom_crash_callback( struct rst_info * rst_info, uint32_t stack, uint32_t
 
   // EEPROM.commit();
 }
+#endif
 
 #else
 
