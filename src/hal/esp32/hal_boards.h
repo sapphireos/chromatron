@@ -40,9 +40,13 @@
 #define ELITE_LED_ID_IO         IO_PIN_25_A1 // CS pin on SPI header
 // #define ELITE_TILT_MOTOR_IO_1   IO_PIN_16_RX
 // #define ELITE_TILT_MOTOR_IO_0   IO_PIN_17_TX
-#define ELITE_SOLAR_EN_IO       IO_PIN_16_RX
-#define ELITE_DC_DETECT_IO      IO_PIN_17_TX
-#define ELITE_PANEL_VOLTS_IO    IO_PIN_34_A2
+// #define ELITE_SOLAR_EN_IO       IO_PIN_16_RX
+// #define ELITE_DC_DETECT_IO      IO_PIN_17_TX
+// #define ELITE_PANEL_VOLTS_IO    IO_PIN_34_A2
+
+#define ELITE_AUX_I2C_SCL       IO_PIN_16_RX
+#define ELITE_AUX_I2C_SDA       IO_PIN_17_TX
+
 
 // ESP32 Mini button controllers:
 // BOARD_TYPE_ESP32_MINI_BUTTONS

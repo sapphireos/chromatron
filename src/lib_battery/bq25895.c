@@ -76,6 +76,10 @@ static int8_t batt_temp_raw;
 
 
 KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
+    #ifdef ENABLE_AUX_BATTERY
+    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_PERSIST,    0,                           0,  "batt_enable_aux" },
+    #endif
+
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp,                  0,  "batt_temp" },
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &batt_temp_raw,              0,  "batt_temp_raw" },
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &batt_charging,              0,  "batt_charging" },
@@ -112,6 +116,8 @@ KV_SECTION_OPT kv_meta_t bq25895_info_kv[] = {
 
 #ifdef ENABLE_AUX_BATTERY
 
+static bool register_bank_aux;
+
 static uint8_t aux_regs[BQ25895_N_REGS];
 static uint16_t aux_batt_volts;
 static uint16_t aux_batt_volts_raw;
@@ -126,16 +132,16 @@ static uint8_t aux_batt_fault;
 static uint8_t aux_vbus_status;
 static uint8_t aux_charge_status;
 static bool aux_dump_regs;
-static bool aux_boost_enabled;
+// static bool aux_boost_enabled;
 
-static uint16_t aux_boost_voltage;
+// static uint16_t aux_boost_voltage;
 static uint16_t aux_vindpm;
 static uint16_t aux_iindpm;
 
 static uint16_t aux_current_fast_charge_setting;
 
 // true if MCU system power is sourced from the boost converter
-static bool aux_mcu_source_pmid;
+// static bool aux_mcu_source_pmid;
 
 // DEBUG
 static uint16_t aux_adc_time_min = 65535;
@@ -169,8 +175,8 @@ KV_SECTION_OPT kv_meta_t bq25895_aux_info_kv[] = {
     
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &aux_batt_max_charge_current,    0,  "batt_aux_max_charge_current" },
     
-    { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &aux_boost_enabled,              0,  "batt_aux_boost_enabled" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &aux_boost_voltage,              0,  "batt_aux_boost_voltage" },
+    // { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &aux_boost_enabled,              0,  "batt_aux_boost_enabled" },
+    // { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &aux_boost_voltage,              0,  "batt_aux_boost_voltage" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_vindpm,                     0,  "batt_aux_vindpm" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_iindpm,                     0,  "batt_aux_iindpm" },
 
@@ -193,13 +199,37 @@ KV_SECTION_OPT kv_meta_t bq25895_aux_info_kv[] = {
 static void init_charger( void );
 static void init_boost_converter( void );
 
+#ifdef ENABLE_AUX_BATTERY
+static void set_register_bank_main( void ){
+
+    register_bank_aux = FALSE;
+
+    i2c_v_set_pins( GPIO_NUM_22, GPIO_NUM_23 );
+    i2c_v_init( I2C_BAUD_400K );
+}
+
+static void set_register_bank_aux( void ){
+
+    register_bank_aux = TRUE;
+
+    i2c_v_set_pins( ELITE_AUX_I2C_SCL, ELITE_AUX_I2C_SDA );
+    i2c_v_init( I2C_BAUD_400K );
+}
+
+#else
+static void set_register_bank_main( void ){
+
+    i2c_v_init( I2C_BAUD_400K );
+}
+#endif
+
 
 PT_THREAD( bq25895_mon_thread( pt_t *pt, void *state ) );
 
 
 int8_t bq25895_i8_init( void ){
 
-    i2c_v_init( I2C_BAUD_400K );
+    set_register_bank_main();
 
     // probe for battery charger
     if( bq25895_u8_get_device_id() != BQ25895_DEVICE_ID ){
@@ -239,18 +269,60 @@ int8_t bq25895_i8_init( void ){
                      0,
                      0 );
 
+    #ifdef ENABLE_AUX_BATTERY
+    if( kv_b_get_boolean( __KV__batt_enable_aux ) ){
+
+        set_register_bank_aux();
+
+        // probe for battery charger
+        if( bq25895_u8_get_device_id() != BQ25895_DEVICE_ID ){
+
+            log_v_debug_P( PSTR("aux batt controller not found") );
+        }
+        else{
+
+            kv_v_add_db_info( bq25895_aux_info_kv, sizeof(bq25895_aux_info_kv) );
+        }
+
+        set_register_bank_main();
+    }
+    #endif
+
     return 0;
 }
 
 void bq25895_v_read_all( void ){
+#ifdef ENABLE_AUX_BATTERY
+    if( register_bank_aux ){
 
+        i2c_v_mem_read( BQ25895_I2C_ADDR, 0, 1, aux_regs, sizeof(aux_regs), 0 );
+    }   
+    else{
+
+        i2c_v_mem_read( BQ25895_I2C_ADDR, 0, 1, regs, sizeof(regs), 0 );
+    } 
+
+#else
     i2c_v_mem_read( BQ25895_I2C_ADDR, 0, 1, regs, sizeof(regs), 0 );
+#endif
+
     bq25895_u8_read_reg( BQ25895_REG_FAULT );
 }
 
 static uint8_t read_cached_reg( uint8_t addr ){
+#ifdef ENABLE_AUX_BATTERY
+    if( register_bank_aux ){
 
+        return aux_regs[addr];
+    }   
+    else{
+
+        return regs[addr];
+    } 
+
+#else
     return regs[addr];
+#endif
 }
 
 uint8_t bq25895_u8_read_reg( uint8_t addr ){
@@ -260,7 +332,19 @@ uint8_t bq25895_u8_read_reg( uint8_t addr ){
     i2c_v_mem_read( BQ25895_I2C_ADDR, addr, 1, &data, sizeof(data), 0 );
 
     // update cache
+#ifdef ENABLE_AUX_BATTERY
+    if( register_bank_aux ){
+
+        aux_regs[addr] = data;
+    }   
+    else{
+
+        regs[addr] = data;
+    } 
+
+#else
     regs[addr] = data;
+#endif
 
     return data;
 }
@@ -274,7 +358,19 @@ void bq25895_v_write_reg( uint8_t addr, uint8_t data ){
     i2c_v_write( BQ25895_I2C_ADDR, cmd, sizeof(cmd) );
 
     // update cache
+#ifdef ENABLE_AUX_BATTERY
+    if( register_bank_aux ){
+
+        aux_regs[addr] = data;
+    }   
+    else{
+
+        regs[addr] = data;
+    } 
+
+#else
     regs[addr] = data;
+#endif
 }
 
 void bq25895_v_set_reg_bits( uint8_t addr, uint8_t mask ){
