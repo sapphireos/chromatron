@@ -1,7 +1,19 @@
 
 def init():
-    db.vm_prog = "meow"
-    # print(db.vm_prog)
+    # while pixels.is_hs_fading:
+        # print(pixels[0].hue)
+
+    # if pixels.is_hs_fading:
+        # print(0)
+
+    for i in pixels.is_hs_fading:
+        pass
+
+    # return pixels.is_hs_fading
+
+# def init():
+#     db.vm_prog = "meow"
+#     # print(db.vm_prog)
 
 
 # THIS NEEDS A TEST CASE!

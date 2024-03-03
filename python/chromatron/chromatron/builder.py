@@ -1371,6 +1371,8 @@ class Builder(object):
 
         assert not isinstance(test, irBinop)
 
+        test = self.load_value(test, lineno=lineno)
+
         branch = irBranch(test, body_label, else_label, lineno=lineno)
         self.append_node(branch)
 
@@ -1452,6 +1454,8 @@ class Builder(object):
         self.next_loop += 1
 
     def test_while_preheader(self, test, lineno=None):
+        test = self.load_value(test, lineno=lineno)
+
         ir = irBranch(test, self.loop_header[-1], self.loop_end[-1], lineno=lineno)
         self.append_node(ir)
 
@@ -1470,6 +1474,8 @@ class Builder(object):
         self.position_label(self.loop_loop[-1])
         
     def test_while(self, test, lineno=None):
+        test = self.load_value(test, lineno=lineno)
+
         ir = irBranch(test, self.loop_body[-1], self.loop_footer[-1], lineno=lineno)
         self.append_node(ir)
         

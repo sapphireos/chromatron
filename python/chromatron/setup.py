@@ -77,6 +77,9 @@ setup(
         "influxdb==5.3.1",
         "colorama==0.4.6",
         "graphviz==0.20.1",
+        "pytest==6.2.4",
+        "pytest-cov==2.11.1",
+        "pytest-xdist==2.5.0",
     ],
 
     entry_points='''

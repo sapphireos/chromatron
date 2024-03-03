@@ -2549,7 +2549,7 @@ uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
             index %= pix_count;
 
-            if( target_val[i] != val[i] ){
+            if( target_val[index] != val[index] ){
 
                 return 1;
             }
@@ -2589,8 +2589,8 @@ uint16_t gfx_u16_get_is_hs_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
             index %= pix_count;
 
-            if( ( target_hue[i] != hue[i] ) ||
-                ( target_sat[i] != sat[i] ) ){
+            if( ( target_hue[index] != hue[index] ) ||
+                ( target_sat[index] != sat[index] ) ){
 
                 return 1;
             }
