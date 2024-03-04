@@ -194,7 +194,6 @@ void vm_sync_v_init( void ){
 
 void vm_sync_v_reset( void ){
 
-    sync_losses = 0;
     sync_most_hits = 0;
     sync_least_hits = 255;
 
@@ -202,9 +201,9 @@ void vm_sync_v_reset( void ){
 
     uint32_t old_hash = sync_group_hash;
 
-    // services_v_cancel( SYNC_SERVICE, sync_group_hash );
-
     init_group_hash();// init sync group hash    
+
+    memset( checkpoint_hashes, 0, sizeof(checkpoint_hashes) );
 
     // check if hash changed, if so, cancel
     // the previous service
@@ -212,13 +211,6 @@ void vm_sync_v_reset( void ){
 
         services_v_cancel( SYNC_SERVICE, old_hash );    
     }
-
-    // if( sync_group_hash == 0 ){
-
-    //     return;
-    // }
-
-    // log_v_debug_P( PSTR("sync reset") );
 }
 
 void vm_sync_v_hold( void ){
@@ -563,6 +555,8 @@ PT_BEGIN( pt );
                 }
 
                 if( hits == 0 ){
+
+                    log_v_debug_P( PSTR("VM lost sync") );
 
                     sync_losses++;
 

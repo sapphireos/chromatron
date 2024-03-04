@@ -101,7 +101,12 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 			while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
 			   	   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
 
-			ASSERT( usart_u8_bytes_available( UART_CHANNEL ) != 0 );
+			if( usart_u8_bytes_available( UART_CHANNEL ) == 0 ){
+
+				log_v_debug_P( PSTR("coproc receive timeout: %d"), receive_timeout );
+
+				ASSERT( FALSE );
+			}
 
 			int16_t byte = usart_i16_get_byte( UART_CHANNEL );
 
