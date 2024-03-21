@@ -33,10 +33,10 @@
 
 #define SERVICES_MCAST_ADDR                 239,43,96,31
 
-#define SERVICE_RATE                        4000
+#define SERVICE_RATE                        1000
 #define SERVICE_UPTIME_MIN_DIFF             5
 
-#define SERVICE_LISTEN_TIMEOUT              10
+#define SERVICE_LISTEN_TIMEOUT              5
 #define SERVICE_CONNECTED_TIMEOUT           32
 #define SERVICE_CONNECTED_PING_THRESHOLD    16
 #define SERVICE_CONNECTED_WARN_THRESHOLD    4
