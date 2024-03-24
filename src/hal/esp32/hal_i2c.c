@@ -36,17 +36,12 @@ static gpio_num_t gpio_scl = GPIO_NUM_22;
 
 static i2c_baud_t8 i2c_baud;
 
-// static i2c_cmd_handle_t handle;
-
 #define CHECK_ACK   TRUE
 #define NO_ACK      FALSE
 
 void i2c_v_init( i2c_baud_t8 baud ){
 
-    // if( handle == 0 ){
-
-    //     handle = i2c_cmd_link_create();    
-    // }
+    i2c_driver_delete( I2C_MASTER_PORT );
     
     i2c_baud = baud;
 
