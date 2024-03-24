@@ -44,6 +44,9 @@
 // #define ELITE_DC_DETECT_IO      IO_PIN_17_TX
 // #define ELITE_PANEL_VOLTS_IO    IO_PIN_34_A2
 
+#define ELITE_MAIN_I2C_SCL      IO_PIN_22_SCL
+#define ELITE_MAIN_I2C_SDA      IO_PIN_23_SDA
+
 #define ELITE_AUX_I2C_SCL       IO_PIN_16_RX
 #define ELITE_AUX_I2C_SDA       IO_PIN_17_TX
 

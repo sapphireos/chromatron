@@ -204,7 +204,7 @@ static void set_register_bank_main( void ){
 
     register_bank_aux = FALSE;
 
-    i2c_v_set_pins( GPIO_NUM_22, GPIO_NUM_23 );
+    i2c_v_set_pins( ELITE_MAIN_I2C_SCL, ELITE_MAIN_I2C_SDA );
     i2c_v_init( I2C_BAUD_400K );
 }
 
@@ -244,7 +244,6 @@ int8_t bq25895_i8_init( void ){
     kv_v_add_db_info( bq25895_info_kv, sizeof(bq25895_info_kv) );
 
     bq25895_v_read_all();
-
     
     init_charger();
 
@@ -282,6 +281,9 @@ int8_t bq25895_i8_init( void ){
         else{
 
             kv_v_add_db_info( bq25895_aux_info_kv, sizeof(bq25895_aux_info_kv) );
+
+            log_v_debug_P( PSTR("BQ25895 AUX detected") );
+
         }
 
         set_register_bank_main();
@@ -1433,11 +1435,15 @@ static bool read_adc( void ){
     return TRUE;
 }
 
+// #ifdef ENABLE_AUX_BATTERY
+// set_register_bank_main();
+// #endif
+
 PT_THREAD( bq25895_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    mppt_v_reset();
+    // mppt_v_reset();
 
     TMR_WAIT( pt, 50 );
 
@@ -1485,71 +1491,71 @@ PT_BEGIN( pt );
 
             adc_good++;
 
-            // check if vbus is plugged in:
-            if( vbus_volts > BATT_MIN_CHARGE_VBUS_VOLTS ){
+            // // check if vbus is plugged in:
+            // if( vbus_volts > BATT_MIN_CHARGE_VBUS_VOLTS ){
 
-                // check BATFET_DIS bit
-                // sometimes when plugging in a power source, 
-                // the BQ25895 will decide to disconnect the battery.
-                // can't find any fault condition present that would cause
-                // this.  datasheet and forums come up blank.
-                // probably yet another bug in the chip's logic.
-                // so anyway we check for that here, log it for fun, 
-                // and then clear the bit, hopefully we've had enough
-                // power on vbus to accomplish this.
-                uint8_t reg = regs[BQ25895_REG_SHIP_MODE];
+            //     // check BATFET_DIS bit
+            //     // sometimes when plugging in a power source, 
+            //     // the BQ25895 will decide to disconnect the battery.
+            //     // can't find any fault condition present that would cause
+            //     // this.  datasheet and forums come up blank.
+            //     // probably yet another bug in the chip's logic.
+            //     // so anyway we check for that here, log it for fun, 
+            //     // and then clear the bit, hopefully we've had enough
+            //     // power on vbus to accomplish this.
+            //     uint8_t reg = regs[BQ25895_REG_SHIP_MODE];
 
-                if( ( reg & BQ25895_BIT_BATFET_DIS ) != 0 ){
+            //     if( ( reg & BQ25895_BIT_BATFET_DIS ) != 0 ){
 
-                    bq25895_v_leave_ship_mode();
+            //         bq25895_v_leave_ship_mode();
 
-                    log_v_error_P( PSTR("Uncommanded BATFET disconnect. Resetting bit. Faults: %d Charge current: %u Prev: %u"), batt_fault, batt_instant_charge_current, batt_charge_current );
+            //         log_v_error_P( PSTR("Uncommanded BATFET disconnect. Resetting bit. Faults: %d Charge current: %u Prev: %u"), batt_fault, batt_instant_charge_current, batt_charge_current );
 
-                    bq25895_v_print_regs();
-                }
-            }
+            //         bq25895_v_print_regs();
+            //     }
+            // }
 
-            uint16_t charge_current = bq25895_u16_get_charge_current();
-            if( charge_current > 6000 ){
+            // uint16_t charge_current = bq25895_u16_get_charge_current();
+            // if( charge_current > 6000 ){
 
-                log_v_debug_P( PSTR("Invalid setting: %u"), charge_current );
+            //     log_v_debug_P( PSTR("Invalid setting: %u"), charge_current );
 
-                bq25895_v_print_regs();
-            }
+            //     bq25895_v_print_regs();
+            // }
 
 
 
-            // check and log faults
-            if( ( batt_fault > 0 ) && ( batt_fault != prev_faults ) ){
+            // // check and log faults
+            // if( ( batt_fault > 0 ) && ( batt_fault != prev_faults ) ){
 
-                log_v_debug_P( PSTR("batt fault: 0x%02x"), batt_fault );
+            //     log_v_debug_P( PSTR("batt fault: 0x%02x"), batt_fault );
 
-                bq25895_v_print_regs();
-            }
+            //     bq25895_v_print_regs();
+            // }
 
                 
-            uint16_t prev_fast_charge_setting = current_fast_charge_setting;
+            // uint16_t prev_fast_charge_setting = current_fast_charge_setting;
 
-            // apply thermal limiter
-            if( batt_temp >= BQ25895_CHARGE_TEMP_LIMIT ){
+            // // apply thermal limiter
+            // if( batt_temp >= BQ25895_CHARGE_TEMP_LIMIT ){
 
-                // reduce current by half
-                current_fast_charge_setting = get_fast_charge_current() / 2;
-            }
-            else if( batt_temp <= BQ25895_CHARGE_TEMP_LIMIT_LOWER ){
+            //     // reduce current by half
+            //     current_fast_charge_setting = get_fast_charge_current() / 2;
+            // }
+            // else if( batt_temp <= BQ25895_CHARGE_TEMP_LIMIT_LOWER ){
 
-                current_fast_charge_setting = get_fast_charge_current();
-            }
+            //     current_fast_charge_setting = get_fast_charge_current();
+            // }
 
-            // if current setting is changing, apply it
-            if( current_fast_charge_setting != prev_fast_charge_setting ){
+            // // if current setting is changing, apply it
+            // if( current_fast_charge_setting != prev_fast_charge_setting ){
 
-                bq25895_v_set_fast_charge_current( current_fast_charge_setting );   
-            }
+            //     bq25895_v_set_fast_charge_current( current_fast_charge_setting );   
+            // }
 
 
             // run MPPT
-            mppt_v_run( batt_charge_current );
+            // mppt_v_run( batt_charge_current );
         }
         else{
 
