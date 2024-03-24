@@ -154,6 +154,8 @@ static int16_t aux_batt_temp_state;
 
 static int8_t aux_batt_temp_raw;
 
+static bool aux_present;
+
 
 KV_SECTION_OPT kv_meta_t bq25895_aux_info_kv[] = {
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &aux_batt_temp,                  0,  "batt_aux_temp" },
@@ -284,6 +286,7 @@ int8_t bq25895_i8_init( void ){
 
             log_v_debug_P( PSTR("BQ25895 AUX detected") );
 
+            aux_present = TRUE;
         }
 
         set_register_bank_main();
@@ -1435,9 +1438,64 @@ static bool read_adc( void ){
     return TRUE;
 }
 
-// #ifdef ENABLE_AUX_BATTERY
-// set_register_bank_main();
-// #endif
+
+static bool read_adc_aux( void ){
+
+    aux_batt_fault = bq25895_u8_get_faults();
+    aux_vbus_status = bq25895_u8_get_vbus_status();
+    aux_vbus_volts = bq25895_u16_get_vbus_voltage();
+
+    uint16_t temp_batt_volts = _bq25895_u16_get_batt_voltage();
+
+    if( temp_batt_volts == 0 ){
+
+        return FALSE;
+    }
+
+    if( aux_batt_volts == 0 ){
+
+        aux_batt_volts = temp_batt_volts;
+    }
+
+    aux_batt_volts_raw = temp_batt_volts;
+
+    uint16_t temp_charge_current = bq25895_u16_get_charge_current();
+    aux_charge_status = bq25895_u8_get_charge_status();
+    aux_batt_charging = is_charging();
+
+    if( aux_batt_volts != 0 ){
+
+        aux_batt_volts = util_u16_ewma( temp_batt_volts, aux_batt_volts, BQ25895_VOLTS_FILTER );
+    }
+
+    aux_batt_instant_charge_current = temp_charge_current;
+    aux_batt_charge_current = util_u16_ewma( temp_charge_current, batt_charge_current, BQ25895_CURRENT_FILTER );
+    
+
+    aux_sys_volts = bq25895_u16_get_sys_voltage();
+    aux_iindpm = bq25895_u16_get_iindpm();
+
+    int8_t temp = bq25895_i8_get_therm();
+
+    aux_batt_temp_raw = temp;
+
+    if( aux_batt_temp != -127 ){
+
+        aux_batt_temp_state = util_i16_ewma( temp * 256, aux_batt_temp_state, BQ25895_THERM_FILTER );
+        aux_batt_temp = aux_batt_temp_state / 256;
+    }
+    else{
+
+        aux_batt_temp_state = temp * 256;
+        aux_batt_temp = temp;
+    }
+    
+
+    aux_batt_charge_power = ( (uint32_t)aux_batt_charge_current * (uint32_t)aux_batt_volts ) / 1000;
+
+    return TRUE;
+}
+
 
 PT_THREAD( bq25895_mon_thread( pt_t *pt, void *state ) )
 {
@@ -1450,6 +1508,10 @@ PT_BEGIN( pt );
     while(1){
 
         static uint32_t start_time;
+
+        #ifdef ENABLE_AUX_BATTERY
+        set_register_bank_main();
+        #endif
 
         bq25895_v_start_adc_oneshot();
         start_time = tmr_u32_get_system_time_ms();
@@ -1563,8 +1625,69 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, 200 );
 
+            // continue;
+        }
+
+
+
+        #ifdef ENABLE_AUX_BATTERY
+        if( !aux_present ){
+
             continue;
         }
+
+        set_register_bank_aux();
+        
+
+        bq25895_v_start_adc_oneshot();
+        start_time = tmr_u32_get_system_time_ms();
+
+        // memcpy( prev_regs, regs, sizeof(prev_regs) );
+
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
+
+        // uint8_t prev_faults = aux_batt_fault;
+        // bool was_charging = batt_charging;
+
+        // read all registers
+        bq25895_v_read_all();
+
+        // if( dump_regs ){
+
+        //     dump_regs = FALSE;
+
+        //     bq25895_v_print_regs();
+        // }
+
+        if( bq25895_b_adc_ready_cached() && read_adc_aux() ){
+
+            // ADC success
+
+            uint16_t elapsed = tmr_u32_elapsed_time_ms( start_time );
+
+            if( elapsed < adc_time_min ){
+
+                aux_adc_time_min = elapsed;
+            }
+            
+            if( elapsed > adc_time_max ){
+
+                aux_adc_time_max = elapsed;
+            }
+
+            aux_adc_good++;
+        }
+        else{
+
+            aux_adc_fail++;
+
+            TMR_WAIT( pt, 200 );
+
+            // continue;
+        }
+
+        #endif
     }
 
 PT_END( pt );
