@@ -287,6 +287,8 @@ int8_t bq25895_i8_init( void ){
             log_v_debug_P( PSTR("BQ25895 AUX detected") );
 
             aux_present = TRUE;
+
+            init_charger();
         }
 
         set_register_bank_main();
