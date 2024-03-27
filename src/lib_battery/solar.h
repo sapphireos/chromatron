@@ -61,8 +61,9 @@
 
 void solar_v_init( void );
 
-bool solar_b_has_patch_board( void );
-bool solar_b_has_charger2_board( void );
+// bool solar_b_has_patch_board( void );
+
+// bool solar_b_has_charger2_board( void );
 
 uint8_t solar_u8_get_state( void );
 bool solar_b_is_charging( void );

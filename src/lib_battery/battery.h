@@ -45,6 +45,8 @@
 void batt_v_init( void );
 bool batt_b_enabled( void );
 
+bool batt_b_has_charger2_board( void );
+
 uint16_t batt_u16_get_charge_voltage( void );
 uint16_t batt_u16_get_min_discharge_voltage( void );
 

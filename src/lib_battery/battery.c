@@ -30,6 +30,7 @@
 #include "battery.h"
 #include "fuel_gauge.h"
 
+#include "charger2.h"
 #include "bq25895.h"
 
 #include "solar.h"
@@ -43,6 +44,8 @@ static bool batt_enable;
 #include "mcp73831.h"
 static bool batt_enable_mcp73831;
 #endif
+
+static bool charger2_board_installed;
 
 static uint16_t batt_max_charge_voltage = BATT_MAX_FLOAT_VOLTAGE;
 static uint16_t batt_min_discharge_voltage = BATT_CUTOFF_VOLTAGE;
@@ -133,6 +136,8 @@ KV_SECTION_OPT kv_meta_t battery_enable_mcp73831_kv[] = {
 #endif
 
 KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &charger2_board_installed,  0,  "solar_enable_charger2" },
+
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,     batt_kv_handler,  "batt_max_charge_voltage" },
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_min_discharge_voltage,  batt_kv_handler,  "batt_min_discharge_voltage" },
 
@@ -190,6 +195,10 @@ void batt_v_init( void ){
     }
     #endif
 
+    if( charger2_board_installed ){
+        
+        charger2_v_init();
+    }
 
     set_batt_nameplate_capacity();
 
@@ -209,6 +218,11 @@ void batt_v_init( void ){
 bool batt_b_enabled( void ){
 
     return batt_enable;
+}
+
+bool batt_b_has_charger2_board( void ){
+
+    return charger2_board_installed;
 }
 
 uint16_t batt_u16_get_charge_voltage( void ){

@@ -30,9 +30,9 @@
 
 #include "bq25895.h"
 #include "charger2.h"
-#include "patch_board.h"
+// #include "patch_board.h"
 #include "mcp73831.h"
-#include "solar.h"
+// #include "solar.h"
 #include "pixel_power.h"
 #include "battery.h"
 
@@ -89,7 +89,7 @@ static void pixels_off( void ){
 
     // trace_printf("Pixel power DISABLE\r\n");
 
-    if( solar_b_has_charger2_board() ){
+    if( batt_b_has_charger2_board() ){
 
         charger2_v_set_boost( FALSE );
     }
@@ -123,7 +123,7 @@ void pixelpower_v_init( void ){
     #endif
 
     // check if hardware has power control:
-    if( solar_b_has_charger2_board() ){
+    if( batt_b_has_charger2_board() ){
 
         power_control_enabled = TRUE;
     }
@@ -223,7 +223,7 @@ PT_BEGIN( pt );
 
             // trace_printf("Pixel power ENABLE\r\n");
 
-            if( solar_b_has_charger2_board() ){
+            if( batt_b_has_charger2_board() ){
 
                 // wait for boost to start up
                 TMR_WAIT( pt, 40 );

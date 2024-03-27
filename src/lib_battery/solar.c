@@ -114,7 +114,7 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY,  &dc_detect,                 0,  "solar_dc_detect" },
 	#endif
 	
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&charger2_board_installed, 	0,  "solar_enable_charger2" },
+	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&charger2_board_installed, 	0,  "solar_enable_charger2" },
 
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
@@ -179,10 +179,10 @@ void solar_v_init( void ){
 	}
 	#endif
 
-	if( charger2_board_installed ){
+	// if( charger2_board_installed ){
 		
-		charger2_v_init();
-	}
+	// 	charger2_v_init();
+	// }
 
 
 	thread_t_create( solar_control_thread,

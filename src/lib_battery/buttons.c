@@ -29,9 +29,9 @@
 #include "flash_fs.h"
 #include "status_led.h"
 
-#include "solar.h"
+// #include "solar.h"
 #include "charger2.h"
-#include "patch_board.h"
+// #include "patch_board.h"
 #include "buttons.h"
 #include "battery.h"
 #include "pca9536.h"
@@ -302,7 +302,7 @@ static bool _button_b_read_button( uint8_t ch ){
     }
 
     #if defined(ESP8266) || defined(ESP32)
-    if( solar_b_has_charger2_board() ){
+    if( batt_b_has_charger2_board() ){
         
         if( ch == 0 ){
 
