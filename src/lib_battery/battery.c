@@ -31,7 +31,6 @@
 #include "fuel_gauge.h"
 
 #include "bq25895.h"
-#include "mcp73831.h"
 
 #include "solar.h"
 #include "buttons.h"
@@ -41,6 +40,7 @@
 static bool batt_enable;
 
 #ifdef ENABLE_BATT_MCP73831
+#include "mcp73831.h"
 static bool batt_enable_mcp73831;
 #endif
 
@@ -201,7 +201,9 @@ void batt_v_init( void ){
                      0,
                      0 );
 
+    #ifdef ENABLE_SOLAR
     solar_v_init();
+    #endif
 }
 
 bool batt_b_enabled( void ){

@@ -34,6 +34,9 @@ from bad input, with delays and logging.  Battery charging is just not simple.
 
 #include "sapphire.h"
 
+#ifdef ENABLE_SOLAR
+    
+
 #include "solar.h"
 #include "mppt.h"
 #include "buttons.h"
@@ -1022,3 +1025,4 @@ PT_END( pt );
 }
 
 
+#endif

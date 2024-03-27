@@ -27,6 +27,8 @@
 
 #include "sapphire.h"
 
+#ifdef ENABLE_SOLAR
+
 #define SOLAR_CONTROL_POLLING_RATE			100
 #define SOLAR_SENSOR_POLLING_RATE			250
 #define SOLAR_CYCLE_POLLING_RATE			1000
@@ -67,5 +69,7 @@ bool solar_b_is_charging( void );
 
 // bool solar_b_is_dc_power( void );
 // bool solar_b_is_solar_power( void );
+
+#endif
 
 #endif
