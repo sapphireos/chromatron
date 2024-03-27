@@ -145,11 +145,14 @@ void solar_v_init( void ){
 
 	kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
 
-	energy_v_init();
+	// energy_v_init();
 
-	fuel_v_init();
+	// fuel_v_init();
 
-	thermal_v_init();
+	// thermal_v_init();
+
+
+	
 
 	light_sensor_v_init();
 
@@ -158,7 +161,7 @@ void solar_v_init( void ){
 		led_detect_v_init();
 	}
 
-	pixelpower_v_init();
+	// pixelpower_v_init();
 
 	mppt_v_init();
 

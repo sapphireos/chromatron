@@ -29,6 +29,9 @@
 
 #include "battery.h"
 #include "fuel_gauge.h"
+#include "pixel_power.h"
+#include "thermal.h"
+#include "energy.h"
 
 #include "charger2.h"
 #include "bq25895.h"
@@ -186,6 +189,9 @@ void batt_v_init( void ){
     // only add batt info if a battery controller is actually present
     kv_v_add_db_info( battery_info_kv, sizeof(battery_info_kv) );
 
+    set_batt_nameplate_capacity();
+
+
     #ifdef ENABLE_BATT_MCP73831
     if( batt_enable_mcp73831 ){
 
@@ -200,7 +206,14 @@ void batt_v_init( void ){
         charger2_v_init();
     }
 
-    set_batt_nameplate_capacity();
+
+    energy_v_init();
+
+    fuel_v_init();
+
+    thermal_v_init();
+
+    pixelpower_v_init();
 
 
     trace_printf("Battery controller enabled\n");
