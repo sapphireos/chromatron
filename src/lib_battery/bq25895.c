@@ -1440,7 +1440,7 @@ static bool read_adc( void ){
     return TRUE;
 }
 
-
+#ifdef ENABLE_AUX_BATTERY
 static bool read_adc_aux( void ){
 
     aux_batt_fault = bq25895_u8_get_faults();
@@ -1497,6 +1497,7 @@ static bool read_adc_aux( void ){
 
     return TRUE;
 }
+#endif
 
 
 PT_THREAD( bq25895_mon_thread( pt_t *pt, void *state ) )
