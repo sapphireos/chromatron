@@ -149,7 +149,7 @@ void solar_v_init( void ){
 
 	// fuel_v_init();
 
-	// thermal_v_init();
+	thermal_v_init();
 
 
 	

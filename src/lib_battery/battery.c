@@ -30,7 +30,6 @@
 #include "battery.h"
 #include "fuel_gauge.h"
 #include "pixel_power.h"
-#include "thermal.h"
 #include "energy.h"
 
 #include "charger2.h"
@@ -210,8 +209,6 @@ void batt_v_init( void ){
     energy_v_init();
 
     fuel_v_init();
-
-    thermal_v_init();
 
     pixelpower_v_init();
 
