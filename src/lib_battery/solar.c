@@ -50,6 +50,8 @@ from bad input, with delays and logging.  Battery charging is just not simple.
 #include "energy.h"
 #include "light_sensor.h"
 
+#include "bq25895_aux.h"
+
 #include "hal_boards.h"
 
 
@@ -136,9 +138,6 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) );
-
-
-#include "bq25895.h"
 
 
 void solar_v_init( void ){
