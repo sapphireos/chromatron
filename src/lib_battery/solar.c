@@ -42,7 +42,7 @@ from bad input, with delays and logging.  Battery charging is just not simple.
 #include "buttons.h"
 #include "thermal.h"
 #include "battery.h"
-#include "patch_board.h"
+// #include "patch_board.h"
 #include "charger2.h"
 #include "pixel_power.h"
 #include "led_detect.h"
@@ -65,9 +65,9 @@ charger is reporting a fault.
 
 
 // config parameters:
-#ifdef ENABLE_PATCH_BOARD
-static bool patch_board_installed;
-#endif
+// #ifdef ENABLE_PATCH_BOARD
+// static bool patch_board_installed;
+// #endif
 
 static bool charger2_board_installed;
 static bool enable_dc_charge = TRUE;
@@ -92,15 +92,15 @@ static uint16_t charge_timer;
 static uint16_t solar_vindpm = 5800;
 
 
-#ifdef ENABLE_PATCH_BOARD
-static bool dc_detect;
-static uint8_t dc_detect_filter[SOLAR_DC_FILTER_DEPTH];
-static uint8_t dc_detect_filter_index;
+// #ifdef ENABLE_PATCH_BOARD
+// static bool dc_detect;
+// static uint8_t dc_detect_filter[SOLAR_DC_FILTER_DEPTH];
+// static uint8_t dc_detect_filter_index;
 
-static uint16_t solar_volts;
-static uint16_t solar_volts_filter[SOLAR_VOLTS_FILTER_DEPTH];
-static uint8_t solar_volts_filter_index;
-#endif
+// static uint16_t solar_volts;
+// static uint16_t solar_volts_filter[SOLAR_VOLTS_FILTER_DEPTH];
+// static uint8_t solar_volts_filter_index;
+// #endif
 
 static uint32_t charge_minimum_light = SOLAR_MIN_CHARGE_LIGHT_DEFAULT;
 
@@ -108,15 +108,15 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&state_name,				0,  "solar_control_state_text" },
 
-	#ifdef ENABLE_PATCH_BOARD
-	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_volts,               0,  "solar_panel_volts" },
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&patch_board_installed, 	0,  "solar_enable_patch_board" },
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY,  &dc_detect,                 0,  "solar_dc_detect" },
-	#endif
+	// #ifdef ENABLE_PATCH_BOARD
+	// { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_volts,               0,  "solar_panel_volts" },
+	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&patch_board_installed, 	0,  "solar_enable_patch_board" },
+	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY,  &dc_detect,                 0,  "solar_dc_detect" },
+	// #endif
 	
 	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&charger2_board_installed, 	0,  "solar_enable_charger2" },
 
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
+	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
@@ -130,9 +130,9 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 
 
 
-#ifdef ENABLE_PATCH_BOARD
-PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) );
-#endif
+// #ifdef ENABLE_PATCH_BOARD
+// PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) );
+// #endif
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) );
 PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) );
@@ -152,7 +152,7 @@ void solar_v_init( void ){
 	thermal_v_init();
 
 
-	
+
 
 	light_sensor_v_init();
 
@@ -165,22 +165,22 @@ void solar_v_init( void ){
 
 	mppt_v_init();
 
-	#ifdef ENABLE_PATCH_BOARD
-	if( patch_board_installed && charger2_board_installed ){
+	// #ifdef ENABLE_PATCH_BOARD
+	// if( patch_board_installed && charger2_board_installed ){
 
-		log_v_error_P( PSTR("Cannot enable patch board and charger2 on the same system") );
+	// 	log_v_error_P( PSTR("Cannot enable patch board and charger2 on the same system") );
 
-		patch_board_installed = FALSE;
-		charger2_board_installed = FALSE;
-	}
+	// 	patch_board_installed = FALSE;
+	// 	charger2_board_installed = FALSE;
+	// }
 
-	if( patch_board_installed ){
+	// if( patch_board_installed ){
 
-		enable_solar_charge = TRUE; // solar is always enabled with patch board, that's the point of having it
+	// 	enable_solar_charge = TRUE; // solar is always enabled with patch board, that's the point of having it
 		
-		patchboard_v_init();
-	}
-	#endif
+	// 	patchboard_v_init();
+	// }
+	// #endif
 
 	// if( charger2_board_installed ){
 		
@@ -193,12 +193,12 @@ void solar_v_init( void ){
                      0,
                      0 );
 
-	#ifdef ENABLE_PATCH_BOARD
-	thread_t_create( solar_sensor_thread,
-                     PSTR("solar_sensor"),
-                     0,
-                     0 );
-	#endif
+	// #ifdef ENABLE_PATCH_BOARD
+	// thread_t_create( solar_sensor_thread,
+    //                  PSTR("solar_sensor"),
+    //                  0,
+    //                  0 );
+	// #endif
 
 	if( enable_solar_charge ){
 
@@ -209,17 +209,17 @@ void solar_v_init( void ){
 	}
 }
 
-#ifdef ENABLE_PATCH_BOARD
-bool solar_b_has_patch_board( void ){
+// #ifdef ENABLE_PATCH_BOARD
+// bool solar_b_has_patch_board( void ){
 
-	return patch_board_installed;
-}
-#endif
+// 	return patch_board_installed;
+// }
+// #endif
 
-bool solar_b_has_charger2_board( void ){
+// bool solar_b_has_charger2_board( void ){
 
-	return charger2_board_installed;
-}
+// 	return charger2_board_installed;
+// }
 
 uint8_t solar_u8_get_state( void ){
 
@@ -337,104 +337,104 @@ static void disable_charge( void ){
 	// batt_v_disable_charge();	
 }
 
-static void enable_solar_vbus( void ){
+// static void enable_solar_vbus( void ){
 
-	#ifdef ENABLE_PATCH_BOARD
-	if( patch_board_installed ){
+	// #ifdef ENABLE_PATCH_BOARD
+	// if( patch_board_installed ){
 
-		patchboard_v_set_solar_en( TRUE );					
-	}	
-	#endif
-}
+	// 	patchboard_v_set_solar_en( TRUE );					
+	// }	
+	// #endif
+// }
 
-static void disable_solar_vbus( void ){
+// static void disable_solar_vbus( void ){
 
-	#ifdef ENABLE_PATCH_BOARD
-	if( patch_board_installed ){
+	// #ifdef ENABLE_PATCH_BOARD
+	// if( patch_board_installed ){
 
-		patchboard_v_set_solar_en( FALSE );					
-	}	
-	#endif
-}
+	// 	patchboard_v_set_solar_en( FALSE );					
+	// }	
+	// #endif
+// }
 
-static bool is_solar_enable_threshold( void ){
-	#ifdef ENABLE_PATCH_BOARD
-	if( ( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ) &&
-		( light_sensor_u32_read() >= charge_minimum_light ) ){
+// static bool is_solar_enable_threshold( void ){
+// 	// #ifdef ENABLE_PATCH_BOARD
+// 	// if( ( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ) &&
+// 	// 	( light_sensor_u32_read() >= charge_minimum_light ) ){
 
-		return TRUE;
-	}
-	#else
-	if( light_sensor_u32_read() >= charge_minimum_light ){
+// 	// 	return TRUE;
+// 	// }
+// 	// #else
+// 	if( light_sensor_u32_read() >= charge_minimum_light ){
 
-		return TRUE;
-	}
-	#endif
+// 		return TRUE;
+// 	}
+// 	// #endif
 
-	return FALSE;
-}
+// 	return FALSE;
+// }
 
-#ifdef ENABLE_PATCH_BOARD
-PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+// #ifdef ENABLE_PATCH_BOARD
+// PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
 
-	if( !patch_board_installed ){
+// 	if( !patch_board_installed ){
 
-		THREAD_EXIT( pt );
-	}
+// 		THREAD_EXIT( pt );
+// 	}
 
-	while(1){
+// 	while(1){
 
-		TMR_WAIT( pt, SOLAR_SENSOR_POLLING_RATE );
+// 		TMR_WAIT( pt, SOLAR_SENSOR_POLLING_RATE );
 
-		if( patch_board_installed ){
+// 		if( patch_board_installed ){
 
-			dc_detect_filter[dc_detect_filter_index] = patchboard_b_read_dc_detect();
-			dc_detect_filter_index++;
+// 			dc_detect_filter[dc_detect_filter_index] = patchboard_b_read_dc_detect();
+// 			dc_detect_filter_index++;
 
-			if( dc_detect_filter_index >= cnt_of_array(dc_detect_filter) ){
+// 			if( dc_detect_filter_index >= cnt_of_array(dc_detect_filter) ){
 
-				dc_detect_filter_index = 0;					
-			}
+// 				dc_detect_filter_index = 0;					
+// 			}
 
-			// dc detect needs the entire filter to read true
+// 			// dc detect needs the entire filter to read true
 
-			dc_detect = TRUE;
+// 			dc_detect = TRUE;
 
-			for( uint8_t i = 0; i < cnt_of_array(dc_detect_filter); i++ ){
+// 			for( uint8_t i = 0; i < cnt_of_array(dc_detect_filter); i++ ){
 
-				if( dc_detect_filter[i] == FALSE ){
+// 				if( dc_detect_filter[i] == FALSE ){
 
-					dc_detect = FALSE;
+// 					dc_detect = FALSE;
 
-					break;
-				}
-			}
+// 					break;
+// 				}
+// 			}
 
 
-			solar_volts_filter[solar_volts_filter_index] = patchboard_u16_read_solar_volts();	
-			solar_volts_filter_index++;
+// 			solar_volts_filter[solar_volts_filter_index] = patchboard_u16_read_solar_volts();	
+// 			solar_volts_filter_index++;
 
-			if( solar_volts_filter_index >= cnt_of_array(solar_volts_filter) ){
+// 			if( solar_volts_filter_index >= cnt_of_array(solar_volts_filter) ){
 
-				solar_volts_filter_index = 0;	
-			}
+// 				solar_volts_filter_index = 0;	
+// 			}
 
-			uint32_t temp = 0;
+// 			uint32_t temp = 0;
 
-			for( uint8_t i = 0; i < cnt_of_array(solar_volts_filter); i++ ){
+// 			for( uint8_t i = 0; i < cnt_of_array(solar_volts_filter); i++ ){
 
-				temp += solar_volts_filter[i];
-			}	
+// 				temp += solar_volts_filter[i];
+// 			}	
 
-			solar_volts = temp / cnt_of_array(solar_volts_filter);
-		}
-	}
+// 			solar_volts = temp / cnt_of_array(solar_volts_filter);
+// 		}
+// 	}
 
-PT_END( pt );
-}
-#endif
+// PT_END( pt );
+// }
+// #endif
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
@@ -447,7 +447,8 @@ PT_BEGIN( pt );
 	THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
 
 	// check if above solar threshold
-	if( is_solar_enable_threshold() ){
+	// if( is_solar_enable_threshold() ){
+	if( light_sensor_u32_read() >= charge_minimum_light ){
 
 		// if so, start in discharge state, so it will then switch to solar charge
 		// and enable the panel connection.
@@ -570,29 +571,29 @@ PT_BEGIN( pt );
 			else{
 
 				// minimum discharge time reached
-				#ifdef ENABLE_PATCH_BOARD
-				if( patch_board_installed ){
+				// #ifdef ENABLE_PATCH_BOARD
+				// if( patch_board_installed ){
 
-					// patch board has a dedicated DC detect signal:
-					// also validate that VBUS sees it
-					// and no charger faults
-					if( dc_detect && batt_b_is_vbus_connected() ){
+				// 	// patch board has a dedicated DC detect signal:
+				// 	// also validate that VBUS sees it
+				// 	// and no charger faults
+				// 	if( dc_detect && batt_b_is_vbus_connected() ){
 
-						next_state = SOLAR_MODE_CHARGE_DC;
-					}
-					// check solar enable threshold AND
-					// that there are no charger faults reported.
-					else if( is_solar_enable_threshold() ){
+				// 		next_state = SOLAR_MODE_CHARGE_DC;
+				// 	}
+				// 	// check solar enable threshold AND
+				// 	// that there are no charger faults reported.
+				// 	else if( is_solar_enable_threshold() ){
 
-						log_v_debug_P( PSTR("entering solar charge: %u mV %u lux"), solar_volts, light_sensor_u32_read() );
+				// 		log_v_debug_P( PSTR("entering solar charge: %u mV %u lux"), solar_volts, light_sensor_u32_read() );
 
-						next_state = SOLAR_MODE_CHARGE_SOLAR;
-					}
-				}
-				else if( charger2_board_installed ){
-				#else
+				// 		next_state = SOLAR_MODE_CHARGE_SOLAR;
+				// 	}
+				// }
+				// else if( charger2_board_installed ){
+				// #else
 				if( charger2_board_installed ){
-				#endif
+				// #endif
 
 					// charger2 board is USB powered
 					if( batt_b_is_vbus_connected() ){
