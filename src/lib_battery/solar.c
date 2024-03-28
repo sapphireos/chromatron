@@ -291,7 +291,7 @@ bool solar_b_is_charging( void ){
 
 static void enable_charge( uint8_t target_state ){
 
-	batt_v_enable_charge();
+	// batt_v_enable_charge();
 
 	/*
 	
@@ -317,7 +317,7 @@ static void enable_charge( uint8_t target_state ){
 		bq25895_v_set_vindpm( 0 );
 
 		// turn on ICO
-    	bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
+    	// bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
 	}
 	else{
 

@@ -28,7 +28,38 @@
 #ifdef ENABLE_AUX_BATTERY
 
 
+void bq25895_aux_v_enable_charger( void ){
 
+
+}
+
+void bq25895_aux_v_disable_charger( void ){
+
+
+}
+
+void bq25895_aux_v_set_vindpm( int16_t mv ){
+
+
+}
+
+bool bq25895_aux_b_is_batt_fault( void ){
+
+
+}
+
+uint16_t bq25895_aux_u16_read_vbus( void ){
+
+
+}
+
+bool bq25895_aux_b_is_charging( void ){
+
+}
+
+uint8_t bq25895_aux_u8_get_charge_status( void ){
+
+}
 
 #endif
 
