@@ -24,13 +24,22 @@
 
 #include "sapphire.h"
 
+#include "bq25895.h"
 
 #ifdef ENABLE_AUX_BATTERY
+
+void set_register_bank_main( void );
+void set_register_bank_aux( void );
+// void init_charger( void );
 
 
 void bq25895_aux_v_enable_charger( void ){
 
+	set_register_bank_aux();
 
+	bq25895_v_enable_charger();
+
+	set_register_bank_main();
 }
 
 void bq25895_aux_v_disable_charger( void ){
@@ -45,20 +54,22 @@ void bq25895_aux_v_set_vindpm( int16_t mv ){
 
 bool bq25895_aux_b_is_batt_fault( void ){
 
-
+	return FALSE;
 }
 
 uint16_t bq25895_aux_u16_read_vbus( void ){
 
-
+	return 0;
 }
 
 bool bq25895_aux_b_is_charging( void ){
 
+	return FALSE;
 }
 
 uint8_t bq25895_aux_u8_get_charge_status( void ){
 
+	return 0;
 }
 
 #endif

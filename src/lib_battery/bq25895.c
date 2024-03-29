@@ -202,7 +202,7 @@ static void init_charger( void );
 static void init_boost_converter( void );
 
 #ifdef ENABLE_AUX_BATTERY
-static void set_register_bank_main( void ){
+void set_register_bank_main( void ){
 
     register_bank_aux = FALSE;
 
@@ -210,7 +210,7 @@ static void set_register_bank_main( void ){
     i2c_v_init( I2C_BAUD_400K );
 }
 
-static void set_register_bank_aux( void ){
+void set_register_bank_aux( void ){
 
     register_bank_aux = TRUE;
 
@@ -1288,7 +1288,7 @@ static uint16_t get_fast_charge_current(void){
 
 static void init_charger( void ){
 
-    log_v_debug_P( PSTR("Init charger") );
+    // log_v_debug_P( PSTR("Init charger") );
 
     // enable charger and make sure HIZ is disabled
     bq25895_v_set_hiz( FALSE );
