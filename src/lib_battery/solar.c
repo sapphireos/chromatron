@@ -71,7 +71,7 @@ charger is reporting a fault.
 // static bool patch_board_installed;
 // #endif
 
-static bool charger2_board_installed;
+// static bool charger2_board_installed;
 static bool enable_dc_charge = TRUE;
 static bool enable_solar_charge;
 static bool mppt_enabled;
@@ -591,34 +591,34 @@ PT_BEGIN( pt );
 				// }
 				// else if( charger2_board_installed ){
 				// #else
-				if( charger2_board_installed ){
-				// #endif
+				// if( charger2_board_installed ){
+				// // #endif
 
-					// charger2 board is USB powered
-					if( batt_b_is_vbus_connected() ){
+				// 	// charger2 board is USB powered
+				// 	if( batt_b_is_vbus_connected() ){
 
-						next_state = SOLAR_MODE_CHARGE_DC;
-					}
-				}
-				else{
+				// 		next_state = SOLAR_MODE_CHARGE_DC;
+				// 	}
+				// }
+				// else{
 
 					// generic board
 					// no dedicated DC detection.
 					// we make an assumption based on configuration here.
 
-					if( batt_b_is_vbus_connected() ){
+				if( batt_b_is_vbus_connected() ){
 
-						if( enable_solar_charge ){
+					if( enable_solar_charge ){
 
-							// if solar is enabled, assume charging on solar power
-							next_state = SOLAR_MODE_CHARGE_SOLAR;
-						}
-						else if( enable_dc_charge ){
+						// if solar is enabled, assume charging on solar power
+						next_state = SOLAR_MODE_CHARGE_SOLAR;
+					}
+					else if( enable_dc_charge ){
 
-							next_state = SOLAR_MODE_CHARGE_DC;	
-						}
-					}	
-				}
+						next_state = SOLAR_MODE_CHARGE_DC;	
+					}
+				}	
+				// }
 			}
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_DC ){
