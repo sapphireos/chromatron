@@ -44,32 +44,72 @@ void bq25895_aux_v_enable_charger( void ){
 
 void bq25895_aux_v_disable_charger( void ){
 
+	set_register_bank_aux();
 
+	bq25895_v_disable_charger();
+
+	set_register_bank_main();
 }
 
 void bq25895_aux_v_set_vindpm( int16_t mv ){
 
+	set_register_bank_aux();
 
+	bq25895_v_set_vindpm( mv );
+
+	set_register_bank_main();
 }
 
 bool bq25895_aux_b_is_batt_fault( void ){
 
-	return FALSE;
+	bool temp = FALSE;
+
+	set_register_bank_aux();
+
+	temp = bq25895_u8_get_faults() != 0;
+
+	set_register_bank_main();
+
+	return temp;
 }
 
 uint16_t bq25895_aux_u16_read_vbus( void ){
 
-	return 0;
+	uint16_t temp = 0;
+
+	set_register_bank_aux();
+
+	temp = bq25895_u16_read_vbus();
+
+	set_register_bank_main();	
+
+	return temp;
 }
 
 bool bq25895_aux_b_is_charging( void ){
 
-	return FALSE;
+	bool temp = FALSE;
+
+	set_register_bank_aux();
+
+	temp = bq25895_b_is_charging();
+
+	set_register_bank_main();
+
+	return temp;
 }
 
 uint8_t bq25895_aux_u8_get_charge_status( void ){
 
-	return 0;
+	uint8_t temp = 0;
+
+	set_register_bank_aux();
+
+	temp = bq25895_u8_get_charge_status();
+
+	set_register_bank_main();	
+
+	return temp;
 }
 
 #endif
