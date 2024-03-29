@@ -25,9 +25,31 @@
 
 /*
 
+Solar control rework:
 
-Need to improve charge validation in both solar and DC.  Automatically switch over
-from bad input, with delays and logging.  Battery charging is just not simple.
+Solar charging is now relatively independent from the main charger
+control.  The solar charger only connects to the batteries, it 
+does not power anything and its VBUS only connects to solar panels.
+
+The solar power system has a different architecture than the battery
+only systems for shutdown: it uses a double pole switch to physically
+disconnect the battery entirely (from all electronics) and also the 
+solar panels to prevent powering the aux charger into a disconnected
+battery pack (which is probably fine, but why worry about it).
+
+This means the traditional software shutdown feature is not available
+if the solar control is enabled.
+
+Finally, there is dark start.  If the chargers are in cut off,
+the aux charger will still try and power up off solar and charge
+the battery pack.  However, the main charger will stay in cut off
+until a voltage appears on its VBUS.
+
+The system in its current form doesn't really need to be able 
+to do a fully unattended dark start.  This is just an art project,
+not a remote telemetry installation.
+
+
 
 
 */
