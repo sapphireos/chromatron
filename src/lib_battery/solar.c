@@ -184,7 +184,7 @@ void solar_v_init( void ){
 
 	// pixelpower_v_init();
 
-	mppt_v_init();
+	// mppt_v_init();
 
 	// #ifdef ENABLE_PATCH_BOARD
 	// if( patch_board_installed && charger2_board_installed ){
@@ -208,12 +208,6 @@ void solar_v_init( void ){
 	// 	charger2_v_init();
 	// }
 
-
-	thread_t_create( solar_control_thread,
-                     PSTR("solar_control"),
-                     0,
-                     0 );
-
 	// #ifdef ENABLE_PATCH_BOARD
 	// thread_t_create( solar_sensor_thread,
     //                  PSTR("solar_sensor"),
@@ -222,6 +216,11 @@ void solar_v_init( void ){
 	// #endif
 
 	if( enable_solar_charge ){
+
+		thread_t_create( solar_control_thread,
+                     PSTR("solar_control"),
+                     0,
+                     0 );
 
 		thread_t_create( solar_cycle_thread,
 	                     PSTR("solar_cycle"),
@@ -334,13 +333,13 @@ static void enable_charge( uint8_t target_state ){
 			bq25895_v_set_vindpm( solar_vindpm );
 		}
 	}
-	else if( target_state == SOLAR_MODE_CHARGE_DC ){
+	// else if( target_state == SOLAR_MODE_CHARGE_DC ){
 
-		bq25895_v_set_vindpm( 0 );
+	// 	bq25895_v_set_vindpm( 0 );
 
-		// turn on ICO
-    	// bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
-	}
+	// 	// turn on ICO
+    // 	// bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
+	// }
 	else{
 
 		log_v_warn_P( PSTR("This is not a valid charge state!") );
@@ -349,7 +348,7 @@ static void enable_charge( uint8_t target_state ){
 
 static void disable_charge( void ){
 
-	mppt_v_disable();
+	// mppt_v_disable();
 	
 	// BQ25895: we don't actually want to turn the charger off, 
 	// this messes with BATFET Q4 and there's not really any reason

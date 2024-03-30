@@ -29,6 +29,7 @@
 
 #ifdef ENABLE_AUX_BATTERY
 
+void bq25895_aux_v_init( void );
 
 
 #endif

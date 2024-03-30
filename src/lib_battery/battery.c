@@ -34,6 +34,7 @@
 
 #include "charger2.h"
 #include "bq25895.h"
+#include "bq25895_aux.h"
 
 #include "solar.h"
 #include "buttons.h"
@@ -184,6 +185,9 @@ void batt_v_init( void ){
         return;
     }
 
+    #ifdef ENABLE_AUX_BATTERY
+    bq25895_aux_v_init();
+    #endif
 
     // only add batt info if a battery controller is actually present
     kv_v_add_db_info( battery_info_kv, sizeof(battery_info_kv) );
