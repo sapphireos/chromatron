@@ -228,6 +228,9 @@ static void set_register_bank_main( void ){
 
 PT_THREAD( bq25895_mon_thread( pt_t *pt, void *state ) );
 
+#ifdef ENABLE_AUX_BATTERY
+PT_THREAD( bq25895_aux_mon_thread( pt_t *pt, void *state ) );
+#endif
 
 int8_t bq25895_i8_init( void ){
 
@@ -266,7 +269,7 @@ int8_t bq25895_i8_init( void ){
 
 
     thread_t_create( bq25895_mon_thread,
-                     PSTR("bat_mon_bq25895"),
+                     PSTR("bq25895_mon"),
                      0,
                      0 );
 
@@ -289,6 +292,11 @@ int8_t bq25895_i8_init( void ){
             aux_present = TRUE;
 
             init_charger();
+
+            thread_t_create( bq25895_aux_mon_thread,
+                     PSTR("bq25895_aux"),
+                     0,
+                     0 );
         }
 
         set_register_bank_main();
@@ -1500,11 +1508,37 @@ static bool read_adc_aux( void ){
 #endif
 
 
+static bool main_adc_ready( void ){
+
+    #ifdef ENABLE_AUX_BATTERY
+    set_register_bank_main();
+    #endif
+
+    return bq25895_b_adc_ready();
+}
+
+
+static bool aux_adc_ready( void ){
+
+    bool temp = FALSE;
+
+    #ifdef ENABLE_AUX_BATTERY
+    set_register_bank_aux();
+    #endif
+
+    temp = bq25895_b_adc_ready();
+
+    #ifdef ENABLE_AUX_BATTERY
+    set_register_bank_main();
+    #endif
+
+    return temp;
+}
+
+
 PT_THREAD( bq25895_mon_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    // mppt_v_reset();
 
     TMR_WAIT( pt, 50 );
 
@@ -1519,14 +1553,14 @@ PT_BEGIN( pt );
         bq25895_v_start_adc_oneshot();
         start_time = tmr_u32_get_system_time_ms();
 
-        // memcpy( prev_regs, regs, sizeof(prev_regs) );
-
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !main_adc_ready() );
 
+        #ifdef ENABLE_AUX_BATTERY
+        set_register_bank_main();
+        #endif
 
         uint8_t prev_faults = batt_fault;
-        // bool was_charging = batt_charging;
 
         // read all registers
         bq25895_v_read_all();
@@ -1556,112 +1590,115 @@ PT_BEGIN( pt );
 
             adc_good++;
 
-            // // check if vbus is plugged in:
-            // if( vbus_volts > BATT_MIN_CHARGE_VBUS_VOLTS ){
+            // check if vbus is plugged in:
+            if( vbus_volts > BATT_MIN_CHARGE_VBUS_VOLTS ){
 
-            //     // check BATFET_DIS bit
-            //     // sometimes when plugging in a power source, 
-            //     // the BQ25895 will decide to disconnect the battery.
-            //     // can't find any fault condition present that would cause
-            //     // this.  datasheet and forums come up blank.
-            //     // probably yet another bug in the chip's logic.
-            //     // so anyway we check for that here, log it for fun, 
-            //     // and then clear the bit, hopefully we've had enough
-            //     // power on vbus to accomplish this.
-            //     uint8_t reg = regs[BQ25895_REG_SHIP_MODE];
+                // check BATFET_DIS bit
+                // sometimes when plugging in a power source, 
+                // the BQ25895 will decide to disconnect the battery.
+                // can't find any fault condition present that would cause
+                // this.  datasheet and forums come up blank.
+                // probably yet another bug in the chip's logic.
+                // so anyway we check for that here, log it for fun, 
+                // and then clear the bit, hopefully we've had enough
+                // power on vbus to accomplish this.
+                uint8_t reg = regs[BQ25895_REG_SHIP_MODE];
 
-            //     if( ( reg & BQ25895_BIT_BATFET_DIS ) != 0 ){
+                if( ( reg & BQ25895_BIT_BATFET_DIS ) != 0 ){
 
-            //         bq25895_v_leave_ship_mode();
+                    bq25895_v_leave_ship_mode();
 
-            //         log_v_error_P( PSTR("Uncommanded BATFET disconnect. Resetting bit. Faults: %d Charge current: %u Prev: %u"), batt_fault, batt_instant_charge_current, batt_charge_current );
+                    log_v_error_P( PSTR("Uncommanded BATFET disconnect. Resetting bit. Faults: %d Charge current: %u Prev: %u"), batt_fault, batt_instant_charge_current, batt_charge_current );
 
-            //         bq25895_v_print_regs();
-            //     }
-            // }
+                    bq25895_v_print_regs();
+                }
+            }
 
-            // uint16_t charge_current = bq25895_u16_get_charge_current();
-            // if( charge_current > 6000 ){
+            uint16_t charge_current = bq25895_u16_get_charge_current();
+            if( charge_current > 6000 ){
 
-            //     log_v_debug_P( PSTR("Invalid setting: %u"), charge_current );
+                log_v_debug_P( PSTR("Invalid setting: %u"), charge_current );
 
-            //     bq25895_v_print_regs();
-            // }
+                bq25895_v_print_regs();
+            }
 
+            // check and log faults
+            if( ( batt_fault > 0 ) && ( batt_fault != prev_faults ) ){
 
+                log_v_debug_P( PSTR("batt fault: 0x%02x"), batt_fault );
 
-            // // check and log faults
-            // if( ( batt_fault > 0 ) && ( batt_fault != prev_faults ) ){
-
-            //     log_v_debug_P( PSTR("batt fault: 0x%02x"), batt_fault );
-
-            //     bq25895_v_print_regs();
-            // }
+                bq25895_v_print_regs();
+            }
 
                 
-            // uint16_t prev_fast_charge_setting = current_fast_charge_setting;
+            uint16_t prev_fast_charge_setting = current_fast_charge_setting;
 
-            // // apply thermal limiter
-            // if( batt_temp >= BQ25895_CHARGE_TEMP_LIMIT ){
+            // apply thermal limiter
+            if( batt_temp >= BQ25895_CHARGE_TEMP_LIMIT ){
 
-            //     // reduce current by half
-            //     current_fast_charge_setting = get_fast_charge_current() / 2;
-            // }
-            // else if( batt_temp <= BQ25895_CHARGE_TEMP_LIMIT_LOWER ){
+                // reduce current by half
+                current_fast_charge_setting = get_fast_charge_current() / 2;
+            }
+            else if( batt_temp <= BQ25895_CHARGE_TEMP_LIMIT_LOWER ){
 
-            //     current_fast_charge_setting = get_fast_charge_current();
-            // }
+                current_fast_charge_setting = get_fast_charge_current();
+            }
 
-            // // if current setting is changing, apply it
-            // if( current_fast_charge_setting != prev_fast_charge_setting ){
+            // if current setting is changing, apply it
+            if( current_fast_charge_setting != prev_fast_charge_setting ){
 
-            //     bq25895_v_set_fast_charge_current( current_fast_charge_setting );   
-            // }
-
-
-            // run MPPT
-            // mppt_v_run( batt_charge_current );
+                bq25895_v_set_fast_charge_current( current_fast_charge_setting );   
+            }
         }
         else{
 
             adc_fail++;
 
             TMR_WAIT( pt, 200 );
-
-            // continue;
         }
+    }
+
+PT_END( pt );
+}
 
 
+#ifdef ENABLE_AUX_BATTERY
+
+PT_THREAD( bq25895_aux_mon_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    // mppt_v_reset();
+
+    TMR_WAIT( pt, 50 );
+
+    while(1){
+
+        static uint32_t start_time;
 
         #ifdef ENABLE_AUX_BATTERY
-        if( !aux_present ){
-
-            continue;
-        }
-
         set_register_bank_aux();
-        
+        #endif
 
         bq25895_v_start_adc_oneshot();
         start_time = tmr_u32_get_system_time_ms();
 
-        // memcpy( prev_regs, regs, sizeof(prev_regs) );
-
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !bq25895_b_adc_ready() );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !aux_adc_ready() );
 
-        // uint8_t prev_faults = aux_batt_fault;
-        // bool was_charging = batt_charging;
+        #ifdef ENABLE_AUX_BATTERY
+        set_register_bank_aux();
+        #endif
 
         // read all registers
         bq25895_v_read_all();
 
-        // if( dump_regs ){
+        if( aux_dump_regs ){
 
-        //     dump_regs = FALSE;
+            aux_dump_regs = FALSE;
 
-        //     bq25895_v_print_regs();
-        // }
+            bq25895_v_print_regs();
+        }
 
         if( bq25895_b_adc_ready_cached() && read_adc_aux() ){
 
@@ -1669,31 +1706,33 @@ PT_BEGIN( pt );
 
             uint16_t elapsed = tmr_u32_elapsed_time_ms( start_time );
 
-            if( elapsed < adc_time_min ){
+            if( elapsed < aux_adc_time_min ){
 
                 aux_adc_time_min = elapsed;
             }
             
-            if( elapsed > adc_time_max ){
+            if( elapsed > aux_adc_time_max ){
 
                 aux_adc_time_max = elapsed;
             }
 
             aux_adc_good++;
+
+            // run MPPT
+            // mppt_v_run( batt_charge_current );
         }
         else{
 
             aux_adc_fail++;
 
             TMR_WAIT( pt, 200 );
-
-            // continue;
         }
-
-        #endif
     }
 
 PT_END( pt );
 }
+
+#endif
+
 
 #endif

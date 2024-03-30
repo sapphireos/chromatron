@@ -94,7 +94,7 @@ charger is reporting a fault.
 // #endif
 
 // static bool charger2_board_installed;
-static bool enable_dc_charge = TRUE;
+// static bool enable_dc_charge = TRUE;
 static bool enable_solar_charge;
 static bool mppt_enabled;
 
@@ -635,42 +635,42 @@ PT_BEGIN( pt );
 						// if solar is enabled, assume charging on solar power
 						next_state = SOLAR_MODE_CHARGE_SOLAR;
 					}
-					else if( enable_dc_charge ){
+					// else if( enable_dc_charge ){
 
-						next_state = SOLAR_MODE_CHARGE_DC;	
-					}
+					// 	next_state = SOLAR_MODE_CHARGE_DC;	
+					// }
 				}	
 				// }
 			}
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_DC ){
 
-			if( !enable_dc_charge ){					
+			// if( !enable_dc_charge ){					
 
-				log_v_error_P( PSTR("DC charge is not enabled!") );
+			// 	log_v_error_P( PSTR("DC charge is not enabled!") );
 
-				next_state = SOLAR_MODE_DISCHARGE;
-			}
-			else if( charge_timer < CHARGE_HOLD_TIME ){
+			// 	next_state = SOLAR_MODE_DISCHARGE;
+			// }
+			// else if( charge_timer < CHARGE_HOLD_TIME ){
 
-				if( seconds_counter == 0 ){
+			// 	if( seconds_counter == 0 ){
 
-					charge_timer++;	
-				}
-			}
-			else if( batt_b_is_batt_fault() ){
+			// 		charge_timer++;	
+			// 	}
+			// }
+			// else if( batt_b_is_batt_fault() ){
 
-				next_state = SOLAR_MODE_FAULT;
-			}
-			// check if no longer charging:
-			else if( batt_b_is_charge_complete() ){
+			// 	next_state = SOLAR_MODE_FAULT;
+			// }
+			// // check if no longer charging:
+			// else if( batt_b_is_charge_complete() ){
 
-				next_state = SOLAR_MODE_FULL_CHARGE;
-			}
-			else if( !batt_b_is_charging() ){
+			// 	next_state = SOLAR_MODE_FULL_CHARGE;
+			// }
+			// else if( !batt_b_is_charging() ){
 
-				next_state = SOLAR_MODE_DISCHARGE;
-			}
+			// 	next_state = SOLAR_MODE_DISCHARGE;
+			// }
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
 
