@@ -334,29 +334,29 @@ static void enable_charge( uint8_t target_state ){
 
 	*/
 
-	if( target_state == SOLAR_MODE_CHARGE_SOLAR ){
+	// if( target_state == SOLAR_MODE_CHARGE_SOLAR ){
 
-		if( mppt_enabled ){
+	// 	if( mppt_enabled ){
 
-			mppt_v_enable();	
-		}
-		else{
+	// 		mppt_v_enable();	
+	// 	}
+	// 	else{
 
-			// debug!
-			bq25895_v_set_vindpm( solar_vindpm );
-		}
-	}
-	// else if( target_state == SOLAR_MODE_CHARGE_DC ){
-
-	// 	bq25895_v_set_vindpm( 0 );
-
-	// 	// turn on ICO
-    // 	// bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
+	// 		// debug!
+	// 		bq25895_v_set_vindpm( solar_vindpm );
+	// 	}
 	// }
-	else{
+	// // else if( target_state == SOLAR_MODE_CHARGE_DC ){
 
-		log_v_warn_P( PSTR("This is not a valid charge state!") );
-	}
+	// // 	bq25895_v_set_vindpm( 0 );
+
+	// // 	// turn on ICO
+    // // 	// bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
+	// // }
+	// else{
+
+	// 	log_v_warn_P( PSTR("This is not a valid charge state!") );
+	// }
 }
 
 static void disable_charge( void ){
@@ -521,41 +521,41 @@ PT_BEGIN( pt );
 		static uint8_t next_state;
 		next_state = solar_state;
 
-		if( solar_state == SOLAR_MODE_SHUTDOWN ){
+		// if( solar_state == SOLAR_MODE_SHUTDOWN ){
 
-			sys_v_initiate_shutdown( 3 );
+		// 	sys_v_initiate_shutdown( 3 );
 
-			THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+		// 	THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
 
-			log_v_debug_P( PSTR("Power off") );
+		// 	log_v_debug_P( PSTR("Power off") );
 
-			pixelpower_v_system_shutdown();
+		// 	pixelpower_v_system_shutdown();
 
-			_delay_ms( 50 );			
+		// 	_delay_ms( 50 );			
 
-			batt_v_shutdown_power();
-			// if on battery power, this should not return
-			// as the power will be cut off.
-			// if an external power source was plugged in during
-			// the shutdown, then this will return.
+		// 	batt_v_shutdown_power();
+		// 	// if on battery power, this should not return
+		// 	// as the power will be cut off.
+		// 	// if an external power source was plugged in during
+		// 	// the shutdown, then this will return.
 
-			// we will delay here and wait
-			// for the reboot thread to reboot the system.
-			TMR_WAIT( pt, 120000 ); 
+		// 	// we will delay here and wait
+		// 	// for the reboot thread to reboot the system.
+		// 	TMR_WAIT( pt, 120000 ); 
 
-			log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
-		}
-		// check for cut off
-		// also wait for at least some time to allow charge sources to initialize
-		// before shutting down.  this helps get into charge mode from cutoff.
-		else if( ( batt_u16_get_batt_volts() < batt_u16_get_min_discharge_voltage() ) &&
-				 !batt_b_is_vbus_connected() &&
-				 tmr_u64_get_system_time_ms() > 20000 ){
+		// 	log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
+		// }
+		// // check for cut off
+		// // also wait for at least some time to allow charge sources to initialize
+		// // before shutting down.  this helps get into charge mode from cutoff.
+		// else if( ( batt_u16_get_batt_volts() < batt_u16_get_min_discharge_voltage() ) &&
+		// 		 !batt_b_is_vbus_connected() &&
+		// 		 tmr_u64_get_system_time_ms() > 20000 ){
 			
-			log_v_warn_P( PSTR("Battery at discharge cutoff") );
+		// 	log_v_warn_P( PSTR("Battery at discharge cutoff") );
 				
-			next_state = SOLAR_MODE_SHUTDOWN;
-		}
+		// 	next_state = SOLAR_MODE_SHUTDOWN;
+		// }
 		// else if( solar_state == SOLAR_MODE_STOPPED ){
 
 			// if( seconds_counter == 0 ){
@@ -571,7 +571,8 @@ PT_BEGIN( pt );
 			// 	next_state = SOLAR_MODE_DISCHARGE;
 			// }
 		// }
-		else if( solar_state == SOLAR_MODE_FAULT ){
+		// else 
+		if( solar_state == SOLAR_MODE_FAULT ){
 
 			// if( charge_timer < FAULT_HOLD_TIME ){
 
