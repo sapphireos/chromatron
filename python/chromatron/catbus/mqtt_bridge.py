@@ -45,10 +45,10 @@ MQTT_MSG_VERSION  = 1
 
 MQTT_TOPIC_LIST_LEN     = 16
 
-class MQTTTopic(FixedArrayField):
-    def __init__(self, **kwargs):
-        field = CatbusHash
-        super().__init__(_field=field, _length=MQTT_TOPIC_LIST_LEN, **kwargs)
+# class MQTTTopic(FixedArrayField):
+#     def __init__(self, **kwargs):
+#         field = CatbusHash
+#         super().__init__(_field=field, _length=MQTT_TOPIC_LIST_LEN, **kwargs)
 
 class MQTTPayload(StructField):
     def __init__(self, **kwargs):
@@ -104,12 +104,55 @@ class MQTTPayload(StructField):
 
         return self
 
+class MQTTTopic(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint8Field(_name="topic_len")]
+                  # topic follows
+
+        # look up type
+        if 'topic' in kwargs:
+            valuefield = StringField(_length=self.topic_len)
+
+            fields.append(valuefield)
+
+            if 'topic' in kwargs:
+                valuefield._value = kwargs['topic']
+                kwargs['topic'] = valuefield._value
+
+        super().__init__(_fields=fields, **kwargs)
+
+    def unpack(self, buffer):
+        super().unpack(buffer)
+
+        buffer = buffer[self.size():]
+
+        # get value field based on type
+        try:
+            valuefield = StringField(_length=self.topic_len)
+
+            try:
+                valuefield.unpack(buffer)
+
+            except UnicodeDecodeError as e:
+                valuefield.unpack("~~~%s: %s~~~" % (type(e), str(e)))
+            
+            self._fields['topic'] = valuefield
+
+        except KeyError as e:
+            raise DataUnpackingError(e)
+
+        except UnknownTypeError:
+            self._fields['topic'] = UnknownField()
+
+        return self
+
 class MQTTMsgHeader(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="magic"),
-                  Uint8Field(_name="type"),
                   Uint8Field(_name="version"),
-                  Uint16Field(_name="reserved")]
+                  Uint8Field(_name="type"),
+                  Uint8Field(_name="qos"),
+                  Uint8Field(_name="flags")]
 
         super().__init__(_fields=fields, **kwargs)
 
@@ -117,10 +160,10 @@ class MQTTMsgHeader(StructField):
         self.version        = MQTT_MSG_VERSION
         self.flags          = 0 
         self.type           = 0
-        self.reserved       = 0
+        self.qos            = 0
 
 
-MQTT_MSG_PUBLISH        = 1        
+MQTT_MSG_PUBLISH        = 20      
 class MqttPublishMsg(StructField):
     def __init__(self, **kwargs):
         fields = [MQTTMsgHeader(_name="header"),
@@ -131,8 +174,36 @@ class MqttPublishMsg(StructField):
 
         self.header.type = MQTT_MSG_PUBLISH
 
+    # def unpack(self, buffer):
+    #     super().unpack(buffer)
 
+    #     buffer = buffer[self.size():]
 
+    #     # get payload field based on type
+    #     try:
+    #         valuefield = get_field_for_type(self.payload_type, _name='payload')
+
+    #         # if self.meta.array_len == 0:
+    #         try:
+    #             valuefield.unpack(buffer)
+
+    #         except UnicodeDecodeError as e:
+    #             valuefield.unpack("~~~%s: %s~~~" % (type(e), str(e)))
+            
+    #         self._fields['payload'] = valuefield
+
+    #         # else:
+    #         #     array = FixedArrayField(_field=type(valuefield), _length=self.meta.array_len + 1, _name='payload')
+    #         #     array.unpack(buffer)
+    #         #     self._fields['payload'] = array
+
+    #     except KeyError as e:
+    #         raise DataUnpackingError(e)
+
+    #     except UnknownTypeError:
+    #         self._fields['payload'] = UnknownField()
+
+    #     return self
 
 class MqttBridge(MsgServer):
     def __init__(self):

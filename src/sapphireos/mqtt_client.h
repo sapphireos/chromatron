@@ -27,7 +27,11 @@
 
 #include "catbus.h"
 
-#define MQTT_TOPIC_LIST_LEN     16
+#define MQTT_MAX_TOPIC_LEN      128
+#define MQTT_MAX_PAYLOAD_LEN    128
+
+#define MQTT_BRIDGE_PORT        44899
+
 
 void mqtt_client_v_init( void );
 
@@ -35,34 +39,45 @@ void mqtt_client_v_init( void );
 #define MQTT_MSG_VERSION  1
 typedef struct __attribute__((packed)){
     uint32_t magic;
-    uint8_t msg_type;
     uint8_t version;
-    uint16_t reserved;
+    uint8_t msg_type;
+    uint8_t qos;
+    uint8_t flags;
 } mqtt_msg_header_t;
 
-typedef struct __attribute__((packed)){
-    catbus_hash_t32 hashes[MQTT_TOPIC_LIST_LEN];
-} mqtt_topic_list_t;
+// typedef struct __attribute__((packed)){
+//     catbus_hash_t32 hashes[MQTT_TOPIC_LIST_LEN];
+// } mqtt_topic_list_t;
 
+// typedef struct __attribute__((packed)){
+//     mqtt_msg_header_t header;
+//     catbus_hash_t32 topic_hash;
+//     char topic[MQTT_MAX_TOPIC_LEN];
+// } mqtt_msg_register_topic_t;
+// #define MQTT_MSG_REGISTER_TOPIC     10
 
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;
-    mqtt_topic_list_t topic;
-    catbus_type_t8 payload_type;
-    uint8_t payload;
+    // uint8_t topic_len;
+    // topic data
+    // catbus_type_t8 payload_type;
+    // payload data
 } mqtt_msg_publish_t;
-#define MQTT_MSG_PUBLISH     1
+#define MQTT_MSG_PUBLISH            20
 
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;
-    mqtt_topic_list_t topic;
-    catbus_type_t8 payload_type;
-    uint8_t payload;
+    // uint8_t topic_len;
+    // topic data
+    // catbus_type_t8 payload_type;
+    // payload data
 } mqtt_msg_rx_data_t;
-#define MQTT_MSG_RX_DATA     2
+#define MQTT_MSG_RX_DATA            21
 
 
-int8_t mqtt_client_i8_publish( mqtt_topic_list_t *topic, catbus_type_t8 type, const void *data );
+
+
+int8_t mqtt_client_i8_publish( const char *topic, catbus_type_t8 type, const void *data );
 
 // #define CONTROLLER_IDLE_TIMEOUT         10
 // #define CONTROLLER_FOLLOWER_TIMEOUT     20

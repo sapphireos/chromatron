@@ -99,8 +99,8 @@ void mqtt_client_v_init( void ){
 static sock_addr_t get_broker_raddr( void ){
 	
 	sock_addr_t raddr = {
-		.ipaddr = ip_a_addr( 10, 0, 0, 185 ),
-		.port = 44899
+		.ipaddr = ip_a_addr( 10, 0, 0, 117 ),
+		.port = MQTT_BRIDGE_PORT
 	};
 
 	return raddr;
@@ -114,12 +114,15 @@ static int16_t send_msg( mem_handle_t h ){
 }
 
 int8_t mqtt_client_i8_publish( 
-	mqtt_topic_list_t *topic, 
+	const char *topic, 
 	catbus_type_t8 type, 
 	const void *data ){
 
 	uint16_t data_len = type_u16_size( type );
-	uint16_t msg_len = sizeof(mqtt_msg_publish_t) + data_len - 1;
+	uint16_t topic_len = strlen( topic );
+	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
+
+	uint16_t msg_len = sizeof(mqtt_msg_publish_t) + sizeof(catbus_type_t8) + data_len + sizeof(uint8_t) + topic_len;
 
 	mem_handle_t h = mem2_h_alloc( msg_len );
 
@@ -129,18 +132,31 @@ int8_t mqtt_client_i8_publish(
 	}
 
 	mqtt_msg_publish_t *msg = (mqtt_msg_publish_t *)mem2_vp_get_ptr_fast( h );
-	msg->topic = *topic;
-	msg->payload_type = type;
-	memcpy( &msg->payload, data, data_len );
+
+	// get byte pointer after headers:
+	uint8_t *ptr = (uint8_t *)(msg + 1);
+
+	// start with topic
+	*ptr = topic_len;
+	ptr++;
+	memcpy( ptr, topic, topic_len );
+	ptr += topic_len;
+	
+	*ptr = type;
+	ptr++;
+	memcpy( ptr, data, data_len );
 
 	mqtt_msg_header_t *header = (mqtt_msg_header_t *)msg;
 
 	header->magic 		= MQTT_MSG_MAGIC;
 	header->version 	= MQTT_MSG_VERSION;
 	header->msg_type 	= MQTT_MSG_PUBLISH;
-	header->reserved    = 0;
+	header->qos    		= 0;
+	header->flags       = 0;
 
 	if( send_msg( h ) < 0 ){
+
+		log_v_error_P( PSTR("Send failed") );
 
 		return -2;
 	}
@@ -162,14 +178,9 @@ PT_BEGIN( pt );
 
     	TMR_WAIT( pt, 1000 );
 
-	   	mqtt_topic_list_t topic = { 0 };
-
-	   	topic.hashes[0] = __KV__chromatron;
-	   	topic.hashes[1] = __KV__test_value;
-
 	   	uint32_t value = 123;
 	   	
-	   	mqtt_client_i8_publish( &topic, CATBUS_TYPE_UINT32, &value );
+	   	mqtt_client_i8_publish( PSTR("chromatron/test_value"), CATBUS_TYPE_UINT32, &value );
 	}
     
 PT_END( pt );
