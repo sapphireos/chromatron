@@ -799,8 +799,6 @@ PT_BEGIN( pt );
         	THREAD_EXIT( pt );
         }
 
-        uint16_t error = CATBUS_STATUS_OK;
-
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
             goto end;
