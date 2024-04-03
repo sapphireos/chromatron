@@ -141,7 +141,7 @@ int8_t mqtt_client_i8_publish(
 	ptr++;
 	memcpy( ptr, topic, topic_len );
 	ptr += topic_len;
-	
+
 	*ptr = type;
 	ptr++;
 	memcpy( ptr, data, data_len );
@@ -180,7 +180,7 @@ PT_BEGIN( pt );
 
 	   	uint32_t value = 123;
 	   	
-	   	mqtt_client_i8_publish( PSTR("chromatron/test_value"), CATBUS_TYPE_UINT32, &value );
+	   	mqtt_client_i8_publish( PSTR("chromatron_mqtt/test_value"), CATBUS_TYPE_UINT32, &value );
 	}
     
 PT_END( pt );

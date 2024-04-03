@@ -32,6 +32,7 @@ from sapphire.common import MsgServer, util, catbus_string_hash, run_all, synchr
 from sapphire.protocols import services
 from .database import *
 from .catbus import *
+from .services.mqtt_client import MQTTClient
 import threading
 
 from fnvhash import fnv1a_64
@@ -57,7 +58,7 @@ class MQTTPayload(StructField):
 
         # look up type
         if 'payload_type' in kwargs:
-            valuefield = get_field_for_type(kwargs['payload_type'].type, _name='value')
+            valuefield = get_field_for_type(kwargs['payload_type'].type, _name='payload')
             
             # if kwargs['payload_type'].array_len == 0:
             fields.append(valuefield)
@@ -111,7 +112,7 @@ class MQTTTopic(StructField):
 
         # look up type
         if 'topic' in kwargs:
-            valuefield = StringField(_length=self.topic_len)
+            valuefield = StringField(_length=self.topic_len, _name='topic')
 
             fields.append(valuefield)
 
@@ -128,7 +129,7 @@ class MQTTTopic(StructField):
 
         # get value field based on type
         try:
-            valuefield = StringField(_length=self.topic_len)
+            valuefield = StringField(_length=self.topic_len, _name='topic')
 
             try:
                 valuefield.unpack(buffer)
@@ -214,10 +215,15 @@ class MqttBridge(MsgServer):
         # self.start_timer(LINK_MIN_TICK_RATE, self._process_all)
         # self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
 
+        self.mqtt_client = MQTTClient()
+        self.mqtt_client.start()
+        self.mqtt_client.connect(host='omnomnom.local')
+
         self.start()
 
     def clean_up(self):
-        pass
+        self.mqtt_client.stop()
+
     #     msg = ShutdownMsg()
 
     #     self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
@@ -227,7 +233,11 @@ class MqttBridge(MsgServer):
     #     self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
 
     def _handle_publish(self, msg, host):
-        print(msg)
+        # print(msg)
+        # print(msg.topic.topic)
+        # print(msg.payload.payload)
+
+        self.mqtt_client.publish(msg.topic.topic, msg.payload.payload)
 
 
 def main():
