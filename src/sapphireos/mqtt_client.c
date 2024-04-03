@@ -99,8 +99,8 @@ void mqtt_client_v_init( void ){
 static sock_addr_t get_broker_raddr( void ){
 	
 	sock_addr_t raddr = {
-		.ipaddr = ip_a_addr( 10, 0, 0, 100 ),
-		.port = 1243
+		.ipaddr = ip_a_addr( 10, 0, 0, 185 ),
+		.port = 44899
 	};
 
 	return raddr;
@@ -152,26 +152,31 @@ int8_t mqtt_client_i8_publish(
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-   	
-   	mqtt_topic_list_t topic = { 0 };
 
-   	topic.hashes[0] = __KV__chromatron;
-   	topic.hashes[1] = __KV__test_value;
-
-   	uint32_t value = 123;
+	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
    	
-   	mqtt_client_i8_publish( &topic, CATBUS_TYPE_UINT32, &value );
+	TMR_WAIT( pt, 1000 );	
+
 
    	while(1){
 
     	TMR_WAIT( pt, 1000 );
+
+	   	mqtt_topic_list_t topic = { 0 };
+
+	   	topic.hashes[0] = __KV__chromatron;
+	   	topic.hashes[1] = __KV__test_value;
+
+	   	uint32_t value = 123;
+	   	
+	   	mqtt_client_i8_publish( &topic, CATBUS_TYPE_UINT32, &value );
 	}
     
 PT_END( pt );
 }
 
 static void process_rx_data( mqtt_msg_rx_data_t *msg, sock_addr_t *raddr ){
-	
+
 }
 
 

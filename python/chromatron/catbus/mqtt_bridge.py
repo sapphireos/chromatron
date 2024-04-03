@@ -37,7 +37,7 @@ import threading
 from fnvhash import fnv1a_64
 
 
-MQTT_BRIDGE_PORT = 1234;
+MQTT_BRIDGE_PORT = 44899
 
 
 MQTT_MSG_MAGIC    = 0x5454514d # 'MQTT'
@@ -80,7 +80,7 @@ class MQTTPayload(StructField):
 
         # get value field based on type
         try:
-            valuefield = get_field_for_type(self.type, _name='payload')
+            valuefield = get_field_for_type(self.payload_type, _name='payload')
 
             # if self.meta.array_len == 0:
             try:
@@ -136,7 +136,7 @@ class MqttPublishMsg(StructField):
 
 class MqttBridge(MsgServer):
     def __init__(self):
-        super().__init__(name='mqtt_bridge', listener_port=MQTT_BRIDGE_PORT)
+        super().__init__(name='mqtt_bridge', port=MQTT_BRIDGE_PORT)
 
         self.register_message(MqttPublishMsg, self._handle_publish)
             
