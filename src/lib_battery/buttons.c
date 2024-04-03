@@ -64,7 +64,7 @@ static uint8_t button_hold_duration[MAX_BUTTONS];
 #define BUTTON_WIFI_TIME            ( 1000 / BUTTON_CHECK_TIMING )
 
 static bool batt_request_shutdown;
-static bool shutdown_on_vbus_unplug;
+// static bool shutdown_on_vbus_unplug;
 
 
 KV_SECTION_OPT kv_meta_t button_batt_opt_kv[] = {
