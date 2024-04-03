@@ -206,11 +206,25 @@ class MqttPublishMsg(StructField):
 
     #     return self
 
+
+
+MQTT_MSG_SUBSCRIBE        = 21
+class MqttSubscribeMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MQTTMsgHeader(_name="header"),
+                  MQTTTopic(_name="topic")]
+
+        super().__init__(_name="mqtt_subscribe", _fields=fields, **kwargs)
+
+        self.header.type = MQTT_MSG_SUBSCRIBE
+
+
 class MqttBridge(MsgServer):
     def __init__(self):
         super().__init__(name='mqtt_bridge', port=MQTT_BRIDGE_PORT)
 
         self.register_message(MqttPublishMsg, self._handle_publish)
+        self.register_message(MqttSubscribeMsg, self._handle_subscribe)
             
         # self.start_timer(LINK_MIN_TICK_RATE, self._process_all)
         # self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
@@ -233,12 +247,10 @@ class MqttBridge(MsgServer):
     #     self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
 
     def _handle_publish(self, msg, host):
-        # print(msg)
-        # print(msg.topic.topic)
-        # print(msg.payload.payload)
-
         self.mqtt_client.publish(msg.topic.topic, msg.payload.payload)
 
+    def _handle_subscribe(self, msg, host):
+        self.mqtt_client.subscribe(msg.topic.topic)
 
 def main():
     util.setup_basic_logging(console=True)
