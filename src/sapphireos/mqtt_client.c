@@ -153,6 +153,15 @@ PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
    	
+   	mqtt_topic_list_t topic = { 0 };
+
+   	topic.hashes[0] = __KV__chromatron;
+   	topic.hashes[1] = __KV__test_value;
+
+   	uint32_t value = 123;
+   	
+   	mqtt_client_i8_publish( &topic, CATBUS_TYPE_UINT32, &value );
+
    	while(1){
 
     	TMR_WAIT( pt, 1000 );

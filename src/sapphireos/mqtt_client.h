@@ -41,7 +41,7 @@ typedef struct __attribute__((packed)){
 } mqtt_msg_header_t;
 
 typedef struct __attribute__((packed)){
-    catbus_hash_t32 topic_hashes[MQTT_TOPIC_LIST_LEN];
+    catbus_hash_t32 hashes[MQTT_TOPIC_LIST_LEN];
 } mqtt_topic_list_t;
 
 

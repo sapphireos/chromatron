@@ -465,7 +465,11 @@ static void vote_self( void ){
 	vote( cfg_ip_get_ipaddr(), get_priority(), get_follower_count(), flags );
 }
 
+#include "mqtt_client.h"
+
 void controller_v_init( void ){
+
+	mqtt_client_v_init();
 
 	return;
 
