@@ -1134,36 +1134,36 @@ if __name__ == '__main__':
 #         self._process_remotes()
 #         self._process_links()
 
-def main():
-    util.setup_basic_logging(console=True)
+# def main():
+#     util.setup_basic_logging(console=True)
 
-    # from .catbus import CatbusService
+#     # from .catbus import CatbusService
 
-    # c = CatbusService(tags=['__TEST__'])
+#     # c = CatbusService(tags=['__TEST__'])
         
-    # import sys
+#     # import sys
     
-    # if len(sys.argv) < 1:
-    #     pass
+#     # if len(sys.argv) < 1:
+#     #     pass
 
-    # elif sys.argv[1] == 'send':
-    #     c.send('link_test_key', 'link_test_key2', ['grid'])
+#     # elif sys.argv[1] == 'send':
+#     #     c.send('link_test_key', 'link_test_key2', ['grid'])
 
-    # elif sys.argv[1] == 'receive':
-    #     c.receive('link_test_key', 'link_test_key2', ['grid'])
+#     # elif sys.argv[1] == 'receive':
+#     #     c.receive('link_test_key', 'link_test_key2', ['grid'])
 
-    # elif sys.argv[1] == 'subscribe':
-    #     item = c.subscribe('link_test_key', sys.argv[2], callback=callback)
-    # elif sys.argv[1] == 'publish':
-    #     c.publish('link_test_key', int(sys.argv[3]), sys.argv[2])
+#     # elif sys.argv[1] == 'subscribe':
+#     #     item = c.subscribe('link_test_key', sys.argv[2], callback=callback)
+#     # elif sys.argv[1] == 'publish':
+#     #     c.publish('link_test_key', int(sys.argv[3]), sys.argv[2])
 
-    # import yappi
-    # yappi.start()
+#     # import yappi
+#     # yappi.start()
 
-    run_all()
+#     run_all()
 
-    # yappi.get_func_stats().print_all()
+#     # yappi.get_func_stats().print_all()
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
     
