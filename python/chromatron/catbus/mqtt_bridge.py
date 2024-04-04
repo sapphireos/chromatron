@@ -53,57 +53,58 @@ MQTT_TOPIC_LIST_LEN     = 16
 
 class MQTTPayload(StructField):
     def __init__(self, **kwargs):
-        fields = [CatbusType(_name="payload_type")]
-                  # data follows
+        fields = [CatbusData(_name="data")]
+                  
+    #     # look up type
+    #     if 'payload' in kwargs:
+    #         # valuefield = get_field_for_type(kwargs['payload'].type, _name='payload')
+    #         valuefield = kwargs['payload']
 
-        # look up type
-        if 'payload_type' in kwargs:
-            valuefield = get_field_for_type(kwargs['payload_type'].type, _name='payload')
-            
-            # if kwargs['payload_type'].array_len == 0:
-            fields.append(valuefield)
+    #         # if kwargs['payload'].array_len == 0:
+    #         fields.append(valuefield)
 
-            # else:
-            #     array = FixedArrayField(_field=type(valuefield), _length=kwargs['meta'].array_len + 1, _name='value')
-            #     fields.append(array)
-            #     valuefield = array
+    #         # else:
+    #         #     array = FixedArrayField(_field=type(valuefield), _length=kwargs['meta'].array_len + 1, _name='value')
+    #         #     fields.append(array)
+    #         #     valuefield = array
 
-            if 'payload' in kwargs:
-                valuefield._value = kwargs['payload']
-                kwargs['payload'] = valuefield._value
+    #         # valuefield._value = kwargs['payload']
 
         super().__init__(_fields=fields, **kwargs)
 
-    def unpack(self, buffer):
-        super().unpack(buffer)
+    #     if 'payload' in kwargs:
+    #         self.payload_type = self.payload.type
 
-        buffer = buffer[self.size():]
+    # def unpack(self, buffer):
+    #     super().unpack(buffer)
 
-        # get value field based on type
-        try:
-            valuefield = get_field_for_type(self.payload_type, _name='payload')
+    #     buffer = buffer[self.size():]
 
-            # if self.meta.array_len == 0:
-            try:
-                valuefield.unpack(buffer)
+    #     # get value field based on type
+    #     try:
+    #         valuefield = get_field_for_type(self.payload_type, _name='payload')
 
-            except UnicodeDecodeError as e:
-                valuefield.unpack("~~~%s: %s~~~" % (type(e), str(e)))
+    #         # if self.meta.array_len == 0:
+    #         try:
+    #             valuefield.unpack(buffer)
+
+    #         except UnicodeDecodeError as e:
+    #             valuefield.unpack("~~~%s: %s~~~" % (type(e), str(e)))
             
-            self._fields['payload'] = valuefield
+    #         self._fields['payload'] = valuefield
 
-            # else:
-            #     array = FixedArrayField(_field=type(valuefield), _length=self.meta.array_len + 1, _name='payload')
-            #     array.unpack(buffer)
-            #     self._fields['payload'] = array
+    #         # else:
+    #         #     array = FixedArrayField(_field=type(valuefield), _length=self.meta.array_len + 1, _name='payload')
+    #         #     array.unpack(buffer)
+    #         #     self._fields['payload'] = array
 
-        except KeyError as e:
-            raise DataUnpackingError(e)
+    #     except KeyError as e:
+    #         raise DataUnpackingError(e)
 
-        except UnknownTypeError:
-            self._fields['payload'] = UnknownField()
+    #     except UnknownTypeError:
+    #         self._fields['payload'] = UnknownField()
 
-        return self
+    #     return self
 
 class MQTTTopic(StructField):
     def __init__(self, **kwargs):
@@ -112,15 +113,15 @@ class MQTTTopic(StructField):
 
         # look up type
         if 'topic' in kwargs:
-            valuefield = StringField(_length=self.topic_len, _name='topic')
-
+            valuefield = StringField(_length=len(kwargs['topic']), _name='topic')
+            valuefield._value = kwargs['topic']
+    
             fields.append(valuefield)
 
-            if 'topic' in kwargs:
-                valuefield._value = kwargs['topic']
-                kwargs['topic'] = valuefield._value
-
         super().__init__(_fields=fields, **kwargs)
+
+        if 'topic' in kwargs:
+            self.topic_len = len(self.topic)
 
     def unpack(self, buffer):
         super().unpack(buffer)
@@ -230,6 +231,7 @@ class MqttBridge(MsgServer):
         # self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
 
         self.mqtt_client = MQTTClient()
+        self.mqtt_client.mqtt.on_message = self.on_message
         self.mqtt_client.start()
         self.mqtt_client.connect(host='omnomnom.local')
 
@@ -246,10 +248,46 @@ class MqttBridge(MsgServer):
     #     time.sleep(0.1)
     #     self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
 
+    def on_message(self, client, userdata, msg):
+        # logging.info(msg.topic + " " + str(msg.payload))
+        # print(msg)
+
+        # topic = msg.topic
+        # topic_len = len(topic)
+        # payload = msg.payload
+        # payload_len = len(msg.payload)
+        # print(topic, topic_len)
+
+        topic = MQTTTopic(topic=msg.topic)
+        # print(topic)
+
+        # try type conversions:
+        # msg_payload = Int64Field(int(msg.payload))
+
+        # payload = MQTTPayload(payload=msg_payload)
+        # print(payload)
+
+        value = int(msg.payload)
+        meta = CatbusMeta(hash=0, flags=0, type=CATBUS_TYPE_INT64, array_len=0)
+        data = CatbusData(meta=meta, value=value)
+        # print(data)
+
+        payload = MQTTPayload(data=data)
+        # print(payload)
+
+        publish_msg = MqttPublishMsg(topic=topic, payload=payload)
+
+        print(publish_msg)
+
+        self.transmit(publish_msg, ('10.0.0.211', MQTT_BRIDGE_PORT))
+
     def _handle_publish(self, msg, host):
-        self.mqtt_client.publish(msg.topic.topic, msg.payload.payload)
+        # print(msg)
+        # print(msg.payload.data)
+        self.mqtt_client.publish(msg.topic.topic, msg.payload.data.value)
 
     def _handle_subscribe(self, msg, host):
+        # print(msg)
         self.mqtt_client.subscribe(msg.topic.topic)
 
 def main():

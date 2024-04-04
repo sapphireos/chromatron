@@ -85,6 +85,8 @@ void mqtt_client_v_init( void ){
 
     ASSERT( sock >= 0 );
 
+    sock_v_bind( sock, MQTT_BRIDGE_PORT );
+
     thread_t_create( mqtt_client_thread,
                      PSTR("mqtt_client"),
                      0,
@@ -120,7 +122,7 @@ int8_t mqtt_client_i8_publish( const char *topic, catbus_type_t8 type, const voi
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
 
-	uint16_t msg_len = sizeof(mqtt_msg_publish_t) + sizeof(catbus_type_t8) + data_len + sizeof(uint8_t) + topic_len;
+	uint16_t msg_len = sizeof(mqtt_msg_publish_t) + sizeof(catbus_data_t) - 1 + data_len + sizeof(uint8_t) + topic_len;
 
 	mem_handle_t h = mem2_h_alloc( msg_len );
 
@@ -132,7 +134,7 @@ int8_t mqtt_client_i8_publish( const char *topic, catbus_type_t8 type, const voi
 	mqtt_msg_publish_t *msg = (mqtt_msg_publish_t *)mem2_vp_get_ptr_fast( h );
 
 	// get byte pointer after headers:
-	uint8_t *ptr = (uint8_t *)(msg + 1);
+	uint8_t *ptr = (uint8_t *)( msg + 1 );
 
 	// start with topic
 	*ptr = topic_len;
@@ -140,9 +142,23 @@ int8_t mqtt_client_i8_publish( const char *topic, catbus_type_t8 type, const voi
 	memcpy( ptr, topic, topic_len );
 	ptr += topic_len;
 
-	*ptr = type;
-	ptr++;
-	memcpy( ptr, data, data_len );
+	// payload
+	catbus_meta_t meta = {
+		0, // hash
+		type, // type,
+		0, // array len,
+		0, // flags,
+		0, // reserved
+	};
+
+	catbus_data_t *kv_data = (catbus_data_t *)ptr;
+	kv_data->meta = meta;
+	
+	memcpy( &kv_data->data, data, data_len );
+
+	// *ptr = type;
+	// ptr++;
+	// memcpy( ptr, data, data_len );
 
 	mqtt_msg_header_t *header = (mqtt_msg_header_t *)msg;
 
@@ -209,6 +225,9 @@ int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos ){
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+	
+	static uint32_t counter;
+	counter = 0;
 
 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
    	
@@ -223,7 +242,8 @@ PT_BEGIN( pt );
     	mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test_sub"), 0 );
 
 
-	   	uint32_t value = 123;
+	   	uint32_t value = counter;
+	   	counter++;
 	   	
 	   	mqtt_client_i8_publish( PSTR("chromatron_mqtt/test_value"), CATBUS_TYPE_UINT32, &value, 0, FALSE );
 	}
@@ -231,9 +251,34 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-// static void process_rx_data( mqtt_msg_rx_data_t *msg, sock_addr_t *raddr ){
+static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
-// }
+	// get byte pointer after headers:
+	uint8_t *ptr = (uint8_t *)( msg + 1 );
+
+	// get topic length
+	uint8_t topic_len = *ptr;
+	ptr++;
+	char *topic = (char *)ptr;
+		
+	ptr += topic_len;
+	
+	catbus_data_t *kv_data = (catbus_data_t *)ptr;
+
+	ptr += sizeof(catbus_data_t) - 1;
+
+	if( kv_data->meta.type == CATBUS_TYPE_INT64 ){
+		
+		int64_t value;
+		memcpy( &value, ptr, sizeof(value) ); // memcpy to handle alignment issues
+		
+		log_v_debug_P( PSTR("%s %ld"), topic, (int32_t)value );
+	}
+	else{
+
+		log_v_debug_P( PSTR("%s ???"), topic );	
+	}
+}
 
 
 
@@ -272,12 +317,9 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
-        // if( header->msg_type == MQTT_MSG_RX_DATA ){
+        if( header->msg_type == MQTT_MSG_PUBLISH ){
 
-        // 	process_rx_data( (mqtt_msg_rx_data_t *)header, &raddr );
-        // }
-        if( FALSE ){
-
+        	process_publish( (mqtt_msg_publish_t *)header, &raddr );
         }
         // else if( header->msg_type == CONTROLLER_MSG_DROP ){
 

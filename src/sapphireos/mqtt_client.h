@@ -60,8 +60,7 @@ typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;
     // uint8_t topic_len;
     // topic data
-    // catbus_type_t8 payload_type;
-    // payload data
+    // catbus_data_t data;
 } mqtt_msg_publish_t;
 #define MQTT_MSG_PUBLISH            20
 
@@ -70,17 +69,7 @@ typedef struct __attribute__((packed)){
     // uint8_t topic_len;
     // topic data
 } mqtt_msg_subscribe_t;
-#define MQTT_MSG_SUBSCRIBE            21
-
-// typedef struct __attribute__((packed)){
-//     mqtt_msg_header_t header;
-//     // uint8_t topic_len;
-//     // topic data
-//     // catbus_type_t8 payload_type;
-//     // payload data
-// } mqtt_msg_rx_data_t;
-// #define MQTT_MSG_RX_DATA            21
-
+#define MQTT_MSG_SUBSCRIBE          21
 
 
 
