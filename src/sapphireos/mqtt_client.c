@@ -116,13 +116,12 @@ static int16_t send_msg( mem_handle_t h ){
 }
 
 
-int8_t mqtt_client_i8_publish( const char *topic, catbus_type_t8 type, const void *data, uint8_t qos, bool retain ){
+int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain ){
 
-	uint16_t data_len = type_u16_size( type );
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
 
-	uint16_t msg_len = sizeof(mqtt_msg_publish_t) + sizeof(catbus_data_t) - 1 + data_len + sizeof(uint8_t) + topic_len;
+	uint16_t msg_len = sizeof(mqtt_msg_publish_t) + sizeof(uint16_t) + data_len + sizeof(uint8_t) + topic_len;
 
 	mem_handle_t h = mem2_h_alloc( msg_len );
 
@@ -143,22 +142,22 @@ int8_t mqtt_client_i8_publish( const char *topic, catbus_type_t8 type, const voi
 	ptr += topic_len;
 
 	// payload
-	catbus_meta_t meta = {
-		0, // hash
-		type, // type,
-		0, // array len,
-		0, // flags,
-		0, // reserved
-	};
-
-	catbus_data_t *kv_data = (catbus_data_t *)ptr;
-	kv_data->meta = meta;
+	memcpy( ptr, &data_len, sizeof(data_len) );
+	ptr += sizeof(data_len);
+	memcpy( ptr, data, data_len );
 	
-	memcpy( &kv_data->data, data, data_len );
+	// catbus_meta_t meta = {
+	// 	0, // hash
+	// 	type, // type,
+	// 	0, // array len,
+	// 	0, // flags,
+	// 	0, // reserved
+	// };
 
-	// *ptr = type;
-	// ptr++;
-	// memcpy( ptr, data, data_len );
+	// catbus_data_t *kv_data = (catbus_data_t *)ptr;
+	// kv_data->meta = meta;
+	
+	// memcpy( &kv_data->data, data, data_len );
 
 	mqtt_msg_header_t *header = (mqtt_msg_header_t *)msg;
 
@@ -245,7 +244,7 @@ PT_BEGIN( pt );
 	   	uint32_t value = counter;
 	   	counter++;
 	   	
-	   	mqtt_client_i8_publish( PSTR("chromatron_mqtt/test_value"), CATBUS_TYPE_UINT32, &value, 0, FALSE );
+	   	mqtt_client_i8_publish( PSTR("chromatron_mqtt/test_value"), &value, sizeof(value), 0, FALSE );
 	}
     
 PT_END( pt );
@@ -263,21 +262,36 @@ static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 		
 	ptr += topic_len;
 	
-	catbus_data_t *kv_data = (catbus_data_t *)ptr;
+	uint16_t data_len;
+	memcpy( &data_len, ptr, sizeof(data_len) );
+	ptr += sizeof(data_len);
 
-	ptr += sizeof(catbus_data_t) - 1;
+	uint8_t *data = ptr;
 
-	if( kv_data->meta.type == CATBUS_TYPE_INT64 ){
+	int32_t value;
+
+	// coert to int32 for debug
+	memcpy( &value, data, sizeof(value) );
+
+	log_v_debug_P( PSTR("%s %ld %ld"), topic, data_len, value );
+	
+
+
+	// catbus_data_t *kv_data = (catbus_data_t *)ptr;
+
+	// ptr += sizeof(catbus_data_t) - 1;
+
+	// if( kv_data->meta.type == CATBUS_TYPE_INT64 ){
+
+	// 	int64_t value;
+	// 	memcpy( &value, ptr, sizeof(value) ); // memcpy to handle alignment issues
 		
-		int64_t value;
-		memcpy( &value, ptr, sizeof(value) ); // memcpy to handle alignment issues
-		
-		log_v_debug_P( PSTR("%s %ld"), topic, (int32_t)value );
-	}
-	else{
+	// 	log_v_debug_P( PSTR("%s %ld"), topic, (int32_t)value );
+	// }
+	// else{
 
-		log_v_debug_P( PSTR("%s ???"), topic );	
-	}
+	// 	log_v_debug_P( PSTR("%s ???"), topic );	
+	// }
 }
 
 

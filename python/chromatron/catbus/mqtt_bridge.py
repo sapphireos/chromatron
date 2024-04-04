@@ -25,13 +25,13 @@ import time
 import logging
 
 from elysianfields import *
-from .data_structures import *
+# from .data_structures import *
 from .catbustypes import *
-from .options import *
+# from .options import *
 from sapphire.common import MsgServer, util, catbus_string_hash, run_all, synchronized
 from sapphire.protocols import services
-from .database import *
-from .catbus import *
+# from .database import *
+# from .catbus import *
 from .services.mqtt_client import MQTTClient
 import threading
 
@@ -44,67 +44,22 @@ MQTT_BRIDGE_PORT = 44899
 MQTT_MSG_MAGIC    = 0x5454514d # 'MQTT'
 MQTT_MSG_VERSION  = 1
 
-MQTT_TOPIC_LIST_LEN     = 16
 
-# class MQTTTopic(FixedArrayField):
+# class MQTTPayload(StructField):
 #     def __init__(self, **kwargs):
-#         field = CatbusHash
-#         super().__init__(_field=field, _length=MQTT_TOPIC_LIST_LEN, **kwargs)
+#         fields = [CatbusData(_name="data")]
+                  
+#         super().__init__(_fields=fields, **kwargs)
 
 class MQTTPayload(StructField):
     def __init__(self, **kwargs):
-        fields = [CatbusData(_name="data")]
-                  
-    #     # look up type
-    #     if 'payload' in kwargs:
-    #         # valuefield = get_field_for_type(kwargs['payload'].type, _name='payload')
-    #         valuefield = kwargs['payload']
-
-    #         # if kwargs['payload'].array_len == 0:
-    #         fields.append(valuefield)
-
-    #         # else:
-    #         #     array = FixedArrayField(_field=type(valuefield), _length=kwargs['meta'].array_len + 1, _name='value')
-    #         #     fields.append(array)
-    #         #     valuefield = array
-
-    #         # valuefield._value = kwargs['payload']
-
+        fields = [Uint16Field(_name="data_len"),
+                  ArrayField(_name="data", _field=Uint8Field)]
+        
         super().__init__(_fields=fields, **kwargs)
 
-    #     if 'payload' in kwargs:
-    #         self.payload_type = self.payload.type
-
-    # def unpack(self, buffer):
-    #     super().unpack(buffer)
-
-    #     buffer = buffer[self.size():]
-
-    #     # get value field based on type
-    #     try:
-    #         valuefield = get_field_for_type(self.payload_type, _name='payload')
-
-    #         # if self.meta.array_len == 0:
-    #         try:
-    #             valuefield.unpack(buffer)
-
-    #         except UnicodeDecodeError as e:
-    #             valuefield.unpack("~~~%s: %s~~~" % (type(e), str(e)))
-            
-    #         self._fields['payload'] = valuefield
-
-    #         # else:
-    #         #     array = FixedArrayField(_field=type(valuefield), _length=self.meta.array_len + 1, _name='payload')
-    #         #     array.unpack(buffer)
-    #         #     self._fields['payload'] = array
-
-    #     except KeyError as e:
-    #         raise DataUnpackingError(e)
-
-    #     except UnknownTypeError:
-    #         self._fields['payload'] = UnknownField()
-
-    #     return self
+        if 'data' in kwargs:
+            self.data_len = len(kwargs['data'])
 
 class MQTTTopic(StructField):
     def __init__(self, **kwargs):
@@ -267,14 +222,23 @@ class MqttBridge(MsgServer):
         # payload = MQTTPayload(payload=msg_payload)
         # print(payload)
 
-        value = int(msg.payload)
-        meta = CatbusMeta(hash=0, flags=0, type=CATBUS_TYPE_INT64, array_len=0)
-        data = CatbusData(meta=meta, value=value)
+        # value = int(msg.payload)
+        # meta = CatbusMeta(hash=0, flags=0, type=CATBUS_TYPE_INT64, array_len=0)
+        # data = CatbusData(meta=meta, value=value)
         # print(data)
 
-        payload = MQTTPayload(data=data)
+        # payload = MQTTPayload(data=data)
         # print(payload)
 
+        # print(msg.payload)
+        # print(type(msg.payload))
+        # print(len(msg.payload))
+
+
+
+        # print(list(bytes(msg.payload)))
+
+        payload = MQTTPayload(data=list(msg.payload))
         publish_msg = MqttPublishMsg(topic=topic, payload=payload)
 
         print(publish_msg)
@@ -283,8 +247,10 @@ class MqttBridge(MsgServer):
 
     def _handle_publish(self, msg, host):
         # print(msg)
-        # print(msg.payload.data)
-        self.mqtt_client.publish(msg.topic.topic, msg.payload.data.value)
+        # print(msg.payload.data.pack())
+
+        # shovel the raw bytes in to MQTT
+        self.mqtt_client.publish(msg.topic.topic, msg.payload.data.pack())
 
     def _handle_subscribe(self, msg, host):
         # print(msg)

@@ -60,7 +60,8 @@ typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;
     // uint8_t topic_len;
     // topic data
-    // catbus_data_t data;
+    // uint16_t payload_len;
+    // payload
 } mqtt_msg_publish_t;
 #define MQTT_MSG_PUBLISH            20
 
@@ -73,7 +74,8 @@ typedef struct __attribute__((packed)){
 
 
 
-int8_t mqtt_client_i8_publish( const char *topic, catbus_type_t8 type, const void *data, uint8_t qos, bool retain );
+
+int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain );
 int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos );
 
 // #define CONTROLLER_IDLE_TIMEOUT         10
