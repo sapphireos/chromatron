@@ -30,11 +30,42 @@
 
 /*
 
+Chromatron MQTT Bridge System
+
+Supports basic publish and subscribe.
+Use a controller elected local UDP broker, or connect
+to a Python based bridge to a full MQTT broker.
+
+Our system is connectionless and only holds state for a timeout
+period.
+
+Publishes immediately route to the broker/subscribers.  No connection
+required.
+
+Subscriptions create a tracking object on the bridge/broker.
+On the Python bridge, subscriptions map to a full Paho subscription.
+On the UDP broker, subscriptions are used to route publishes.
+
+Subscriptions are also tracked on the client.  Incoming publish data
+is routed to a callback given in the subscription.
+
+Subscriptions on the broker/bridge time out if not periodically refreshed.
+On the client, they are held until the client unsubscribes from the topic.
+
+Generally topics will live as flash strings.
 
 */
 
 
 #ifdef ENABLE_CONTROLLER
+
+typedef struct __attribute__((packed)){
+	const char *topic;
+	// uint8_t qos;
+
+} mqtt_sub_t;
+
+static list_t sub_list;
 
 static socket_t sock;
 
@@ -80,6 +111,9 @@ void mqtt_client_v_init( void ){
 
 		return;
     }
+
+    list_v_init( &sub_list );
+
     // create socket
     sock = sock_s_create( SOS_SOCK_DGRAM );
 
@@ -177,9 +211,8 @@ int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t dat
 	return 0;
 }
 
+int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish_callback_t callback ){
 
-int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos ){
-	
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
 
@@ -221,6 +254,17 @@ int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos ){
 }
 
 
+
+static void mqtt_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len ){
+
+	int32_t value;
+
+	// coert to int32 for debug
+	memcpy( &value, data, sizeof(value) );	
+
+	log_v_debug_P( PSTR("%s %ld %ld"), topic, data_len, value );
+}
+
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -238,7 +282,7 @@ PT_BEGIN( pt );
 
     	TMR_WAIT( pt, 1000 );
 
-    	mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test_sub"), 0 );
+    	mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test_sub"), 0, &mqtt_on_publish_callback );
 
 
 	   	uint32_t value = counter;
@@ -268,12 +312,14 @@ static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
 	uint8_t *data = ptr;
 
-	int32_t value;
+	mqtt_on_publish_callback( topic, data, data_len );
+
+	// int32_t value;
 
 	// coert to int32 for debug
-	memcpy( &value, data, sizeof(value) );
+	// memcpy( &value, data, sizeof(value) );
 
-	log_v_debug_P( PSTR("%s %ld %ld"), topic, data_len, value );
+	// log_v_debug_P( PSTR("%s %ld %ld"), topic, data_len, value );
 	
 
 
