@@ -28,7 +28,7 @@
 #include "catbus.h"
 
 #define MQTT_MAX_TOPIC_LEN      128
-#define MQTT_MAX_PAYLOAD_LEN    128
+#define MQTT_MAX_PAYLOAD_LEN    256
 
 #define MQTT_BRIDGE_PORT        44899
 

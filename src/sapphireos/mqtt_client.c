@@ -62,7 +62,7 @@ Generally topics will live as flash strings.
 typedef struct __attribute__((packed)){
 	const char *topic;
 	// uint8_t qos;
-
+	mqtt_on_publish_callback_t callback;
 } mqtt_sub_t;
 
 static list_t sub_list;
@@ -135,7 +135,7 @@ void mqtt_client_v_init( void ){
 static sock_addr_t get_broker_raddr( void ){
 	
 	sock_addr_t raddr = {
-		.ipaddr = ip_a_addr( 10, 0, 0, 117 ),
+		.ipaddr = ip_a_addr( 10, 0, 0, 212 ),
 		.port = MQTT_BRIDGE_PORT
 	};
 
@@ -211,7 +211,7 @@ int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t dat
 	return 0;
 }
 
-int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish_callback_t callback ){
+int8_t transmit_subscribe( const char *topic, uint8_t qos ){
 
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
@@ -253,6 +253,47 @@ int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish
 	return 0;
 }
 
+int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish_callback_t callback ){
+
+	uint16_t topic_len = strlen( topic );
+	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
+
+	list_node_t ln = sub_list.head;
+
+    while( ln >= 0 ){
+
+        mqtt_sub_t *sub = list_vp_get_data( ln );
+        
+        if( strncmp( topic, sub->topic, MQTT_MAX_TOPIC_LEN ) == 0 ){
+
+            return 0; // already subscribed
+        }
+
+        ln = list_ln_next( ln );        
+    }
+
+    // not subscribed, create new subscription
+
+	mqtt_sub_t new_sub = {
+		topic,
+		// qos,
+		callback,
+	}; 
+
+    ln = list_ln_create_node2( &new_sub, sizeof(new_sub), MEM_TYPE_MQTT_SUB );
+
+    if( ln < 0 ){
+
+        return -1;
+    }
+
+    list_v_insert_tail( &sub_list, ln );
+
+	transmit_subscribe( topic, qos );
+
+	return 0;
+}
+
 
 
 static void mqtt_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len ){
@@ -276,14 +317,27 @@ PT_BEGIN( pt );
    	
 	TMR_WAIT( pt, 1000 );	
 
-	// mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test_sub"), 0 );
+	mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test_sub"), 0, mqtt_on_publish_callback );
 
    	while(1){
 
-    	TMR_WAIT( pt, 1000 );
+    	TMR_WAIT( pt, 2000 );
 
-    	mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test_sub"), 0, &mqtt_on_publish_callback );
+    	// send subscriptions
+		list_node_t ln = sub_list.head;	
 
+	    while( ln >= 0 ){
+
+	        mqtt_sub_t *sub = list_vp_get_data( ln );
+	        
+	        if( transmit_subscribe( sub->topic, 0 ) < 0 ){
+	        // if( transmit_subscribe( sub->topic, sub->qos ) < 0 ){
+
+	        	log_v_debug_P( PSTR("sub fail") );
+	        }
+
+	        ln = list_ln_next( ln );        
+	    }    	
 
 	   	uint32_t value = counter;
 	   	counter++;
@@ -312,7 +366,26 @@ static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
 	uint8_t *data = ptr;
 
-	mqtt_on_publish_callback( topic, data, data_len );
+	// mqtt_on_publish_callback( topic, data, data_len );
+
+	list_node_t ln = sub_list.head;
+
+    while( ln >= 0 ){
+
+        mqtt_sub_t *sub = list_vp_get_data( ln );
+        
+        if( strncmp( topic, sub->topic, topic_len ) == 0 ){
+
+            // match!
+        	// fire callback
+
+        	sub->callback( topic, data, data_len );
+        }
+
+        ln = list_ln_next( ln );        
+    }
+
+
 
 	// int32_t value;
 
