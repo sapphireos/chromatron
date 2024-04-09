@@ -12,6 +12,13 @@ from collections import OrderedDict
 
 from copy import deepcopy
 
+# Define a custom encoder for the Person class
+class FieldEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Field):
+            return obj.toBasic()
+        return json.JSONEncoder.default(self, obj)
+
 
 class Field(object):
     def __init__(self, _value=None, _name=None, **kwargs):
@@ -27,7 +34,7 @@ class Field(object):
         return self._internal_value
 
     def toJSON(self):
-        return json.dumps(self.toBasic())
+        return json.dumps(self.toBasic(), cls=FieldEncoder, indent=4)
 
     def __str__(self):
         return str(self._value)

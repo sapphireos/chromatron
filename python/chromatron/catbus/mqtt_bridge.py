@@ -25,7 +25,7 @@ import time
 import logging
 
 from elysianfields import *
-# from .data_structures import *
+from .data_structures import *
 from .catbustypes import *
 # from .options import *
 from sapphire.common import MsgServer, util, catbus_string_hash, run_all, synchronized
@@ -269,7 +269,16 @@ def main():
     # yappi.get_func_stats().print_all()
 
 if __name__ == '__main__':
-    main()
+    import colored_traceback
+    colored_traceback.add_hook()
+
+    c = CatbusData()
+
+    from pprint import pprint
+
+    print(c.toJSON())
+
+    # main()
     
 
 
