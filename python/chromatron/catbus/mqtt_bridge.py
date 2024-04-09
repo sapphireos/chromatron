@@ -45,11 +45,12 @@ MQTT_MSG_MAGIC    = 0x5454514d # 'MQTT'
 MQTT_MSG_VERSION  = 1
 
 
-# class MQTTPayload(StructField):
-#     def __init__(self, **kwargs):
-#         fields = [CatbusData(_name="data")]
+class TestField(StructField):
+    def __init__(self, **kwargs):
+        fields = [CatbusData(_name="data"),
+                  StringField(_name="topic", _length=128)]
                   
-#         super().__init__(_fields=fields, **kwargs)
+        super().__init__(_fields=fields, **kwargs)
 
 class MQTTPayload(StructField):
     def __init__(self, **kwargs):
@@ -272,11 +273,15 @@ if __name__ == '__main__':
     import colored_traceback
     colored_traceback.add_hook()
 
-    c = CatbusData()
+    meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
+    data = CatbusData(meta=meta, value=123)
+
+    t = TestField(data=data, topic="topic")
 
     from pprint import pprint
 
-    print(c.toJSON())
+    print(t)
+    print(t.toBasic()['data'].toJSON())
 
     # main()
     

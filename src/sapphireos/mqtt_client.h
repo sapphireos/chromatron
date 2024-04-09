@@ -75,6 +75,8 @@ typedef struct __attribute__((packed)){
 
 typedef void ( *mqtt_on_publish_callback_t )( char *topic, uint8_t *data, uint16_t data_len );
 
+
+int8_t mqtt_client_i8_publish_data( const char *topic, catbus_meta_t *meta, const void *data, uint8_t qos, bool retain );
 int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain );
 int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish_callback_t callback );
 

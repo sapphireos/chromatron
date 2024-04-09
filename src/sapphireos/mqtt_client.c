@@ -149,6 +149,22 @@ static int16_t send_msg( mem_handle_t h ){
 	return sock_i16_sendto_m( sock, h, &raddr );
 }
 
+int8_t mqtt_client_i8_publish_data( const char *topic, catbus_meta_t *meta, const void *data, uint8_t qos, bool retain ){
+
+	// watch for possible stack overflows if we increase this
+	uint8_t buf[MQTT_MAX_PAYLOAD_LEN];	
+
+	uint16_t payload_len = sizeof(catbus_meta_t);
+
+	memcpy( buf, meta, payload_len );
+
+	uint16_t data_len = type_u16_size( meta->type );
+	payload_len += data_len;
+
+	memcpy( &buf[sizeof(catbus_meta_t)], data, data_len );
+
+	return mqtt_client_i8_publish( topic, buf, payload_len, qos, retain );
+}
 
 int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain ){
 
