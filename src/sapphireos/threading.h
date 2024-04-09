@@ -124,6 +124,7 @@ uint16_t thread_u16_get_thread_count( void );
 thread_t thread_t_get_current_thread( void );
 
 void thread_v_get_cpu_info( cpu_info_t *info );
+uint8_t thread_u8_get_cpu_percent( void );
 void thread_v_dump( void );
 
 thread_t thread_t_create( PT_THREAD( ( *thread )( pt_t *pt, void *state ) ),

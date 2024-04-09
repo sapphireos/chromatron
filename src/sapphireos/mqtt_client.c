@@ -88,11 +88,13 @@ static socket_t sock;
 // static uint16_t leader_timeout;
 // static uint32_t leader_uptime;
 
+static ip_addr4_t broker_ip;
+
 KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
 //     { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &controller_state, 		0,  "controller_state" },
 //     { CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, &state_name,				0,  "controller_state_text" },
 //     { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_enabled, 	0,  "controller_enable_leader" },
-//     { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_READ_ONLY, &leader_ip, 				0,  "controller_leader_ip" },
+    { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_PERSIST, &broker_ip, 				0,  "mqtt_broker_ip" },
 //     { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &leader_flags, 			0,  "controller_leader_flags" },
 //     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_follower_count, 	0,  "controller_follower_count" },
 //     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_priority, 		0,  "controller_leader_priority" },
@@ -135,7 +137,7 @@ void mqtt_client_v_init( void ){
 static sock_addr_t get_broker_raddr( void ){
 	
 	sock_addr_t raddr = {
-		.ipaddr = ip_a_addr( 10, 0, 0, 212 ),
+		.ipaddr = broker_ip,
 		.port = MQTT_BRIDGE_PORT
 	};
 
@@ -149,24 +151,7 @@ static int16_t send_msg( mem_handle_t h ){
 	return sock_i16_sendto_m( sock, h, &raddr );
 }
 
-int8_t mqtt_client_i8_publish_data( const char *topic, catbus_meta_t *meta, const void *data, uint8_t qos, bool retain ){
-
-	// watch for possible stack overflows if we increase this
-	uint8_t buf[MQTT_MAX_PAYLOAD_LEN];	
-
-	uint16_t payload_len = sizeof(catbus_meta_t);
-
-	memcpy( buf, meta, payload_len );
-
-	uint16_t data_len = type_u16_size( meta->type );
-	payload_len += data_len;
-
-	memcpy( &buf[sizeof(catbus_meta_t)], data, data_len );
-
-	return mqtt_client_i8_publish( topic, buf, payload_len, qos, retain );
-}
-
-int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain ){
+static int8_t publish( uint8_t msgtype, const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain ){
 
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
@@ -213,7 +198,7 @@ int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t dat
 
 	header->magic 		= MQTT_MSG_MAGIC;
 	header->version 	= MQTT_MSG_VERSION;
-	header->msg_type 	= MQTT_MSG_PUBLISH;
+	header->msg_type 	= msgtype;
 	header->qos    		= qos;
 	header->flags       = 0;
 
@@ -225,6 +210,28 @@ int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t dat
 	}
 
 	return 0;
+}
+
+int8_t mqtt_client_i8_publish_data( const char *topic, catbus_meta_t *meta, const void *data, uint8_t qos, bool retain ){
+
+	// watch for possible stack overflows if we increase this
+	uint8_t buf[MQTT_MAX_PAYLOAD_LEN];	
+
+	uint16_t payload_len = sizeof(catbus_meta_t);
+
+	memcpy( buf, meta, payload_len );
+
+	uint16_t data_len = type_u16_size( meta->type );
+	payload_len += data_len;
+
+	memcpy( &buf[sizeof(catbus_meta_t)], data, data_len );
+
+	return publish( MQTT_MSG_PUBLISH_KV, topic, buf, payload_len, qos, retain );
+}
+
+int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain ){
+
+	return publish( MQTT_MSG_PUBLISH, topic, data, data_len, qos, retain );
 }
 
 int8_t transmit_subscribe( const char *topic, uint8_t qos ){
@@ -310,7 +317,36 @@ int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish
 	return 0;
 }
 
+static void transmit_status( void ){
 
+	uint32_t pixel_power = 0;
+
+	kv_i8_get( __KV__pixel_power, &pixel_power, sizeof(pixel_power) );
+
+	catbus_query_t tags;
+	catbus_v_get_query( &tags );
+
+	mqtt_msg_publish_status_t msg = {
+		{ 0 },
+		tags,
+		sys_u8_get_mode(),
+		tmr_u32_get_system_time_ms(),
+		wifi_i8_rssi(),
+		thread_u8_get_cpu_percent(),
+		mem2_u16_get_used(),
+		pixel_power,		
+	};
+
+	msg.header.magic 		= MQTT_MSG_MAGIC;
+	msg.header.version 		= MQTT_MSG_VERSION;
+	msg.header.msg_type 	= MQTT_MSG_PUBLISH_STATUS;
+	msg.header.qos    		= 0;
+	msg.header.flags       	= 0;
+
+	sock_addr_t raddr = get_broker_raddr();
+
+	sock_i16_sendto( sock, &msg, sizeof(msg), &raddr );	
+}
 
 static void mqtt_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len ){
 
@@ -359,6 +395,9 @@ PT_BEGIN( pt );
 	   	counter++;
 	   	
 	   	mqtt_client_i8_publish( PSTR("chromatron_mqtt/test_value"), &value, sizeof(value), 0, FALSE );
+		
+
+		transmit_status();
 	}
     
 PT_END( pt );

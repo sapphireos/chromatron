@@ -259,6 +259,11 @@ void thread_v_get_cpu_info( cpu_info_t *info ){
     *info = cpu_info;
 }
 
+uint8_t thread_u8_get_cpu_percent( void ){
+
+    return cpu_info.task_time * 100 / cpu_info.run_time;
+}
+
 void thread_v_dump( void ){
 
     // delete file

@@ -64,13 +64,28 @@ typedef struct __attribute__((packed)){
     // payload
 } mqtt_msg_publish_t;
 #define MQTT_MSG_PUBLISH            20
+#define MQTT_MSG_PUBLISH_KV         21
+
+typedef struct __attribute__((packed)){
+    mqtt_msg_header_t header;
+    catbus_query_t tags;
+    uint8_t mode;
+    uint32_t uptime;
+    int8_t rssi;
+    uint8_t cpu_percent;
+    uint16_t used_heap;
+    uint16_t pixel_power;
+} mqtt_msg_publish_status_t;
+#define MQTT_MSG_PUBLISH_STATUS     22
+
+
 
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;
     // uint8_t topic_len;
     // topic data
 } mqtt_msg_subscribe_t;
-#define MQTT_MSG_SUBSCRIBE          21
+#define MQTT_MSG_SUBSCRIBE          30
 
 
 typedef void ( *mqtt_on_publish_callback_t )( char *topic, uint8_t *data, uint16_t data_len );

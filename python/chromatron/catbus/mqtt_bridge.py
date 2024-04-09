@@ -31,7 +31,7 @@ from .catbustypes import *
 from sapphire.common import MsgServer, util, catbus_string_hash, run_all, synchronized
 from sapphire.protocols import services
 # from .database import *
-# from .catbus import *
+from .catbus import *
 from .services.mqtt_client import MQTTClient
 import threading
 
@@ -165,7 +165,7 @@ class MqttPublishMsg(StructField):
 
 
 
-MQTT_MSG_SUBSCRIBE        = 21
+MQTT_MSG_SUBSCRIBE        = 30
 class MqttSubscribeMsg(StructField):
     def __init__(self, **kwargs):
         fields = [MQTTMsgHeader(_name="header"),
@@ -176,12 +176,30 @@ class MqttSubscribeMsg(StructField):
         self.header.type = MQTT_MSG_SUBSCRIBE
 
 
+MQTT_MSG_PUBLISH_STATUS   = 22      
+class MqttPublishStatus(StructField):
+    def __init__(self, **kwargs):
+        fields = [MQTTMsgHeader(_name="header"),
+                  CatbusQuery(_name="tags"),
+                  Uint8Field(_name="mode"),
+                  Uint32Field(_name="uptime"),
+                  Int8Field(_name="rssi"),
+                  Uint8Field(_name="cpu_percent"),
+                  Uint16Field(_name="used_heap"),
+                  Uint16Field(_name="pixel_power")]
+
+        super().__init__(_name="mqtt_publish_status", _fields=fields, **kwargs)
+
+        self.header.type = MQTT_MSG_PUBLISH_STATUS
+
+
 class MqttBridge(MsgServer):
     def __init__(self):
         super().__init__(name='mqtt_bridge', port=MQTT_BRIDGE_PORT)
 
         self.register_message(MqttPublishMsg, self._handle_publish)
         self.register_message(MqttSubscribeMsg, self._handle_subscribe)
+        self.register_message(MqttPublishStatus, self._handle_status)
             
         # self.start_timer(LINK_MIN_TICK_RATE, self._process_all)
         # self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
@@ -257,8 +275,27 @@ class MqttBridge(MsgServer):
         # print(msg)
         self.mqtt_client.subscribe(msg.topic.topic)
 
+    def _handle_status(self, msg, host):
+        dict_data = msg.toBasic()
+        
+        del dict_data['header']
+
+        # convert hashes to strings
+        c = Client((host[0], CATBUS_MAIN_PORT))
+        tags = [c.lookup_hash(t)[t] for t in dict_data['tags'] if t != 0]
+        dict_data['tags'] = tags
+
+
+        topic = f'chromatron_mqtt/status/{tags[0]}'
+
+        self.mqtt_client.publish(topic, json.dumps(dict_data))
+
 def main():
     util.setup_basic_logging(console=True)
+    
+    import colored_traceback
+    colored_traceback.add_hook()
+
 
     bridge = MqttBridge()
 
@@ -270,20 +307,18 @@ def main():
     # yappi.get_func_stats().print_all()
 
 if __name__ == '__main__':
-    import colored_traceback
-    colored_traceback.add_hook()
 
-    meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
-    data = CatbusData(meta=meta, value=123)
+    # meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
+    # data = CatbusData(meta=meta, value=123)
 
-    t = TestField(data=data, topic="topic")
+    # t = TestField(data=data, topic="topic")
 
-    from pprint import pprint
+    # from pprint import pprint
 
-    print(t)
-    print(t.toBasic()['data'].toJSON())
+    # print(t)
+    # print(t.toBasic()['data'].toJSON())
 
-    # main()
+    main()
     
 
 
