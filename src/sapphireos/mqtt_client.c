@@ -496,7 +496,10 @@ static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 	        	if( type_len != CATBUS_TYPE_SIZE_INVALID ){
 
 	        		// apply to KV system:
+	        		if( catbus_i8_set( sub->kv_hash, catbus_data->meta.type, &catbus_data->data, type_len ) < 0 ){
 
+	        			log_v_error_P( PSTR("Error setting KV data for topic: %s"), topic );
+	        		}
 	        	}
 	        	else{
 
