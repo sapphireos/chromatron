@@ -35,6 +35,10 @@
 #include "vm.h"
 #include "vm_core.h"
 
+#ifdef ENABLE_CONTROLLER
+#include "mqtt_client.h"
+#endif
+
 #ifdef ENABLE_BATTERY
 #include "battery.h"
 #include "buttons.h"
@@ -66,6 +70,31 @@ int8_t vm_lib_i8_libcall_built_in(
     #endif
 
 	switch( func_hash ){
+        #ifdef ENABLE_CONTROLLER
+        case __KV__publish:
+
+            // dereference to pool:
+            // topic is param 0
+            ref.n = params[0];
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+            str = (char *)ptr;
+
+            // data is param 1
+            temp0 = params[1];
+
+            catbus_meta_t meta = {
+                0, // hash,
+                CATBUS_TYPE_INT32, // type,
+                0, // array count
+                0, // flags
+                0, // reserved
+            };
+
+            *result = mqtt_client_i8_publish_data( str, &meta, &temp0, 0, FALSE );
+
+            break;
+        #endif
+
         case __KV__rand:
 
             if( param_len == 0 ){

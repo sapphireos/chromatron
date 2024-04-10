@@ -62,6 +62,16 @@ class MQTTPayload(StructField):
         if 'data' in kwargs:
             self.data_len = len(kwargs['data'])
 
+class MQTTKVPayload(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint16Field(_name="data_len"),
+                  CatbusData(_name="data")]
+        
+        super().__init__(_fields=fields, **kwargs)
+
+        if 'data' in kwargs:
+            self.data_len = len(kwargs['data'])
+
 class MQTTTopic(StructField):
     def __init__(self, **kwargs):
         fields = [Uint8Field(_name="topic_len")]
@@ -165,6 +175,17 @@ class MqttPublishMsg(StructField):
 
 
 
+MQTT_MSG_PUBLISH_KV        = 21      
+class MqttPublishKVMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MQTTMsgHeader(_name="header"),
+                  MQTTTopic(_name="topic"),
+                  MQTTKVPayload(_name="payload")]
+
+        super().__init__(_name="mqtt_publish_kv", _fields=fields, **kwargs)
+
+        self.header.type = MQTT_MSG_PUBLISH_KV
+
 MQTT_MSG_SUBSCRIBE        = 30
 class MqttSubscribeMsg(StructField):
     def __init__(self, **kwargs):
@@ -198,6 +219,7 @@ class MqttBridge(MsgServer):
         super().__init__(name='mqtt_bridge', port=MQTT_BRIDGE_PORT)
 
         self.register_message(MqttPublishMsg, self._handle_publish)
+        self.register_message(MqttPublishKVMsg, self._handle_publish_kv)
         self.register_message(MqttSubscribeMsg, self._handle_subscribe)
         self.register_message(MqttPublishStatus, self._handle_status)
             
@@ -269,7 +291,12 @@ class MqttBridge(MsgServer):
         # print(msg.payload.data.pack())
 
         # shovel the raw bytes in to MQTT
-        self.mqtt_client.publish(msg.topic.topic, msg.payload.data.pack())
+        self.mqtt_client.publish(msg.topic.topic, msg.payload.data.pack())  
+
+    def _handle_publish_kv(self, msg, host):
+        print(msg)
+    
+        self.mqtt_client.publish(msg.topic.topic, json.dumps(msg.payload.data.toBasic()['value']))
 
     def _handle_subscribe(self, msg, host):
         # print(msg)

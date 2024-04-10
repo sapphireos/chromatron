@@ -153,7 +153,7 @@ static int16_t send_msg( mem_handle_t h ){
 
 static int8_t publish( uint8_t msgtype, const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain ){
 
-	uint16_t topic_len = strlen( topic );
+	uint8_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
 
 	uint16_t msg_len = sizeof(mqtt_msg_publish_t) + sizeof(uint16_t) + data_len + sizeof(uint8_t) + topic_len;
