@@ -61,6 +61,7 @@ Generally topics will live as flash strings.
 
 typedef struct __attribute__((packed)){
 	const char *topic;
+	uint32_t kv_hash;
 	// uint8_t qos;
 	mqtt_on_publish_callback_t callback;
 } mqtt_sub_t;
@@ -299,8 +300,52 @@ int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish
 
 	mqtt_sub_t new_sub = {
 		topic,
+		0, // kv hash
 		// qos,
 		callback,
+	}; 
+
+    ln = list_ln_create_node2( &new_sub, sizeof(new_sub), MEM_TYPE_MQTT_SUB );
+
+    if( ln < 0 ){
+
+        return -1;
+    }
+
+    list_v_insert_tail( &sub_list, ln );
+
+	transmit_subscribe( topic, qos );
+
+	return 0;
+}
+
+int8_t mqtt_client_i8_subscribe_kv( const char *topic, const char *key, uint8_t qos ){
+
+	uint16_t topic_len = strlen( topic );
+	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
+
+	list_node_t ln = sub_list.head;
+
+    while( ln >= 0 ){
+
+        mqtt_sub_t *sub = list_vp_get_data( ln );
+        
+        if( strncmp( topic, sub->topic, MQTT_MAX_TOPIC_LEN ) == 0 ){
+
+            return 0; // already subscribed
+        }
+
+        ln = list_ln_next( ln );        
+    }
+
+    // not subscribed, create new subscription
+    uint32_t kv_hash = hash_u32_string( (char *)key );
+	
+	mqtt_sub_t new_sub = {
+		topic,
+		kv_hash, // kv hash
+		// qos,
+		0, // callback
 	}; 
 
     ln = list_ln_create_node2( &new_sub, sizeof(new_sub), MEM_TYPE_MQTT_SUB );
@@ -432,9 +477,32 @@ static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
         if( strncmp( topic, sub->topic, topic_len ) == 0 ){
 
             // match!
-        	// fire callback
 
-        	sub->callback( topic, data, data_len );
+        	// check what to do
+
+        	// if there is a callback, fire it:
+        	if( sub->callback != 0 ){
+
+	        	sub->callback( topic, data, data_len );
+	        }
+
+	        // check if there is a KV target
+	        if( sub->kv_hash != 0 ){
+
+	        	catbus_data_t *catbus_data = (catbus_data_t *)data;
+
+	        	uint16_t type_len = type_u16_size( catbus_data->meta.type );
+	        	
+	        	if( type_len != CATBUS_TYPE_SIZE_INVALID ){
+
+	        		// apply to KV system:
+
+	        	}
+	        	else{
+
+	        		log_v_error_P( PSTR("Invalid type: %d on topic: %s"), catbus_data->meta.type, topic );
+	        	}
+	        }
         }
 
         ln = list_ln_next( ln );        

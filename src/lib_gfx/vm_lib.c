@@ -93,6 +93,26 @@ int8_t vm_lib_i8_libcall_built_in(
             *result = mqtt_client_i8_publish_data( str, &meta, &temp0, 0, FALSE );
 
             break;
+ 
+         case __KV__subscribe:
+
+            // dereference to pool:
+            // topic is param 0
+            ref.n = params[0];
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+            str = (char *)ptr;
+
+            // KV key
+            ref.n = params[1];
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+            str2 = (char *)ptr;
+
+            log_v_info_P(PSTR("%s %s"), str, str2);
+
+            // *result = mqtt_client_i8_publish_data( str, &meta, &temp0, 0, FALSE );
+
+            break;
+ 
         #endif
 
         case __KV__rand:
