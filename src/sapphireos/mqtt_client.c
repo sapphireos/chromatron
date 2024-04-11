@@ -235,7 +235,7 @@ int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t dat
 	return publish( MQTT_MSG_PUBLISH, topic, data, data_len, qos, retain );
 }
 
-int8_t transmit_subscribe( const char *topic, uint8_t qos ){
+int8_t transmit_subscribe( uint8_t msgtype, const char *topic, uint8_t qos ){
 
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
@@ -263,7 +263,7 @@ int8_t transmit_subscribe( const char *topic, uint8_t qos ){
 
 	header->magic 		= MQTT_MSG_MAGIC;
 	header->version 	= MQTT_MSG_VERSION;
-	header->msg_type 	= MQTT_MSG_SUBSCRIBE;
+	header->msg_type 	= msgtype;
 	header->qos    		= qos;
 	header->flags       = 0;
 
@@ -314,7 +314,7 @@ int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish
 
     list_v_insert_tail( &sub_list, ln );
 
-	transmit_subscribe( topic, qos );
+	transmit_subscribe( MQTT_MSG_SUBSCRIBE, topic, qos );
 
 	return 0;
 }
@@ -357,7 +357,7 @@ int8_t mqtt_client_i8_subscribe_kv( const char *topic, const char *key, uint8_t 
 
     list_v_insert_tail( &sub_list, ln );
 
-	transmit_subscribe( topic, qos );
+	transmit_subscribe( MQTT_MSG_SUBSCRIBE_KV, topic, qos );
 
 	return 0;
 }

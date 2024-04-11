@@ -197,6 +197,17 @@ class MqttSubscribeMsg(StructField):
         self.header.type = MQTT_MSG_SUBSCRIBE
 
 
+MQTT_MSG_SUBSCRIBE_KV     = 31
+class MqttSubscribeKVMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MQTTMsgHeader(_name="header"),
+                  MQTTTopic(_name="topic")]
+
+        super().__init__(_name="mqtt_subscribe_kv", _fields=fields, **kwargs)
+
+        self.header.type = MQTT_MSG_SUBSCRIBE_KV
+
+
 MQTT_MSG_PUBLISH_STATUS   = 22      
 class MqttPublishStatus(StructField):
     def __init__(self, **kwargs):
@@ -221,6 +232,7 @@ class MqttBridge(MsgServer):
         self.register_message(MqttPublishMsg, self._handle_publish)
         self.register_message(MqttPublishKVMsg, self._handle_publish_kv)
         self.register_message(MqttSubscribeMsg, self._handle_subscribe)
+        self.register_message(MqttSubscribeKVMsg, self._handle_subscribe_kv)
         self.register_message(MqttPublishStatus, self._handle_status)
             
         # self.start_timer(LINK_MIN_TICK_RATE, self._process_all)
@@ -301,6 +313,9 @@ class MqttBridge(MsgServer):
     def _handle_subscribe(self, msg, host):
         # print(msg)
         self.mqtt_client.subscribe(msg.topic.topic)
+
+    def _handle_subscribe_kv(self, msg, host):
+        print(msg)
 
     def _handle_status(self, msg, host):
         dict_data = msg.toBasic()
