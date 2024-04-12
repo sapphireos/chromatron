@@ -44,6 +44,8 @@ MQTT_BRIDGE_PORT = 44899
 MQTT_MSG_MAGIC    = 0x5454514d # 'MQTT'
 MQTT_MSG_VERSION  = 1
 
+SUB_TIMEOUT       = 60.0
+
 
 class TestField(StructField):
     def __init__(self, **kwargs):
@@ -64,13 +66,9 @@ class MQTTPayload(StructField):
 
 class MQTTKVPayload(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint16Field(_name="data_len"),
-                  CatbusData(_name="data")]
+        fields = [CatbusData(_name="data")]
         
         super().__init__(_fields=fields, **kwargs)
-
-        if 'data' in kwargs:
-            self.data_len = len(kwargs['data'])
 
 class MQTTTopic(StructField):
     def __init__(self, **kwargs):
@@ -243,6 +241,10 @@ class MqttBridge(MsgServer):
         self.mqtt_client.start()
         self.mqtt_client.connect(host='omnomnom.local')
 
+        self.mqtt_client.subscribe("chromatron_mqtt/fx_test")
+
+        self.subs = {}
+
         self.start()
 
     def clean_up(self):
@@ -291,12 +293,32 @@ class MqttBridge(MsgServer):
 
         # print(list(bytes(msg.payload)))
 
-        payload = MQTTPayload(data=list(msg.payload))
-        publish_msg = MqttPublishMsg(topic=topic, payload=payload)
+        # payload = MQTTPayload(data=list(msg.payload))
+        # publish_msg = MqttPublishMsg(topic=topic, payload=payload)
 
-        print(publish_msg)
+        # print(publish_msg)
 
-        self.transmit(publish_msg, ('10.0.0.211', MQTT_BRIDGE_PORT))
+        # self.transmit(publish_msg, ('10.0.0.211', MQTT_BRIDGE_PORT))
+        
+        meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
+        data = CatbusData(meta=meta, value=int(msg.payload))
+
+        kv_payload = MQTTKVPayload(data=data)
+
+        msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
+        print(msg)
+
+        if msg.topic in self.subs:
+            meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
+            data = CatbusData(meta=meta, value=int(msg.payload))
+
+            kv_payload = MQTTKVPayload(data=data)
+
+            msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
+
+            for host in self.subs[msg.topic]:
+                self.transmit(publish_msg, host)
+        
 
     def _handle_publish(self, msg, host):
         # print(msg)
@@ -316,6 +338,13 @@ class MqttBridge(MsgServer):
 
     def _handle_subscribe_kv(self, msg, host):
         print(msg)
+
+        if msg.topic not in self.subs:
+            self.subs[msg.topic] = {}
+
+        self.subs[msg.topic][host] = SUB_TIMEOUT
+
+        self.mqtt_client.subscribe(msg.topic.topic)
 
     def _handle_status(self, msg, host):
         dict_data = msg.toBasic()

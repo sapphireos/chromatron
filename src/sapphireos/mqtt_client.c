@@ -427,7 +427,7 @@ PT_BEGIN( pt );
 
 	        mqtt_sub_t *sub = list_vp_get_data( ln );
 	        
-	        if( transmit_subscribe( sub->topic, 0 ) < 0 ){
+	        if( transmit_subscribe( MQTT_MSG_SUBSCRIBE_KV, sub->topic, 0 ) < 0 ){
 	        // if( transmit_subscribe( sub->topic, sub->qos ) < 0 ){
 
 	        	log_v_debug_P( PSTR("sub fail") );
@@ -460,10 +460,10 @@ static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 		
 	ptr += topic_len;
 	
-	uint16_t data_len;
+	uint16_t data_len = 0;	
 	memcpy( &data_len, ptr, sizeof(data_len) );
 	ptr += sizeof(data_len);
-
+	
 	uint8_t *data = ptr;
 
 	// mqtt_on_publish_callback( topic, data, data_len );
@@ -485,6 +485,65 @@ static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
 	        	sub->callback( topic, data, data_len );
 	        }
+
+	        // check if there is a KV target
+	        // if( sub->kv_hash != 0 ){
+
+	        // 	catbus_data_t *catbus_data = (catbus_data_t *)data;
+
+	        // 	uint16_t type_len = type_u16_size( catbus_data->meta.type );
+	        	
+	        // 	if( type_len != CATBUS_TYPE_SIZE_INVALID ){
+
+	        // 		// apply to KV system:
+	        // 		if( catbus_i8_set( sub->kv_hash, catbus_data->meta.type, &catbus_data->data, type_len ) < 0 ){
+
+	        // 			log_v_error_P( PSTR("Error setting KV data for topic: %s"), topic );
+	        // 		}
+	        // 	}
+	        // 	else{
+
+	        // 		log_v_error_P( PSTR("Invalid type: %d on topic: %s"), catbus_data->meta.type, topic );
+	        // 	}
+	        // }
+        }
+
+        ln = list_ln_next( ln );        
+    }
+}
+
+
+static void process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
+
+	// get byte pointer after headers:
+	uint8_t *ptr = (uint8_t *)( msg + 1 );
+
+	// get topic length
+	uint8_t topic_len = *ptr;
+	ptr++;
+	char *topic = (char *)ptr;
+		
+	ptr += topic_len;
+	
+	uint8_t *data = ptr;
+
+	list_node_t ln = sub_list.head;
+
+    while( ln >= 0 ){
+
+        mqtt_sub_t *sub = list_vp_get_data( ln );
+        
+        if( strncmp( topic, sub->topic, topic_len ) == 0 ){
+
+            // match!
+
+        	// check what to do
+
+        	// // if there is a callback, fire it:
+        	// if( sub->callback != 0 ){
+
+	        // 	sub->callback( topic, data, data_len );
+	        // }
 
 	        // check if there is a KV target
 	        if( sub->kv_hash != 0 ){
@@ -510,35 +569,7 @@ static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
         ln = list_ln_next( ln );        
     }
-
-
-
-	// int32_t value;
-
-	// coert to int32 for debug
-	// memcpy( &value, data, sizeof(value) );
-
-	// log_v_debug_P( PSTR("%s %ld %ld"), topic, data_len, value );
-	
-
-
-	// catbus_data_t *kv_data = (catbus_data_t *)ptr;
-
-	// ptr += sizeof(catbus_data_t) - 1;
-
-	// if( kv_data->meta.type == CATBUS_TYPE_INT64 ){
-
-	// 	int64_t value;
-	// 	memcpy( &value, ptr, sizeof(value) ); // memcpy to handle alignment issues
-		
-	// 	log_v_debug_P( PSTR("%s %ld"), topic, (int32_t)value );
-	// }
-	// else{
-
-	// 	log_v_debug_P( PSTR("%s ???"), topic );	
-	// }
 }
-
 
 
 
@@ -580,18 +611,10 @@ PT_BEGIN( pt );
 
         	process_publish( (mqtt_msg_publish_t *)header, &raddr );
         }
-        // else if( header->msg_type == CONTROLLER_MSG_DROP ){
+        else if( header->msg_type == MQTT_MSG_PUBLISH_KV ){
 
-        // 	process_drop( (controller_msg_drop_t *)header, &raddr );
-        // }
-        // else if( header->msg_type == CONTROLLER_MSG_STATUS ){
-
-        // 	process_status( (controller_msg_status_t *)header, &raddr );
-        // }
-        // else if( header->msg_type == CONTROLLER_MSG_LEAVE ){
-
-        // 	process_leave( (controller_msg_leave_t *)header, &raddr );
-        // }
+        	process_publish_kv( (mqtt_msg_publish_t *)header, &raddr );
+        }
         else{
 
         	// invalid message
