@@ -60,7 +60,7 @@ Generally topics will live as flash strings.
 #ifdef ENABLE_CONTROLLER
 
 typedef struct __attribute__((packed)){
-	const char *topic;
+	char topic[MQTT_MAX_TOPIC_LEN];
 	uint32_t kv_hash;
 	// uint8_t qos;
 	mqtt_on_publish_callback_t callback;
@@ -177,9 +177,13 @@ static int8_t publish( uint8_t msgtype, const char *topic, const void *data, uin
 	memcpy( ptr, topic, topic_len );
 	ptr += topic_len;
 
+	// payload len, for generic publish
+	if( msgtype == MQTT_MSG_PUBLISH ){
+
+		memcpy( ptr, &data_len, sizeof(data_len) );
+		ptr += sizeof(data_len);
+	}
 	// payload
-	memcpy( ptr, &data_len, sizeof(data_len) );
-	ptr += sizeof(data_len);
 	memcpy( ptr, data, data_len );
 	
 	// catbus_meta_t meta = {
@@ -299,11 +303,13 @@ int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish
     // not subscribed, create new subscription
 
 	mqtt_sub_t new_sub = {
-		topic,
+		{ 0 },
 		0, // kv hash
 		// qos,
 		callback,
 	}; 
+
+	strncpy( new_sub.topic, topic, topic_len );
 
     ln = list_ln_create_node2( &new_sub, sizeof(new_sub), MEM_TYPE_MQTT_SUB );
 
@@ -342,11 +348,15 @@ int8_t mqtt_client_i8_subscribe_kv( const char *topic, const char *key, uint8_t 
     uint32_t kv_hash = hash_u32_string( (char *)key );
 	
 	mqtt_sub_t new_sub = {
-		topic,
+		{ 0 },
 		kv_hash, // kv hash
 		// qos,
 		0, // callback
 	}; 
+
+	strncpy( new_sub.topic, topic, topic_len );
+
+	log_v_info_P(PSTR("%s %s"), topic, key);
 
     ln = list_ln_create_node2( &new_sub, sizeof(new_sub), MEM_TYPE_MQTT_SUB );
 
@@ -414,7 +424,7 @@ PT_BEGIN( pt );
    	
 	TMR_WAIT( pt, 1000 );	
 
-	mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test_sub"), 0, mqtt_on_publish_callback );
+	// mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test_sub"), 0, mqtt_on_publish_callback );
 
    	while(1){
 
@@ -426,7 +436,7 @@ PT_BEGIN( pt );
 	    while( ln >= 0 ){
 
 	        mqtt_sub_t *sub = list_vp_get_data( ln );
-	        
+
 	        if( transmit_subscribe( MQTT_MSG_SUBSCRIBE_KV, sub->topic, 0 ) < 0 ){
 	        // if( transmit_subscribe( sub->topic, sub->qos ) < 0 ){
 

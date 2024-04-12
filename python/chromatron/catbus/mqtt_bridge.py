@@ -241,7 +241,7 @@ class MqttBridge(MsgServer):
         self.mqtt_client.start()
         self.mqtt_client.connect(host='omnomnom.local')
 
-        self.mqtt_client.subscribe("chromatron_mqtt/fx_test")
+        # self.mqtt_client.subscribe("chromatron_mqtt/fx_test")
 
         self.subs = {}
 
@@ -300,23 +300,25 @@ class MqttBridge(MsgServer):
 
         # self.transmit(publish_msg, ('10.0.0.211', MQTT_BRIDGE_PORT))
         
-        meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
-        data = CatbusData(meta=meta, value=int(msg.payload))
+        # meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
+        # data = CatbusData(meta=meta, value=int(msg.payload))
 
-        kv_payload = MQTTKVPayload(data=data)
+        # kv_payload = MQTTKVPayload(data=data)
 
-        msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
-        print(msg)
+        # msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
+        # print(msg)
 
+        # print(self.subs)
         if msg.topic in self.subs:
             meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
             data = CatbusData(meta=meta, value=int(msg.payload))
 
             kv_payload = MQTTKVPayload(data=data)
 
-            msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
+            publish_msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
 
             for host in self.subs[msg.topic]:
+                print(host, publish_msg)
                 self.transmit(publish_msg, host)
         
 
@@ -328,7 +330,7 @@ class MqttBridge(MsgServer):
         self.mqtt_client.publish(msg.topic.topic, msg.payload.data.pack())  
 
     def _handle_publish_kv(self, msg, host):
-        print(msg)
+        # print(msg)
     
         self.mqtt_client.publish(msg.topic.topic, json.dumps(msg.payload.data.toBasic()['value']))
 
@@ -337,12 +339,12 @@ class MqttBridge(MsgServer):
         self.mqtt_client.subscribe(msg.topic.topic)
 
     def _handle_subscribe_kv(self, msg, host):
-        print(msg)
+        # print(msg)
 
         if msg.topic not in self.subs:
-            self.subs[msg.topic] = {}
+            self.subs[msg.topic.topic] = {}
 
-        self.subs[msg.topic][host] = SUB_TIMEOUT
+        self.subs[msg.topic.topic][host] = SUB_TIMEOUT
 
         self.mqtt_client.subscribe(msg.topic.topic)
 

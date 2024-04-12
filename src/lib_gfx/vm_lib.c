@@ -105,11 +105,11 @@ int8_t vm_lib_i8_libcall_built_in(
             // KV key
             ref.n = params[1];
             ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
-            str2 = (char *)ptr;
+            str2 = (char *)ptr; 
 
             log_v_info_P(PSTR("%s %s"), str, str2);
 
-            // *result = mqtt_client_i8_publish_data( str, &meta, &temp0, 0, FALSE );
+            *result = mqtt_client_i8_subscribe_kv( str, str2, 0 );
 
             break;
  
