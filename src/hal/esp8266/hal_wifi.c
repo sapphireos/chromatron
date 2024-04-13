@@ -1204,7 +1204,7 @@ PT_BEGIN( pt );
                 snprintf_P( &mac[2], 3, PSTR("%02x"), wifi_mac[4] ); 
                 snprintf_P( &mac[4], 3, PSTR("%02x"), wifi_mac[5] );
 
-                strncat( ap_ssid, mac, sizeof(ap_ssid) );
+                strncat( ap_ssid, mac, sizeof(ap_ssid) - 1 );
 
                 strlcpy_P( ap_pass, PSTR("12345678"), sizeof(ap_pass) );
 
