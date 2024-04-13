@@ -479,10 +479,10 @@ PT_BEGIN( pt );
 	        ln = list_ln_next( ln );        
 	    }    	
 
-	   	uint32_t value = counter;
-	   	counter++;
+	   	// uint32_t value = counter;
+	   	// counter++;
 	   	
-	   	mqtt_client_i8_publish( PSTR("chromatron_mqtt/test_value"), &value, sizeof(value), 0, FALSE );
+	   	// mqtt_client_i8_publish( PSTR("chromatron_mqtt/test_value"), &value, sizeof(value), 0, FALSE );
 		
 
 		transmit_status();
