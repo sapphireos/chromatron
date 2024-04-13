@@ -514,14 +514,19 @@ class Chromatron(object):
         # change vm program
         if vm_index == 0:
             vm_prog_slot = 'vm_prog'
+            vm_run = 'vm_run'
+            vm_reset = 'vm_reset'
+
         else:
-            vm_prog_slot = 'vm_prog_%d' % (vm_index)
+            vm_prog_slot = f'vm_prog_{vm_index}'
+            vm_run = f'vm_run_{vm_index}'
+            vm_reset = f'vm_reset_{vm_index}'
 
         if start:
-            self.set_keys(**{vm_prog_slot: bin_filename, 'vm_run': True, 'vm_reset': True})
+            self.set_keys(**{vm_prog_slot: bin_filename, vm_run: True, vm_reset: True})
 
         else:
-            self.set_keys({vm_prog_slot: bin_filename, 'vm_run': False})
+            self.set_keys({vm_prog_slot: bin_filename, vm_run: False})
 
     def reset_vm(self, vm_index=0):
         if vm_index == 0:
