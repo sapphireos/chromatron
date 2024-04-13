@@ -239,6 +239,39 @@ int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t dat
 	return publish( MQTT_MSG_PUBLISH, topic, data, data_len, qos, retain );
 }
 
+int8_t mqtt_client_i8_publish_kv( const char *topic, const char *key, uint8_t qos, bool retain ){
+
+	uint32_t kv_hash = hash_u32_string( (char *)key );	
+
+	catbus_meta_t meta;
+
+	if( kv_i8_get_catbus_meta( kv_hash, &meta ) < 0 ){
+
+		log_v_error_P( PSTR("Key: %s not found"), key );
+
+		return -1;
+	}
+
+	// watch for possible stack overflows if we increase this
+	uint8_t buf[MQTT_MAX_PAYLOAD_LEN];	
+
+	uint16_t payload_len = sizeof(catbus_meta_t);
+
+	memcpy( buf, &meta, payload_len );
+
+	uint16_t data_len = type_u16_size( meta.type );
+	payload_len += data_len;
+
+	if( kv_i8_get( kv_hash, &buf[sizeof(catbus_meta_t)], data_len ) < 0 ){
+
+		log_v_error_P( PSTR("KV error: %s"), key );
+
+		return -2;
+	}
+
+	return publish( MQTT_MSG_PUBLISH_KV, topic, buf, payload_len, qos, retain );
+}
+
 int8_t transmit_subscribe( uint8_t msgtype, const char *topic, uint8_t qos ){
 
 	uint16_t topic_len = strlen( topic );
