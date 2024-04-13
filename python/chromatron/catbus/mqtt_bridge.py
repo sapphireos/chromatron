@@ -199,7 +199,8 @@ MQTT_MSG_SUBSCRIBE_KV     = 31
 class MqttSubscribeKVMsg(StructField):
     def __init__(self, **kwargs):
         fields = [MQTTMsgHeader(_name="header"),
-                  MQTTTopic(_name="topic")]
+                  MQTTTopic(_name="topic"),
+                  CatbusMeta(_name="meta")]
 
         super().__init__(_name="mqtt_subscribe_kv", _fields=fields, **kwargs)
 
@@ -339,7 +340,7 @@ class MqttBridge(MsgServer):
         self.mqtt_client.subscribe(msg.topic.topic)
 
     def _handle_subscribe_kv(self, msg, host):
-        # print(msg)
+        print(msg)
 
         if msg.topic not in self.subs:
             self.subs[msg.topic.topic] = {}

@@ -272,12 +272,19 @@ int8_t mqtt_client_i8_publish_kv( const char *topic, const char *key, uint8_t qo
 	return publish( MQTT_MSG_PUBLISH_KV, topic, buf, payload_len, qos, retain );
 }
 
-int8_t transmit_subscribe( uint8_t msgtype, const char *topic, uint8_t qos ){
+int8_t transmit_subscribe( uint8_t msgtype, const char *topic, catbus_meta_t *meta, uint8_t qos ){
 
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
 
 	uint16_t msg_len = sizeof(mqtt_msg_subscribe_t) + sizeof(uint8_t) + topic_len;
+
+	if( msgtype == MQTT_MSG_SUBSCRIBE_KV ){
+
+		ASSERT( meta != 0 );
+
+		msg_len += sizeof(catbus_meta_t);
+	}
 
 	mem_handle_t h = mem2_h_alloc( msg_len );
 
@@ -295,6 +302,14 @@ int8_t transmit_subscribe( uint8_t msgtype, const char *topic, uint8_t qos ){
 	*ptr = topic_len;
 	ptr++;
 	memcpy( ptr, topic, topic_len );
+	ptr += topic_len;
+
+	// if a KV message, attach meta data
+	if( msgtype == MQTT_MSG_SUBSCRIBE_KV ){
+
+		memcpy( ptr, meta, sizeof(catbus_meta_t) );
+		ptr += sizeof(catbus_meta_t);
+	}
 	
 	mqtt_msg_header_t *header = (mqtt_msg_header_t *)msg;
 
@@ -353,7 +368,7 @@ int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish
 
     list_v_insert_tail( &sub_list, ln );
 
-	transmit_subscribe( MQTT_MSG_SUBSCRIBE, topic, qos );
+	transmit_subscribe( MQTT_MSG_SUBSCRIBE, topic, 0, qos );
 
 	return 0;
 }
@@ -379,6 +394,15 @@ int8_t mqtt_client_i8_subscribe_kv( const char *topic, const char *key, uint8_t 
 
     // not subscribed, create new subscription
     uint32_t kv_hash = hash_u32_string( (char *)key );
+
+    catbus_meta_t meta;
+
+	if( kv_i8_get_catbus_meta( kv_hash, &meta ) < 0 ){
+
+		log_v_error_P( PSTR("Key: %s not found"), key );
+
+		return -1;
+	}
 	
 	mqtt_sub_t new_sub = {
 		{ 0 },
@@ -400,7 +424,7 @@ int8_t mqtt_client_i8_subscribe_kv( const char *topic, const char *key, uint8_t 
 
     list_v_insert_tail( &sub_list, ln );
 
-	transmit_subscribe( MQTT_MSG_SUBSCRIBE_KV, topic, qos );
+	transmit_subscribe( MQTT_MSG_SUBSCRIBE_KV, topic, &meta, qos );
 
 	return 0;
 }
@@ -470,7 +494,19 @@ PT_BEGIN( pt );
 
 	        mqtt_sub_t *sub = list_vp_get_data( ln );
 
-	        if( transmit_subscribe( MQTT_MSG_SUBSCRIBE_KV, sub->topic, 0 ) < 0 ){
+	        catbus_meta_t meta = { 0 };
+
+	        if( sub->kv_hash != 0 ){
+
+				if( kv_i8_get_catbus_meta( sub->kv_hash, &meta ) < 0 ){
+
+					log_v_error_P( PSTR("Key for topic: %s not found"), sub->topic );
+
+					return -1;
+				}
+			}
+
+	        if( transmit_subscribe( MQTT_MSG_SUBSCRIBE_KV, sub->topic, &meta, 0 ) < 0 ){
 	        // if( transmit_subscribe( sub->topic, sub->qos ) < 0 ){
 
 	        	log_v_debug_P( PSTR("sub fail") );
