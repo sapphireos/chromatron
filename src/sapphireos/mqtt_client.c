@@ -22,6 +22,7 @@
 // </license>
  */
 
+#include "flash_fs_partitions.h"
 #include "sapphire.h"
 #include "config.h"
 
@@ -54,7 +55,13 @@ On the client, they are held until the client unsubscribes from the topic.
 
 Generally topics will live as flash strings.
 
+Topic wildcards:
+
+
+
+
 */
+
 
 
 #ifdef ENABLE_CONTROLLER
@@ -106,7 +113,6 @@ KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
 
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_client_server_thread( pt_t *pt, void *state ) );
-
 
 void mqtt_client_v_init( void ){
 
@@ -216,6 +222,105 @@ static int8_t publish( uint8_t msgtype, const char *topic, const void *data, uin
 
 	return 0;
 }
+
+
+bool mqtt_b_match_topic( const char *topic, const char *sub ){
+
+    /*
+
+    Wildcards:
+
+    + matches at that level of hierarchy.
+    # matches all remaining levels.
+
+
+    Thus, if we are a match so far and get to a #, we have a match.
+
+    The sub is matched against the topic.  The sub can have wildcards,
+    but the topic can't.  Typical usage would be passing the published
+    topic as topic and the subscription topic to match against is sub.
+
+    */
+
+    // check lengths of inputs:
+    if( strnlen( topic, MQTT_MAX_TOPIC_LEN ) >= MQTT_MAX_TOPIC_LEN ){
+
+        return FALSE;
+    }
+
+    if( strnlen( sub, MQTT_MAX_TOPIC_LEN ) >= MQTT_MAX_TOPIC_LEN ){
+
+        return FALSE;
+    }
+
+
+    // check for nulls
+    if( ( *topic == 0 ) || ( *sub == 0 ) ){
+
+        return FALSE;
+    }
+
+    while( ( *topic != 0 ) || ( *sub != 0 ) ){
+
+        // printf("%c %c\n", *topic, *sub);
+
+        // topic cannot have wildcards, only sub can:
+        if( ( *topic == '+' ) || ( *topic == '#' ) ){
+
+            return FALSE;
+        }
+        // check for #, this matches everything after this point, so we can return now
+        else if( *sub == '#' ){
+
+            // # wildcard must be the end of the string
+            if( sub[1] != 0 ){
+
+                return FALSE;
+            }
+
+            return TRUE;
+        }
+        else if( *sub == '+'){
+
+            // printf("meow +\n");
+
+            // match everything in topic at this level until the next /
+            // and then move on to the next level
+            // OR
+            // if topic gets to null before a / (IE the string ends), we match
+            while( *topic != '/' ){
+
+                if( *topic == 0 ){
+
+                    return TRUE;
+                }
+
+                topic++;
+            }
+
+            sub++;
+
+            continue;
+        }
+        // check for character mismatch
+        else if( *topic != *sub ){
+
+            return FALSE;
+        }
+
+        topic++;
+        sub++;
+    }
+
+    if( *topic != *sub ){
+
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+
 
 int8_t mqtt_client_i8_publish_data( const char *topic, catbus_meta_t *meta, const void *data, uint8_t qos, bool retain ){
 
@@ -710,912 +815,95 @@ PT_END( pt );
 }
 
 
-// typedef struct __attribute__((packed)){
-// 	ip_addr4_t ip;
-// 	catbus_query_t query;
-// 	uint16_t service_flags;
-// 	uint16_t timeout;
-// } follower_t;
-
-// static list_t follower_list;
-
-
-// PT_THREAD( controller_state_thread( pt_t *pt, void *state ) );
-// PT_THREAD( controller_server_thread( pt_t *pt, void *state ) );
-// PT_THREAD( controller_timeout_thread( pt_t *pt, void *state ) );
-
-
-// static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
-
-//     // the pos and len values are already bounds checked by the FS driver
-//     switch( op ){
-
-//         case FS_VFILE_OP_READ:
-//             len = list_u16_flatten( &follower_list, pos, ptr, len );
-//             break;
-
-//         case FS_VFILE_OP_SIZE:
-//             len = list_u16_size( &follower_list );
-//             break;
-
-//         default:
-//             len = 0;
-//             break;
-//     }
-
-//     return len;
-// }
-
-// static PGM_P get_state_name( uint8_t state ){
-
-// 	if( state == STATE_IDLE ){
-
-// 		return PSTR("idle");
-// 	}
-// 	else if( state == STATE_VOTER ){
-
-// 		return PSTR("voter");
-// 	}
-// 	else if( state == STATE_FOLLOWER ){
-
-// 		return PSTR("follower");
-// 	}
-// 	else if( state == STATE_CANDIDATE ){
-
-// 		return PSTR("candidate");
-// 	}
-// 	else if( state == STATE_LEADER ){
-
-// 		return PSTR("leader");
-// 	}
-// 	else{
-
-// 		return PSTR("unknown");
-// 	}
-// }
-
-// static void apply_state_name( void ){
-
-// 	strncpy_P( state_name.str, get_state_name( controller_state ), sizeof(state_name.str) );
-// }
-
-// static void _set_state( uint8_t state ){
-
-// 	// if( controller_state != state ){
-
-// 	// 	log_v_debug_P( PSTR("changing state from %d to %d"), controller_state, state );
-// 	// }
-
-// 	controller_state = state;
-// 	apply_state_name();
-// }
-
-// #define set_state( state )
-// 	if( controller_state != state ){ log_v_debug_P( PSTR("changing state from %s to %s"), get_state_name( controller_state ), get_state_name( state ) ); } 
-// 	_set_state( state )
-
-// static void update_follower_timeouts( void ){
-
-// 	list_node_t ln = follower_list.head;
-
-//     while( ln > 0 ){
-
-//         list_node_t next_ln = list_ln_next( ln );
-
-//         follower_t *follower = (follower_t *)list_vp_get_data( ln );
-
-//         if( follower->timeout > 0 ){
-
-//         	follower->timeout--;
-
-//         	if( follower->timeout == 0 ){
-
-// 	    		log_v_debug_P( PSTR("Follower timed out: %d.%d.%d.%d"),
-// 					follower->ip.ip3, 
-// 					follower->ip.ip2, 
-// 					follower->ip.ip1, 
-// 					follower->ip.ip0
-// 				 );
-
-//         		list_v_remove( &follower_list, ln );
-// 	            list_v_release_node( ln );
-//         	}
-//         }
-
-//         ln = next_ln;
-//     }	
-// }
-
-// static void remove_follower( ip_addr4_t follower_ip ){
-
-// 	list_node_t ln = follower_list.head;
-
-//     while( ln > 0 ){
-
-//         list_node_t next_ln = list_ln_next( ln );
-
-//         follower_t *follower = (follower_t *)list_vp_get_data( ln );
-
-//         if( ip_b_addr_compare( follower_ip, follower->ip ) ){
-
-//         	log_v_debug_P( PSTR("Removing follower: %d.%d.%d.%d"),
-// 				follower_ip.ip3, 
-// 				follower_ip.ip2, 
-// 				follower_ip.ip1, 
-// 				follower_ip.ip0
-// 			);
-
-//     		list_v_remove( &follower_list, ln );
-//             list_v_release_node( ln );
-//         }
-
-//         ln = next_ln;
-//     }	
-// }
-
-// static void update_follower( ip_addr4_t follower_ip, controller_msg_status_t *msg ){
-
-// 	// search for follower:
-// 	// if found, update
-// 	// if not found, add
-// 	list_node_t ln = follower_list.head;
-
-//     while( ln > 0 ){
-
-//         list_node_t next_ln = list_ln_next( ln );
-
-//         follower_t *follower = (follower_t *)list_vp_get_data( ln );
-
-//         if( ip_b_addr_compare( follower_ip, follower->ip ) ){
-
-//         	follower->service_flags = msg->service_flags;
-//         	follower->query 		= msg->query;
-//         	follower->timeout 		= CONTROLLER_FOLLOWER_TIMEOUT;
-
-//         	return;
-//         }
-
-//         ln = next_ln;
-//     }		
-
-//     follower_t follower = {
-//     	follower_ip,
-//     	msg->query,
-//     	msg->service_flags,
-// 		CONTROLLER_FOLLOWER_TIMEOUT,
-//     };
-
-//     // not found, add:
-//     ln = list_ln_create_node( &follower, sizeof(follower) );
-
-//     if( ln < 0 ){
-
-//         return;
-//     }
-
-//  	list_v_insert_tail( &follower_list, ln );   
-// }
-
-// static void reset_leader( void ){
-
-// 	leader_ip = ip_a_addr(0,0,0,0);
-// 	leader_priority = 0;
-// 	leader_follower_count = 0;
-// 	leader_flags = 0;
-// 	leader_uptime = 0;
-// }
-
-// static uint16_t get_follower_count( void ){
-
-// 	return list_u8_count( &follower_list );
-// }
-
-// static uint16_t get_priority( void ){
-
-// 	// check if leader is enabled, if not, return 0 and we are follower only
-// 	if( !controller_enabled ){
-
-// 		return 0;
-// 	}
-
-// 	uint16_t priority = 0;
-
-// 	// set base priorities
-
-// 	#ifdef ESP32
-// 	priority = 256;
-// 	#else
-// 	priority = 128;
-// 	#endif
-
-// 	return priority;
-// }
-
-// static void vote( ip_addr4_t ip, uint16_t priority, uint16_t follower_count, uint8_t flags ){
-
-// 	bool leader_change = !ip_b_addr_compare( ip, leader_ip );
-
-// 	// check state:
-// 	if( controller_state == STATE_IDLE ){
-
-// 		// we have a candidate, now we vote for it:
-// 		if( flags & CONTROLLER_FLAGS_IS_LEADER ){
-			
-// 			set_state( STATE_FOLLOWER );
-// 		}
-// 		else{
-
-// 			set_state( STATE_VOTER );
-// 		}
-// 	}
-// 	else if( controller_state == STATE_FOLLOWER ){
-		
-// 		if( leader_change ){
-
-// 			log_v_debug_P( PSTR("leader change, still a follower") );	
-// 		}
-// 	}
-// 	else if( controller_state == STATE_CANDIDATE ){
-
-// 		// if candidate change, and we are no longer the candidate,
-// 		// switch to voter state
-// 		if( leader_change && 
-// 			!ip_b_addr_compare( ip, cfg_ip_get_ipaddr() ) ){
-
-// 			log_v_debug_P( PSTR("voter: %d.%d.%d.%d from %d.%d.%d.%d"),
-// 					ip.ip3,
-// 					ip.ip2,
-// 					ip.ip1,
-// 					ip.ip0,
-// 					leader_ip.ip3,
-// 					leader_ip.ip2,
-// 					leader_ip.ip1,
-// 					leader_ip.ip0
-// 				);
-
-// 			set_state( STATE_VOTER );
-// 		}
-// 	}
-// 	else if( controller_state == STATE_LEADER ){
-
-// 		if( leader_change ){
-
-// 			set_state( STATE_VOTER );
-// 		}
-// 	}
-// 	else if( controller_state == STATE_VOTER ){
-
-// 		if( !leader_change ){
-
-// 			if( flags & CONTROLLER_FLAGS_IS_LEADER ){
-		
-// 				set_state( STATE_FOLLOWER );	
-// 			}
-// 		}
-// 	}
-// 	else{
-
-// 		log_v_debug_P( PSTR("vote on unhandled state: %d"), controller_state );
-// 	}
-
-
-// 	leader_ip = ip;
-// 	leader_priority = priority;
-// 	leader_follower_count = follower_count;
-// 	leader_timeout = CONTROLLER_FOLLOWER_TIMEOUT;
-// 	leader_flags = flags;
-// }
-
-// static void vote_self( void ){
-
-// 	uint8_t flags = 0;
-
-// 	if( controller_state == STATE_LEADER ){
-
-// 		flags |= CONTROLLER_FLAGS_IS_LEADER;
-// 	}
-
-// 	log_v_debug_P( PSTR("voting self") );
-
-// 	vote( cfg_ip_get_ipaddr(), get_priority(), get_follower_count(), flags );
-// }
-
-// void controller_v_init( void ){
-
-// 	return;
-
-// 	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-// 		return;
-//     }
-
-//     list_v_init( &follower_list );	
-
-//     // create vfile
-//     fs_f_create_virtual( PSTR("directory"), vfile );
-
-//     // create socket
-//     sock = sock_s_create( SOS_SOCK_DGRAM );
-
-//     ASSERT( sock >= 0 );
-
-//     sock_v_bind( sock, CONTROLLER_PORT );
-
-//     thread_t_create( controller_server_thread,
-//                      PSTR("controller_server"),
-//                      0,
-//                      0 );
-
-
-//     thread_t_create( controller_state_thread,
-//                      PSTR("controller_state_machine"),
-//                      0,
-//                      0 );
-
-//     thread_t_create( controller_timeout_thread,
-//                      PSTR("controller_timeout"),
-//                      0,
-//                      0 );
-// }
-
-// // static bool is_candidate( void ){
-
-// // 	return controller_enabled && ip_b_is_zeroes( leader_ip );
-// // }
-
-// static void send_msg( uint8_t msgtype, uint8_t *msg, uint8_t len, sock_addr_t *raddr ){
-
-// 	controller_header_t *header = (controller_header_t *)msg;
-
-// 	header->magic 		= CONTROLLER_MSG_MAGIC;
-// 	header->version 	= CONTROLLER_MSG_VERSION;
-// 	header->msg_type 	= msgtype;
-// 	header->reserved    = 0;
-
-// 	sock_i16_sendto( sock, msg, len, raddr );
-// }
-
-// static void send_announce( void ){
-
-// 	if( ( controller_state != STATE_CANDIDATE ) &&
-// 		( controller_state != STATE_LEADER ) ){
-
-// 		log_v_error_P( PSTR("cannot send announce, invalid state!") );
-
-// 		return;
-// 	}
-
-//     uint16_t flags = 0;
-
-//     if( controller_state == STATE_LEADER ){
-
-//     	flags |= CONTROLLER_FLAGS_IS_LEADER;
-//     }
-
-// 	controller_msg_announce_t msg = {
-// 		{ 0 },
-// 		flags,
-// 		get_priority(),
-// 		get_follower_count(),
-// 		// tmr_u64_get_system_time_us(),
-// 		// cfg_u64_get_device_id(),
-// 	};
-
-// 	sock_addr_t raddr;
-//     raddr.ipaddr = ip_a_addr(255, 255, 255, 255);
-//     raddr.port = CONTROLLER_PORT;
-
-// 	send_msg( CONTROLLER_MSG_ANNOUNCE, (uint8_t *)&msg, sizeof(msg), &raddr );
-// }
-
-// static void send_status( void ){
-
-// 	if( controller_state == STATE_LEADER ){
-
-// 		log_v_error_P( PSTR("cannot send status as leader!") );
-
-// 		return;
-// 	}
-
-// 	if( ip_b_is_zeroes( leader_ip ) ){
-
-// 		log_v_error_P( PSTR("cannot send status, no leader!") );
-
-// 		return;
-// 	}
-
-// 	controller_msg_status_t msg = {
-// 		{ 0 },
-// 	};
-
-// 	catbus_v_get_query( &msg.query );
-
-// 	sock_addr_t raddr;
-//     raddr.ipaddr = leader_ip;
-//     raddr.port = CONTROLLER_PORT;
-
-// 	send_msg( CONTROLLER_MSG_STATUS, (uint8_t *)&msg, sizeof(msg), &raddr );
-// }
-
-// static void send_leave( void ){
-
-// 	if( controller_state == STATE_LEADER ){
-
-// 		log_v_error_P( PSTR("cannot send leave as leader!") );
-
-// 		return;
-// 	}
-
-// 	if( ip_b_is_zeroes( leader_ip ) ){
-
-// 		log_v_error_P( PSTR("cannot send leave, no leader!") );
-
-// 		return;
-// 	}
-
-// 	controller_msg_leave_t msg = {
-// 		{ 0 },
-// 	};
-
-// 	sock_addr_t raddr;
-//     raddr.ipaddr = leader_ip;
-//     raddr.port = CONTROLLER_PORT;
-
-// 	send_msg( CONTROLLER_MSG_LEAVE, (uint8_t *)&msg, sizeof(msg), &raddr );
-// }
-
-// static void send_drop( ip_addr4_t ip ){
-
-// 	controller_msg_drop_t msg = {
-// 		{ 0 },
-// 	};
-
-// 	sock_addr_t raddr;
-//     raddr.ipaddr = ip;
-//     raddr.port = CONTROLLER_PORT;
-
-// 	send_msg( CONTROLLER_MSG_DROP, (uint8_t *)&msg, sizeof(msg), &raddr );
-// }
-
-// static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr ){
-
-// 	uint8_t reason = 0;
-// 	bool update_leader = FALSE;
-
-// 	// check if this is the first leader/candidate we've seen
-// 	if( ip_b_is_zeroes( leader_ip ) ){
-
-// 		reason = 1;
-// 		update_leader = TRUE;
-// 	}
-// 	// check if already tracking this leader:
-// 	else if( ip_b_addr_compare( raddr->ipaddr, leader_ip ) ){
-
-// 		reason = 2;
-// 		update_leader = TRUE;
-// 	}
-// 	// check better priority:
-// 	else if( msg->priority > leader_priority ){
-
-// 		reason = 3;
-// 		update_leader = TRUE;
-// 	}
-// 	// check same priority
-// 	else if( msg->priority == leader_priority ){
-
-// 		// is follower count better?
-// 		if( msg->follower_count > leader_follower_count ){
-
-// 			reason = 4;
-// 			update_leader = TRUE;	
-// 		}
-// 		// is follower count the same?
-// 		else if( msg->follower_count == leader_follower_count ){
-
-// 			// choose lowest IP to resolve an 
-// 			// even follower count.
-// 			uint32_t msg_ip_u32 = ip_u32_to_int( raddr->ipaddr );
-// 			uint32_t leader_ip_u32 = ip_u32_to_int( leader_ip );
-
-// 			if( msg_ip_u32 < leader_ip_u32 ){
-
-// 				reason = 5;
-// 				update_leader = TRUE;	
-// 			}
-// 		}
-// 	}
-
-// 	if( update_leader ){
-
-// 		// check if switching leaders
-// 		if( !ip_b_addr_compare( leader_ip, raddr->ipaddr ) ){
-
-// 			log_v_debug_P( PSTR("Switching leader to: %d.%d.%d.%d from %d.%d.%d.%d reason: %d flags: 0x%0x followers: %d"),
-// 				raddr->ipaddr.ip3, 
-// 				raddr->ipaddr.ip2, 
-// 				raddr->ipaddr.ip1, 
-// 				raddr->ipaddr.ip0,
-// 				leader_ip.ip3,
-// 				leader_ip.ip2,
-// 				leader_ip.ip1,
-// 				leader_ip.ip0,
-// 				reason,
-// 				msg->flags,
-// 				msg->follower_count
-// 			);
-
-// 			// check if we were *a* leader, but this one is better
-// 			if( ip_b_addr_compare( cfg_ip_get_ipaddr(), leader_ip ) &&
-// 					( controller_state == STATE_LEADER ) ){
-
-// 				log_v_debug_P( PSTR("Dropping all followers") );
-
-// 				// drop followers
-// 				send_drop( ip_a_addr(255,255,255,255) );
-// 				send_drop( ip_a_addr(255,255,255,255) );
-// 				send_drop( ip_a_addr(255,255,255,255) );
-
-// 				list_v_destroy( &follower_list );
-// 			}
-// 			// if we were tracking a pre-existing leader (that is not us),
-// 			// inform it that we are leaving.
-// 			else if( !ip_b_is_zeroes( leader_ip ) && !ip_b_addr_compare( cfg_ip_get_ipaddr(), leader_ip ) ){
-
-// 				log_v_debug_P( PSTR("Leaving previous leader: %d.%d.%d.%d"),
-// 					leader_ip.ip3,
-// 					leader_ip.ip2,
-// 					leader_ip.ip1,
-// 					leader_ip.ip0
-// 				);
-
-// 				// byeeeeeeeeee
-// 				send_leave();	
-// 			}
-// 		}
-// 	}
-
-// 	// changing leader, or updating current leader
-// 	// avoids changing leader just because we received an announce
-// 	if( update_leader || ip_b_addr_compare( raddr->ipaddr, leader_ip ) ){
-
-// 		// if( !ip_b_addr_compare( cfg_ip_get_ipaddr(), raddr->ipaddr ) ){
-			
-// 		// 	log_v_debug_P( PSTR("vote: %d.%d.%d.%d"),
-// 		// 		raddr->ipaddr.ip3, 
-// 		// 		raddr->ipaddr.ip2, 
-// 		// 		raddr->ipaddr.ip1, 
-// 		// 		raddr->ipaddr.ip0
-// 		// 	);
-// 		// }
-
-// 		vote( raddr->ipaddr, msg->priority, msg->follower_count, msg->flags );
-// 	}
-// }
-
-
-// static void process_status( controller_msg_status_t *msg, sock_addr_t *raddr ){
-
-// 	if( controller_state != STATE_LEADER ){
-
-// 		// we are not a leader, we don't care about status.
-
-// 		// this is mostly erroneous, the sender will
-// 		// figure out we aren't a leader eventually.
-// 		// we won't send a drop message in this case
-// 		// since we aren't changing our own state.
-
-// 		return;
-// 	}
-
-// 	// add or update this node's tracking information
-// 	update_follower( raddr->ipaddr, msg );
-// }
-
-// static void process_leave( controller_msg_leave_t *msg, sock_addr_t *raddr ){
-
-// 	if( controller_state != STATE_LEADER ){
-
-// 		// we are are not a leader, we don't care about leave.
-
-// 		return;
-// 	}
-
-// 	// remove this node from tracking
-// 	remove_follower( raddr->ipaddr );
-// }
-
-// static void process_drop( controller_msg_drop_t *msg, sock_addr_t *raddr ){
-
-// 	// check if this is from our leader
-// 	if( ip_b_addr_compare( leader_ip, raddr->ipaddr ) ){
-
-// 		log_v_debug_P( PSTR("Dropping leader: %d.%d.%d.%d"),
-// 			raddr->ipaddr.ip3, 
-// 			raddr->ipaddr.ip2, 
-// 			raddr->ipaddr.ip1, 
-// 			raddr->ipaddr.ip0
-// 		);
-
-// 		reset_leader();
-// 		set_state( STATE_IDLE );
-// 	}
-// }
-
-// PT_THREAD( controller_server_thread( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
-   	
-//    	while(1){
-
-//         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
-
-//         if( sys_b_is_shutting_down() ){
-
-//         	THREAD_EXIT( pt );
-//         }
-
-//         if( sock_i16_get_bytes_read( sock ) <= 0 ){
-
-//             goto end;
-//         }
-
-//         controller_header_t *header = sock_vp_get_data( sock );
-
-//         // verify message
-//         if( header->magic != CONTROLLER_MSG_MAGIC ){
-
-//             goto end;
-//         }
-
-//         if( header->version != CONTROLLER_MSG_VERSION ){
-
-//             goto end;
-//         }
-
-//         sock_addr_t raddr;
-//         sock_v_get_raddr( sock, &raddr );
-
-//         if( header->msg_type == CONTROLLER_MSG_ANNOUNCE ){
-
-//         	process_announce( (controller_msg_announce_t *)header, &raddr );
-//         }
-//         else if( header->msg_type == CONTROLLER_MSG_DROP ){
-
-//         	process_drop( (controller_msg_drop_t *)header, &raddr );
-//         }
-//         else if( header->msg_type == CONTROLLER_MSG_STATUS ){
-
-//         	process_status( (controller_msg_status_t *)header, &raddr );
-//         }
-//         else if( header->msg_type == CONTROLLER_MSG_LEAVE ){
-
-//         	process_leave( (controller_msg_leave_t *)header, &raddr );
-//         }
-//         else{
-
-//         	// invalid message
-//         	log_v_error_P( PSTR("Invalid msg: %d"), header->msg_type );
-//         }
-
-
-//     end:
-
-//     	THREAD_YIELD( pt );
-// 	}
+/*
+
+Test cases for match topic:
+
+
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+
+#define FALSE false
+#define TRUE true
+
+#define MQTT_MAX_TOPIC_LEN      16
+
+typedef struct{
+    char *topic;
+    char *sub;
+    bool should_match;
+} mqtt_match_test_t;
+
+static mqtt_match_test_t tests[] = {
+    {"a/b/c/d", "a/b/c/d", TRUE},
+    {"a/b/c/d", "+/b/c/d", TRUE},
+    {"a/b/c/d", "a/+/c/d", TRUE},
+    {"a/b/c/d", "a/+/+/d", TRUE},
+    {"a/b/c/d", "+/+/+/+", TRUE},
+    {"a/b/c/d", "a/b/c",   FALSE},
+    {"a/b/c/d", "b/+/c/d", FALSE},
+    {"a/b/c/d", "+/+/",    FALSE},
+    {"a/b/c/d", "#",       TRUE},
+    {"a/b/c/d", "a/#",     TRUE},
+    {"a/b/c/d", "a/b/#",   TRUE},
+    {"a/b/c/d", "a/b/c/#", TRUE},
+    {"a/b/c/d", "+/b/c/#", TRUE},
+
+    {"aa/bb/cc/dd", "aa/bb/cc/dd", TRUE},
+    {"aa/bb/cc/dd", "+/bb/cc/dd", TRUE},
+    {"aa/bb/cc/dd", "aa/+/cc/dd", TRUE},
+    {"aa/bb/cc/dd", "aa/+/+/dd", TRUE},
+    {"aa/bb/cc/dd", "+/+/+/+", TRUE},
+    {"aa/bb/cc/dd", "aa/bb/c",   FALSE},
+    {"aa/bb/cc/dd", "bb/+/cc/dd", FALSE},
+    {"aa/bb/cc/dd", "+/+/",    FALSE},
+    {"aa/bb/cc/dd", "#",       TRUE},
+    {"aa/bb/cc/dd", "aa/#",     TRUE},
+    {"aa/bb/cc/dd", "aa/bb/#",   TRUE},
+    {"aa/bb/cc/dd", "aa/bb/cc/#", TRUE},
+    {"aa/bb/cc/dd", "+/bb/cc/#", TRUE},
+
+    {"aa/bb/cc/dd", "+/+/#",    TRUE},
+    {"aa/bb/cc/dd", "aa/bb/cc/#d", FALSE},
+
+    {"aa/bb/cc/dd", "aa/bb/cc/dd", TRUE},
+    {"aa/bb/cc/dd", "aa/+/cc/dd", TRUE},
+    {"aa/bb/cc/dd", "aa/bb/+/dd", TRUE},
+    {"aa/bb/cc/de", "aa/bb/cc/+", TRUE},
+    {"aa/bb/cc/dd", "aa/#", TRUE},
+
+    {"a//topic", "a/+/topic", TRUE},
+    {"/a/topic", "+/a/topic", TRUE},
+    {"/a/topic", "#", TRUE},
+    {"/a/topic", "/#", TRUE},
+
+    {"a/topic/", "a/topic/+", TRUE},
+    {"a/topic/", "a/topic/#", TRUE},
+
+    {"aaaabbbbccccdddd", "#", FALSE},
+    {"aaaabbbbccccddd", "aaaabbbbccccddd#", FALSE},
     
-// PT_END( pt );
-// }
+};
 
-
-// PT_THREAD( controller_state_thread( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
-
-// 	static uint32_t start_time;
-
-// 	// start in idle state, to wait for announce messages
-// 	set_state( STATE_IDLE );
-// 	reset_leader();
-
-// 	// wait for wifi
-// 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
-
-// 	log_v_debug_P( PSTR("controller idle") );
-
-// 	// wait for timeout or leader/candidate is available
-// 	thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_IDLE_TIMEOUT * 1000 );
-// 	// THREAD_WAIT_WHILE( thread_b_alarm_set() );
-// 	THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && controller_state == STATE_IDLE );
-
-// 	// on timeout, if still in idle state
-// 	if( thread_b_alarm() && ( controller_state == STATE_IDLE ) ){
-// 		// timeout!
-
-// 		// check if leader is enabled:
-// 		if( controller_enabled ){
-
-// 			set_state( STATE_CANDIDATE );
-// 			reset_leader();	
-			
-// 			vote_self();		
-// 		}
-// 		// else if( !ip_b_is_zeroes( leader_ip ) ){
-
-// 		// 	// we have a candidate leader
-// 		// 	set_state( STATE_VOTER );
-			
-
-// 		// }
-// 		else{
-
-// 			set_state( STATE_IDLE );
-// 			reset_leader();	
-// 		}
-// 	}
-// 	else{
-
-// 		// state change
-// 	}
-
-// 	while( controller_state != STATE_IDLE ){
-
-// 		// VOTER
-// 		while( controller_state == STATE_VOTER ){
-
-// 			// thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_ELECTION_TIMEOUT * 1000 );
-// 			// THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_VOTER ) );
-// 			THREAD_WAIT_WHILE( pt, ( controller_state == STATE_VOTER )  );
-
-// 			// if( thread_b_alarm() ){
-				
-// 			// 	log_v_debug_P( PSTR("timeout") );
-
-// 			// 	// reset to idle
-// 			// 	set_state( STATE_IDLE );
-// 			// 	reset_leader();
-// 			// }
-// 			// else{
-
-// 			// 	log_v_debug_P( PSTR("state: %d"), controller_state );
-// 			// }	
-// 		}
-
-// 		// FOLLOWER
-// 		while( controller_state == STATE_FOLLOWER ){
-
-// 			thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 + ( rnd_u16_get_int() >> 5 )  ); // 2000 - 4048 ms
-// 			THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_FOLLOWER ) );
-
-// 			if( controller_state == STATE_FOLLOWER ){
-			
-// 				send_status();
-// 			}
-// 		}
-
-// 		// CANDIDATE
-// 		start_time = tmr_u32_get_system_time_ms();
-// 		while( controller_state == STATE_CANDIDATE ){
-
-// 			// broadcast announcement
-// 			send_announce();
-
-// 			// random delay:
-// 			thread_v_set_alarm( tmr_u32_get_system_time_ms() + 
-// 				500 + ( rnd_u16_get_int() >> 7 )  ); // 500 - 1012 ms
-			
-// 			THREAD_WAIT_WHILE( pt, 
-// 				thread_b_alarm_set() && 
-// 				( controller_state == STATE_CANDIDATE ) );
-
-// 			// check if we are leader after timeout
-// 			if( ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) &&
-// 				tmr_u32_elapsed_time_ms( start_time ) > CONTROLLER_ELECTION_TIMEOUT * 1000 ){
-
-// 				log_v_debug_P( PSTR("Electing self as leader") );
-
-// 				set_state( STATE_LEADER );
-// 			}
-// 		}
-
-// 		// LEADER
-// 		while( controller_state == STATE_LEADER ){
-
-// 			// broadcast announcement
-// 			send_announce();
-
-// 			// random delay:
-// 			thread_v_set_alarm( tmr_u32_get_system_time_ms() + 
-// 				500 + ( rnd_u16_get_int() >> 7 )  ); // 500 - 1012 ms
-
-// 			THREAD_WAIT_WHILE( pt, 
-// 				thread_b_alarm_set() && 
-// 				( controller_state == STATE_LEADER ) );
-
-// 		}
-// 	}
-
-// 	THREAD_RESTART( pt );
+int main(void) {
     
-// PT_END( pt );
-// }
+    for(int i = 0; i < sizeof(tests) / sizeof(tests[0]); i++){
 
+        char* pass_fail = "FAIL";
 
-// PT_THREAD( controller_timeout_thread( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
-   	
-//    	while(1){
+        if(mqtt_b_match_topic(tests[i].topic, tests[i].sub) == tests[i].should_match){
 
-//    		THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+            pass_fail = "PASS";
+        }
 
-//    		thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 );
-//    		THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() && wifi_b_connected() );
-   		
-//    		if( sys_b_is_shutting_down() ){
+        printf("%16s -> %16s: %s\n", tests[i].topic, tests[i].sub, pass_fail);
+    }
 
-//    			if( controller_state == STATE_FOLLOWER ){
+    return 0;
+}
 
-//    				log_v_debug_P( PSTR("follower shutdown") );
-
-//    				send_leave();
-//    			}
-//    			else if( controller_state == STATE_LEADER ){
-
-//    				log_v_debug_P( PSTR("leader shutdown") );
-
-//    				// drop followers
-// 				send_drop( ip_a_addr(255,255,255,255) );
-// 				send_drop( ip_a_addr(255,255,255,255) );
-// 				send_drop( ip_a_addr(255,255,255,255) );
-//    			}
-
-//    			set_state( STATE_IDLE );
-//    			reset_leader();
-
-//         	THREAD_EXIT( pt );
-//         }
-//         else if( !wifi_b_connected() ){
-
-//         	// wifi disconnected
-//         	set_state( STATE_IDLE );
-//    			reset_leader();
-
-//    			THREAD_RESTART( pt );
-//         }
-
-//    		update_follower_timeouts();
-
-//    		if( controller_state == STATE_LEADER ){
-   			
-//    			leader_follower_count = get_follower_count();
-//    		}
-
-//    		if( ( leader_timeout > 0 ) && 
-//    			( !ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) ) ){
-
-//    			leader_timeout--;
-
-//    			if( leader_timeout == 0 ){
-
-//    				log_v_debug_P( PSTR("leader timeout") );
-
-//    				set_state( STATE_IDLE );
-
-//    				reset_leader();
-//    			}
-//    		}
-
-//    		if( ( controller_state == STATE_LEADER ) ||
-// 			( controller_state == STATE_FOLLOWER ) ){
-
-// 			leader_uptime++;
-// 		}
-// 	}
-    
-// PT_END( pt );
-// }
-
-
-
+*/
 
 #endif
