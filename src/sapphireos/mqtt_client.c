@@ -22,7 +22,6 @@
 // </license>
  */
 
-#include "flash_fs_partitions.h"
 #include "sapphire.h"
 #include "config.h"
 
@@ -77,37 +76,10 @@ static list_t sub_list;
 
 static socket_t sock;
 
-// static bool controller_enabled;
-
-// static uint8_t controller_state;
-// #define STATE_IDLE 		0
-// #define STATE_VOTER	    1
-// #define STATE_FOLLOWER 	2
-// #define STATE_CANDIDATE 3
-// #define STATE_LEADER 	4
-
-
-// static catbus_string_t state_name;
-
-// static ip_addr4_t leader_ip;
-// static uint8_t leader_flags;
-// static uint16_t leader_priority;
-// static uint16_t leader_follower_count;
-// static uint16_t leader_timeout;
-// static uint32_t leader_uptime;
-
 static ip_addr4_t broker_ip;
 
 KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
-//     { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &controller_state, 		0,  "controller_state" },
-//     { CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, &state_name,				0,  "controller_state_text" },
-//     { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_enabled, 	0,  "controller_enable_leader" },
     { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_PERSIST, &broker_ip, 				0,  "mqtt_broker_ip" },
-//     { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &leader_flags, 			0,  "controller_leader_flags" },
-//     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_follower_count, 	0,  "controller_follower_count" },
-//     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_priority, 		0,  "controller_leader_priority" },
-//     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_timeout, 		0,  "controller_leader_timeout" },
-//     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_uptime,  		0,  "controller_leader_uptime" },
 };
 
 
@@ -151,19 +123,30 @@ static sock_addr_t get_broker_raddr( void ){
 	return raddr;
 }
 
-static int16_t send_msg( mem_handle_t h ){
+static int16_t send_msg( mem_handle_t h, sock_addr_t *raddr ){
+
+	return sock_i16_sendto_m( sock, h, raddr );
+}
+
+static int16_t send_msg_to_broker( mem_handle_t h ){
 
 	sock_addr_t raddr = get_broker_raddr();
 
-	return sock_i16_sendto_m( sock, h, &raddr );
+	return send_msg( h, &raddr );
 }
 
-static int8_t publish( uint8_t msgtype, const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain ){
+static int8_t publish( 
+	uint8_t msgtype, 
+	const char *topic, 
+	const void *data, 
+	uint16_t data_len, 
+	uint8_t qos, 
+	bool retain ){
 
-	uint8_t topic_len = strlen( topic );
+	uint8_t topic_len = strnlen( topic, MQTT_MAX_TOPIC_LEN );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
 
-	uint16_t msg_len = sizeof(mqtt_msg_publish_t) + sizeof(uint16_t) + data_len + sizeof(uint8_t) + topic_len;
+	uint16_t msg_len = sizeof(mqtt_msg_publish_t) + sizeof(uint16_t) + data_len + sizeof(uint8_t) + topic_len + 1;
 
 	mem_handle_t h = mem2_h_alloc( msg_len );
 
@@ -177,11 +160,17 @@ static int8_t publish( uint8_t msgtype, const char *topic, const void *data, uin
 	// get byte pointer after headers:
 	uint8_t *ptr = (uint8_t *)( msg + 1 );
 
-	// start with topic
-	*ptr = topic_len;
+	// start with topic len, adding 1 for the null temr
+	*ptr = topic_len + 1;
 	ptr++;
+
+	// copy topic
 	memcpy( ptr, topic, topic_len );
 	ptr += topic_len;
+
+	// null terminate topic
+	*ptr = 0;
+	ptr++;
 
 	// payload len, for generic publish
 	if( msgtype == MQTT_MSG_PUBLISH ){
@@ -189,22 +178,11 @@ static int8_t publish( uint8_t msgtype, const char *topic, const void *data, uin
 		memcpy( ptr, &data_len, sizeof(data_len) );
 		ptr += sizeof(data_len);
 	}
+
 	// payload
 	memcpy( ptr, data, data_len );
 	
-	// catbus_meta_t meta = {
-	// 	0, // hash
-	// 	type, // type,
-	// 	0, // array len,
-	// 	0, // flags,
-	// 	0, // reserved
-	// };
-
-	// catbus_data_t *kv_data = (catbus_data_t *)ptr;
-	// kv_data->meta = meta;
-	
-	// memcpy( &kv_data->data, data, data_len );
-
+	// header
 	mqtt_msg_header_t *header = (mqtt_msg_header_t *)msg;
 
 	header->magic 		= MQTT_MSG_MAGIC;
@@ -213,7 +191,8 @@ static int8_t publish( uint8_t msgtype, const char *topic, const void *data, uin
 	header->qos    		= qos;
 	header->flags       = 0;
 
-	if( send_msg( h ) < 0 ){
+	// transmit
+	if( send_msg_to_broker( h ) < 0 ){
 
 		log_v_error_P( PSTR("Send failed") );
 
@@ -320,31 +299,43 @@ bool mqtt_b_match_topic( const char *topic, const char *sub ){
     return TRUE;
 }
 
+// int8_t mqtt_client_i8_publish_data( 
+// 	const char *topic, 
+// 	catbus_meta_t *meta, 
+// 	const void *data, 
+// 	uint8_t qos, bool 
+// 	retain ){
 
+// 	// watch for possible stack overflows if we increase this
+// 	uint8_t buf[MQTT_MAX_PAYLOAD_LEN];	
 
-int8_t mqtt_client_i8_publish_data( const char *topic, catbus_meta_t *meta, const void *data, uint8_t qos, bool retain ){
+// 	uint16_t payload_len = sizeof(catbus_meta_t);
 
-	// watch for possible stack overflows if we increase this
-	uint8_t buf[MQTT_MAX_PAYLOAD_LEN];	
+// 	memcpy( buf, meta, payload_len );
 
-	uint16_t payload_len = sizeof(catbus_meta_t);
+// 	uint16_t data_len = type_u16_size( meta->type );
+// 	payload_len += data_len;
 
-	memcpy( buf, meta, payload_len );
+// 	memcpy( &buf[sizeof(catbus_meta_t)], data, data_len );
 
-	uint16_t data_len = type_u16_size( meta->type );
-	payload_len += data_len;
+// 	return publish( MQTT_MSG_PUBLISH_KV, topic, buf, payload_len, qos, retain );
+// }
 
-	memcpy( &buf[sizeof(catbus_meta_t)], data, data_len );
-
-	return publish( MQTT_MSG_PUBLISH_KV, topic, buf, payload_len, qos, retain );
-}
-
-int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain ){
+int8_t mqtt_client_i8_publish( 
+	const char *topic, 
+	const void *data, 
+	uint16_t data_len, 
+	uint8_t qos, 
+	bool retain ){
 
 	return publish( MQTT_MSG_PUBLISH, topic, data, data_len, qos, retain );
 }
 
-int8_t mqtt_client_i8_publish_kv( const char *topic, const char *key, uint8_t qos, bool retain ){
+int8_t mqtt_client_i8_publish_kv( 
+	const char *topic, 
+	const char *key, 
+	uint8_t qos, 
+	bool retain ){
 
 	uint32_t kv_hash = hash_u32_string( (char *)key );	
 
@@ -382,9 +373,10 @@ int8_t transmit_subscribe( uint8_t msgtype, const char *topic, catbus_meta_t *me
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
 
-	uint16_t msg_len = sizeof(mqtt_msg_subscribe_t) + sizeof(uint8_t) + topic_len;
+	uint16_t msg_len = sizeof(mqtt_msg_subscribe_t) + sizeof(uint8_t) + topic_len + 1; // add 1 for null terminator
 
 	if( msgtype == MQTT_MSG_SUBSCRIBE_KV ){
+		// pad length for metadata
 
 		ASSERT( meta != 0 );
 
@@ -403,11 +395,17 @@ int8_t transmit_subscribe( uint8_t msgtype, const char *topic, catbus_meta_t *me
 	// get byte pointer after headers:
 	uint8_t *ptr = (uint8_t *)(msg + 1);
 
-	// start with topic
-	*ptr = topic_len;
+	// start with topic, adding 1 for null terminator
+	*ptr = topic_len + 1;
 	ptr++;
+
+	// copy topic
 	memcpy( ptr, topic, topic_len );
 	ptr += topic_len;
+
+	// add null term
+	*ptr = 0;
+	ptr++;
 
 	// if a KV message, attach meta data
 	if( msgtype == MQTT_MSG_SUBSCRIBE_KV ){
@@ -415,7 +413,8 @@ int8_t transmit_subscribe( uint8_t msgtype, const char *topic, catbus_meta_t *me
 		memcpy( ptr, meta, sizeof(catbus_meta_t) );
 		ptr += sizeof(catbus_meta_t);
 	}
-	
+		
+	// attach header
 	mqtt_msg_header_t *header = (mqtt_msg_header_t *)msg;
 
 	header->magic 		= MQTT_MSG_MAGIC;
@@ -424,7 +423,7 @@ int8_t transmit_subscribe( uint8_t msgtype, const char *topic, catbus_meta_t *me
 	header->qos    		= qos;
 	header->flags       = 0;
 
-	if( send_msg( h ) < 0 ){
+	if( send_msg_to_broker( h ) < 0 ){
 
 		log_v_error_P( PSTR("Send failed") );
 

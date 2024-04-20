@@ -94,60 +94,16 @@ typedef void ( *mqtt_on_publish_callback_t )( char *topic, uint8_t *data, uint16
 bool mqtt_b_match_topic( const char *topic, const char *sub );
 
 int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain );
-int8_t mqtt_client_i8_publish_data( const char *topic, catbus_meta_t *meta, const void *data, uint8_t qos, bool retain );
 int8_t mqtt_client_i8_publish_kv( const char *topic, const char *key, uint8_t qos, bool retain );
 int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish_callback_t callback );
 int8_t mqtt_client_i8_subscribe_kv( const char *topic, const char *key, uint8_t qos );
 
 
-// #define CONTROLLER_IDLE_TIMEOUT         10
-// #define CONTROLLER_FOLLOWER_TIMEOUT     20
-// #define CONTROLLER_ELECTION_TIMEOUT     5
 
 
-// #define CONTROLLER_MSG_MAGIC    0x4C525443 // 'CTRL'
-// #define CONTROLLER_MSG_VERSION  1
-// typedef struct __attribute__((packed)){
-//     uint32_t magic;
-//     uint8_t msg_type;
-//     uint8_t version;
-//     uint16_t reserved;
-// } controller_header_t;
 
+// int8_t mqtt_client_i8_publish_data( const char *topic, catbus_meta_t *meta, const void *data, uint8_t qos, bool retain );
 
-// #define CONTROLLER_FLAGS_IS_LEADER      0x0001
-
-// typedef struct __attribute__((packed)){
-//     controller_header_t header;
-//     uint16_t flags;
-//     uint16_t priority;
-//     uint16_t follower_count;
-// }  controller_msg_announce_t;
-// #define CONTROLLER_MSG_ANNOUNCE     1
-
-
-// typedef struct __attribute__((packed)){
-//     controller_header_t header;
-// }  controller_msg_drop_t;
-// #define CONTROLLER_MSG_DROP         2
-
-// typedef struct __attribute__((packed)){
-//     controller_header_t header;
-//     catbus_query_t query;
-//     uint16_t service_flags;
-// }  controller_msg_status_t;
-// #define CONTROLLER_MSG_STATUS       3
-
-// #define CONTROLLER_SERVICE_NET_TIME     0x0001
-// #define CONTROLLER_SERVICE_NTP_TIME     0x0002
-// #define CONTROLLER_SERVICE_GFX_SYNC     0x0004
-// #define CONTROLLER_SERVICE_LINK         0x0008
-
-
-// typedef struct __attribute__((packed)){
-//     controller_header_t header;
-// }  controller_msg_leave_t;
-// #define CONTROLLER_MSG_LEAVE        4
 
 #endif
 

@@ -77,7 +77,8 @@ class MQTTTopic(StructField):
 
         # look up type
         if 'topic' in kwargs:
-            valuefield = StringField(_length=len(kwargs['topic']), _name='topic')
+            topic = kwargs['topic'] + '\0' # null terminate!
+            valuefield = StringField(_length=len(topic), _name='topic')
             valuefield._value = kwargs['topic']
     
             fields.append(valuefield)
@@ -139,39 +140,6 @@ class MqttPublishMsg(StructField):
         super().__init__(_name="mqtt_publish", _fields=fields, **kwargs)
 
         self.header.type = MQTT_MSG_PUBLISH
-
-    # def unpack(self, buffer):
-    #     super().unpack(buffer)
-
-    #     buffer = buffer[self.size():]
-
-    #     # get payload field based on type
-    #     try:
-    #         valuefield = get_field_for_type(self.payload_type, _name='payload')
-
-    #         # if self.meta.array_len == 0:
-    #         try:
-    #             valuefield.unpack(buffer)
-
-    #         except UnicodeDecodeError as e:
-    #             valuefield.unpack("~~~%s: %s~~~" % (type(e), str(e)))
-            
-    #         self._fields['payload'] = valuefield
-
-    #         # else:
-    #         #     array = FixedArrayField(_field=type(valuefield), _length=self.meta.array_len + 1, _name='payload')
-    #         #     array.unpack(buffer)
-    #         #     self._fields['payload'] = array
-
-    #     except KeyError as e:
-    #         raise DataUnpackingError(e)
-
-    #     except UnknownTypeError:
-    #         self._fields['payload'] = UnknownField()
-
-    #     return self
-
-
 
 MQTT_MSG_PUBLISH_KV        = 21      
 class MqttPublishKVMsg(StructField):
