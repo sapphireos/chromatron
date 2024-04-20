@@ -368,7 +368,11 @@ int8_t mqtt_client_i8_publish_kv(
 	return publish( MQTT_MSG_PUBLISH_KV, topic, buf, payload_len, qos, retain );
 }
 
-int8_t transmit_subscribe( uint8_t msgtype, const char *topic, catbus_meta_t *meta, uint8_t qos ){
+int8_t transmit_subscribe( 
+	uint8_t msgtype, 
+	const char *topic, 
+	catbus_meta_t *meta, 
+	uint8_t qos ){
 
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
@@ -433,7 +437,11 @@ int8_t transmit_subscribe( uint8_t msgtype, const char *topic, catbus_meta_t *me
 	return 0;
 }
 
-int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish_callback_t callback ){
+// subscribe with callback
+int8_t mqtt_client_i8_subscribe( 
+	const char *topic, 
+	uint8_t qos, 
+	mqtt_on_publish_callback_t callback ){
 
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
@@ -477,7 +485,11 @@ int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish
 	return 0;
 }
 
-int8_t mqtt_client_i8_subscribe_kv( const char *topic, const char *key, uint8_t qos ){
+// subscribe with KV linkage
+int8_t mqtt_client_i8_subscribe_kv( 
+	const char *topic, 
+	const char *key, 
+	uint8_t qos ){
 
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
@@ -564,15 +576,15 @@ static void transmit_status( void ){
 	sock_i16_sendto( sock, &msg, sizeof(msg), &raddr );	
 }
 
-static void mqtt_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len ){
+// static void mqtt_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len ){
 
-	int32_t value;
+// 	int32_t value;
 
-	// coert to int32 for debug
-	memcpy( &value, data, sizeof(value) );	
+// 	// coert to int32 for debug
+// 	memcpy( &value, data, sizeof(value) );	
 
-	log_v_debug_P( PSTR("%s %ld %ld"), topic, data_len, value );
-}
+// 	log_v_debug_P( PSTR("%s %ld %ld"), topic, data_len, value );
+// }
 
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) )
 {
@@ -600,30 +612,40 @@ PT_BEGIN( pt );
 
 	        catbus_meta_t meta = { 0 };
 
-	        if( sub->kv_hash != 0 ){
+	        if( sub->callback != 0 ){
+
+	        	if( transmit_subscribe( MQTT_MSG_SUBSCRIBE, sub->topic, 0, 0 ) < 0 ){
+		        
+		        	log_v_debug_P( PSTR("sub fail") );
+
+		        	goto next_sub;
+		       	}
+	        }
+	        else if( sub->kv_hash != 0 ){
 
 				if( kv_i8_get_catbus_meta( sub->kv_hash, &meta ) < 0 ){
 
 					log_v_error_P( PSTR("Key for topic: %s not found"), sub->topic );
 
-					return -1;
+					goto next_sub;
 				}
-			}
+			
+		        if( transmit_subscribe( MQTT_MSG_SUBSCRIBE_KV, sub->topic, &meta, 0 ) < 0 ){
+		        
+		        	log_v_debug_P( PSTR("sub fail") );
 
-	        if( transmit_subscribe( MQTT_MSG_SUBSCRIBE_KV, sub->topic, &meta, 0 ) < 0 ){
-	        // if( transmit_subscribe( sub->topic, sub->qos ) < 0 ){
+		        	goto next_sub;
+		       	}
+		    }
+		    else{
 
-	        	log_v_debug_P( PSTR("sub fail") );
-	        }
+		    	log_v_error_P( PSTR("invalid sub config") );
+		    }
 
+next_sub:
 	        ln = list_ln_next( ln );        
 	    }    	
 
-	   	// uint32_t value = counter;
-	   	// counter++;
-	   	
-	   	// mqtt_client_i8_publish( PSTR("chromatron_mqtt/test_value"), &value, sizeof(value), 0, FALSE );
-		
 
 		transmit_status();
 	}
@@ -668,27 +690,6 @@ static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
 	        	sub->callback( topic, data, data_len );
 	        }
-
-	        // check if there is a KV target
-	        // if( sub->kv_hash != 0 ){
-
-	        // 	catbus_data_t *catbus_data = (catbus_data_t *)data;
-
-	        // 	uint16_t type_len = type_u16_size( catbus_data->meta.type );
-	        	
-	        // 	if( type_len != CATBUS_TYPE_SIZE_INVALID ){
-
-	        // 		// apply to KV system:
-	        // 		if( catbus_i8_set( sub->kv_hash, catbus_data->meta.type, &catbus_data->data, type_len ) < 0 ){
-
-	        // 			log_v_error_P( PSTR("Error setting KV data for topic: %s"), topic );
-	        // 		}
-	        // 	}
-	        // 	else{
-
-	        // 		log_v_error_P( PSTR("Invalid type: %d on topic: %s"), catbus_data->meta.type, topic );
-	        // 	}
-	        // }
         }
 
         ln = list_ln_next( ln );        
@@ -721,12 +722,6 @@ static void process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
             // match!
 
         	// check what to do
-
-        	// // if there is a callback, fire it:
-        	// if( sub->callback != 0 ){
-
-	        // 	sub->callback( topic, data, data_len );
-	        // }
 
 	        // check if there is a KV target
 	        if( sub->kv_hash != 0 ){
