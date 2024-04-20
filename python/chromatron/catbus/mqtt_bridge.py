@@ -47,12 +47,12 @@ MQTT_MSG_VERSION  = 1
 SUB_TIMEOUT       = 60.0
 
 
-class TestField(StructField):
-    def __init__(self, **kwargs):
-        fields = [CatbusData(_name="data"),
-                  StringField(_name="topic", _length=128)]
+# class TestField(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [CatbusData(_name="data"),
+#                   StringField(_name="topic", _length=128)]
                   
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
 class MQTTPayload(StructField):
     def __init__(self, **kwargs):
@@ -191,6 +191,18 @@ class MqttPublishStatus(StructField):
 
         self.header.type = MQTT_MSG_PUBLISH_STATUS
 
+class Subscription(object):
+    def __init__(self, topic, host, kv_meta=None):
+        self.topic = topic
+        self.host = host
+        self.kv_meta = kv_meta
+
+    def __str__(self):
+        if self.kv_meta is not None:
+            print(f'Sub: {self.topic} -> {self.host} meta: {self.kv_meta}')
+
+        else:
+            print(f'Sub: {self.topic} -> {self.host}')
 
 class MqttBridge(MsgServer):
     def __init__(self):
@@ -305,10 +317,17 @@ class MqttBridge(MsgServer):
 
     def _handle_subscribe(self, msg, host):
         # print(msg)
+ 
+        sub = Subscription(msg.topic.topic, host)
+        print(sub)
+
         self.mqtt_client.subscribe(msg.topic.topic)
 
     def _handle_subscribe_kv(self, msg, host):
-        print(msg)
+        # print(msg)
+
+        sub = Subscription(msg.topic.topic, host, kv_meta=msg.meta)
+        print(sub)
 
         if msg.topic not in self.subs:
             self.subs[msg.topic.topic] = {}
