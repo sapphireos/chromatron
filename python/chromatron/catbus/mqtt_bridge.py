@@ -196,6 +196,7 @@ class Subscription(object):
         self.topic = topic
         self.host = host
         self.kv_meta = kv_meta
+        self.timeout = SUB_TIMEOUT
 
     def __str__(self):
         if self.kv_meta is not None:
@@ -203,6 +204,45 @@ class Subscription(object):
 
         else:
             print(f'Sub: {self.topic} -> {self.host}')
+
+class DeviceClient(object):
+    def __init__(self, host):
+        super().__init__()
+
+        self.host = host
+        self.timeout = 120.0
+
+        self.mqtt_client = MQTTClient()
+        self.mqtt_client.mqtt.on_message = self.on_message
+        self.mqtt_client.start()
+        self.mqtt_client.connect(host='omnomnom.local')
+
+    def on_message(self, client, userdata, msg):
+        logging.info(msg.topic + " " + str(msg.payload))
+
+    def clean_up(self):
+        self.mqtt_client.stop()
+
+
+
+"""
+
+Client-per-device will be easier than trying to mux/demux here, 
+when the broker will already do that for us if we use multiple clients.
+The saved loading on the network for doing a mux here isn't worth it,
+since the bridge and broker will typically be cabled Ethernet, so we
+aren't taking up extra airtime on a wireless network.
+
+Device status message triggers the client connection.
+Subscribes are passed through to the broker.
+
+Device timeouts/shutdown will close the client connection.
+
+Device should send a "not subscribed" message when it receives a publish
+but there are no subscriptions for it.
+
+"""
+
 
 class MqttBridge(MsgServer):
     def __init__(self):
@@ -214,7 +254,7 @@ class MqttBridge(MsgServer):
         self.register_message(MqttSubscribeKVMsg, self._handle_subscribe_kv)
         self.register_message(MqttPublishStatus, self._handle_status)
             
-        # self.start_timer(LINK_MIN_TICK_RATE, self._process_all)
+        self.start_timer(1.0, self._process_devices)
         # self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
 
         self.mqtt_client = MQTTClient()
@@ -238,6 +278,9 @@ class MqttBridge(MsgServer):
     #     self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
     #     time.sleep(0.1)
     #     self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
+
+    def _process_devices(self):
+        pass
 
     def on_message(self, client, userdata, msg):
         # logging.info(msg.topic + " " + str(msg.payload))
@@ -315,26 +358,34 @@ class MqttBridge(MsgServer):
     
         self.mqtt_client.publish(msg.topic.topic, json.dumps(msg.payload.data.toBasic()['value']))
 
+    def update_sub(self, sub):
+        print(sub)
+
+        if sub.topic not in self.subs:
+            self.subs[sub.topic] = []
+
+        self.subs[sub.topic]
+
     def _handle_subscribe(self, msg, host):
         # print(msg)
  
         sub = Subscription(msg.topic.topic, host)
-        print(sub)
+        self.update_sub(sub)
 
-        self.mqtt_client.subscribe(msg.topic.topic)
+        # self.mqtt_client.subscribe(msg.topic.topic)
 
     def _handle_subscribe_kv(self, msg, host):
         # print(msg)
 
         sub = Subscription(msg.topic.topic, host, kv_meta=msg.meta)
-        print(sub)
+        self.update_sub(sub)
 
-        if msg.topic not in self.subs:
-            self.subs[msg.topic.topic] = {}
+        # if msg.topic not in self.subs:
+        #     self.subs[msg.topic.topic] = {}
 
-        self.subs[msg.topic.topic][host] = SUB_TIMEOUT
+        # self.subs[msg.topic.topic][host] = SUB_TIMEOUT
 
-        self.mqtt_client.subscribe(msg.topic.topic)
+        # self.mqtt_client.subscribe(msg.topic.topic)
 
     def _handle_status(self, msg, host):
         dict_data = msg.toBasic()
@@ -350,6 +401,8 @@ class MqttBridge(MsgServer):
         topic = f'chromatron_mqtt/status/{tags[0]}'
 
         self.mqtt_client.publish(topic, json.dumps(dict_data))
+
+
 
 def main():
     util.setup_basic_logging(console=True)
