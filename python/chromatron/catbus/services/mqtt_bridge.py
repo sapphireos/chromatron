@@ -25,15 +25,13 @@ import time
 import logging
 
 from elysianfields import *
-from .data_structures import *
-from .catbustypes import *
+from catbus.data_structures import *
+from catbus.catbustypes import *
 from sapphire.common import MsgServer, util, catbus_string_hash, run_all, synchronized
 from sapphire.protocols import services
-from .catbus import *
-from .services.mqtt_client import MQTTClient
+from catbus import *
+from .mqtt_client import MQTTClient
 import threading
-
-from fnvhash import fnv1a_64
 
 
 MQTT_BRIDGE_PORT = 44899
@@ -218,7 +216,7 @@ class DeviceClient(object):
         self.mqtt_client = MQTTClient()
         self.mqtt_client.mqtt.on_message = self.on_message
         self.mqtt_client.start()
-        self.mqtt_client.connect(host='omnomnom.local')
+        self.mqtt_client.connect(host=bridge.mqtt_host)
 
         logging.info(f'Started client: {self.host}')
 
