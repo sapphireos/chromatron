@@ -191,25 +191,27 @@ class MqttPublishStatus(StructField):
 
         self.header.type = MQTT_MSG_PUBLISH_STATUS
 
-class Subscription(object):
-    def __init__(self, topic, host, kv_meta=None):
-        self.topic = topic
-        self.host = host
-        self.kv_meta = kv_meta
-        self.timeout = SUB_TIMEOUT
+# class Subscription(object):
+#     def __init__(self, topic, host, kv_meta=None):
+#         self.topic = topic
+#         self.host = host
+#         self.kv_meta = kv_meta
+#         self.timeout = SUB_TIMEOUT
 
-    def __str__(self):
-        if self.kv_meta is not None:
-            print(f'Sub: {self.topic} -> {self.host} meta: {self.kv_meta}')
+#     def __str__(self):
+#         if self.kv_meta is not None:
+#             print(f'Sub: {self.topic} -> {self.host} meta: {self.kv_meta}')
 
-        else:
-            print(f'Sub: {self.topic} -> {self.host}')
+#         else:
+#             print(f'Sub: {self.topic} -> {self.host}')
 
 class DeviceClient(object):
-    def __init__(self, host):
+    def __init__(self, host, bridge):
         super().__init__()
 
         self.host = host
+        self.bridge = bridge
+
         self.timeout = 120.0
 
         self.mqtt_client = MQTTClient()
@@ -217,11 +219,75 @@ class DeviceClient(object):
         self.mqtt_client.start()
         self.mqtt_client.connect(host='omnomnom.local')
 
+        self.subs = {}
+
     def on_message(self, client, userdata, msg):
-        logging.info(msg.topic + " " + str(msg.payload))
+        if msg.topic in self.subs:
+            timeout, data_type = self.subs[msg.topic]
+            
+            # convert data types
+            if data_type in [CATBUS_TYPE_BOOL, 
+                             CATBUS_TYPE_UINT8,
+                             CATBUS_TYPE_INT8,
+                             CATBUS_TYPE_UINT16,
+                             CATBUS_TYPE_INT16,
+                             CATBUS_TYPE_UINT32,
+                             CATBUS_TYPE_INT32,
+                             CATBUS_TYPE_UINT64,
+                             CATBUS_TYPE_INT64]:
+
+                value = int(msg.payload)
+
+            elif data_type in [CATBUS_TYPE_FLOAT, 
+                               CATBUS_TYPE_FIXED16]:
+
+                value = float(msg.payload)
+
+            elif data_type is None:
+                value = msg.payload
+
+            else:
+                logging.error(f"Unsupported data type: {data_type}")
+                return
+
+            if data_type is not None:
+                meta = CatbusMeta(hash=0, type=data_type)
+                data = CatbusData(meta=meta, value=value)
+
+                kv_payload = MQTTKVPayload(data=data)
+
+                publish_msg = MqttPublishKVMsg(topic=msg.topic, payload=kv_payload)
+
+            else:
+                publish_msg = MqttPublishMsg(topic=msg.topic, payload=value)
+
+            self.bridge.transmit(publish_msg, self.host)
+
+        else: # topic not in subs, unsubscribe
+            self.unsubscribe(msg.topic)
 
     def clean_up(self):
-        self.mqtt_client.stop()
+        self.mqtt_client.stop() 
+
+    def publish(self, topic, data):
+        self.mqtt_client.publish(topic, data)  
+
+    def subscribe(self, topic, data_type=None):
+        if topic not in self.subs:
+            self.subs[topic] = (120.0, data_type)
+
+        self.mqtt_client.subscribe(topic)
+
+    def unsubscribe(self, topic):
+        del self.subs[topic]
+        self.mqtt_client.unsubscribe(topic)   
+
+    def process_timeouts(self):
+        pass
+
+    def reset_timeout(self):
+        self.timeout = 120.0
+
 
 
 
@@ -243,7 +309,6 @@ but there are no subscriptions for it.
 
 """
 
-
 class MqttBridge(MsgServer):
     def __init__(self):
         super().__init__(name='mqtt_bridge', port=MQTT_BRIDGE_PORT)
@@ -255,16 +320,13 @@ class MqttBridge(MsgServer):
         self.register_message(MqttPublishStatus, self._handle_status)
             
         self.start_timer(1.0, self._process_devices)
-        # self.start_timer(LINK_DISCOVER_RATE, self._process_discovery)
 
         self.mqtt_client = MQTTClient()
         self.mqtt_client.mqtt.on_message = self.on_message
         self.mqtt_client.start()
         self.mqtt_client.connect(host='omnomnom.local')
 
-        # self.mqtt_client.subscribe("chromatron_mqtt/fx_test")
-
-        self.subs = {}
+        self.clients = {}
 
         self.start()
 
@@ -283,67 +345,23 @@ class MqttBridge(MsgServer):
         pass
 
     def on_message(self, client, userdata, msg):
-        # logging.info(msg.topic + " " + str(msg.payload))
-        # print(msg)
+        print("bridge", msg)
 
-        # topic = msg.topic
-        # topic_len = len(topic)
-        # payload = msg.payload
-        # payload_len = len(msg.payload)
-        # print(topic, topic_len)
+        return 
 
-        topic = MQTTTopic(topic=msg.topic)
-        # print(topic)
+        # topic = MQTTTopic(topic=msg.topic)
 
-        # try type conversions:
-        # msg_payload = Int64Field(int(msg.payload))
+        # if msg.topic in self.subs:
+        #     meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
+        #     data = CatbusData(meta=meta, value=int(msg.payload))
 
-        # payload = MQTTPayload(payload=msg_payload)
-        # print(payload)
+        #     kv_payload = MQTTKVPayload(data=data)
 
-        # value = int(msg.payload)
-        # meta = CatbusMeta(hash=0, flags=0, type=CATBUS_TYPE_INT64, array_len=0)
-        # data = CatbusData(meta=meta, value=value)
-        # print(data)
+        #     publish_msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
 
-        # payload = MQTTPayload(data=data)
-        # print(payload)
-
-        # print(msg.payload)
-        # print(type(msg.payload))
-        # print(len(msg.payload))
-
-
-
-        # print(list(bytes(msg.payload)))
-
-        # payload = MQTTPayload(data=list(msg.payload))
-        # publish_msg = MqttPublishMsg(topic=topic, payload=payload)
-
-        # print(publish_msg)
-
-        # self.transmit(publish_msg, ('10.0.0.211', MQTT_BRIDGE_PORT))
-        
-        # meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
-        # data = CatbusData(meta=meta, value=int(msg.payload))
-
-        # kv_payload = MQTTKVPayload(data=data)
-
-        # msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
-        # print(msg)
-
-        # print(self.subs)
-        if msg.topic in self.subs:
-            meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
-            data = CatbusData(meta=meta, value=int(msg.payload))
-
-            kv_payload = MQTTKVPayload(data=data)
-
-            publish_msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
-
-            for host in self.subs[msg.topic]:
-                print(host, publish_msg)
-                self.transmit(publish_msg, host)
+        #     for host in self.subs[msg.topic]:
+        #         print(host, publish_msg)
+        #         self.transmit(publish_msg, host)
         
 
     def _handle_publish(self, msg, host):
@@ -355,37 +373,31 @@ class MqttBridge(MsgServer):
 
     def _handle_publish_kv(self, msg, host):
         # print(msg)
-    
-        self.mqtt_client.publish(msg.topic.topic, json.dumps(msg.payload.data.toBasic()['value']))
 
-    def update_sub(self, sub):
-        print(sub)
+        if host not in self.clients:
+            self.clients[host] = DeviceClient(host, self)
 
-        if sub.topic not in self.subs:
-            self.subs[sub.topic] = []
+        self.clients[host].reset_timeout()
 
-        self.subs[sub.topic]
+        self.clients[host].publish(msg.topic.topic, json.dumps(msg.payload.data.toBasic()['value']))
 
     def _handle_subscribe(self, msg, host):
-        # print(msg)
+        print(msg)
  
-        sub = Subscription(msg.topic.topic, host)
-        self.update_sub(sub)
+        # sub = Subscription(msg.topic.topic, host)
+        # self.update_sub(sub)
 
         # self.mqtt_client.subscribe(msg.topic.topic)
 
     def _handle_subscribe_kv(self, msg, host):
         # print(msg)
 
-        sub = Subscription(msg.topic.topic, host, kv_meta=msg.meta)
-        self.update_sub(sub)
+        if host not in self.clients:
+            self.clients[host] = DeviceClient(host, self)
 
-        # if msg.topic not in self.subs:
-        #     self.subs[msg.topic.topic] = {}
+        self.clients[host].reset_timeout()
 
-        # self.subs[msg.topic.topic][host] = SUB_TIMEOUT
-
-        # self.mqtt_client.subscribe(msg.topic.topic)
+        self.clients[host].subscribe(msg.topic.topic, data_type=msg.meta.type)
 
     def _handle_status(self, msg, host):
         dict_data = msg.toBasic()
