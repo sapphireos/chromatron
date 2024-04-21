@@ -572,6 +572,7 @@ static void transmit_status( void ){
 	mqtt_msg_publish_status_t msg = {
 		{ 0 },
 		tags,
+		cfg_ip_get_ipaddr(),
 		sys_u8_get_mode(),
 		tmr_u32_get_system_time_ms(),
 		wifi_i8_rssi(),

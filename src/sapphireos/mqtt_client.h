@@ -69,6 +69,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;
     catbus_query_t tags;
+    ip_addr4_t ip;
     uint8_t mode;
     uint32_t uptime;
     int8_t rssi;

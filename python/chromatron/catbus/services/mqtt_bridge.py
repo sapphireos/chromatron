@@ -169,6 +169,7 @@ class MqttPublishStatus(StructField):
     def __init__(self, **kwargs):
         fields = [MQTTMsgHeader(_name="header"),
                   CatbusQuery(_name="tags"),
+                  Ipv4Field(_name="ip"),
                   Uint8Field(_name="mode"),
                   Uint32Field(_name="uptime"),
                   Int8Field(_name="rssi"),
@@ -277,7 +278,8 @@ class DeviceClient(object):
     def subscribe(self, topic, data_type=None):
         if topic not in self.subs:
             logging.info(f'{self.host} subscribed to {topic}')
-            self.subs[topic] = [CLIENT_TIMEOUT, data_type]
+        
+        self.subs[topic] = [CLIENT_TIMEOUT, data_type]
 
         self.mqtt_client.subscribe(topic)
 
