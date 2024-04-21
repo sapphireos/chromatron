@@ -44,7 +44,7 @@ MQTT_BRIDGE_PORT = 44899
 MQTT_MSG_MAGIC    = 0x5454514d # 'MQTT'
 MQTT_MSG_VERSION  = 1
 
-SUB_TIMEOUT       = 60.0
+CLIENT_TIMEOUT    = 60.0
 
 
 # class TestField(StructField):
@@ -217,7 +217,7 @@ class DeviceClient(object):
         self.host = host
         self.bridge = bridge
 
-        self.timeout = 120.0
+        self.timeout = CLIENT_TIMEOUT
 
         self.mqtt_client = MQTTClient()
         self.mqtt_client.mqtt.on_message = self.on_message
@@ -282,7 +282,8 @@ class DeviceClient(object):
 
     def subscribe(self, topic, data_type=None):
         if topic not in self.subs:
-            self.subs[topic] = (120.0, data_type)
+            logging.info(f'{self.host} subscribed to {topic}')
+            self.subs[topic] = [CLIENT_TIMEOUT, data_type]
 
         self.mqtt_client.subscribe(topic)
 
@@ -296,8 +297,19 @@ class DeviceClient(object):
         if self.timeout < 0.0:
             raise ClientTimedOut
 
+        remove = []
+        for topic, sub in self.subs.items():
+            sub[0] -= elapsed
+
+            if sub[0] < 0.0:
+                remove.append(topic)
+
+        for topic in remove:
+            logging.info(f'{self.host} unsubscribed from {topic}')
+            self.unsubscribe(topic)
+
     def reset_timeout(self):
-        self.timeout = 120.0
+        self.timeout = CLIENT_TIMEOUT
 
 
 
@@ -367,6 +379,7 @@ class MqttBridge(MsgServer):
                 remove.append(client)
 
         for client in remove:
+            client.clean_up()
             del self.clients[client.host]
 
     # def on_message(self, client, userdata, msg):
