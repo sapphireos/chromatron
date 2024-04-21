@@ -72,6 +72,7 @@ typedef struct __attribute__((packed)){
     uint8_t mode;
     uint32_t uptime;
     int8_t rssi;
+    int8_t wifi_channel;
     uint8_t cpu_percent;
     uint16_t used_heap;
     uint16_t pixel_power;

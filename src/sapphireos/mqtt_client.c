@@ -560,6 +560,7 @@ static void transmit_status( void ){
 		sys_u8_get_mode(),
 		tmr_u32_get_system_time_ms(),
 		wifi_i8_rssi(),
+		wifi_i8_get_channel(),
 		thread_u8_get_cpu_percent(),
 		mem2_u16_get_used(),
 		pixel_power,		
@@ -646,6 +647,8 @@ next_sub:
 	        ln = list_ln_next( ln );        
 	    }    	
 
+	    // char *test_data = "{data:1.0}";
+	    // mqtt_client_i8_publish( "chromatron_mqtt/publish", test_data, strlen(test_data), 0, FALSE );
 
 		transmit_status();
 	}

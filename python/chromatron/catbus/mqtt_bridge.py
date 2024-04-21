@@ -183,6 +183,7 @@ class MqttPublishStatus(StructField):
                   Uint8Field(_name="mode"),
                   Uint32Field(_name="uptime"),
                   Int8Field(_name="rssi"),
+                  Int8Field(_name="wifi_channel"),
                   Uint8Field(_name="cpu_percent"),
                   Uint16Field(_name="used_heap"),
                   Uint16Field(_name="pixel_power")]
@@ -205,6 +206,10 @@ class MqttPublishStatus(StructField):
 #         else:
 #             print(f'Sub: {self.topic} -> {self.host}')
 
+
+class ClientTimedOut(Exception):
+    pass
+
 class DeviceClient(object):
     def __init__(self, host, bridge):
         super().__init__()
@@ -218,6 +223,8 @@ class DeviceClient(object):
         self.mqtt_client.mqtt.on_message = self.on_message
         self.mqtt_client.start()
         self.mqtt_client.connect(host='omnomnom.local')
+
+        logging.info(f'Started client: {self.host}')
 
         self.subs = {}
 
@@ -267,6 +274,7 @@ class DeviceClient(object):
             self.unsubscribe(msg.topic)
 
     def clean_up(self):
+        logging.info(f'Stopping client: {self.host}')
         self.mqtt_client.stop() 
 
     def publish(self, topic, data):
@@ -282,8 +290,11 @@ class DeviceClient(object):
         del self.subs[topic]
         self.mqtt_client.unsubscribe(topic)   
 
-    def process_timeouts(self):
-        pass
+    def process_timeouts(self, elapsed):
+        self.timeout -= elapsed
+
+        if self.timeout < 0.0:
+            raise ClientTimedOut
 
     def reset_timeout(self):
         self.timeout = 120.0
@@ -321,17 +332,22 @@ class MqttBridge(MsgServer):
             
         self.start_timer(1.0, self._process_devices)
 
-        self.mqtt_client = MQTTClient()
-        self.mqtt_client.mqtt.on_message = self.on_message
-        self.mqtt_client.start()
-        self.mqtt_client.connect(host='omnomnom.local')
+        # self.mqtt_client = MQTTClient()
+        # self.mqtt_client.mqtt.on_message = self.on_message
+        # self.mqtt_client.start()
+        # self.mqtt_client.connect(host='omnomnom.local')
 
         self.clients = {}
 
         self.start()
 
     def clean_up(self):
-        self.mqtt_client.stop()
+        for client in self.clients.values():
+            client.clean_up()
+
+        self.clients = {}
+
+        # self.mqtt_client.stop()
 
     #     msg = ShutdownMsg()
 
@@ -342,12 +358,21 @@ class MqttBridge(MsgServer):
     #     self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
 
     def _process_devices(self):
-        pass
+        remove = []
+        for client in self.clients.values():
+            try:
+                client.process_timeouts(1.0)
 
-    def on_message(self, client, userdata, msg):
-        print("bridge", msg)
+            except ClientTimedOut:
+                remove.append(client)
 
-        return 
+        for client in remove:
+            del self.clients[client.host]
+
+    # def on_message(self, client, userdata, msg):
+    #     print("bridge", msg)
+
+    #     return 
 
         # topic = MQTTTopic(topic=msg.topic)
 
@@ -365,37 +390,27 @@ class MqttBridge(MsgServer):
         
 
     def _handle_publish(self, msg, host):
-        # print(msg)
-        # print(msg.payload.data.pack())
+        if host not in self.clients:
+            return
 
         # shovel the raw bytes in to MQTT
-        self.mqtt_client.publish(msg.topic.topic, msg.payload.data.pack())  
+        self.clients[host].publish(msg.topic.topic, msg.payload.data.pack())  
 
     def _handle_publish_kv(self, msg, host):
-        # print(msg)
-
         if host not in self.clients:
-            self.clients[host] = DeviceClient(host, self)
-
-        self.clients[host].reset_timeout()
+            return
 
         self.clients[host].publish(msg.topic.topic, json.dumps(msg.payload.data.toBasic()['value']))
 
     def _handle_subscribe(self, msg, host):
-        print(msg)
+        if host not in self.clients:
+            return
  
-        # sub = Subscription(msg.topic.topic, host)
-        # self.update_sub(sub)
-
-        # self.mqtt_client.subscribe(msg.topic.topic)
+        self.clients[host].subscribe(msg.topic.topic, data_type=None)
 
     def _handle_subscribe_kv(self, msg, host):
-        # print(msg)
-
         if host not in self.clients:
-            self.clients[host] = DeviceClient(host, self)
-
-        self.clients[host].reset_timeout()
+            return
 
         self.clients[host].subscribe(msg.topic.topic, data_type=msg.meta.type)
 
@@ -409,10 +424,15 @@ class MqttBridge(MsgServer):
         tags = [c.lookup_hash(t)[t] for t in dict_data['tags'] if t != 0]
         dict_data['tags'] = tags
 
-
         topic = f'chromatron_mqtt/status/{tags[0]}'
 
-        self.mqtt_client.publish(topic, json.dumps(dict_data))
+
+        if host not in self.clients:
+            self.clients[host] = DeviceClient(host, self)
+
+        self.clients[host].reset_timeout()
+
+        self.clients[host].publish(topic, json.dumps(dict_data))
 
 
 
