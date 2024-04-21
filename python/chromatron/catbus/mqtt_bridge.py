@@ -183,7 +183,17 @@ class MqttPublishStatus(StructField):
 
         self.header.type = MQTT_MSG_PUBLISH_STATUS
 
-MQTT_MSG_SHUTDOWN       = 1
+
+MQTT_MSG_BRIDGE        = 1
+class MqttBridgeMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [MQTTMsgHeader(_name="header")]
+
+        super().__init__(_name="mqtt_bridge", _fields=fields, **kwargs)
+
+        self.header.type = MQTT_MSG_BRIDGE
+
+MQTT_MSG_SHUTDOWN       = 2
 class MqttShutdown(StructField):
     def __init__(self, **kwargs):
         fields = [MQTTMsgHeader(_name="header")]
@@ -325,12 +335,15 @@ class MqttBridge(MsgServer):
         self.mqtt_host = mqtt_host
         self.mqtt_port = mqtt_port
 
+        self.clients = {}
+
         self.register_message(MqttPublishMsg, self._handle_publish)
         self.register_message(MqttPublishKVMsg, self._handle_publish_kv)
         self.register_message(MqttSubscribeMsg, self._handle_subscribe)
         self.register_message(MqttSubscribeKVMsg, self._handle_subscribe_kv)
         self.register_message(MqttPublishStatus, self._handle_status)
         self.register_message(MqttShutdown, self._handle_shutdown)
+        self.register_message(MqttBridgeMsg, self._handle_bridge)
             
         self.start_timer(1.0, self._process_devices)
 
@@ -338,8 +351,6 @@ class MqttBridge(MsgServer):
         # self.mqtt_client.mqtt.on_message = self.on_message
         self.mqtt_client.start()
         self.mqtt_client.connect(host=self.mqtt_host)
-
-        self.clients = {}
 
         self.start()
 
@@ -352,6 +363,9 @@ class MqttBridge(MsgServer):
         self.mqtt_client.stop()
 
     def _process_devices(self):
+        bridge_msg = MqttBridgeMsg()
+        self.transmit(bridge_msg, ("255.255.255.255", MQTT_BRIDGE_PORT))
+
         remove = []
         for client in self.clients.values():
             try:
@@ -363,6 +377,9 @@ class MqttBridge(MsgServer):
         for client in remove:
             client.clean_up()
             del self.clients[client.host]
+
+    def _handle_bridge(self, msg, host):
+        pass
 
     def _handle_shutdown(self, msg, host):
         if host not in self.clients:

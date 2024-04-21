@@ -58,8 +58,13 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;
+} mqtt_msg_bridge_t;
+#define MQTT_MSG_BRIDGE            1
+
+typedef struct __attribute__((packed)){
+    mqtt_msg_header_t header;
 } mqtt_msg_shutdown_t;
-#define MQTT_MSG_SHUTDOWN           1
+#define MQTT_MSG_SHUTDOWN           2
 
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;

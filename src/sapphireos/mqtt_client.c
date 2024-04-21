@@ -124,16 +124,30 @@ static sock_addr_t get_broker_raddr( void ){
 	return raddr;
 }
 
-static int16_t send_msg( mem_handle_t h, sock_addr_t *raddr ){
-
-	return sock_i16_sendto_m( sock, h, raddr );
-}
-
 static int16_t send_msg_to_broker( mem_handle_t h ){
 
 	sock_addr_t raddr = get_broker_raddr();
 
-	return send_msg( h, &raddr );
+	if( ip_b_is_zeroes( raddr.ipaddr) ){
+
+		mem2_v_free( h );
+
+		return -1;
+	}
+
+	return sock_i16_sendto_m( sock, h, &raddr );
+}
+
+static int16_t send_msg_to_broker_ptr( uint8_t *data, uint16_t len ){
+
+	sock_addr_t raddr = get_broker_raddr();
+
+	if( ip_b_is_zeroes( raddr.ipaddr) ){
+
+		return -1;
+	}
+
+	return sock_i16_sendto( sock, data, len, &raddr );	
 }
 
 static int8_t publish( 
@@ -573,9 +587,7 @@ static void transmit_status( void ){
 	msg.header.qos    		= 0;
 	msg.header.flags       	= 0;
 
-	sock_addr_t raddr = get_broker_raddr();
-
-	sock_i16_sendto( sock, &msg, sizeof(msg), &raddr );	
+	send_msg_to_broker_ptr( (uint8_t *)&msg, sizeof(msg) );
 }
 
 static void transmit_shutdown( void ){
@@ -590,9 +602,7 @@ static void transmit_shutdown( void ){
 	msg.header.qos    		= 0;
 	msg.header.flags       	= 0;
 
-	sock_addr_t raddr = get_broker_raddr();
-
-	sock_i16_sendto( sock, &msg, sizeof(msg), &raddr );	
+	send_msg_to_broker_ptr( (uint8_t *)&msg, sizeof(msg) );
 }
 
 // static void mqtt_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len ){
@@ -819,6 +829,10 @@ PT_BEGIN( pt );
         else if( header->msg_type == MQTT_MSG_PUBLISH_KV ){
 
         	process_publish_kv( (mqtt_msg_publish_t *)header, &raddr );
+        }
+        else if( header->msg_type == MQTT_MSG_BRIDGE ){
+
+        	broker_ip = raddr.ipaddr;
         }
         else{
 
