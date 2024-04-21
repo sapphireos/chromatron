@@ -27,10 +27,8 @@ import logging
 from elysianfields import *
 from .data_structures import *
 from .catbustypes import *
-# from .options import *
 from sapphire.common import MsgServer, util, catbus_string_hash, run_all, synchronized
 from sapphire.protocols import services
-# from .database import *
 from .catbus import *
 from .services.mqtt_client import MQTTClient
 import threading
@@ -46,13 +44,6 @@ MQTT_MSG_VERSION  = 1
 
 CLIENT_TIMEOUT    = 60.0
 
-
-# class TestField(StructField):
-#     def __init__(self, **kwargs):
-#         fields = [CatbusData(_name="data"),
-#                   StringField(_name="topic", _length=128)]
-                  
-#         super().__init__(_fields=fields, **kwargs)
 
 class MQTTPayload(StructField):
     def __init__(self, **kwargs):
@@ -175,7 +166,7 @@ class MqttSubscribeKVMsg(StructField):
         self.header.type = MQTT_MSG_SUBSCRIBE_KV
 
 
-MQTT_MSG_PUBLISH_STATUS   = 22      
+MQTT_MSG_PUBLISH_STATUS   = 10
 class MqttPublishStatus(StructField):
     def __init__(self, **kwargs):
         fields = [MQTTMsgHeader(_name="header"),
@@ -192,19 +183,14 @@ class MqttPublishStatus(StructField):
 
         self.header.type = MQTT_MSG_PUBLISH_STATUS
 
-# class Subscription(object):
-#     def __init__(self, topic, host, kv_meta=None):
-#         self.topic = topic
-#         self.host = host
-#         self.kv_meta = kv_meta
-#         self.timeout = SUB_TIMEOUT
+MQTT_MSG_SHUTDOWN       = 1
+class MqttShutdown(StructField):
+    def __init__(self, **kwargs):
+        fields = [MQTTMsgHeader(_name="header")]
 
-#     def __str__(self):
-#         if self.kv_meta is not None:
-#             print(f'Sub: {self.topic} -> {self.host} meta: {self.kv_meta}')
+        super().__init__(_name="mqtt_shutdown", _fields=fields, **kwargs)
 
-#         else:
-#             print(f'Sub: {self.topic} -> {self.host}')
+        self.header.type = MQTT_MSG_SHUTDOWN
 
 
 class ClientTimedOut(Exception):
@@ -333,21 +319,25 @@ but there are no subscriptions for it.
 """
 
 class MqttBridge(MsgServer):
-    def __init__(self):
+    def __init__(self, mqtt_host='omnomnom.local', mqtt_port=1883):
         super().__init__(name='mqtt_bridge', port=MQTT_BRIDGE_PORT)
+
+        self.mqtt_host = mqtt_host
+        self.mqtt_port = mqtt_port
 
         self.register_message(MqttPublishMsg, self._handle_publish)
         self.register_message(MqttPublishKVMsg, self._handle_publish_kv)
         self.register_message(MqttSubscribeMsg, self._handle_subscribe)
         self.register_message(MqttSubscribeKVMsg, self._handle_subscribe_kv)
         self.register_message(MqttPublishStatus, self._handle_status)
+        self.register_message(MqttShutdown, self._handle_shutdown)
             
         self.start_timer(1.0, self._process_devices)
 
-        # self.mqtt_client = MQTTClient()
+        self.mqtt_client = MQTTClient()
         # self.mqtt_client.mqtt.on_message = self.on_message
-        # self.mqtt_client.start()
-        # self.mqtt_client.connect(host='omnomnom.local')
+        self.mqtt_client.start()
+        self.mqtt_client.connect(host=self.mqtt_host)
 
         self.clients = {}
 
@@ -359,15 +349,7 @@ class MqttBridge(MsgServer):
 
         self.clients = {}
 
-        # self.mqtt_client.stop()
-
-    #     msg = ShutdownMsg()
-
-    #     self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
-    #     time.sleep(0.1)
-    #     self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
-    #     time.sleep(0.1)
-    #     self.transmit(msg, ('<broadcast>', CATBUS_LINK_PORT))
+        self.mqtt_client.stop()
 
     def _process_devices(self):
         remove = []
@@ -382,25 +364,15 @@ class MqttBridge(MsgServer):
             client.clean_up()
             del self.clients[client.host]
 
-    # def on_message(self, client, userdata, msg):
-    #     print("bridge", msg)
+    def _handle_shutdown(self, msg, host):
+        if host not in self.clients:
+            return
 
-    #     return 
+        logging.info(f'Shutdown: {host}')
 
-        # topic = MQTTTopic(topic=msg.topic)
-
-        # if msg.topic in self.subs:
-        #     meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
-        #     data = CatbusData(meta=meta, value=int(msg.payload))
-
-        #     kv_payload = MQTTKVPayload(data=data)
-
-        #     publish_msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
-
-        #     for host in self.subs[msg.topic]:
-        #         print(host, publish_msg)
-        #         self.transmit(publish_msg, host)
-        
+        client = self.clients[host]
+        client.clean_up()
+        del self.clients[client.host]
 
     def _handle_publish(self, msg, host):
         if host not in self.clients:
@@ -466,17 +438,6 @@ def main():
     # yappi.get_func_stats().print_all()
 
 if __name__ == '__main__':
-
-    # meta = CatbusMeta(hash=0, type=CATBUS_TYPE_INT32)
-    # data = CatbusData(meta=meta, value=123)
-
-    # t = TestField(data=data, topic="topic")
-
-    # from pprint import pprint
-
-    # print(t)
-    # print(t.toBasic()['data'].toJSON())
-
     main()
     
 

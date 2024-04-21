@@ -58,13 +58,8 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;
-    // uint8_t topic_len;
-    // topic data
-    // uint16_t payload_len;
-    // payload
-} mqtt_msg_publish_t;
-#define MQTT_MSG_PUBLISH            20
-#define MQTT_MSG_PUBLISH_KV         21
+} mqtt_msg_shutdown_t;
+#define MQTT_MSG_SHUTDOWN           1
 
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;
@@ -77,9 +72,17 @@ typedef struct __attribute__((packed)){
     uint16_t used_heap;
     uint16_t pixel_power;
 } mqtt_msg_publish_status_t;
-#define MQTT_MSG_PUBLISH_STATUS     22
+#define MQTT_MSG_PUBLISH_STATUS     10
 
-
+typedef struct __attribute__((packed)){
+    mqtt_msg_header_t header;
+    // uint8_t topic_len;
+    // topic data
+    // uint16_t payload_len;
+    // payload
+} mqtt_msg_publish_t;
+#define MQTT_MSG_PUBLISH            20
+#define MQTT_MSG_PUBLISH_KV         21
 
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;

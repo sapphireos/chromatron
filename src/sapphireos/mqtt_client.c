@@ -101,6 +101,7 @@ void mqtt_client_v_init( void ){
     ASSERT( sock >= 0 );
 
     sock_v_bind( sock, MQTT_BRIDGE_PORT );
+    sock_v_set_timeout( sock, 1 );
 
     thread_t_create( mqtt_client_thread,
                      PSTR("mqtt_client"),
@@ -577,6 +578,23 @@ static void transmit_status( void ){
 	sock_i16_sendto( sock, &msg, sizeof(msg), &raddr );	
 }
 
+static void transmit_shutdown( void ){
+
+	mqtt_msg_shutdown_t msg = {
+		{ 0 },
+	};
+
+	msg.header.magic 		= MQTT_MSG_MAGIC;
+	msg.header.version 		= MQTT_MSG_VERSION;
+	msg.header.msg_type 	= MQTT_MSG_SHUTDOWN;
+	msg.header.qos    		= 0;
+	msg.header.flags       	= 0;
+
+	sock_addr_t raddr = get_broker_raddr();
+
+	sock_i16_sendto( sock, &msg, sizeof(msg), &raddr );	
+}
+
 // static void mqtt_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len ){
 
 // 	int32_t value;
@@ -586,75 +604,6 @@ static void transmit_status( void ){
 
 // 	log_v_debug_P( PSTR("%s %ld %ld"), topic, data_len, value );
 // }
-
-PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-	
-	static uint32_t counter;
-	counter = 0;
-
-	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
-   	
-	TMR_WAIT( pt, 1000 );	
-
-	// mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test_sub"), 0, mqtt_on_publish_callback );
-
-   	while(1){
-
-    	TMR_WAIT( pt, 2000 );
-
-    	// send subscriptions
-		list_node_t ln = sub_list.head;	
-
-	    while( ln >= 0 ){
-
-	        mqtt_sub_t *sub = list_vp_get_data( ln );
-
-	        catbus_meta_t meta = { 0 };
-
-	        if( sub->callback != 0 ){
-
-	        	if( transmit_subscribe( MQTT_MSG_SUBSCRIBE, sub->topic, 0, 0 ) < 0 ){
-		        
-		        	log_v_debug_P( PSTR("sub fail") );
-
-		        	goto next_sub;
-		       	}
-	        }
-	        else if( sub->kv_hash != 0 ){
-
-				if( kv_i8_get_catbus_meta( sub->kv_hash, &meta ) < 0 ){
-
-					log_v_error_P( PSTR("Key for topic: %s not found"), sub->topic );
-
-					goto next_sub;
-				}
-			
-		        if( transmit_subscribe( MQTT_MSG_SUBSCRIBE_KV, sub->topic, &meta, 0 ) < 0 ){
-		        
-		        	log_v_debug_P( PSTR("sub fail") );
-
-		        	goto next_sub;
-		       	}
-		    }
-		    else{
-
-		    	log_v_error_P( PSTR("invalid sub config") );
-		    }
-
-next_sub:
-	        ln = list_ln_next( ln );        
-	    }    	
-
-	    // char *test_data = "{data:1.0}";
-	    // mqtt_client_i8_publish( "chromatron_mqtt/publish", test_data, strlen(test_data), 0, FALSE );
-
-		transmit_status();
-	}
-    
-PT_END( pt );
-}
 
 static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
@@ -753,6 +702,75 @@ static void process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 }
 
 
+PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+	
+	static uint32_t counter;
+	counter = 0;
+
+	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+   	
+	TMR_WAIT( pt, 1000 );	
+
+	// mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test_sub"), 0, mqtt_on_publish_callback );
+
+   	while(1){
+
+    	TMR_WAIT( pt, 2000 );
+
+    	// send subscriptions
+		list_node_t ln = sub_list.head;	
+
+	    while( ln >= 0 ){
+
+	        mqtt_sub_t *sub = list_vp_get_data( ln );
+
+	        catbus_meta_t meta = { 0 };
+
+	        if( sub->callback != 0 ){
+
+	        	if( transmit_subscribe( MQTT_MSG_SUBSCRIBE, sub->topic, 0, 0 ) < 0 ){
+		        
+		        	log_v_debug_P( PSTR("sub fail") );
+
+		        	goto next_sub;
+		       	}
+	        }
+	        else if( sub->kv_hash != 0 ){
+
+				if( kv_i8_get_catbus_meta( sub->kv_hash, &meta ) < 0 ){
+
+					log_v_error_P( PSTR("Key for topic: %s not found"), sub->topic );
+
+					goto next_sub;
+				}
+			
+		        if( transmit_subscribe( MQTT_MSG_SUBSCRIBE_KV, sub->topic, &meta, 0 ) < 0 ){
+		        
+		        	log_v_debug_P( PSTR("sub fail") );
+
+		        	goto next_sub;
+		       	}
+		    }
+		    else{
+
+		    	log_v_error_P( PSTR("invalid sub config") );
+		    }
+
+next_sub:
+	        ln = list_ln_next( ln );        
+	    }    	
+
+	    // char *test_data = "{data:1.0}";
+	    // mqtt_client_i8_publish( "chromatron_mqtt/publish", test_data, strlen(test_data), 0, FALSE );
+
+		transmit_status();
+	}
+    
+PT_END( pt );
+}
+
 
 PT_THREAD( mqtt_client_server_thread( pt_t *pt, void *state ) )
 {
@@ -763,6 +781,12 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
         if( sys_b_is_shutting_down() ){
+
+        	transmit_shutdown();
+        	TMR_WAIT( pt, 100 );
+        	transmit_shutdown();
+        	TMR_WAIT( pt, 100 );
+        	transmit_shutdown();
 
         	THREAD_EXIT( pt );
         }
