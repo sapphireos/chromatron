@@ -130,7 +130,7 @@ uint8_t *gfx_u8p_get_dither( void );
 
 uint16_t gfx_u16_calc_index( uint8_t obj, uint16_t x, uint16_t y );
 
-void gfx_v_drop( int32_t h, int32_t s, int32_t v, uint32_t x, uint32_t y, uint16_t radius );
+void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t radius );
 
 void gfx_v_set_hsv( int32_t h, int32_t s, int32_t v, uint16_t index );
 void gfx_v_set_hsv_2d( int32_t h, int32_t s, int32_t v, uint16_t x, uint16_t y );

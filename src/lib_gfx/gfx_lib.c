@@ -2398,7 +2398,7 @@ uint32_t _distance( int32_t x0, int32_t y0, int32_t x1, int32_t y1 ){
     return Z;
 }
 
-void gfx_v_drop( int32_t h, int32_t s, int32_t v, uint32_t x, uint32_t y, uint16_t radius ){
+void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t radius ){
 
     /*
     
@@ -2410,8 +2410,20 @@ void gfx_v_drop( int32_t h, int32_t s, int32_t v, uint32_t x, uint32_t y, uint16
 
     */
 
+    log_v_info_P( PSTR("%d %d"), x, y);
+
+
     int32_t x_max = pix_arrays[0].size_x - 1;
     int32_t y_max = pix_arrays[0].size_y - 1;
+
+    // check if we are using 1D or 2D:
+    if( y < 0 ){
+
+        // 1D mode:
+        y_max = 0;
+        x_max = pix_arrays[0].count - 1;
+    }
+    
     // int32_t x_min = 0;
     // int32_t y_min = 0;
 
@@ -2429,6 +2441,8 @@ void gfx_v_drop( int32_t h, int32_t s, int32_t v, uint32_t x, uint32_t y, uint16
 
     if( x0 > x_max ){ // out of bounds
 
+        log_v_info_P( PSTR("bounds") );
+
         return;
     }
 
@@ -2444,6 +2458,8 @@ void gfx_v_drop( int32_t h, int32_t s, int32_t v, uint32_t x, uint32_t y, uint16
 
     if( y0 > y_max ){ // out of bounds
 
+        log_v_info_P( PSTR("bounds") );
+
         return;
     }
 
@@ -2451,12 +2467,16 @@ void gfx_v_drop( int32_t h, int32_t s, int32_t v, uint32_t x, uint32_t y, uint16
 
         y1 = y_max;
     }
-    // search within the bounding box
-    for( uint16_t x_i = x0; x_i <= x1; x_i++ ){
 
-        for( uint16_t y_i = y0; y_i <= y1; y_i++ ){
-                
-            int32_t distance = _distance( x, y, x_i * GFX_GRID_RESOLUTION, y_i * GFX_GRID_RESOLUTION );
+    log_v_info_P( PSTR("%d %d %d %d"), x0, y0, x1, y1);
+
+    // search within the bounding box:
+    if( y < 0 ){
+
+        // 1D
+        for( uint16_t x_i = x0; x_i <= x1; x_i++ ){
+
+            int32_t distance = _distance( x, 0, x_i * GFX_GRID_RESOLUTION, 0 );
 
             // check for match
             if( distance <= radius ){
@@ -2464,7 +2484,7 @@ void gfx_v_drop( int32_t h, int32_t s, int32_t v, uint32_t x, uint32_t y, uint16
                 // match!
 
                 // calc pixel index for the currently matched pixel
-                uint16_t index = calc_index( 0, x_i, y_i );
+                uint16_t index = calc_index( 0, x_i, 65535 );
 
                 // bounds check!
                 if( index >= MAX_PIXELS ){
@@ -2474,6 +2494,35 @@ void gfx_v_drop( int32_t h, int32_t s, int32_t v, uint32_t x, uint32_t y, uint16
 
                 // test, write hue
                 _gfx_v_set_hue_1d( h, index );
+            }
+        }
+    }
+    else{
+
+        // 2D
+        for( uint16_t x_i = x0; x_i <= x1; x_i++ ){
+
+            for( uint16_t y_i = y0; y_i <= y1; y_i++ ){
+                    
+                int32_t distance = _distance( x, y, x_i * GFX_GRID_RESOLUTION, y_i * GFX_GRID_RESOLUTION );
+
+                // check for match
+                if( distance <= radius ){
+
+                    // match!
+
+                    // calc pixel index for the currently matched pixel
+                    uint16_t index = calc_index( 0, x_i, y_i );
+
+                    // bounds check!
+                    if( index >= MAX_PIXELS ){
+
+                       continue;
+                    }
+
+                    // test, write hue
+                    _gfx_v_set_hue_1d( h, index );
+                }
             }
         }
     }
