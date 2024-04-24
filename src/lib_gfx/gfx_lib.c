@@ -2364,6 +2364,121 @@ uint16_t gfx_u16_calc_index( uint8_t obj, uint16_t x, uint16_t y ){
 }
 
 
+#define GFX_GRID_RESOLUTION 100
+
+uint32_t _distance( int32_t x0, int32_t y0, int32_t x1, int32_t y1 ){
+
+    // using the alpha max beta min algorithm
+    // https://en.wikipedia.org/wiki/Alpha_max_plus_beta_min_algorithm
+
+    // compute distance between Xs and Ys
+    int32_t a = x1 - x0;
+    int32_t b = y1 - y0;
+
+    uint32_t abs_a = abs32( a );
+    uint32_t abs_b = abs32( b );  
+
+    uint32_t max = abs_a;
+    if( abs_b > max ){
+
+        max = abs_b;
+    }
+
+    uint32_t min = abs_a;
+    if( abs_b < min ){
+
+        min = abs_b;
+    }
+
+    #define ALPHA ( 1 / 1 )
+    #define BETA ( 3 / 8 )
+
+    uint32_t Z = max + 3 * min / 8;
+
+    return Z;
+}
+
+void gfx_v_drop( int32_t h, int32_t s, int32_t v, uint32_t x, uint32_t y, uint16_t radius ){
+
+    /*
+    
+    Given a circle defined by an XY coordinate and radius, find all
+    pixels that fit within the circle.
+
+    The XY and radius are scaled by the grid resolution to allow
+    coordinates between pixels.
+
+    */
+
+    int32_t x_max = pix_arrays[0].size_x - 1;
+    int32_t y_max = pix_arrays[0].size_y - 1;
+    // int32_t x_min = 0;
+    // int32_t y_min = 0;
+
+    // Compute the bounding box for the circle:
+    int32_t x0 = ( x - radius ) / GFX_GRID_RESOLUTION;
+    int32_t x1 = ( x + radius) / GFX_GRID_RESOLUTION;
+    int32_t y0 = ( y - radius ) / GFX_GRID_RESOLUTION;
+    int32_t y1 = ( y + radius ) / GFX_GRID_RESOLUTION;
+
+    // constrain the bounding box to fit within the pixel grid
+    if( x0 < 0 ){
+
+        x0 = 0;
+    }
+
+    if( x0 > x_max ){ // out of bounds
+
+        return;
+    }
+
+    if( x1 > x_max ){
+
+        x1 = x_max;
+    }    
+
+    if( y0 < 0 ){
+
+        y0 = 0;
+    }
+
+    if( y0 > y_max ){ // out of bounds
+
+        return;
+    }
+
+    if( y1 > y_max ){
+
+        y1 = y_max;
+    }
+    // search within the bounding box
+    for( uint16_t x_i = x0; x_i <= x1; x_i++ ){
+
+        for( uint16_t y_i = y0; y_i <= y1; y_i++ ){
+                
+            int32_t distance = _distance( x, y, x_i * GFX_GRID_RESOLUTION, y_i * GFX_GRID_RESOLUTION );
+
+            // check for match
+            if( distance <= radius ){
+
+                // match!
+
+                // calc pixel index for the currently matched pixel
+                uint16_t index = calc_index( 0, x_i, y_i );
+
+                // bounds check!
+                if( index >= MAX_PIXELS ){
+
+                   continue;
+                }
+
+                // test, write hue
+                _gfx_v_set_hue_1d( h, index );
+            }
+        }
+    }
+}
+
 void gfx_v_set_hsv( int32_t h, int32_t s, int32_t v, uint16_t index ){
 
     if( h >= 0 ){

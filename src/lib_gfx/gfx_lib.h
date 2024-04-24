@@ -31,35 +31,6 @@
 #include "target.h"
 #include "hsv_to_rgb.h"
 
-// #define GFX_VERSION             2
-
-// typedef struct  __attribute__((packed)){
-//     uint8_t version;
-//     uint16_t pix_count;
-//     uint16_t pix_size_x;
-//     uint16_t pix_size_y;
-//     uint8_t pix_mode;
-//     bool interleave_x;
-//     bool invert_x;
-//     bool transpose;
-//     uint16_t hs_fade;
-//     uint16_t v_fade;
-//     uint16_t master_dimmer;
-//     uint16_t sub_dimmer;
-//     uint16_t frame_rate;
-//     uint16_t dimmer_curve;
-//     uint16_t virtual_array_start;
-//     uint16_t virtual_array_length;
-//     uint32_t sync_group_hash;
-//     uint16_t sat_curve;
-// } gfx_params_t;
-
-typedef struct  __attribute__((packed)){
-    uint16_t h;
-    uint16_t s;
-    uint16_t v;
-} gfx_pixel_t;
-
 #define GFX_DIMMER_CURVE_DEFAULT    128
 #define GFX_SAT_CURVE_DEFAULT       128
 
@@ -108,9 +79,6 @@ typedef struct  __attribute__((packed)){
 
 void gfx_v_set_vm_frame_rate( uint16_t frame_rate );
 uint16_t gfx_u16_get_vm_frame_rate( void );
-
-// void gfx_v_set_params( gfx_params_t *params );
-// void gfx_v_get_params( gfx_params_t *params );
 
 int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t param_len );
 
@@ -161,6 +129,8 @@ uint8_t *gfx_u8p_get_blue( void );
 uint8_t *gfx_u8p_get_dither( void );
 
 uint16_t gfx_u16_calc_index( uint8_t obj, uint16_t x, uint16_t y );
+
+void gfx_v_drop( int32_t h, int32_t s, int32_t v, uint32_t x, uint32_t y, uint16_t radius );
 
 void gfx_v_set_hsv( int32_t h, int32_t s, int32_t v, uint16_t index );
 void gfx_v_set_hsv_2d( int32_t h, int32_t s, int32_t v, uint16_t x, uint16_t y );

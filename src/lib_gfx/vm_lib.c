@@ -71,6 +71,12 @@ int8_t vm_lib_i8_libcall_built_in(
 
 	switch( func_hash ){
         #ifdef ENABLE_CONTROLLER
+        case __KV__drop_h:
+
+            gfx_v_drop( params[0], -1, -1, params[1], params[2], params[3] );
+            
+            break;
+
         case __KV__publish:
 
             // dereference to pool:
