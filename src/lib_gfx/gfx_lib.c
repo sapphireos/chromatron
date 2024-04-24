@@ -2410,7 +2410,7 @@ void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t
 
     */
 
-    log_v_info_P( PSTR("%d %d"), x, y);
+    // log_v_info_P( PSTR("%d %d"), x, y);
 
 
     int32_t x_max = pix_arrays[0].size_x - 1;
@@ -2468,7 +2468,7 @@ void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t
         y1 = y_max;
     }
 
-    log_v_info_P( PSTR("%d %d %d %d"), x0, y0, x1, y1);
+    // log_v_info_P( PSTR("%d %d %d %d"), x0, y0, x1, y1);
 
     // search within the bounding box:
     if( y < 0 ){
