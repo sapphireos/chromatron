@@ -249,6 +249,11 @@ void hal_wifi_v_init( void ){
     // fusion1
     // appears to be consistent?
     // maybe we just ignore that reset code?  internet doesn't know what it actually means either.
+    // nope, depends on USB cable.  Sometimes doesn't charge either.
+    // so, yet another BQ25895 glitch, but since an SDIO reset is really never a valid reset,
+    // instead of safe mode we could just do a restart (within the recovery counter).
+    // if we hit the recovery counter we go to safe mode either way.
+    
 
     */
 
