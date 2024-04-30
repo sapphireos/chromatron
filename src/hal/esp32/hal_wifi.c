@@ -228,6 +228,30 @@ void hal_wifi_v_init( void ){
     // log reset reason for ESP32
     log_v_info_P( PSTR("ESP reset reason: %d"), esp_reset_reason() );
 
+    /*
+
+    typedef enum {
+        ESP_RST_UNKNOWN,    //!< Reset reason can not be determined
+        ESP_RST_POWERON,    //!< Reset due to power-on event
+        ESP_RST_EXT,        //!< Reset by external pin (not applicable for ESP32)
+        ESP_RST_SW,         //!< Software reset via esp_restart
+        ESP_RST_PANIC,      //!< Software reset due to exception/panic
+        ESP_RST_INT_WDT,    //!< Reset (software or hardware) due to interrupt watchdog
+        ESP_RST_TASK_WDT,   //!< Reset due to task watchdog
+        ESP_RST_WDT,        //!< Reset due to other watchdogs
+        ESP_RST_DEEPSLEEP,  //!< Reset after exiting deep sleep mode
+        ESP_RST_BROWNOUT,   //!< Brownout reset (software or hardware)
+        ESP_RST_SDIO,       //!< Reset over SDIO
+    } esp_reset_reason_t;
+
+
+    // one of the fusion cells is getting ESP_RST_SDIO on power on start from vbus plug in?
+    // fusion1
+    // appears to be consistent?
+    // maybe we just ignore that reset code?  internet doesn't know what it actually means either.
+
+    */
+
     if( cfg_b_get_boolean( __KV__enable_brownout_restart ) ){
 
         thread_t_create( 
