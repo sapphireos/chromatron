@@ -63,6 +63,8 @@
 //     __KV__pix_mode,    
 // };
 
+static uint8_t current_vm_id;
+
 static uint32_t cycles;
 
 #define REG_ZERO                0
@@ -2875,6 +2877,8 @@ int8_t vm_i8_run(
     uint16_t pc_offset,
     vm_state_t *state ){
 
+    current_vm_id = state->vm_id;
+
     // trace_printf("VM run func: %d\r\n", func_addr);
 
     uint32_t start_time = tmr_u32_get_system_time_us();
@@ -3763,4 +3767,10 @@ error:
     }
     
     return status;
+}
+
+
+uint8_t vm_u8_current_id( void ){
+
+    return current_vm_id;
 }

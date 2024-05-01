@@ -34,6 +34,7 @@
 #include "timesync.h"
 #include "vm_sync.h"
 #include "util.h"
+#include "mqtt_client.h"
 
 #include "vm.h"
 #include "vm_core.h"
@@ -717,6 +718,9 @@ static void kill_vm( uint8_t vm_id ){
 
     // clear cron jobs:
     vm_cron_v_unload( state->vm_id );
+
+    // unsubscribe MQTT
+    mqtt_client_v_unsubscribe_tag( state->vm_id | MQTT_VM_TAG_OFFSET );
     
     // clear thread handle
     vm_threads[state->vm_id] = -1;

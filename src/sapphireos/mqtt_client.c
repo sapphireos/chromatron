@@ -70,6 +70,7 @@ typedef struct __attribute__((packed)){
 	uint32_t kv_hash;
 	// uint8_t qos;
 	mqtt_on_publish_callback_t callback;
+	uint8_t tag;
 } mqtt_sub_t;
 
 static list_t sub_list;
@@ -469,7 +470,8 @@ int8_t transmit_subscribe(
 int8_t mqtt_client_i8_subscribe( 
 	const char *topic, 
 	uint8_t qos, 
-	mqtt_on_publish_callback_t callback ){
+	mqtt_on_publish_callback_t callback,
+	uint8_t tag ){
 
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
@@ -495,6 +497,7 @@ int8_t mqtt_client_i8_subscribe(
 		0, // kv hash
 		// qos,
 		callback,
+		tag, // tag
 	}; 
 
 	strncpy( new_sub.topic, topic, topic_len );
@@ -517,7 +520,8 @@ int8_t mqtt_client_i8_subscribe(
 int8_t mqtt_client_i8_subscribe_kv( 
 	const char *topic, 
 	const char *key, 
-	uint8_t qos ){
+	uint8_t qos,
+	uint8_t tag ){
 
 	uint16_t topic_len = strlen( topic );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
@@ -553,6 +557,7 @@ int8_t mqtt_client_i8_subscribe_kv(
 		kv_hash, // kv hash
 		// qos,
 		0, // callback
+		tag, // tag
 	}; 
 
 	strncpy( new_sub.topic, topic, topic_len );
@@ -571,6 +576,49 @@ int8_t mqtt_client_i8_subscribe_kv(
 	transmit_subscribe( MQTT_MSG_SUBSCRIBE_KV, topic, &meta, qos );
 
 	return 0;
+}
+
+void mqtt_client_v_unsubscribe( const char *topic ){
+
+	uint16_t topic_len = strlen( topic );
+	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
+
+	list_node_t ln = sub_list.head;
+
+    while( ln >= 0 ){
+
+        mqtt_sub_t *sub = list_vp_get_data( ln );
+        list_node_t next_ln = list_ln_next( ln );
+
+        if( strncmp( topic, sub->topic, MQTT_MAX_TOPIC_LEN ) == 0 ){
+
+            // remove from list
+            list_v_remove( &sub_list, ln );
+         	list_v_release_node( ln );   
+        }
+
+        ln = next_ln; 
+    }
+}
+
+void mqtt_client_v_unsubscribe_tag( uint8_t tag ){
+
+	list_node_t ln = sub_list.head;
+
+    while( ln >= 0 ){
+
+        mqtt_sub_t *sub = list_vp_get_data( ln );
+        list_node_t next_ln = list_ln_next( ln );
+
+        if( sub->tag == tag ){
+
+            // remove from list
+            list_v_remove( &sub_list, ln );
+         	list_v_release_node( ln );   
+        }
+
+        ln = next_ln; 
+    }
 }
 
 static void transmit_status( void ){
@@ -867,6 +915,15 @@ PT_END( pt );
 
 // BROKER
 
+typedef struct __attribute__((packed)){
+	char topic[MQTT_MAX_TOPIC_LEN];
+	// uint8_t qos;
+	sock_addr_t raddr;
+	uint8_t timeout;
+} mqtt_broker_sub_t;
+
+static list_t broker_sub_list;
+
 
 static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
@@ -998,6 +1055,9 @@ PT_BEGIN( pt );
 
     sock_v_bind( broker_sock, MQTT_BROKER_PORT );
     sock_v_set_timeout( broker_sock, 1 );
+
+    
+    list_v_init( &broker_sub_list );
 
 
    	while(1){

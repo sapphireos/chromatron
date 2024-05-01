@@ -33,6 +33,8 @@
 #define MQTT_BRIDGE_PORT        44899
 #define MQTT_BROKER_PORT        44900
 
+#define MQTT_VM_TAG_OFFSET      0x80
+
 
 void mqtt_client_v_init( void );
 
@@ -106,8 +108,10 @@ bool mqtt_b_match_topic( const char *topic, const char *sub );
 
 int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain );
 int8_t mqtt_client_i8_publish_kv( const char *topic, const char *key, uint8_t qos, bool retain );
-int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish_callback_t callback );
-int8_t mqtt_client_i8_subscribe_kv( const char *topic, const char *key, uint8_t qos );
+int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish_callback_t callback, uint8_t tag );
+int8_t mqtt_client_i8_subscribe_kv( const char *topic, const char *key, uint8_t qos, uint8_t tag );
+void mqtt_client_v_unsubscribe( const char *topic );
+void mqtt_client_v_unsubscribe_tag( uint8_t tag );
 
 
 
