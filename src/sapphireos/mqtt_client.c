@@ -75,16 +75,21 @@ typedef struct __attribute__((packed)){
 static list_t sub_list;
 
 static socket_t sock;
+static socket_t broker_sock;
 
 static ip_addr4_t broker_ip;
+static uint16_t broker_port;
 
 KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
+	{ CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST, 0, 						0,  "mqtt_broker_enable" },
     { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_PERSIST, &broker_ip, 				0,  "mqtt_broker_ip" },
+    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_PERSIST, &broker_port,				0,  "mqtt_broker_port" },
 };
 
 
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_client_server_thread( pt_t *pt, void *state ) );
+PT_THREAD( mqtt_broker_server_thread( pt_t *pt, void *state ) );
 
 void mqtt_client_v_init( void ){
 
@@ -112,13 +117,21 @@ void mqtt_client_v_init( void ){
                      PSTR("mqtt_client_server"),
                      0,
                      0 );
+
+    if( kv_b_get_boolean( __KV__mqtt_broker_enable ) ){
+
+    	thread_t_create( mqtt_broker_server_thread,
+                     PSTR("mqtt_broker_server"),
+                     0,
+                     0 );
+    }
 }
 
 static sock_addr_t get_broker_raddr( void ){
 	
 	sock_addr_t raddr = {
 		.ipaddr = broker_ip,
-		.port = MQTT_BRIDGE_PORT
+		.port = broker_port
 	};
 
 	return raddr;
@@ -834,6 +847,214 @@ PT_BEGIN( pt );
         else if( header->msg_type == MQTT_MSG_BRIDGE ){
 
         	broker_ip = raddr.ipaddr;
+        	broker_port = raddr.port;
+        }
+        else{
+
+        	// invalid message
+        	log_v_error_P( PSTR("Invalid msg: %d"), header->msg_type );
+        }
+
+
+    end:
+
+    	THREAD_YIELD( pt );
+	}
+    
+PT_END( pt );
+}
+
+
+// BROKER
+
+
+static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
+
+	// get byte pointer after headers:
+	uint8_t *ptr = (uint8_t *)( msg + 1 );
+
+	// get topic length
+	uint8_t topic_len = *ptr;
+	ptr++;
+	char *topic = (char *)ptr;
+		
+	ptr += topic_len;
+	
+	uint16_t data_len = 0;	
+	memcpy( &data_len, ptr, sizeof(data_len) );
+	ptr += sizeof(data_len);
+	
+	uint8_t *data = ptr;
+
+	// list_node_t ln = sub_list.head;
+
+    // while( ln >= 0 ){
+
+    //     mqtt_sub_t *sub = list_vp_get_data( ln );
+        
+    //     if( strncmp( topic, sub->topic, topic_len ) == 0 ){
+
+    //         // match!
+
+    //     	// check what to do
+
+    //     	// if there is a callback, fire it:
+    //     	if( sub->callback != 0 ){
+
+	//         	sub->callback( topic, data, data_len );
+	//         }
+    //     }
+
+    //     ln = list_ln_next( ln );        
+    // }
+}
+
+
+static void broker_process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
+
+	// get byte pointer after headers:
+	uint8_t *ptr = (uint8_t *)( msg + 1 );
+
+	// get topic length
+	uint8_t topic_len = *ptr;
+	ptr++;
+	char *topic = (char *)ptr;
+		
+	ptr += topic_len;
+	
+	uint8_t *data = ptr;
+
+	// list_node_t ln = sub_list.head;
+
+    // while( ln >= 0 ){
+
+    //     mqtt_sub_t *sub = list_vp_get_data( ln );
+        
+    //     if( strncmp( topic, sub->topic, topic_len ) == 0 ){
+
+    //         // match!
+
+    //     	// check what to do
+
+	//         // check if there is a KV target
+	//         if( sub->kv_hash != 0 ){
+
+	//         	catbus_data_t *catbus_data = (catbus_data_t *)data;
+
+	//         	uint16_t type_len = type_u16_size( catbus_data->meta.type );
+	        	
+	//         	if( type_len != CATBUS_TYPE_SIZE_INVALID ){
+
+	//         		// apply to KV system:
+	//         		if( catbus_i8_set( sub->kv_hash, catbus_data->meta.type, &catbus_data->data, type_len ) < 0 ){
+
+	//         			log_v_error_P( PSTR("Error setting KV data for topic: %s"), topic );
+	//         		}
+	//         	}
+	//         	else{
+
+	//         		log_v_error_P( PSTR("Invalid type: %d on topic: %s"), catbus_data->meta.type, topic );
+	//         	}
+	//         }
+    //     }
+
+    //     ln = list_ln_next( ln );        
+    // }
+}
+
+static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
+
+	// get byte pointer after headers:
+	uint8_t *ptr = (uint8_t *)( msg + 1 );
+
+	// get topic length
+	uint8_t topic_len = *ptr;
+	ptr++;
+	char *topic = (char *)ptr;
+		
+}
+
+static void broker_process_subscribe_kv( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
+
+	// get byte pointer after headers:
+	uint8_t *ptr = (uint8_t *)( msg + 1 );
+
+	// get topic length
+	uint8_t topic_len = *ptr;
+	ptr++;
+	char *topic = (char *)ptr;
+		
+}
+
+
+PT_THREAD( mqtt_broker_server_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+   	
+   	// create socket
+    broker_sock = sock_s_create( SOS_SOCK_DGRAM );
+
+    ASSERT( broker_sock >= 0 );
+
+    sock_v_bind( broker_sock, MQTT_BROKER_PORT );
+    sock_v_set_timeout( broker_sock, 1 );
+
+
+   	while(1){
+
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( broker_sock ) < 0 );
+
+        if( sys_b_is_shutting_down() ){
+
+        	// transmit_shutdown();
+        	// TMR_WAIT( pt, 100 );
+        	// transmit_shutdown();
+        	// TMR_WAIT( pt, 100 );
+        	// transmit_shutdown();
+
+        	THREAD_EXIT( pt );
+        }
+
+        if( sock_i16_get_bytes_read( broker_sock ) <= 0 ){
+
+            goto end;
+        }
+
+        mqtt_msg_header_t *header = sock_vp_get_data( broker_sock );
+
+        // verify message
+        if( header->magic != MQTT_MSG_MAGIC ){
+
+            goto end;
+        }
+
+        if( header->version != MQTT_MSG_VERSION ){
+
+            goto end;
+        }
+
+        sock_addr_t raddr;
+        sock_v_get_raddr( broker_sock, &raddr );
+
+        if( header->msg_type == MQTT_MSG_PUBLISH ){
+
+        	broker_process_publish( (mqtt_msg_publish_t *)header, &raddr );
+        }
+        else if( header->msg_type == MQTT_MSG_PUBLISH_KV ){
+
+        	broker_process_publish_kv( (mqtt_msg_publish_t *)header, &raddr );
+        }
+        else if( header->msg_type == MQTT_MSG_SUBSCRIBE ){
+
+        	broker_process_subscribe( (mqtt_msg_subscribe_t *)header, &raddr );
+        }
+        else if( header->msg_type == MQTT_MSG_SUBSCRIBE_KV ){
+
+        	broker_process_subscribe_kv( (mqtt_msg_subscribe_t *)header, &raddr );
+        }
+        else if( header->msg_type == MQTT_MSG_BRIDGE ){
+
+        	// broker_ip = raddr.ipaddr;
         }
         else{
 

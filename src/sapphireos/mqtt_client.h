@@ -31,6 +31,7 @@
 #define MQTT_MAX_PAYLOAD_LEN    256
 
 #define MQTT_BRIDGE_PORT        44899
+#define MQTT_BROKER_PORT        44900
 
 
 void mqtt_client_v_init( void );
