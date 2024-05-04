@@ -76,13 +76,18 @@ typedef struct __attribute__((packed)){
 static list_t sub_list;
 
 static socket_t sock;
+
+#ifdef ENABLE_BROKER
 static socket_t broker_sock;
+#endif
 
 static ip_addr4_t broker_ip;
 static uint16_t broker_port;
 
 KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
+	#ifdef ENABLE_BROKER
 	{ CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST, 0, 						0,  "mqtt_broker_enable" },
+    #endif
     { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_PERSIST, &broker_ip, 				0,  "mqtt_broker_ip" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_PERSIST, &broker_port,				0,  "mqtt_broker_port" },
 };
@@ -90,7 +95,10 @@ KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
 
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_client_server_thread( pt_t *pt, void *state ) );
+
+#ifdef ENABLE_BROKER
 PT_THREAD( mqtt_broker_server_thread( pt_t *pt, void *state ) );
+#endif
 
 void mqtt_client_v_init( void ){
 
@@ -119,6 +127,7 @@ void mqtt_client_v_init( void ){
                      0,
                      0 );
 
+   	#ifdef ENABLE_BROKER
     if( kv_b_get_boolean( __KV__mqtt_broker_enable ) ){
 
     	thread_t_create( mqtt_broker_server_thread,
@@ -126,6 +135,7 @@ void mqtt_client_v_init( void ){
                      0,
                      0 );
     }
+    #endif
 }
 
 static sock_addr_t get_broker_raddr( void ){
@@ -913,7 +923,11 @@ PT_END( pt );
 }
 
 
-// BROKER
+
+#ifdef ENABLE_BROKER
+/**********************************
+			 BROKER
+**********************************/
 
 typedef struct __attribute__((packed)){
 	char topic[MQTT_MAX_TOPIC_LEN];
@@ -1130,6 +1144,8 @@ PT_BEGIN( pt );
     
 PT_END( pt );
 }
+
+#endif
 
 
 /*
