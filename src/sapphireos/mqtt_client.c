@@ -939,7 +939,7 @@ typedef struct __attribute__((packed)){
 static list_t broker_sub_list;
 
 
-static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
+static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr, mem_handle_t packet_h ){
 
 	// get byte pointer after headers:
 	uint8_t *ptr = (uint8_t *)( msg + 1 );
@@ -949,13 +949,46 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr 
 	ptr++;
 	char *topic = (char *)ptr;
 		
-	ptr += topic_len;
+	// got the topic
+	// we don't care about the data
+
+	list_node_t ln = broker_sub_list.head;
+
+    while( ln >= 0 ){
+
+        mqtt_broker_sub_t *sub = list_vp_get_data( ln );
+        
+        if( strncmp( topic, sub->topic, topic_len ) == 0 ){
+
+            // match!
+
+        	// deref packet handle
+        	uint16_t packet_size = mem2_u16_get_size( packet_h );
+        	void *packet_ptr = mem2_vp_get_ptr( packet_h );
+
+        	// retransmit this message
+    		if( sock_i16_sendto( broker_sock, packet_ptr, packet_size, &sub->raddr ) < 0 ){
+
+    			log_v_error_P( PSTR("MQTT packet flinging failed") );
+
+    			break;
+    		}
+        }
+
+        ln = list_ln_next( ln );        
+    }
+
+    // release original handle
+    mem2_v_free( packet_h );
+
+
+	// ptr += topic_len;
 	
-	uint16_t data_len = 0;	
-	memcpy( &data_len, ptr, sizeof(data_len) );
-	ptr += sizeof(data_len);
+	// uint16_t data_len = 0;	
+	// memcpy( &data_len, ptr, sizeof(data_len) );
+	// ptr += sizeof(data_len);
 	
-	uint8_t *data = ptr;
+	// uint8_t *data = ptr;
 
 	// list_node_t ln = sub_list.head;
 
@@ -984,16 +1017,16 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr 
 static void broker_process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
 	// get byte pointer after headers:
-	uint8_t *ptr = (uint8_t *)( msg + 1 );
+	// uint8_t *ptr = (uint8_t *)( msg + 1 );
 
-	// get topic length
-	uint8_t topic_len = *ptr;
-	ptr++;
-	char *topic = (char *)ptr;
+	// // get topic length
+	// uint8_t topic_len = *ptr;
+	// ptr++;
+	// char *topic = (char *)ptr;
 		
-	ptr += topic_len;
+	// ptr += topic_len;
 	
-	uint8_t *data = ptr;
+	// uint8_t *data = ptr;
 
 	// list_node_t ln = sub_list.head;
 
@@ -1110,14 +1143,18 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( broker_sock, &raddr );
 
+        mem_handle_t packet_h = sock_h_get_data_handle( broker_sock );
+
+        ASSERT( packet_h > 0 );
+
         if( header->msg_type == MQTT_MSG_PUBLISH ){
 
-        	broker_process_publish( (mqtt_msg_publish_t *)header, &raddr );
+        	broker_process_publish( (mqtt_msg_publish_t *)header, &raddr, packet_h );
         }
-        else if( header->msg_type == MQTT_MSG_PUBLISH_KV ){
+        // else if( header->msg_type == MQTT_MSG_PUBLISH_KV ){
 
-        	broker_process_publish_kv( (mqtt_msg_publish_t *)header, &raddr );
-        }
+        // 	broker_process_publish_kv( (mqtt_msg_publish_t *)header, &raddr );
+        // }
         else if( header->msg_type == MQTT_MSG_SUBSCRIBE ){
 
         	broker_process_subscribe( (mqtt_msg_subscribe_t *)header, &raddr );
