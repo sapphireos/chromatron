@@ -39,6 +39,10 @@
 #define ENABLE_BROKER
 #endif
 
+#ifdef ENABLE_BROKER
+#define MQTT_BROKER_SUB_TIMEOUT 60
+#endif
+
 void mqtt_client_v_init( void );
 
 #define MQTT_MSG_MAGIC    0x5454514d // 'MQTT'

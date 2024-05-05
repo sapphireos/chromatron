@@ -1073,6 +1073,8 @@ class Device(object):
             30: "kv_opt",
             31: "vm_thread_context",
             32: "fs_page_cache",
+            33: "mqtt_sub",
+            34: "mqtt_broker_sub",
         }
 
         total_size = 0

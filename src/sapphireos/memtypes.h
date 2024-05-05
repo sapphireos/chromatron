@@ -57,5 +57,6 @@ typedef uint8_t mem_type_t8;
 #define MEM_TYPE_VM_THREAD_CONTEXT  31
 #define MEM_TYPE_FS_PAGE_CACHE      32
 #define MEM_TYPE_MQTT_SUB      		33
+#define MEM_TYPE_MQTT_BROKER_SUB   	34
 
 #endif

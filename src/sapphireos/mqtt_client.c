@@ -98,6 +98,7 @@ PT_THREAD( mqtt_client_server_thread( pt_t *pt, void *state ) );
 
 #ifdef ENABLE_BROKER
 PT_THREAD( mqtt_broker_server_thread( pt_t *pt, void *state ) );
+PT_THREAD( mqtt_broker_timeout_thread( pt_t *pt, void *state ) );
 #endif
 
 void mqtt_client_v_init( void ){
@@ -132,6 +133,11 @@ void mqtt_client_v_init( void ){
 
     	thread_t_create( mqtt_broker_server_thread,
                      PSTR("mqtt_broker_server"),
+                     0,
+                     0 );
+
+    	thread_t_create( mqtt_broker_timeout_thread,
+                     PSTR("mqtt_broker_timeout"),
                      0,
                      0 );
     }
@@ -516,6 +522,8 @@ int8_t mqtt_client_i8_subscribe(
 
     if( ln < 0 ){
 
+    	log_v_error_P( PSTR("failed to add sub") );
+
         return -1;
     }
 
@@ -577,6 +585,8 @@ int8_t mqtt_client_i8_subscribe_kv(
     ln = list_ln_create_node2( &new_sub, sizeof(new_sub), MEM_TYPE_MQTT_SUB );
 
     if( ln < 0 ){
+
+    	log_v_error_P( PSTR("failed to add sub") );
 
         return -1;
     }
@@ -1014,7 +1024,7 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr,
 }
 
 
-static void broker_process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
+// static void broker_process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
 	// get byte pointer after headers:
 	// uint8_t *ptr = (uint8_t *)( msg + 1 );
@@ -1064,7 +1074,7 @@ static void broker_process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *rad
 
     //     ln = list_ln_next( ln );        
     // }
-}
+// }
 
 static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
 
@@ -1075,20 +1085,62 @@ static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *ra
 	uint8_t topic_len = *ptr;
 	ptr++;
 	char *topic = (char *)ptr;
-		
+
+	list_node_t ln = broker_sub_list.head;
+
+    while( ln >= 0 ){
+
+        mqtt_broker_sub_t *sub = list_vp_get_data( ln );
+        
+        if( ( strncmp( topic, sub->topic, MQTT_MAX_TOPIC_LEN ) == 0 ) &&
+        	( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ) ){
+
+        	// already subscribed
+
+        	// update timeout
+        	sub->timeout = MQTT_BROKER_SUB_TIMEOUT;
+
+            return; 
+        }
+
+        ln = list_ln_next( ln );        
+    }
+
+    // not subscribed, create new subscription
+
+	mqtt_broker_sub_t new_sub = {
+		{ 0 }, // topic
+		// qos,
+		*raddr, // remote host address
+		MQTT_BROKER_SUB_TIMEOUT, // timeout
+	}; 
+
+	strncpy( new_sub.topic, topic, topic_len );
+
+    ln = list_ln_create_node2( &new_sub, sizeof(new_sub), MEM_TYPE_MQTT_BROKER_SUB );
+
+    if( ln < 0 ){
+
+    	log_v_error_P( PSTR("failed to add sub") );
+
+        return;
+    }
+
+    list_v_insert_tail( &broker_sub_list, ln );
 }
 
-static void broker_process_subscribe_kv( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
 
-	// get byte pointer after headers:
-	uint8_t *ptr = (uint8_t *)( msg + 1 );
+// static void broker_process_subscribe_kv( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
 
-	// get topic length
-	uint8_t topic_len = *ptr;
-	ptr++;
-	char *topic = (char *)ptr;
+// 	// get byte pointer after headers:
+// 	uint8_t *ptr = (uint8_t *)( msg + 1 );
+
+// 	// get topic length
+// 	uint8_t topic_len = *ptr;
+// 	ptr++;
+// 	char *topic = (char *)ptr;
 		
-}
+// }
 
 
 PT_THREAD( mqtt_broker_server_thread( pt_t *pt, void *state ) )
@@ -1159,10 +1211,10 @@ PT_BEGIN( pt );
 
         	broker_process_subscribe( (mqtt_msg_subscribe_t *)header, &raddr );
         }
-        else if( header->msg_type == MQTT_MSG_SUBSCRIBE_KV ){
+        // else if( header->msg_type == MQTT_MSG_SUBSCRIBE_KV ){
 
-        	broker_process_subscribe_kv( (mqtt_msg_subscribe_t *)header, &raddr );
-        }
+        // 	broker_process_subscribe_kv( (mqtt_msg_subscribe_t *)header, &raddr );
+        // }
         else if( header->msg_type == MQTT_MSG_BRIDGE ){
 
         	// broker_ip = raddr.ipaddr;
@@ -1181,6 +1233,48 @@ PT_BEGIN( pt );
     
 PT_END( pt );
 }
+
+
+PT_THREAD( mqtt_broker_timeout_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+   	while(1){
+
+        TMR_WAIT( pt, 1000 );
+
+ 		list_node_t ln = broker_sub_list.head;
+
+	    while( ln >= 0 ){
+
+	    	list_node_t next_ln = list_ln_next( ln );
+
+	        mqtt_broker_sub_t *sub = list_vp_get_data( ln );
+	        
+	        sub->timeout--;
+
+	        if( sub->timeout == 0 ){
+
+	        	log_v_info_P( PSTR("Sub timeout: %d.%d.%d.%d %s"), 
+	        		sub->raddr.ipaddr.ip3,
+	        		sub->raddr.ipaddr.ip2,
+	        		sub->raddr.ipaddr.ip1,
+	        		sub->raddr.ipaddr.ip0,
+	        		sub->topic
+	        	);
+
+				// remove from list
+	            list_v_remove( &broker_sub_list, ln);
+	         	list_v_release_node( ln );         	
+	        }
+
+	        ln = next_ln;
+	    }	   
+	}
+    
+PT_END( pt );
+}
+
 
 #endif
 
