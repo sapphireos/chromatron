@@ -990,90 +990,12 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr,
 
     // release original handle
     mem2_v_free( packet_h );
-
-
-	// ptr += topic_len;
-	
-	// uint16_t data_len = 0;	
-	// memcpy( &data_len, ptr, sizeof(data_len) );
-	// ptr += sizeof(data_len);
-	
-	// uint8_t *data = ptr;
-
-	// list_node_t ln = sub_list.head;
-
-    // while( ln >= 0 ){
-
-    //     mqtt_sub_t *sub = list_vp_get_data( ln );
-        
-    //     if( strncmp( topic, sub->topic, topic_len ) == 0 ){
-
-    //         // match!
-
-    //     	// check what to do
-
-    //     	// if there is a callback, fire it:
-    //     	if( sub->callback != 0 ){
-
-	//         	sub->callback( topic, data, data_len );
-	//         }
-    //     }
-
-    //     ln = list_ln_next( ln );        
-    // }
 }
 
 
 // static void broker_process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
-	// get byte pointer after headers:
-	// uint8_t *ptr = (uint8_t *)( msg + 1 );
-
-	// // get topic length
-	// uint8_t topic_len = *ptr;
-	// ptr++;
-	// char *topic = (char *)ptr;
-		
-	// ptr += topic_len;
 	
-	// uint8_t *data = ptr;
-
-	// list_node_t ln = sub_list.head;
-
-    // while( ln >= 0 ){
-
-    //     mqtt_sub_t *sub = list_vp_get_data( ln );
-        
-    //     if( strncmp( topic, sub->topic, topic_len ) == 0 ){
-
-    //         // match!
-
-    //     	// check what to do
-
-	//         // check if there is a KV target
-	//         if( sub->kv_hash != 0 ){
-
-	//         	catbus_data_t *catbus_data = (catbus_data_t *)data;
-
-	//         	uint16_t type_len = type_u16_size( catbus_data->meta.type );
-	        	
-	//         	if( type_len != CATBUS_TYPE_SIZE_INVALID ){
-
-	//         		// apply to KV system:
-	//         		if( catbus_i8_set( sub->kv_hash, catbus_data->meta.type, &catbus_data->data, type_len ) < 0 ){
-
-	//         			log_v_error_P( PSTR("Error setting KV data for topic: %s"), topic );
-	//         		}
-	//         	}
-	//         	else{
-
-	//         		log_v_error_P( PSTR("Invalid type: %d on topic: %s"), catbus_data->meta.type, topic );
-	//         	}
-	//         }
-    //     }
-
-    //     ln = list_ln_next( ln );        
-    // }
 // }
 
 static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
@@ -1092,7 +1014,7 @@ static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *ra
 
         mqtt_broker_sub_t *sub = list_vp_get_data( ln );
         
-        if( ( strncmp( topic, sub->topic, MQTT_MAX_TOPIC_LEN ) == 0 ) &&
+        if( ( mqtt_b_match_topic( topic, sub->topic ) == 0 ) &&
         	( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ) ){
 
         	// already subscribed
