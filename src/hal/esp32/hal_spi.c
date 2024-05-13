@@ -85,6 +85,7 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
         buscfg.miso_io_num = hal_io_i32_get_gpio_num( HAL_SPI_MISO );
         buscfg.mosi_io_num = hal_io_i32_get_gpio_num( HAL_SPI_MOSI );
         buscfg.sclk_io_num = hal_io_i32_get_gpio_num( HAL_SPI_SCK );
+        buscfg.max_transfer_sz = 2048; // increase max transfer size
     }
 
     if( initialized[channel] ){
@@ -95,11 +96,11 @@ void spi_v_init( uint8_t channel, uint32_t freq, uint8_t mode ){
 
     if( channel == PIXEL_SPI_CHANNEL ){
     
-	   ESP_ERROR_CHECK(spi_bus_initialize( port, &buscfg, 1 )); // DMA channel 1
+	    ESP_ERROR_CHECK(spi_bus_initialize( port, &buscfg, 1 )); // DMA channel 1
     }
     else{
 
-        ESP_ERROR_CHECK(spi_bus_initialize( port, &buscfg, 0 )); // no DMA
+        ESP_ERROR_CHECK(spi_bus_initialize( port, &buscfg, 2 )); // DMA channel 2
     }
 
     initialized[channel] = TRUE;

@@ -31,6 +31,7 @@
 
 #define N_SPI_PORTS 2
 
+// INTERNAL SPI ONLY! USE #defines in target.h for user API work:
 #define HAL_PIXEL_PORT  HSPI_HOST // VSPI is SPI3 on the ESP32
 #define HAL_SPI_PORT 	VSPI_HOST // HSPI is SPI2 on the ESP32
 
