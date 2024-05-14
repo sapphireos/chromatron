@@ -261,6 +261,11 @@ void thread_v_get_cpu_info( cpu_info_t *info ){
 
 uint8_t thread_u8_get_cpu_percent( void ){
 
+    if( cpu_info.run_time == 0 ){ // prevent divide by 0 if run time is not initialized
+
+        return 0;
+    }
+
     return cpu_info.task_time * 100 / cpu_info.run_time;
 }
 
