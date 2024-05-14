@@ -110,6 +110,7 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
+	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_thermal" },
 
 	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&charge_minimum_light,  	0,  "solar_charge_minimum_light" },
 
@@ -144,7 +145,10 @@ void solar_v_init( void ){
 
 	fuel_v_init();
 
-	thermal_v_init();
+	if( kv_b_get_boolean( __KV__solar_enable_thermal ) ){
+
+		thermal_v_init();
+	}
 
 	light_sensor_v_init();
 
