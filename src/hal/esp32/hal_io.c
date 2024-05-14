@@ -234,7 +234,50 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
     // need to reset pin first to initialize it.
     gpio_reset_pin( gpio );
 
-    if( mode == IO_MODE_INPUT ){
+    if( ( gpio == GPIO_NUM_32 ) || ( gpio == GPIO_NUM_33 ) ){ // special handling for GPIO 32 and 33
+
+        // don't need this:
+        // gpio_pad_select_gpio( gpio );
+        // rtc_gpio_deinit( gpio );
+        // don't need this:
+        // REG_CLR_BIT(RTC_IO_XTAL_32K_PAD_REG, RTC_IO_X32P_MUX_SEL);
+        // REG_CLR_BIT(RTC_IO_XTAL_32K_PAD_REG, RTC_IO_X32N_MUX_SEL);
+
+        uint64_t gpio_bit_mask = (uint64_t)1 << gpio;
+
+        gpio_config_t io_conf;
+        io_conf.intr_type = GPIO_INTR_DISABLE;
+        io_conf.mode = GPIO_MODE_INPUT;
+        io_conf.pin_bit_mask = gpio_bit_mask;
+        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+        
+        if( mode == IO_MODE_INPUT ){
+
+            io_conf.mode = GPIO_MODE_INPUT;
+        }
+        else if( mode == IO_MODE_INPUT_PULLUP ){
+
+            io_conf.mode = GPIO_MODE_INPUT;
+            io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+        }
+        else if( mode == IO_MODE_INPUT_PULLDOWN ){
+
+            io_conf.mode = GPIO_MODE_INPUT;
+            io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+        }
+        else if( mode == IO_MODE_OUTPUT ){
+
+            io_conf.mode = GPIO_MODE_OUTPUT;
+        }
+        else if( mode == IO_MODE_OUTPUT_OPEN_DRAIN ){
+
+            io_conf.mode = GPIO_MODE_OUTPUT_OD;
+        }
+        
+        gpio_config( &io_conf );
+    }
+    else if( mode == IO_MODE_INPUT ){
 
         gpio_set_direction( gpio, GPIO_MODE_INPUT );
         gpio_set_pull_mode( gpio, GPIO_FLOATING );
