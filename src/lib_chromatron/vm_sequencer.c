@@ -321,6 +321,15 @@ static bool process_trigger_input( void ){
 	return TRUE;
 }
 
+static bool is_charging( void ){
+
+	#ifdef ENABLE_BATTERY
+	return batt_b_is_charging();
+	#else
+	return FALSE;
+	#endif
+}
+
 PT_THREAD( vm_sequencer_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -367,17 +376,21 @@ PT_BEGIN( pt );
        	}
 
 		seq_running = TRUE;
-		#ifdef ENABLE_BATTERY
-		if( batt_b_is_charging() ){
+		
+		if( is_charging() ){
 
 			if( _run_charging() == 0 ){
 
-				THREAD_WAIT_WHILE( pt, batt_b_is_charging() && !sys_b_is_shutting_down() );
+				THREAD_WAIT_WHILE( pt, is_charging() && !sys_b_is_shutting_down() );
+
+				if( !is_charging() ){
+
+					_run_step( TRUE );
+				}
 
 				continue;
 			}
 		}
-		#endif
 
 
 		if( is_vm_sync_follower() ){
@@ -404,6 +417,7 @@ PT_BEGIN( pt );
 
 	    	THREAD_WAIT_WHILE( pt, 
 	    		( seq_time_mode == VM_SEQ_TIME_MODE_MANUAL ) &&
+	    		!is_charging() &&
 	    		!sys_b_is_shutting_down() &&
 	    		( seq_trigger == FALSE ) );
 
@@ -420,6 +434,7 @@ PT_BEGIN( pt );
 
 	    	THREAD_WAIT_WHILE( pt, 
 	    		( seq_time_mode == VM_SEQ_TIME_MODE_BUTTON ) &&
+	    		!is_charging() &&
 	    		!sys_b_is_shutting_down() &&
 	    		!button_b_peek_button_released( 0 ) &&
 	    		( seq_trigger == FALSE ) );
@@ -453,6 +468,7 @@ PT_BEGIN( pt );
 			thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
 	        THREAD_WAIT_WHILE( pt, 
 	        	thread_b_alarm_set() && 
+	        	!is_charging() &&
 	        	!sys_b_is_shutting_down() &&
 	        	!is_vm_sync_follower() &&
 	        	process_trigger_input() );
