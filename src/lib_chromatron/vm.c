@@ -719,8 +719,10 @@ static void kill_vm( uint8_t vm_id ){
     // clear cron jobs:
     vm_cron_v_unload( state->vm_id );
 
+    #ifdef ENABLE_CONTROLLER
     // unsubscribe MQTT
     mqtt_client_v_unsubscribe_tag( state->vm_id | MQTT_VM_TAG_OFFSET );
+    #endif
     
     // clear thread handle
     vm_threads[state->vm_id] = -1;
