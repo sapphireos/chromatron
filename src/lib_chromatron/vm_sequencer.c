@@ -29,6 +29,11 @@
 #include "vm_sequencer.h"
 #include "buttons.h"
 
+#ifdef ENABLE_BATTERY
+#include "battery.h"
+#endif
+
+
 static uint8_t seq_time_mode;
 static uint8_t seq_select_mode;
 
@@ -49,6 +54,7 @@ static bool vm_sync;
 #define N_SLOTS 8
 
 
+#define SLOT_CHARGING 252
 #define SLOT_STARTUP 253
 #define SLOT_SHUTDOWN 254
 
@@ -87,6 +93,7 @@ KV_SECTION_META kv_meta_t vm_seq_info_kv[] = {
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "seq_slot_6" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "seq_slot_7" },
 
+	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "seq_slot_charging" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "seq_slot_startup" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "seq_slot_shutdown" },
 
@@ -155,6 +162,10 @@ static int8_t get_program_for_slot( uint8_t slot, char progname[FFS_FILENAME_LEN
 
 		kv_i8_get( __KV__seq_slot_7, progname, FFS_FILENAME_LEN );
 	}
+	else if( slot == SLOT_CHARGING ){
+
+		kv_i8_get( __KV__seq_slot_charging, progname, FFS_FILENAME_LEN );
+	}
 	else if( slot == SLOT_STARTUP ){
 
 		kv_i8_get( __KV__seq_slot_startup, progname, FFS_FILENAME_LEN );
@@ -199,6 +210,21 @@ static int8_t _run_program( char progname[FFS_FILENAME_LEN] ){
 	vm_v_run_prog( progname, 0 ); // run new program on slot 0
 
 	return 0;
+}
+
+
+static int8_t _run_charging( void ){
+
+	char progname[FFS_FILENAME_LEN];
+
+	if( get_program_for_slot( SLOT_CHARGING, progname ) < 0 ){
+
+		return -2;
+	}
+
+	int8_t status = _run_program( progname );
+
+	return status;	
 }
 
 static int8_t _run_startup( void ){
@@ -341,9 +367,20 @@ PT_BEGIN( pt );
        	}
 
 		seq_running = TRUE;
+		#ifdef ENABLE_BATTERY
+		if( batt_b_is_charging() ){
+
+			if( _run_charging() == 0 ){
+
+				THREAD_WAIT_WHILE( pt, batt_b_is_charging() && !sys_b_is_shutting_down() );
+
+				continue;
+			}
+		}
+		#endif
+
 
 		if( is_vm_sync_follower() ){
-
 	    	THREAD_WAIT_WHILE( pt, 
 	    		( is_vm_sync_follower() ) &&
 	    		!sys_b_is_shutting_down() &&
