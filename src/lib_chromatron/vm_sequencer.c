@@ -37,6 +37,7 @@
 static uint8_t seq_time_mode;
 static uint8_t seq_select_mode;
 
+static uint8_t prev_step;
 static uint8_t seq_current_step;
 
 static bool seq_running;
@@ -186,6 +187,12 @@ static int8_t get_program_for_slot( uint8_t slot, char progname[FFS_FILENAME_LEN
 
 static int8_t _run_program( char progname[FFS_FILENAME_LEN] ){
 
+	// not changing program:
+	if( seq_current_step == prev_step ){
+
+		return 0;
+	}
+
 	// if progname is empty:
 	if( progname[0] == 0 ){
 
@@ -206,6 +213,8 @@ static int8_t _run_program( char progname[FFS_FILENAME_LEN] ){
 		// reset sync!
 		vm_sync_v_reset();
 	}
+
+	prev_step = seq_current_step;
 
 	vm_v_run_prog( progname, 0 ); // run new program on slot 0
 
