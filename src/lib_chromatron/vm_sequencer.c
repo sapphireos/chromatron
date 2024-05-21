@@ -72,7 +72,10 @@ int8_t _vmseq_kv_handler(
     }
     else if( op == KV_OP_SET ){
 
-    	_run_step( TRUE );
+    	if( seq_running ){
+
+    		_run_step( TRUE );
+    	}
     }
     else{
 
