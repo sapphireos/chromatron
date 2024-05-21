@@ -640,6 +640,12 @@ int32_t* vm_i32p_get_sync_data( void ){
     }
 
     vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
+
+    if( state->handle <= 0 ){
+
+        return 0;
+    }
+
     void *stream = mem2_vp_get_ptr( state->handle );
 
     return vm_i32p_get_data_ptr( stream, &state->vm_state );   
