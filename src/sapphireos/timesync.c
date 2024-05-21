@@ -112,6 +112,7 @@ Followers periodically sync while tracking round trip time.
 #include "util.h"
 #include "services.h"
 
+
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
@@ -265,11 +266,12 @@ static uint16_t get_priority( void ){
     // and lower priority?
 
     #ifdef ESP32
-    if( batt_b_enabled() ){
+    
+    if( kv_b_get_boolean( __KV__batt_enable ) ){
 
         return 0;
     }
-
+    
     return 10;
     #endif
 
