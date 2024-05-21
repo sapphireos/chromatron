@@ -1396,7 +1396,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
         hal_arp_v_gratuitous_arp();
-        TMR_WAIT( pt, 2000 );
+        TMR_WAIT( pt, ( rnd_u16_get_int() >> 5 ) + 1000 );
 
         hal_arp_v_gratuitous_arp();
         TMR_WAIT( pt, 4000 );
@@ -1405,7 +1405,7 @@ PT_BEGIN( pt );
 
         while( wifi_b_connected() ){
 
-            TMR_WAIT( pt, ARP_GRATUITOUS_INTERVAL * 1000 );
+            TMR_WAIT( pt, ARP_GRATUITOUS_INTERVAL * 1000 + ( rnd_u16_get_int() >> 5 ));
 
             hal_arp_v_gratuitous_arp();
         }
