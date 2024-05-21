@@ -72,7 +72,8 @@ int8_t _vmseq_kv_handler(
     }
     else if( op == KV_OP_SET ){
 
-    	if( seq_running ){
+    	// if sequencer running and changing programs, run next step:
+    	if( ( seq_running ) && ( seq_current_step != prev_step ) ){
 
     		_run_step( TRUE );
     	}
@@ -189,12 +190,6 @@ static int8_t get_program_for_slot( uint8_t slot, char progname[FFS_FILENAME_LEN
 }
 
 static int8_t _run_program( char progname[FFS_FILENAME_LEN] ){
-
-	// not changing program:
-	if( seq_current_step == prev_step ){
-
-		return 0;
-	}
 
 	// if progname is empty:
 	if( progname[0] == 0 ){
