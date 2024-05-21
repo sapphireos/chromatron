@@ -405,6 +405,8 @@ PT_BEGIN( pt );
 		if( is_vm_sync_follower() ){
 	    	THREAD_WAIT_WHILE( pt, 
 	    		( is_vm_sync_follower() ) &&
+	    		( seq_time_mode != VM_SEQ_TIME_MODE_STOPPED ) &&
+	    		!is_charging() &&
 	    		!sys_b_is_shutting_down() &&
 	    		( seq_trigger == FALSE ) );
 
