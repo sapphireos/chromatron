@@ -264,6 +264,15 @@ static uint16_t get_priority( void ){
     // if doze mode works out, check for it here
     // and lower priority?
 
+    #ifdef ESP32
+    if( batt_b_enabled() ){
+
+        return 0;
+    }
+
+    return 10;
+    #endif
+
     return 1;
 }
 
