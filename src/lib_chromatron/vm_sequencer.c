@@ -75,7 +75,12 @@ int8_t _vmseq_kv_handler(
     	// if sequencer running and changing programs, run next step:
     	if( ( seq_running ) && ( seq_current_step != prev_step ) ){
 
-    		_run_step( TRUE );
+    		if( _run_step( TRUE ) < 0 ){
+
+    			// unable to run program
+
+    			seq_current_step = prev_step; // restore previous step
+    		}
     	}
     }
     else{
@@ -288,6 +293,8 @@ static int8_t _run_step( bool select_current_step ){
 
 	if( get_program_for_slot( seq_current_step, progname ) < 0 ){
 
+		// no program in this slot
+		
 		return -2;
 	}
 
