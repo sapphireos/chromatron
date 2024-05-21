@@ -64,7 +64,7 @@ static uint16_t setup_pixel_buffer( void ){
 
     uint8_t *buf = outputs;
 
-    uint16_t transfer_pixel_count = gfx_u16_get_pix_count();
+    uint16_t transfer_pixel_count = gfx_u16_get_physical_pix_count();
 
     if( transfer_pixel_count == 0 ){
 

@@ -92,6 +92,7 @@ static uint16_t pix_size_y;
 static bool gfx_interleave_x;
 static bool gfx_invert_x;
 static bool gfx_transpose;
+static bool gfx_mirror_array;
 
 static uint8_t pix_array_count;
 static gfx_pixel_array_t *pix_arrays;
@@ -309,6 +310,17 @@ static void param_error_check( void ){
 
         sat_curve = GFX_SAT_CURVE_DEFAULT;
     }
+
+    if( gfx_mirror_array ){
+
+        // error check
+        if( ( pix_count > ( MAX_PIXELS / 2 ) ) ||
+            ( pix_count < 2 ) ){
+
+            gfx_mirror_array = FALSE;
+            log_v_error_P( PSTR("Mirroring not available, too many pixels") );
+        }
+    }
 }
 
 
@@ -480,6 +492,7 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,                   "gfx_interleave_x" },
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                0,                   "gfx_invert_x" },
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,                   "gfx_transpose" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_mirror_array,            0,                   "gfx_mirror_array" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              gfx_i8_kv_handler,   "gfx_hsfade" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               gfx_i8_kv_handler,   "gfx_vfade" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &dimmer_fade,                 gfx_i8_kv_handler,   "gfx_dimmer_fade" },
@@ -904,6 +917,16 @@ void gfx_v_set_pix_count( uint16_t setting ){
 }
 
 uint16_t gfx_u16_get_pix_count( void ){
+
+    return pix_count;
+}
+
+uint16_t gfx_u16_get_physical_pix_count( void ){
+
+    if( gfx_mirror_array ){
+
+        return pix_count * 2;
+    }
 
     return pix_count;
 }
@@ -3446,6 +3469,28 @@ void gfx_v_sync_array( void ){
             array_green[i] = g;
             array_blue[i] = b;
             array_misc[i] = dither;
+        }
+    }
+
+    if( gfx_mirror_array ){
+
+        // error check
+        if( ( pix_count > ( MAX_PIXELS / 2 ) ) ||
+            ( pix_count < 2 ) ){
+
+            gfx_mirror_array = FALSE;
+            log_v_error_P( PSTR("Mirroring not available, too many pixels") );            
+        }
+        else{
+
+            // mirror the RGB arrays:
+            for( uint16_t i = 0; i < pix_count; i++ ){
+
+                array_red[pix_count + i]    = array_red[( pix_count - 1 ) - i];
+                array_green[pix_count + i]  = array_green[( pix_count - 1 ) - i];
+                array_blue[pix_count + i]   = array_blue[( pix_count - 1 ) - i];
+                array_misc[pix_count + i]   = array_misc[( pix_count - 1 ) - i];
+            }
         }
     }
     

@@ -120,7 +120,7 @@ PT_BEGIN( pt );
             #ifdef ENABLE_COPROCESSOR
             #define PIXEL_RX_TIMEOUT 500
 
-            uint16_t pix_count = gfx_u16_get_pix_count();
+            uint16_t pix_count = gfx_u16_get_physical_pix_count();
 
             coproc_i32_call1( OPCODE_PIX_LOAD, pix_count );  
 
