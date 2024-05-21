@@ -3507,7 +3507,8 @@ int8_t vm_i8_load_program(
                     link->source_key,
                     link->dest_key,
                     &link->query,
-                    link->tag,
+                    // link->tag,
+                    1 << vm_id,
                     link->rate,
                     link->aggregation,
                     LINK_FILTER_OFF );   
