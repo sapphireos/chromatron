@@ -128,10 +128,10 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 
 #ifdef ESP32
 PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) );
+PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) );
 #endif
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) );
-PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) );
 
 
 #include "bq25895.h"
@@ -192,7 +192,6 @@ void solar_v_init( void ){
                      PSTR("solar_sensor"),
                      0,
                      0 );
-	#endif
 
 	if( enable_solar_charge ){
 
@@ -201,6 +200,8 @@ void solar_v_init( void ){
 	                     0,
 	                     0 );
 	}
+
+	#endif
 }
 
 bool solar_b_has_patch_board( void ){
@@ -800,7 +801,7 @@ PT_END( pt );
 
 
 
-
+#ifdef ESP32
 static uint8_t solar_cycle;
 static catbus_string_t cycle_name;
 
@@ -1014,4 +1015,4 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-
+#endif
