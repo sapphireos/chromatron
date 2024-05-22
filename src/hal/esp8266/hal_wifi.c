@@ -1043,7 +1043,7 @@ PT_BEGIN( pt );
         while( ( current_scan_backoff > 0 ) && !_wifi_b_ap_mode_enabled() ){
 
             current_scan_backoff--;
-            TMR_WAIT( pt, 1000 );
+            TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) );
         }
 
         
@@ -1110,20 +1110,20 @@ PT_BEGIN( pt );
                     }
                     else if( scan_backoff < 64 ){
 
-                        scan_backoff *= 2;
+                        scan_backoff += 2;
 
                         log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
 
                         TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // add 2 seconds of random delay
                     }
-                    else if( scan_backoff < 192 ){
+                    // else if( scan_backoff < 192 ){
 
-                        scan_backoff += 64;
+                    //     scan_backoff += 64;
 
-                        log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
+                    //     log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
 
-                        TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // add 4 seconds of random delay
-                    }
+                    //     TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // add 4 seconds of random delay
+                    // }
 
                     goto end;
                 }            
