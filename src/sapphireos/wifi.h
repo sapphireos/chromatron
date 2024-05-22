@@ -34,7 +34,7 @@
 // since we are using an integer, we will set to 17 for our max.
 #define WIFI_MAX_HW_TX_POWER    17 // this is for the ESP8266.  The ESP32 may be able to run a bit higher.
 
-#define WIFI_CONNECT_TIMEOUT    10000
+#define WIFI_CONNECT_TIMEOUT    20000
 
 #define WIFI_STATE_ERROR        -2
 #define WIFI_STATE_BOOT         -1
