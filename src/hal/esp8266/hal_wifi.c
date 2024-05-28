@@ -41,6 +41,8 @@
 #include "mem.h"
 #include "espconn.h"
 
+#include "lwipopts.h"
+
 #ifdef ENABLE_WIFI
 
 static uint8_t wifi_mac[6];
@@ -1017,6 +1019,8 @@ static bool is_led_quiet_mode( void ){
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+log_v_debug_P( PSTR("ARP table size: %d queueing: %d queue len: %d"), ARP_TABLE_SIZE, ARP_QUEUEING, ARP_QUEUE_LEN );
 
     static uint8_t scan_timeout;
 
