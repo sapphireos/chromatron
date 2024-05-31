@@ -1043,8 +1043,10 @@ static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *ra
     while( ln >= 0 ){
 
         mqtt_broker_sub_t *sub = list_vp_get_data( ln );
+
+        // log_v_debug_P( PSTR("%s %d %d.%d.%d.%d"), sub->topic, mqtt_b_match_topic( topic, sub->topic ), sub->raddr.ipaddr.ip3, sub->raddr.ipaddr.ip2, sub->raddr.ipaddr.ip1, sub->raddr.ipaddr.ip0 );
         
-        if( ( mqtt_b_match_topic( topic, sub->topic ) == 0 ) &&
+        if( ( mqtt_b_match_topic( topic, sub->topic ) ) &&
         	( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ) ){
 
         	// already subscribed
@@ -1055,12 +1057,12 @@ static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *ra
             return; 
         }
 
-        ln = list_ln_next( ln );        
+        ln = list_ln_next( ln );     
     }
 
     // not subscribed, create new subscription
 
-    log_v_debug_P( PSTR("sub: %s %d.%d.%d.%d"), topic, raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
+    log_v_debug_P( PSTR("new sub: %s %d.%d.%d.%d"), topic, raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
 
 	mqtt_broker_sub_t new_sub = {
 		{ 0 }, // topic
