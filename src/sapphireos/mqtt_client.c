@@ -726,7 +726,8 @@ static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
         mqtt_sub_t *sub = list_vp_get_data( ln );
         
-        if( strncmp( topic, sub->topic, topic_len ) == 0 ){
+        // if( strncmp( topic, sub->topic, topic_len ) == 0 ){
+        if( mqtt_b_match_topic( topic, sub->topic ) ){
 
             // match!
 
@@ -764,7 +765,8 @@ static void process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
         mqtt_sub_t *sub = list_vp_get_data( ln );
         
-        if( strncmp( topic, sub->topic, topic_len ) == 0 ){
+        // if( strncmp( topic, sub->topic, topic_len ) == 0 ){
+        if( mqtt_b_match_topic( topic, sub->topic ) ){
 
             // match!
 
@@ -805,7 +807,7 @@ PT_BEGIN( pt );
    	
 	TMR_WAIT( pt, 1000 );	
 
-	// mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test_sub"), 0, mqtt_on_publish_callback );
+
 	mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/status"), 0, mqtt_on_publish_status_callback, 0 );
 
    	while(1){
@@ -852,10 +854,9 @@ PT_BEGIN( pt );
 		    	log_v_error_P( PSTR("invalid sub config") );
 		    }
 
-		    THREAD_YIELD( pt ); // yield to allow local loopbacks to the broker to clear
-
 next_sub:
 	        ln = list_ln_next( ln );        
+	        THREAD_YIELD( pt ); // yield to allow local loopbacks to the broker to clear
 	    }    	
 
 	    // char *test_data = "{data:1.0}";
@@ -1004,9 +1005,12 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr,
 
         mqtt_broker_sub_t *sub = list_vp_get_data( ln );
         
-        if( strncmp( topic, sub->topic, topic_len ) == 0 ){
+        // if( strncmp( topic, sub->topic, topic_len ) == 0 ){
+        if( mqtt_b_match_topic( topic, sub->topic ) ){
 
             // match!
+
+            log_v_debug_P( PSTR("broker match: %s from %d.%d.%d.%d"), topic, raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
 
         	// deref packet handle
         	uint16_t packet_size = mem2_u16_get_size( packet_h );
@@ -1155,6 +1159,8 @@ PT_BEGIN( pt );
 
         sock_addr_t raddr;
         sock_v_get_raddr( broker_sock, &raddr );
+
+        log_v_debug_P( PSTR("broker recv: %d from %d.%d.%d.%d"), header->msg_type, raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
 
         mem_handle_t packet_h = sock_h_get_data_handle( broker_sock );
 
