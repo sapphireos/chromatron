@@ -801,9 +801,6 @@ PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 	
-	static uint32_t counter;
-	counter = 0;
-
 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
    	
 	TMR_WAIT( pt, 1000 );	
@@ -816,7 +813,8 @@ PT_BEGIN( pt );
     	TMR_WAIT( pt, 2000 );
 
     	// send subscriptions
-		list_node_t ln = sub_list.head;	
+		static list_node_t ln;
+		ln = sub_list.head;	
 
 	    while( ln >= 0 ){
 
@@ -854,12 +852,17 @@ PT_BEGIN( pt );
 		    	log_v_error_P( PSTR("invalid sub config") );
 		    }
 
+		    THREAD_YIELD( pt ); // yield to allow local loopbacks to the broker to clear
+
 next_sub:
 	        ln = list_ln_next( ln );        
 	    }    	
 
 	    // char *test_data = "{data:1.0}";
 	    // mqtt_client_i8_publish( "chromatron_mqtt/publish", test_data, strlen(test_data), 0, FALSE );
+
+
+	    THREAD_YIELD( pt ); // yield to allow local loopbacks to the broker to clear
 
 		transmit_status();
 	}
