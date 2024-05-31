@@ -35,9 +35,9 @@
 
 #define MQTT_VM_TAG_OFFSET      0x80
 
-#ifdef ESP32
+// #ifdef ESP32
 #define ENABLE_BROKER
-#endif
+// #endif
 
 #ifdef ENABLE_BROKER
 #define MQTT_BROKER_SUB_TIMEOUT 60

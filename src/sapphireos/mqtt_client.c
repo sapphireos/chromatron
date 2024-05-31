@@ -938,7 +938,6 @@ PT_END( pt );
 /**********************************
 			 BROKER
 **********************************/
-
 typedef struct __attribute__((packed)){
 	char topic[MQTT_MAX_TOPIC_LEN];
 	// uint8_t qos;
@@ -947,6 +946,36 @@ typedef struct __attribute__((packed)){
 } mqtt_broker_sub_t;
 
 static list_t broker_sub_list;
+
+
+int8_t _broker_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_GET ){
+
+        if( hash == __KV__mqtt_broker_sub_count ){
+
+            STORE16(data, list_u8_count( &broker_sub_list ) );
+        }
+    }
+    else if( op == KV_OP_SET ){
+
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    return 0;
+}
+
+
+KV_SECTION_OPT kv_meta_t mqtt_broker_kv[] = {
+    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, 0,				_broker_kv_handler,  "mqtt_broker_sub_count" },
+};
 
 
 static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr, mem_handle_t packet_h ){
@@ -987,9 +1016,6 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr,
 
         ln = list_ln_next( ln );        
     }
-
-    // release original handle
-    mem2_v_free( packet_h );
 }
 
 
@@ -1068,7 +1094,9 @@ static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *ra
 PT_THREAD( mqtt_broker_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-   	
+ 	
+   	kv_v_add_db_info( mqtt_broker_kv, sizeof(mqtt_broker_kv) );
+
    	// create socket
     broker_sock = sock_s_create( SOS_SOCK_DGRAM );
 
@@ -1147,6 +1175,8 @@ PT_BEGIN( pt );
         	log_v_error_P( PSTR("Invalid msg: %d"), header->msg_type );
         }
 
+        // release original handle
+		mem2_v_free( packet_h );
 
     end:
 
