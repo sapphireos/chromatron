@@ -650,8 +650,9 @@ static void transmit_status( void ){
 	catbus_query_t tags;
 	catbus_v_get_query( &tags );
 
-	mqtt_msg_publish_status_t msg = {
-		{ 0 },
+	// mqtt_msg_publish_status_t msg = {
+	mqtt_msg_status_t msg = {
+		// { 0 },
 		tags,
 		cfg_ip_get_ipaddr(),
 		sys_u8_get_mode(),
@@ -663,13 +664,15 @@ static void transmit_status( void ){
 		pixel_power,		
 	};
 
-	msg.header.magic 		= MQTT_MSG_MAGIC;
-	msg.header.version 		= MQTT_MSG_VERSION;
-	msg.header.msg_type 	= MQTT_MSG_PUBLISH_STATUS;
-	msg.header.qos    		= 0;
-	msg.header.flags       	= 0;
+	mqtt_client_i8_publish( PSTR("chromatron_mqtt/status"), (uint8_t *)&msg, sizeof(msg), 0, 1 );
 
-	send_msg_to_broker_ptr( (uint8_t *)&msg, sizeof(msg) );
+	// msg.header.magic 		= MQTT_MSG_MAGIC;
+	// msg.header.version 		= MQTT_MSG_VERSION;
+	// msg.header.msg_type 	= MQTT_MSG_PUBLISH_STATUS;
+	// msg.header.qos    		= 0;
+	// msg.header.flags       	= 0;
+
+	// send_msg_to_broker_ptr( (uint8_t *)&msg, sizeof(msg) );
 }
 
 static void transmit_shutdown( void ){
@@ -687,15 +690,15 @@ static void transmit_shutdown( void ){
 	send_msg_to_broker_ptr( (uint8_t *)&msg, sizeof(msg) );
 }
 
-// static void mqtt_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len ){
+static void mqtt_on_publish_status_callback( char *topic, uint8_t *data, uint16_t data_len ){
 
-// 	int32_t value;
+	// int32_t value;
 
-// 	// coert to int32 for debug
-// 	memcpy( &value, data, sizeof(value) );	
+	// coert to int32 for debug
+	// memcpy( &value, data, sizeof(value) );	
 
-// 	log_v_debug_P( PSTR("%s %ld %ld"), topic, data_len, value );
-// }
+	log_v_debug_P( PSTR("%s %ld"), topic, data_len );
+}
 
 static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
@@ -806,6 +809,7 @@ PT_BEGIN( pt );
 	TMR_WAIT( pt, 1000 );	
 
 	// mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test_sub"), 0, mqtt_on_publish_callback );
+	mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/status"), 0, mqtt_on_publish_status_callback, 0 );
 
    	while(1){
 
@@ -1055,6 +1059,8 @@ static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *ra
     }
 
     // not subscribed, create new subscription
+
+    log_v_debug_P( PSTR("sub: %s %d.%d.%d.%d"), topic, raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
 
 	mqtt_broker_sub_t new_sub = {
 		{ 0 }, // topic
