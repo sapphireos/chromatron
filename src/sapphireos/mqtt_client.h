@@ -120,7 +120,7 @@ typedef struct __attribute__((packed)){
 #define MQTT_MSG_SUBSCRIBE_KV       31
 
 
-typedef void ( *mqtt_on_publish_callback_t )( char *topic, uint8_t *data, uint16_t data_len );
+typedef void ( *mqtt_on_publish_callback_t )( char *topic, uint8_t *data, uint16_t data_len, sock_addr_t *raddr );
 
 bool mqtt_b_match_topic( const char *topic, const char *sub );
 

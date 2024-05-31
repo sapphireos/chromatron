@@ -690,14 +690,14 @@ static void transmit_shutdown( void ){
 	send_msg_to_broker_ptr( (uint8_t *)&msg, sizeof(msg) );
 }
 
-static void mqtt_on_publish_status_callback( char *topic, uint8_t *data, uint16_t data_len ){
+static void mqtt_on_publish_status_callback( char *topic, uint8_t *data, uint16_t data_len, sock_addr_t *raddr ){
 
 	// int32_t value;
 
 	// coert to int32 for debug
 	// memcpy( &value, data, sizeof(value) );	
 
-	log_v_debug_P( PSTR("%s %ld"), topic, data_len );
+	log_v_debug_P( PSTR("%s %ld %d.%d.%d.%d"), topic, data_len, raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
 }
 
 static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
@@ -735,7 +735,7 @@ static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
         	// if there is a callback, fire it:
         	if( sub->callback != 0 ){
 
-	        	sub->callback( topic, data, data_len );
+	        	sub->callback( topic, data, data_len, raddr );
 	        }
         }
 
