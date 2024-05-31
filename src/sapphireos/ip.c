@@ -379,3 +379,13 @@ ip_addr4_t ip_a_from_int( uint32_t i ){
 
     return ip;
 }
+
+bool ip_b_check_multicast( ip_addr4_t ip ){
+
+	if( ip_b_mask_compare( ip_a_addr(239,0,0,0), ip_a_addr(255,0,0,0), ip ) == TRUE ){
+
+		return TRUE;
+	}
+
+	return FALSE;
+}

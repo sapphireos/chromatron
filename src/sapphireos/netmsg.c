@@ -30,6 +30,7 @@
 #include "sockets.h"
 #include "keyvalue.h"
 #include "fs.h"
+#include "config.h"
 
 #include "netmsg.h"
 
@@ -126,7 +127,7 @@ int8_t loopback_i8_get_route( ip_addr4_t *subnet, ip_addr4_t *subnet_mask ){
     *subnet = ip_a_addr(127,0,0,0);
     *subnet_mask = ip_a_addr(255,0,0,0);
 
-    return 0;
+    return NETMSG_ROUTE_AVAILABLE;
 }
 
 int8_t loopback_i8_transmit( netmsg_t msg ){
@@ -147,6 +148,52 @@ int8_t loopback_i8_transmit( netmsg_t msg ){
 ROUTING_TABLE_START routing_table_entry_t route_start = {
     loopback_i8_get_route,
     loopback_i8_transmit,
+    default_open_close_port,
+    0
+};
+
+
+int8_t loopback_i8_get_local_route( ip_addr4_t *subnet, ip_addr4_t *subnet_mask ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return NETMSG_ROUTE_NOT_AVAILABLE;
+    }
+
+    cfg_i8_get( CFG_PARAM_IP_ADDRESS, subnet );
+    *subnet_mask = ip_a_addr(255,255,255,255);
+
+    return NETMSG_ROUTE_AVAILABLE;
+}
+
+int8_t loopback_i8_local_transmit( netmsg_t msg ){
+
+    netmsg_state_t *state = netmsg_vp_get_state( msg );
+
+    // copy remote ip to local ip (which is this node's actual ip)
+    // this is done because the laddr ip isn't filled out since 
+    // it isn't normally needed (it will usually go out an actual
+    // interface, which will attach the local IP to the actual message
+    // and the netmsg will be cleared).
+
+    state->laddr.ipaddr = state->raddr.ipaddr;
+
+    // switch ports
+    // the addresses will be the same on this route,
+    // but the ports need to swap.
+    sock_addr_t temp_addr = state->raddr;
+    state->raddr = state->laddr;
+    state->laddr = temp_addr;    
+
+    netmsg_v_receive_msg( msg );
+
+    return NETMSG_TX_OK_NORELEASE;
+}
+
+// second loopback interface, using local IP
+ROUTING_TABLE routing_table_entry_t route_local = {
+    loopback_i8_get_local_route,
+    loopback_i8_local_transmit,
     default_open_close_port,
     0
 };

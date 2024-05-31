@@ -1188,7 +1188,8 @@ PT_BEGIN( pt );
 
     end:
 
-    	THREAD_YIELD( pt );
+    	// THREAD_YIELD( pt );
+    	{};
 	}
     
 PT_END( pt );

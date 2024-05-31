@@ -928,7 +928,7 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
 
     // check if remote address is us.
     // with multicasting we could receive our own messages.
-    if( ip_b_addr_compare( state->raddr.ipaddr, cfg_ip_get_ipaddr() ) ){
+    if( ip_b_check_multicast( state->raddr.ipaddr ) && ip_b_addr_compare( state->raddr.ipaddr, cfg_ip_get_ipaddr() ) ){
 
         return SOCK_STATUS_MCAST_SELF;
     }
@@ -1010,13 +1010,14 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
             // app hasn't received data, so we bail out and this new data
             // gets dropped.
 
-            log_v_debug_P( PSTR("dropped to: %u from %d.%d.%d.%d:%u"), 
+            log_v_debug_P( PSTR("dropped to: %u from %d.%d.%d.%d:%u state: %d"), 
                 dgram->lport, 
                 state->raddr.ipaddr.ip3,
                 state->raddr.ipaddr.ip2,
                 state->raddr.ipaddr.ip1,
                 state->raddr.ipaddr.ip0,
-                state->raddr.port );
+                state->raddr.port,
+                dgram->state );
 
             return SOCK_STATUS_PORT_BUF_FULL;
         }
