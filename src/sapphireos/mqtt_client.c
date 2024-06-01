@@ -830,6 +830,12 @@ PT_BEGIN( pt );
 
     	TMR_WAIT( pt, 2000 );
 
+    	if( sys_b_is_shutting_down() ){
+
+        	THREAD_EXIT( pt );
+        }
+
+
     	// send subscriptions
 		static list_node_t ln;
 		ln = sub_list.head;	
@@ -1008,7 +1014,7 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr,
 	uint8_t *ptr = (uint8_t *)( msg + 1 );
 
 	// get topic length
-	uint8_t topic_len = *ptr;
+	// uint8_t topic_len = *ptr;
 	ptr++;
 	char *topic = (char *)ptr;
 		
@@ -1112,6 +1118,29 @@ static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *ra
 }
 
 
+static void clear_subs_by_ip( sock_addr_t *raddr ){
+
+	list_node_t ln = broker_sub_list.head;
+
+    while( ln >= 0 ){
+
+    	list_node_t next_ln = list_ln_next( ln );
+
+        mqtt_broker_sub_t *sub = list_vp_get_data( ln );
+
+        if( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ){
+        
+        	// remove from list
+            list_v_remove( &broker_sub_list, ln);
+         	list_v_release_node( ln );         	
+        }
+
+        ln = next_ln;
+    }	  
+}
+
+
+
 // static void broker_process_subscribe_kv( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
 
 // 	// get byte pointer after headers:
@@ -1205,6 +1234,11 @@ PT_BEGIN( pt );
 
         	// broker_ip = raddr.ipaddr;
         }
+        else if( header->msg_type == MQTT_MSG_SHUTDOWN ){
+
+        	// broker_ip = raddr.ipaddr;
+        	clear_subs_by_ip( &raddr );
+        }
         else{
 
         	// invalid message
@@ -1222,7 +1256,6 @@ PT_BEGIN( pt );
     
 PT_END( pt );
 }
-
 
 PT_THREAD( mqtt_broker_timeout_thread( pt_t *pt, void *state ) )
 {
