@@ -1019,10 +1019,10 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr,
 
             // match!
 
-            log_v_debug_P( PSTR("broker match: %s from %d.%d.%d.%d to %d.%d.%d.%d"), 
-            	topic, 
-            	raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0, 
-            	sub->raddr.ipaddr.ip3, sub->raddr.ipaddr.ip2, sub->raddr.ipaddr.ip1, sub->raddr.ipaddr.ip0 );
+            // log_v_debug_P( PSTR("broker match: %s from %d.%d.%d.%d to %d.%d.%d.%d"), 
+            // 	topic, 
+            // 	raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0, 
+            // 	sub->raddr.ipaddr.ip3, sub->raddr.ipaddr.ip2, sub->raddr.ipaddr.ip1, sub->raddr.ipaddr.ip0 );
 
         	// deref packet handle
         	uint16_t packet_size = mem2_u16_get_size( packet_h );
@@ -1172,7 +1172,7 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( broker_sock, &raddr );
 
-        log_v_debug_P( PSTR("broker recv: %d from %d.%d.%d.%d"), header->msg_type, raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
+        // log_v_debug_P( PSTR("broker recv: %d from %d.%d.%d.%d"), header->msg_type, raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
 
         mem_handle_t packet_h = sock_h_get_data_handle( broker_sock );
 
