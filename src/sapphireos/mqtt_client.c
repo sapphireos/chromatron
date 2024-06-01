@@ -660,7 +660,7 @@ void mqtt_client_v_unsubscribe_tag( uint8_t tag ){
 
         if( sub->tag == tag ){
 
-        	log_v_debug_P( PSTR("unsub %s"), sub->topic );
+        	// log_v_debug_P( PSTR("unsub %s"), sub->topic );
 
         	transmit_subscribe( MQTT_MSG_UNSUBSCRIBE, sub->topic, 0, 0 );
 
