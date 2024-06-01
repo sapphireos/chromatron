@@ -117,8 +117,6 @@ static netmsg_port_monitor_t* get_port_monitor( netmsg_state_t *state ){
 }
 #endif
 
-void ( *netmsg_v_receive_msg )( netmsg_t msg );
-
 void default_open_close_port( uint8_t protocol, uint16_t port, bool open ){
 }
 
@@ -139,7 +137,7 @@ int8_t loopback_i8_transmit( netmsg_t msg ){
     state->raddr = state->laddr;
     state->laddr = temp_addr;    
 
-    netmsg_v_receive_msg( msg );
+    netmsg_v_receive( msg );
 
     return NETMSG_TX_OK_NORELEASE;
 }
@@ -185,7 +183,7 @@ int8_t loopback_i8_local_transmit( netmsg_t msg ){
     state->raddr = state->laddr;
     state->laddr = temp_addr;    
 
-    netmsg_v_receive_msg( msg );
+    netmsg_v_receive( msg );
 
     return NETMSG_TX_OK_NORELEASE;
 }
@@ -239,8 +237,6 @@ void netmsg_v_init( void ){
         fs_f_create_virtual( PSTR("portinfo"), vfile );
         #endif
     }
-
-    netmsg_v_receive_msg = netmsg_v_receive;
 }
 
 uint8_t _netmsg_u8_header_size( netmsg_type_t type ){
