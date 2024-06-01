@@ -725,17 +725,6 @@ static bool vm_loader_wait( void ){
     return TRUE;
 }
 
-static void reset_vm( uint8_t vm_id ){
-
-    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
-
-    // verify thread exists
-    if( vm_threads[vm_id] > 0 ){
-
-        thread_v_restart( vm_threads[vm_id] );
-    }   
-}
-
 static int8_t start_vm( uint8_t vm_id ){
 
     if( vm_threads[vm_id] > 0 ){
@@ -796,6 +785,22 @@ static void stop_vm( uint8_t vm_id ){
 
     vm_run_time[vm_id]      = 0;
     vm_max_cycles[vm_id]    = 0;
+}
+
+static void reset_vm( uint8_t vm_id ){
+
+    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
+
+    // verify thread exists
+    if( vm_threads[vm_id] > 0 ){
+
+        // thread_v_restart( vm_threads[vm_id] );
+
+        stop_vm( vm_id );
+
+        vm_run[vm_id] = TRUE;
+        start_vm( vm_id );
+    }   
 }
 
 

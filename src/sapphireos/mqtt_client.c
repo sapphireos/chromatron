@@ -638,6 +638,8 @@ void mqtt_client_v_unsubscribe( const char *topic ){
 
         if( strncmp( topic, sub->topic, MQTT_MAX_TOPIC_LEN ) == 0 ){
 
+        	transmit_subscribe( MQTT_MSG_UNSUBSCRIBE, sub->topic, 0, 0 );
+
             // remove from list
             list_v_remove( &sub_list, ln );
          	list_v_release_node( ln );   
@@ -657,6 +659,10 @@ void mqtt_client_v_unsubscribe_tag( uint8_t tag ){
         list_node_t next_ln = list_ln_next( ln );
 
         if( sub->tag == tag ){
+
+        	log_v_debug_P( PSTR("unsub %s"), sub->topic );
+
+        	transmit_subscribe( MQTT_MSG_UNSUBSCRIBE, sub->topic, 0, 0 );
 
             // remove from list
             list_v_remove( &sub_list, ln );
@@ -1153,6 +1159,37 @@ static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *ra
 }
 
 
+static void broker_process_unsubscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
+
+	// get byte pointer after headers:
+	uint8_t *ptr = (uint8_t *)( msg + 1 );
+
+	// get topic length
+	// uint8_t topic_len = *ptr;
+	ptr++;
+	char *topic = (char *)ptr;
+
+	list_node_t ln = broker_sub_list.head;
+
+    while( ln >= 0 ){
+
+    	list_node_t next_ln = list_ln_next( ln );
+
+        mqtt_broker_sub_t *sub = list_vp_get_data( ln );
+
+        if( ( strncmp( topic, sub->topic, MQTT_MAX_TOPIC_LEN ) == 0 ) &&
+        	( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ) ){
+
+			// remove from list
+            list_v_remove( &broker_sub_list, ln);
+         	list_v_release_node( ln );         	
+        }
+
+        ln = next_ln;   
+    }
+}
+
+
 static void clear_subs_by_ip( sock_addr_t *raddr ){
 
 	list_node_t ln = broker_sub_list.head;
@@ -1272,6 +1309,10 @@ PT_BEGIN( pt );
         	mqtt_broker_msgs_subscribe_recv++;
 
         	broker_process_subscribe( (mqtt_msg_subscribe_t *)header, &raddr );
+        }
+        else if( header->msg_type == MQTT_MSG_UNSUBSCRIBE ){
+
+        	broker_process_unsubscribe( (mqtt_msg_subscribe_t *)header, &raddr );
         }
         else if( header->msg_type == MQTT_MSG_BRIDGE ){
 
