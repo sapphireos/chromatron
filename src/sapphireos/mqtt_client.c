@@ -165,7 +165,14 @@ static int16_t send_msg_to_broker( mem_handle_t h ){
 		return -1;
 	}
 
-	return sock_i16_sendto_m( sock, h, &raddr );
+	int16_t status = sock_i16_sendto_m( sock, h, &raddr );
+
+	if( status < 0 ){
+
+		log_v_error_P( PSTR("Broker send fail: %d"), status );
+	}
+
+	return status;
 }
 
 static int16_t send_msg_to_broker_ptr( uint8_t *data, uint16_t len ){
