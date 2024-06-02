@@ -1181,7 +1181,7 @@ static void broker_process_unsubscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *
         	( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ) ){
 
 			// remove from list
-            list_v_remove( &broker_sub_list, ln);
+            list_v_remove( &broker_sub_list, ln );
          	list_v_release_node( ln );         	
         }
 

@@ -298,6 +298,18 @@ const catbus_hash_t32* catbus_hp_get_tag_hashes( void );
 bool catbus_b_query_self( catbus_query_t *query );
 void catbus_v_get_query( catbus_query_t *query );
 
+#define CATBUS_MAX_HASH_RESOLVER_LOOKUPS    4
+#define CATBUS_HASH_LOOKUP_INTERVAL         2000 // ms
+#define CATBUS_HASH_LOOKUP_TRIES            4
+
+typedef struct  __attribute__((packed)){
+    catbus_hash_t32 hash;
+    ip_addr4_t host_ip;
+    uint8_t tries;
+} catbus_hash_lookup_t;
+
+int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN], ip_addr4_t *host_ip );
+
 #endif
 
 
