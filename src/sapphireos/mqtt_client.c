@@ -132,17 +132,10 @@ void mqtt_client_v_init( void ){
                      0 );
 
    	#ifdef ENABLE_BROKER
+  
     if( kv_b_get_boolean( __KV__mqtt_broker_enable ) ){
 
-    	thread_t_create( mqtt_broker_server_thread,
-                     PSTR("mqtt_broker_server"),
-                     0,
-                     0 );
-
-    	thread_t_create( mqtt_broker_timeout_thread,
-                     PSTR("mqtt_broker_timeout"),
-                     0,
-                     0 );
+    	mqtt_broker_v_init();
     }
     #endif
 }
@@ -1046,6 +1039,33 @@ KV_SECTION_OPT kv_meta_t mqtt_broker_kv[] = {
     { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_broker_msgs_publish_route,		0,  				 "mqtt_broker_msgs_publish_route" },
 };
 
+void mqtt_broker_v_init( void ){
+
+	kv_v_add_db_info( mqtt_broker_kv, sizeof(mqtt_broker_kv) );
+
+   	// create socket
+    broker_sock = sock_s_create( SOS_SOCK_DGRAM );
+
+    ASSERT( broker_sock >= 0 );
+
+    sock_v_bind( broker_sock, MQTT_BROKER_PORT );
+    sock_v_set_timeout( broker_sock, 1 );
+
+    
+    list_v_init( &broker_sub_list );
+
+
+	thread_t_create( mqtt_broker_server_thread,
+                     PSTR("mqtt_broker_server"),
+                     0,
+                     0 );
+
+	thread_t_create( mqtt_broker_timeout_thread,
+                 PSTR("mqtt_broker_timeout"),
+                 0,
+                 0 );
+}
+
 
 static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr, mem_handle_t packet_h ){
 
@@ -1229,20 +1249,26 @@ static void clear_subs_by_ip( sock_addr_t *raddr ){
 PT_THREAD( mqtt_broker_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+	
+	// hash lookup test:
+	// while(1){
+
+	// 	char name[CATBUS_STRING_LEN];
+	// 	memset( name, 0, sizeof(name) );
+	// 	ip_addr4_t ip = ip_a_addr(10,0,0,211);
+
+	// 	int8_t status = catbus_i8_get_string_for_hash( 0x86b026c3, name, &ip );
+
+	// 	log_v_debug_P( PSTR("resolve %d %s"), status, name );
+
+	// 	if( status == 0 ){
+
+	// 		break;
+	// 	}
+
+	// 	TMR_WAIT( pt, 1000 );
+	// }
  	
-   	kv_v_add_db_info( mqtt_broker_kv, sizeof(mqtt_broker_kv) );
-
-   	// create socket
-    broker_sock = sock_s_create( SOS_SOCK_DGRAM );
-
-    ASSERT( broker_sock >= 0 );
-
-    sock_v_bind( broker_sock, MQTT_BROKER_PORT );
-    sock_v_set_timeout( broker_sock, 1 );
-
-    
-    list_v_init( &broker_sub_list );
-
 
    	while(1){
 

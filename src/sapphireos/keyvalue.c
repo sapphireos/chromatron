@@ -591,6 +591,10 @@ int8_t kv_i8_get_name( catbus_hash_t32 hash, char name[KV_NAME_LEN] ){
 
         strlcpy( name, meta.name, KV_NAME_LEN );
     }
+    else if( status < 0 ){
+
+        status = kvdb_i8_lookup_name( hash, name );
+    }
 
     return status;
 }

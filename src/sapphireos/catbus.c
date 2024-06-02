@@ -709,6 +709,12 @@ PT_BEGIN( pt );
                 goto end; // nothing to do
             }
 
+            if( !wifi_b_connected() ){
+
+                // wifi not connected, we cannot do a lookup
+                goto end;
+            }
+
             // check if it is time for a hash lookup
             if( tmr_u32_elapsed_time_ms( last_lookup_check ) > CATBUS_HASH_LOOKUP_INTERVAL ){
 
@@ -877,65 +883,52 @@ PT_BEGIN( pt );
 
                 uint32_t hash = LOAD32(hash_ptr);
 
+                if( kv_i8_get_name( hash, str->str ) != KV_ERR_STATUS_OK ){
+                
+                    // try query tags
+                    for( uint8_t i = 0; i < cnt_of_array(meta_tag_hashes); i++ ){
 
-                /*
-    
-                NOTE:
-                Just the kv_i8_get_name should do... it will also search the kvdb...
+                        if( meta_tag_hashes[i] == hash ){
 
-                TEST a change here with the new resolve functions.
+                            uint32_t meta_kv = 0;
 
-                */
+                            if( i == 0 ){
 
-                if( kvdb_i8_lookup_name( hash, str->str ) != KVDB_STATUS_OK ){
-
-                    if( kv_i8_get_name( hash, str->str ) != KV_ERR_STATUS_OK ){
-                    
-                        // try query tags
-                        for( uint8_t i = 0; i < cnt_of_array(meta_tag_hashes); i++ ){
-
-                            if( meta_tag_hashes[i] == hash ){
-
-                                uint32_t meta_kv = 0;
-
-                                if( i == 0 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_0;
-                                }
-                                else if( i == 1 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_1;
-                                }
-                                else if( i == 2 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_2;
-                                }
-                                else if( i == 3 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_3;
-                                }
-                                else if( i == 4 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_4;
-                                }
-                                else if( i == 5 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_5;
-                                }
-                                else if( i == 6 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_6;
-                                }
-                                else if( i == 7 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_7;
-                                }
-
-                                // retrieve string from config DB
-                                cfg_i8_get( meta_kv, str->str );
-
-                                break;
+                                meta_kv = CFG_PARAM_META_TAG_0;
                             }
+                            else if( i == 1 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_1;
+                            }
+                            else if( i == 2 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_2;
+                            }
+                            else if( i == 3 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_3;
+                            }
+                            else if( i == 4 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_4;
+                            }
+                            else if( i == 5 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_5;
+                            }
+                            else if( i == 6 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_6;
+                            }
+                            else if( i == 7 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_7;
+                            }
+
+                            // retrieve string from config DB
+                            cfg_i8_get( meta_kv, str->str );
+
+                            break;
                         }
                     }
                 }
@@ -968,7 +961,36 @@ PT_BEGIN( pt );
 
                 msg->count--;
 
+                log_v_debug_P( PSTR("Resolved hash: %s from %d.%d.%d.%d"), 
+                        str->str,
+                        raddr.ipaddr.ip3,
+                        raddr.ipaddr.ip2,
+                        raddr.ipaddr.ip1,
+                        raddr.ipaddr.ip0
+                    );
+
                 kvdb_v_set_name( str->str );
+
+                // check for a lookup entry and delete it if needed
+                catbus_hash_t32 hash = hash_u32_string( str->str );
+                list_node_t ln = name_lookup_list.head;
+
+                while( ln >= 0 ){
+
+                    catbus_hash_lookup_t *lookup = list_vp_get_data( ln );
+                    list_node_t next_ln = list_ln_next( ln );
+
+                    if( lookup->hash == hash ){
+
+                        // timeout, delete
+                        list_v_remove( &name_lookup_list, ln );
+                        list_v_release_node( ln );                                  
+
+                        break;
+                    }
+
+                    ln = next_ln;
+                }
 
                 str++;
             }        

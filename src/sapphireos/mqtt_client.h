@@ -132,6 +132,7 @@ int8_t mqtt_client_i8_subscribe_kv( const char *topic, const char *key, uint8_t 
 void mqtt_client_v_unsubscribe( const char *topic );
 void mqtt_client_v_unsubscribe_tag( uint8_t tag );
 
+void mqtt_broker_v_init( void );
 
 
 
