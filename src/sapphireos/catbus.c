@@ -1785,6 +1785,14 @@ int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STR
 
     memset( name, 0, CATBUS_STRING_LEN );
 
+    if( hash == 0 ){
+
+        // set default string so we at least return something
+        snprintf_P( name, CATBUS_STRING_LEN, PSTR("0x%08x?"), hash );
+
+        return 0;
+    }
+
     // try to look up string, from KV database
     int8_t status = kv_i8_get_name( hash, name );
 
