@@ -1788,7 +1788,7 @@ int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STR
     if( hash == 0 ){
 
         // set default string so we at least return something
-        snprintf_P( name, CATBUS_STRING_LEN, PSTR("0x%08x?"), hash );
+        snprintf_P( name, CATBUS_STRING_LEN, PSTR("%d.%d.%d.%d"), host_ip->ip3, host_ip->ip2, host_ip->ip1, host_ip->ip0 );
 
         return 0;
     }
@@ -1826,7 +1826,7 @@ int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STR
         }
 
         // set default string so we at least return something
-        snprintf_P( name, CATBUS_STRING_LEN, PSTR("0x%08x?"), hash );
+        snprintf_P( name, CATBUS_STRING_LEN, PSTR("%d.%d.%d.%d"), host_ip->ip3, host_ip->ip2, host_ip->ip1, host_ip->ip0 );
     }
 
     return status;
