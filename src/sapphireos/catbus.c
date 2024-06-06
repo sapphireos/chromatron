@@ -1788,7 +1788,15 @@ int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STR
     if( hash == 0 ){
 
         // set default string so we at least return something
-        snprintf_P( name, CATBUS_STRING_LEN, PSTR("%d.%d.%d.%d"), host_ip->ip3, host_ip->ip2, host_ip->ip1, host_ip->ip0 );
+
+        if( host_ip == 0 ){
+
+            snprintf_P( name, CATBUS_STRING_LEN, PSTR("0x%08x"), hash );
+        }
+        else{
+
+            snprintf_P( name, CATBUS_STRING_LEN, PSTR("%d.%d.%d.%d"), host_ip->ip3, host_ip->ip2, host_ip->ip1, host_ip->ip0 );
+        }
 
         return 0;
     }
@@ -1798,8 +1806,9 @@ int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STR
 
     if( status != KV_ERR_STATUS_OK ){
 
-        // check name lookup list
-        if( list_u8_count( &name_lookup_list ) < CATBUS_MAX_HASH_RESOLVER_LOOKUPS ){
+        // check name lookup list and if host IP is given
+        if( ( host_ip != 0 ) &&
+            ( list_u8_count( &name_lookup_list ) < CATBUS_MAX_HASH_RESOLVER_LOOKUPS ) ){
 
             // search list to see if this hash is already present
             // note that since the hash is only a couple bytes and we are using
@@ -1826,7 +1835,14 @@ int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STR
         }
 
         // set default string so we at least return something
-        snprintf_P( name, CATBUS_STRING_LEN, PSTR("%d.%d.%d.%d"), host_ip->ip3, host_ip->ip2, host_ip->ip1, host_ip->ip0 );
+        if( host_ip == 0 ){
+
+            snprintf_P( name, CATBUS_STRING_LEN, PSTR("0x%08x"), hash );
+        }
+        else{
+
+            snprintf_P( name, CATBUS_STRING_LEN, PSTR("%d.%d.%d.%d"), host_ip->ip3, host_ip->ip2, host_ip->ip1, host_ip->ip0 );
+        }
     }
 
     return status;
