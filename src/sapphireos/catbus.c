@@ -100,6 +100,9 @@ static void _catbus_v_setup_tag_hashes( void ){
         if( cfg_i8_get( hash, s ) == 0 ){
 
             meta_tag_hashes[i] = hash_u32_string( s );
+
+            // add to names db
+            kvdb_v_set_name( s );
         }
         else{
 
