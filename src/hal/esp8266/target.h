@@ -109,6 +109,7 @@
 
 #define FLASH_FS_TIMING
 #define FLASH_FS_CACHE
+#define FFS_CACHE_ENTRIES 32
 
 #define FFS_ALIGN32
 

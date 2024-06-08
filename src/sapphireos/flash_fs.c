@@ -166,7 +166,9 @@ KV_SECTION_META kv_meta_t flash_fs_cache_kv[] = {
 };
 
 
-#define N_CACHE_ENTRIES 32
+#ifndef FFS_CACHE_ENTRIES
+#define FFS_CACHE_ENTRIES 8
+#endif
 
 typedef struct __attribute__((packed)){
     ffs_file_t file_id;
@@ -186,7 +188,7 @@ void init_cache( void ){
         return;
     }
 
-    cache_h = mem2_h_alloc2( N_CACHE_ENTRIES * sizeof(cache_entry_t), MEM_TYPE_FS_PAGE_CACHE );
+    cache_h = mem2_h_alloc2( FFS_CACHE_ENTRIES * sizeof(cache_entry_t), MEM_TYPE_FS_PAGE_CACHE );
 
     if( cache_h <= 0 ){
 
@@ -195,7 +197,7 @@ void init_cache( void ){
 
     cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
 
-    for( uint8_t i = 0; i < N_CACHE_ENTRIES; i++ ){
+    for( uint8_t i = 0; i < FFS_CACHE_ENTRIES; i++ ){
 
         entry[i].file_id = -1;
     }
@@ -210,7 +212,7 @@ cache_entry_t* get_cache_entry( ffs_file_t file, uint16_t page ){
 
     cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
 
-    for( uint8_t i = 0; i < N_CACHE_ENTRIES; i++ ){
+    for( uint8_t i = 0; i < FFS_CACHE_ENTRIES; i++ ){
 
         if( ( entry[i].file_id == file ) && ( entry[i].page == page ) ){
 
@@ -230,7 +232,7 @@ cache_entry_t* get_free_entry( void ){
 
     cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
 
-    for( uint8_t i = 0; i < N_CACHE_ENTRIES; i++ ){
+    for( uint8_t i = 0; i < FFS_CACHE_ENTRIES; i++ ){
 
         if( entry[i].file_id < 0 ){
 
@@ -260,7 +262,7 @@ cache_entry_t* get_free_entry( void ){
 
 //     // cache_entry_t *ptr = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
 
-//     // for( uint8_t i = 0; i < N_CACHE_ENTRIES; i++ ){
+//     // for( uint8_t i = 0; i < FFS_CACHE_ENTRIES; i++ ){
 
 //     //     if( ( ptr[i].file_id == file ) && ( ptr[i].dirty ) ){
 
@@ -291,9 +293,9 @@ void evict( void ){
     }
 
     // random choice
-    uint8_t index = rnd_u16_range( N_CACHE_ENTRIES );
+    uint8_t index = rnd_u16_range( FFS_CACHE_ENTRIES );
 
-    ASSERT( index < N_CACHE_ENTRIES );
+    ASSERT( index < FFS_CACHE_ENTRIES );
 
     cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
 
@@ -328,7 +330,7 @@ void invalidate_file( ffs_file_t file_id ){
 
     cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
 
-    for( uint8_t i = 0; i < N_CACHE_ENTRIES; i++ ){
+    for( uint8_t i = 0; i < FFS_CACHE_ENTRIES; i++ ){
 
         if( entry[i].file_id == file_id ){
 
@@ -348,7 +350,7 @@ int8_t read_into_cache( ffs_file_t file_id, uint16_t page, uint8_t *data, uint8_
     cache_entry_t *entry = (cache_entry_t *)mem2_vp_get_ptr_fast( cache_h );
 
     // check if page is already in cache
-    for( uint8_t i = 0; i < N_CACHE_ENTRIES; i++ ){
+    for( uint8_t i = 0; i < FFS_CACHE_ENTRIES; i++ ){
 
         if( ( entry[i].file_id == file_id ) && ( entry[i].page == page ) ){
 
