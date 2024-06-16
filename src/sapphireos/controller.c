@@ -27,6 +27,7 @@
 
 #include "controller.h"
 
+#include "link.h"
 
 /*
 
@@ -500,6 +501,9 @@ void controller_v_init( void ){
                      PSTR("controller_timeout"),
                      0,
                      0 );
+
+
+   	link2_v_init();
 }
 
 // static bool is_candidate( void ){
@@ -981,6 +985,8 @@ PT_BEGIN( pt );
 		// LEADER
 		while( controller_state == STATE_LEADER ){
 
+			link_mgr_v_start();
+
 			// broadcast announcement
 			send_announce();
 
@@ -1077,6 +1083,30 @@ PT_END( pt );
 }
 
 
+
+int8_t controller_i8_get_addr( sock_addr_t *raddr ){
+
+	if( ( controller_state == STATE_FOLLOWER ) ||
+		( controller_state == STATE_LEADER ) ){
+
+		if( raddr != 0 ){
+
+			raddr->ipaddr = leader_ip;
+			raddr->port = CONTROLLER_PORT;
+		}
+
+		return 0;
+	}
+	else{
+
+		if( raddr != 0 ){
+
+			memset( raddr, 0, sizeof(sock_addr_t) );
+		}
+
+		return -1;
+	}
+}
 
 
 #endif

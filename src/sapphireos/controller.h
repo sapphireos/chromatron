@@ -26,6 +26,8 @@
 #define __CONTROLLER_H
 
 void controller_v_init( void );
+int8_t controller_i8_get_addr( sock_addr_t *raddr );
+
 
 #define CONTROLLER_PORT         44701
 
