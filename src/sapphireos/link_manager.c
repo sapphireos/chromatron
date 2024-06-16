@@ -124,6 +124,8 @@ list_node_t _link2_mgr_update( link2_t *link, sock_addr_t *raddr ){
 
 		if( ip_b_addr_compare( *ip, raddr->ipaddr ) ){
 
+			// log_v_debug_P( PSTR("found: %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
+
 			ip_found = TRUE;
 			break;
 		}

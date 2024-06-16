@@ -451,7 +451,7 @@ PT_BEGIN( pt );
 
 		     	link_ptr = (link2_t *)( hdr + 1 );
 
-		     	log_v_debug_P( PSTR("Link msg: %d"), current_links_this_msg );
+		     	// log_v_debug_P( PSTR("Link msg: %d"), current_links_this_msg );
 	    	}
 
 	        link2_state_t *link_state = list_vp_get_data( ln );
