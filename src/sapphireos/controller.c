@@ -331,7 +331,7 @@ static void update_follower( ip_addr4_t follower_ip, controller_msg_status_t *ms
     };
 
     // not found, add:
-    ln = list_ln_create_node( &follower, sizeof(follower) );
+    ln = list_ln_create_node2( &follower, sizeof(follower), MEM_TYPE_CONTROLLER_NODE );
 
     if( ln < 0 ){
 

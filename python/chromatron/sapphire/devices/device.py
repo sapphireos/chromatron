@@ -1075,6 +1075,7 @@ class Device(object):
             32: "fs_page_cache",
             33: "mqtt_sub",
             34: "mqtt_broker_sub",
+            35: "controller_node",
         }
 
         total_size = 0
