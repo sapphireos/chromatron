@@ -124,7 +124,7 @@ task more quickly.
 
 static socket_t sock;
 
-static bool controller_enabled;
+static bool controller_leader_enabled;
 
 static uint8_t controller_state;
 #define STATE_IDLE 		0
@@ -146,7 +146,7 @@ static uint32_t leader_uptime;
 KV_SECTION_META kv_meta_t controller_kv[] = {
     { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &controller_state, 		0,  "controller_state" },
     { CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, &state_name,				0,  "controller_state_text" },
-    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_enabled, 	0,  "controller_enable_leader" },
+    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST,   &controller_leader_enabled, 	0,  "controller_enable_leader" },
     { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_READ_ONLY, &leader_ip, 				0,  "controller_leader_ip" },
     { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &leader_flags, 			0,  "controller_leader_flags" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_follower_count, 	0,  "controller_follower_count" },
@@ -358,7 +358,7 @@ static uint16_t get_follower_count( void ){
 static uint16_t get_priority( void ){
 
 	// check if leader is enabled, if not, return 0 and we are follower only
-	if( !controller_enabled ){
+	if( !controller_leader_enabled ){
 
 		return 0;
 	}
@@ -504,7 +504,7 @@ void controller_v_init( void ){
 
 // static bool is_candidate( void ){
 
-// 	return controller_enabled && ip_b_is_zeroes( leader_ip );
+// 	return controller_leader_enabled && ip_b_is_zeroes( leader_ip );
 // }
 
 static void send_msg( uint8_t msgtype, uint8_t *msg, uint8_t len, sock_addr_t *raddr ){
@@ -626,8 +626,14 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 	uint8_t reason = 0;
 	bool update_leader = FALSE;
 
+	// check if we are leader enabled and have better priority
+	if( ( controller_leader_enabled ) && ( get_priority() > msg->priority ) ){
+
+		// we would be a better leader based on fixed priority.
+		// discard this announce.
+	}
 	// check if this is the first leader/candidate we've seen
-	if( ip_b_is_zeroes( leader_ip ) ){
+	else if( ip_b_is_zeroes( leader_ip ) ){
 
 		reason = 1;
 		update_leader = TRUE;
@@ -876,7 +882,7 @@ PT_BEGIN( pt );
 		// timeout!
 
 		// check if leader is enabled:
-		if( controller_enabled ){
+		if( controller_leader_enabled ){
 
 			set_state( STATE_CANDIDATE );
 			reset_leader();	
@@ -931,6 +937,17 @@ PT_BEGIN( pt );
 			THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( controller_state == STATE_FOLLOWER ) );
 
 			if( controller_state == STATE_FOLLOWER ){
+
+				// check if we have a better priority
+				if( get_priority() > leader_priority ){
+
+					log_v_debug_P( PSTR("Self has better priority") );
+
+					set_state( STATE_IDLE );
+					reset_leader();
+			
+					break;
+				}
 			
 				send_status();
 			}
