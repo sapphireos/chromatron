@@ -296,6 +296,8 @@ void catbus_v_shutdown( void );
 uint64_t catbus_u64_get_origin_id( void );
 const catbus_hash_t32* catbus_hp_get_tag_hashes( void );
 bool catbus_b_query_self( catbus_query_t *query );
+bool catbus_b_query_single( catbus_hash_t32 hash, catbus_query_t *tags );
+bool catbus_b_query_tags( catbus_query_t *query, catbus_query_t *tags );
 void catbus_v_get_query( catbus_query_t *query );
 
 #define CATBUS_MAX_HASH_RESOLVER_LOOKUPS    4

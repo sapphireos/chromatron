@@ -316,6 +316,40 @@ bool catbus_b_query_self( catbus_query_t *query ){
     return TRUE;
 }
 
+// return TRUE if has is found in tags
+bool catbus_b_query_single( catbus_hash_t32 hash, catbus_query_t *tags ){
+
+    if( hash == 0 ){
+
+        return TRUE;
+    }
+
+    for( uint8_t i = 0; i < CATBUS_QUERY_LEN; i++ ){
+
+        if( hash == tags->tags[i] ){
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+// return TRUE if all hashes in the query are found in the tags
+bool catbus_b_query_tags( catbus_query_t *query, catbus_query_t *tags ){
+
+    for( uint8_t i = 0; i < CATBUS_QUERY_LEN; i++ ){
+
+        if( !catbus_b_query_single( query->tags[i], tags ) ){
+
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+
 static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id ){
 
     if( sys_b_is_shutting_down() ){
