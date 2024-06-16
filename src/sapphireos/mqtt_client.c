@@ -269,7 +269,13 @@ static int8_t transmit_publish(
 	header->flags       = 0;
 
 	// transmit
-	if( send_msg_to_broker( h ) < 0 ){
+	int8_t send_status = send_msg_to_broker( h );
+
+	if( send_status == -1 ){ // no broker available
+
+		return 0;
+	}
+	else if( send_status < 0 ){
 
 		log_v_error_P( PSTR("Send failed") );
 
