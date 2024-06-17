@@ -80,6 +80,22 @@ typedef struct __attribute__((packed)){
 }  controller_msg_leave_t;
 #define CONTROLLER_MSG_LEAVE        4
 
+
+
+
+typedef struct __attribute__((packed)){
+    ip_addr4_t ip;
+    catbus_query_t query;
+    uint16_t service_flags;
+    uint16_t timeout;
+} follower_t;
+
+
+void controller_db_v_reset_iter( void );
+follower_t* controller_db_p_get_next( void );
+follower_t* controller_db_p_get_next_query( catbus_query_t *query );
+follower_t* controller_db_p_get_ipaddr( ip_addr4_t ip );
+
 #endif
 
 

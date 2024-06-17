@@ -156,13 +156,6 @@ KV_SECTION_META kv_meta_t controller_kv[] = {
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_uptime,  		0,  "controller_leader_uptime" },
 };
 
-typedef struct __attribute__((packed)){
-	ip_addr4_t ip;
-	catbus_query_t query;
-	uint16_t service_flags;
-	uint16_t timeout;
-} follower_t;
-
 static list_t follower_list;
 
 
@@ -1109,4 +1102,78 @@ int8_t controller_i8_get_addr( sock_addr_t *raddr ){
 }
 
 
+static list_node_t follower_ln;
+
+void controller_db_v_reset_iter( void ){
+
+	follower_ln = follower_list.head;
+}
+
+follower_t* controller_db_p_get_next( void ){
+
+	if( follower_ln <= 0 ){
+
+		return 0;
+	}
+
+	follower_t *device = list_vp_get_data( follower_ln );
+
+	follower_ln = list_ln_next( follower_ln );     
+
+	return device;
+}
+
+
+follower_t* controller_db_p_get_next_query( catbus_query_t *query ){
+
+	follower_t *device = controller_db_p_get_next();
+
+	while( device != 0 ){
+
+		// trace_printf("query device %d.%d.%d.%d\n", device->status.ip.ip3, device->status.ip.ip2, device->status.ip.ip1, device->status.ip.ip0);
+
+		if( catbus_b_query_tags( query, &device->query ) ){
+
+			return device;
+		}
+
+		device = controller_db_p_get_next();
+	}
+
+	return 0;
+}
+
+follower_t* controller_db_p_get_ipaddr( ip_addr4_t ip ){
+
+	list_node_t ln = follower_list.head;
+
+    while( ln >= 0 ){
+
+    	list_node_t next_ln = list_ln_next( ln );
+
+        follower_t *device = list_vp_get_data( ln );
+
+        if( ip_b_addr_compare( device->ip, ip ) ){
+
+        	return device;
+        }
+
+        ln = next_ln;     
+    }
+
+    return 0;
+}
+
+
+
+
+
 #endif
+
+
+
+
+
+
+
+

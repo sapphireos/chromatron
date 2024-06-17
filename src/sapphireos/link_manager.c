@@ -48,6 +48,7 @@ static uint8_t count_ip_for_link( link2_meta_t *meta, uint16_t len ){
 static bool link_mgr_running = FALSE;
 
 PT_THREAD( link2_mgr_server_thread( pt_t *pt, void *state ) );
+PT_THREAD( link2_mgr_process_thread( pt_t *pt, void *state ) );
 
 void link_mgr_v_start( void ){
 
@@ -62,6 +63,11 @@ void link_mgr_v_start( void ){
 
 	thread_t_create( link2_mgr_server_thread,
                  PSTR("link2_mgr_server"),
+                 0,
+                 0 );
+
+	thread_t_create( link2_mgr_process_thread,
+                 PSTR("link2_mgr_process"),
                  0,
                  0 );
 }
@@ -86,7 +92,7 @@ list_node_t _link2_mgr_l_lookup_by_hash( uint64_t hash ){
     return -1;
 }
 
-list_node_t _link2_mgr_update( link2_t *link, sock_addr_t *raddr ){
+list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 
 	link2_meta_t *meta = 0;
 	list_node_t ln = _link2_mgr_l_lookup_by_hash( link2_u64_hash( link ) );
@@ -230,7 +236,7 @@ PT_BEGIN( pt );
 
         	while( count > 0 ){
 
-        		_link2_mgr_update( link, &raddr );
+        		_link2_mgr_update_link( link, &raddr );
 
         		link++;
         		count--;
@@ -244,3 +250,30 @@ end:
 
 PT_END( pt );
 }
+
+
+
+PT_THREAD( link2_mgr_process_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while(1){
+
+    	TMR_WAIT( pt, 100 );
+
+    	
+
+
+
+
+
+
+    }
+
+PT_END( pt );
+}
+
+
+
+
+
