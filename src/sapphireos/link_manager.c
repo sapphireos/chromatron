@@ -36,6 +36,13 @@ typedef struct __attribute__((packed)){
     ip_addr4_t first_ip;
 } link2_meta_t;
 
+// typedef struct __attribute__((packed)){
+// 	list_node_t link_node;
+//     ip_addr4_t ip;
+//     uint8_t timeout;
+// } link_node_t;
+
+
 static uint8_t count_ip_for_link( link2_meta_t *meta, uint16_t len ){
 
 	ASSERT( len >= sizeof(link2_meta_t) );
@@ -43,6 +50,25 @@ static uint8_t count_ip_for_link( link2_meta_t *meta, uint16_t len ){
 	len -= sizeof(link2_meta_t);
 
 	return ( len / sizeof(meta->first_ip) ) + 1;
+}
+
+static bool link_has_ip( link2_meta_t *meta, uint16_t len, ip_addr4_t ip ){
+
+	uint8_t count = count_ip_for_link( meta, len );
+	ip_addr4_t *link_ip = &meta->first_ip;
+
+	while( count > 0 ){
+
+		if( ip_b_addr_compare( ip, *link_ip ) ){
+
+			return TRUE;
+		}
+
+		link_ip++;
+		count--;
+	}
+
+	return FALSE;
 }
 
 static bool link_mgr_running = FALSE;
@@ -253,15 +279,210 @@ PT_END( pt );
 
 
 
+
+
 PT_THREAD( link2_mgr_process_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
     while(1){
 
-    	TMR_WAIT( pt, 100 );
+    	TMR_WAIT( pt, 1000 );
 
-    	
+    	/*
+		
+		Sources and Sinks
+
+		Source: a source node for a link.  Sends data to manager.
+
+		Sink: a destination node for a link. Receives data from manager.	
+		
+
+		Send link:
+			ip: source node
+			query: sink node
+		
+		Recv Link:
+			ip: sink node
+			query: source node
+		
+		
+		
+		Messages:
+		LINK: This node has these links
+		BIND:
+			SOURCE: This node becomes a source for target key
+			SINK: This node becomes a destination for target key
+	
+			The BIND message contains a list of source keys
+			and sink keys.
+
+		DECLINE: Node indicates a key not available
+		DATA: KV data from source or manager
+			Data flows source -> manager -> sink
+		SHUTDOWN:  Shutdown a specific link, or all links (node going offline)
+			If received by manager, removes node from all or specified links.
+			If received by a node from manager, cancels all sources/sinks.
+
+		Nodes track if they are a source or sink for an item.
+		Source/sink status times out and must be refreshed.
+					
+		
+		Set up sources and sinks:
+
+		For each node in controller DB:
+			# lists of keys
+			sources = []
+			sinks = [] 
+
+			For each send link:
+				If IP matches link:
+					add to sources
+
+			For each recv link:
+				If query matches link:
+					add to sinks			
+			
+			Deduplicate source/sink lists
+			
+			Transmit BIND to node.
+		
+		N nodes
+		S send links
+		R recv links
+
+		O(N * (S + R))
+		
+
+		*/
+
+    	// set up bindings
+    	link2_binding_t bindings[LINK_MAX_BIND_ENTRIES];
+
+    	controller_db_v_reset_iter();
+
+    	follower_t *node = controller_db_p_get_next();
+
+    	while(node != 0){
+
+    		uint16_t count = 0;
+    		memset( bindings, 0, sizeof(bindings) );
+
+    		// loop through links
+
+		    list_node_t ln = link_list.head;
+
+		    while( ln >= 0 ){
+
+		        link2_meta_t *meta = list_vp_get_data( ln );
+
+				if( meta->link.mode == LINK_MODE_SEND ){
+
+					// check if node IP matches this link
+					if( link_has_ip( meta, list_u16_node_size( ln ), node->ip ) ){
+
+						link2_binding_t binding = {
+							meta->link.source_key,
+							meta->link.rate,
+							LINK_BIND_FLAG_SOURCE,
+							0
+						};
+
+						bindings[count] = binding;
+
+						count++;
+					}
+				}
+				else if( meta->link.mode == LINK_MODE_RECV ){
+
+					// check if node query matches this link
+					if( catbus_b_query_tags( &meta->link.query, &node->tags ) ){
+
+						link2_binding_t binding = {
+							meta->link.dest_key,
+							meta->link.rate,
+							LINK_BIND_FLAG_SINK,
+							0
+						};
+
+						bindings[count] = binding;
+
+						count++;
+					}
+				}
+
+				if( count >= LINK_MAX_BIND_ENTRIES ){
+
+					// transmit and flush
+				}
+
+		        ln = list_ln_next( ln );
+		    }
+
+		    if( count > 0 ){
+
+		    	// transmit
+
+		    }
+
+
+
+
+    		node = controller_db_p_get_next();
+    	}
+
+
+		/*
+
+		Manager receives a DATA message:
+	
+		Data came from a source.  We need to find matching links
+		and store/aggregate the data.
+		The data routing is done in two steps, so for the first step
+		we don't need to worry about transmissions to sinks.
+
+		For each data item:
+			For each send link:
+				If item and IP is source for link:
+					Record data for link and aggregate.
+
+			For each recv link:
+				If item and query matches link:
+					Record data for link and aggregate.
+
+		
+		Periodic transmissions to sinks:
+		
+		Manager is sending data to sinks.
+		This is the second step and is decoupled from the first.
+		
+
+		For each node in controller DB:
+		
+			# list of data items
+			data = [] 
+
+			For each send link:
+				If query matches link and data timer is ready:
+					add link data to data set
+
+			For each recv link:
+				If IP matches link and data timer is ready:
+					add link data to data set
+
+			Deduplicate data set.
+
+			Transmit data set to node
+			Split into multiple messages as needed.
+			
+			
+			
+		
+			
+			
+    	*/
+
+
 
 
 

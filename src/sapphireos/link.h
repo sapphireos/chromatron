@@ -38,7 +38,6 @@
 
 #define LINK2_MGR_LINK_TIMEOUT				60
 
-
 typedef list_node_t link2_handle_t;
 
 typedef uint8_t link_aggregation_t8;
@@ -70,7 +69,7 @@ typedef struct __attribute__((packed)){
     catbus_hash_t32 dest_key;
     catbus_hash_t32 tag;
     catbus_query_t query;
-} link2_t;
+} link2_t; // 48 bytes
 
 
 typedef struct __attribute__((packed)){
@@ -83,6 +82,18 @@ typedef struct __attribute__((packed)){
     uint64_t hash; // must be last!
 } link2_state_t;
 
+
+
+
+typedef struct __attribute__((packed)){
+    catbus_hash_t32 key;
+    uint16_t rate;
+    uint8_t flags;
+    uint8_t reserved;
+} link2_binding_t;
+#define LINK_MAX_BIND_ENTRIES         ( ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_binding_t) )
+#define LINK_BIND_FLAG_SOURCE   0x01
+#define LINK_BIND_FLAG_SINK     0x02
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
@@ -98,6 +109,12 @@ typedef struct __attribute__((packed)){
     link2_msg_header_t header;
 } link_msg_link_t;
 #define LINK_MSG_TYPE_LINK        		1
+
+typedef struct __attribute__((packed)){
+    link2_msg_header_t header;
+    // link2_binding_t follows
+} link_msg_bind_t;
+#define LINK_MSG_TYPE_BIND              2
 
 
 void link2_v_init( void );

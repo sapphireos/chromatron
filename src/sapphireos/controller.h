@@ -85,7 +85,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     ip_addr4_t ip;
-    catbus_query_t query;
+    catbus_query_t tags;
     uint16_t service_flags;
     uint16_t timeout;
 } follower_t;

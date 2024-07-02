@@ -308,7 +308,7 @@ static void update_follower( ip_addr4_t follower_ip, controller_msg_status_t *ms
         if( ip_b_addr_compare( follower_ip, follower->ip ) ){
 
         	follower->service_flags = msg->service_flags;
-        	follower->query 		= msg->query;
+        	follower->tags 			= msg->query;
         	follower->timeout 		= CONTROLLER_FOLLOWER_TIMEOUT;
 
         	return;
@@ -1132,7 +1132,7 @@ follower_t* controller_db_p_get_next_query( catbus_query_t *query ){
 
 		// trace_printf("query device %d.%d.%d.%d\n", device->status.ip.ip3, device->status.ip.ip2, device->status.ip.ip1, device->status.ip.ip0);
 
-		if( catbus_b_query_tags( query, &device->query ) ){
+		if( catbus_b_query_tags( query, &device->tags ) ){
 
 			return device;
 		}
@@ -1169,11 +1169,4 @@ follower_t* controller_db_p_get_ipaddr( ip_addr4_t ip ){
 
 
 #endif
-
-
-
-
-
-
-
 
