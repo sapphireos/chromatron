@@ -279,7 +279,36 @@ PT_END( pt );
 
 
 
+static void send_bind_msg( link2_binding_t *bindings, uint8_t count, ip_addr4_t ip ){
 
+	mem_handle_t h = mem2_h_alloc( sizeof(link2_msg_header_t) + count * sizeof(link2_binding_t) );
+
+ 	if( h < 0 ){
+
+ 		log_v_error_P( PSTR("alloc fail") );
+
+ 		return;
+ 	}
+
+	link2_msg_header_t *hdr = (link2_msg_header_t *)mem2_vp_get_ptr_fast( h );
+
+	link2_v_init_header( hdr, LINK_MSG_TYPE_BIND );
+
+	link2_binding_t *binding_ptr = (link2_binding_t *)( hdr + 1 );
+
+	memcpy( binding_ptr, bindings, count * sizeof(link2_binding_t) );
+
+	sock_addr_t raddr = {
+		ip,
+		LINK2_PORT
+	};
+
+		// send this message:
+	if( sock_i16_sendto_m( sock, h, &raddr ) < 0 ){
+
+		log_v_error_P( PSTR("msg fail") );
+	}
+}
 
 PT_THREAD( link2_mgr_process_thread( pt_t *pt, void *state ) )
 {
@@ -413,7 +442,9 @@ PT_BEGIN( pt );
 
 				if( count >= LINK_MAX_BIND_ENTRIES ){
 
-					// transmit and flush
+					send_bind_msg( bindings, count, node->ip );
+
+			     	count = 0;
 				}
 
 		        ln = list_ln_next( ln );
@@ -422,11 +453,10 @@ PT_BEGIN( pt );
 		    if( count > 0 ){
 
 		    	// transmit
+		    	send_bind_msg( bindings, count, node->ip );
 
+		    	count = 0;
 		    }
-
-
-
 
     		node = controller_db_p_get_next();
     	}

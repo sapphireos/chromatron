@@ -132,6 +132,7 @@ link2_handle_t link2_l_create(
     link_filter_t16 filter );
 link2_handle_t link2_l_create2( link2_state_t *state );
 
+void link2_v_init_header( link2_msg_header_t *header, uint8_t msg_type );
 
 
 void link_mgr_v_start( void );

@@ -367,6 +367,21 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
+        if( header->msg_type == LINK_MSG_TYPE_BIND ){
+
+            uint8_t count = ( sock_i16_get_bytes_read( sock ) - sizeof(link2_msg_header_t) ) / sizeof(link2_binding_t);
+
+            // iterate through bindings
+            link2_binding_t *binding = (link2_binding_t *)( header + 1 );
+
+            while( count > 0 ){
+
+                
+                binding++;
+                count--;
+            }
+        }
+
 
 
 end:
@@ -378,7 +393,7 @@ PT_END( pt );
 }
 
 
-static void init_header( link2_msg_header_t *header, uint8_t msg_type ){
+void link2_v_init_header( link2_msg_header_t *header, uint8_t msg_type ){
 
     header->magic       = LINK_MAGIC;
     header->msg_type    = msg_type;
@@ -447,7 +462,7 @@ PT_BEGIN( pt );
 
 		     	hdr = (link2_msg_header_t *)mem2_vp_get_ptr_fast( h );
 		     	
-		     	init_header( hdr, LINK_MSG_TYPE_LINK );
+		     	link2_v_init_header( hdr, LINK_MSG_TYPE_LINK );
 
 		     	link_ptr = (link2_t *)( hdr + 1 );
 
