@@ -29,6 +29,14 @@
 
 static socket_t sock;
 static list_t link_list;
+static list_t binding_list;
+
+typedef struct __attribute__((packed)){
+    catbus_hash_t32 key;
+    uint16_t rate;
+    uint8_t flags;
+    uint8_t timeout;
+} binding_state_t;
 
 static int32_t link2_test_key;
 static int32_t link2_test_key2;
@@ -45,6 +53,7 @@ PT_THREAD( link2_server_thread( pt_t *pt, void *state ) );
 void link2_v_init( void ){
 
 	list_v_init( &link_list );
+    list_v_init( &binding_list );
 
 	#ifdef ESP8266
 	catbus_query_t query = {
@@ -315,7 +324,48 @@ uint8_t link2_u8_count( void ){
     return list_u8_count( &link_list );
 }
 
+static binding_state_t* get_binding_for_key(catbus_hash_t32 key){
 
+    list_node_t ln = binding_list.head;
+
+    while( ln >= 0 ){
+
+        binding_state_t *state = list_vp_get_data( ln );
+
+        if( state->key == key ){
+
+            return state;
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return 0;
+}
+
+static void add_or_update_binding( link2_binding_t *link_binding ){
+
+    binding_state_t *state = get_binding_for_key( link_binding->key );
+
+    if( state == 0 ){
+
+        list_node_t ln = list_ln_create_node( 0, sizeof(binding_state_t) );
+
+        if( ln < 0 ){
+
+            return;
+        }
+
+        list_v_insert_tail( &binding_list, ln );
+
+        state = list_vp_get_data( ln );
+        state->key = link_binding->key;
+    }
+
+    state->rate     = link_binding->rate;
+    state->flags    = link_binding->flags;
+    state->timeout  = LINK_BINDING_TIMEOUT;
+}
 
 PT_THREAD( link2_server_thread( pt_t *pt, void *state ) )
 {
@@ -376,7 +426,12 @@ PT_BEGIN( pt );
 
             while( count > 0 ){
 
-                
+                // check if key is present:
+                if( kv_i16_search_hash( binding->key ) == 0 ){
+
+                    add_or_update_binding( binding );
+                }
+
                 binding++;
                 count--;
             }
@@ -410,7 +465,28 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 2000 );
+        TMR_WAIT( pt, 1000 );
+
+        // process timeouts
+        list_node_t ln = binding_list.head;
+
+        while( ln >= 0 ){
+
+            list_node_t next_ln = list_ln_next( ln );
+
+            binding_state_t *binding_state = list_vp_get_data( ln );
+
+            binding_state->timeout--;
+
+            if( binding_state->timeout == 0 ){
+
+                list_v_remove( &binding_list, ln );
+                list_v_release_node( ln );
+            }
+
+            ln = next_ln;
+        }        
+
 
         // send link meta data to link manager
      	sock_addr_t link_mgr_raddr;
@@ -437,7 +513,7 @@ PT_BEGIN( pt );
      	link2_t *link_ptr = 0;
      	uint8_t current_links_this_msg = 0;
      	
- 		list_node_t ln = link_list.head;
+ 		ln = link_list.head;
 
 	    while( ln >= 0 ){
 

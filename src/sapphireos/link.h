@@ -83,7 +83,7 @@ typedef struct __attribute__((packed)){
 } link2_state_t;
 
 
-
+#define LINK_BINDING_TIMEOUT  30
 
 typedef struct __attribute__((packed)){
     catbus_hash_t32 key;
