@@ -124,6 +124,19 @@ void link_mgr_v_start( void ){
                  0 );
 }
 
+void link_mgr_v_stop( void ){
+
+	if( !link_mgr_running ){
+
+		return;
+	}
+
+	link_mgr_running = FALSE;
+
+	list_v_destroy( &link_list );
+}
+
+
 
 list_node_t _link2_mgr_l_lookup_by_hash( uint64_t hash ){
 
@@ -244,7 +257,14 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && ( link_mgr_running ) );
+
+        if( !link_mgr_running ){
+
+        	log_v_debug_P( PSTR("link mgr server stop") );
+
+        	THREAD_EXIT( pt );
+        }
 
         // check if shutting down
         if( sys_b_is_shutting_down() ){
@@ -350,7 +370,16 @@ PT_BEGIN( pt );
 
     while(1){
 
-    	TMR_WAIT( pt, 1000 );
+    	thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 );
+
+    	THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && link_mgr_running );
+
+    	if( !link_mgr_running ){
+
+        	log_v_debug_P( PSTR("link mgr server stop") );
+
+        	THREAD_EXIT( pt );
+        }
 
     	/*
 		

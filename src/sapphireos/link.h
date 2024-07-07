@@ -138,6 +138,7 @@ void link2_v_init_header( link2_msg_header_t *header, uint8_t msg_type );
 
 
 void link_mgr_v_start( void );
+void link_mgr_v_stop( void );
 
 
 #endif

@@ -992,6 +992,10 @@ PT_BEGIN( pt );
 				( controller_state == STATE_LEADER ) );
 
 		}
+
+		// no longer leader:
+		link_mgr_v_stop();
+		TMR_WAIT( pt, 100 ); // give the manager time to stop
 	}
 
 	THREAD_RESTART( pt );
