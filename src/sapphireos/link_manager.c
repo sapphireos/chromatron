@@ -71,6 +71,31 @@ static bool link_has_ip( link2_meta_t *meta, uint16_t len, ip_addr4_t ip ){
 	return FALSE;
 }
 
+
+static int8_t _kv_i8_link_mgr_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len ){
+    
+    if( op == KV_OP_GET ){
+		
+		if( hash == __KV__link2_mgr_link_count ){
+            
+            STORE16(data, list_u8_count( &link_list ));
+        }
+        
+        return 0;
+    }
+
+    return -1;
+}
+
+KV_SECTION_OPT kv_meta_t link_mgr_kv[] = {
+    { CATBUS_TYPE_UINT16,   0, 0,               0, _kv_i8_link_mgr_handler,  "link2_mgr_link_count" }, 
+};
+
+
 static bool link_mgr_running = FALSE;
 
 PT_THREAD( link2_mgr_server_thread( pt_t *pt, void *state ) );
@@ -86,6 +111,7 @@ void link_mgr_v_start( void ){
 	link_mgr_running = TRUE;
 
 	list_v_init( &link_list );
+	kv_v_add_db_info( link_mgr_kv, sizeof(link_mgr_kv) );
 
 	thread_t_create( link2_mgr_server_thread,
                  PSTR("link2_mgr_server"),
@@ -267,6 +293,14 @@ PT_BEGIN( pt );
         		link++;
         		count--;
         	}
+        }
+        else if( header->msg_type == LINK_MSG_TYPE_DATA ){
+
+        	log_v_debug_P( PSTR("recv data") );
+        }
+        else{
+
+        	log_v_error_P( PSTR("unknown msg: %d"), header->msg_type );
         }
 
 end:

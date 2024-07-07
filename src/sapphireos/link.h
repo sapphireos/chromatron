@@ -116,6 +116,8 @@ typedef struct __attribute__((packed)){
 } link_msg_bind_t;
 #define LINK_MSG_TYPE_BIND              2
 
+#define LINK_MSG_TYPE_DATA              3
+
 
 void link2_v_init( void );
 

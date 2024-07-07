@@ -34,6 +34,7 @@ static list_t binding_list;
 typedef struct __attribute__((packed)){
     catbus_hash_t32 key;
     uint16_t rate;
+    int16_t ticks;
     uint8_t flags;
     uint8_t timeout;
 } binding_state_t;
@@ -41,7 +42,34 @@ typedef struct __attribute__((packed)){
 static int32_t link2_test_key;
 static int32_t link2_test_key2;
 
+
+static int8_t _kv_i8_link_client_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len ){
+    
+    if( op == KV_OP_GET ){
+
+        if( hash == __KV__link2_binding_count ){
+            
+            STORE16(data, list_u8_count( &binding_list ));
+        }
+        else if( hash == __KV__link2_link_count ){
+            
+            STORE16(data, list_u8_count( &link_list ));
+        }
+        
+        return 0;
+    }
+
+    return -1;
+}
+
 KV_SECTION_META kv_meta_t link2_kv[] = {
+    { CATBUS_TYPE_UINT16,  0, 0,               0, _kv_i8_link_client_handler,  "link2_binding_count" },
+    { CATBUS_TYPE_UINT16,  0, 0,               0, _kv_i8_link_client_handler,  "link2_link_count" },
+
     { CATBUS_TYPE_INT32,   0, 0,                   &link2_test_key,        0,  "link2_test_key" },
     { CATBUS_TYPE_INT32,   0, 0,                   &link2_test_key2,       0,  "link2_test_key2" },
 };
@@ -57,7 +85,9 @@ void link2_v_init( void ){
 
 	#ifdef ESP8266
 	catbus_query_t query = {
-		__KV__controller_test
+		{
+            __KV__controller_test,
+        },
 	};
 
 	link2_l_create(
@@ -430,6 +460,8 @@ PT_BEGIN( pt );
                 if( kv_i16_search_hash( binding->key ) == 0 ){
 
                     add_or_update_binding( binding );
+
+                    log_v_debug_P( PSTR("binding") );
                 }
 
                 binding++;
@@ -467,7 +499,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
-        // process timeouts
+        // process bindin timeouts
         list_node_t ln = binding_list.head;
 
         while( ln >= 0 ){
@@ -480,99 +512,176 @@ PT_BEGIN( pt );
 
             if( binding_state->timeout == 0 ){
 
+                log_v_debug_P( PSTR("binding timeout") );
+
                 list_v_remove( &binding_list, ln );
                 list_v_release_node( ln );
             }
 
             ln = next_ln;
-        }        
+        }   
 
 
-        // send link meta data to link manager
-     	sock_addr_t link_mgr_raddr;
-     	if( controller_i8_get_addr( &link_mgr_raddr ) < 0 ){
+        // check if controller is available
+        sock_addr_t link_mgr_raddr;
 
-     		// controller not available
-     		continue;
-     	}
+        if( controller_i8_get_addr( &link_mgr_raddr ) == 0 ){
 
-     	link_mgr_raddr.port = LINK2_MGR_PORT;
+            // process bindings
 
-     	uint8_t link_count = link2_u8_count();
+            ln = binding_list.head;
 
-     	// no links, nothing to do!
-     	if( link_count == 0 ){
+            uint16_t current_data_len = 0;
+            uint8_t data_buf[CATBUS_MAX_DATA + sizeof(link2_msg_header_t)];
+            link2_msg_header_t *data_hdr = (link2_msg_header_t *)data_buf;
+            uint8_t *data_ptr = (uint8_t *)( data_hdr + 1 );
 
-     		continue;
-     	}
+            link2_v_init_header( data_hdr, LINK_MSG_TYPE_DATA );
 
-     	uint8_t max_links_per_message = ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_t);
-     	
-     	mem_handle_t h = -1;
-     	link2_msg_header_t *hdr = 0;
-     	link2_t *link_ptr = 0;
-     	uint8_t current_links_this_msg = 0;
-     	
- 		ln = link_list.head;
+            while( ln >= 0 ){
 
-	    while( ln >= 0 ){
+                binding_state_t *binding_state = list_vp_get_data( ln );
 
-	    	// set up message data
-	    	if( h < 0 ){
+                // check if this is a source
+                // sinks do nothing here
+                if( binding_state->flags & LINK_BIND_FLAG_SINK ){
 
-	    		current_links_this_msg = link_count;
+                    continue;
+                }
 
-		     	if( current_links_this_msg > max_links_per_message ){
+                // source:
 
-		     		current_links_this_msg = max_links_per_message;
-		     	}
+                binding_state->ticks -= 1000;
 
-	    		// allocate new message data
+                if( binding_state->ticks <= 0 ){
 
-	    		h = mem2_h_alloc( sizeof(link2_msg_header_t) + current_links_this_msg * sizeof(link2_t) );
+                    binding_state->ticks = binding_state->rate;
 
-		     	if( h < 0 ){
+                    // get meta data
+                    catbus_meta_t meta;
 
-		     		THREAD_RESTART( pt );
-		     	}
+                    kv_i8_get_catbus_meta( binding_state->key, &meta );
 
-		     	hdr = (link2_msg_header_t *)mem2_vp_get_ptr_fast( h );
-		     	
-		     	link2_v_init_header( hdr, LINK_MSG_TYPE_LINK );
+                    // uint16_t array_len = meta.count + 1;
+                    uint16_t data_len = type_u16_size( meta.type ) * meta.count;
 
-		     	link_ptr = (link2_t *)( hdr + 1 );
+                    // check if the next item will overflow the buffer
+                    if( ( data_len + current_data_len ) > CATBUS_MAX_DATA ){
 
-		     	// log_v_debug_P( PSTR("Link msg: %d"), current_links_this_msg );
-	    	}
+                        // transmit message
+                        if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_len, &link_mgr_raddr ) < 0 ){
 
-	        link2_state_t *link_state = list_vp_get_data( ln );
+                            log_v_debug_P( PSTR("data send fail") );
+                        }
 
-	        link_ptr->mode 			= link_state->link.mode;
-	        link_ptr->aggregation 	= link_state->link.aggregation;
-	        link_ptr->rate 			= link_state->link.rate;
-	        link_ptr->source_key 	= link_state->link.source_key;
-	        link_ptr->dest_key 		= link_state->link.dest_key;
-	        link_ptr->tag 			= link_state->link.tag;
-	        link_ptr->query 		= link_state->link.query;
+                        // flush buffer
+                        data_ptr = (uint8_t *)( data_hdr + 1 );
+                        current_data_len = 0;
+                    }
+
+                    if( kv_i8_array_get( binding_state->key, 0, meta.count, data_ptr, CATBUS_MAX_DATA - current_data_len ) < 0 ){
+
+                        log_v_debug_P( PSTR("kv get fail") );
+                    }
+
+                    data_ptr += data_len;
+                    current_data_len += data_len;
+                }
+
+                ln = list_ln_next( ln );
+            }   
+
+            // check if there is any data left to transmit in the buffer
+            if( current_data_len > 0 ){
+
+                // transmit message
+                if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_len, &link_mgr_raddr ) < 0 ){
+
+                    log_v_debug_P( PSTR("data send fail") );
+                }                
+            }
 
 
-	        current_links_this_msg--;
-	        link_ptr++;
-	        link_count--;
 
-	        if( current_links_this_msg == 0 ){
+            // send link meta data to link manager
+         	link_mgr_raddr.port = LINK2_MGR_PORT;
 
-	        	// send this message:
-	        	if( sock_i16_sendto_m( sock, h, &link_mgr_raddr ) < 0 ){
+         	uint8_t link_count = link2_u8_count();
+
+         	// no links, nothing to do!
+         	if( link_count == 0 ){
+
+         		continue;
+         	}
+
+         	uint8_t max_links_per_message = ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_t);
+         	
+         	mem_handle_t h = -1;
+         	link2_msg_header_t *hdr = 0;
+         	link2_t *link_ptr = 0;
+         	uint8_t current_links_this_msg = 0;
+         	
+     		ln = link_list.head;
+
+    	    while( ln >= 0 ){
+
+    	    	// set up message data
+    	    	if( h < 0 ){
+
+    	    		current_links_this_msg = link_count;
+
+    		     	if( current_links_this_msg > max_links_per_message ){
+
+    		     		current_links_this_msg = max_links_per_message;
+    		     	}
+
+    	    		// allocate new message data
+
+    	    		h = mem2_h_alloc( sizeof(link2_msg_header_t) + current_links_this_msg * sizeof(link2_t) );
+
+    		     	if( h < 0 ){
+
+    		     		THREAD_RESTART( pt );
+    		     	}
+
+    		     	hdr = (link2_msg_header_t *)mem2_vp_get_ptr_fast( h );
+    		     	
+    		     	link2_v_init_header( hdr, LINK_MSG_TYPE_LINK );
+
+    		     	link_ptr = (link2_t *)( hdr + 1 );
+
+    		     	// log_v_debug_P( PSTR("Link msg: %d"), current_links_this_msg );
+    	    	}
+
+    	        link2_state_t *link_state = list_vp_get_data( ln );
+
+    	        link_ptr->mode 			= link_state->link.mode;
+    	        link_ptr->aggregation 	= link_state->link.aggregation;
+    	        link_ptr->rate 			= link_state->link.rate;
+    	        link_ptr->source_key 	= link_state->link.source_key;
+    	        link_ptr->dest_key 		= link_state->link.dest_key;
+    	        link_ptr->tag 			= link_state->link.tag;
+    	        link_ptr->query 		= link_state->link.query;
 
 
-	        	}
+    	        current_links_this_msg--;
+    	        link_ptr++;
+    	        link_count--;
 
-	        	h = -1; // clear handle
-	        }
+    	        if( current_links_this_msg == 0 ){
 
-	        ln = list_ln_next( ln );     
-	    } 	
+    	        	// send this message:
+    	        	if( sock_i16_sendto_m( sock, h, &link_mgr_raddr ) < 0 ){
+
+
+    	        	}
+
+    	        	h = -1; // clear handle
+    	        }
+
+    	        ln = list_ln_next( ln );     
+    	    } 	
+        } // controller available
     }
 
 PT_END( pt );
