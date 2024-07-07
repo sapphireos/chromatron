@@ -272,7 +272,9 @@ PT_BEGIN( pt );
             THREAD_EXIT( pt );
         }
 
-        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+        int16_t bytes_read = sock_i16_get_bytes_read( sock );
+
+        if( bytes_read <= 0 ){
 
             goto end;
         }
@@ -316,7 +318,29 @@ PT_BEGIN( pt );
         }
         else if( header->msg_type == LINK_MSG_TYPE_DATA ){
 
-        	log_v_debug_P( PSTR("recv data") );
+        	bytes_read -= sizeof(link2_msg_header_t);
+	        	
+        	catbus_meta_t *meta = (catbus_meta_t *)( header + 1 );
+        	uint8_t *data_ptr = (uint8_t *)( meta + 1 );
+
+        	while( bytes_read > 0 ){
+
+        		uint16_t data_len = type_u16_size( meta->type ) * ( meta->count + 1 );
+        		int32_t *data = (int32_t *)data_ptr;
+
+        		log_v_debug_P( PSTR("recv: 0x%0x %d %ld %d %d"), meta->hash, meta->type, *data, bytes_read, data_len );
+
+        		data_ptr += data_len;
+        		meta = (catbus_meta_t *)data_ptr;
+        		data_ptr += sizeof(catbus_meta_t);
+        		bytes_read -= sizeof(catbus_meta_t);
+        		bytes_read -= data_len;
+
+        		if( bytes_read < 0 ){
+
+        			log_v_error_P( PSTR("data unpack error") );
+        		}
+        	}
         }
         else{
 
