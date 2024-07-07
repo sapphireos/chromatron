@@ -548,7 +548,7 @@ PT_BEGIN( pt );
 
         if( controller_i8_get_addr( &link_mgr_raddr ) == 0 ){
 
-            link_mgr_raddr.port == LINK2_MGR_PORT; // need to change to the correct port!
+            link_mgr_raddr.port = LINK2_MGR_PORT; // need to change to the correct port!
 
             // process bindings
 
