@@ -42,6 +42,27 @@ typedef struct __attribute__((packed)){
 static int32_t link2_test_key;
 static int32_t link2_test_key2;
 
+static uint8_t get_binding_count( void ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
+    return list_u8_count( &binding_list );
+}
+
+
+static uint8_t get_link_count( void ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return 0;
+    }
+
+    return list_u8_count( &link_list );
+}
+
 
 static int8_t _kv_i8_link_client_handler(
     kv_op_t8 op,
@@ -53,11 +74,11 @@ static int8_t _kv_i8_link_client_handler(
 
         if( hash == __KV__link2_binding_count ){
             
-            STORE16(data, list_u8_count( &binding_list ));
+            STORE16(data, get_binding_count());
         }
         else if( hash == __KV__link2_link_count ){
             
-            STORE16(data, list_u8_count( &link_list ));
+            STORE16(data, get_link_count());
         }
         
         return 0;
@@ -450,6 +471,8 @@ PT_BEGIN( pt );
         if( header->msg_type == LINK_MSG_TYPE_BIND ){
 
             uint8_t count = ( sock_i16_get_bytes_read( sock ) - sizeof(link2_msg_header_t) ) / sizeof(link2_binding_t);
+
+            log_v_debug_P( PSTR("recv bindings: %d"), count );
 
             // iterate through bindings
             link2_binding_t *binding = (link2_binding_t *)( header + 1 );

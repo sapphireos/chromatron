@@ -362,6 +362,8 @@ static void send_bind_msg( link2_binding_t *bindings, uint8_t count, ip_addr4_t 
 
 		log_v_error_P( PSTR("msg fail") );
 	}
+
+	log_v_debug_P( PSTR("send bind: %d.%d.%d.%d"), ip.ip3, ip.ip2, ip.ip1, ip.ip0 );
 }
 
 PT_THREAD( link2_mgr_process_thread( pt_t *pt, void *state ) )
@@ -379,6 +381,12 @@ PT_BEGIN( pt );
         	log_v_debug_P( PSTR("link mgr server stop") );
 
         	THREAD_EXIT( pt );
+        }
+
+        // check if shutting down
+        if( sys_b_is_shutting_down() ){
+
+            THREAD_EXIT( pt );
         }
 
     	/*
