@@ -363,7 +363,7 @@ static void send_bind_msg( link2_binding_t *bindings, uint8_t count, ip_addr4_t 
 		log_v_error_P( PSTR("msg fail") );
 	}
 
-	log_v_debug_P( PSTR("send bind: %d.%d.%d.%d"), ip.ip3, ip.ip2, ip.ip1, ip.ip0 );
+	// log_v_debug_P( PSTR("send bind: %d.%d.%d.%d"), ip.ip3, ip.ip2, ip.ip1, ip.ip0 );
 }
 
 PT_THREAD( link2_mgr_process_thread( pt_t *pt, void *state ) )

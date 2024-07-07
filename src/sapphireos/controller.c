@@ -1090,9 +1090,11 @@ int8_t controller_i8_get_addr( sock_addr_t *raddr ){
 
 			raddr->ipaddr = leader_ip;
 			raddr->port = CONTROLLER_PORT;
+
+			return 0;
 		}
 
-		return 0;
+		return -1;
 	}
 	else{
 

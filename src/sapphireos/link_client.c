@@ -472,19 +472,17 @@ PT_BEGIN( pt );
 
             uint8_t count = ( sock_i16_get_bytes_read( sock ) - sizeof(link2_msg_header_t) ) / sizeof(link2_binding_t);
 
-            log_v_debug_P( PSTR("recv bindings: %d"), count );
-
             // iterate through bindings
             link2_binding_t *binding = (link2_binding_t *)( header + 1 );
 
             while( count > 0 ){
 
                 // check if key is present:
-                if( kv_i16_search_hash( binding->key ) == 0 ){
+                if( kv_i16_search_hash( binding->key ) >= 0 ){
 
                     add_or_update_binding( binding );
 
-                    log_v_debug_P( PSTR("binding") );
+                    log_v_debug_P( PSTR("recv binding: 0x%08x 0x%0x"), binding->key, binding->flags );
                 }
 
                 binding++;
@@ -522,7 +520,7 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
-        // process bindin timeouts
+        // process binding timeouts
         list_node_t ln = binding_list.head;
 
         while( ln >= 0 ){
@@ -550,6 +548,8 @@ PT_BEGIN( pt );
 
         if( controller_i8_get_addr( &link_mgr_raddr ) == 0 ){
 
+            link_mgr_raddr.port == LINK2_MGR_PORT; // need to change to the correct port!
+
             // process bindings
 
             ln = binding_list.head;
@@ -569,7 +569,7 @@ PT_BEGIN( pt );
                 // sinks do nothing here
                 if( binding_state->flags & LINK_BIND_FLAG_SINK ){
 
-                    continue;
+                    goto next_binding;
                 }
 
                 // source:
@@ -583,13 +583,20 @@ PT_BEGIN( pt );
                     // get meta data
                     catbus_meta_t meta;
 
-                    kv_i8_get_catbus_meta( binding_state->key, &meta );
+                    if( kv_i8_get_catbus_meta( binding_state->key, &meta ) < 0 ){
 
-                    // uint16_t array_len = meta.count + 1;
-                    uint16_t data_len = type_u16_size( meta.type ) * meta.count;
+                        log_v_debug_P( PSTR("binding key not found") );
+
+                        goto next_binding;
+                    }
+
+                    uint16_t array_len = meta.count + 1;
+                    uint16_t data_len = type_u16_size( meta.type ) * array_len;
 
                     // check if the next item will overflow the buffer
-                    if( ( data_len + current_data_len ) > CATBUS_MAX_DATA ){
+                    if( ( data_len + sizeof(meta) + current_data_len ) >= CATBUS_MAX_DATA ){
+
+                        log_v_debug_P( PSTR("data send") );
 
                         // transmit message
                         if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_len, &link_mgr_raddr ) < 0 ){
@@ -602,20 +609,36 @@ PT_BEGIN( pt );
                         current_data_len = 0;
                     }
 
-                    if( kv_i8_array_get( binding_state->key, 0, meta.count, data_ptr, CATBUS_MAX_DATA - current_data_len ) < 0 ){
+                    // copy meta data
+                    memcpy( data_ptr, &meta, sizeof(meta) );
+                    data_ptr += sizeof(meta);
+                    current_data_len += sizeof(meta);
+
+                    if( kv_i8_array_get( binding_state->key, 0, meta.count, data_ptr, data_len ) < 0 ){
 
                         log_v_debug_P( PSTR("kv get fail") );
                     }
 
                     data_ptr += data_len;
                     current_data_len += data_len;
+
+                    log_v_debug_P( PSTR("process binding: 0x%08x %d %d"), binding_state->key, data_len, current_data_len );
                 }
 
+next_binding:
                 ln = list_ln_next( ln );
             }   
 
             // check if there is any data left to transmit in the buffer
             if( current_data_len > 0 ){
+
+                log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
+                    link_mgr_raddr.ipaddr.ip3,
+                    link_mgr_raddr.ipaddr.ip2,
+                    link_mgr_raddr.ipaddr.ip1,
+                    link_mgr_raddr.ipaddr.ip0,
+                    link_mgr_raddr.port
+                );
 
                 // transmit message
                 if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_len, &link_mgr_raddr ) < 0 ){

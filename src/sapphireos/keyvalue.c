@@ -280,7 +280,7 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     // check if hash exists
     if( hash == 0 ){
 
-        return -1;
+        return KV_ERR_STATUS_NOT_FOUND;
     }
 
     // check cache
