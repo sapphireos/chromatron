@@ -31,40 +31,47 @@ static socket_t sock;
 static list_t link_list;
 
 typedef struct __attribute__((packed)){
-    link2_t link;
     uint8_t timeout;
-    ip_addr4_t first_ip;
+    ip_addr4_t ip;
+} link2_node_t;
+
+typedef struct __attribute__((packed)){
+    link2_t link;
+    // link2_node_t follows
 } link2_meta_t;
 
-// typedef struct __attribute__((packed)){
-// 	list_node_t link_node;
-//     ip_addr4_t ip;
-//     uint8_t timeout;
-// } link_node_t;
+
+typedef struct __attribute__((packed)){
+    link2_handle_t link_handle;
+    ip_addr4_t ip;
+    uint8_t timeout;
+	catbus_type_t8 data_type;
+	// variable length data follows    
+} link2_data_cache_t;
 
 
-static uint8_t count_ip_for_link( link2_meta_t *meta, uint16_t len ){
+static uint8_t count_nodes_for_link( link2_meta_t *meta, uint16_t len ){
 
 	ASSERT( len >= sizeof(link2_meta_t) );
 
 	len -= sizeof(link2_meta_t);
 
-	return ( len / sizeof(meta->first_ip) ) + 1;
+	return len / sizeof(link2_node_t);
 }
 
 static bool link_has_ip( link2_meta_t *meta, uint16_t len, ip_addr4_t ip ){
 
-	uint8_t count = count_ip_for_link( meta, len );
-	ip_addr4_t *link_ip = &meta->first_ip;
+	uint8_t count = count_nodes_for_link( meta, len );
+	link2_node_t *node = (link2_node_t *)( meta + 1 );
 
 	while( count > 0 ){
 
-		if( ip_b_addr_compare( ip, *link_ip ) ){
+		if( ip_b_addr_compare( ip, node->ip ) ){
 
 			return TRUE;
 		}
 
-		link_ip++;
+		node++;
 		count--;
 	}
 
@@ -165,7 +172,7 @@ list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 	if( ln < 0 ){
 
 		// link not found
-		ln = list_ln_create_node( 0, sizeof(link2_meta_t) );
+		ln = list_ln_create_node( 0, sizeof(link2_meta_t) + sizeof(link2_node_t) );
 
 	    if( ln < 0 ){
 
@@ -174,8 +181,10 @@ list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 
 	    meta = (link2_meta_t *)list_vp_get_data( ln );
 	    meta->link = *link;
-	    meta->timeout = LINK2_MGR_LINK_TIMEOUT;
-	    meta->first_ip = raddr->ipaddr;
+	    
+	    link2_node_t *node = (link2_node_t *)( meta + 1 );
+	    node->ip = raddr->ipaddr;
+	    node->timeout = LINK2_MGR_LINK_TIMEOUT;
 
 	    list_v_insert_tail( &link_list, ln );    
 
@@ -185,30 +194,30 @@ list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 
 	// link found
 	meta = (link2_meta_t *)list_vp_get_data( ln );
-
-	// update IP list
-	uint8_t ip_count = count_ip_for_link( meta, list_u16_node_size( ln ) );
-	ip_addr4_t *ip = &meta->first_ip;
+	// update node` list
+	uint8_t node_count = count_nodes_for_link( meta, list_u16_node_size( ln ) );
+	link2_node_t *node = (link2_node_t *)( meta + 1 );
 	bool ip_found = FALSE;
 
-	for( uint8_t i = 0; i < ip_count; i++ ){
+	for( uint8_t i = 0; i < node_count; i++ ){
 
-		if( ip_b_addr_compare( *ip, raddr->ipaddr ) ){
+		if( ip_b_addr_compare( node->ip, raddr->ipaddr ) ){
 
-			// log_v_debug_P( PSTR("found: %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
+			log_v_debug_P( PSTR("found: %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
 
 			ip_found = TRUE;
 			break;
 		}
 
-		ip++;
+		node++;
 	}
 
 	if( !ip_found ){
 
 		// reallocate and add new IP
 
-		list_node_t new_ln = list_ln_create_node( 0, sizeof(link2_meta_t) + ip_count * sizeof(meta->first_ip) );
+		node_count++;
+		list_node_t new_ln = list_ln_create_node( 0, sizeof(link2_meta_t) + node_count * sizeof(link2_node_t) );
 
 		if( new_ln < 0 ){
 
@@ -219,9 +228,10 @@ list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 
 		memcpy( new_meta, meta, list_u16_node_size( ln ) );
 
-		// add IP to end of list
-		ip_addr4_t *new_ip = (ip_addr4_t *)( new_meta + 1 ) + ( ip_count - 1 );
-		*new_ip = raddr->ipaddr;
+		// add node to end of list
+		node = (link2_node_t *)( new_meta + 1 ) + ( node_count - 1 );
+		node->ip = raddr->ipaddr;
+		node->timeout = LINK2_MGR_LINK_TIMEOUT;
 
 		log_v_debug_P( PSTR("Add new IP: %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
 
@@ -235,7 +245,7 @@ list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 	}	
 
 	// reset timeout
-	meta->timeout = LINK2_MGR_LINK_TIMEOUT;
+	node->timeout = LINK2_MGR_LINK_TIMEOUT;
 
 
 	return ln;
