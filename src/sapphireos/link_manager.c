@@ -41,10 +41,12 @@ typedef struct __attribute__((packed)){
 } link2_meta_t;
 
 
+static list_t data_list;
+
 typedef struct __attribute__((packed)){
-    link2_handle_t link_handle;
     ip_addr4_t ip;
     uint8_t timeout;
+    catbus_hash_t32 key;
 	catbus_type_t8 data_type;
 	// variable length data follows    
 } link2_data_cache_t;
@@ -77,73 +79,6 @@ static bool link_has_ip( link2_meta_t *meta, uint16_t len, ip_addr4_t ip ){
 
 	return FALSE;
 }
-
-
-static int8_t _kv_i8_link_mgr_handler(
-    kv_op_t8 op,
-    catbus_hash_t32 hash,
-    void *data,
-    uint16_t len ){
-    
-    if( op == KV_OP_GET ){
-		
-		if( hash == __KV__link2_mgr_link_count ){
-            
-            STORE16(data, list_u8_count( &link_list ));
-        }
-        
-        return 0;
-    }
-
-    return -1;
-}
-
-KV_SECTION_OPT kv_meta_t link_mgr_kv[] = {
-    { CATBUS_TYPE_UINT16,   0, 0,               0, _kv_i8_link_mgr_handler,  "link2_mgr_link_count" }, 
-};
-
-
-static bool link_mgr_running = FALSE;
-
-PT_THREAD( link2_mgr_server_thread( pt_t *pt, void *state ) );
-PT_THREAD( link2_mgr_process_thread( pt_t *pt, void *state ) );
-
-void link_mgr_v_start( void ){
-
-	if( link_mgr_running ){
-
-		return;
-	}
-
-	link_mgr_running = TRUE;
-
-	list_v_init( &link_list );
-	kv_v_add_db_info( link_mgr_kv, sizeof(link_mgr_kv) );
-
-	thread_t_create( link2_mgr_server_thread,
-                 PSTR("link2_mgr_server"),
-                 0,
-                 0 );
-
-	thread_t_create( link2_mgr_process_thread,
-                 PSTR("link2_mgr_process"),
-                 0,
-                 0 );
-}
-
-void link_mgr_v_stop( void ){
-
-	if( !link_mgr_running ){
-
-		return;
-	}
-
-	link_mgr_running = FALSE;
-
-	list_v_destroy( &link_list );
-}
-
-
 
 list_node_t _link2_mgr_l_lookup_by_hash( uint64_t hash ){
 
@@ -203,7 +138,7 @@ list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 
 		if( ip_b_addr_compare( node->ip, raddr->ipaddr ) ){
 
-			log_v_debug_P( PSTR("found: %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
+			// log_v_debug_P( PSTR("found: %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
 
 			ip_found = TRUE;
 			break;
@@ -249,6 +184,74 @@ list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 
 
 	return ln;
+}
+
+
+
+static int8_t _kv_i8_link_mgr_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len ){
+    
+    if( op == KV_OP_GET ){
+		
+		if( hash == __KV__link2_mgr_link_count ){
+            
+            STORE16(data, list_u8_count( &link_list ));
+        }
+        
+        return 0;
+    }
+
+    return -1;
+}
+
+KV_SECTION_OPT kv_meta_t link_mgr_kv[] = {
+    { CATBUS_TYPE_UINT16,   0, 0,               0, _kv_i8_link_mgr_handler,  "link2_mgr_link_count" }, 
+};
+
+
+static bool link_mgr_running = FALSE;
+
+PT_THREAD( link2_mgr_server_thread( pt_t *pt, void *state ) );
+PT_THREAD( link2_mgr_process_thread( pt_t *pt, void *state ) );
+
+void link_mgr_v_start( void ){
+
+	if( link_mgr_running ){
+
+		return;
+	}
+
+	link_mgr_running = TRUE;
+
+	list_v_init( &link_list );
+	list_v_init( &data_list );
+
+	kv_v_add_db_info( link_mgr_kv, sizeof(link_mgr_kv) );
+
+	thread_t_create( link2_mgr_server_thread,
+                 PSTR("link2_mgr_server"),
+                 0,
+                 0 );
+
+	thread_t_create( link2_mgr_process_thread,
+                 PSTR("link2_mgr_process"),
+                 0,
+                 0 );
+}
+
+void link_mgr_v_stop( void ){
+
+	if( !link_mgr_running ){
+
+		return;
+	}
+
+	link_mgr_running = FALSE;
+
+	list_v_destroy( &link_list );
 }
 
 
