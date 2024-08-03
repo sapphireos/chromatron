@@ -28,6 +28,7 @@
 #include "fs.h"
 
 #include "pixel.h"
+#include "pixel_vars.h"
 #include "graphics.h"
 #include "pixel_power.h"
 #include "led_detect.h"
@@ -153,6 +154,12 @@ static void calc_pixel_power( void ){
         power_temp += ( gfx_u32_get_pixel_g() * MICROAMPS_GREEN_PIX ) / 256;
         power_temp += ( gfx_u32_get_pixel_b() * MICROAMPS_BLUE_PIX ) / 256;
         power_temp += ( gfx_u32_get_pixel_w() * MICROAMPS_WHITE_PIX ) / 256;
+
+        // for APA102, adjust power based on the global dimmer
+        if( pix_u8_get_mode() == PIX_MODE_APA102 ){
+
+            power_temp = ( power_temp * pix_apa102_dimmer ) / 31;
+        }
 
         // multiply by voltage to get power in microwatts
         power_temp *= PIXEL_MILLIVOLTS;
