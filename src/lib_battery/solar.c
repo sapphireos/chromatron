@@ -108,7 +108,7 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&patch_board_installed, 	0,  "solar_enable_patch_board" },	
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
 	
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
+	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_thermal" },
 
@@ -152,10 +152,10 @@ void solar_v_init( void ){
 
 	light_sensor_v_init();
 
-	if( kv_b_get_boolean( __KV__solar_enable_led_detect ) ){
+	// if( kv_b_get_boolean( __KV__solar_enable_led_detect ) ){
 
-		led_detect_v_init();
-	}
+	// 	led_detect_v_init();
+	// }
 
 	pixelpower_v_init();
 

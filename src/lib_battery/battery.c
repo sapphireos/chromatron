@@ -32,6 +32,7 @@
 
 #include "bq25895.h"
 #include "mcp73831.h"
+#include "led_detect.h"
 
 #include "solar.h"
 #include "buttons.h"
@@ -120,6 +121,7 @@ int8_t batt_kv_handler(
 
 KV_SECTION_META kv_meta_t battery_enable_kv[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &batt_enable,                 0,  "batt_enable" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    0,                            0,  "enable_led_detect" },
 
 };
 
@@ -150,6 +152,11 @@ void batt_v_init( void ){
     button_v_init();
 
     set_batt_nameplate_capacity();
+
+    if( kv_b_get_boolean( __KV__enable_led_detect ) ){
+
+        led_detect_v_init();
+    }
 
     // check if battery module enabled
     if( !batt_enable ){
