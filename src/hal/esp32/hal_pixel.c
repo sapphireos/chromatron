@@ -244,6 +244,13 @@ static void _pixel_v_configure( void ){
         freq = 3200000;
     }
 
+    if( freq == 0 ){
+
+        // set a default frequency
+
+        freq = 1000000;
+    }
+
     spi_v_init( PIXEL_SPI_CHANNEL, freq, 0 );
 }
 
