@@ -27,7 +27,7 @@
 #define PIX_MODE_OFF            0
 #define PIX_MODE_WS2801         1
 #define PIX_MODE_APA102         2
-#define PIX_MODE_WS2811         3
+#define PIX_MODE_WS2811         3 // this is also the SK6812 RGB
 #define PIX_MODE_PIXIE          4
 #define PIX_MODE_SK6812_RGBW    5
 #define PIX_MODE_ANALOG         128

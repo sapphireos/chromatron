@@ -26,9 +26,10 @@
 #define _LED_DETECT_H
 
 
-#define LED_UNIT_TYPE_NONE          0
-#define LED_UNIT_TYPE_STRAND50      1
-#define LED_UNIT_TYPE_SUNSTREAK     2
+#define LED_UNIT_TYPE_NONE              0
+#define LED_UNIT_TYPE_STRAND50          1
+#define LED_UNIT_TYPE_SUNSTREAK         2
+#define LED_UNIT_TYPE_BACKPACK_HEXAGON  3
 
 
 
