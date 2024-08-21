@@ -82,6 +82,14 @@ static const led_profile_t led_profiles[] = {
         3, // pix size y
         {""}, // vm prog
     },
+    {
+        LED_UNIT_TYPE_BM_LANTERN,
+        PIX_MODE_WS2811, // led type
+        60, // pix count
+        60, // pix size x
+        1, // pix size y
+        {""}, // vm prog
+    },
 };
 
 // known units
@@ -105,6 +113,10 @@ static const led_unit_t led_units[] = {
     {
         1145794472,
         LED_UNIT_TYPE_BACKPACK_HEXAGON,
+    },
+    {
+        1145796786,
+        LED_UNIT_TYPE_BM_LANTERN,
     },
 };
 
