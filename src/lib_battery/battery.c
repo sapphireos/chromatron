@@ -428,7 +428,7 @@ PT_BEGIN( pt );
                 monitor_volts = batt_volts;
 
                 // update monitor and log:
-                log_v_info_P( PSTR("Battery level: %d mV (charging)"), monitor_volts );
+                log_v_info_P( PSTR("Battery level: %d mV %d mA"), monitor_volts, batt_u16_get_charge_current() );
             }
         }
     }
