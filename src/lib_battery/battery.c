@@ -275,7 +275,7 @@ uint16_t batt_u16_get_vbus_volts( void ){
 
 bool batt_b_is_vbus_connected( void ){
 
-    // run several checks:
+    // run several checks, sometimes vbus glitches:
     for( uint8_t i = 0; i < 3; i++ ){
 
         if( batt_u16_get_vbus_volts() < BATT_MIN_CHARGE_VBUS_VOLTS ){
