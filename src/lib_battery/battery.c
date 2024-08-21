@@ -275,7 +275,16 @@ uint16_t batt_u16_get_vbus_volts( void ){
 
 bool batt_b_is_vbus_connected( void ){
 
-    return batt_u16_get_vbus_volts() >= BATT_MIN_CHARGE_VBUS_VOLTS;
+    // run several checks:
+    for( uint8_t i = 0; i < 3; i++ ){
+
+        if( batt_u16_get_vbus_volts() < BATT_MIN_CHARGE_VBUS_VOLTS ){
+
+            return FALSE;
+        }
+    }   
+
+    return TRUE;
 }
 
 uint16_t batt_u16_get_batt_volts( void ){
