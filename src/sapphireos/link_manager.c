@@ -27,6 +27,8 @@
 #include "controller.h"
 #include "link.h"
 
+#ifdef ENABLE_CONTROLLER
+
 static socket_t sock;
 static list_t link_list;
 
@@ -632,7 +634,4 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-
-
-
-
+#endif
