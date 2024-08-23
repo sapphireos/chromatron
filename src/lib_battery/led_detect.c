@@ -91,6 +91,14 @@ static const led_profile_t led_profiles[] = {
         1, // pix size y
         {""}, // vm prog
     },
+    {
+        LED_UNIT_TYPE_BATT_CHECK,
+        PIX_MODE_WS2811, // led type
+        4, // pix count
+        4, // pix size x
+        1, // pix size y
+        {""}, // vm prog
+    },
 };
 
 // known units
@@ -126,6 +134,10 @@ static const led_unit_t led_units[] = {
     {
         1145802567,
         LED_UNIT_TYPE_STRAND50,
+    },
+    {
+        1145957452,
+        LED_UNIT_TYPE_BATT_CHECK,
     },
 };
 
