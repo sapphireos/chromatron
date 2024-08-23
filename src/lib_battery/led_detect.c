@@ -213,7 +213,7 @@ static void load_profile( uint8_t type ){
     catbus_i8_set( __KV__pix_count,     CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_count, sizeof(profile->pix_count) );
     catbus_i8_set( __KV__pix_size_x,    CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_size_x, sizeof(profile->pix_size_x) );
     catbus_i8_set( __KV__pix_size_y,    CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_size_y, sizeof(profile->pix_size_y) );
-    catbus_i8_set( __KV__pix_rgb_order, CATBUS_TYPE_UINT8,  (uint16_t *)&profile->rgb_order, sizeof(profile->rgb_order) );
+    catbus_i8_set( __KV__pix_rgb_order, CATBUS_TYPE_UINT8,  (uint8_t *)&profile->rgb_order, sizeof(profile->rgb_order) );
 
 
     // Should add a max dimmer setting too
