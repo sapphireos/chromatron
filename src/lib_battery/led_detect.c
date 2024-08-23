@@ -64,7 +64,8 @@ static const led_profile_t led_profiles[] = {
         50, // pix count
         50, // pix size x
         1, // pix size y
-        {"rainbow.fxb"}, // vm prog
+        // {"rainbow.fxb"}, // vm prog
+        {""},
     },
     {
         LED_UNIT_TYPE_SUNSTREAK,
@@ -117,6 +118,14 @@ static const led_unit_t led_units[] = {
     {
         1145796786,
         LED_UNIT_TYPE_BM_LANTERN,
+    },
+    {
+        1146047159,
+        LED_UNIT_TYPE_STRAND50,
+    },
+    {
+        1145802567,
+        LED_UNIT_TYPE_STRAND50,
     },
 };
 
