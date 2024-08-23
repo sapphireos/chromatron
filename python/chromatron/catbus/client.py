@@ -173,7 +173,7 @@ class Client(BaseClient):
         self.nodes = {}
         self._meta = {}
 
-        self._filelock = FileLock(CACHE_LOCK, timeout=1)
+        self._filelock = FileLock(CACHE_LOCK, timeout=4)
 
     def __str__(self):
         return f'Client({self._connected_host})'
