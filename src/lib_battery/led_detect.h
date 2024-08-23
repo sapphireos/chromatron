@@ -43,6 +43,7 @@ typedef struct{
     uint16_t pix_count;
     uint16_t pix_size_x;
     uint16_t pix_size_y;
+    uint8_t rgb_order;
     // vm prog name
     catbus_string_t vm_prog;
     // this will load VM 0

@@ -56,6 +56,7 @@ static const led_profile_t led_profiles[] = {
         0, // pix count
         0, // pix size x
         0, // pix size y
+        0, // rgb order
         {""}, // vm prog
     },
     {
@@ -65,6 +66,7 @@ static const led_profile_t led_profiles[] = {
         50, // pix size x
         1, // pix size y
         // {"rainbow.fxb"}, // vm prog
+        0, // rgb order
         {""},
     },
     {
@@ -73,6 +75,7 @@ static const led_profile_t led_profiles[] = {
         366, // pix count
         122, // pix size x
         3, // pix size y
+        2, // rgb order
         {""}, // vm prog
     },
     {
@@ -81,6 +84,7 @@ static const led_profile_t led_profiles[] = {
         18, // pix count
         6, // pix size x
         3, // pix size y
+        2, // rgb order
         {""}, // vm prog
     },
     {
@@ -89,6 +93,7 @@ static const led_profile_t led_profiles[] = {
         60, // pix count
         60, // pix size x
         1, // pix size y
+        2, // rgb order
         {""}, // vm prog
     },
     {
@@ -97,6 +102,7 @@ static const led_profile_t led_profiles[] = {
         4, // pix count
         4, // pix size x
         1, // pix size y
+        2, // rgb order
         {""}, // vm prog
     },
 };
@@ -207,6 +213,7 @@ static void load_profile( uint8_t type ){
     catbus_i8_set( __KV__pix_count,     CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_count, sizeof(profile->pix_count) );
     catbus_i8_set( __KV__pix_size_x,    CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_size_x, sizeof(profile->pix_size_x) );
     catbus_i8_set( __KV__pix_size_y,    CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_size_y, sizeof(profile->pix_size_y) );
+    catbus_i8_set( __KV__pix_rgb_order, CATBUS_TYPE_UINT8,  (uint16_t *)&profile->rgb_order, sizeof(profile->rgb_order) );
 
 
     // Should add a max dimmer setting too
