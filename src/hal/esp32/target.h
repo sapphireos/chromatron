@@ -42,7 +42,7 @@
 #define ENABLE_SERVICES
 #define ENABLE_BATTERY
 #define ENABLE_LED_DETECT
-// #define ENABLE_CONTROLLER
+#define ENABLE_CONTROLLER
 
 // DEBUG!
 // Turn this off for normal operation!

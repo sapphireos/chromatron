@@ -48,11 +48,115 @@ static list_t data_list;
 typedef struct __attribute__((packed)){
     ip_addr4_t ip;
     uint8_t timeout;
-    catbus_hash_t32 key;
-	catbus_type_t8 data_type;
+    catbus_meta_t meta;
 	// variable length data follows    
 } link2_data_cache_t;
 
+
+static list_node_t get_cache_data_for_ip( ip_addr4_t ip, catbus_meta_t *meta ){
+
+    list_node_t ln = data_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        link2_data_cache_t *cache = list_vp_get_data( ln );
+
+        // check IP
+        if( !ip_b_addr_compare( ip, cache->ip ) ){
+
+        	goto next;
+        }
+
+        if( memcmp( &cache->meta, meta, sizeof(catbus_meta_t) ) == 0 ){
+
+        	// match
+        	return ln;
+        }
+
+
+next:
+        ln = next_ln;
+    }
+
+    return -1;
+}
+
+static int8_t update_data_cache( ip_addr4_t ip, catbus_meta_t *meta, uint8_t *data ){
+
+	uint16_t array_len = meta->count + 1;
+    uint16_t data_len = type_u16_size( meta->type ) * array_len;
+
+	// check for existing entry
+	list_node_t ln = get_cache_data_for_ip( ip, meta );
+
+	if( ln < 0 ){
+
+		// create new cache item
+		uint16_t item_size = sizeof(link2_data_cache_t) + data_len;
+
+		ln = list_ln_create_node( 0, item_size );
+
+		if( ln < 0 ){
+
+			// alloc fail!
+
+			log_v_error_P( PSTR("data cache alloc fail") );
+
+			return -1;
+		}
+
+		// add to list
+		list_v_insert_tail( &data_list, ln );
+	}
+
+	// list node is valid
+	// update entry
+
+	link2_data_cache_t *cache = list_vp_get_data( ln );
+
+	cache->ip 		= ip;
+	cache->meta 	= *meta;
+	cache->timeout 	= LINK2_MGR_LINK_TIMEOUT;
+	
+	uint8_t *ptr = (uint8_t *)( cache + 1 );
+
+	memcpy( ptr, data, data_len );
+
+	return 0;
+}
+
+static void process_data_cache_timeouts( void ){
+
+	// process data cache timeouts
+    list_node_t ln = data_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        link2_data_cache_t *cache = list_vp_get_data( ln );
+
+     	cache->timeout--;
+
+     	if( cache->timeout == 0 ){
+
+     		log_v_debug_P( PSTR("Cache entry:0x%08x from %d.%d.%d.%d timed out"),
+     			cache->meta.hash,
+     			cache->ip.ip3,
+     			cache->ip.ip2,
+     			cache->ip.ip1,
+     			cache->ip.ip0
+     		);
+
+     		list_v_remove( &data_list, ln );
+     		list_v_release_node( ln );
+     	}
+	
+	   ln = next_ln;
+    }
+}
 
 static uint8_t count_nodes_for_link( link2_meta_t *meta, uint16_t len ){
 
@@ -354,7 +458,21 @@ PT_BEGIN( pt );
         		if( bytes_read < 0 ){
 
         			log_v_error_P( PSTR("data unpack error") );
+
+        			goto end;
         		}
+
+        		// validate data len against type
+        		uint16_t type_len = type_u16_size( meta->type ) * ( meta->count + 1 );
+
+        		if( data_len != type_len ){
+
+        			log_v_error_P( PSTR("data len error") );
+
+        			goto end;
+        		}
+
+        		update_data_cache( raddr.ipaddr, meta, data_ptr );	
         	}
         }
         else{
@@ -502,7 +620,7 @@ PT_BEGIN( pt );
 
     	follower_t *node = controller_db_p_get_next();
 
-    	while(node != 0){
+    	while( node != 0 ){
 
     		uint16_t count = 0;
     		memset( bindings, 0, sizeof(bindings) );
@@ -570,6 +688,11 @@ PT_BEGIN( pt );
 
     		node = controller_db_p_get_next();
     	}
+
+
+
+    	process_data_cache_timeouts();
+
 
 
 		/*
