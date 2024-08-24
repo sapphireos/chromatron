@@ -39,6 +39,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     link2_t link;
+    int16_t timer;
     // link2_node_t follows
 } link2_meta_t;
 
@@ -158,6 +159,24 @@ static void process_data_cache_timeouts( void ){
     }
 }
 
+static void process_link_timers( uint16_t elapsed ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        link2_meta_t *state = list_vp_get_data( ln );
+
+        if( state->timer > 0 ){
+
+	        state->timer -= elapsed;
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+}
+
 static uint8_t count_nodes_for_link( link2_meta_t *meta, uint16_t len ){
 
 	ASSERT( len >= sizeof(link2_meta_t) );
@@ -220,8 +239,14 @@ list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 	        return -1;
 	    }
 
+	    // set up new link meta data
+
 	    meta = (link2_meta_t *)list_vp_get_data( ln );
 	    meta->link = *link;
+
+	    // initialize the timer to 100 ms, so we will start transmission 
+	    // in 100 ms and then on run at the link rate
+	    meta->timer = 100;
 	    
 	    link2_node_t *node = (link2_node_t *)( meta + 1 );
 	    node->ip = raddr->ipaddr;
@@ -322,6 +347,8 @@ static bool link_mgr_running = FALSE;
 
 PT_THREAD( link2_mgr_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( link2_mgr_process_thread( pt_t *pt, void *state ) );
+PT_THREAD( link2_mgr_link_timer_thread( pt_t *pt, void *state ) );
+
 
 void link_mgr_v_start( void ){
 
@@ -344,6 +371,11 @@ void link_mgr_v_start( void ){
 
 	thread_t_create( link2_mgr_process_thread,
                  PSTR("link2_mgr_process"),
+                 0,
+                 0 );
+
+	thread_t_create( link2_mgr_link_timer_thread,
+                 PSTR("link2_mgr_link_timer"),
                  0,
                  0 );
 }
@@ -788,5 +820,40 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+
+
+PT_THREAD( link2_mgr_link_timer_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while(1){
+
+    	thread_v_set_alarm( tmr_u32_get_system_time_ms() + LINK_RATE_MIN );
+
+    	THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && link_mgr_running );
+
+        if( !link_mgr_running ){
+
+        	log_v_debug_P( PSTR("link mgr timer stop") );
+
+        	THREAD_EXIT( pt );
+        }
+
+        // check if shutting down
+        if( sys_b_is_shutting_down() ){
+
+            THREAD_EXIT( pt );
+        }
+
+        process_link_timers( LINK_RATE_MIN );
+    
+        THREAD_YIELD( pt );
+    }
+
+PT_END( pt );
+}
+
+
 
 #endif

@@ -60,6 +60,9 @@ typedef uint16_t link_rate_t16;
 #define LINK_RATE_1000ms                    1000
 #define LINK_RATE_MAX                       30000
 
+// DO NOT EXCEED 32767 ms on MAX LINK RATE
+// internal timers use int16!
+// NOTE link rate min is also the link timer tick rate!
 
 typedef struct __attribute__((packed)){
     link_mode_t8 mode;
