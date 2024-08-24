@@ -205,6 +205,8 @@ static bool link_has_ip( link2_meta_t *meta, uint16_t len, ip_addr4_t ip ){
 	return FALSE;
 }
 
+
+
 list_node_t _link2_mgr_l_lookup_by_hash( uint64_t hash ){
 
     list_node_t ln = link_list.head;
@@ -771,51 +773,6 @@ PT_BEGIN( pt );
 			Split into multiple messages as needed.
 				
     	*/
-
-    	// SINK DATA:
-
-    	controller_db_v_reset_iter();
-
-    	follower = controller_db_p_get_next();
-
-    	while( follower != 0 ){
-
-    		// loop through links
-
-		    list_node_t ln = link_list.head;
-
-		    while( ln >= 0 ){
-
-		        link2_meta_t *meta = list_vp_get_data( ln );
-
-				if( meta->link.mode == LINK_MODE_SEND ){
-
-					// check link query against follower
-					if( catbus_b_query_tags( &meta->link.query, &follower->tags ) ){
-
-						// MATCH
-					}
-
-				}
-				else if( meta->link.mode == LINK_MODE_RECV ){
-
-					// check link IP against follower:
-					if( link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
-
-						// MATCH
-
-
-					}
-				}
-
-
-		        ln = list_ln_next( ln );
-		    }
-
-
-    		follower = controller_db_p_get_next();
-    	}
-
     }
 
 PT_END( pt );
@@ -847,6 +804,63 @@ PT_BEGIN( pt );
         }
 
         process_link_timers( LINK_RATE_MIN );
+
+
+    	// SINK DATA:
+
+    	controller_db_v_reset_iter();
+
+    	follower_t *follower = controller_db_p_get_next();
+
+    	while( follower != 0 ){
+
+    		// loop through links
+
+		    list_node_t ln = link_list.head;
+
+		    while( ln >= 0 ){
+
+		        link2_meta_t *meta = list_vp_get_data( ln );
+
+		        // check if link timer is ready
+		        if( meta->timer > 0 ){
+
+		        	goto next;
+		        } 
+
+				if( meta->link.mode == LINK_MODE_SEND ){
+
+					// check link query against follower
+					if( catbus_b_query_tags( &meta->link.query, &follower->tags ) ){
+
+						// MATCH
+
+						// aggregate and add to data buffer
+					}
+				}
+				else if( meta->link.mode == LINK_MODE_RECV ){
+
+					// check link IP against follower:
+					if( link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
+
+						// MATCH
+
+						// aggregate and add to data buffer
+
+					}
+				}
+
+next:
+		        ln = list_ln_next( ln );
+		    }
+
+
+    		follower = controller_db_p_get_next();
+    	}
+
+
+
+
     
         THREAD_YIELD( pt );
     }
