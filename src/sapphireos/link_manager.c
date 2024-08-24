@@ -618,9 +618,9 @@ PT_BEGIN( pt );
 
     	controller_db_v_reset_iter();
 
-    	follower_t *node = controller_db_p_get_next();
+    	follower_t *follower = controller_db_p_get_next();
 
-    	while( node != 0 ){
+    	while( follower != 0 ){
 
     		uint16_t count = 0;
     		memset( bindings, 0, sizeof(bindings) );
@@ -636,7 +636,7 @@ PT_BEGIN( pt );
 				if( meta->link.mode == LINK_MODE_SEND ){
 
 					// check if node IP matches this link
-					if( link_has_ip( meta, list_u16_node_size( ln ), node->ip ) ){
+					if( link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
 
 						link2_binding_t binding = {
 							meta->link.source_key,
@@ -653,7 +653,7 @@ PT_BEGIN( pt );
 				else if( meta->link.mode == LINK_MODE_RECV ){
 
 					// check if node query matches this link
-					if( catbus_b_query_tags( &meta->link.query, &node->tags ) ){
+					if( catbus_b_query_tags( &meta->link.query, &follower->tags ) ){
 
 						link2_binding_t binding = {
 							meta->link.dest_key,
@@ -670,7 +670,7 @@ PT_BEGIN( pt );
 
 				if( count >= LINK_MAX_BIND_ENTRIES ){
 
-					send_bind_msg( bindings, count, node->ip );
+					send_bind_msg( bindings, count, follower->ip );
 
 			     	count = 0;
 				}
@@ -681,12 +681,12 @@ PT_BEGIN( pt );
 		    if( count > 0 ){
 
 		    	// transmit
-		    	send_bind_msg( bindings, count, node->ip );
+		    	send_bind_msg( bindings, count, follower->ip );
 
 		    	count = 0;
 		    }
 
-    		node = controller_db_p_get_next();
+    		follower = controller_db_p_get_next();
     	}
 
 
@@ -737,20 +737,52 @@ PT_BEGIN( pt );
 
 			Transmit data set to node
 			Split into multiple messages as needed.
-			
-			
-			
-		
-			
-			
+				
     	*/
 
+    	// SINK DATA:
+
+    	controller_db_v_reset_iter();
+
+    	follower = controller_db_p_get_next();
+
+    	while( follower != 0 ){
+
+    		// loop through links
+
+		    list_node_t ln = link_list.head;
+
+		    while( ln >= 0 ){
+
+		        link2_meta_t *meta = list_vp_get_data( ln );
+
+				if( meta->link.mode == LINK_MODE_SEND ){
+
+					// check link query against follower
+					if( catbus_b_query_tags( &meta->link.query, &follower->tags ) ){
+
+						// MATCH
+					}
+
+				}
+				else if( meta->link.mode == LINK_MODE_RECV ){
+
+					// check link IP against follower:
+					if( link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
+
+						// MATCH
 
 
+					}
+				}
 
 
+		        ln = list_ln_next( ln );
+		    }
 
 
+    		follower = controller_db_p_get_next();
+    	}
 
     }
 
