@@ -87,6 +87,14 @@ next:
 static int8_t update_data_cache( ip_addr4_t ip, catbus_meta_t *meta, uint8_t *data ){
 
 	uint16_t array_len = meta->count + 1;
+
+	if( array_len > 1 ){
+
+		log_v_error_P( PSTR("Link2 does not support arrays at this time!") );
+
+		return -1;
+	}
+
     uint16_t data_len = type_u16_size( meta->type ) * array_len;
 
 	// check for existing entry
@@ -205,7 +213,46 @@ static bool link_has_ip( link2_meta_t *meta, uint16_t len, ip_addr4_t ip ){
 	return FALSE;
 }
 
+static void aggregate( link2_meta_t *meta ){
 
+	int64_t integer_accum = 0;
+
+	// loop through data items that match this link
+	
+    list_node_t ln = data_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        link2_data_cache_t *cache = list_vp_get_data( ln );
+
+        // figure out which key to use based on link mode
+        catbus_hash_t32 key = 0;
+
+        // check link mode
+        if( meta->link.mode == LINK_MODE_SEND ){
+
+        	// send links use the source key
+        	key = meta->link.source_key;
+        }
+        else if( meta->link.mode == LINK_MODE_RECV ){
+
+        	// recv links use the dest key
+        	
+        }
+
+
+
+        // if( cache->meta.hash == meta->link )
+
+
+next:
+        ln = next_ln;
+    }	
+
+
+}
 
 list_node_t _link2_mgr_l_lookup_by_hash( uint64_t hash ){
 
