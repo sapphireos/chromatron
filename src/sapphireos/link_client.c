@@ -462,10 +462,10 @@ PT_BEGIN( pt );
         }
 
         // filter our own messages
-        if( header->origin_id == catbus_u64_get_origin_id() ){
+        // if( header->origin_id == catbus_u64_get_origin_id() ){
 
-            goto end;
-        }
+        //     goto end;
+        // }
 
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
@@ -511,7 +511,7 @@ void link2_v_init_header( link2_msg_header_t *header, uint8_t msg_type ){
     header->version     = LINK_VERSION;
     header->flags       = 0;
     header->reserved    = 0;
-    header->origin_id   = catbus_u64_get_origin_id();
+    // header->origin_id   = catbus_u64_get_origin_id();
     header->universe    = 0;
 }
 

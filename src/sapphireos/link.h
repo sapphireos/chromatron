@@ -100,7 +100,7 @@ typedef struct __attribute__((packed)){
     uint8_t version;
     uint8_t flags;
     uint8_t reserved;
-    uint64_t origin_id;
+    // uint64_t origin_id;
     catbus_hash_t32 universe;
 } link2_msg_header_t;
 
