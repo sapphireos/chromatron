@@ -91,12 +91,8 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     catbus_hash_t32 key;
     uint16_t rate;
-    uint8_t flags;
-    uint8_t reserved;
 } link2_binding_t;
 #define LINK_MAX_BIND_ENTRIES         ( ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_binding_t) )
-#define LINK_BIND_FLAG_SOURCE   0x01
-#define LINK_BIND_FLAG_SINK     0x02
 
 typedef struct __attribute__((packed)){
     uint32_t magic;

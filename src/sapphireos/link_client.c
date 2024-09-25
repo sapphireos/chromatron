@@ -416,7 +416,7 @@ static void add_or_update_binding( link2_binding_t *link_binding ){
     }
 
     state->rate     = link_binding->rate;
-    state->flags    = link_binding->flags;
+    // state->flags    = link_binding->flags;
     state->timeout  = LINK_BINDING_TIMEOUT;
 }
 
@@ -484,7 +484,8 @@ PT_BEGIN( pt );
 
                     add_or_update_binding( binding );
 
-                    log_v_debug_P( PSTR("recv binding: 0x%08x 0x%0x"), binding->key, binding->flags );
+                    // log_v_debug_P( PSTR("recv binding: 0x%08x 0x%0x"), binding->key, binding->flags );
+                    log_v_debug_P( PSTR("recv binding: 0x%08x"), binding->key );
                 }
 
                 binding++;
@@ -566,15 +567,6 @@ PT_BEGIN( pt );
             while( ln >= 0 ){
 
                 binding_state_t *binding_state = list_vp_get_data( ln );
-
-                // check if this is a source
-                // sinks do nothing here
-                if( binding_state->flags & LINK_BIND_FLAG_SINK ){
-
-                    goto next_binding;
-                }
-
-                // source:
 
                 binding_state->ticks -= 1000;
 

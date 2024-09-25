@@ -215,7 +215,7 @@ static bool link_has_ip( link2_meta_t *meta, uint16_t len, ip_addr4_t ip ){
 
 static void aggregate( link2_meta_t *meta ){
 
-	int64_t integer_accum = 0;
+	// int64_t integer_accum = 0;
 
 	// loop through data items that match this link
 	
@@ -225,7 +225,7 @@ static void aggregate( link2_meta_t *meta ){
 
         list_node_t next_ln = list_ln_next( ln );
 
-        link2_data_cache_t *cache = list_vp_get_data( ln );
+        // link2_data_cache_t *cache = list_vp_get_data( ln );
 
         // figure out which key to use based on link mode
         catbus_hash_t32 key = 0;
@@ -247,7 +247,7 @@ static void aggregate( link2_meta_t *meta ){
         // if( cache->meta.hash == meta->link )
 
 
-next:
+// next:
         ln = next_ln;
     }	
 
@@ -273,7 +273,7 @@ list_node_t _link2_mgr_l_lookup_by_hash( uint64_t hash ){
     return -1;
 }
 
-list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
+void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 
 	link2_meta_t *meta = 0;
 	list_node_t ln = _link2_mgr_l_lookup_by_hash( link2_u64_hash( link ) );
@@ -285,7 +285,7 @@ list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 
 	    if( ln < 0 ){
 
-	        return -1;
+	        return;
 	    }
 
 	    // set up new link meta data
@@ -309,7 +309,7 @@ list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 
 	// link found
 	meta = (link2_meta_t *)list_vp_get_data( ln );
-	// update node` list
+	// update node`list
 	uint8_t node_count = count_nodes_for_link( meta, list_u16_node_size( ln ) );
 	link2_node_t *node = (link2_node_t *)( meta + 1 );
 	bool ip_found = FALSE;
@@ -336,7 +336,7 @@ list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 
 		if( new_ln < 0 ){
 
-	        return ln;
+	        return;
 	    }
 
 		link2_meta_t *new_meta = (link2_meta_t *)list_vp_get_data( new_ln );
@@ -355,15 +355,13 @@ list_node_t _link2_mgr_update_link( link2_t *link, sock_addr_t *raddr ){
 		// release old node
 		list_v_remove( &link_list, ln );
 		list_v_release_node( ln );
-
-		ln = new_ln;
 	}	
 
 	// reset timeout
 	node->timeout = LINK2_MGR_LINK_TIMEOUT;
 
 
-	return ln;
+	return;
 }
 
 
@@ -510,7 +508,7 @@ PT_BEGIN( pt );
 
         	while( count > 0 ){
 
-        		_link2_mgr_update_link( link, &raddr );
+        		_link2_mgr_add_or_update_link( link, &raddr );
 
         		link++;
         		count--;
@@ -716,14 +714,19 @@ PT_BEGIN( pt );
 
 				if( meta->link.mode == LINK_MODE_SEND ){
 
+					/*
+
+					For send links, each node that has the link
+					gets a binding to tell it to transmit data.
+
+					*/
+
 					// check if node IP matches this link
 					if( link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
 
 						link2_binding_t binding = {
 							meta->link.source_key,
 							meta->link.rate,
-							LINK_BIND_FLAG_SOURCE,
-							0
 						};
 
 						bindings[count] = binding;
@@ -733,14 +736,19 @@ PT_BEGIN( pt );
 				}
 				else if( meta->link.mode == LINK_MODE_RECV ){
 
+					/*
+
+					For receive links, the link holder wants to 
+					receive data from nodes matching the query.
+
+					*/
+
 					// check if node query matches this link
 					if( catbus_b_query_tags( &meta->link.query, &follower->tags ) ){
 
 						link2_binding_t binding = {
-							meta->link.dest_key,
+							meta->link.source_key,
 							meta->link.rate,
-							LINK_BIND_FLAG_SINK,
-							0
 						};
 
 						bindings[count] = binding;
