@@ -50,7 +50,7 @@ typedef struct __attribute__((packed)){
     ip_addr4_t ip;
     uint8_t timeout;
     catbus_meta_t meta;
-	// variable length data follows    
+	int64_t data;    
 } link2_data_cache_t;
 
 
@@ -129,9 +129,10 @@ static int8_t update_data_cache( ip_addr4_t ip, catbus_meta_t *meta, uint8_t *da
 	cache->meta 	= *meta;
 	cache->timeout 	= LINK2_MGR_LINK_TIMEOUT;
 	
-	uint8_t *ptr = (uint8_t *)( cache + 1 );
+	cache->data 	= specific_to_i64( meta->type, data );	
 
-	memcpy( ptr, data, data_len );
+	// uint8_t *ptr = (uint8_t *)( cache + 1 );
+	// memcpy( ptr, data, data_len );
 
 	return 0;
 }
@@ -213,9 +214,11 @@ static bool link_has_ip( link2_meta_t *meta, uint16_t len, ip_addr4_t ip ){
 	return FALSE;
 }
 
-static void aggregate( link2_meta_t *meta ){
+static int64_t aggregate( link2_meta_t *meta ){
 
-	// int64_t integer_accum = 0;
+	bool first = TRUE;
+	int64_t integer_accum = 0;
+	uint16_t count = 0;
 
 	// loop through data items that match this link
 	
@@ -225,33 +228,92 @@ static void aggregate( link2_meta_t *meta ){
 
         list_node_t next_ln = list_ln_next( ln );
 
-        // link2_data_cache_t *cache = list_vp_get_data( ln );
+        link2_data_cache_t *cache = list_vp_get_data( ln );
 
-        // figure out which key to use based on link mode
-        catbus_hash_t32 key = 0;
+        // check if cache key matches link source key
+        if( meta->link.source_key != cache->meta.hash ){
 
-        // check link mode
-        if( meta->link.mode == LINK_MODE_SEND ){
-
-        	// send links use the source key
-        	key = meta->link.source_key;
-        }
-        else if( meta->link.mode == LINK_MODE_RECV ){
-
-        	// recv links use the dest key
-        	
+        	goto next;
         }
 
+        uint16_t array_len = cache->meta.count + 1;
+
+		if( cache->meta.type == CATBUS_TYPE_FLOAT ){
+
+	        log_v_error_P( PSTR("float not supported") );
+
+	        goto next;
+	    }
+	    else if( array_len > 1 ){
+
+	        log_v_error_P( PSTR("arrays not supported: 0x%x -> %d"), cache->meta.hash, array_len );
+
+	        goto next;
+	    }
 
 
-        // if( cache->meta.hash == meta->link )
+        count++;
+        int64_t data = cache->data;
 
+        if( meta->link.aggregation == LINK_AGG_ANY ){
 
-// next:
+        	integer_accum = data;
+
+        	break;
+        }
+        else if( meta->link.aggregation == LINK_AGG_MIN ){
+
+        	if( first ){
+
+        		integer_accum = data;
+        	}
+        	else{
+
+        		if( data < integer_accum ){
+
+        			integer_accum = data;
+        		}
+        	}
+        }
+        else if( meta->link.aggregation == LINK_AGG_MAX ){
+
+        	if( first ){
+
+        		integer_accum = data;
+        	}
+        	else{
+
+        		if( data > integer_accum ){
+
+        			integer_accum = data;
+        		}
+        	}
+        }
+        else if( meta->link.aggregation == LINK_AGG_SUM ){
+
+        	integer_accum += data;
+        }
+        else if( meta->link.aggregation == LINK_AGG_AVG ){
+
+        	integer_accum += data;
+        }
+
+      	
+next:
         ln = next_ln;
+
+        first = FALSE;
     }	
 
+    if( meta->link.aggregation == LINK_AGG_AVG ){
 
+    	if( count > 0 ){
+
+    		integer_accum /= count;	
+    	}
+	}
+
+    return integer_accum;
 }
 
 list_node_t _link2_mgr_l_lookup_by_hash( uint64_t hash ){
