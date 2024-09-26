@@ -588,6 +588,8 @@ PT_BEGIN( pt );
                     if( array_len > 1 ){
 
                         log_v_error_P( PSTR("arrays not supported!") );
+
+                        goto next_binding;
                     }
 
                     data_ptr->key = binding_state->key;
@@ -595,6 +597,8 @@ PT_BEGIN( pt );
                     if( catbus_i8_get_i64( data_ptr->key, &data_ptr->data ) != 0 ){
 
                         log_v_error_P( PSTR("catbus got wrecked!") );
+
+                        goto next_binding;
                     }
 
                     data_ptr++;
