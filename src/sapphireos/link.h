@@ -95,6 +95,12 @@ typedef struct __attribute__((packed)){
 #define LINK_MAX_BIND_ENTRIES         ( ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_binding_t) )
 
 typedef struct __attribute__((packed)){
+    catbus_hash_t32 key;
+    int64_t data;
+} link2_data_t;
+#define LINK_MAX_DATA_ENTRIES         ( ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_data_t) )
+
+typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t msg_type;
     uint8_t version;
@@ -115,8 +121,11 @@ typedef struct __attribute__((packed)){
 } link_msg_bind_t;
 #define LINK_MSG_TYPE_BIND              2
 
+typedef struct __attribute__((packed)){
+    link2_msg_header_t header;
+    // link2_data_t follows
+} link2_msg_data_t;
 #define LINK_MSG_TYPE_DATA              3
-
 
 void link2_v_init( void );
 

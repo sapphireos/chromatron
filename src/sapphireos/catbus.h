@@ -277,6 +277,11 @@ int8_t catbus_i8_array_set(
     void *data,
     uint16_t data_len );
 
+
+int8_t catbus_i8_get_i64(
+    catbus_hash_t32 hash, 
+    int64_t *data );
+
 int8_t catbus_i8_get(
     catbus_hash_t32 hash,
     catbus_type_t8 type,

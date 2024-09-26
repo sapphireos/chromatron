@@ -510,6 +510,14 @@ int8_t catbus_i8_get(
     return catbus_i8_array_get( hash, type, 0, 1, data );
 }
 
+int8_t catbus_i8_get_i64(
+    catbus_hash_t32 hash, 
+    int64_t *data)
+{
+
+    return catbus_i8_get( hash, CATBUS_TYPE_INT64, data );
+}
+
 int8_t catbus_i8_array_get(
     catbus_hash_t32 hash,
     catbus_type_t8 type,

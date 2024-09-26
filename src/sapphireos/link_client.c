@@ -557,10 +557,10 @@ PT_BEGIN( pt );
 
             ln = binding_list.head;
 
-            uint16_t current_data_len = 0;
-            uint8_t data_buf[CATBUS_MAX_DATA + sizeof(link2_msg_header_t)];
+            uint16_t current_data_count = 0;
+            uint8_t data_buf[UDP_MAX_LEN];
             link2_msg_header_t *data_hdr = (link2_msg_header_t *)data_buf;
-            uint8_t *data_ptr = (uint8_t *)( data_hdr + 1 );
+            link2_data_t *data_ptr = (link2_data_t *)( data_hdr + 1 );
 
             link2_v_init_header( data_hdr, LINK_MSG_TYPE_DATA );
 
@@ -585,38 +585,75 @@ PT_BEGIN( pt );
                     }
 
                     uint16_t array_len = meta.count + 1;
-                    uint16_t data_len = type_u16_size( meta.type ) * array_len;
+                    if( array_len > 1 ){
 
-                    // check if the next item will overflow the buffer
-                    if( ( data_len + sizeof(meta) + current_data_len ) >= CATBUS_MAX_DATA ){
+                        log_v_error_P( PSTR("arrays not supported!") );
+                    }
 
-                        log_v_debug_P( PSTR("data send") );
+                    data_ptr->key = binding_state->key;
+
+                    if( catbus_i8_get_i64( data_ptr->key, &data_ptr->data ) != 0 ){
+
+                        log_v_error_P( PSTR("catbus got wrecked!") );
+                    }
+
+                    data_ptr++;
+                    current_data_count++;
+
+                    if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
+
+                        log_v_debug_P( PSTR("data send %d.%d.%d.%d %d %d"), 
+                            link_mgr_raddr.ipaddr.ip3,
+                            link_mgr_raddr.ipaddr.ip2,
+                            link_mgr_raddr.ipaddr.ip1,
+                            link_mgr_raddr.ipaddr.ip0,
+                            link_mgr_raddr.port,
+                            current_data_count
+                        );
 
                         // transmit message
-                        if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_len, &link_mgr_raddr ) < 0 ){
+                        if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &link_mgr_raddr ) < 0 ){
 
                             log_v_debug_P( PSTR("data send fail") );
-                        }
+                        }                
 
-                        // flush buffer
-                        data_ptr = (uint8_t *)( data_hdr + 1 );
-                        current_data_len = 0;
+                        // reset pointers
+                        data_ptr = (link2_data_t *)( data_hdr + 1 );
+                        current_data_count = 0;
                     }
 
-                    // copy meta data
-                    memcpy( data_ptr, &meta, sizeof(meta) );
-                    data_ptr += sizeof(meta);
-                    current_data_len += sizeof(meta);
+                    // uint16_t data_len = type_u16_size( meta.type ) * array_len;
 
-                    if( kv_i8_array_get( binding_state->key, 0, meta.count, data_ptr, data_len ) < 0 ){
+                    // // check if the next item will overflow the buffer
+                    // if( ( data_len + sizeof(meta) + current_data_len ) >= CATBUS_MAX_DATA ){
 
-                        log_v_debug_P( PSTR("kv get fail") );
-                    }
+                    //     log_v_debug_P( PSTR("data send") );
 
-                    data_ptr += data_len;
-                    current_data_len += data_len;
+                    //     // transmit message
+                    //     if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_len, &link_mgr_raddr ) < 0 ){
 
-                    log_v_debug_P( PSTR("process binding: 0x%08x %d %d"), binding_state->key, data_len, current_data_len );
+                    //         log_v_debug_P( PSTR("data send fail") );
+                    //     }
+
+                    //     // flush buffer
+                    //     data_ptr = (uint8_t *)( data_hdr + 1 );
+                    //     current_data_len = 0;
+                    // }
+
+                    // // copy meta data
+                    // memcpy( data_ptr, &meta, sizeof(meta) );
+                    // data_ptr += sizeof(meta);
+                    // current_data_len += sizeof(meta);
+
+                    // if( kv_i8_array_get( binding_state->key, 0, meta.count, data_ptr, data_len ) < 0 ){
+
+                    //     log_v_debug_P( PSTR("kv get fail") );
+                    // }
+
+                    // data_ptr += data_len;
+                    // current_data_len += data_len;
+
+                    log_v_debug_P( PSTR("process binding: 0x%08x %d"), binding_state->key, current_data_count );
                 }
 
 next_binding:
@@ -624,18 +661,19 @@ next_binding:
             }   
 
             // check if there is any data left to transmit in the buffer
-            if( current_data_len > 0 ){
+            if( current_data_count > 0 ){
 
-                log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
+                log_v_debug_P( PSTR("data send %d.%d.%d.%d %d %d"), 
                     link_mgr_raddr.ipaddr.ip3,
                     link_mgr_raddr.ipaddr.ip2,
                     link_mgr_raddr.ipaddr.ip1,
                     link_mgr_raddr.ipaddr.ip0,
-                    link_mgr_raddr.port
+                    link_mgr_raddr.port,
+                    current_data_count
                 );
 
                 // transmit message
-                if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_len, &link_mgr_raddr ) < 0 ){
+                if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &link_mgr_raddr ) < 0 ){
 
                     log_v_debug_P( PSTR("data send fail") );
                 }                
