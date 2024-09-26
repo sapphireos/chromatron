@@ -412,11 +412,15 @@ static void add_or_update_binding( link2_binding_t *link_binding ){
         list_v_insert_tail( &binding_list, ln );
 
         state = list_vp_get_data( ln );
-        state->key = link_binding->key;
+        state->key      = link_binding->key;
+        state->rate     = link_binding->rate;
     }
 
-    state->rate     = link_binding->rate;
-    // state->flags    = link_binding->flags;
+    // apply lowest rate (fastest) to binding
+    if( link_binding->rate < state->rate ){
+
+        state->rate = link_binding->rate;    
+    }
     state->timeout  = LINK_BINDING_TIMEOUT;
 }
 
