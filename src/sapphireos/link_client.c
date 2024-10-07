@@ -609,6 +609,8 @@ PT_BEGIN( pt );
                         goto next_binding;
                     }
 
+                    log_v_debug_P( PSTR("packing data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data);
+
                     data_ptr++;
                     current_data_count++;
 

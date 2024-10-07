@@ -110,6 +110,8 @@ static int8_t update_data_cache( ip_addr4_t ip, catbus_hash_t32 hash, int64_t da
 	// list node is valid
 	// update entry
 
+	log_v_debug_P( PSTR("data update: 0x%08lx %ld"), hash, (int32_t)data);
+
 	link2_data_cache_t *cache = list_vp_get_data( ln );
 
 	cache->ip 		= ip;
