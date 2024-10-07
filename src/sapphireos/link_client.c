@@ -452,7 +452,7 @@ PT_BEGIN( pt );
             goto end;
         }
 
-        link_msg_header_t *header = sock_vp_get_data( sock );
+        link2_msg_header_t *header = sock_vp_get_data( sock );
 
         // verify message
         if( header->magic != LINK_MAGIC ){
@@ -490,6 +490,10 @@ PT_BEGIN( pt );
 
                     // log_v_debug_P( PSTR("recv binding: 0x%08x 0x%0x"), binding->key, binding->flags );
                     log_v_debug_P( PSTR("recv binding: 0x%08x"), binding->key );
+                }
+                else{
+
+                    log_v_debug_P( PSTR("recv binding not found: 0x%08x"), binding->key );
                 }
 
                 binding++;
@@ -583,7 +587,7 @@ PT_BEGIN( pt );
 
                     if( kv_i8_get_catbus_meta( binding_state->key, &meta ) < 0 ){
 
-                        log_v_debug_P( PSTR("binding key not found") );
+                        log_v_debug_P( PSTR("binding key not found: 0x%08x"), binding_state->key );
 
                         goto next_binding;
                     }

@@ -337,7 +337,7 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 
 	    list_v_insert_tail( &link_list, ln );    
 
-	    log_v_debug_P( PSTR("Add new link: %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
+	    log_v_debug_P( PSTR("Add new link: 0x%08lx->0x%08lx %d.%d.%d.%d"), link->source_key, link->dest_key, raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
 	}
 	
 
@@ -601,9 +601,12 @@ static void send_bind_msg( link2_binding_t *bindings, uint8_t count, ip_addr4_t 
 
 	link2_v_init_header( hdr, LINK_MSG_TYPE_BIND );
 
+
 	link2_binding_t *binding_ptr = (link2_binding_t *)( hdr + 1 );
 
 	memcpy( binding_ptr, bindings, count * sizeof(link2_binding_t) );
+
+	log_v_debug_P( PSTR("send binding:  0x%08x"), binding_ptr->key);
 
 	sock_addr_t raddr = {
 		ip,
@@ -740,6 +743,8 @@ PT_BEGIN( pt );
 
 					// check if node IP matches this link
 					if( link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
+
+						log_v_debug_P( PSTR("prepare binding:  0x%08x"), meta->link.source_key);
 
 						link2_binding_t binding = {
 							meta->link.source_key,
@@ -908,6 +913,7 @@ PT_BEGIN( pt );
 						// MATCH
 
 						// aggregate and add to data buffer
+						// log_v_debug_P( PSTR("aggregate send") );
 					}
 				}
 				else if( meta->link.mode == LINK_MODE_RECV ){
@@ -918,7 +924,7 @@ PT_BEGIN( pt );
 						// MATCH
 
 						// aggregate and add to data buffer
-
+						// log_v_debug_P( PSTR("aggregate recv") );
 					}
 				}
 
