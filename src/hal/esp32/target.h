@@ -28,7 +28,7 @@
 #include "esp_task.h"
 
 // modules
-#define ENABLE_CATBUS_LINK
+// #define ENABLE_CATBUS_LINK
 #define ENABLE_TIME_SYNC
 #define ENABLE_WIFI
 #define ENABLE_FFS

@@ -41,11 +41,11 @@
 #if !defined(ESP8266_UPGRADE) && !defined(BOOTLOADER)
 #define ENABLE_GFX
 #define ENABLE_BATTERY
-#define ENABLE_CATBUS_LINK
+// #define ENABLE_CATBUS_LINK
 #define ENABLE_TIME_SYNC
 // #define ENABLE_MSGFLOW
 #define ENABLE_SERVICES
-// #define ENABLE_CONTROLLER
+#define ENABLE_CONTROLLER
 #endif
 
 // DEBUG!

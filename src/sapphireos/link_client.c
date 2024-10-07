@@ -772,4 +772,29 @@ next_binding:
 
 PT_END( pt );
 }
+
+#ifndef ENABLE_CATBUS_LINK
+
+bool link_b_is_linked( catbus_hash_t32 key ){
+
+    return FALSE;
+}
+
+bool link_b_is_synced( catbus_hash_t32 key ){
+
+    return FALSE;
+}
+
+bool link_b_is_synced_leader( catbus_hash_t32 key ){
+
+    return FALSE;
+}
+
+bool link_b_is_synced_follower( catbus_hash_t32 key ){
+
+    return FALSE;
+}
+
+#endif
+
 #endif
