@@ -886,12 +886,23 @@ PT_BEGIN( pt );
 
 
     	// SINK DATA:
+        uint16_t current_data_count = 0;
+        uint8_t data_buf[UDP_MAX_LEN];
+        link2_msg_header_t *data_hdr = (link2_msg_header_t *)data_buf;
+        link2_data_t *data_ptr = (link2_data_t *)( data_hdr + 1 );
+
+        link2_v_init_header( data_hdr, LINK_MSG_TYPE_DATA );
 
     	controller_db_v_reset_iter();
 
     	follower_t *follower = controller_db_p_get_next();
 
     	while( follower != 0 ){
+
+    		sock_addr_t raddr = {
+    			follower->ip,
+    			LINK2_PORT
+    		};
 
     		// loop through links
 
@@ -916,6 +927,35 @@ PT_BEGIN( pt );
 
 						// aggregate and add to data buffer
 						// log_v_debug_P( PSTR("aggregate send") );
+
+						int64_t data = aggregate( meta );
+
+						data_ptr->key = meta->link.dest_key;
+						data_ptr->data = data;
+
+						data_ptr++;
+	                    current_data_count++;
+
+	                    if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
+
+	                        log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
+	                            follower->ip.ip3,
+	                            follower->ip.ip2,
+	                            follower->ip.ip1,
+	                            follower->ip.ip0,
+	                            current_data_count
+	                        );
+
+	                        // transmit message
+	                        if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
+
+	                            log_v_debug_P( PSTR("data send fail") );
+	                        }                
+
+	                        // reset pointers
+	                        data_ptr = (link2_data_t *)( data_hdr + 1 );
+	                        current_data_count = 0;
+	                    }
 					}
 				}
 				else if( meta->link.mode == LINK_MODE_RECV ){
@@ -934,6 +974,24 @@ next:
 		        ln = list_ln_next( ln );
 		    }
 
+            // check if there is any data left to transmit in the buffer
+            if( current_data_count > 0 ){
+
+                log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
+	                            follower->ip.ip3,
+	                            follower->ip.ip2,
+	                            follower->ip.ip1,
+	                            follower->ip.ip0,
+	                            current_data_count
+	                        );
+
+
+                // transmit message
+                if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
+
+                    log_v_debug_P( PSTR("data send fail") );
+                }                
+            }
 
     		follower = controller_db_p_get_next();
     	}

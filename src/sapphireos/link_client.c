@@ -500,6 +500,17 @@ PT_BEGIN( pt );
                 count--;
             }
         }
+        else if( header->msg_type == LINK_MSG_TYPE_DATA ){
+
+            link2_data_t *data_ptr = (link2_data_t *)( header + 1 );
+
+            while( (uint8_t *)data_ptr < ( (uint8_t *)header + sock_i16_get_bytes_read( sock ) ) ){
+
+                log_v_debug_P( PSTR("recv data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data );
+
+                data_ptr++;
+            }
+        }   
 
 
 
