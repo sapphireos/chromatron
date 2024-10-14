@@ -654,14 +654,14 @@ PT_BEGIN( pt );
 
                 if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
 
-                    log_v_debug_P( PSTR("data send %d.%d.%d.%d %d %d"), 
-                        link_mgr_raddr.ipaddr.ip3,
-                        link_mgr_raddr.ipaddr.ip2,
-                        link_mgr_raddr.ipaddr.ip1,
-                        link_mgr_raddr.ipaddr.ip0,
-                        link_mgr_raddr.port,
-                        current_data_count
-                    );
+                    // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d %d"), 
+                    //     link_mgr_raddr.ipaddr.ip3,
+                    //     link_mgr_raddr.ipaddr.ip2,
+                    //     link_mgr_raddr.ipaddr.ip1,
+                    //     link_mgr_raddr.ipaddr.ip0,
+                    //     link_mgr_raddr.port,
+                    //     current_data_count
+                    // );
 
                     // transmit message
                     if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &link_mgr_raddr ) < 0 ){
@@ -715,14 +715,14 @@ next_binding:
         // check if there is any data left to transmit in the buffer
         if( current_data_count > 0 ){
 
-            log_v_debug_P( PSTR("data send %d.%d.%d.%d %d %d"), 
-                link_mgr_raddr.ipaddr.ip3,
-                link_mgr_raddr.ipaddr.ip2,
-                link_mgr_raddr.ipaddr.ip1,
-                link_mgr_raddr.ipaddr.ip0,
-                link_mgr_raddr.port,
-                current_data_count
-            );
+            // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d %d"), 
+            //     link_mgr_raddr.ipaddr.ip3,
+            //     link_mgr_raddr.ipaddr.ip2,
+            //     link_mgr_raddr.ipaddr.ip1,
+            //     link_mgr_raddr.ipaddr.ip0,
+            //     link_mgr_raddr.port,
+            //     current_data_count
+            // );
 
             // transmit message
             if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &link_mgr_raddr ) < 0 ){

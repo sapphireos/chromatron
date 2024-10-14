@@ -43,6 +43,7 @@
 static uint32_t netmsg_udp_sent;
 static uint32_t netmsg_udp_recv;
 static uint32_t netmsg_udp_dropped;
+static uint8_t max_rx_q_size;
 
 #if defined(__SIM__) || defined(BOOTLOADER)
     #define ROUTING_TABLE_START
@@ -72,7 +73,9 @@ KV_SECTION_META kv_meta_t netmsg_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &netmsg_udp_recv,    0,   "netmsg_udp_recv" },
     { CATBUS_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &netmsg_udp_dropped, 0,   "netmsg_udp_dropped" },
 
-    { CATBUS_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &longest_rx_delta,    0,   "netmsg_max_rx_delta" },
+    { CATBUS_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &longest_rx_delta,   0,   "netmsg_max_rx_delta" },
+
+    { CATBUS_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,  &max_rx_q_size,      0,   "netmsg_max_rx_q_size" },
 };
 
 PT_THREAD( netmsg_rx_q_thread( pt_t *pt, void *state ) );
@@ -537,6 +540,11 @@ void netmsg_v_receive( netmsg_t netmsg ){
                 else if( list_u8_count( &rx_q ) < NETMSG_MAX_RX_Q_SIZE ){
 
                     list_v_insert_head( &rx_q, netmsg );
+
+                    if( list_u8_count( &rx_q ) > max_rx_q_size ){
+
+                        max_rx_q_size = list_u8_count( &rx_q );
+                    } 
 
                     // make sure we don't release the handle!
                     return;
