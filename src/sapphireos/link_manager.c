@@ -904,6 +904,8 @@ PT_BEGIN( pt );
     			LINK2_PORT
     		};
 
+    		current_data_count = 0;
+
     		// loop through links
 
 		    list_node_t ln = link_list.head;
@@ -922,6 +924,24 @@ PT_BEGIN( pt );
 
 					// check link query against follower
 					if( catbus_b_query_tags( &meta->link.query, &follower->tags ) ){
+
+						// log_v_debug_P( PSTR("%08x %08x %08x %08x %08x %08x %08x %08x | %08x %08x %08x %08x %08x %08x %08x %08x"),
+						// 	meta->link.query.tags[0],
+						// 	meta->link.query.tags[1],
+						// 	meta->link.query.tags[2],
+						// 	meta->link.query.tags[3],
+						// 	meta->link.query.tags[4],
+						// 	meta->link.query.tags[5],
+						// 	meta->link.query.tags[6],
+						// 	meta->link.query.tags[7],
+						// 	follower->tags.tags[0],
+						// 	follower->tags.tags[1],
+						// 	follower->tags.tags[2],
+						// 	follower->tags.tags[3],
+						// 	follower->tags.tags[4],
+						// 	follower->tags.tags[5],
+						// 	follower->tags.tags[6],
+						// 	follower->tags.tags[7]);
 
 						// MATCH
 
@@ -998,7 +1018,9 @@ next:
                 if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
 
                     log_v_debug_P( PSTR("data send fail") );
-                }                
+                }
+
+                current_data_count = 0;                
             }
 
     		follower = controller_db_p_get_next();

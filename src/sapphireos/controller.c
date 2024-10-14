@@ -549,6 +549,13 @@ static void send_announce( void ){
 	send_msg( CONTROLLER_MSG_ANNOUNCE, (uint8_t *)&msg, sizeof(msg), &raddr );
 }
 
+static void init_status_msg( controller_msg_status_t *msg ){
+
+	msg->service_flags = 0;
+
+	catbus_v_get_query( &msg->query );
+}
+
 static void send_status( void ){
 
 	if( controller_state == STATE_LEADER ){
@@ -565,11 +572,8 @@ static void send_status( void ){
 		return;
 	}
 
-	controller_msg_status_t msg = {
-		{ 0 },
-	};
-
-	catbus_v_get_query( &msg.query );
+	controller_msg_status_t msg;
+	init_status_msg( &msg );
 
 	sock_addr_t raddr;
     raddr.ipaddr = leader_ip;
@@ -982,6 +986,12 @@ PT_BEGIN( pt );
 
 			// broadcast announcement
 			send_announce();
+
+			// update our own follower entry
+			controller_msg_status_t msg;
+			init_status_msg( &msg );
+			ip_addr4_t ip = cfg_ip_get_ipaddr();
+			update_follower( ip, &msg );
 
 			// random delay:
 			thread_v_set_alarm( tmr_u32_get_system_time_ms() + 
