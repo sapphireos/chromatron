@@ -511,7 +511,7 @@ PT_BEGIN( pt );
                     add_or_update_binding( binding );
 
                     // log_v_debug_P( PSTR("recv binding: 0x%08x 0x%0x"), binding->key, binding->flags );
-                    log_v_debug_P( PSTR("recv binding: 0x%08x"), binding->key );
+                    // log_v_debug_P( PSTR("recv binding: 0x%08x"), binding->key );
                 }
                 else{
 
@@ -528,7 +528,7 @@ PT_BEGIN( pt );
 
             while( (uint8_t *)data_ptr < ( (uint8_t *)header + sock_i16_get_bytes_read( sock ) ) ){
 
-                log_v_debug_P( PSTR("recv data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data );
+                // log_v_debug_P( PSTR("recv data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data );
 
                 catbus_i8_set_i64( data_ptr->key, data_ptr->data );
 
@@ -644,21 +644,21 @@ PT_BEGIN( pt );
                         goto next_binding;
                     }
 
-                    log_v_debug_P( PSTR("packing data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data);
+                    // log_v_debug_P( PSTR("packing data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data);
 
                     data_ptr++;
                     current_data_count++;
 
                     if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
 
-                        log_v_debug_P( PSTR("data send %d.%d.%d.%d %d %d"), 
-                            link_mgr_raddr.ipaddr.ip3,
-                            link_mgr_raddr.ipaddr.ip2,
-                            link_mgr_raddr.ipaddr.ip1,
-                            link_mgr_raddr.ipaddr.ip0,
-                            link_mgr_raddr.port,
-                            current_data_count
-                        );
+                        // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d %d"), 
+                        //     link_mgr_raddr.ipaddr.ip3,
+                        //     link_mgr_raddr.ipaddr.ip2,
+                        //     link_mgr_raddr.ipaddr.ip1,
+                        //     link_mgr_raddr.ipaddr.ip0,
+                        //     link_mgr_raddr.port,
+                        //     current_data_count
+                        // );
 
                         // transmit message
                         if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &link_mgr_raddr ) < 0 ){
@@ -702,7 +702,7 @@ PT_BEGIN( pt );
                     // data_ptr += data_len;
                     // current_data_len += data_len;
 
-                    log_v_debug_P( PSTR("process binding: 0x%08x %d"), binding_state->key, current_data_count );
+                    // log_v_debug_P( PSTR("process binding: 0x%08x %d"), binding_state->key, current_data_count );
                 }
 
 next_binding:
@@ -712,20 +712,22 @@ next_binding:
             // check if there is any data left to transmit in the buffer
             if( current_data_count > 0 ){
 
-                log_v_debug_P( PSTR("data send %d.%d.%d.%d %d %d"), 
-                    link_mgr_raddr.ipaddr.ip3,
-                    link_mgr_raddr.ipaddr.ip2,
-                    link_mgr_raddr.ipaddr.ip1,
-                    link_mgr_raddr.ipaddr.ip0,
-                    link_mgr_raddr.port,
-                    current_data_count
-                );
+                // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d %d"), 
+                //     link_mgr_raddr.ipaddr.ip3,
+                //     link_mgr_raddr.ipaddr.ip2,
+                //     link_mgr_raddr.ipaddr.ip1,
+                //     link_mgr_raddr.ipaddr.ip0,
+                //     link_mgr_raddr.port,
+                //     current_data_count
+                // );
 
                 // transmit message
                 if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &link_mgr_raddr ) < 0 ){
 
                     log_v_debug_P( PSTR("data send fail") );
-                }                
+                }      
+
+                current_data_count = 0;          
             }
 
 

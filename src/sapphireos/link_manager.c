@@ -110,7 +110,7 @@ static int8_t update_data_cache( ip_addr4_t ip, catbus_hash_t32 hash, int64_t da
 	// list node is valid
 	// update entry
 
-	log_v_debug_P( PSTR("data update: 0x%08lx %ld"), hash, (int32_t)data);
+	// log_v_debug_P( PSTR("data update: 0x%08lx %ld"), hash, (int32_t)data);
 
 	link2_data_cache_t *cache = list_vp_get_data( ln );
 
@@ -608,7 +608,7 @@ static void send_bind_msg( link2_binding_t *bindings, uint8_t count, ip_addr4_t 
 
 	memcpy( binding_ptr, bindings, count * sizeof(link2_binding_t) );
 
-	log_v_debug_P( PSTR("send binding:  0x%08x"), binding_ptr->key);
+	// log_v_debug_P( PSTR("send binding:  0x%08x"), binding_ptr->key);
 
 	sock_addr_t raddr = {
 		ip,
@@ -746,7 +746,7 @@ PT_BEGIN( pt );
 					// check if node IP matches this link
 					if( link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
 
-						log_v_debug_P( PSTR("prepare binding:  0x%08x"), meta->link.source_key);
+						// log_v_debug_P( PSTR("prepare binding:  0x%08x"), meta->link.source_key);
 
 						link2_binding_t binding = {
 							meta->link.source_key,
@@ -966,13 +966,13 @@ PT_BEGIN( pt );
 
 	                    if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
 
-	                        log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
-	                            follower->ip.ip3,
-	                            follower->ip.ip2,
-	                            follower->ip.ip1,
-	                            follower->ip.ip0,
-	                            current_data_count
-	                        );
+	                        // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
+	                        //     follower->ip.ip3,
+	                        //     follower->ip.ip2,
+	                        //     follower->ip.ip1,
+	                        //     follower->ip.ip0,
+	                        //     current_data_count
+	                        // );
 
 	                        // transmit message
 	                        if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
@@ -1005,13 +1005,13 @@ next:
             // check if there is any data left to transmit in the buffer
             if( current_data_count > 0 ){
 
-                log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
-	                            follower->ip.ip3,
-	                            follower->ip.ip2,
-	                            follower->ip.ip1,
-	                            follower->ip.ip0,
-	                            current_data_count
-	                        );
+                // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
+	            //                 follower->ip.ip3,
+	            //                 follower->ip.ip2,
+	            //                 follower->ip.ip1,
+	            //                 follower->ip.ip0,
+	            //                 current_data_count
+	            //             );
 
 
                 // transmit message

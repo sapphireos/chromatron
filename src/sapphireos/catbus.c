@@ -106,8 +106,6 @@ static void _catbus_v_setup_tag_hashes( void ){
         }
         else{
 
-            log_v_debug_P( PSTR("%08x not found?"), hash );
-
             meta_tag_hashes[i] = 0;   
         }
     }
