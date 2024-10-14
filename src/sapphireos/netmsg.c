@@ -56,9 +56,16 @@ static uint32_t netmsg_udp_dropped;
     #define ROUTING_TABLE_END         __attribute__ ((section (".routing_end"), used))
 #endif
 
+#ifndef NETMSG_MAX_RX_Q_SIZE
+    #define NETMSG_MAX_RX_Q_SIZE 8
+#endif
+
 #include "timers.h"
 static uint32_t last_rx_ts;
 static uint32_t longest_rx_delta;
+
+static list_t rx_q;
+
 
 KV_SECTION_META kv_meta_t netmsg_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &netmsg_udp_sent,    0,   "netmsg_udp_sent" },
@@ -68,6 +75,7 @@ KV_SECTION_META kv_meta_t netmsg_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, KV_FLAGS_READ_ONLY,  &longest_rx_delta,    0,   "netmsg_max_rx_delta" },
 };
 
+PT_THREAD( netmsg_rx_q_thread( pt_t *pt, void *state ) );
 
 #ifndef ENABLE_COPROCESSOR
 static netmsg_port_monitor_t port_monitors[NETMSG_N_PORT_MONITORS];
@@ -228,6 +236,83 @@ static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 }
 #endif
 
+
+int8_t _netmsg_i8_receive_sock( netmsg_t netmsg ){
+
+    int8_t status = sock_i8_recv( netmsg );
+
+    if( ( status < 0 ) && 
+        ( status != SOCK_STATUS_MCAST_SELF ) ){
+
+        netmsg_udp_dropped++;
+    }
+
+    #ifndef ENABLE_COPROCESSOR
+    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+    
+        // update port monitor
+        netmsg_port_monitor_t *port_monitor = get_port_monitor( state );
+
+        if( port_monitor != 0 ){
+
+            port_monitor->timeout = 60;
+
+            if( ( status < 0 ) && 
+                ( status != SOCK_STATUS_MCAST_SELF ) && 
+                ( port_monitor->dropped < UINT32_MAX ) ){
+
+                port_monitor->dropped++;                    
+            }
+            else if( port_monitor->rx_count < UINT32_MAX){
+
+                port_monitor->rx_count++;    
+            }    
+        }
+    }   
+    #endif
+
+    return status;
+}
+
+PT_THREAD( netmsg_rx_q_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while(1){
+
+        THREAD_WAIT_WHILE( pt, list_u8_count( &rx_q ) == 0 ); 
+
+        netmsg_t netmsg = list_ln_remove_tail( &rx_q );
+
+        int8_t status = _netmsg_i8_receive_sock( netmsg );
+
+        if( status < 0 ){
+
+            if( ( status == SOCK_STATUS_NO_SOCK ) ||
+                ( status == SOCK_STATUS_MCAST_SELF ) ){
+
+                netmsg_v_release( netmsg );
+            }
+            else{
+
+                list_v_insert_head( &rx_q, netmsg );    
+            }
+        }
+        else{
+
+            // socket received, it will keep the data handle
+            // and we can release the netmsg
+
+            netmsg_v_release( netmsg );
+        }
+
+        THREAD_YIELD( pt );
+    }    
+    
+PT_END( pt );
+}
+
+
 // initialize netmsg
 void netmsg_v_init( void ){
 
@@ -236,6 +321,13 @@ void netmsg_v_init( void ){
         #ifndef ENABLE_COPROCESSOR
         fs_f_create_virtual( PSTR("portinfo"), vfile );
         #endif
+
+        list_v_init( &rx_q );
+
+        thread_t_create( netmsg_rx_q_thread,
+                     PSTR("netmsg_rx_q"),
+                     0,
+                     0 );
     }
 }
 
@@ -299,7 +391,6 @@ netmsg_flags_t netmsg_u8_get_flags( netmsg_t netmsg ){
 
     return msg->flags;
 }
-
 
 void netmsg_v_receive( netmsg_t netmsg ){
 
@@ -430,38 +521,39 @@ void netmsg_v_receive( netmsg_t netmsg ){
             }
         }
 
-        int8_t status = sock_i8_recv( netmsg );
-
-        if( ( status < 0 ) && 
-            ( status != SOCK_STATUS_MCAST_SELF ) ){
-
-            netmsg_udp_dropped++;
-        }
-        #ifndef ENABLE_COPROCESSOR
         if( sys_u8_get_mode() != SYS_MODE_SAFE ){
-        
-            // update port monitor
-            netmsg_port_monitor_t *port_monitor = get_port_monitor( state );
 
-            if( port_monitor != 0 ){
+            // attempt to deliver directly to socket
+            int8_t status = _netmsg_i8_receive_sock( netmsg );
 
-                port_monitor->timeout = 60;
+            if( status < 0 ){
 
-                if( ( status < 0 ) && 
-                    ( status != SOCK_STATUS_MCAST_SELF ) && 
-                    ( port_monitor->dropped < UINT32_MAX ) ){
+                if( ( status == SOCK_STATUS_NO_SOCK ) ||
+                    ( status == SOCK_STATUS_MCAST_SELF ) ){
 
-                    port_monitor->dropped++;                    
+                    goto clean_up;
                 }
-                else if( port_monitor->rx_count < UINT32_MAX){
+                // port buffer is full, attempt to add to rx q
+                else if( list_u8_count( &rx_q ) < NETMSG_MAX_RX_Q_SIZE ){
 
-                    port_monitor->rx_count++;    
-                }    
+                    list_v_insert_head( &rx_q, netmsg );
+
+                    // make sure we don't release the handle!
+                    return;
+                }
+                else{
+
+                    log_v_info_P( PSTR("netmsg rx q full") );
+
+                    goto clean_up;
+                }
             }
         }
-        #endif
+        else{
 
-
+            _netmsg_i8_receive_sock( netmsg );    
+        }
+        
         // #endif
 
         netmsg_udp_recv++;
@@ -472,9 +564,9 @@ void netmsg_v_receive( netmsg_t netmsg ){
     }
 
 
-#ifdef ENABLE_IP
+// #ifdef ENABLE_IP
 clean_up:
-#endif
+// #endif
     netmsg_v_release( netmsg );
 }
 

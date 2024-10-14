@@ -782,10 +782,10 @@ int8_t sock_i8_transmit( socket_t sock, mem_handle_t handle, sock_addr_t *raddr 
         uint8_t nm_flags = 0;
 
         // check options
-        if( s->options & SOCK_OPTIONS_NO_SECURITY ){
+        // if( s->options & SOCK_OPTIONS_NO_SECURITY ){
 
-            nm_flags |= NETMSG_FLAGS_WCOM_SECURITY_DISABLE;
-        }
+        //     nm_flags |= NETMSG_FLAGS_WCOM_SECURITY_DISABLE;
+        // }
 
         if( s->options & SOCK_OPTIONS_NO_WIRELESS ){
 
@@ -940,17 +940,17 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
     }
 
     // check security flags
-    if( state->flags & NETMSG_FLAGS_WCOM_SECURITY_DISABLE ){
-        // security disabled on this netmsg
+    // if( state->flags & NETMSG_FLAGS_WCOM_SECURITY_DISABLE ){
+    //     // security disabled on this netmsg
 
-        // check if this socket requires secure messages
-        if( !( dgram->raw.options & SOCK_OPTIONS_NO_SECURITY ) ){
+    //     // check if this socket requires secure messages
+    //     if( !( dgram->raw.options & SOCK_OPTIONS_NO_SECURITY ) ){
 
-            // socket requires secure messages
+    //         // socket requires secure messages
 
-            return SOCK_STATUS_NO_SEC;
-        }
-    }
+    //         return SOCK_STATUS_NO_SEC;
+    //     }
+    // }
 
     #ifdef SOCK_SINGLE_BUF
     // check if the socket is already holding data that has not been
