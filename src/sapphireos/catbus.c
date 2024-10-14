@@ -106,6 +106,8 @@ static void _catbus_v_setup_tag_hashes( void ){
         }
         else{
 
+            log_v_debug_P( PSTR("%08x not found?"), hash );
+
             meta_tag_hashes[i] = 0;   
         }
     }
@@ -220,6 +222,8 @@ void catbus_v_init( void ){
 
     trace_printf("Catbus max data len: %d\r\n", CATBUS_MAX_DATA);
 
+    _catbus_v_setup_tag_hashes();
+
     #ifdef ENABLE_CATBUS_LINK
     // list_v_init( &send_list );
     // list_v_init( &receive_cache );
@@ -228,7 +232,7 @@ void catbus_v_init( void ){
 
     }
     else{
-
+        
         link_v_init();
     }
     #endif
@@ -737,7 +741,7 @@ PT_BEGIN( pt );
     }
 
     // set up tag hashes
-    _catbus_v_setup_tag_hashes();
+    // _catbus_v_setup_tag_hashes();
 
     while(1){
 

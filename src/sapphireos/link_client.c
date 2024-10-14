@@ -107,22 +107,44 @@ void link2_v_init( void ){
     list_v_init( &binding_list );
 
 	#ifdef ESP8266
-	catbus_query_t query = {
-		{
-            __KV__controller_test,
-        },
-	};
+	
 
-	link2_l_create(
-		LINK_MODE_SEND,
-		__KV__link2_test_key,
-		__KV__link2_test_key2,
-		&query,
-		0,
-		LINK_RATE_1000ms,
-		LINK_AGG_ANY,
-		LINK_FILTER_OFF
-	);
+    catbus_query_t link_query = {
+        {
+            // __KV__controller_test,
+            __KV__tower2,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        },
+    };
+
+    if( catbus_b_query_self( &link_query ) ){
+
+        catbus_query_t query = {
+            {
+                // __KV__controller_test,
+                __KV__tower1,
+            },
+        };
+
+        log_v_debug_P( PSTR("link create") );
+
+    	link2_l_create(
+    		LINK_MODE_SEND,
+    		__KV__link2_test_key,
+    		__KV__link2_test_key2,
+    		&query,
+    		0,
+    		LINK_RATE_1000ms,
+    		LINK_AGG_ANY,
+    		LINK_FILTER_OFF
+    	);
+    }
 
 	#endif
 
