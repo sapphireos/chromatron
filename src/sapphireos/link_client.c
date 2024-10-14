@@ -508,6 +508,8 @@ PT_BEGIN( pt );
 
                 log_v_debug_P( PSTR("recv data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data );
 
+                catbus_i8_set_i64( data_ptr->key, data_ptr->data );
+
                 data_ptr++;
             }
         }   

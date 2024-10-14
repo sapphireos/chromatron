@@ -263,6 +263,10 @@ typedef struct __attribute__((packed)){
 
 void catbus_v_init( void );
 
+int8_t catbus_i8_set_i64(
+    catbus_hash_t32 hash, 
+    int64_t data );
+
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
     catbus_type_t8 type,

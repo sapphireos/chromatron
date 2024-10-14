@@ -479,6 +479,12 @@ int8_t _catbus_i8_internal_set(
     return status;
 }
 
+int8_t catbus_i8_set_i64(
+    catbus_hash_t32 hash, 
+    int64_t data )
+{
+    return catbus_i8_set( hash, CATBUS_TYPE_INT64, &data, sizeof(data) );
+}
 
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
