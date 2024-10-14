@@ -925,6 +925,14 @@ PT_BEGIN( pt );
 
 						// MATCH
 
+						// check if this follower is also a link sender,
+						// in that case, we don't want to send data to it.
+						// Send links don't loop back.
+						if( link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
+
+							goto next;
+						}
+
 						// aggregate and add to data buffer
 						// log_v_debug_P( PSTR("aggregate send") );
 
