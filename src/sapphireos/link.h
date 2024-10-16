@@ -25,13 +25,17 @@
 #ifndef __LINK_H
 #define __LINK_H
 
+#include <stdint.h>
+#include "catbus.h"
+#include "list.h"
+
 // #define LINK_PORT                           44634
 #define LINK2_PORT                           44637
 #define LINK2_MGR_PORT                       44638
 
 
 
-#define LINK_MIN_TICK_RATE                  20
+#define LINK_MIN_TICK_RATE                  50
 #define LINK_MAX_TICK_RATE                  2000
 
 #define LINK_RETRANSMIT_RATE                2000

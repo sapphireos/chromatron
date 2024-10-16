@@ -698,7 +698,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 1000 );
+        TMR_WAIT( pt, LINK_MIN_TICK_RATE );
 
         // check if controller is available
         sock_addr_t link_mgr_raddr;
@@ -725,7 +725,7 @@ PT_BEGIN( pt );
 
             binding_state_t *binding_state = list_vp_get_data( ln );
 
-            binding_state->ticks -= 1000;
+            binding_state->ticks -= LINK_MIN_TICK_RATE;
 
             if( binding_state->ticks <= 0 ){
 
