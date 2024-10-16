@@ -75,6 +75,7 @@
         "-fdata-sections",
         "-fstrict-volatile-bitfields",
         "-nostdlib",
+        "-MMD",
         "-Wall",
         "-Werror=all",
         "-Wno-main",

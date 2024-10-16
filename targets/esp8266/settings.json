@@ -14,6 +14,7 @@
         "-Os",
         "-g3",
         "-Wall",
+        "-MMD",
         "-fno-strict-aliasing",
         "-Wunused-function",
         "-Wno-unused",
