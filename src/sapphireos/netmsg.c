@@ -252,7 +252,9 @@ int8_t _netmsg_i8_receive_sock( netmsg_t netmsg ){
 
     #ifndef ENABLE_COPROCESSOR
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
-    
+ 
+        netmsg_state_t *state = netmsg_vp_get_state( netmsg );    
+
         // update port monitor
         netmsg_port_monitor_t *port_monitor = get_port_monitor( state );
 
