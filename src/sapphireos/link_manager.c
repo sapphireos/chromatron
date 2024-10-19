@@ -26,6 +26,8 @@
 
 #include "controller.h"
 #include "link.h"
+#include "sockets.h"
+#include "threading.h"
 
 #ifdef ENABLE_CONTROLLER
 
@@ -432,6 +434,9 @@ PT_THREAD( link2_mgr_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( link2_mgr_process_thread( pt_t *pt, void *state ) );
 PT_THREAD( link2_mgr_link_timer_thread( pt_t *pt, void *state ) );
 
+static thread_t server_thread;
+static thread_t process_thread;
+static thread_t timer_thread;
 
 void link_mgr_v_start( void ){
 
@@ -447,16 +452,19 @@ void link_mgr_v_start( void ){
 
 	kv_v_add_db_info( link_mgr_kv, sizeof(link_mgr_kv) );
 
+	server_thread = 
 	thread_t_create( link2_mgr_server_thread,
                  PSTR("link2_mgr_server"),
                  0,
                  0 );
 
+	process_thread =
 	thread_t_create( link2_mgr_process_thread,
                  PSTR("link2_mgr_process"),
                  0,
                  0 );
 
+	timer_thread = 
 	thread_t_create( link2_mgr_link_timer_thread,
                  PSTR("link2_mgr_link_timer"),
                  0,
@@ -472,7 +480,19 @@ void link_mgr_v_stop( void ){
 
 	link_mgr_running = FALSE;
 
+	thread_v_kill( server_thread );
+	thread_v_kill( process_thread );
+	thread_v_kill( timer_thread );
+
+	server_thread = -1;
+	process_thread = -1;
+	timer_thread = -1;
+
+	sock_v_release( sock );
+	sock = -1;
+
 	list_v_destroy( &link_list );
+	list_v_destroy( &data_list );
 }
 
 
@@ -491,14 +511,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && ( link_mgr_running ) );
-
-        if( !link_mgr_running ){
-
-        	log_v_debug_P( PSTR("link mgr server stop") );
-
-        	THREAD_EXIT( pt );
-        }
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
         // check if shutting down
         if( sys_b_is_shutting_down() ){
@@ -632,14 +645,7 @@ PT_BEGIN( pt );
 
     	thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 );
 
-    	THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && link_mgr_running );
-
-    	if( !link_mgr_running ){
-
-        	log_v_debug_P( PSTR("link mgr server stop") );
-
-        	THREAD_EXIT( pt );
-        }
+    	THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         // check if shutting down
         if( sys_b_is_shutting_down() ){
@@ -867,14 +873,7 @@ PT_BEGIN( pt );
 
     	thread_v_set_alarm( tmr_u32_get_system_time_ms() + LINK_RATE_MIN );
 
-    	THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && link_mgr_running );
-
-        if( !link_mgr_running ){
-
-        	log_v_debug_P( PSTR("link mgr timer stop") );
-
-        	THREAD_EXIT( pt );
-        }
+    	THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         // check if shutting down
         if( sys_b_is_shutting_down() ){

@@ -71,8 +71,12 @@ void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	#endif
 }
 
+#ifdef AVR
 extern uint8_t current_opcode;
 extern uint8_t current_length;
+#else
+static uint8_t current_opcode;
+#endif
 
 
 #define COPROC_RX_TIMEOUT 		500 // timeout for most commands
@@ -103,7 +107,7 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 
 			if( usart_u8_bytes_available( UART_CHANNEL ) == 0 ){
 
-				log_v_debug_P( PSTR("coproc receive timeout: %d"), receive_timeout );
+				log_v_debug_P( PSTR("coproc receive timeout: %d opcode: 0x%02x"), receive_timeout, current_opcode );
 
 				ASSERT( FALSE );
 			}
@@ -375,6 +379,8 @@ uint8_t coproc_u8_issue(
 
 		receive_timeout = COPROC_RX_TIMEOUT;
 	}
+
+	current_opcode = opcode;
 
 	uint32_t start = tmr_u32_get_system_time_ms();
 
