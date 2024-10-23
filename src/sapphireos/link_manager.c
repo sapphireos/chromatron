@@ -28,6 +28,7 @@
 #include "link.h"
 #include "sockets.h"
 #include "threading.h"
+#include "timers.h"
 
 #ifdef ENABLE_CONTROLLER
 
@@ -41,7 +42,10 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     link2_t link;
-    int16_t timer;
+
+    // int16_t retransmit_timer; // do we need this here?
+
+    // int16_t timer;
     // link2_node_t follows
 } link2_meta_t;
 
@@ -121,10 +125,23 @@ static int8_t update_data_cache( ip_addr4_t ip, catbus_hash_t32 hash, int64_t da
 	cache->timeout 	= LINK2_MGR_LINK_TIMEOUT;
 	
 	// cache->data 	= specific_to_i64( meta->type, data );	
+
+	bool changed = FALSE;
+
+	if( cache->data != data ){
+
+		changed = TRUE;
+	}
+
 	cache->data 	= data;
 
 	// uint8_t *ptr = (uint8_t *)( cache + 1 );
 	// memcpy( ptr, data, data_len );
+
+	if( changed ){
+
+		return 1;
+	}
 
 	return 0;
 }
@@ -160,23 +177,23 @@ static void process_data_cache_timeouts( void ){
     }
 }
 
-static void process_link_timers( uint16_t elapsed ){
+// static void process_link_timers( uint16_t elapsed ){
 
-    list_node_t ln = link_list.head;
+//     list_node_t ln = link_list.head;
 
-    while( ln >= 0 ){
+//     while( ln >= 0 ){
 
-        link2_meta_t *state = list_vp_get_data( ln );
+//         link2_meta_t *state = list_vp_get_data( ln );
 
-        if( state->timer > 0 ){
+//         if( state->timer > 0 ){
 
-	        state->timer -= elapsed;
-        }
+// 	        state->timer -= elapsed;
+//         }
 
-        ln = list_ln_next( ln );
-    }
+//         ln = list_ln_next( ln );
+//     }
 
-}
+// }
 
 static uint8_t count_nodes_for_link( link2_meta_t *meta, uint16_t len ){
 
@@ -333,7 +350,7 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 
 	    // initialize the timer to 100 ms, so we will start transmission 
 	    // in 100 ms and then on run at the link rate
-	    meta->timer = 100;
+	    // meta->timer = 100;
 	    
 	    link2_node_t *node = (link2_node_t *)( meta + 1 );
 	    node->ip = raddr->ipaddr;
@@ -431,8 +448,8 @@ KV_SECTION_OPT kv_meta_t link_mgr_kv[] = {
 static bool link_mgr_running = FALSE;
 
 PT_THREAD( link2_mgr_server_thread( pt_t *pt, void *state ) );
-PT_THREAD( link2_mgr_process_thread( pt_t *pt, void *state ) );
-PT_THREAD( link2_mgr_link_timer_thread( pt_t *pt, void *state ) );
+PT_THREAD( link2_mgr_binding_thread( pt_t *pt, void *state ) );
+PT_THREAD( link2_mgr_link_data_thread( pt_t *pt, void *state ) );
 
 static thread_t server_thread;
 static thread_t process_thread;
@@ -459,14 +476,14 @@ void link_mgr_v_start( void ){
                  0 );
 
 	process_thread =
-	thread_t_create( link2_mgr_process_thread,
-                 PSTR("link2_mgr_process"),
+	thread_t_create( link2_mgr_binding_thread,
+                 PSTR("link2_mgr_binding"),
                  0,
                  0 );
 
 	timer_thread = 
-	thread_t_create( link2_mgr_link_timer_thread,
-                 PSTR("link2_mgr_link_timer"),
+	thread_t_create( link2_mgr_link_data_thread,
+                 PSTR("link2_mgr_link_data"),
                  0,
                  0 );
 }
@@ -573,7 +590,14 @@ PT_BEGIN( pt );
 
         	while( bytes_read > 0 ){
 
-        		update_data_cache( raddr.ipaddr, data->key, data->data );	
+        		int8_t status = update_data_cache( raddr.ipaddr, data->key, data->data );
+
+        		if( status == 1 ){
+
+        			// data changed
+        			
+        			
+        		}
 
         		data++;
         		bytes_read -= sizeof(link2_data_t);
@@ -595,6 +619,52 @@ end:
     
         THREAD_YIELD( pt );
     }
+
+
+		/*
+
+		Manager receives a DATA message:
+	
+		Data came from a source.  We need to find matching links
+		and store/aggregate the data.
+		The data routing is done in two steps, so for the first step
+		we don't need to worry about transmissions to sinks.
+
+		For each data item:
+			For each send link:
+				If item and IP is source for link:
+					Record data for link and aggregate.
+
+			For each recv link:
+				If item and query matches link:
+					Record data for link and aggregate.
+
+		
+		Periodic transmissions to sinks:
+		
+		Manager is sending data to sinks.
+		This is the second step and is decoupled from the first.
+		
+
+		For each node in controller DB:
+		
+			# list of data items
+			data = [] 
+
+			For each send link:
+				If query matches link and data timer is ready:
+					add link data to data set
+
+			For each recv link:
+				If IP matches link and data timer is ready:
+					add link data to data set
+
+			Deduplicate data set.
+
+			Transmit data set to node
+			Split into multiple messages as needed.
+				
+    	*/
 
 PT_END( pt );
 }
@@ -637,15 +707,17 @@ static void send_bind_msg( link2_binding_t *bindings, uint8_t count, ip_addr4_t 
 	// log_v_debug_P( PSTR("send bind: %d.%d.%d.%d"), ip.ip3, ip.ip2, ip.ip1, ip.ip0 );
 }
 
-PT_THREAD( link2_mgr_process_thread( pt_t *pt, void *state ) )
+PT_THREAD( link2_mgr_binding_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
     while(1){
 
-    	thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 );
+    	// thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 );
 
-    	THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+    	// THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+    	TMR_WAIT( pt, 1000 );
 
         // check if shutting down
         if( sys_b_is_shutting_down() ){
@@ -811,53 +883,6 @@ PT_BEGIN( pt );
 
 
     	process_data_cache_timeouts();
-
-
-
-		/*
-
-		Manager receives a DATA message:
-	
-		Data came from a source.  We need to find matching links
-		and store/aggregate the data.
-		The data routing is done in two steps, so for the first step
-		we don't need to worry about transmissions to sinks.
-
-		For each data item:
-			For each send link:
-				If item and IP is source for link:
-					Record data for link and aggregate.
-
-			For each recv link:
-				If item and query matches link:
-					Record data for link and aggregate.
-
-		
-		Periodic transmissions to sinks:
-		
-		Manager is sending data to sinks.
-		This is the second step and is decoupled from the first.
-		
-
-		For each node in controller DB:
-		
-			# list of data items
-			data = [] 
-
-			For each send link:
-				If query matches link and data timer is ready:
-					add link data to data set
-
-			For each recv link:
-				If IP matches link and data timer is ready:
-					add link data to data set
-
-			Deduplicate data set.
-
-			Transmit data set to node
-			Split into multiple messages as needed.
-				
-    	*/
     }
 
 PT_END( pt );
@@ -865,7 +890,7 @@ PT_END( pt );
 
 
 
-PT_THREAD( link2_mgr_link_timer_thread( pt_t *pt, void *state ) )
+PT_THREAD( link2_mgr_link_data_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
@@ -881,7 +906,7 @@ PT_BEGIN( pt );
             THREAD_EXIT( pt );
         }
 
-        process_link_timers( LINK_RATE_MIN );
+        // process_link_timers( LINK_RATE_MIN );
 
 
     	// SINK DATA:
@@ -914,10 +939,10 @@ PT_BEGIN( pt );
 		        link2_meta_t *meta = list_vp_get_data( ln );
 
 		        // check if link timer is ready
-		        if( meta->timer > 0 ){
+		        // if( meta->timer > 0 ){
 
-		        	goto next;
-		        } 
+		        // 	goto next;
+		        // } 
 
 				if( meta->link.mode == LINK_MODE_SEND ){
 

@@ -36,6 +36,10 @@ static list_t binding_list;
 typedef struct __attribute__((packed)){
     catbus_hash_t32 key;
     uint16_t rate;
+
+    int64_t last_data;
+    int16_t retransmit_ticks;
+
     int16_t ticks;
     uint8_t flags;
     uint8_t timeout;
@@ -727,8 +731,14 @@ PT_BEGIN( pt );
 
             binding_state->ticks -= LINK_MIN_TICK_RATE;
 
+            if( binding_state->retransmit_ticks > 0 ){
+
+                binding_state->retransmit_ticks -= LINK_MIN_TICK_RATE;    
+            }
+
             if( binding_state->ticks <= 0 ){
 
+                // reset timer
                 binding_state->ticks = binding_state->rate;
 
                 // get meta data
@@ -749,14 +759,45 @@ PT_BEGIN( pt );
                     goto next_binding;
                 }
 
-                data_ptr->key = binding_state->key;
+                int64_t data = 0;
 
-                if( catbus_i8_get_i64( data_ptr->key, &data_ptr->data ) != 0 ){
+                if( catbus_i8_get_i64( binding_state->key, &data ) != 0 ){
 
                     log_v_error_P( PSTR("catbus got wrecked!") );
 
                     goto next_binding;
                 }
+
+                // detect changes:
+                if( data == binding_state->last_data ){
+
+                    // data has not changed!
+
+                    // check retransmit timer
+                    if( binding_state->retransmit_ticks > 0 ){
+
+                        // timer has not expired, we can skip transmission
+                        goto next_binding;
+                    }
+                    else{
+
+                        // retransmit!
+
+                        // reset timer
+                        binding_state->retransmit_ticks = LINK_RETRANSMIT_RATE;
+                    }
+                }
+                else{
+
+                    // data has changed, set the retransmit timer
+                    // to a fast retransmit
+                    binding_state->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
+                }
+
+                // set up entry in message:
+                data_ptr->key = binding_state->key;
+                data_ptr->data = data;
+
 
                 // log_v_debug_P( PSTR("packing data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data);
 

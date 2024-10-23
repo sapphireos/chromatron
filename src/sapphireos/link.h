@@ -39,6 +39,7 @@
 #define LINK_MAX_TICK_RATE                  2000
 
 #define LINK_RETRANSMIT_RATE                2000
+#define LINK_RETRANSMIT_RATE_FAST           100
 
 #define LINK2_MGR_LINK_TIMEOUT				60
 
