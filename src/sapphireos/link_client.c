@@ -26,6 +26,7 @@
 
 #include "controller.h"
 #include "link.h"
+#include "threading.h"
 
 #ifdef ENABLE_CONTROLLER
 
@@ -106,6 +107,21 @@ PT_THREAD( link2_meta_thread( pt_t *pt, void *state ) );
 PT_THREAD( link2_data_thread( pt_t *pt, void *state ) );
 PT_THREAD( link2_server_thread( pt_t *pt, void *state ) );
 
+
+PT_THREAD( link2_test_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while(1){
+
+        TMR_WAIT( pt, 4000 );
+
+        link2_test_key++;
+    }
+
+PT_END( pt );
+}
+
 void link2_v_init( void ){
 
 	list_v_init( &link_list );
@@ -149,6 +165,8 @@ void link2_v_init( void ){
     		LINK_AGG_ANY,
     		LINK_FILTER_OFF
     	);
+
+        thread_t_create( link2_test_thread, PSTR("link2_test"), 0, 0 );
     }
 
 	#endif
