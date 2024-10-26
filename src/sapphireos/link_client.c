@@ -114,7 +114,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 4000 );
+        TMR_WAIT( pt, 10000 );
 
         link2_test_key++;
     }
@@ -161,7 +161,7 @@ void link2_v_init( void ){
     		__KV__link2_test_key2,
     		&query,
     		0,
-    		LINK_RATE_1000ms,
+    		5000,
     		LINK_AGG_ANY,
     		LINK_FILTER_OFF
     	);
@@ -754,96 +754,104 @@ PT_BEGIN( pt );
                 binding_state->retransmit_ticks -= LINK_MIN_TICK_RATE;    
             }
 
-            if( binding_state->ticks <= 0 ){
+            if( ( binding_state->ticks >= 0 ) && ( binding_state->retransmit_ticks >= 0 ) ){
 
-                // reset timer
+                goto next_binding;
+            }
+
+            // reset timer
+            if( binding_state->ticks < 0 ){
+
                 binding_state->ticks = binding_state->rate;
+            }
 
-                // get meta data
-                catbus_meta_t meta;
+            // get meta data
+            catbus_meta_t meta;
 
-                if( kv_i8_get_catbus_meta( binding_state->key, &meta ) < 0 ){
+            if( kv_i8_get_catbus_meta( binding_state->key, &meta ) < 0 ){
 
-                    log_v_debug_P( PSTR("binding key not found: 0x%08x"), binding_state->key );
+                log_v_debug_P( PSTR("binding key not found: 0x%08x"), binding_state->key );
 
+                goto next_binding;
+            }
+
+            uint16_t array_len = meta.count + 1;
+            if( array_len > 1 ){
+
+                log_v_error_P( PSTR("arrays not supported!") );
+
+                goto next_binding;
+            }
+
+            int64_t data = 0;
+
+            if( catbus_i8_get_i64( binding_state->key, &data ) != 0 ){
+
+                log_v_error_P( PSTR("catbus got wrecked!") );
+
+                goto next_binding;
+            }
+
+            // detect changes:
+            bool changed = data != binding_state->last_data;
+
+            if( !changed ){
+
+                // data has not changed!
+
+                // check retransmit timer
+                if( binding_state->retransmit_ticks > 0 ){
+
+                    // timer has not expired, we can skip transmission
                     goto next_binding;
-                }
-
-                uint16_t array_len = meta.count + 1;
-                if( array_len > 1 ){
-
-                    log_v_error_P( PSTR("arrays not supported!") );
-
-                    goto next_binding;
-                }
-
-                int64_t data = 0;
-
-                if( catbus_i8_get_i64( binding_state->key, &data ) != 0 ){
-
-                    log_v_error_P( PSTR("catbus got wrecked!") );
-
-                    goto next_binding;
-                }
-
-                // detect changes:
-                if( data == binding_state->last_data ){
-
-                    // data has not changed!
-
-                    // check retransmit timer
-                    if( binding_state->retransmit_ticks > 0 ){
-
-                        // timer has not expired, we can skip transmission
-                        goto next_binding;
-                    }
-                    else{
-
-                        // retransmit!
-
-                        // reset timer
-                        binding_state->retransmit_ticks = LINK_RETRANSMIT_RATE;
-                    }
                 }
                 else{
 
-                    // data has changed, set the retransmit timer
-                    // to a fast retransmit
-                    binding_state->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
-                }
+                    // retransmit!
 
-                // set up entry in message:
-                data_ptr->key = binding_state->key;
-                data_ptr->data = data;
-
-
-                // log_v_debug_P( PSTR("packing data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data);
-
-                data_ptr++;
-                current_data_count++;
-
-                if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
-
-                    // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d %d"), 
-                    //     link_mgr_raddr.ipaddr.ip3,
-                    //     link_mgr_raddr.ipaddr.ip2,
-                    //     link_mgr_raddr.ipaddr.ip1,
-                    //     link_mgr_raddr.ipaddr.ip0,
-                    //     link_mgr_raddr.port,
-                    //     current_data_count
-                    // );
-
-                    // transmit message
-                    if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &link_mgr_raddr ) < 0 ){
-
-                        log_v_debug_P( PSTR("data send fail") );
-                    }                
-
-                    // reset pointers
-                    data_ptr = (link2_data_t *)( data_hdr + 1 );
-                    current_data_count = 0;
+                    // reset timer
+                    binding_state->retransmit_ticks = LINK_RETRANSMIT_RATE;
                 }
             }
+            else{
+
+                // data has changed, set the retransmit timer
+                // to a fast retransmit
+                binding_state->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
+            }
+
+            // set up entry in message:
+            data_ptr->key = binding_state->key;
+            data_ptr->data = data;
+
+
+            log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed %d timer: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, binding_state->retransmit_ticks );
+
+            data_ptr++;
+            current_data_count++;
+
+            if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
+
+                // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d %d"), 
+                //     link_mgr_raddr.ipaddr.ip3,
+                //     link_mgr_raddr.ipaddr.ip2,
+                //     link_mgr_raddr.ipaddr.ip1,
+                //     link_mgr_raddr.ipaddr.ip0,
+                //     link_mgr_raddr.port,
+                //     current_data_count
+                // );
+
+                // transmit message
+                if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &link_mgr_raddr ) < 0 ){
+
+                    log_v_debug_P( PSTR("data send fail") );
+                }                
+
+                // reset pointers
+                data_ptr = (link2_data_t *)( data_hdr + 1 );
+                current_data_count = 0;
+            }
+        
 
 next_binding:
             ln = list_ln_next( ln );

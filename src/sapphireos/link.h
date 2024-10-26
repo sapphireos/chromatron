@@ -33,6 +33,9 @@
 #define LINK2_PORT                           44637
 #define LINK2_MGR_PORT                       44638
 
+#ifdef LINK_RATE_MIN
+#undef LINK_RATE_MIN
+#endif
 
 
 #define LINK_MIN_TICK_RATE                  50
@@ -61,7 +64,7 @@ typedef uint16_t link_filter_t16;
 #define LINK_FILTER_OFF                     0
 
 typedef uint16_t link_rate_t16;
-#define LINK_RATE_MIN                       20
+#define LINK_RATE_MIN                       50
 #define LINK_RATE_1000ms                    1000
 #define LINK_RATE_MAX                       30000
 

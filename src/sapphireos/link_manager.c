@@ -22,6 +22,7 @@
 // </license>
  */
 
+#include "catbus_link.h"
 #include "sapphire.h"
 
 #include "controller.h"
@@ -43,7 +44,9 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     link2_t link;
 
-    // int16_t retransmit_timer; // do we need this here?
+    int64_t current_data;
+
+    int16_t retransmit_ticks;
 
     // int16_t timer;
     // link2_node_t follows
@@ -348,9 +351,8 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 	    meta = (link2_meta_t *)list_vp_get_data( ln );
 	    meta->link = *link;
 
-	    // initialize the timer to 100 ms, so we will start transmission 
-	    // in 100 ms and then on run at the link rate
-	    // meta->timer = 100;
+	    // init the rexmit timer
+	    meta->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
 	    
 	    link2_node_t *node = (link2_node_t *)( meta + 1 );
 	    node->ip = raddr->ipaddr;
@@ -896,7 +898,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-    	thread_v_set_alarm( tmr_u32_get_system_time_ms() + LINK_RATE_MIN );
+    	thread_v_set_alarm( tmr_u32_get_system_time_ms() + LINK_MIN_TICK_RATE );
 
     	THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
@@ -905,8 +907,6 @@ PT_BEGIN( pt );
 
             THREAD_EXIT( pt );
         }
-
-        // process_link_timers( LINK_RATE_MIN );
 
 
     	// SINK DATA:
@@ -947,79 +947,130 @@ PT_BEGIN( pt );
 				if( meta->link.mode == LINK_MODE_SEND ){
 
 					// check link query against follower
-					if( catbus_b_query_tags( &meta->link.query, &follower->tags ) ){
+					if( !catbus_b_query_tags( &meta->link.query, &follower->tags ) ){
 
-						// log_v_debug_P( PSTR("%08x %08x %08x %08x %08x %08x %08x %08x | %08x %08x %08x %08x %08x %08x %08x %08x"),
-						// 	meta->link.query.tags[0],
-						// 	meta->link.query.tags[1],
-						// 	meta->link.query.tags[2],
-						// 	meta->link.query.tags[3],
-						// 	meta->link.query.tags[4],
-						// 	meta->link.query.tags[5],
-						// 	meta->link.query.tags[6],
-						// 	meta->link.query.tags[7],
-						// 	follower->tags.tags[0],
-						// 	follower->tags.tags[1],
-						// 	follower->tags.tags[2],
-						// 	follower->tags.tags[3],
-						// 	follower->tags.tags[4],
-						// 	follower->tags.tags[5],
-						// 	follower->tags.tags[6],
-						// 	follower->tags.tags[7]);
-
-						// MATCH
-
-						// check if this follower is also a link sender,
-						// in that case, we don't want to send data to it.
-						// Send links don't loop back.
-						if( link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
-
-							goto next;
-						}
-
-						// aggregate and add to data buffer
-						// log_v_debug_P( PSTR("aggregate send") );
-
-						int64_t data = aggregate( meta );
-
-						data_ptr->key = meta->link.dest_key;
-						data_ptr->data = data;
-
-						data_ptr++;
-	                    current_data_count++;
-
-	                    if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
-
-	                        // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
-	                        //     follower->ip.ip3,
-	                        //     follower->ip.ip2,
-	                        //     follower->ip.ip1,
-	                        //     follower->ip.ip0,
-	                        //     current_data_count
-	                        // );
-
-	                        // transmit message
-	                        if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
-
-	                            log_v_debug_P( PSTR("data send fail") );
-	                        }                
-
-	                        // reset pointers
-	                        data_ptr = (link2_data_t *)( data_hdr + 1 );
-	                        current_data_count = 0;
-	                    }
+						goto next;
 					}
+						
+					// log_v_debug_P( PSTR("%08x %08x %08x %08x %08x %08x %08x %08x | %08x %08x %08x %08x %08x %08x %08x %08x"),
+					// 	meta->link.query.tags[0],
+					// 	meta->link.query.tags[1],
+					// 	meta->link.query.tags[2],
+					// 	meta->link.query.tags[3],
+					// 	meta->link.query.tags[4],
+					// 	meta->link.query.tags[5],
+					// 	meta->link.query.tags[6],
+					// 	meta->link.query.tags[7],
+					// 	follower->tags.tags[0],
+					// 	follower->tags.tags[1],
+					// 	follower->tags.tags[2],
+					// 	follower->tags.tags[3],
+					// 	follower->tags.tags[4],
+					// 	follower->tags.tags[5],
+					// 	follower->tags.tags[6],
+					// 	follower->tags.tags[7]);
+
+					// MATCH
+
+					// check if this follower is also a link sender,
+					// in that case, we don't want to send data to it.
+					// Send links don't loop back.
+					if( link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
+
+						goto next;
+					}
+	
+					// aggregate and add to data buffer
+					// log_v_debug_P( PSTR("aggregate send") );
+
+					int64_t data = aggregate( meta );
+
+					// check if data is changing or if the timer has expired:
+					bool changed = FALSE;
+
+					if( data != meta->current_data ){
+
+						meta->current_data = data;
+
+						changed = TRUE;
+
+						// if retransmit timer is above the min tick rate,
+						// reset it to transmit sooner.
+						if( meta->retransmit_ticks > LINK_MIN_TICK_RATE ){
+
+							meta->retransmit_ticks = LINK_MIN_TICK_RATE;
+						}
+					}
+
+					// update retransmission timer	
+					if( meta->retransmit_ticks > 0 ){
+
+		                meta->retransmit_ticks -= LINK_MIN_TICK_RATE;    
+		            }
+					
+					// check timer expiry
+					if( meta->retransmit_ticks > 0 ){
+
+						goto next;
+					}
+
+					// check if retransmit timer needs to be reset
+					if( meta->retransmit_ticks <= 0 ){
+
+						if( changed ){
+
+							// retransmit at higher rate on change
+							meta->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
+						}
+						else{
+
+							meta->retransmit_ticks = LINK_RETRANSMIT_RATE;    
+						}
+		            }
+
+
+					data_ptr->key = meta->link.dest_key;
+					data_ptr->data = data;
+
+					log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed: %d next_ticks: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, meta->retransmit_ticks );
+
+					data_ptr++;
+                    current_data_count++;
+
+                    if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
+
+                        // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
+                        //     follower->ip.ip3,
+                        //     follower->ip.ip2,
+                        //     follower->ip.ip1,
+                        //     follower->ip.ip0,
+                        //     current_data_count
+                        // );
+
+                        // transmit message
+                        if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
+
+                            log_v_debug_P( PSTR("data send fail") );
+                        }                
+
+                        // reset pointers
+                        data_ptr = (link2_data_t *)( data_hdr + 1 );
+                        current_data_count = 0;
+                    }
 				}
 				else if( meta->link.mode == LINK_MODE_RECV ){
 
 					// check link IP against follower:
-					if( link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
+					if( !link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
 
-						// MATCH
-
-						// aggregate and add to data buffer
-						// log_v_debug_P( PSTR("aggregate recv") );
+						goto next;
 					}
+
+					// MATCH
+
+					// aggregate and add to data buffer
+					// log_v_debug_P( PSTR("aggregate recv") );
+				
 				}
 
 next:
