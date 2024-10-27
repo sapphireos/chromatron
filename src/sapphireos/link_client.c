@@ -818,6 +818,8 @@ PT_BEGIN( pt );
                 // data has changed, set the retransmit timer
                 // to a fast retransmit
                 binding_state->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
+
+                binding_state->last_data = data;
             }
 
             // set up entry in message:
