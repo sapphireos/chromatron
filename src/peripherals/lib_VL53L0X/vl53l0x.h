@@ -29,6 +29,6 @@
 #define VL53L0X_MAX_VALUE   8190
 
 void vl53l0x_v_init( void );
-
+uint16_t vl53l0x_u16_get_distance( void );
 
 #endif
