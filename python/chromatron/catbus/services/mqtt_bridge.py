@@ -221,11 +221,12 @@ class ClientTimedOut(Exception):
     pass
 
 class DeviceClient(object):
-    def __init__(self, host, bridge):
+    def __init__(self, host, bridge, name):
         super().__init__()
 
         self.host = host
         self.bridge = bridge
+        self.name = name
 
         self.timeout = CLIENT_TIMEOUT
 
@@ -284,6 +285,9 @@ class DeviceClient(object):
             self.unsubscribe(msg.topic)
 
     def clean_up(self):
+        topic = f'chromatron/status/{self.name}'
+        self.publish(topic, '') # remove from status topic
+
         logging.info(f'Stopping client: {self.host}')
         self.mqtt_client.stop() 
 
@@ -463,15 +467,19 @@ class MqttBridge(MsgServer):
         tags = [c.lookup_hash(t)[t] for t in dict_data['tags'] if t != 0]
         dict_data['tags'] = tags
 
-        topic = f'chromatron/status/{tags[0]}'
+        # fix os version string, remove 0 padding.
+        # strip() does not remove nulls
+        dict_data['os_version'] = dict_data['os_version'].rstrip('\x00')
 
+        name = tags[0]
 
         if host not in self.clients:
             logging.info(f'Adding client: {host}')
-            self.clients[host] = DeviceClient(host, self)
+            self.clients[host] = DeviceClient(host, self, name)
 
         self.clients[host].reset_timeout()
 
+        topic = f'chromatron/status/{name}'
         self.clients[host].publish(topic, json.dumps(dict_data))
 
 
