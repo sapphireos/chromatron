@@ -32,7 +32,10 @@ from sapphire.common import util, Ribbon
 import logging
 
 import paho.mqtt.client as mqtt
+import socket
 
+class MQTTHostNotFound(Exception):
+    pass
 
 class MQTTClient(Ribbon):
     def __init__(self, settings={}):
@@ -46,6 +49,12 @@ class MQTTClient(Ribbon):
         self.mqtt.on_disconnect = self.on_disconnect
         self.mqtt.on_message = self.on_message
 
+        self._connected = False
+
+    @property
+    def connected(self):
+        return self._connected
+
     def connect(self, host='localhost'):
         if host is None:
             try:
@@ -54,15 +63,23 @@ class MQTTClient(Ribbon):
             except KeyError:
                 host = 'localhost'
 
-        self.mqtt.connect(host)
+        try:
+            self.mqtt.connect(host)        
+
+        except socket.gaierror:
+            raise MQTTHostNotFound(host)
 
     def clean_up(self):
         self.mqtt.disconnect()
 
     def on_connect(self, client, userdata, flags, rc):
+        self._connected = True
+
         logging.info("Connected with result code "+str(rc))
 
     def on_disconnect(self, client, userdata, rc):
+        self._connected = False
+
         if rc != 0:
             logging.info("Unexpected disconnection.")
 

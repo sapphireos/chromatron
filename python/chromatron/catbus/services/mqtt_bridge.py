@@ -30,7 +30,7 @@ from catbus.catbustypes import *
 from sapphire.common import MsgServer, util, catbus_string_hash, run_all, synchronized
 from sapphire.protocols import services
 from catbus import *
-from .mqtt_client import MQTTClient
+from .mqtt_client import MQTTClient, MQTTHostNotFound
 import threading
 
 
@@ -329,7 +329,7 @@ but there are no subscriptions for it.
 """
 
 class MqttBridge(MsgServer):
-    def __init__(self, mqtt_host='omnomnom.local', mqtt_port=1883):
+    def __init__(self, mqtt_host='localhost', mqtt_port=1883):
         super().__init__(name='mqtt_bridge', port=MQTT_BRIDGE_PORT)
 
         self.mqtt_host = mqtt_host
@@ -346,11 +346,11 @@ class MqttBridge(MsgServer):
         self.register_message(MqttBridgeMsg, self._handle_bridge)
             
         self.start_timer(1.0, self._process_devices)
+        self.start_timer(1.0, self._process_connection)
 
         self.mqtt_client = MQTTClient()
         # self.mqtt_client.mqtt.on_message = self.on_message
         self.mqtt_client.start()
-        self.mqtt_client.connect(host=self.mqtt_host)
 
         self.start()
 
@@ -361,6 +361,20 @@ class MqttBridge(MsgServer):
         self.clients = {}
 
         self.mqtt_client.stop()
+
+    def _process_connection(self):
+        if not self.mqtt_client.connected:
+            try:
+                self.mqtt_client.connect(host=self.mqtt_host)
+
+            except ConnectionRefusedError as e:
+                logging.error(f'Connection refused: {self.mqtt_host}:{self.mqtt_port}')
+
+            except MQTTHostNotFound as e:
+                logging.error(f'Host not found: {self.mqtt_host}:{self.mqtt_port}')
+
+            except Exception as e:
+                logging.exception(e)
 
     def _process_devices(self):
         bridge_msg = MqttBridgeMsg()
