@@ -1090,7 +1090,6 @@ PT_END( pt );
 }
 
 
-
 int8_t controller_i8_get_addr( sock_addr_t *raddr ){
 
 	if( ( controller_state == STATE_FOLLOWER ) ||
@@ -1104,7 +1103,7 @@ int8_t controller_i8_get_addr( sock_addr_t *raddr ){
 			return 0;
 		}
 
-		return -1;
+		return 0;
 	}
 	else{
 
@@ -1116,6 +1115,25 @@ int8_t controller_i8_get_addr( sock_addr_t *raddr ){
 		return -1;
 	}
 }
+
+bool controller_b_is_connected( void ){
+
+	return controller_i8_get_addr( 0 ) == 0;
+}
+
+bool controller_b_is_leader( void ){
+
+	return controller_state == STATE_LEADER;
+}
+
+bool controller_b_is_follower( void ){
+
+	return controller_state == STATE_FOLLOWER;
+}
+
+
+
+
 
 
 static list_node_t follower_ln;

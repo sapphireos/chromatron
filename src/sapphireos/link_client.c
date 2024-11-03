@@ -130,44 +130,44 @@ void link2_v_init( void ){
 	#ifdef ESP8266
 	
 
-    catbus_query_t link_query = {
-        {
-            // __KV__controller_test,
-            __KV__tower2,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-        },
-    };
+    // catbus_query_t link_query = {
+    //     {
+    //         // __KV__controller_test,
+    //         __KV__tower2,
+    //         0,
+    //         0,
+    //         0,
+    //         0,
+    //         0,
+    //         0,
+    //         0,
+    //     },
+    // };
 
-    if( catbus_b_query_self( &link_query ) ){
+    // if( catbus_b_query_self( &link_query ) ){
 
-        catbus_query_t query = {
-            {
-                // __KV__controller_test,
-                __KV__tower1,
-            },
-        };
+    //     catbus_query_t query = {
+    //         {
+    //             // __KV__controller_test,
+    //             __KV__tower1,
+    //         },
+    //     };
 
-        log_v_debug_P( PSTR("link create") );
+    //     log_v_debug_P( PSTR("link create") );
 
-    	link2_l_create(
-    		LINK_MODE_SEND,
-    		__KV__link2_test_key,
-    		__KV__link2_test_key2,
-    		&query,
-    		0,
-    		5000,
-    		LINK_AGG_ANY,
-    		LINK_FILTER_OFF
-    	);
+    // 	link2_l_create(
+    // 		LINK_MODE_SEND,
+    // 		__KV__link2_test_key,
+    // 		__KV__link2_test_key2,
+    // 		&query,
+    // 		0,
+    // 		5000,
+    // 		LINK_AGG_ANY,
+    // 		LINK_FILTER_OFF
+    // 	);
 
-        thread_t_create( link2_test_thread, PSTR("link2_test"), 0, 0 );
-    }
+    //     thread_t_create( link2_test_thread, PSTR("link2_test"), 0, 0 );
+    // }
 
 	#endif
 
