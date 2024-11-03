@@ -87,15 +87,15 @@ class MQTTClient(Ribbon):
         logging.info(msg.topic + " " + str(msg.payload))
 
     def publish(self, topic, payload, qos=0, retain=False):
-        logging.debug(f'Publish to: {topic}')
+        # logging.debug(f'Publish to: {topic}')
         self.mqtt.publish(topic, payload, qos=qos, retain=retain)
 
     def subscribe(self, topic, qos=0):
-        logging.debug(f'Subcribe to: {topic}')
+        # logging.debug(f'Subcribe to: {topic}')
         self.mqtt.subscribe(topic, qos=qos)
 
     def unsubscribe(self, topic):
-        logging.debug(f'Unsubcribe from: {topic}')
+        # logging.debug(f'Unsubcribe from: {topic}')
         self.mqtt.unsubscribe(topic)
 
     def _process(self):

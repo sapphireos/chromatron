@@ -164,23 +164,23 @@ class MqttSubscribeKVMsg(StructField):
         self.header.type = MQTT_MSG_SUBSCRIBE_KV
 
 
-MQTT_MSG_PUBLISH_STATUS   = 10
-class MqttPublishStatus(StructField):
-    def __init__(self, **kwargs):
-        fields = [MQTTMsgHeader(_name="header"),
-                  CatbusQuery(_name="tags"),
-                  Ipv4Field(_name="ip"),
-                  Uint8Field(_name="mode"),
-                  Uint32Field(_name="uptime"),
-                  Int8Field(_name="rssi"),
-                  Int8Field(_name="wifi_channel"),
-                  Uint8Field(_name="cpu_percent"),
-                  Uint16Field(_name="used_heap"),
-                  Uint16Field(_name="pixel_power")]
+# MQTT_MSG_PUBLISH_STATUS   = 10
+# class MqttPublishStatus(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [MQTTMsgHeader(_name="header"),
+#                   CatbusQuery(_name="tags"),
+#                   Ipv4Field(_name="ip"),
+#                   Uint8Field(_name="mode"),
+#                   Uint32Field(_name="uptime"),
+#                   Int8Field(_name="rssi"),
+#                   Int8Field(_name="wifi_channel"),
+#                   Uint8Field(_name="cpu_percent"),
+#                   Uint16Field(_name="used_heap"),
+#                   Uint16Field(_name="pixel_power")]
 
-        super().__init__(_name="mqtt_publish_status", _fields=fields, **kwargs)
+#         super().__init__(_name="mqtt_publish_status", _fields=fields, **kwargs)
 
-        self.header.type = MQTT_MSG_PUBLISH_STATUS
+#         self.header.type = MQTT_MSG_PUBLISH_STATUS
 
 
 MQTT_MSG_BRIDGE        = 1
@@ -200,6 +200,20 @@ class MqttShutdown(StructField):
         super().__init__(_name="mqtt_shutdown", _fields=fields, **kwargs)
 
         self.header.type = MQTT_MSG_SHUTDOWN
+
+class MqttStatusMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [CatbusQuery(_name="tags"),
+                  Ipv4Field(_name="ip"),
+                  Uint8Field(_name="mode"),
+                  Uint32Field(_name="uptime"),
+                  Int8Field(_name="rssi"),
+                  Int8Field(_name="wifi_channel"),
+                  Uint8Field(_name="cpu_percent"),
+                  Uint16Field(_name="used_heap"),
+                  Uint16Field(_name="pixel_power")]
+
+        super().__init__(_name="mqtt_status_msg", _fields=fields, **kwargs)
 
 
 class ClientTimedOut(Exception):
@@ -341,7 +355,6 @@ class MqttBridge(MsgServer):
         self.register_message(MqttPublishKVMsg, self._handle_publish_kv)
         self.register_message(MqttSubscribeMsg, self._handle_subscribe)
         self.register_message(MqttSubscribeKVMsg, self._handle_subscribe_kv)
-        self.register_message(MqttPublishStatus, self._handle_status)
         self.register_message(MqttShutdown, self._handle_shutdown)
         self.register_message(MqttBridgeMsg, self._handle_bridge)
             
@@ -406,7 +419,14 @@ class MqttBridge(MsgServer):
         del self.clients[client.host]
 
     def _handle_publish(self, msg, host):
+        # redirect status messages
+        if msg.topic.topic == "chromatron_mqtt/status":
+            status = MqttStatusMsg().unpack(msg.payload.data.pack())
+            self._handle_status(status, host)
+            return
+
         if host not in self.clients:
+            logging.warn(f'Host {host} not a client!')
             return
 
         # shovel the raw bytes in to MQTT
@@ -414,18 +434,22 @@ class MqttBridge(MsgServer):
 
     def _handle_publish_kv(self, msg, host):
         if host not in self.clients:
+
+            logging.warn(f'Host {host} not a client!')
             return
 
         self.clients[host].publish(msg.topic.topic, json.dumps(msg.payload.data.toBasic()['value']))
 
     def _handle_subscribe(self, msg, host):
         if host not in self.clients:
+            logging.warn(f'Host {host} not a client!')
             return
  
         self.clients[host].subscribe(msg.topic.topic, data_type=None)
 
     def _handle_subscribe_kv(self, msg, host):
         if host not in self.clients:
+            logging.warn(f'Host {host} not a client!')
             return
 
         self.clients[host].subscribe(msg.topic.topic, data_type=msg.meta.type)
@@ -433,8 +457,6 @@ class MqttBridge(MsgServer):
     def _handle_status(self, msg, host):
         dict_data = msg.toBasic()
         
-        del dict_data['header']
-
         # convert hashes to strings
         c = Client((host[0], CATBUS_MAIN_PORT))
         tags = [c.lookup_hash(t)[t] for t in dict_data['tags'] if t != 0]
@@ -444,6 +466,7 @@ class MqttBridge(MsgServer):
 
 
         if host not in self.clients:
+            logging.info(f'Adding client: {host}')
             self.clients[host] = DeviceClient(host, self)
 
         self.clients[host].reset_timeout()
