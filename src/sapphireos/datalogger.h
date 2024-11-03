@@ -31,7 +31,7 @@
 
 #define DATALOG_TICK_RATE       100
 #define DATALOG_FLUSH_RATE      4000
-#define DATALOG_MAX_BUFFER_SIZE ( MSGFLOW_MAX_LEN - sizeof(datalog_header_t) )
+#define DATALOG_MAX_BUFFER_SIZE ( CATBUS_MAX_DATA - sizeof(datalog_header_t) )
 
 typedef struct __attribute__((packed)){
     catbus_hash_t32 hash;

@@ -125,6 +125,7 @@ typedef void ( *mqtt_on_publish_callback_t )( char *topic, uint8_t *data, uint16
 
 bool mqtt_b_match_topic( const char *topic, const char *sub );
 
+bool mqtt_b_connected( void );
 int8_t mqtt_client_i8_publish( const char *topic, const void *data, uint16_t data_len, uint8_t qos, bool retain );
 int8_t mqtt_client_i8_publish_kv( const char *topic, const char *key, uint8_t qos, bool retain );
 int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish_callback_t callback, uint8_t tag );

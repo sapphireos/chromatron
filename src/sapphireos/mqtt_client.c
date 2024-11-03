@@ -23,6 +23,7 @@
  */
 
 #include "sapphire.h"
+#include "ip.h"
 #include "config.h"
 
 #include "controller.h"
@@ -160,6 +161,21 @@ void mqtt_client_v_init( void ){
     }
     #endif
 
+}
+
+bool mqtt_b_connected( void ){
+
+	if( ip_b_is_zeroes( broker_ip ) ){
+
+		return FALSE;
+	}
+
+	if( broker_port == 0 ){
+
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 static sock_addr_t get_broker_raddr( void ){
