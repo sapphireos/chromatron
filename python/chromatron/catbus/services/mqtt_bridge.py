@@ -211,7 +211,8 @@ class MqttStatusMsg(StructField):
                   Int8Field(_name="wifi_channel"),
                   Uint8Field(_name="cpu_percent"),
                   Uint16Field(_name="used_heap"),
-                  Uint16Field(_name="pixel_power")]
+                  Uint16Field(_name="pixel_power"),
+                  StringField(_name="os_version", _len=16)]
 
         super().__init__(_name="mqtt_status_msg", _fields=fields, **kwargs)
 
@@ -420,7 +421,7 @@ class MqttBridge(MsgServer):
 
     def _handle_publish(self, msg, host):
         # redirect status messages
-        if msg.topic.topic == "chromatron_mqtt/status":
+        if msg.topic.topic == "chromatron/status":
             status = MqttStatusMsg().unpack(msg.payload.data.pack())
             self._handle_status(status, host)
             return
@@ -462,7 +463,7 @@ class MqttBridge(MsgServer):
         tags = [c.lookup_hash(t)[t] for t in dict_data['tags'] if t != 0]
         dict_data['tags'] = tags
 
-        topic = f'chromatron_mqtt/status/{tags[0]}'
+        topic = f'chromatron/status/{tags[0]}'
 
 
         if host not in self.clients:

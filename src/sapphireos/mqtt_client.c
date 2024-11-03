@@ -721,7 +721,6 @@ static void transmit_status( void ){
 
 	// mqtt_msg_publish_status_t msg = {
 	mqtt_msg_status_t msg = {
-		// { 0 },
 		tags,
 		cfg_ip_get_ipaddr(),
 		sys_u8_get_mode(),
@@ -733,7 +732,9 @@ static void transmit_status( void ){
 		pixel_power,		
 	};
 
-	mqtt_client_i8_publish( PSTR("chromatron_mqtt/status"), (uint8_t *)&msg, sizeof(msg), 0, 1 );
+	sys_v_get_os_version( msg.os_version );
+
+	mqtt_client_i8_publish( PSTR("chromatron/status"), (uint8_t *)&msg, sizeof(msg), 0, 1 );
 
 	// msg.header.magic 		= MQTT_MSG_MAGIC;
 	// msg.header.version 		= MQTT_MSG_VERSION;

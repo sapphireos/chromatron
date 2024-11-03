@@ -86,6 +86,7 @@ typedef struct __attribute__((packed)){
     uint8_t cpu_percent;
     uint16_t used_heap;
     uint16_t pixel_power;
+    char os_version[OS_VER_LEN];
 } mqtt_msg_status_t;
 // typedef struct __attribute__((packed)){
 //     mqtt_msg_header_t header;
