@@ -427,7 +427,7 @@ class MqttBridge(MsgServer):
             return
 
         if host not in self.clients:
-            logging.warn(f'Host {host} not a client!')
+            # logging.warn(f'Host {host} not a client!')
             return
 
         # shovel the raw bytes in to MQTT
@@ -436,21 +436,21 @@ class MqttBridge(MsgServer):
     def _handle_publish_kv(self, msg, host):
         if host not in self.clients:
 
-            logging.warn(f'Host {host} not a client!')
+            # logging.warn(f'Host {host} not a client!')
             return
 
         self.clients[host].publish(msg.topic.topic, json.dumps(msg.payload.data.toBasic()['value']))
 
     def _handle_subscribe(self, msg, host):
         if host not in self.clients:
-            logging.warn(f'Host {host} not a client!')
+            # logging.warn(f'Host {host} not a client!')
             return
  
         self.clients[host].subscribe(msg.topic.topic, data_type=None)
 
     def _handle_subscribe_kv(self, msg, host):
         if host not in self.clients:
-            logging.warn(f'Host {host} not a client!')
+            # logging.warn(f'Host {host} not a client!')
             return
 
         self.clients[host].subscribe(msg.topic.topic, data_type=msg.meta.type)
