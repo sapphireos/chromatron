@@ -1014,8 +1014,19 @@ PT_BEGIN( pt );
         }
         else if( header->msg_type == MQTT_MSG_BRIDGE ){
 
-        	broker_ip = raddr.ipaddr;
-        	broker_port = raddr.port;
+        	if( !ip_b_addr_compare( broker_ip, raddr.ipaddr ) || ( broker_port != raddr.port ) ){
+
+        		broker_ip = raddr.ipaddr;
+        		broker_port = raddr.port;
+
+        		log_v_info_P( PSTR("MQTT bridge found at: %d.%d.%d.%d:%d"), 
+        			broker_ip.ip3,
+        			broker_ip.ip2,
+        			broker_ip.ip1,
+        			broker_ip.ip0,
+        			broker_port
+        		);
+        	}
         }
         else{
 
