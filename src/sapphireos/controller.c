@@ -22,6 +22,7 @@
 // </license>
  */
 
+#include "list.h"
 #include "sapphire.h"
 #include "config.h"
 
@@ -143,6 +144,7 @@ static uint16_t leader_priority;
 static uint16_t leader_follower_count;
 static uint16_t leader_timeout;
 static uint32_t leader_uptime;
+static uint16_t db_size;
 
 KV_SECTION_META kv_meta_t controller_kv[] = {
     { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &controller_state, 		0,  "controller_state" },
@@ -154,6 +156,7 @@ KV_SECTION_META kv_meta_t controller_kv[] = {
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_priority, 		0,  "controller_leader_priority" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_timeout, 		0,  "controller_leader_timeout" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_uptime,  		0,  "controller_leader_uptime" },
+    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &db_size,		  		0,  "controller_db_size" },
 };
 
 static list_t follower_list;
@@ -992,6 +995,8 @@ PT_BEGIN( pt );
 			init_status_msg( &msg );
 			ip_addr4_t ip = cfg_ip_get_ipaddr();
 			update_follower( ip, &msg );
+
+			db_size = list_u16_size( &follower_list );
 
 			// random delay:
 			thread_v_set_alarm( tmr_u32_get_system_time_ms() + 
