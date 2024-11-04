@@ -102,6 +102,7 @@ Followers periodically sync while tracking round trip time.
 
 // #define NO_LOGGING
 #include "sapphire.h"
+#include "controller.h"
 
 #ifdef ENABLE_TIME_SYNC
 
@@ -178,7 +179,7 @@ void time_v_init( void ){
 
     sock = sock_s_create( SOS_SOCK_DGRAM );
 
-    // sock_v_bind( sock, TIME_SERVER_PORT );
+    sock_v_bind( sock, TIME_SERVER_PORT );
 
 
     thread_t_create( time_server_thread,
@@ -244,39 +245,39 @@ uint32_t time_u32_get_network_aligned( uint32_t alignment ){
     return net_time + ( alignment - net_time % alignment );
 }
 
-static bool is_leader( void ){
+// static bool is_leader( void ){
 
-    return services_b_is_server( TIME_ELECTION_SERVICE, 0 );
-}
+//     return services_b_is_server( TIME_ELECTION_SERVICE, 0 );
+// }
 
-static bool is_service_avilable( void ){
+// static bool is_service_avilable( void ){
 
-    return services_b_is_available( TIME_ELECTION_SERVICE, 0 );
-}
+//     return services_b_is_available( TIME_ELECTION_SERVICE, 0 );
+// }
 
-static bool is_follower( void ){
+// static bool is_follower( void ){
 
-    return !is_leader() && is_service_avilable();
-}
+//     return !is_leader() && is_service_avilable();
+// }
 
-static uint16_t get_priority( void ){
+// static uint16_t get_priority( void ){
 
-    // TODO
-    // if doze mode works out, check for it here
-    // and lower priority?
+//     // TODO
+//     // if doze mode works out, check for it here
+//     // and lower priority?
 
-    #ifdef ESP32
+//     #ifdef ESP32
     
-    if( kv_b_get_boolean( __KV__batt_enable ) ){
+//     if( kv_b_get_boolean( __KV__batt_enable ) ){
 
-        return 0;
-    }
+//         return 0;
+//     }
     
-    return 10;
-    #endif
+//     return 10;
+//     #endif
 
-    return 1;
-}
+//     return 1;
+// }
 
 static uint8_t *decode_msg( uint8_t *msg ){
 
@@ -307,15 +308,15 @@ PT_BEGIN( pt );
     backoff = TIME_SYNC_RATE_BASE;
 
     // wait for network
-    THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+    THREAD_WAIT_WHILE( pt, !controller_b_is_connected() );
     
-    services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), sock_u16_get_lport( sock ) );
+    // services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), sock_u16_get_lport( sock ) );
 
     // wait until we resolve the election
-    THREAD_WAIT_WHILE( pt, !is_service_avilable() );
+    // THREAD_WAIT_WHILE( pt, !is_service_avilable() );
 
 
-    while( is_leader() ){
+    while( controller_b_is_leader() ){
 
         if( !is_sync ){
 
@@ -326,9 +327,9 @@ PT_BEGIN( pt );
             is_sync = TRUE;
         }
 
-        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_leader() );
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && controller_b_is_leader() );
 
-        if( !is_leader() ){
+        if( !controller_b_is_leader() ){
 
             continue;
         }
@@ -378,7 +379,7 @@ PT_BEGIN( pt );
         }
     }
 
-    while( is_follower() ){
+    while( controller_b_is_follower() ){
 
         sock_v_flush( sock );
 
@@ -392,7 +393,15 @@ PT_BEGIN( pt );
             TIME_MSG_PING,
         };
 
-        sock_addr_t send_raddr = services_a_get( TIME_ELECTION_SERVICE, 0 );
+        // sock_addr_t send_raddr = services_a_get( TIME_ELECTION_SERVICE, 0 );
+        sock_addr_t send_raddr;
+        if( controller_i8_get_addr( &send_raddr ) < 0 ){
+
+            break;
+        }
+
+        // select server port
+        send_raddr.port = TIME_SERVER_PORT;
 
         sock_v_flush( sock );
         
@@ -401,10 +410,10 @@ PT_BEGIN( pt );
         sock_v_set_timeout( sock, 2 );
 
         // wait for reply or timeout
-        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && controller_b_is_follower() );
 
         // check if service changed
-        if( !is_follower() ){
+        if( !controller_b_is_follower() ){
 
             THREAD_RESTART( pt );
         }
@@ -437,17 +446,26 @@ PT_BEGIN( pt );
             tmr_u32_get_system_time_ms()   
         };
 
-        sock_addr_t send_raddr2 = services_a_get( TIME_ELECTION_SERVICE, 0 );
+        // sock_addr_t send_raddr2 = services_a_get( TIME_ELECTION_SERVICE, 0 );
+        sock_addr_t send_raddr2;
+        if( controller_i8_get_addr( &send_raddr2 ) < 0 ){
+
+            break;
+        }
+
+        // select server port
+        send_raddr2.port = TIME_SERVER_PORT;
+
         
         sock_i16_sendto( sock, (uint8_t *)&req, sizeof(req), &send_raddr2 );  
 
         // wait for reply or timeout
-        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && controller_b_is_follower() );
 
         uint32_t now = tmr_u32_get_system_time_ms();
 
         // check if service changed
-        if( !is_follower() ){
+        if( !controller_b_is_follower() ){
 
             THREAD_RESTART( pt );
         }
@@ -552,7 +570,14 @@ PT_BEGIN( pt );
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
-        master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
+        // master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
+        sock_addr_t controller_raddr;
+        if( controller_i8_get_addr( &controller_raddr ) < 0 ){
+
+            break;
+        }
+
+        master_ip = controller_raddr.ipaddr;
 
         // get elapsed time
         uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_sys_time );
