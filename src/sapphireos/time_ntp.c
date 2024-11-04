@@ -457,6 +457,9 @@ void ntp_v_transmit_source_to_controller( ntp_ts_t source_ntp, uint8_t source ){
         return;
     }
 
+    // change to NTP port!
+    raddr.port = NTP_SERVER_PORT;
+
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
 }
 
@@ -618,8 +621,9 @@ PT_BEGIN( pt );
             // check if we are a controller:
             if( controller_b_is_leader() ){
 
-                uint8_t broadcast_source = 0;
+                uint8_t broadcast_source = clock_source;
 
+                // change sources to net versions, if needed
                 if( clock_source == NTP_SOURCE_SNTP ){
 
                     broadcast_source = NTP_SOURCE_SNTP_NET;
