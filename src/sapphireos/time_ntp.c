@@ -618,7 +618,22 @@ PT_BEGIN( pt );
             // check if we are a controller:
             if( controller_b_is_leader() ){
 
-                ntp_v_transmit( ntp_t_now(), clock_source );
+                uint8_t broadcast_source = 0;
+
+                if( clock_source == NTP_SOURCE_SNTP ){
+
+                    broadcast_source = NTP_SOURCE_SNTP_NET;
+                }
+                else if( clock_source == NTP_SOURCE_GPS ){
+
+                    broadcast_source = NTP_SOURCE_GPS_NET;
+                }
+                else if( clock_source == NTP_SOURCE_INTERNAL ){
+
+                    broadcast_source = NTP_SOURCE_INTERNAL_NET;
+                }
+
+                ntp_v_transmit( ntp_t_now(), broadcast_source );
             }
 
         }

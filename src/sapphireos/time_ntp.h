@@ -45,11 +45,11 @@
 // directly attached GPS source:
 #define NTP_SOURCE_GPS                 32
 // network sync to GPS source:
-// #define NTP_SOURCE_GPS_NET             30
+#define NTP_SOURCE_GPS_NET             30
 // direct SNTP sync:
 #define NTP_SOURCE_SNTP                16
 // network sync to SNTP source:
-// #define NTP_SOURCE_SNTP_NET            14
+#define NTP_SOURCE_SNTP_NET            14
 
 // internal clock sync.
 // this is a system that previously had 
@@ -112,7 +112,7 @@ ntp_ts_t ntp_t_now( void );
 ntp_ts_t ntp_t_local_now( void );
 bool ntp_b_is_sync( void );
 void ntp_v_transmit( ntp_ts_t source_ntp, uint8_t source );
-// void ntp_v_transmit_source_to_controller( ntp_ts_t source_ntp, uint8_t source );
+void ntp_v_transmit_source_to_controller( ntp_ts_t source_ntp, uint8_t source );
 
 #endif
 
