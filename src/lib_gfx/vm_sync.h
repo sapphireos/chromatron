@@ -30,6 +30,7 @@
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
 #define SYNC_PROTOCOL_VERSION           	9
+#define SYNC_SERVER_PORT                    44777
 
 #define SYNC_SERVICE                        __KV__vmsync
 
@@ -94,6 +95,8 @@ typedef struct __attribute__((packed)){
 
 void vm_sync_v_init( void );
 void vm_sync_v_reset( void );
+
+uint32_t vm_sync_u32_get_sync_group_hash( void );
 
 void vm_sync_v_hold( void );
 void vm_sync_v_unhold( void );

@@ -22,7 +22,7 @@
 // </license>
  */
 
-#include "list.h"
+#include "keyvalue.h"
 #include "sapphire.h"
 #include "config.h"
 
@@ -310,9 +310,9 @@ static void update_follower( ip_addr4_t follower_ip, controller_msg_status_t *ms
 
         if( ip_b_addr_compare( follower_ip, follower->ip ) ){
 
-        	follower->service_flags = msg->service_flags;
-        	follower->tags 			= msg->query;
-        	follower->timeout 		= CONTROLLER_FOLLOWER_TIMEOUT;
+        	follower->gfx_sync_group 	= msg->gfx_sync_group;
+        	follower->tags 				= msg->query;
+        	follower->timeout 			= CONTROLLER_FOLLOWER_TIMEOUT;
 
         	return;
         }
@@ -323,7 +323,7 @@ static void update_follower( ip_addr4_t follower_ip, controller_msg_status_t *ms
     follower_t follower = {
     	follower_ip,
     	msg->query,
-    	msg->service_flags,
+    	msg->gfx_sync_group,
 		CONTROLLER_FOLLOWER_TIMEOUT,
     };
 
@@ -554,7 +554,9 @@ static void send_announce( void ){
 
 static void init_status_msg( controller_msg_status_t *msg ){
 
-	msg->service_flags = 0;
+	msg->gfx_sync_group = 0;
+
+	kv_i8_get( __KV__gfx_sync_group_hash, &msg->gfx_sync_group, sizeof(msg->gfx_sync_group) );
 
 	catbus_v_get_query( &msg->query );
 }
@@ -795,6 +797,43 @@ static void process_drop( controller_msg_drop_t *msg, sock_addr_t *raddr ){
 	}
 }
 
+static void process_query_gfx_sync( controller_msg_query_gfx_sync_t *msg, sock_addr_t *raddr ){
+
+	if( controller_state != STATE_LEADER ){
+
+		// we are are not a leader, we don't care about leave.
+
+		return;
+	}
+
+	// search leader
+	list_node_t ln = follower_list.head;
+
+    while( ln > 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        follower_t *follower = (follower_t *)list_vp_get_data( ln );
+
+        if( follower->gfx_sync_group == msg->gfx_sync_group ){
+
+        	// return first match as leader
+
+        	controller_msg_leader_gfx_sync_t reply = {
+        		{ 0 },
+        		follower->ip,
+        	};
+
+        	
+        	send_msg( CONTROLLER_MSG_LEADER_GFX_SYNC, (uint8_t *)&reply, sizeof(reply), raddr );
+
+        	break;
+        }
+
+        ln = next_ln;
+    }
+}
+
 PT_THREAD( controller_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -844,6 +883,10 @@ PT_BEGIN( pt );
         else if( header->msg_type == CONTROLLER_MSG_LEAVE ){
 
         	process_leave( (controller_msg_leave_t *)header, &raddr );
+        }
+        else if( header->msg_type == CONTROLLER_MSG_QUERY_GFX_SYNC ){
+
+        	process_query_gfx_sync( (controller_msg_query_gfx_sync_t *)header, &raddr );
         }
         else{
 

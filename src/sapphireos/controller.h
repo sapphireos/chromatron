@@ -56,41 +56,47 @@ typedef struct __attribute__((packed)){
     uint16_t priority;
     uint16_t follower_count;
 }  controller_msg_announce_t;
-#define CONTROLLER_MSG_ANNOUNCE     1
+#define CONTROLLER_MSG_ANNOUNCE             1
 
 
 typedef struct __attribute__((packed)){
     controller_header_t header;
 }  controller_msg_drop_t;
-#define CONTROLLER_MSG_DROP         2
+#define CONTROLLER_MSG_DROP                 2
 
 typedef struct __attribute__((packed)){
     controller_header_t header;
     catbus_query_t query;
-    uint16_t service_flags;
+    uint32_t gfx_sync_group;
 }  controller_msg_status_t;
-#define CONTROLLER_MSG_STATUS       3
-
-#define CONTROLLER_SERVICE_NET_TIME     0x0001
-#define CONTROLLER_SERVICE_NTP_TIME     0x0002
-#define CONTROLLER_SERVICE_GFX_SYNC     0x0004
-#define CONTROLLER_SERVICE_LINK         0x0008
+#define CONTROLLER_MSG_STATUS               3
 
 
 typedef struct __attribute__((packed)){
     controller_header_t header;
 }  controller_msg_leave_t;
-#define CONTROLLER_MSG_LEAVE        4
+#define CONTROLLER_MSG_LEAVE                4
 
+typedef struct __attribute__((packed)){
+    controller_header_t header;
+    uint32_t gfx_sync_group;
+}  controller_msg_query_gfx_sync_t;
+#define CONTROLLER_MSG_QUERY_GFX_SYNC       30
 
+typedef struct __attribute__((packed)){
+    controller_header_t header;
+    ip_addr4_t leader_ip;
+}  controller_msg_leader_gfx_sync_t;
+#define CONTROLLER_MSG_LEADER_GFX_SYNC      31
 
 
 typedef struct __attribute__((packed)){
     ip_addr4_t ip;
     catbus_query_t tags;
-    uint16_t service_flags;
+    uint32_t gfx_sync_group;
     uint16_t timeout;
 } follower_t;
+
 
 
 void controller_db_v_reset_iter( void );

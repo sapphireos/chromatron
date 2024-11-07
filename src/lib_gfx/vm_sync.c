@@ -20,17 +20,23 @@
 // 
 // </license>
 
+#include "catbus_types.h"
+#include "ip.h"
+#include "random.h"
 #include "sapphire.h"
+#include "sockets.h"
+#include "timers.h"
 
 #ifdef ENABLE_TIME_SYNC
 
+#include "controller.h"
 #include "timesync.h"
 #include "vm_sync.h"
 #include "vm.h"
 #include "hash.h"
 #include "graphics.h"
 #include "config.h"
-#include "services.h"
+// #include "services.h"
 #include "logging.h"
 #include "vm_sequencer.h"
 
@@ -49,6 +55,10 @@ static int16_t sync_data_remaining;
 static uint32_t sync_losses;
 static uint8_t sync_least_hits = 255;
 static uint8_t sync_most_hits;
+
+static ip_addr4_t leader_ip;
+
+static uint32_t checkpoint_hashes[SYNC_MAX_CHECKPOINTS];
 
 
 int8_t vmsync_i8_kv_handler(
@@ -71,18 +81,14 @@ int8_t vmsync_i8_kv_handler(
     return 0;
 }
 
-// static uint32_t checkpoints[SYNC_MAX_CHECKPOINTS];
-static uint32_t checkpoint_hashes[SYNC_MAX_CHECKPOINTS];
-
 KV_SECTION_META kv_meta_t vm_sync_kv[] = {
-    { CATBUS_TYPE_STRING32, 0,                          KV_FLAGS_PERSIST,   0, vmsync_i8_kv_handler,   "gfx_sync_group" },
-    { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_state, 0,            "gfx_sync_state" },
-    // { CATBUS_TYPE_UINT32,   SYNC_MAX_CHECKPOINTS - 1,   KV_FLAGS_READ_ONLY, &checkpoints, 0,           "gfx_sync_checkpoints" },
-    { CATBUS_TYPE_UINT32,   SYNC_MAX_CHECKPOINTS - 1,   KV_FLAGS_READ_ONLY, &checkpoint_hashes, 0,     "gfx_sync_checkpoint_hashes" },
-
-    { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_least_hits,   0,     "gfx_sync_least_hits" },
-    { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_most_hits,    0,     "gfx_sync_most_hits" },
-    { CATBUS_TYPE_UINT32,   0,                          KV_FLAGS_READ_ONLY, &sync_losses,       0,     "gfx_sync_sync_losses" },
+    { CATBUS_TYPE_STRING32, 0,                          KV_FLAGS_PERSIST,   0,                  vmsync_i8_kv_handler,   "gfx_sync_group" },
+    { CATBUS_TYPE_UINT32,   0,                          KV_FLAGS_READ_ONLY, &sync_group_hash,   0,                      "gfx_sync_group_hash" },
+    { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_state,        0,                      "gfx_sync_state" },
+    { CATBUS_TYPE_IPv4,     0,                          KV_FLAGS_READ_ONLY, &leader_ip,         0,                      "gfx_sync_leader_ip" },
+    { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_least_hits,   0,                      "gfx_sync_least_hits" },
+    { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_most_hits,    0,                      "gfx_sync_most_hits" },
+    { CATBUS_TYPE_UINT32,   0,                          KV_FLAGS_READ_ONLY, &sync_losses,       0,                      "gfx_sync_sync_losses" },
 };
 
 static void update_checkpoints( void ){
@@ -93,11 +99,9 @@ static void update_checkpoints( void ){
 
     for( int8_t i = SYNC_MAX_CHECKPOINTS - 2; i >= 0 ; i-- ){
 
-        // checkpoints[i + 1]          = checkpoints[i];
         checkpoint_hashes[i + 1]    = checkpoint_hashes[i];
     }
 
-    // checkpoints[0] = time_u32_get_network_time();
     checkpoint_hashes[0] = vm_u32_get_sync_data_hash();
 }
 
@@ -115,30 +119,6 @@ static uint8_t count_checkpoints( void ){
 
     return count;
 }
-
-// static uint32_t lookup_checkpoint_hash_for_net_time( uint32_t net_time ){
-
-//     uint32_t best_delta = 0xffffffff;
-//     uint32_t best_hash = 0;
-
-//     for( uint8_t i = 0; i < SYNC_MAX_CHECKPOINTS; i++ ){
-
-//         if( checkpoints[i] == 0 ){
-
-//             continue;
-//         }
-
-//         uint32_t delta = abs64( (int64_t)net_time - (int64_t)checkpoints[i] );
-
-//         if( delta < best_delta ){
-
-//             best_delta = delta;
-//             best_hash = checkpoint_hashes[i];
-//         }
-//     }
-
-//     return best_hash;
-// }
 
 static int8_t seek_checkpoint( uint32_t hash ){
 
@@ -194,6 +174,7 @@ void vm_sync_v_init( void ){
 
 void vm_sync_v_reset( void ){
 
+    leader_ip = ip_a_addr( 0, 0, 0, 0 );
     sync_most_hits = 0;
     sync_least_hits = 255;
 
@@ -207,10 +188,15 @@ void vm_sync_v_reset( void ){
 
     // check if hash changed, if so, cancel
     // the previous service
-    if( old_hash != sync_group_hash ){
+    // if( old_hash != sync_group_hash ){
 
-        services_v_cancel( SYNC_SERVICE, old_hash );    
-    }
+    //     services_v_cancel( SYNC_SERVICE, old_hash );    
+    // }
+}
+
+uint32_t vm_sync_u32_get_sync_group_hash( void ){
+
+    return sync_group_hash;
 }
 
 void vm_sync_v_hold( void ){
@@ -229,16 +215,28 @@ void vm_sync_v_unhold( void ){
 
 bool vm_sync_b_is_leader( void ){
 
-    return services_b_is_server( SYNC_SERVICE, sync_group_hash );
+    return ip_b_check_dest( leader_ip );
+
+    // return services_b_is_server( SYNC_SERVICE, sync_group_hash );
 }
 
 bool vm_sync_b_is_follower( void ){
 
-    if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) &&
-        !services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
+    if( ip_b_is_zeroes( leader_ip ) ){
+
+        return FALSE;
+    }
+
+    if( !ip_b_check_dest( leader_ip ) ){
 
         return TRUE;
     }
+
+    // if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) &&
+    //     !services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
+
+    //     return TRUE;
+    // }
 
     return FALSE;
 }
@@ -364,6 +362,27 @@ static void send_request( bool request_data ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 }
 
+static void send_leader_query( void ){
+
+    controller_msg_query_gfx_sync_t msg = {
+        {
+            CONTROLLER_MSG_MAGIC,
+            CONTROLLER_MSG_VERSION,
+            CONTROLLER_MSG_QUERY_GFX_SYNC,
+            0,
+         },
+        sync_group_hash,
+    };
+    
+    sock_addr_t raddr;
+    if( controller_i8_get_addr( &raddr ) < 0 ){
+
+        return;
+    }
+
+    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+}
+
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -373,6 +392,7 @@ PT_BEGIN( pt );
     log_v_debug_P( PSTR("starting VM sync server") );
 
     sock = sock_s_create( SOS_SOCK_DGRAM ); 
+    sock_v_bind( sock, SYNC_SERVER_PORT );
 
     thread_t_create( vm_sync_thread,
                     PSTR("vm_sync"),
@@ -394,377 +414,411 @@ PT_BEGIN( pt );
     		THREAD_EXIT( pt );
     	}
 
-        vm_sync_msg_header_t *header = sock_vp_get_data( sock );
-
-        if( header->magic != SYNC_PROTOCOL_MAGIC ){
-
-        	continue;
-        }
-
-        if( header->version != SYNC_PROTOCOL_VERSION ){
-
-        	continue;
-        }
-
-        if( header->sync_group_hash != sync_group_hash ){
-
-        	continue;
-        }
-
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
-        vm_state_t *vm_state = vm_p_get_state();
 
-        if( vm_state == 0 ){
+        if( ip_b_is_zeroes( leader_ip ) ){
 
-            continue;
+            // should be getting query response on controller protocol
+
+            controller_header_t *header = sock_vp_get_data( sock );
+
+            if( header->magic != CONTROLLER_MSG_MAGIC ){
+
+                continue;
+            }
+
+            if( header->version != CONTROLLER_MSG_VERSION ){
+
+                continue;
+            }
+
+            if( header->msg_type == CONTROLLER_MSG_LEADER_GFX_SYNC ){
+
+                controller_msg_leader_gfx_sync_t *msg = (controller_msg_leader_gfx_sync_t *)header;
+
+                leader_ip = msg->leader_ip;
+
+                log_v_debug_P( PSTR("GFX sync leader: %d.%d.%d.%d"), 
+                    leader_ip.ip3,
+                    leader_ip.ip2,
+                    leader_ip.ip1,
+                    leader_ip.ip0
+                );
+            }
         }
+        else{
 
-        if( header->type == VM_SYNC_MSG_SYNC ){
+            vm_sync_msg_header_t *header = sock_vp_get_data( sock );
 
-            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC") );
+            if( header->magic != SYNC_PROTOCOL_MAGIC ){
 
-            // are we leader?
-            if( vm_sync_b_is_leader() ){
+            	continue;
+            }
+
+            if( header->version != SYNC_PROTOCOL_VERSION ){
+
+            	continue;
+            }
+
+            if( header->sync_group_hash != sync_group_hash ){
+
+            	continue;
+            }
+            
+            vm_state_t *vm_state = vm_p_get_state();
+
+            if( vm_state == 0 ){
 
                 continue;
             }
 
-            vm_sync_msg_sync_t *msg = (vm_sync_msg_sync_t *)header;
+            if( header->type == VM_SYNC_MSG_SYNC ){
 
-            // confirm program name
-            if( header->program_name_hash != vm_state->program_name_hash ){
+                // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC") );
 
-                vm_sync_v_reset();
-
-                if( vm_seq_u8_get_step() == msg->sequencer_step ){
-
-                    log_v_error_P( PSTR("program name mismatch") );
-                }
-                else{
-
-                    // a sequencer step change is not an error,
-                    // though it is handled the same way.
-
-                    log_v_info_P( PSTR("seq step %d -> %d"), vm_seq_u8_get_step(), msg->sequencer_step );
-                }
-
-                // sync sequencer
-                vm_seq_v_set_step( msg->sequencer_step );
-
-                continue;
-            }
-
-            // confirm program hash
-            if( header->program_file_hash != vm_state->file_hash ){
-
-                vm_sync_v_reset();
-
-                log_v_error_P( PSTR("program hash mismatch") );
-
-                continue;
-            }
-
-            if( msg->max_threads > VM_MAX_THREADS ) {
-
-                vm_sync_v_reset();
-
-                log_v_error_P( PSTR("too many VM threads") );
-
-                continue;                
-            }
-
-            // sync VM
-            vm_v_sync( msg->net_time, msg->sync_tick );
-
-            // sync sequencer
-            vm_seq_v_set_step( msg->sequencer_step );
-
-            if( sync_state == STATE_SYNCING ){
-
-                sync_data_remaining = msg->data_len;
-
-                vm_state->tick         = msg->tick;
-                vm_state->loop_tick    = msg->loop_tick;
-                vm_state->rng_seed     = msg->rng_seed;
-                vm_state->frame_number = msg->frame_number;
-
-                uint8_t thread_count = VM_MAX_THREADS;
-
-                if( thread_count > msg->max_threads ){
-
-                    thread_count = msg->max_threads;
-                }
-
-                // sync threads
-                for( uint8_t i = 0; i < thread_count; i++ ){
-
-                    vm_state->threads[i] = msg->threads[i];
-                }
-
-                // log_v_debug_P( PSTR("sync: vm tick %d sync tick %d"), (int32_t)msg->tick, (int32_t)msg->sync_tick );
-            }
-            else if( sync_state == STATE_SYNC ){
-
-                // log_v_debug_P( PSTR("SYNC") );
-
-                if( count_checkpoints() < SYNC_MAX_CHECKPOINTS ){
+                // are we leader?
+                if( vm_sync_b_is_leader() ){
 
                     continue;
                 }
 
-                uint8_t hits = 0;
+                vm_sync_msg_sync_t *msg = (vm_sync_msg_sync_t *)header;
 
-                for( uint8_t i = 0; i < SYNC_MAX_CHECKPOINTS; i++ ){
-
-                    if( seek_checkpoint(msg->checkpoint_hashes[i]) >= 0 ){
-
-                        hits++;
-                    }
-
-                    // log_v_debug_P( PSTR("Local: %d/0x%08x Remote: %d/0x%08x"),
-                    //     checkpoints[i],
-                    //     checkpoint_hashes[i],
-                    //     msg->checkpoints[i],
-                    //     msg->checkpoint_hashes[i] );
-
-                    // uint32_t local_hash = lookup_checkpoint_hash_for_net_time( msg->checkpoints[i] );
-
-                    // if( local_hash != msg->checkpoint_hashes[i] ){
-
-                        // log_v_debug_P( PSTR("Local: 0x%08x != 0x%08x Net: %d"), local_hash, msg->checkpoint_hashes[i], msg->checkpoints[i] );
-                        
-                        // for( uint8_t j = 0; j < SYNC_MAX_CHECKPOINTS; j++ ){
-
-                            // log_v_debug_P( PSTR("Local: 0x%08x"),
-                        // }
-
-                        // break;
-                    // }                    
-                }
-
-                if( hits < sync_least_hits ){
-
-                    sync_least_hits = hits;
-                }
-
-                if( hits > sync_most_hits ){
-
-                    sync_most_hits = hits;
-                }
-
-                if( hits == 0 ){
-
-                    log_v_debug_P( PSTR("VM lost sync") );
-
-                    sync_losses++;
+                // confirm program name
+                if( header->program_name_hash != vm_state->program_name_hash ){
 
                     vm_sync_v_reset();
+
+                    if( vm_seq_u8_get_step() == msg->sequencer_step ){
+
+                        log_v_error_P( PSTR("program name mismatch") );
+                    }
+                    else{
+
+                        // a sequencer step change is not an error,
+                        // though it is handled the same way.
+
+                        log_v_info_P( PSTR("seq step %d -> %d"), vm_seq_u8_get_step(), msg->sequencer_step );
+                    }
+
+                    // sync sequencer
+                    vm_seq_v_set_step( msg->sequencer_step );
+
+                    continue;
                 }
 
-                // verify checkpoint
-                // if( vm_u32_get_checkpoint() == msg->checkpoint ){
+                // confirm program hash
+                if( header->program_file_hash != vm_state->file_hash ){
 
-                //     if( ( vm_u32_get_checkpoint_hash() != msg->checkpoint_hash ) &&
-                //         ( vm_u32_get_checkpoint_hash() != 0 ) ){
+                    vm_sync_v_reset();
 
-                //         log_v_warn_P( PSTR("checkpoint hash mismatch!: %x -> %x @ %u"), msg->checkpoint_hash, vm_u32_get_checkpoint_hash(), vm_u32_get_checkpoint() );
-                //         vm_sync_v_reset();
-                //         vm_v_clear_checkpoint();
-                //     }
-                // }
-                // else{
+                    log_v_error_P( PSTR("program hash mismatch") );
 
-                //     // log_v_debug_P( PSTR("checkpoint frame mismatch: %u -> %u"), msg->checkpoint, vm_u32_get_checkpoint() );
-                // }
-            }
-
-            // log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC") );
-        }
-        else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
-
-            // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_REQ") );
-
-            // are we leader?
-            if( !vm_sync_b_is_leader() ){
-
-                continue;
-            }
-
-            // confirm program name
-            if( header->program_name_hash != vm_state->program_name_hash ){
-
-                log_v_error_P( PSTR("invalid program hash") );
-
-                send_sync( &raddr );
-
-                continue;
-            }
-
-            // confirm program hash
-            if( header->program_file_hash != vm_state->file_hash ){
-
-                log_v_error_P( PSTR("invalid file hash") );
-
-                send_sync( &raddr );
-
-                continue;
-            }
-            
-            // send sync
-            send_sync( &raddr );
-
-            vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
-
-            if( msg->request_data ){
-
-                // log_v_debug_P( PSTR("msg->request_data") );
-
-                // send data
-                uint16_t offset = 0;
-                uint16_t data_len = vm_u16_get_sync_data_len();
-
-                // TODO
-                // need to split the chunk transmission with some delays.
-                // most VM programs only use a single chunk though.
-
-                if( data_len > VM_SYNC_MAX_DATA_LEN ){
-
-                    log_v_debug_P( PSTR("vm sync data multiple chunks: %d"), data_len );
+                    continue;
                 }
 
-                while( offset < data_len ){
+                if( msg->max_threads > VM_MAX_THREADS ) {
 
-                    uint16_t chunk_size = VM_SYNC_MAX_DATA_LEN;
+                    vm_sync_v_reset();
 
-                    if( chunk_size > data_len ){
+                    log_v_error_P( PSTR("too many VM threads") );
 
-                        chunk_size = data_len;
+                    continue;                
+                }
+
+                // sync VM
+                vm_v_sync( msg->net_time, msg->sync_tick );
+
+                // sync sequencer
+                vm_seq_v_set_step( msg->sequencer_step );
+
+                if( sync_state == STATE_SYNCING ){
+
+                    sync_data_remaining = msg->data_len;
+
+                    vm_state->tick         = msg->tick;
+                    vm_state->loop_tick    = msg->loop_tick;
+                    vm_state->rng_seed     = msg->rng_seed;
+                    vm_state->frame_number = msg->frame_number;
+
+                    uint8_t thread_count = VM_MAX_THREADS;
+
+                    if( thread_count > msg->max_threads ){
+
+                        thread_count = msg->max_threads;
                     }
 
-                    log_v_debug_P( PSTR("sending sync data: %d bytes"), chunk_size );
+                    // sync threads
+                    for( uint8_t i = 0; i < thread_count; i++ ){
 
-                    int32_t *data_ptr = vm_i32p_get_sync_data();
-
-                    if( data_ptr == 0 ){
-
-                        log_v_error_P( PSTR("Bad sync data pointer!") );
-
-                        break;
+                        vm_state->threads[i] = msg->threads[i];
                     }
 
-                    if( ( offset + chunk_size ) > vm_u16_get_sync_data_len() ){
+                    // log_v_debug_P( PSTR("sync: vm tick %d sync tick %d"), (int32_t)msg->tick, (int32_t)msg->sync_tick );
+                }
+                else if( sync_state == STATE_SYNC ){
 
-                        log_v_error_P( PSTR("Bad sync data len") );
+                    // log_v_debug_P( PSTR("SYNC") );
 
-                        break;
+                    if( count_checkpoints() < SYNC_MAX_CHECKPOINTS ){
+
+                        continue;
                     }
 
-                    send_data( data_ptr, chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
+                    uint8_t hits = 0;
 
-                    offset += chunk_size;
-                } 
-            }    
+                    for( uint8_t i = 0; i < SYNC_MAX_CHECKPOINTS; i++ ){
 
-            // log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC_REQ") );
-        }
-        else if( header->type == VM_SYNC_MSG_DATA ){
+                        if( seek_checkpoint(msg->checkpoint_hashes[i]) >= 0 ){
 
-            // are we leader?
-            if( vm_sync_b_is_leader() ){
+                            hits++;
+                        }
 
-                continue;
+                        // log_v_debug_P( PSTR("Local: %d/0x%08x Remote: %d/0x%08x"),
+                        //     checkpoints[i],
+                        //     checkpoint_hashes[i],
+                        //     msg->checkpoints[i],
+                        //     msg->checkpoint_hashes[i] );
+
+                        // uint32_t local_hash = lookup_checkpoint_hash_for_net_time( msg->checkpoints[i] );
+
+                        // if( local_hash != msg->checkpoint_hashes[i] ){
+
+                            // log_v_debug_P( PSTR("Local: 0x%08x != 0x%08x Net: %d"), local_hash, msg->checkpoint_hashes[i], msg->checkpoints[i] );
+                            
+                            // for( uint8_t j = 0; j < SYNC_MAX_CHECKPOINTS; j++ ){
+
+                                // log_v_debug_P( PSTR("Local: 0x%08x"),
+                            // }
+
+                            // break;
+                        // }                    
+                    }
+
+                    if( hits < sync_least_hits ){
+
+                        sync_least_hits = hits;
+                    }
+
+                    if( hits > sync_most_hits ){
+
+                        sync_most_hits = hits;
+                    }
+
+                    if( hits == 0 ){
+
+                        log_v_debug_P( PSTR("VM lost sync") );
+
+                        sync_losses++;
+
+                        vm_sync_v_reset();
+                    }
+
+                    // verify checkpoint
+                    // if( vm_u32_get_checkpoint() == msg->checkpoint ){
+
+                    //     if( ( vm_u32_get_checkpoint_hash() != msg->checkpoint_hash ) &&
+                    //         ( vm_u32_get_checkpoint_hash() != 0 ) ){
+
+                    //         log_v_warn_P( PSTR("checkpoint hash mismatch!: %x -> %x @ %u"), msg->checkpoint_hash, vm_u32_get_checkpoint_hash(), vm_u32_get_checkpoint() );
+                    //         vm_sync_v_reset();
+                    //         vm_v_clear_checkpoint();
+                    //     }
+                    // }
+                    // else{
+
+                    //     // log_v_debug_P( PSTR("checkpoint frame mismatch: %u -> %u"), msg->checkpoint, vm_u32_get_checkpoint() );
+                    // }
+                }
+
+                // log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC") );
             }
+            else if( header->type == VM_SYNC_MSG_SYNC_REQ ){
 
-            log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_DATA") );
+                // log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_REQ") );
 
-            // are we syncing?
-            if( sync_state != STATE_SYNCING ){
+                // are we leader?
+                if( !vm_sync_b_is_leader() ){
 
-                log_v_error_P( PSTR("invalid sync state") );
+                    continue;
+                }
 
-                continue;
-            }
+                // confirm program name
+                if( header->program_name_hash != vm_state->program_name_hash ){
 
-            // confirm program name
-            if( header->program_name_hash != vm_state->program_name_hash ){
+                    log_v_error_P( PSTR("invalid program hash") );
 
-                log_v_error_P( PSTR("invalid program hash") );
+                    send_sync( &raddr );
 
-                vm_sync_v_reset();
+                    continue;
+                }
 
-                continue;
-            }
+                // confirm program hash
+                if( header->program_file_hash != vm_state->file_hash ){
 
-            // confirm program hash
-            if( header->program_file_hash != vm_state->file_hash ){
+                    log_v_error_P( PSTR("invalid file hash") );
 
-                log_v_error_P( PSTR("invalid file hash") );
+                    send_sync( &raddr );
 
-                vm_sync_v_reset();
-
-                continue;
-            }
-
-            vm_sync_msg_data_t *msg = (vm_sync_msg_data_t *)header;
+                    continue;
+                }
                 
-            int16_t data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(vm_sync_msg_data_t) - 1 );
+                // send sync
+                send_sync( &raddr );
 
-            if( data_len <= 0 ){
+                vm_sync_msg_sync_req_t *msg = (vm_sync_msg_sync_req_t *)header;
 
-                log_v_error_P( PSTR("invalid data len %d"), data_len );
+                if( msg->request_data ){
 
-                continue;
+                    // log_v_debug_P( PSTR("msg->request_data") );
+
+                    // send data
+                    uint16_t offset = 0;
+                    uint16_t data_len = vm_u16_get_sync_data_len();
+
+                    // TODO
+                    // need to split the chunk transmission with some delays.
+                    // most VM programs only use a single chunk though.
+
+                    if( data_len > VM_SYNC_MAX_DATA_LEN ){
+
+                        log_v_debug_P( PSTR("vm sync data multiple chunks: %d"), data_len );
+                    }
+
+                    while( offset < data_len ){
+
+                        uint16_t chunk_size = VM_SYNC_MAX_DATA_LEN;
+
+                        if( chunk_size > data_len ){
+
+                            chunk_size = data_len;
+                        }
+
+                        log_v_debug_P( PSTR("sending sync data: %d bytes"), chunk_size );
+
+                        int32_t *data_ptr = vm_i32p_get_sync_data();
+
+                        if( data_ptr == 0 ){
+
+                            log_v_error_P( PSTR("Bad sync data pointer!") );
+
+                            break;
+                        }
+
+                        if( ( offset + chunk_size ) > vm_u16_get_sync_data_len() ){
+
+                            log_v_error_P( PSTR("Bad sync data len") );
+
+                            break;
+                        }
+
+                        send_data( data_ptr, chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
+
+                        offset += chunk_size;
+                    } 
+                }    
+
+                // log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC_REQ") );
             }
+            else if( header->type == VM_SYNC_MSG_DATA ){
 
-            if( data_len > sync_data_remaining ){
+                // are we leader?
+                if( vm_sync_b_is_leader() ){
 
-                log_v_error_P( PSTR("more data than expected: %d > %d"), data_len, sync_data_remaining );
-                continue;
+                    continue;
+                }
+
+                log_v_debug_P( PSTR("VM_SYNC_MSG_SYNC_DATA") );
+
+                // are we syncing?
+                if( sync_state != STATE_SYNCING ){
+
+                    log_v_error_P( PSTR("invalid sync state") );
+
+                    continue;
+                }
+
+                // confirm program name
+                if( header->program_name_hash != vm_state->program_name_hash ){
+
+                    log_v_error_P( PSTR("invalid program hash") );
+
+                    vm_sync_v_reset();
+
+                    continue;
+                }
+
+                // confirm program hash
+                if( header->program_file_hash != vm_state->file_hash ){
+
+                    log_v_error_P( PSTR("invalid file hash") );
+
+                    vm_sync_v_reset();
+
+                    continue;
+                }
+
+                vm_sync_msg_data_t *msg = (vm_sync_msg_data_t *)header;
+                    
+                int16_t data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(vm_sync_msg_data_t) - 1 );
+
+                if( data_len <= 0 ){
+
+                    log_v_error_P( PSTR("invalid data len %d"), data_len );
+
+                    continue;
+                }
+
+                if( data_len > sync_data_remaining ){
+
+                    log_v_error_P( PSTR("more data than expected: %d > %d"), data_len, sync_data_remaining );
+                    continue;
+                }
+
+                sync_data_remaining -= data_len;
+
+                // validate remaining data len before copying into our VM:
+                if( sync_data_remaining == 0 ){
+
+                    log_v_debug_P( PSTR("sync complete") );
+
+                    sync_state = STATE_SYNC;
+                }
+                else if( sync_data_remaining < 0 ){
+
+                    log_v_error_P( PSTR("invalid sync data remaining: %d"), sync_data_remaining );
+                    continue;
+                }   
+
+
+                int32_t *data_ptr = vm_i32p_get_sync_data();
+
+                if( data_ptr == 0 ){
+
+                    log_v_error_P( PSTR("Bad sync data pointer!") );
+
+                    continue;
+                }
+
+                if( ( msg->offset + data_len ) > vm_u16_get_sync_data_len() ){
+
+                    log_v_error_P( PSTR("Bad sync data len") );
+
+                    continue;
+                }
+
+                data_ptr += msg->offset;
+
+                // log_v_debug_P( PSTR("offset: %d"), msg->offset );
+
+                memcpy( data_ptr, &msg->data, data_len );
+
+                mem2_v_check_canaries();
+
+                log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC_DATA") );
             }
-
-            sync_data_remaining -= data_len;
-
-            // validate remaining data len before copying into our VM:
-            if( sync_data_remaining == 0 ){
-
-                log_v_debug_P( PSTR("sync complete") );
-
-                sync_state = STATE_SYNC;
-            }
-            else if( sync_data_remaining < 0 ){
-
-                log_v_error_P( PSTR("invalid sync data remaining: %d"), sync_data_remaining );
-                continue;
-            }   
-
-
-            int32_t *data_ptr = vm_i32p_get_sync_data();
-
-            if( data_ptr == 0 ){
-
-                log_v_error_P( PSTR("Bad sync data pointer!") );
-
-                continue;
-            }
-
-            if( ( msg->offset + data_len ) > vm_u16_get_sync_data_len() ){
-
-                log_v_error_P( PSTR("Bad sync data len") );
-
-                continue;
-            }
-
-            data_ptr += msg->offset;
-
-            // log_v_debug_P( PSTR("offset: %d"), msg->offset );
-
-            memcpy( data_ptr, &msg->data, data_len );
-
-            mem2_v_check_canaries();
-
-            log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC_DATA") );
         }
     }
 
@@ -804,18 +858,33 @@ PT_BEGIN( pt );
         // wait while VM 0 is stopped
         THREAD_WAIT_WHILE( pt, !vm_b_is_vm_running( 0 ) );
 
-        services_v_join_team( SYNC_SERVICE, sync_group_hash, 1, sock_u16_get_lport( sock ) );
+        TMR_WAIT( pt, rnd_u16_get_int() >> 8 );
 
-        THREAD_WAIT_WHILE( pt, !services_b_is_available( SYNC_SERVICE, sync_group_hash ) );
+        while( controller_b_is_connected() && ip_b_is_zeroes( leader_ip ) ){
+
+            send_leader_query();    
+
+            TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) + 500 );
+        }
+
+        
+        if( ip_b_is_zeroes( leader_ip ) ){
+
+            // no leader
+
+            continue;
+        }
 
         // LEADER:
-        if( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
+        if( vm_sync_b_is_leader() ){
+        // if( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
 
             log_v_debug_P( PSTR("VM sync leader") );
 
             sync_state = STATE_SYNC;
 
-            while( services_b_is_server( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){
+            // while( services_b_is_server( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){
+            while( vm_sync_b_is_leader() && vm_b_is_vm_running( 0 ) ){
 
                 TMR_WAIT( pt, 100 );
 
@@ -852,8 +921,10 @@ PT_BEGIN( pt );
                     THREAD_EXIT( pt );
                 }
 
-                if( ( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ) ||
-                    ( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ) ||
+                // if( ( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ) ||
+                //     ( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ) ||
+                if( ( !vm_sync_b_is_follower() ) ||
+                    ( vm_sync_b_is_leader() ) ||
                     ( !vm_b_is_vm_running( 0 ) ) ){
                     
                     THREAD_RESTART( pt );
@@ -870,7 +941,8 @@ PT_BEGIN( pt );
         // periodic resync
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
 
-        while( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 
+        // while( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 
+        while( !ip_b_is_zeroes( leader_ip ) && 
                vm_b_is_vm_running( 0 ) &&
                ( sync_state == STATE_SYNC ) ){
 
