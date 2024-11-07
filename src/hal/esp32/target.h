@@ -39,14 +39,14 @@
 // #define ENABLE_USB
 #define ENABLE_GFX
 // #define ENABLE_MSGFLOW
-#define ENABLE_SERVICES
+// #define ENABLE_SERVICES
 #define ENABLE_BATTERY
 #define ENABLE_LED_DETECT
 #define ENABLE_CONTROLLER
 
 // DEBUG!
 // Turn this off for normal operation!
-#define ENABLE_TRACE
+// #define ENABLE_TRACE
 
 
 // wifi

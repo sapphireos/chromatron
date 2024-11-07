@@ -180,7 +180,7 @@ void vm_sync_v_reset( void ){
 
     sync_state = STATE_IDLE;
 
-    uint32_t old_hash = sync_group_hash;
+    // uint32_t old_hash = sync_group_hash;
 
     init_group_hash();// init sync group hash    
 
@@ -357,7 +357,11 @@ static void send_request( bool request_data ){
     msg.request_data            = request_data;
 
 
-    sock_addr_t raddr = services_a_get( SYNC_SERVICE, sync_group_hash );
+    // sock_addr_t raddr = services_a_get( SYNC_SERVICE, sync_group_hash );
+    sock_addr_t raddr = {
+        leader_ip,
+        SYNC_SERVER_PORT,
+    };
     
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 }

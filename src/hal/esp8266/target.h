@@ -44,7 +44,7 @@
 // #define ENABLE_CATBUS_LINK
 #define ENABLE_TIME_SYNC
 // #define ENABLE_MSGFLOW
-#define ENABLE_SERVICES
+// #define ENABLE_SERVICES
 #define ENABLE_CONTROLLER
 #endif
 
