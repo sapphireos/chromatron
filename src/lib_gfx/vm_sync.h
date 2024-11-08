@@ -32,7 +32,7 @@
 #define SYNC_PROTOCOL_VERSION           	9
 #define SYNC_SERVER_PORT                    44777
 
-#define SYNC_SERVICE                        __KV__vmsync
+// #define SYNC_SERVICE                        __KV__vmsync
 
 
 #define SYNC_INTERVAL                       4000

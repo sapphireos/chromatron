@@ -371,8 +371,8 @@ static void send_leader_query( void ){
     controller_msg_query_gfx_sync_t msg = {
         {
             CONTROLLER_MSG_MAGIC,
-            CONTROLLER_MSG_VERSION,
             CONTROLLER_MSG_QUERY_GFX_SYNC,
+            CONTROLLER_MSG_VERSION,
             0,
          },
         sync_group_hash,

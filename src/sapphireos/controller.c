@@ -23,6 +23,7 @@
  */
 
 #include "keyvalue.h"
+#include "logging.h"
 #include "sapphire.h"
 #include "config.h"
 
@@ -824,7 +825,6 @@ static void process_query_gfx_sync( controller_msg_query_gfx_sync_t *msg, sock_a
         		follower->ip,
         	};
 
-        	
         	send_msg( CONTROLLER_MSG_LEADER_GFX_SYNC, (uint8_t *)&reply, sizeof(reply), raddr );
 
         	break;
@@ -1147,8 +1147,6 @@ int8_t controller_i8_get_addr( sock_addr_t *raddr ){
 
 			raddr->ipaddr = leader_ip;
 			raddr->port = CONTROLLER_PORT;
-
-			return 0;
 		}
 
 		return 0;
