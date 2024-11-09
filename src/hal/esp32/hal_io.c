@@ -177,9 +177,10 @@ static const gpio_num_t gpios_charger_3_1[IO_PIN_COUNT] = {
     GPIO_NUM_25, // IO_PIN_25_A1  
     GPIO_NUM_26, // IO_PIN_26_A0  
 
-    GPIO_NUM_0,  // IO_PIN_LED0
-    GPIO_NUM_15, // IO_PIN_LED1
-    GPIO_NUM_2,  // IO_PIN_LED2
+    // RGB pin mapping is different on charger 3.1
+    GPIO_NUM_2, // IO_PIN_LED0 
+    GPIO_NUM_0, // IO_PIN_LED1
+    GPIO_NUM_15,// IO_PIN_LED2
 };
 
 static io_int_handler_t int_handlers[IO_PIN_COUNT];
