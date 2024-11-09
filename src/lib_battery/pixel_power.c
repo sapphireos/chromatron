@@ -98,7 +98,8 @@ static void pixels_off( void ){
         mcp73831_v_disable_pixels();   
     }
     #if defined(ESP32)
-    else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+    else if( ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ||
+             ( ffs_u8_read_board_type() == BOARD_TYPE_CHARGER_3_1 ) ){
 
         disable_pixel_power_fet();
 
@@ -130,7 +131,8 @@ void pixelpower_v_init( void ){
         power_control_enabled = TRUE;
     }
     #if defined(ESP32)
-    else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+    else if( ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ||
+             ( ffs_u8_read_board_type() == BOARD_TYPE_CHARGER_3_1 ) ){
 
         power_control_enabled = TRUE;
     }
@@ -231,7 +233,8 @@ PT_BEGIN( pt );
                 mcp73831_v_enable_pixels();
             }
             #if defined(ESP32)
-            else if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+            else if( ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ||
+                     ( ffs_u8_read_board_type() == BOARD_TYPE_CHARGER_3_1 ) ){
 
                 bq25895_v_set_boost_mode( TRUE );                
 

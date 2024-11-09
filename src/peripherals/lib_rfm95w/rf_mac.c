@@ -289,9 +289,8 @@ int8_t rf_mac_i8_init( void ){
         return 0;
     }
 
-    uint8_t board = ffs_u8_read_board_type();
-
-    if( board == BOARD_TYPE_ELITE ){
+    if( ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ||
+        ( ffs_u8_read_board_type() == BOARD_TYPE_CHARGER_3_1 ) ){
 
         if( rfm95w_i8_init( IO_PIN_27_A10, IO_PIN_26_A0 ) < 0 ){
 

@@ -7,7 +7,7 @@ import serial
 CP2102_VID = 0x10c4
 CP2102_PID = 0xea60
 
-def monitor(portname=None, baud=115200, reconnect=False):
+def monitor(portname=None, baud=115200, reconnect=True):
     if portname is None:
         ports = list(serial.tools.list_ports.comports())
 
