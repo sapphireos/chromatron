@@ -25,6 +25,7 @@
 #include "random.h"
 #include "sapphire.h"
 #include "sockets.h"
+#include "threading.h"
 #include "timers.h"
 
 #ifdef ENABLE_TIME_SYNC
@@ -135,6 +136,7 @@ static int8_t seek_checkpoint( uint32_t hash ){
 
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( vm_sync_thread( pt_t *pt, void *state ) );
+PT_THREAD( vm_sync_query_thread( pt_t *pt, void *state ) );
 
 static void init_group_hash( void ){
 
@@ -383,6 +385,11 @@ PT_BEGIN( pt );
                     0,
                     0 );   
 
+    thread_t_create( vm_sync_query_thread,
+                    PSTR("vm_sync_query"),
+                    0,
+                    0 );   
+
 
     while( TRUE ){
 
@@ -401,45 +408,9 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
+        vm_sync_msg_header_t *header = sock_vp_get_data( sock );
 
-        if( ip_b_is_zeroes( leader_ip ) ){
-
-            // should be getting query response on controller protocol
-
-            controller_header_t *header = sock_vp_get_data( sock );
-
-            if( header->magic != CONTROLLER_MSG_MAGIC ){
-
-                continue;
-            }
-
-            if( header->version != CONTROLLER_MSG_VERSION ){
-
-                continue;
-            }
-
-            if( header->msg_type == CONTROLLER_MSG_LEADER_GFX_SYNC ){
-
-                controller_msg_leader_gfx_sync_t *msg = (controller_msg_leader_gfx_sync_t *)header;
-
-                leader_ip = msg->leader_ip;
-
-                log_v_debug_P( PSTR("GFX sync leader: %d.%d.%d.%d"), 
-                    leader_ip.ip3,
-                    leader_ip.ip2,
-                    leader_ip.ip1,
-                    leader_ip.ip0
-                );
-            }
-        }
-        else{
-
-            vm_sync_msg_header_t *header = sock_vp_get_data( sock );
-
-            if( header->magic != SYNC_PROTOCOL_MAGIC ){
-
-            	continue;
-            }
+        if( header->magic == SYNC_PROTOCOL_MAGIC ){
 
             if( header->version != SYNC_PROTOCOL_VERSION ){
 
@@ -804,6 +775,33 @@ PT_BEGIN( pt );
                 log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC_DATA") );
             }
         }
+        else if( header->magic == CONTROLLER_MSG_MAGIC ){
+
+            // should be getting query response on controller protocol
+            controller_header_t *ctrl_header = sock_vp_get_data( sock );
+
+            if( ctrl_header->version != CONTROLLER_MSG_VERSION ){
+
+                continue;
+            }
+
+            if( ctrl_header->msg_type == CONTROLLER_MSG_LEADER_GFX_SYNC ){
+
+                controller_msg_leader_gfx_sync_t *msg = (controller_msg_leader_gfx_sync_t *)ctrl_header;
+
+                if( !ip_b_addr_compare( leader_ip, msg->leader_ip ) ){
+
+                    log_v_debug_P( PSTR("GFX sync leader: %d.%d.%d.%d"), 
+                        leader_ip.ip3,
+                        leader_ip.ip2,
+                        leader_ip.ip1,
+                        leader_ip.ip0
+                    );
+                }
+
+                leader_ip = msg->leader_ip; 
+            }
+        }
     }
 
 PT_END( pt );
@@ -836,28 +834,16 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, hold_sync );
 
+        THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
+
         // wait until time sync
         THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
 
         // wait while VM 0 is stopped
         THREAD_WAIT_WHILE( pt, !vm_b_is_vm_running( 0 ) );
 
-        TMR_WAIT( pt, rnd_u16_get_int() >> 8 );
-
-        while( controller_b_is_connected() && ip_b_is_zeroes( leader_ip ) ){
-
-            send_leader_query();    
-
-            TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) + 500 );
-        }
-
-        
-        if( ip_b_is_zeroes( leader_ip ) ){
-
-            // no leader
-
-            continue;
-        }
+        // wait while we don't have a leader
+        THREAD_WAIT_WHILE( pt, ip_b_is_zeroes( leader_ip ) );
 
         // LEADER:
         if( vm_sync_b_is_leader() ){
@@ -866,7 +852,6 @@ PT_BEGIN( pt );
 
             sync_state = STATE_SYNC;
 
-            // while( services_b_is_server( SYNC_SERVICE, sync_group_hash ) && vm_b_is_vm_running( 0 ) ){
             while( vm_sync_b_is_leader() && vm_b_is_vm_running( 0 ) ){
 
                 TMR_WAIT( pt, 100 );
@@ -943,6 +928,31 @@ PT_BEGIN( pt );
             TMR_WAIT( pt, 100 );
 
             update_checkpoints();
+        }
+    }
+
+PT_END( pt );
+}
+
+
+PT_THREAD( vm_sync_query_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while( TRUE ){
+
+        // wait while VM 0 is stopped
+        THREAD_WAIT_WHILE( pt, !vm_b_is_vm_running( 0 ) );
+
+        THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
+
+        TMR_WAIT( pt, rnd_u16_get_int() >> 8 );
+
+        while( controller_b_is_connected() && ip_b_is_zeroes( leader_ip ) ){
+
+            send_leader_query();    
+
+            TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) + 2000 );
         }
     }
 
