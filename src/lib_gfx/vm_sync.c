@@ -36,7 +36,6 @@
 #include "hash.h"
 #include "graphics.h"
 #include "config.h"
-// #include "services.h"
 #include "logging.h"
 #include "vm_sequencer.h"
 
@@ -180,18 +179,9 @@ void vm_sync_v_reset( void ){
 
     sync_state = STATE_IDLE;
 
-    // uint32_t old_hash = sync_group_hash;
-
     init_group_hash();// init sync group hash    
 
     memset( checkpoint_hashes, 0, sizeof(checkpoint_hashes) );
-
-    // check if hash changed, if so, cancel
-    // the previous service
-    // if( old_hash != sync_group_hash ){
-
-    //     services_v_cancel( SYNC_SERVICE, old_hash );    
-    // }
 }
 
 uint32_t vm_sync_u32_get_sync_group_hash( void ){
@@ -216,8 +206,6 @@ void vm_sync_v_unhold( void ){
 bool vm_sync_b_is_leader( void ){
 
     return ip_b_check_dest( leader_ip );
-
-    // return services_b_is_server( SYNC_SERVICE, sync_group_hash );
 }
 
 bool vm_sync_b_is_follower( void ){
@@ -231,12 +219,6 @@ bool vm_sync_b_is_follower( void ){
 
         return TRUE;
     }
-
-    // if( services_b_is_available( SYNC_SERVICE, sync_group_hash ) &&
-    //     !services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
-
-    //     return TRUE;
-    // }
 
     return FALSE;
 }
@@ -279,7 +261,6 @@ static void send_sync( sock_addr_t *raddr ){
     msg.rng_seed                = state->rng_seed;
     msg.frame_number            = state->frame_number;
 
-    // memcpy( msg.checkpoints, checkpoints, sizeof(msg.checkpoints) );
     memcpy( msg.checkpoint_hashes, checkpoint_hashes, sizeof(msg.checkpoint_hashes) );
 
     msg.sequencer_step          = vm_seq_u8_get_step();
@@ -357,7 +338,6 @@ static void send_request( bool request_data ){
     msg.request_data            = request_data;
 
 
-    // sock_addr_t raddr = services_a_get( SYNC_SERVICE, sync_group_hash );
     sock_addr_t raddr = {
         leader_ip,
         SYNC_SERVER_PORT,
@@ -881,7 +861,6 @@ PT_BEGIN( pt );
 
         // LEADER:
         if( vm_sync_b_is_leader() ){
-        // if( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ){
 
             log_v_debug_P( PSTR("VM sync leader") );
 
@@ -925,8 +904,6 @@ PT_BEGIN( pt );
                     THREAD_EXIT( pt );
                 }
 
-                // if( ( !services_b_is_available( SYNC_SERVICE, sync_group_hash ) ) ||
-                //     ( services_b_is_server( SYNC_SERVICE, sync_group_hash ) ) ||
                 if( ( !vm_sync_b_is_follower() ) ||
                     ( vm_sync_b_is_leader() ) ||
                     ( !vm_b_is_vm_running( 0 ) ) ){
@@ -945,7 +922,6 @@ PT_BEGIN( pt );
         // periodic resync
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
 
-        // while( services_b_is_available( SYNC_SERVICE, sync_group_hash ) && 
         while( !ip_b_is_zeroes( leader_ip ) && 
                vm_b_is_vm_running( 0 ) &&
                ( sync_state == STATE_SYNC ) ){
