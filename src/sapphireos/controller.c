@@ -143,7 +143,8 @@ static ip_addr4_t leader_ip;
 static uint8_t leader_flags;
 static uint16_t leader_priority;
 static uint16_t leader_follower_count;
-static uint16_t leader_timeout;
+static uint8_t leader_timeout;
+static uint8_t leader_lowest_timeout;
 static uint32_t leader_uptime;
 static uint16_t db_size;
 
@@ -155,7 +156,8 @@ KV_SECTION_META kv_meta_t controller_kv[] = {
     { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &leader_flags, 			0,  "controller_leader_flags" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_follower_count, 	0,  "controller_follower_count" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_priority, 		0,  "controller_leader_priority" },
-    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_timeout, 		0,  "controller_leader_timeout" },
+    { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &leader_timeout, 		0,  "controller_leader_timeout" },
+    { CATBUS_TYPE_UINT8, 	0, KV_FLAGS_READ_ONLY, &leader_lowest_timeout,	0,  "controller_leader_lowest_timeout" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &leader_uptime,  		0,  "controller_leader_uptime" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, &db_size,		  		0,  "controller_db_size" },
 };
@@ -346,6 +348,7 @@ static void reset_leader( void ){
 	leader_follower_count = 0;
 	leader_flags = 0;
 	leader_uptime = 0;
+	leader_lowest_timeout = CONTROLLER_FOLLOWER_TIMEOUT;
 }
 
 static uint16_t get_follower_count( void ){
@@ -1116,6 +1119,11 @@ PT_BEGIN( pt );
    			( !ip_b_addr_compare( leader_ip, cfg_ip_get_ipaddr() ) ) ){
 
    			leader_timeout--;
+
+   			if( leader_timeout < leader_lowest_timeout ){
+
+   				leader_lowest_timeout = leader_timeout;
+   			}
 
    			if( leader_timeout == 0 ){
 
