@@ -2421,6 +2421,51 @@ uint32_t _distance( int32_t x0, int32_t y0, int32_t x1, int32_t y1 ){
     return Z;
 }
 
+static uint32_t grid_x;
+static uint32_t grid_y;
+static uint32_t grid_spacing_x;
+static uint32_t grid_spacing_y;
+
+KV_SECTION_META kv_meta_t gfx_lib_grid_kv[] = {
+    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_x,                  0,                   "gfx_grid_size_x" },
+    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_y,                  0,                   "gfx_grid_size_y" },
+    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_spacing_x,          0,                   "gfx_grid_spacing_x" },
+    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_spacing_y,          0,                   "gfx_grid_spacing_y" },
+};
+
+// specify spacing between grid cells in units of pixels
+// IE:
+// 2.0 means there are 2 grid cells per pixel (grid is larger than pixel array)
+// 0.5 means there are 0.5 grid cells per pixel, or 2 pixels per grid cell.  Grid is smaller than array,  
+// we use 100 points for grid space
+// so in integer, 2.0 = 200, 0.5 = 50, etc
+void gfx_v_grid( uint32_t x_space, uint32_t y_space ){
+
+    grid_spacing_x = x_space;
+    grid_spacing_y = y_space;
+
+    int32_t x_max = pix_arrays[0].size_x - 1;
+    int32_t y_max = pix_arrays[0].size_y - 1;
+
+    grid_x = x_max * grid_spacing_x;
+    grid_y = y_max * grid_spacing_y;
+
+}
+
+// specify exact grid size
+void gfx_v_plane( uint16_t x_size, uint16_t y_size ){
+    
+    grid_x = x_size;
+    grid_y = y_size;
+
+    int32_t x_max = pix_arrays[0].size_x - 1;
+    int32_t y_max = pix_arrays[0].size_y - 1;
+
+    grid_spacing_x = grid_x / x_max;
+    grid_spacing_y = grid_y / y_max;
+}
+
+
 void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t radius ){
 
     /*
@@ -2439,6 +2484,19 @@ void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t
     int32_t x_max = pix_arrays[0].size_x - 1;
     int32_t y_max = pix_arrays[0].size_y - 1;
 
+    // scale X and Y max to grid resolution
+    x_max *= GFX_GRID_RESOLUTION;
+    y_max *= GFX_GRID_RESOLUTION;
+
+    // convert coordinate from grid to pixels
+    //??????????????????????????????????????????????
+    uint32_t fractional_x = x / grid_spacing_x;
+    uint32_t fractional_y = y / grid_spacing_y;
+
+    uint32_t radius_x = radius / grid_spacing_x;
+    uint32_t radius_y = radius / grid_spacing_y;   
+
+
     // check if we are using 1D or 2D:
     if( y < 0 ){
 
@@ -2447,14 +2505,17 @@ void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t
         x_max = pix_arrays[0].count - 1;
     }
     
-    // int32_t x_min = 0;
-    // int32_t y_min = 0;
-
     // Compute the bounding box for the circle:
-    int32_t x0 = ( x - radius ) / GFX_GRID_RESOLUTION;
-    int32_t x1 = ( x + radius) / GFX_GRID_RESOLUTION;
-    int32_t y0 = ( y - radius ) / GFX_GRID_RESOLUTION;
-    int32_t y1 = ( y + radius ) / GFX_GRID_RESOLUTION;
+    // int32_t x0 = ( x - radius ) / GFX_GRID_RESOLUTION;
+    // int32_t x1 = ( x + radius) / GFX_GRID_RESOLUTION;
+    // int32_t y0 = ( y - radius ) / GFX_GRID_RESOLUTION;
+    // int32_t y1 = ( y + radius ) / GFX_GRID_RESOLUTION;
+
+    uint32_t x0 = ( fractional_x - radius_x ) / GFX_GRID_RESOLUTION;
+    uint32_t x1 = ( fractional_x + radius_x ) / GFX_GRID_RESOLUTION;
+    uint32_t y0 = ( fractional_y - radius_y ) / GFX_GRID_RESOLUTION;
+    uint32_t y1 = ( fractional_y + radius_y ) / GFX_GRID_RESOLUTION;
+
 
     // constrain the bounding box to fit within the pixel grid
     if( x0 < 0 ){
@@ -3303,6 +3364,8 @@ void gfxlib_v_init( void ){
 
     compute_dimmer_lookup();
     compute_sat_lookup();
+
+    gfx_v_plane( pix_size_x, pix_size_y );
 
     // initialize pixel arrays to defaults
     gfx_v_reset();
