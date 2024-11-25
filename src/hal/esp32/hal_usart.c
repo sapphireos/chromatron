@@ -47,7 +47,7 @@ void usart_v_init( uint8_t channel ){
     ESP_ERROR_CHECK( uart_param_config( channel, &uart_config ) );
 
     // tx, rx, rts, cts
-    ESP_ERROR_CHECK( uart_set_pin( channel, 9, 10, -1, -1 ) );
+    ESP_ERROR_CHECK( uart_set_pin( channel, 17, 16, -1, -1 ) );
 
     // Install UART driver using an event queue here
     ESP_ERROR_CHECK( uart_driver_install(
