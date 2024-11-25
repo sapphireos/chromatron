@@ -2458,6 +2458,9 @@ void gfx_v_plane( uint16_t x_size, uint16_t y_size ){
     grid_x = x_size;
     grid_y = y_size;
 
+
+    // ERROR CHECK FOR DIV 0 HERE!
+
     int32_t x_max = pix_arrays[0].size_x - 1;
     int32_t y_max = pix_arrays[0].size_y - 1;
 
@@ -3365,7 +3368,7 @@ void gfxlib_v_init( void ){
     compute_dimmer_lookup();
     compute_sat_lookup();
 
-    gfx_v_plane( pix_size_x, pix_size_y );
+    // gfx_v_plane( pix_size_x, pix_size_y );
 
     // initialize pixel arrays to defaults
     gfx_v_reset();
