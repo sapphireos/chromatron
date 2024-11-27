@@ -2421,17 +2421,17 @@ uint32_t _distance( int32_t x0, int32_t y0, int32_t x1, int32_t y1 ){
     return Z;
 }
 
-static uint32_t grid_x;
-static uint32_t grid_y;
-static uint32_t grid_spacing_x;
-static uint32_t grid_spacing_y;
+// static uint32_t grid_x;
+// static uint32_t grid_y;
+// static uint32_t grid_spacing_x;
+// static uint32_t grid_spacing_y;
 
-KV_SECTION_META kv_meta_t gfx_lib_grid_kv[] = {
-    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_x,                  0,                   "gfx_grid_size_x" },
-    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_y,                  0,                   "gfx_grid_size_y" },
-    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_spacing_x,          0,                   "gfx_grid_spacing_x" },
-    { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_spacing_y,          0,                   "gfx_grid_spacing_y" },
-};
+// KV_SECTION_META kv_meta_t gfx_lib_grid_kv[] = {
+//     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_x,                  0,                   "gfx_grid_size_x" },
+//     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_y,                  0,                   "gfx_grid_size_y" },
+//     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_spacing_x,          0,                   "gfx_grid_spacing_x" },
+//     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_spacing_y,          0,                   "gfx_grid_spacing_y" },
+// };
 
 // specify spacing between grid cells in units of pixels
 // IE:
@@ -2441,129 +2441,91 @@ KV_SECTION_META kv_meta_t gfx_lib_grid_kv[] = {
 // so in integer, 2.0 = 200, 0.5 = 50, etc
 void gfx_v_grid( uint32_t x_space, uint32_t y_space ){
 
-    grid_spacing_x = x_space;
-    grid_spacing_y = y_space;
+    // grid_spacing_x = x_space;
+    // grid_spacing_y = y_space;
 
-    int32_t x_max = pix_arrays[0].size_x - 1;
-    int32_t y_max = pix_arrays[0].size_y - 1;
+    // int32_t x_max = pix_arrays[0].size_x - 1;
+    // int32_t y_max = pix_arrays[0].size_y - 1;
 
-    grid_x = x_max * grid_spacing_x;
-    grid_y = y_max * grid_spacing_y;
+    // grid_x = x_max * grid_spacing_x;
+    // grid_y = y_max * grid_spacing_y;
 
 }
 
 // specify exact grid size
 void gfx_v_plane( uint16_t x_size, uint16_t y_size ){
     
-    grid_x = x_size;
-    grid_y = y_size;
+    // grid_x = x_size;
+    // grid_y = y_size;
 
 
-    // ERROR CHECK FOR DIV 0 HERE!
+    // // ERROR CHECK FOR DIV 0 HERE!
 
-    int32_t x_max = pix_arrays[0].size_x - 1;
-    int32_t y_max = pix_arrays[0].size_y - 1;
+    // int32_t x_max = pix_arrays[0].size_x - 1;
+    // int32_t y_max = pix_arrays[0].size_y - 1;
 
-    grid_spacing_x = grid_x / x_max;
-    grid_spacing_y = grid_y / y_max;
+    // grid_spacing_x = grid_x / x_max;
+    // grid_spacing_y = grid_y / y_max;
 }
 
 
-void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t radius ){
+void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t diameter ){
 
     /*
     
-    Given a circle defined by an XY coordinate and radius, find all
+    Given a circle defined by an XY coordinate and diameter, find all
     pixels that fit within the circle.
 
-    The XY and radius are scaled by the grid resolution to allow
-    coordinates between pixels.
+    The input grid is mapped onto a standard unit grid size of 1.0 using fixed16.
+    In integer, this corresponds to an input range of 0 to 65535.
+
+    Grid coordinate 0 is pixel 0, coordinate 1.0 (65535) is the last pixel.
+        
+    Diameter uses the same fixed16.
+    Thus a diameter of 0.0 would be a nop and 1.0 would span the entire array.
 
     */
 
-    // log_v_info_P( PSTR("%d %d"), x, y);
-
-
-    int32_t x_max = pix_arrays[0].size_x - 1;
-    int32_t y_max = pix_arrays[0].size_y - 1;
-
-    // scale X and Y max to grid resolution
-    x_max *= GFX_GRID_RESOLUTION;
-    y_max *= GFX_GRID_RESOLUTION;
-
-    // convert coordinate from grid to pixels
-    //??????????????????????????????????????????????
-    uint32_t fractional_x = x / grid_spacing_x;
-    uint32_t fractional_y = y / grid_spacing_y;
-
-    uint32_t radius_x = radius / grid_spacing_x;
-    uint32_t radius_y = radius / grid_spacing_y;   
-
+    int32_t pixels_x_max;
+    int32_t pixels_y_max;
 
     // check if we are using 1D or 2D:
     if( y < 0 ){
 
         // 1D mode:
-        y_max = 0;
-        x_max = pix_arrays[0].count - 1;
+        pixels_y_max = 0;
+        pixels_x_max = pix_arrays[0].count - 1;
     }
-    
+    else{
+        // 2D mode:
+        pixels_x_max = pix_arrays[0].size_x - 1;
+        pixels_y_max = pix_arrays[0].size_y - 1;
+    }
+
+    uint16_t radius = diameter / 2;
+
     // Compute the bounding box for the circle:
-    // int32_t x0 = ( x - radius ) / GFX_GRID_RESOLUTION;
-    // int32_t x1 = ( x + radius) / GFX_GRID_RESOLUTION;
-    // int32_t y0 = ( y - radius ) / GFX_GRID_RESOLUTION;
-    // int32_t y1 = ( y + radius ) / GFX_GRID_RESOLUTION;
+    int32_t bounds_x0 = x - radius;
+    int32_t bounds_x1 = x + radius;
+    int32_t bounds_y0 = y - radius;
+    int32_t bounds_y1 = y + radius;
 
-    uint32_t x0 = ( fractional_x - radius_x ) / GFX_GRID_RESOLUTION;
-    uint32_t x1 = ( fractional_x + radius_x ) / GFX_GRID_RESOLUTION;
-    uint32_t y0 = ( fractional_y - radius_y ) / GFX_GRID_RESOLUTION;
-    uint32_t y1 = ( fractional_y + radius_y ) / GFX_GRID_RESOLUTION;
-
-
-    // constrain the bounding box to fit within the pixel grid
-    if( x0 < 0 ){
-
-        x0 = 0;
-    }
-
-    if( x0 > x_max ){ // out of bounds
-
-        log_v_info_P( PSTR("bounds") );
-
-        return;
-    }
-
-    if( x1 > x_max ){
-
-        x1 = x_max;
-    }    
-
-    if( y0 < 0 ){
-
-        y0 = 0;
-    }
-
-    if( y0 > y_max ){ // out of bounds
-
-        log_v_info_P( PSTR("bounds") );
-
-        return;
-    }
-
-    if( y1 > y_max ){
-
-        y1 = y_max;
-    }
-
-    // log_v_info_P( PSTR("%d %d %d %d"), x0, y0, x1, y1);
+    // Convert to pixel coordinates:
+    int32_t pixels_x0 = ( bounds_x0 * pixels_x_max ) / 65536;
+    int32_t pixels_x1 = ( bounds_x1 * pixels_x_max ) / 65536;
+    int32_t pixels_y0 = ( bounds_y0 * pixels_y_max ) / 65536;
+    int32_t pixels_y1 = ( bounds_y1 * pixels_y_max ) / 65536;
 
     // search within the bounding box:
     if( y < 0 ){
 
         // 1D
-        for( uint16_t x_i = x0; x_i <= x1; x_i++ ){
+        for( uint32_t x_i = pixels_x0; x_i <= pixels_x1; x_i++ ){
 
-            int32_t distance = _distance( x, 0, x_i * GFX_GRID_RESOLUTION, 0 );
+            // compute distance, using the 1.0 grid units
+            // note the conversion of x_i (pixel coordinate) back to grid coorindate
+            int32_t x_coord = ( x_i * 65536 ) / pixels_x_max;
+            int32_t distance = _distance( x, 0, x_coord, 0 );
 
             // check for match
             if( distance <= radius ){
@@ -2587,12 +2549,16 @@ void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t
     else{
 
         // 2D
-        for( uint16_t x_i = x0; x_i <= x1; x_i++ ){
+        for( uint16_t x_i = pixels_x0; x_i <= pixels_x1; x_i++ ){
 
-            for( uint16_t y_i = y0; y_i <= y1; y_i++ ){
+            for( uint16_t y_i = pixels_y0; y_i <= pixels_y1; y_i++ ){
+
+                // compute distance, using the 1.0 grid units
+                // note the conversion of x_i (pixel coordinate) back to grid coorindate
+                int32_t x_coord = ( x_i * 65536 ) / pixels_x_max;
+                int32_t y_coord = ( y_i * 65536 ) / pixels_y_max;
+                int32_t distance = _distance( x, y, x_coord, y_coord );
                     
-                int32_t distance = _distance( x, y, x_i * GFX_GRID_RESOLUTION, y_i * GFX_GRID_RESOLUTION );
-
                 // check for match
                 if( distance <= radius ){
 
@@ -2613,6 +2579,152 @@ void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t
             }
         }
     }
+
+
+
+
+    // /*
+    
+    // Given a circle defined by an XY coordinate and radius, find all
+    // pixels that fit within the circle.
+
+    // The XY and radius are scaled by the grid resolution to allow
+    // coordinates between pixels.
+
+    // */
+
+    // // log_v_info_P( PSTR("%d %d"), x, y);
+
+
+    // int32_t x_max = pix_arrays[0].size_x - 1;
+    // int32_t y_max = pix_arrays[0].size_y - 1;
+
+    // // scale X and Y max to grid resolution
+    // x_max *= GFX_GRID_RESOLUTION;
+    // y_max *= GFX_GRID_RESOLUTION;
+
+    // // convert coordinate from grid to pixels
+    // //??????????????????????????????????????????????
+    // uint32_t fractional_x = x / grid_spacing_x;
+    // uint32_t fractional_y = y / grid_spacing_y;
+
+    // uint32_t radius_x = radius / grid_spacing_x;
+    // uint32_t radius_y = radius / grid_spacing_y;   
+
+
+    // // check if we are using 1D or 2D:
+    // if( y < 0 ){
+
+    //     // 1D mode:
+    //     y_max = 0;
+    //     x_max = pix_arrays[0].count - 1;
+    // }
+    
+    // // Compute the bounding box for the circle:
+    // // int32_t x0 = ( x - radius ) / GFX_GRID_RESOLUTION;
+    // // int32_t x1 = ( x + radius) / GFX_GRID_RESOLUTION;
+    // // int32_t y0 = ( y - radius ) / GFX_GRID_RESOLUTION;
+    // // int32_t y1 = ( y + radius ) / GFX_GRID_RESOLUTION;
+
+    // uint32_t x0 = ( fractional_x - radius_x ) / GFX_GRID_RESOLUTION;
+    // uint32_t x1 = ( fractional_x + radius_x ) / GFX_GRID_RESOLUTION;
+    // uint32_t y0 = ( fractional_y - radius_y ) / GFX_GRID_RESOLUTION;
+    // uint32_t y1 = ( fractional_y + radius_y ) / GFX_GRID_RESOLUTION;
+
+
+    // // constrain the bounding box to fit within the pixel grid
+    // if( x0 < 0 ){
+
+    //     x0 = 0;
+    // }
+
+    // if( x0 > x_max ){ // out of bounds
+
+    //     log_v_info_P( PSTR("bounds") );
+
+    //     return;
+    // }
+
+    // if( x1 > x_max ){
+
+    //     x1 = x_max;
+    // }    
+
+    // if( y0 < 0 ){
+
+    //     y0 = 0;
+    // }
+
+    // if( y0 > y_max ){ // out of bounds
+
+    //     log_v_info_P( PSTR("bounds") );
+
+    //     return;
+    // }
+
+    // if( y1 > y_max ){
+
+    //     y1 = y_max;
+    // }
+
+    // // log_v_info_P( PSTR("%d %d %d %d"), x0, y0, x1, y1);
+
+    // // search within the bounding box:
+    // if( y < 0 ){
+
+    //     // 1D
+    //     for( uint16_t x_i = x0; x_i <= x1; x_i++ ){
+
+    //         int32_t distance = _distance( x, 0, x_i * GFX_GRID_RESOLUTION, 0 );
+
+    //         // check for match
+    //         if( distance <= radius ){
+
+    //             // match!
+
+    //             // calc pixel index for the currently matched pixel
+    //             uint16_t index = calc_index( 0, x_i, 65535 );
+
+    //             // bounds check!
+    //             if( index >= MAX_PIXELS ){
+
+    //                continue;
+    //             }
+
+    //             // test, write hue
+    //             _gfx_v_set_hue_1d( h, index );
+    //         }
+    //     }
+    // }
+    // else{
+
+    //     // 2D
+    //     for( uint16_t x_i = x0; x_i <= x1; x_i++ ){
+
+    //         for( uint16_t y_i = y0; y_i <= y1; y_i++ ){
+                    
+    //             int32_t distance = _distance( x, y, x_i * GFX_GRID_RESOLUTION, y_i * GFX_GRID_RESOLUTION );
+
+    //             // check for match
+    //             if( distance <= radius ){
+
+    //                 // match!
+
+    //                 // calc pixel index for the currently matched pixel
+    //                 uint16_t index = calc_index( 0, x_i, y_i );
+
+    //                 // bounds check!
+    //                 if( index >= MAX_PIXELS ){
+
+    //                    continue;
+    //                 }
+
+    //                 // test, write hue
+    //                 _gfx_v_set_hue_1d( h, index );
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 void gfx_v_set_hsv( int32_t h, int32_t s, int32_t v, uint16_t index ){
