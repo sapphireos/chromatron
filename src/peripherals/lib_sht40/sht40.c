@@ -24,12 +24,14 @@
 
 #include "sht40.h"
 
-static int16_t temp;
+static int8_t temp;
 static int16_t rh;
 
+static int16_t temp_C;
+static int16_t temp_F;
 	
 KV_SECTION_META kv_meta_t sht40_kv[] = {
-    {CATBUS_TYPE_INT16,     0, KV_FLAGS_READ_ONLY, &temp,    0, "sht40_temp"},   
+    {CATBUS_TYPE_INT8,      0, KV_FLAGS_READ_ONLY, &temp,    0, "sht40_temp"},   
     {CATBUS_TYPE_INT16,     0, KV_FLAGS_READ_ONLY, &rh,      0, "sht40_rh"},   
 };
 
@@ -52,7 +54,6 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 1000 );
 
         sht40_v_meas_raw( &temp, &rh );
-
         // trace_printf("%d %d\r\n", temp, rh);
     }
     
@@ -81,6 +82,17 @@ uint32_t sht40_u32_read_serial( void ){
             ( (uint32_t)resp[3] << 0 );
 }
 
+uint16_t sht40_u16_read_temp_C( void ){
+
+    return temp_C;
+}
+
+uint16_t sht40_u16_read_temp_F( void ){
+
+    return temp_F;
+}
+
+// temp in C / 10
 void sht40_v_meas_raw( int16_t *temp, int16_t *RH ){
 
     *temp = -127;
@@ -92,7 +104,10 @@ void sht40_v_meas_raw( int16_t *temp, int16_t *RH ){
     uint16_t t_ticks = resp[0] * 256 + resp[1];
     uint16_t rh_ticks = resp[3] * 256 + resp[4];
 
-    *temp = -45 + 175 * t_ticks / 65535;
+    temp_C = -450 + 175 * ( (uint32_t)t_ticks * 10 ) / 65535;
+    temp_F = -490 + 315 * ( (uint32_t)t_ticks * 10 ) / 65535;
+
+    *temp = temp_C / 10;
     *RH = -6 + 125 * rh_ticks / 65535;
 
     if( *RH > 100 ){
