@@ -50,6 +50,7 @@ class MQTTClient(Ribbon):
         self.mqtt.on_message = self.on_message
 
         self._connected = False
+        self._connecting = False
 
     @property
     def connected(self):
@@ -74,14 +75,18 @@ class MQTTClient(Ribbon):
 
     def on_connect(self, client, userdata, flags, rc):
         self._connected = True
+        self._connecting = False
 
         logging.info("Connected with result code "+str(rc))
 
     def on_disconnect(self, client, userdata, rc):
         self._connected = False
+        self._connecting = False
 
         if rc != 0:
             logging.info("Unexpected disconnection.")
+
+        time.sleep(1.0)
 
     def on_message(self, client, userdata, msg):
         logging.info(msg.topic + " " + str(msg.payload))
@@ -99,5 +104,19 @@ class MQTTClient(Ribbon):
         self.mqtt.unsubscribe(topic)
 
     def _process(self):
-        self.mqtt.loop(timeout=1.0)
+        if not self._connected and not self._connecting:
+            try:
+                self._connecting = True
+                self.connect()
+                logging.info(f'MQTT connected')
 
+            except socket.error:
+                self._connecting = False
+                logging.warning(f'MQTT connection failed')
+                
+                time.sleep(2.0)
+
+        self.mqtt.loop(timeout=1.0)
+        
+        
+        
