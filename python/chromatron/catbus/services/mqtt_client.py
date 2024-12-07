@@ -38,9 +38,10 @@ class MQTTHostNotFound(Exception):
     pass
 
 class MQTTClient(Ribbon):
-    def __init__(self, settings={}):
+    def __init__(self, host='localhost', settings={}):
         super().__init__()
 
+        self.host = host
         self.settings = settings
 
         self.mqtt = mqtt.Client()

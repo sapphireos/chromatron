@@ -28,7 +28,6 @@ from elysianfields import *
 from catbus.data_structures import *
 from catbus.catbustypes import *
 from sapphire.common import MsgServer, util, catbus_string_hash, run_all, synchronized
-from sapphire.protocols import services
 from catbus import *
 from .mqtt_client import MQTTClient, MQTTHostNotFound
 import threading
@@ -230,10 +229,9 @@ class DeviceClient(object):
 
         self.timeout = CLIENT_TIMEOUT
 
-        self.mqtt_client = MQTTClient()
+        self.mqtt_client = MQTTClient(host=bridge.mqtt_host)
         self.mqtt_client.mqtt.on_message = self.on_message
         self.mqtt_client.start()
-        self.mqtt_client.connect(host=bridge.mqtt_host)
 
         logging.info(f'Started client: {self.host}')
 
@@ -366,7 +364,7 @@ class MqttBridge(MsgServer):
         self.start_timer(1.0, self._process_devices)
         self.start_timer(1.0, self._process_connection)
 
-        self.mqtt_client = MQTTClient()
+        self.mqtt_client = MQTTClient(host=mqtt_host)
         # self.mqtt_client.mqtt.on_message = self.on_message
         self.mqtt_client.start()
 

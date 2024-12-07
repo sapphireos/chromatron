@@ -27,6 +27,8 @@ import sys
 import time
 from datetime import datetime, timedelta
 # from catbus import CatbusService, Client, CATBUS_MAIN_PORT, query_tags, CatbusData, CatbusMeta, get_type_id, catbus_string_hash
+from catbus import Client, CATBUS_MAIN_PORT, query_tags, CatbusData, CatbusMeta, get_type_id
+from sapphire.common import catbus_string_hash
 from catbus.services.mqtt_client import MQTTClient
 from sapphire.common import util, run_all, Ribbon
 from elysianfields import *
@@ -340,11 +342,44 @@ class Datalogger(MQTTClient):
     
     def on_message(self, client, userdata, msg):
         topic = msg.topic
-        payload = msg.payload.decode('utf8')
+        # payload = msg.payload.decode('utf8')
+        data = msg.payload
+        header = DatalogHeader().unpack(data)
 
-        print(topic, payload)
+        # slice past header
+        data = data[header.size():]
+        meta = DatalogMetaV2().unpack(data)
+
+        if (header.flags & DATALOG_FLAGS_NTP_SYNC) == 0:
+            ntp_base = timestamp
+
+        else:
+            ntp_base = util.ntp_to_datetime(meta.ntp_base.seconds, meta.ntp_base.fraction)
+        
+
+        data = data[meta.size():] # slice buffer
 
 
+        print(topic, header, meta)
+
+        while len(data) > 0:
+            chunk = DatalogDataV2().unpack(data)
+
+            # sanity check ntp offset:
+            if chunk.ntp_offset > 600000: # 10 minutes is pretty reasonable
+                logging.error(f'Invalid ntp offset: {chunk.ntp_offset}')
+
+                return
+
+            delta = timedelta(seconds=chunk.ntp_offset / 1000.0)
+
+            ntp_timestamp = ntp_base + delta
+            value = chunk.data.value
+
+            print(ntp_timestamp, value, chunk)
+
+            # slice buffer
+            data = data[chunk.size():]
 
 
 def main():
