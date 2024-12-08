@@ -22,11 +22,13 @@
 // </license>
  */
 
+#include "logging.h"
 #include "sapphire.h"
 #include "ip.h"
 #include "config.h"
 
 #include "controller.h"
+#include "threading.h"
 #include "mqtt_client.h"
 
 /*
@@ -80,7 +82,7 @@ static socket_t sock;
 
 static ip_addr4_t broker_ip;
 static uint16_t broker_port;
-
+static int8_t broker_timeout;
 
 static uint32_t mqtt_client_msgs_publish_recv;
 static uint32_t mqtt_client_msgs_publish_sent;
@@ -897,11 +899,23 @@ PT_BEGIN( pt );
 
     	TMR_WAIT( pt, 2000 );
 
+    	THREAD_WAIT_WHILE( pt, !mqtt_b_connected() );
+
     	if( sys_b_is_shutting_down() ){
 
         	THREAD_EXIT( pt );
         }
 
+        broker_timeout -= 2;
+
+        if( broker_timeout < 0 ){
+
+			log_v_info_P( PSTR("MQTT bridge timed out") );
+			broker_ip = ip_a_addr( 0, 0, 0, 0 );
+			broker_port = 0;
+
+			continue;
+        }
 
     	// send subscriptions
 		static list_node_t ln;
@@ -1028,6 +1042,15 @@ PT_BEGIN( pt );
         			broker_port
         		);
         	}
+
+        	// reset timeout
+        	broker_timeout = MQTT_BRIDGE_TIMEOUT;
+        }
+        else if( header->msg_type == MQTT_MSG_SHUTDOWN ){
+
+			log_v_info_P( PSTR("MQTT bridge shut down") );
+			broker_ip = ip_a_addr( 0, 0, 0, 0 );
+			broker_port = 0;
         }
         else{
 

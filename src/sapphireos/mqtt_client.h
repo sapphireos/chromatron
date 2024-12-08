@@ -33,6 +33,8 @@
 #define MQTT_BRIDGE_PORT        44899
 #define MQTT_BROKER_PORT        44900
 
+#define MQTT_BRIDGE_TIMEOUT     60
+
 #define MQTT_VM_TAG_OFFSET      0x80
 
 // #ifdef ESP32
