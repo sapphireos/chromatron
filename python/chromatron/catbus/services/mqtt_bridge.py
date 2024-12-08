@@ -376,6 +376,14 @@ class MqttBridge(MsgServer):
 
         self.clients = {}
 
+        # transmit shutdown message
+        shutdown_msg = MqttShutdown()
+        self.transmit(shutdown_msg, ("255.255.255.255", MQTT_BRIDGE_PORT))
+        time.sleep(0.05)
+        self.transmit(shutdown_msg, ("255.255.255.255", MQTT_BRIDGE_PORT))
+        time.sleep(0.05)
+        self.transmit(shutdown_msg, ("255.255.255.255", MQTT_BRIDGE_PORT))
+
         self.mqtt_client.stop()
 
     def _process_connection(self):
