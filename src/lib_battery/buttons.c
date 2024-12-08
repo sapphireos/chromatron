@@ -23,6 +23,7 @@
 */
 
 
+#include "cnt_of_array.h"
 #include "sapphire.h"
 
 #include "hal_boards.h"
@@ -42,6 +43,8 @@
 static uint8_t button_state;
 static int8_t batt_ui_button = -1; // physically installed button for QON and wired direct to MCU
 // the batt ui button is always button channel 0
+
+static int8_t registered_buttons[MAX_BUTTONS];
 
 // button events:
 static uint8_t button_event_prev[MAX_BUTTONS];
@@ -95,6 +98,8 @@ PT_THREAD( button_thread( pt_t *pt, void *state ) );
 
 
 void button_v_init( void ){
+
+    memset( registered_buttons, -1, cnt_of_array(registered_buttons) );
 
     if( batt_b_enabled() ){
 
@@ -171,6 +176,13 @@ void button_v_init( void ){
                      PSTR("button"),
                      0,
                      0 );
+}
+
+void button_v_register( uint8_t index, int8_t button ){
+
+    ASSERT( index < MAX_BUTTONS );
+
+    registered_buttons[index] = button;
 }
 
 // peek is same as "is", but doesn;t clear state
@@ -357,6 +369,11 @@ static bool _button_b_read_button( uint8_t ch ){
         if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
 
             return io_b_digital_read( batt_ui_button );
+        }
+
+        if( registered_buttons[ch] >= 0 ){
+
+            return io_b_digital_read( registered_buttons[ch] );    
         }
     }
 

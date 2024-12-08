@@ -29,6 +29,8 @@
 
 void button_v_init( void );
 
+void button_v_register( uint8_t index, int8_t button );
+
 bool button_b_is_button_pressed( uint8_t button );
 bool button_b_peek_button_pressed( uint8_t button );
 bool button_b_is_button_hold( uint8_t button );
