@@ -789,7 +789,14 @@ PT_BEGIN( pt );
 
                 controller_msg_leader_gfx_sync_t *msg = (controller_msg_leader_gfx_sync_t *)ctrl_header;
 
+                // check if leader is changing
                 if( !ip_b_addr_compare( leader_ip, msg->leader_ip ) ){
+
+                    // leader changed, reset sync
+                    vm_sync_v_reset();
+
+                    // set leader
+                    leader_ip = msg->leader_ip;
 
                     log_v_debug_P( PSTR("GFX sync leader: %d.%d.%d.%d"), 
                         leader_ip.ip3,
@@ -798,8 +805,6 @@ PT_BEGIN( pt );
                         leader_ip.ip0
                     );
                 }
-
-                leader_ip = msg->leader_ip; 
             }
         }
     }
@@ -948,11 +953,20 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, rnd_u16_get_int() >> 8 );
 
+        // query while we do not have a leader
         while( controller_b_is_connected() && ip_b_is_zeroes( leader_ip ) ){
 
             send_leader_query();    
 
             TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) + 2000 );
+        }
+
+        // query while we do have a leader, in case the leader changes
+        while( controller_b_is_connected() && !ip_b_is_zeroes( leader_ip ) ){
+
+            send_leader_query();    
+
+            TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) + 8000 );
         }
     }
 
