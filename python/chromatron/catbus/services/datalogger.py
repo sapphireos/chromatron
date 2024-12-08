@@ -73,6 +73,21 @@ class DatalogDataV3(StructField):
         super().__init__(_fields=fields, **kwargs)
 
 
+class DatalogMetaV4(StructField):
+    def __init__(self, **kwargs):
+        fields = [NTPTimestampField(_name="ntp_base"),
+                  Ipv4Field(_name="ip")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class DatalogDataV4(StructField):
+    def __init__(self, **kwargs):
+        fields = [Int32Field(_name="ntp_offset"),
+                  CatbusData(_name="data")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+
 class DatalogMetaV2(StructField):
     def __init__(self, **kwargs):
         fields = [NTPTimestampField(_name="ntp_base")]
@@ -330,7 +345,32 @@ class Datalogger(MQTTClient):
     def __init__(self):
         super().__init__()
 
+        self._last_directory_update = time.monotonic()
+        self.directory = None
+
+        # run local catbus directory
+        self.client = Client()
+        self.directory = {}
+
+        self._update_directory()
+
         self.start()
+
+    def _update_directory(self):
+        self._last_directory_update = time.monotonic()
+
+        directory = self.client.get_directory()
+
+        if directory is None:
+            return
+
+        self.directory = directory
+
+    def update_directory(self):
+        if time.monotonic() - self._last_directory_update < 4.0:
+            return
+
+        self._update_directory()
 
     def _process(self):
         super()._process() # this is critcal to run MQTT event loop!
@@ -341,14 +381,19 @@ class Datalogger(MQTTClient):
         self.subscribe('chromatron/datalogger')
     
     def on_message(self, client, userdata, msg):
+        self.update_directory()
+
         topic = msg.topic
         # payload = msg.payload.decode('utf8')
         data = msg.payload
         header = DatalogHeader().unpack(data)
 
+        if header.version != 4:
+            return
+
         # slice past header
         data = data[header.size():]
-        meta = DatalogMetaV2().unpack(data)
+        meta = DatalogMetaV4().unpack(data)
 
         if (header.flags & DATALOG_FLAGS_NTP_SYNC) == 0:
             ntp_base = timestamp
@@ -363,7 +408,7 @@ class Datalogger(MQTTClient):
         print(topic, header, meta)
 
         while len(data) > 0:
-            chunk = DatalogDataV2().unpack(data)
+            chunk = DatalogDataV4().unpack(data)
 
             # sanity check ntp offset:
             if chunk.ntp_offset > 600000: # 10 minutes is pretty reasonable
@@ -374,12 +419,45 @@ class Datalogger(MQTTClient):
             delta = timedelta(seconds=chunk.ntp_offset / 1000.0)
 
             ntp_timestamp = ntp_base + delta
+
+            host = (str(meta.ip), CATBUS_MAIN_PORT)
+
+            # note this will only work with services running on 
+            # port 44632, generally only devices, not Python servers.
+            try:
+                info = self.directory[str(host)]
+
+            except KeyError:
+                return
+
+            # print(info)
+
+            h = chunk.data.meta.hash
+            key = self.client.lookup_hash(h, host=host)[h]
+
             value = chunk.data.value
 
-            print(ntp_timestamp, value, chunk)
+            print(ntp_timestamp, key, value, chunk)
 
             # slice buffer
             data = data[chunk.size():]
+
+            tags = {'name': info['name'],
+                    'location': info['location']}
+
+            json_body = {
+                "measurement": key,
+                "tags": tags,
+                "time": ntp_timestamp.isoformat(),
+                "fields": {
+                    "value": value
+                }
+            }
+
+            print(json_body)
+
+            # self.influx.write_points([json_body])
+
 
 
 def main():

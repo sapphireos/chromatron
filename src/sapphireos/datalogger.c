@@ -22,6 +22,7 @@
 // </license>
  */
 
+#include "config.h"
 #include "system.h"
 #include "memory.h"
 #include "timers.h"
@@ -194,7 +195,7 @@ PT_END( pt );
 
 static int8_t record_data( datalog_entry_t *entry, uint32_t timestamp ){
 
-#if DATALOG_VERSION == 2
+#if DATALOG_VERSION == 4
 
     if( entry->hash == 0 ){
 
@@ -221,14 +222,14 @@ static int8_t record_data( datalog_entry_t *entry, uint32_t timestamp ){
     int16_t remaining_space = DATALOG_MAX_BUFFER_SIZE - buffer_offset;
 
     uint16_t data_size = type_u16_size_meta( &entry->meta );
-    uint16_t chunk_size = ( sizeof(datalog_data_v2_t) - 1 ) + data_size;
+    uint16_t chunk_size = ( sizeof(datalog_data_v4_t) - 1 ) + data_size;
 
     if( remaining_space < chunk_size ){
 
         return 1;
     }
 
-    datalog_data_v2_t *chunk = (datalog_data_v2_t *)&ptr[buffer_offset];
+    datalog_data_v4_t *chunk = (datalog_data_v4_t *)&ptr[buffer_offset];
 
     uint32_t ntp_offset = tmr_u32_elapsed_times( systime_base, timestamp );
 
@@ -403,7 +404,7 @@ PT_BEGIN( pt );
 
                 if( buffer_offset == 0 ){
 
-                    datalog_v2_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
+                    datalog_v4_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
 
                     // memset( buf_meta_ptr, 0, mem2_u16_get_size( datalog_buffer_handle ) );
 
@@ -411,8 +412,9 @@ PT_BEGIN( pt );
                     ntp_v_get_timestamp( &ntp_base, &systime_base );
 
                     buf_meta_ptr->ntp_base = ntp_base;
+                    buf_meta_ptr->ip = cfg_ip_get_ipaddr();
 
-                    buffer_offset += sizeof(datalog_v2_meta_t);
+                    buffer_offset += sizeof(datalog_v4_meta_t);
                 }
 
                 entry_ptr->ticks = entry_ptr->tick_rate;
@@ -426,7 +428,7 @@ PT_BEGIN( pt );
 
                     if( buffer_offset == 0 ){
 
-                        datalog_v2_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
+                        datalog_v4_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
 
                         // memset( buf_meta_ptr, 0, mem2_u16_get_size( datalog_buffer_handle ) );
 
@@ -435,7 +437,7 @@ PT_BEGIN( pt );
 
                         buf_meta_ptr->ntp_base = ntp_base;
 
-                        buffer_offset += sizeof(datalog_v2_meta_t);
+                        buffer_offset += sizeof(datalog_v4_meta_t);
                     }
 
                     record_data( entry_ptr, timestamp );
