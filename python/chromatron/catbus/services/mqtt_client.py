@@ -22,7 +22,7 @@
 # </license>
 #
 
-
+import os
 import sys
 import time
 import json
@@ -38,12 +38,13 @@ class MQTTHostNotFound(Exception):
     pass
 
 class MQTTClient(Ribbon):
-    def __init__(self, host='localhost', settings={}):
+    def __init__(self, host='localhost'):
         super().__init__()
 
-        self.host = host
-        self.settings = settings
+        if "MQTT_HOST" in os.environ:
+            host = os.environ["MQTT_HOST"]
 
+        self.host = host
         self.mqtt = mqtt.Client()
 
         self.mqtt.on_connect = self.on_connect
@@ -57,20 +58,12 @@ class MQTTClient(Ribbon):
     def connected(self):
         return self._connected
 
-    def connect(self, host=None):
-        if host is None:
-            try:
-                # host = self.settings['host']   
-                host = self.host
-
-            except KeyError:
-                host = 'localhost'
-
+    def connect(self):
         try:
-            self.mqtt.connect(host)        
+            self.mqtt.connect(self.host)        
 
         except socket.gaierror:
-            raise MQTTHostNotFound(host)
+            raise MQTTHostNotFound(self.host)
 
     def clean_up(self):
         self.mqtt.disconnect()

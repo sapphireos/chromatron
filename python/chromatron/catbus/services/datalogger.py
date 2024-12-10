@@ -22,7 +22,7 @@
 # </license>
 #
 
-
+import os
 import sys
 import time
 from datetime import datetime, timedelta
@@ -342,6 +342,9 @@ DIRECTORY_UPDATE_INTERVAL = 8.0
 class Datalogger(MQTTClient):
     def __init__(self, influx_server='influx'):
         super().__init__(host='mqtt')
+
+        if 'INFLUX_HOST' in os.environ:
+            influx_server = os.environ['INFLUX_HOST']
 
         self._last_directory_update = time.monotonic()
         self.directory = None
