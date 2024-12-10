@@ -340,7 +340,7 @@ DIRECTORY_UPDATE_INTERVAL = 8.0
 
 
 class Datalogger(MQTTClient):
-    def __init__(self, influx_server='localhost'):
+    def __init__(self, influx_server='influx'):
         super().__init__(host='localhost')
 
         self._last_directory_update = time.monotonic()
