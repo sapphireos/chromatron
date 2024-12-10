@@ -389,7 +389,7 @@ class MqttBridge(MsgServer):
     def _process_connection(self):
         if not self.mqtt_client.connected:
             try:
-                self.mqtt_client.connect(host=self.mqtt_host)
+                self.mqtt_client.connect()
 
             except ConnectionRefusedError as e:
                 logging.error(f'Connection refused: {self.mqtt_host}:{self.mqtt_port}')
