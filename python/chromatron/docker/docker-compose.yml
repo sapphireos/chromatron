@@ -13,7 +13,10 @@ services:
 
   grafana:
     container_name: grafana
-    image: grafana/grafana:11.4.0
+    build:
+      context: ../
+      dockerfile: docker/grafana/Dockerfile
+    # image: grafana/grafana:11.4.0
     restart: unless-stopped
     # user: "1000"
     environment:
