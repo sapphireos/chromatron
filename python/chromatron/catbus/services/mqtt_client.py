@@ -57,10 +57,11 @@ class MQTTClient(Ribbon):
     def connected(self):
         return self._connected
 
-    def connect(self, host='localhost'):
+    def connect(self, host=None):
         if host is None:
             try:
-                host = self.settings['host']   
+                # host = self.settings['host']   
+                host = self.host
 
             except KeyError:
                 host = 'localhost'

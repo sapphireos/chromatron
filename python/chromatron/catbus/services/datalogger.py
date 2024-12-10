@@ -339,14 +339,14 @@ DIRECTORY_UPDATE_INTERVAL = 8.0
 
 
 
-
-
 class Datalogger(MQTTClient):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, influx_server='datalogger'):
+        super().__init__(host='mqtt')
 
         self._last_directory_update = time.monotonic()
         self.directory = None
+
+        self.influx = InfluxDBClient(influx_server, 8086, 'root', 'root', 'chromatron')
 
         # run local catbus directory
         self.client = Client()
@@ -405,8 +405,6 @@ class Datalogger(MQTTClient):
         data = data[meta.size():] # slice buffer
 
 
-        print(topic, header, meta)
-
         while len(data) > 0:
             chunk = DatalogDataV4().unpack(data)
 
@@ -437,7 +435,7 @@ class Datalogger(MQTTClient):
 
             value = chunk.data.value
 
-            print(ntp_timestamp, key, value, chunk)
+            # print(ntp_timestamp, key, value, chunk)
 
             # slice buffer
             data = data[chunk.size():]
@@ -454,9 +452,9 @@ class Datalogger(MQTTClient):
                 }
             }
 
-            print(json_body)
+            # print(json_body)
 
-            # self.influx.write_points([json_body])
+            self.influx.write_points([json_body])
 
 
 

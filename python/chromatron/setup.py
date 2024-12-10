@@ -58,7 +58,7 @@ setup(
     install_requires=[
         "crcmod == 1.7",
         "appdirs==1.4.3",
-        "requests==2.22.0",
+        "requests==2.32.3",
         # "setuptools >= 50.3.2",
         "pyserial == 3.4.0",
         # "cmd2 == 0.6.9", # now included directly in source tree (because pip broke the ability to install it)

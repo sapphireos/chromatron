@@ -148,9 +148,6 @@ PT_THREAD( battery_monitor_thread( pt_t *pt, void *state ) );
 
 void batt_v_init( void ){
 
-    // always init button module
-    button_v_init();
-
     set_batt_nameplate_capacity();
 
     if( kv_b_get_boolean( __KV__enable_led_detect ) ){

@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 # needed to install avahi without a prompt
 ARG DEBIAN_FRONTEND=noninteractive
@@ -19,7 +19,8 @@ COPY . .
 RUN chown -R sapphire /app
 RUN chmod 777 /app
 
-RUN python3 setup.py install
+# RUN python3 setup.py install
+RUN pip3 install . --break-system-packages
 
 USER sapphire
 

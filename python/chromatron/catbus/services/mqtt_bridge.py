@@ -346,7 +346,7 @@ but there are no subscriptions for it.
 """
 
 class MqttBridge(MsgServer):
-    def __init__(self, mqtt_host='localhost', mqtt_port=1883):
+    def __init__(self, mqtt_host='mqtt', mqtt_port=1883):
         super().__init__(name='mqtt_bridge', port=MQTT_BRIDGE_PORT)
 
         self.mqtt_host = mqtt_host
