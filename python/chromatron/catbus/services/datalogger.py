@@ -340,8 +340,8 @@ DIRECTORY_UPDATE_INTERVAL = 8.0
 
 
 class Datalogger(MQTTClient):
-    def __init__(self, influx_server='influx'):
-        super().__init__(host='mqtt')
+    def __init__(self, influx_server='localhost'):
+        super().__init__(host='localhost')
 
         self._last_directory_update = time.monotonic()
         self.directory = None
@@ -436,12 +436,16 @@ class Datalogger(MQTTClient):
             value = chunk.data.value
 
             # print(ntp_timestamp, key, value, chunk)
+            # print(info)
+            groups = {g: g for g in info['query'][2:]}
 
             # slice buffer
             data = data[chunk.size():]
 
             tags = {'name': info['name'],
                     'location': info['location']}
+
+            tags.update(groups)
 
             json_body = {
                 "measurement": key,
