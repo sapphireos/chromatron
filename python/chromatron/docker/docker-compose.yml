@@ -22,8 +22,11 @@ services:
     environment:
       - GF_AUTH_ANONYMOUS=true
     volumes:
-      - grafana_chromatron:/var/lib/grafana
       # - ./grafana_data:/var/lib/grafana
+      - grafana_chromatron:/var/lib/grafana
+      # these are needed for mDNS to work
+      - /var/run/dbus:/var/run/dbus
+      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
     ports:
       - 3000:3000
     networks:
