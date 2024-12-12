@@ -371,5 +371,5 @@ int32_t type_i32_from_f16( fixed16_t n ){
 
 fixed16_t type_f16_from_decimal( int16_t n, uint16_t decimal ){
 
-    return n * 65536 + decimal;
+    return n * 65536 + ( (uint32_t)decimal * 65536 ) / 10;
 }
