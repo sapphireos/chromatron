@@ -88,4 +88,8 @@ int8_t type_i8_convert(
 
 uint16_t type_u16_size_meta( catbus_meta_t *meta );
 
+fixed16_t type_f16_from_i32( int32_t n );
+int32_t type_i32_from_f16( fixed16_t n );
+fixed16_t type_f16_from_decimal( int16_t n, uint16_t decimal );
+
 #endif
