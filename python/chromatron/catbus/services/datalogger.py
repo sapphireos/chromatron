@@ -384,6 +384,8 @@ class Datalogger(MQTTClient):
         self.subscribe('chromatron/datalogger')
     
     def on_message(self, client, userdata, msg):
+        timestamp = datetime.utcnow()
+        
         self.update_directory()
 
         topic = msg.topic
