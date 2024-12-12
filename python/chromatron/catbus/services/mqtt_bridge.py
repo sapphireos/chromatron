@@ -141,7 +141,7 @@ class MqttPublishKVMsg(StructField):
         self.header.type = MQTT_MSG_PUBLISH_KV
 
 MQTT_MSG_PUBLISH_ACK        = 22      
-class MqttPublishKVMsg(StructField):
+class MqttPublishAckMsg(StructField):
     def __init__(self, **kwargs):
         fields = [MQTTMsgHeader(_name="header"),
                   MQTTTopic(_name="topic")]
