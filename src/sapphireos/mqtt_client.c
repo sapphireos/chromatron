@@ -78,6 +78,14 @@ typedef struct __attribute__((packed)){
 
 static list_t sub_list;
 
+
+typedef struct __attribute__((packed)){
+	mem_handle_t h;
+	uint8_t timeout;
+} mqtt_transmit_t;
+
+static list_t transmit_list;
+
 static socket_t sock;
 
 static ip_addr4_t broker_ip;
@@ -110,6 +118,7 @@ KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
 
 
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) );
+PT_THREAD( mqtt_transmit_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_test_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_client_server_thread( pt_t *pt, void *state ) );
 
@@ -128,6 +137,7 @@ void mqtt_client_v_init( void ){
     }
 
     list_v_init( &sub_list );
+    list_v_init( &transmit_list );
 
     // create socket
     sock = sock_s_create( SOS_SOCK_DGRAM );
@@ -139,6 +149,11 @@ void mqtt_client_v_init( void ){
 
     thread_t_create( mqtt_client_thread,
                      PSTR("mqtt_client"),
+                     0,
+                     0 );
+
+    thread_t_create( mqtt_transmit_thread,
+                     PSTR("mqtt_transmit"),
                      0,
                      0 );
 
@@ -969,6 +984,35 @@ next_sub:
 	    THREAD_YIELD( pt ); // yield to allow local loopbacks to the broker to clear
 
 		transmit_status();
+	}
+    
+PT_END( pt );
+}
+
+
+PT_THREAD( mqtt_transmit_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+	
+   	while(1){
+
+   		THREAD_WAIT_WHILE( pt, list_u8_count( &transmit_list ) );
+
+   		while( list_u8_count( &transmit_list ) > 0 ){
+
+   			TMR_WAIT( pt, 100 );
+   			
+   			list_node_t ln = transmit_list.head;	
+
+		    while( ln >= 0 ){
+
+		    	list_node_t next_ln = list_ln_next( ln );
+
+
+
+		    	ln = next_ln;
+	   		}
+	   	}
 	}
     
 PT_END( pt );

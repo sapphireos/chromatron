@@ -113,6 +113,7 @@ typedef struct __attribute__((packed)){
 } mqtt_msg_publish_t;
 #define MQTT_MSG_PUBLISH            20
 #define MQTT_MSG_PUBLISH_KV         21
+#define MQTT_MSG_PUBLISH_ACK        22
 
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;

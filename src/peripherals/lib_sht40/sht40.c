@@ -78,11 +78,11 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 1000 );
-
         int16_t temp;
         sht40_v_meas_raw( &temp, &rh );
-        
+
+        TMR_WAIT( pt, 1000 );
+                
         // trace_printf("%d %d\r\n", temp, rh);
     }
     
