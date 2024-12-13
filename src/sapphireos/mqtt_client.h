@@ -34,6 +34,8 @@
 #define MQTT_BROKER_PORT        44900
 
 #define MQTT_BRIDGE_TIMEOUT     60
+#define MQTT_PUB_ACK_TIMEOUT    16   // ticks at 100 ms
+#define MQTT_MAX_Q_SIZE         16
 
 #define MQTT_VM_TAG_OFFSET      0x80
 

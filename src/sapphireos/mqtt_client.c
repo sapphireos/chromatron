@@ -262,6 +262,12 @@ static int8_t transmit_publish(
 		return 0;
 	}
 
+	// check if publish q is too deep:
+	if( list_u8_count( &transmit_list ) >= MQTT_MAX_Q_SIZE ){
+
+		return 0;
+	}
+
 
 	uint8_t topic_len = strnlen( topic, MQTT_MAX_TOPIC_LEN );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
@@ -313,21 +319,17 @@ static int8_t transmit_publish(
 	header->qos    		= qos;
 	header->flags       = 0;
 
+	mqtt_transmit_t mqtt_t = {
+		h,
+		MQTT_PUB_ACK_TIMEOUT,
+	};
 
+	list_node_t ln = list_ln_create_node( &mqtt_t, sizeof(mqtt_t ) );
 
-	// // transmit
-	// int8_t send_status = send_msg_to_broker( h );
+	if( ln > 0 ){
 
-	// if( send_status == -1 ){ // no broker available
-
-	// 	return 0;
-	// }
-	// else if( send_status < 0 ){
-
-	// 	log_v_error_P( PSTR("Send failed") );
-
-	// 	return -2;
-	// }
+		list_v_insert_head( &transmit_list, ln );	
+	}
 
 	mqtt_client_msgs_publish_sent++;
 
@@ -1074,6 +1076,11 @@ PT_BEGIN( pt );
 					}
 		    	}
 		    	else{
+
+		    		if( list_u8_count( &transmit_list ) >= MQTT_MAX_Q_SIZE ){
+
+		    			log_v_warn_P( PSTR("MQTT publish q overflow") );
+		    		}
 
 		    		// timer expired, remove message
 		    		mem2_v_free( mqtt_t->h );
