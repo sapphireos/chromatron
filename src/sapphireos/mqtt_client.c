@@ -22,7 +22,9 @@
 // </license>
  */
 
+#include "list.h"
 #include "logging.h"
+#include "memory.h"
 #include "sapphire.h"
 #include "ip.h"
 #include "config.h"
@@ -81,10 +83,11 @@ static list_t sub_list;
 
 typedef struct __attribute__((packed)){
 	mem_handle_t h;
-	uint8_t timeout;
+	int8_t timeout;
 } mqtt_transmit_t;
 
 static list_t transmit_list;
+static uint8_t next_msg_id;
 
 static socket_t sock;
 
@@ -95,10 +98,13 @@ static int8_t broker_timeout;
 static uint32_t mqtt_client_msgs_publish_recv;
 static uint32_t mqtt_client_msgs_publish_sent;
 
-static uint32_t mqtt_test_msgs_sent;
-static uint32_t mqtt_test_msgs_recv;
+static uint32_t mqtt_client_msgs_publish_attempts;
+static uint32_t mqtt_client_msgs_publish_acks;
 
-static uint16_t test_publish_rate;
+// static uint32_t mqtt_test_msgs_sent;
+// static uint32_t mqtt_test_msgs_recv;
+
+// static uint16_t test_publish_rate;
 
 KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
 	#ifdef ENABLE_BROKER
@@ -107,19 +113,22 @@ KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
     { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_PERSIST, &broker_ip, 							0,  "mqtt_broker_ip" },
     { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_PERSIST, &broker_port,							0,  "mqtt_broker_port" },
 
-    { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_client_msgs_publish_recv,		0,  "mqtt_client_msgs_publish_recv" },
-    { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_client_msgs_publish_sent,		0,  "mqtt_client_msgs_publish_sent" },
+    { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_client_msgs_publish_recv,		0,  "mqtt_publish_recv" },
+    { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_client_msgs_publish_sent,		0,  "mqtt_publish_sent" },
 
-    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_PERSIST,	 &test_publish_rate, 				0,  "mqtt_test_mode_publish_rate" },
-    { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST, 	0, 									0,  "mqtt_test_mode_subscribe" },
-    { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, 	&mqtt_test_msgs_sent,				0,  "mqtt_test_msgs_sent" },
-    { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, 	&mqtt_test_msgs_recv,				0,  "mqtt_test_msgs_recv" },
+    { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_client_msgs_publish_attempts,	0,  "mqtt_publish_attempts" },
+    { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_client_msgs_publish_acks,		0,  "mqtt_publish_acks" },
+    
+    // { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_PERSIST,	 &test_publish_rate, 				0,  "mqtt_test_mode_publish_rate" },
+    // { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST, 	0, 									0,  "mqtt_test_mode_subscribe" },
+    // { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, 	&mqtt_test_msgs_sent,				0,  "mqtt_test_msgs_sent" },
+    // { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, 	&mqtt_test_msgs_recv,				0,  "mqtt_test_msgs_recv" },
 };
 
 
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_transmit_thread( pt_t *pt, void *state ) );
-PT_THREAD( mqtt_test_thread( pt_t *pt, void *state ) );
+// PT_THREAD( mqtt_test_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_client_server_thread( pt_t *pt, void *state ) );
 
 #ifdef ENABLE_BROKER
@@ -127,7 +136,7 @@ PT_THREAD( mqtt_broker_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_broker_timeout_thread( pt_t *pt, void *state ) );
 #endif
 
-static void test_mode_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len, sock_addr_t *raddr );
+// static void test_mode_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len, sock_addr_t *raddr );
 
 void mqtt_client_v_init( void ){
 
@@ -162,13 +171,13 @@ void mqtt_client_v_init( void ){
                      0,
                      0 );
 
-   	if( test_publish_rate > 0 ){
+   	// if( test_publish_rate > 0 ){
 
-   		thread_t_create( mqtt_test_thread,
-                     PSTR("mqtt_test"),
-                     0,
-                     0 );
-   	}
+   	// 	thread_t_create( mqtt_test_thread,
+    //                  PSTR("mqtt_test"),
+    //                  0,
+    //                  0 );
+   	// }
 
    	#ifdef ENABLE_BROKER
   
@@ -253,6 +262,7 @@ static int8_t transmit_publish(
 		return 0;
 	}
 
+
 	uint8_t topic_len = strnlen( topic, MQTT_MAX_TOPIC_LEN );
 	ASSERT( topic_len <= MQTT_MAX_TOPIC_LEN );
 
@@ -266,6 +276,8 @@ static int8_t transmit_publish(
 	}
 
 	mqtt_msg_publish_t *msg = (mqtt_msg_publish_t *)mem2_vp_get_ptr_fast( h );
+
+	msg->msg_id = next_msg_id++;
 
 	// get byte pointer after headers:
 	uint8_t *ptr = (uint8_t *)( msg + 1 );
@@ -301,19 +313,21 @@ static int8_t transmit_publish(
 	header->qos    		= qos;
 	header->flags       = 0;
 
-	// transmit
-	int8_t send_status = send_msg_to_broker( h );
 
-	if( send_status == -1 ){ // no broker available
 
-		return 0;
-	}
-	else if( send_status < 0 ){
+	// // transmit
+	// int8_t send_status = send_msg_to_broker( h );
 
-		log_v_error_P( PSTR("Send failed") );
+	// if( send_status == -1 ){ // no broker available
 
-		return -2;
-	}
+	// 	return 0;
+	// }
+	// else if( send_status < 0 ){
+
+	// 	log_v_error_P( PSTR("Send failed") );
+
+	// 	return -2;
+	// }
 
 	mqtt_client_msgs_publish_sent++;
 
@@ -895,6 +909,34 @@ static void process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 }
 
 
+static void process_publish_ack( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
+
+	// process timers
+	list_node_t ln = transmit_list.head;	
+
+    while( ln >= 0 ){
+
+    	list_node_t next_ln = list_ln_next( ln );
+
+    	mqtt_transmit_t *mqtt_t = list_vp_get_data( ln );
+
+    	mqtt_msg_publish_t *pub_msg = ( mqtt_msg_publish_t * )mem2_vp_get_ptr( mqtt_t->h );
+
+    	if( pub_msg->msg_id == msg->msg_id ){
+
+    		// message confirmed, release memory
+
+    		mem2_v_free( mqtt_t->h );
+
+    		list_v_remove( &transmit_list, ln );
+    		list_v_release_node( ln );
+    	}
+
+    	ln = next_ln;
+	}
+}
+
+
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -903,10 +945,10 @@ PT_BEGIN( pt );
    	
 	TMR_WAIT( pt, 1000 );	
 
-	if( kv_b_get_boolean( __KV__mqtt_test_mode_subscribe ) ){
+	// if( kv_b_get_boolean( __KV__mqtt_test_mode_subscribe ) ){
 
-    	mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test"), 0, test_mode_on_publish_callback, 0 );
-    }
+    // 	mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/test"), 0, test_mode_on_publish_callback, 0 );
+    // }
 
 	// mqtt_client_i8_subscribe( PSTR("chromatron_mqtt/status"), 0, mqtt_on_publish_status_callback, 0 );
 
@@ -1002,13 +1044,43 @@ PT_BEGIN( pt );
 
    			TMR_WAIT( pt, 100 );
    			
+   			// process timers
    			list_node_t ln = transmit_list.head;	
 
 		    while( ln >= 0 ){
 
 		    	list_node_t next_ln = list_ln_next( ln );
 
+		    	mqtt_transmit_t *mqtt_t = list_vp_get_data( ln );
 
+		    	mqtt_t->timeout--;
+
+		    	if( mqtt_t->timeout > 0 ){
+
+		    		// timer still valid, transmit message to broker
+		    		int8_t send_status = send_msg_to_broker( mqtt_t->h );
+
+					if( send_status == -1 ){ // no broker available
+
+						mqtt_t->timeout = 0; // expire message
+					}
+					else if( send_status < 0 ){
+
+						log_v_error_P( PSTR("Send failed") );
+					}		    		
+					else{
+
+						mqtt_client_msgs_publish_attempts++;
+					}
+		    	}
+		    	else{
+
+		    		// timer expired, remove message
+		    		mem2_v_free( mqtt_t->h );
+
+		    		list_v_remove( &transmit_list, ln );
+		    		list_v_release_node( ln );
+		    	}
 
 		    	ln = next_ln;
 	   		}
@@ -1071,6 +1143,13 @@ PT_BEGIN( pt );
 
         	process_publish_kv( (mqtt_msg_publish_t *)header, &raddr );
         }
+        else if( header->msg_type == MQTT_MSG_PUBLISH_ACK ){
+
+        	mqtt_client_msgs_publish_acks++;
+
+        	process_publish_ack( (mqtt_msg_publish_t *)header, &raddr );
+        }
+
         else if( header->msg_type == MQTT_MSG_BRIDGE ){
 
         	if( !ip_b_addr_compare( broker_ip, raddr.ipaddr ) || ( broker_port != raddr.port ) ){
@@ -1116,34 +1195,34 @@ PT_END( pt );
 			TEST MODE
 **********************************/
 
-static void test_mode_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len, sock_addr_t *raddr ){
+// static void test_mode_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len, sock_addr_t *raddr ){
 
-	mqtt_test_msgs_recv++;
-}
+// 	mqtt_test_msgs_recv++;
+// }
 
 
-PT_THREAD( mqtt_test_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+// PT_THREAD( mqtt_test_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
    	
-   	while(1){
+//    	while(1){
 
-   		TMR_WAIT( pt, test_publish_rate );
+//    		TMR_WAIT( pt, test_publish_rate );
 
-   		if( test_publish_rate == 0 ){
+//    		if( test_publish_rate == 0 ){
 
-   			THREAD_EXIT( pt );
-   		}
+//    			THREAD_EXIT( pt );
+//    		}
 
-   		uint8_t data[128] = {0};
+//    		uint8_t data[128] = {0};
 
-   		mqtt_client_i8_publish( "chromatron_mqtt/test", data, sizeof(data), 0, 0 );
+//    		mqtt_client_i8_publish( "chromatron_mqtt/test", data, sizeof(data), 0, 0 );
 
-   		mqtt_test_msgs_sent++;
-   	}
+//    		mqtt_test_msgs_sent++;
+//    	}
 
-PT_END( pt );
-}
+// PT_END( pt );
+// }
 
 
 #ifdef ENABLE_BROKER

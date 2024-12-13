@@ -37,7 +37,7 @@ MQTT_BRIDGE_PORT = 44899
 
 
 MQTT_MSG_MAGIC    = 0x5454514d # 'MQTT'
-MQTT_MSG_VERSION  = 1
+MQTT_MSG_VERSION  = 2
 
 CLIENT_TIMEOUT    = 60.0
 
@@ -122,6 +122,7 @@ MQTT_MSG_PUBLISH        = 20
 class MqttPublishMsg(StructField):
     def __init__(self, **kwargs):
         fields = [MQTTMsgHeader(_name="header"),
+                  Uint8Field(_name="msg_id"),
                   MQTTTopic(_name="topic"),
                   MQTTPayload(_name="payload")]
 
@@ -133,6 +134,7 @@ MQTT_MSG_PUBLISH_KV        = 21
 class MqttPublishKVMsg(StructField):
     def __init__(self, **kwargs):
         fields = [MQTTMsgHeader(_name="header"),
+                  Uint8Field(_name="msg_id"),
                   MQTTTopic(_name="topic"),
                   MQTTKVPayload(_name="payload")]
 
@@ -144,7 +146,7 @@ MQTT_MSG_PUBLISH_ACK        = 22
 class MqttPublishAckMsg(StructField):
     def __init__(self, **kwargs):
         fields = [MQTTMsgHeader(_name="header"),
-                  MQTTTopic(_name="topic")]
+                  Uint8Field(_name="msg_id"),]
 
         super().__init__(_name="mqtt_publish_ack", _fields=fields, **kwargs)
 
@@ -442,6 +444,10 @@ class MqttBridge(MsgServer):
     def _handle_publish(self, msg, host):
         # redirect status messages
         if msg.topic.topic == "chromatron/status":
+            # send ack
+            ack = MqttPublishAckMsg(msg_id=msg.msg_id)
+            self.transmit(ack, host)        
+
             status = MqttStatusMsg().unpack(msg.payload.data.pack())
             self._handle_status(status, host)
             return
@@ -449,6 +455,10 @@ class MqttBridge(MsgServer):
         if host not in self.clients:
             # logging.warn(f'Host {host} not a client!')
             return
+
+        # send ack
+        ack = MqttPublishAckMsg(msg_id=msg.msg_id)
+        self.transmit(ack, host)        
 
         # shovel the raw bytes in to MQTT
         self.clients[host].publish(msg.topic.topic, msg.payload.data.pack())  
@@ -458,6 +468,10 @@ class MqttBridge(MsgServer):
 
             # logging.warn(f'Host {host} not a client!')
             return
+
+        # send ack
+        ack = MqttPublishAckMsg(msg_id=msg.msg_id)
+        self.transmit(ack, host)        
 
         self.clients[host].publish(msg.topic.topic, json.dumps(msg.payload.data.toBasic()['value']))
 

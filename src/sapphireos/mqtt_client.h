@@ -48,7 +48,7 @@
 void mqtt_client_v_init( void );
 
 #define MQTT_MSG_MAGIC    0x5454514d // 'MQTT'
-#define MQTT_MSG_VERSION  1
+#define MQTT_MSG_VERSION  2
 typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
@@ -106,6 +106,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;
+    uint8_t msg_id;
     // uint8_t topic_len;
     // topic data
     // uint16_t payload_len;

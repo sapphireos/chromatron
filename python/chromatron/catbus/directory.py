@@ -40,7 +40,7 @@ from .data_structures import *
 from sapphire.buildtools import firmware_package
 LOG_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_directory.log')
 
-from sapphire.common import util, MsgServer, run_all, synchronized, Ribbon
+from sapphire.common import util, run_all, synchronized, Ribbon
 
 TTL = 240
 
