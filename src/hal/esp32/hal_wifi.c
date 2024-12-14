@@ -1054,6 +1054,27 @@ static void apply_power_save_mode( void ){
     }
 }
 
+static esp_err_t start_scan( bool active ){
+
+    wifi_scan_config_t config = { 0 };
+    config.show_hidden = FALSE;
+
+    if( active ){
+
+        config.scan_type = WIFI_SCAN_TYPE_ACTIVE;
+        config.scan_time.active.min = 50;
+        config.scan_time.active.max = 500;
+    }
+    else{
+
+        config.scan_type = WIFI_SCAN_TYPE_PASSIVE;
+        config.scan_time.passive = 1000;
+    }
+
+    return esp_wifi_scan_start( &config, FALSE );
+}
+
+
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -1142,7 +1163,7 @@ station_mode:
                 // start scan
                 scan_done = FALSE;
 
-                esp_err_t err = esp_wifi_scan_start(NULL, FALSE);
+                esp_err_t err = start_scan( TRUE );
                 if( err != 0 ){
 
                 	log_v_error_P( PSTR("Scan error: %d"), err );
@@ -1475,7 +1496,7 @@ PT_BEGIN( pt );
                     // start scan
                     scan_done = FALSE;
 
-                    esp_err_t err = esp_wifi_scan_start(NULL, FALSE);
+                    esp_err_t err = start_scan( TRUE );
                     if( err != 0 ){
 
                         log_v_error_P( PSTR("Scan error: %d"), err );
