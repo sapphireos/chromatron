@@ -51,7 +51,7 @@ from sapphire.common.util import setup_basic_logging
 from .database import *
 from .server import *
 from .client import *
-# from .link import *
+from .link import *
 
 
 import click
