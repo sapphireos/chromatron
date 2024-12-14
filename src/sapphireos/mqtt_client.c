@@ -94,6 +94,7 @@ static socket_t sock;
 static ip_addr4_t broker_ip;
 static uint16_t broker_port;
 static int8_t broker_timeout;
+static bool connected;
 
 static uint32_t mqtt_client_msgs_publish_recv;
 static uint32_t mqtt_client_msgs_publish_sent;
@@ -110,8 +111,8 @@ KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
 	#ifdef ENABLE_BROKER
 	{ CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST, 0, 						0,  "mqtt_broker_enable" },
     #endif
-    { CATBUS_TYPE_IPv4, 	0, KV_FLAGS_PERSIST, &broker_ip, 							0,  "mqtt_broker_ip" },
-    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_PERSIST, &broker_port,							0,  "mqtt_broker_port" },
+    { CATBUS_TYPE_IPv4, 	0, 0, 				   &broker_ip, 							0,  "mqtt_broker_ip" },
+    { CATBUS_TYPE_UINT16, 	0, 0, 				   &broker_port,							0,  "mqtt_broker_port" },
 
     { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_client_msgs_publish_recv,		0,  "mqtt_publish_recv" },
     { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_client_msgs_publish_sent,		0,  "mqtt_publish_sent" },
@@ -139,6 +140,8 @@ PT_THREAD( mqtt_broker_timeout_thread( pt_t *pt, void *state ) );
 // static void test_mode_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len, sock_addr_t *raddr );
 
 void mqtt_client_v_init( void ){
+
+	// return;
 
 	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -191,17 +194,19 @@ void mqtt_client_v_init( void ){
 
 bool mqtt_b_connected( void ){
 
-	if( ip_b_is_zeroes( broker_ip ) ){
+	return connected;
 
-		return FALSE;
-	}
+	// if( ip_b_is_zeroes( broker_ip ) ){
 
-	if( broker_port == 0 ){
+	// 	return FALSE;
+	// }
 
-		return FALSE;
-	}
+	// if( broker_port == 0 ){
 
-	return TRUE;
+	// 	return FALSE;
+	// }
+
+	// return TRUE;
 }
 
 static sock_addr_t get_broker_raddr( void ){
@@ -973,6 +978,8 @@ PT_BEGIN( pt );
 			broker_ip = ip_a_addr( 0, 0, 0, 0 );
 			broker_port = 0;
 
+			connected = FALSE;
+
 			continue;
         }
 
@@ -1172,6 +1179,8 @@ PT_BEGIN( pt );
         			broker_port
         		);
         	}
+
+        	connected = TRUE;
 
         	// reset timeout
         	broker_timeout = MQTT_BRIDGE_TIMEOUT;
