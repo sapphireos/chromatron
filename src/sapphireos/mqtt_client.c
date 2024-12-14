@@ -260,6 +260,9 @@ static int8_t transmit_publish(
 	uint8_t qos, 
 	bool retain ){
 
+
+// return 0;
+
 	if( !wifi_b_connected() ){
 
 		// if no wifi, don't bother trying to transmit.
@@ -1072,6 +1075,7 @@ PT_BEGIN( pt );
 					if( send_status == -1 ){ // no broker available
 
 						mqtt_t->timeout = 0; // expire message
+						mqtt_t->h = -1;
 					}
 					else if( send_status < 0 ){
 
@@ -1089,8 +1093,13 @@ PT_BEGIN( pt );
 		    			log_v_warn_P( PSTR("MQTT publish q overflow") );
 		    		}
 
+		    		log_v_error_P( PSTR("Publish expired") );
+
 		    		// timer expired, remove message
-		    		mem2_v_free( mqtt_t->h );
+		    		if( mqtt_t->h > 0 ){
+
+		    			mem2_v_free( mqtt_t->h );	
+		    		}
 
 		    		list_v_remove( &transmit_list, ln );
 		    		list_v_release_node( ln );
