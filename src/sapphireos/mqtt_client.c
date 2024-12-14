@@ -332,7 +332,7 @@ static int8_t transmit_publish(
 		MQTT_PUB_ACK_TIMEOUT,
 	};
 
-	list_node_t ln = list_ln_create_node( &mqtt_t, sizeof(mqtt_t ) );
+	list_node_t ln = list_ln_create_node( &mqtt_t, sizeof(mqtt_t) );
 
 	if( ln > 0 ){
 
@@ -1070,7 +1070,7 @@ PT_BEGIN( pt );
 		    	if( mqtt_t->timeout > 0 ){
 
 		    		// timer still valid, transmit message to broker
-		    		int8_t send_status = send_msg_to_broker( mqtt_t->h );
+		    		int8_t send_status = send_msg_to_broker_ptr( mem2_vp_get_ptr( mqtt_t->h ), mem2_u16_get_size( mqtt_t->h ) );
 
 					if( send_status == -1 ){ // no broker available
 
