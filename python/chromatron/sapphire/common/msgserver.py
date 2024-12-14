@@ -277,7 +277,7 @@ class MsgServer(BaseServer):
         except Exception as e:
             logging.exception(e)
             logging.error(f'Bad packet decode from host: {host}')
-
+            
             return
 
         response = None                    
@@ -290,7 +290,7 @@ class MsgServer(BaseServer):
     def _deserialize(self, buf):
         # check protocol version and magic        
         protocol_version = int(buf[self._protocol_version_offset])
-        protocol_magic = int(buf[self._protocol_magic_offset])
+        protocol_magic = struct.unpack('<L', buf[self._protocol_magic_offset:self._protocol_magic_offset + 4])[0]
 
         if protocol_version != self._protocol_version:
             raise UnknownMessage(f'Incorrect protocol version: {protocol_version}')
