@@ -281,6 +281,16 @@ class MsgServer(BaseServer):
             self.transmit(response, host)
 
     def _deserialize(self, buf):
+        # check protocol version and magic        
+        protocol_version = int(buf[self._protocol_version_offset])
+        protocol_magic = int(buf[self._protocol_magic_offset])
+
+        if protocol_version != self._protocol_version:
+            raise UnknownMessage(f'Incorrect protocol version: {protocol_version}')
+
+        elif protocol_magic != self._protocol_magic:
+            raise UnknownMessage(f'Incorrect protocol magic: {protocol_magic}')
+    
         try:
             msg_id = int(buf[self._msg_type_offset])
 
@@ -296,16 +306,6 @@ class MsgServer(BaseServer):
         except (struct.error, UnicodeDecodeError) as e:
             raise InvalidMessage(msg_id, len(buf), e)
 
-        # check protocol version and magic        
-        protocol_version = int(buf[self._protocol_version_offset])
-        protocol_magic = int(buf[self._protocol_magic_offset])
-
-        if protocol_version != self._protocol_version:
-            raise UnknownMessage(f'Incorrect protocol version: {protocol_version}')
-
-        elif protocol_magic != self._protocol_magic:
-            raise UnknownMessage(f'Incorrect protocol magic: {protocol_magic}')
-    
     def _process_msg(self, msg, host):     
         # check if receiving a message we sent
         # this can happen in multicast groups
