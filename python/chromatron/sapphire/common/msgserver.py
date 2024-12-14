@@ -288,16 +288,19 @@ class MsgServer(BaseServer):
             self.transmit(response, host)
 
     def _deserialize(self, buf):
-        # check protocol version and magic        
-        protocol_version = int(buf[self._protocol_version_offset])
-        protocol_magic = struct.unpack('<L', buf[self._protocol_magic_offset:self._protocol_magic_offset + 4])[0]
+        # check protocol version and magic
+        if self._protocol_version_offset is not None:    
+            protocol_version = int(buf[self._protocol_version_offset])
 
-        if protocol_version != self._protocol_version:
-            raise UnknownMessage(f'Incorrect protocol version: {protocol_version}')
+            if protocol_version != self._protocol_version:
+                raise UnknownMessage(f'Incorrect protocol version: {protocol_version}')
 
-        elif protocol_magic != self._protocol_magic:
-            raise UnknownMessage(f'Incorrect protocol magic: {protocol_magic}')
-    
+        if self._protocol_magic_offset is not None:    
+            protocol_magic = struct.unpack('<L', buf[self._protocol_magic_offset:self._protocol_magic_offset + 4])[0]
+
+            if protocol_magic != self._protocol_magic:
+                raise UnknownMessage(f'Incorrect protocol magic: {protocol_magic}')
+        
         try:
             msg_id = int(buf[self._msg_type_offset])
 
