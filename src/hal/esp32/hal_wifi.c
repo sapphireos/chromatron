@@ -70,6 +70,9 @@ static uint8_t disconnect_reason;
 static uint8_t scan_backoff;
 static uint8_t current_scan_backoff;
 
+static uint16_t rescan_timer;
+static bool request_connection_reset;
+
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
 static uint8_t wifi_power_mode;
@@ -110,6 +113,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 
     { CATBUS_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_power_mode,                  0,   "wifi_power_mode" },
     { CATBUS_TYPE_BOOL,          0, KV_FLAGS_PERSIST,     &enable_modem_sleep,               0,   "wifi_enable_modem_sleep" },
+
+    { CATBUS_TYPE_BOOL,          0, 0,                    &request_connection_reset,         0,   "wifi_request_connection_reset" },
 };
 
 // this lives in the wifi driver because it is the easiest place to get to hardware specific code
@@ -863,7 +868,7 @@ static bool is_ssid_configured( void ){
    	return FALSE;
 }
 
-static void scan_cb( void ){
+static int8_t scan_cb( void ){
 
     scan_done = FALSE;
 
@@ -874,7 +879,7 @@ static void scan_cb( void ){
 
     if( h < 0 ){
 
-        return;
+        return -1;
     }
 
     wifi_ap_record_t *ap_info = mem2_vp_get_ptr_fast( h );
@@ -938,13 +943,30 @@ static void scan_cb( void ){
 
         // log_v_debug_P( PSTR("no routers found") );
 
-        return;
+        return -2;
     }
 
     // select router
     wifi_router = best_router;
     memcpy( wifi_bssid, best_bssid, sizeof(wifi_bssid) );
     wifi_channel = best_channel;
+
+    // check if this router is better than our current
+    int16_t delta = best_rssi - wifi_rssi;
+
+    // check for improvement over current router 
+    if( wifi_b_connected() ){
+
+        // if at least 3 db better
+        if( delta >= 3 ){
+
+            log_v_debug_P( PSTR("Found better AP") );
+
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 
@@ -1040,9 +1062,9 @@ PT_BEGIN( pt );
     // don't remove this, we need to confirm we didn't screw up these settings
     // on an IDF update...
     log_v_debug_P( PSTR("ARP table size: %d queueing: %d queue len: %d"), ARP_TABLE_SIZE, ARP_QUEUEING, ARP_QUEUE_LEN );
-
-    static uint16_t scan_timeout;
+ 
     static uint32_t wifi_connect_start;
+    static uint16_t scan_timeout;
 
     connected = FALSE;
     wifi_rssi = -127;
@@ -1057,7 +1079,11 @@ PT_BEGIN( pt );
     // check if we are connected
     while( !wifi_b_connected() && !wifi_shutdown ){
 
+        request_connection_reset = FALSE;
+
         wifi_rssi = -127;
+
+        rescan_timer = WIFI_RESCAN_INTERVAL;
 
         esp_wifi_disconnect();
         TMR_WAIT( pt, 100 ); // this delay seems to be important
@@ -1112,8 +1138,10 @@ station_mode:
                 wifi_router = -1;
                 // log_v_debug_P( PSTR("Scanning...") );
                 
+                
+                // start scan
                 scan_done = FALSE;
-                    
+
                 esp_err_t err = esp_wifi_scan_start(NULL, FALSE);
                 if( err != 0 ){
 
@@ -1124,6 +1152,7 @@ station_mode:
                     goto end;
                 }
 
+                // wait for scan to complete or timeout
                 scan_timeout = 500;
                 while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
 
@@ -1132,6 +1161,7 @@ station_mode:
                     TMR_WAIT( pt, 50 );
                 }
 
+                // check scan completion
                 if( scan_done ){
 
                     scan_cb();
@@ -1387,12 +1417,23 @@ end:
     
     log_v_debug_P( PSTR("Wifi disconnected: %d Last RSSI: %d ch: %d"), disconnect_reason, wifi_rssi, wifi_channel );
 
-    // if we are not shutting down, 
-    if( !wifi_shutdown && !sys_b_is_shutting_down() ){
+    // if we are not shutting down AND
+    // wifi is not shut down OR
+    // reconnect is requested
+    if( ( !wifi_shutdown && !sys_b_is_shutting_down() ) || request_connection_reset ){
 
         // assume this is an unintentional disconnection
         // we will reset the stored router so 
         // we do a scan on the next attempt
+
+        if( request_connection_reset ){
+
+            log_v_debug_P( PSTR("Reconnect requested, resetting AP") );    
+        } 
+        else{
+
+            log_v_debug_P( PSTR("Unexpected disconnection: Resetting AP") );
+        }
 
         // reset router
         wifi_router = -1;
@@ -1424,6 +1465,63 @@ PT_BEGIN( pt );
 
             wifi_uptime++;
             connected = TRUE;
+
+            if( rescan_timer > 0 ){
+
+                rescan_timer--;
+
+                if( rescan_timer == 0 ){
+
+                    // start scan
+                    scan_done = FALSE;
+
+                    esp_err_t err = esp_wifi_scan_start(NULL, FALSE);
+                    if( err != 0 ){
+
+                        log_v_error_P( PSTR("Scan error: %d"), err );
+
+                        esp_wifi_scan_stop();
+                    }
+
+                    // wait for scan to complete or timeout
+                    static uint16_t scan_timeout;
+                    scan_timeout = 500;
+                    while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
+
+                        scan_timeout--;
+
+                        TMR_WAIT( pt, 50 );
+                    }
+
+                    // check scan completion
+                    if( scan_done ){
+
+                        if( scan_cb() == 1 ){
+
+                            // signals better router
+                            request_connection_reset = TRUE;
+                        }
+                    }
+                    else{
+
+                        log_v_error_P( PSTR("scan timeout!") );
+
+                        // call the scan callback anyway.
+                        // the ESP32 seems to sometimes fail to signal scan completion so we timeout.
+                        // or maybe it fails to scan entirely? can't tell so far.
+                        if( scan_cb() == 1 ){
+
+                            // signals better router
+                            request_connection_reset = TRUE;
+                        }
+                    }
+
+                    esp_wifi_scan_stop();
+
+                    // set up next scan
+                    rescan_timer = WIFI_RESCAN_INTERVAL;
+                }    
+            }            
 
             wifi_ap_record_t wifi_info;
             if( esp_wifi_sta_get_ap_info( &wifi_info ) == 0 ){
