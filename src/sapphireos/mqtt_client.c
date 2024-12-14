@@ -141,7 +141,7 @@ PT_THREAD( mqtt_broker_timeout_thread( pt_t *pt, void *state ) );
 
 void mqtt_client_v_init( void ){
 
-	// return;
+	return;
 
 	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 

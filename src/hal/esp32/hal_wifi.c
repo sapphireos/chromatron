@@ -902,7 +902,7 @@ static int8_t scan_cb( void ){
     for( uint32_t i = 0; i < ap_count; i++ ){
 
         // trace_printf( "%s %u %d", ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi );
-        log_v_debug_P( PSTR("%s %u %d"), ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi );
+        log_v_debug_P( PSTR("AP: %s %u %d"), ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi );
 
         int8_t router = -1;
 
@@ -1434,9 +1434,12 @@ end:
         }
     }
 
-    THREAD_WAIT_WHILE( pt, wifi_b_connected() && !wifi_shutdown );
+    THREAD_WAIT_WHILE( pt, wifi_b_connected() && !wifi_shutdown && !request_connection_reset );
     
-    log_v_debug_P( PSTR("Wifi disconnected: %d Last RSSI: %d ch: %d"), disconnect_reason, wifi_rssi, wifi_channel );
+    if( !wifi_b_connected() ){
+
+        log_v_debug_P( PSTR("Wifi disconnected: %d Last RSSI: %d ch: %d"), disconnect_reason, wifi_rssi, wifi_channel );    
+    }
 
     // if we are not shutting down AND
     // wifi is not shut down OR
@@ -1487,62 +1490,62 @@ PT_BEGIN( pt );
             wifi_uptime++;
             connected = TRUE;
 
-            if( rescan_timer > 0 ){
+            // if( rescan_timer > 0 ){
 
-                rescan_timer--;
+            //     rescan_timer--;
 
-                if( rescan_timer == 0 ){
+            //     if( rescan_timer == 0 ){
 
-                    // start scan
-                    scan_done = FALSE;
+            //         // start scan
+            //         scan_done = FALSE;
 
-                    esp_err_t err = start_scan( TRUE );
-                    if( err != 0 ){
+            //         esp_err_t err = start_scan( TRUE );
+            //         if( err != 0 ){
 
-                        log_v_error_P( PSTR("Scan error: %d"), err );
+            //             log_v_error_P( PSTR("Scan error: %d"), err );
 
-                        esp_wifi_scan_stop();
-                    }
+            //             esp_wifi_scan_stop();
+            //         }
 
-                    // wait for scan to complete or timeout
-                    static uint16_t scan_timeout;
-                    scan_timeout = 500;
-                    while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
+            //         // wait for scan to complete or timeout
+            //         static uint16_t scan_timeout;
+            //         scan_timeout = 500;
+            //         while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
 
-                        scan_timeout--;
+            //             scan_timeout--;
 
-                        TMR_WAIT( pt, 50 );
-                    }
+            //             TMR_WAIT( pt, 50 );
+            //         }
 
-                    // check scan completion
-                    if( scan_done ){
+            //         // check scan completion
+            //         if( scan_done ){
 
-                        if( scan_cb() == 1 ){
+            //             if( scan_cb() == 1 ){
 
-                            // signals better router
-                            request_connection_reset = TRUE;
-                        }
-                    }
-                    else{
+            //                 // signals better router
+            //                 request_connection_reset = TRUE;
+            //             }
+            //         }
+            //         else{
 
-                        log_v_error_P( PSTR("scan timeout!") );
+            //             log_v_error_P( PSTR("scan timeout!") );
 
-                        // call the scan callback anyway.
-                        // the ESP32 seems to sometimes fail to signal scan completion so we timeout.
-                        // or maybe it fails to scan entirely? can't tell so far.
-                        if( scan_cb() == 1 ){
+            //             // call the scan callback anyway.
+            //             // the ESP32 seems to sometimes fail to signal scan completion so we timeout.
+            //             // or maybe it fails to scan entirely? can't tell so far.
+            //             if( scan_cb() == 1 ){
 
-                            // signals better router
-                            request_connection_reset = TRUE;
-                        }
-                    }
+            //                 // signals better router
+            //                 request_connection_reset = TRUE;
+            //             }
+            //         }
 
-                    esp_wifi_scan_stop();
+            //         esp_wifi_scan_stop();
 
-                    // set up next scan
-                    rescan_timer = WIFI_RESCAN_INTERVAL;
-                }    
-            }            
+            //         // set up next scan
+            //         rescan_timer = WIFI_RESCAN_INTERVAL;
+            //     }    
+            // }            
 
             wifi_ap_record_t wifi_info;
             if( esp_wifi_sta_get_ap_info( &wifi_info ) == 0 ){
