@@ -271,7 +271,14 @@ class MsgServer(BaseServer):
         super().__init__(**kwargs)
 
     def received_packet(self, data, host):
-        msg = self._deserialize(data)
+        try:
+            msg = self._deserialize(data)
+
+        except Exception as e:
+            logging.exception(e)
+            logging.error(f'Bad packet decode from host: {host}')
+
+            return
 
         response = None                    
 
