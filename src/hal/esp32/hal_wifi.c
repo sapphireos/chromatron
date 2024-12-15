@@ -497,10 +497,10 @@ PT_END( pt );
 
 int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return 0;
-    }
+    //     return 0;
+    // }
 
     tcpip_adapter_ip_info_t info;
         memset( &info, 0, sizeof(info) );
@@ -514,10 +514,10 @@ int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
 
 int8_t hal_wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return 0;
-    }
+    //     return 0;
+    // }
 
     tcpip_adapter_ip_info_t info;
         memset( &info, 0, sizeof(info) );
@@ -757,17 +757,17 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     destAddr.sin_family = AF_INET;
     destAddr.sin_port = htons(netmsg_state->raddr.port);
 
-    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-        if( !hal_arp_b_find( netmsg_state->raddr.ipaddr ) ){
+    if( !hal_arp_b_find( netmsg_state->raddr.ipaddr ) ){
 
-            wifi_arp_misses++;
-        }
-        else{
-
-            wifi_arp_hits++;
-        }
+        wifi_arp_misses++;
     }
+    else{
+
+        wifi_arp_hits++;
+    }
+    // }
 
     int status = sendto( conn->sock, data, data_len, 0, (struct sockaddr *)&destAddr, sizeof(destAddr) );
 
