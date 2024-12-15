@@ -95,6 +95,8 @@ PT_BEGIN( pt );
     static uint32_t file_hash;
     file_hash = 0;
 
+    TMR_WAIT( pt, 1000 ); // delay so optional KV DB items have time to register
+
     while(1){
 
         file_t f = fs_f_open_P( PSTR("datalog_config"), FS_MODE_READ_ONLY );
