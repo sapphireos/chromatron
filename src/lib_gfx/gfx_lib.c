@@ -97,7 +97,7 @@ static bool gfx_mirror_array;
 static uint8_t pix_array_count;
 static gfx_pixel_array_t *pix_arrays;
 
-// #define ENABLE_VIRTUAL_ARRAY
+#define ENABLE_VIRTUAL_ARRAY
 
 #ifdef ENABLE_VIRTUAL_ARRAY
 static uint16_t virtual_array_start;
