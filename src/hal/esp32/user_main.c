@@ -104,6 +104,8 @@ void sapphire_main()
 
         thread_core();
 
+        vTaskDelay( 1 / portTICK_PERIOD_MS );
+
         // trace_printf( "%u\r\n", thread_u32_get_next_alarm_delta() );
 
         // esp_sleep_enable_timer_wakeup( 10000 );
