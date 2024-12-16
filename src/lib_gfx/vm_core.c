@@ -45,6 +45,10 @@
 #endif
 #endif
 
+#ifdef ENABLE_CONTROLLER
+#include "link.h"
+#endif
+
 #if defined(ESP8266) && defined(VM_OPTIMIZED_DECODE)
 #error "VM_OPTIMIZED_DECODE does not work on ESP8266!"
 #endif
@@ -3498,11 +3502,11 @@ int8_t vm_i8_load_program(
                 goto error;
             }   
 
+            #ifdef ENABLE_CONTROLLER
             link_t *link = (link_t *)obj_ptr;
 
-            #ifdef ENABLE_CATBUS_LINK
             link_handle_t link_h = 
-                link_l_create( 
+                link2_l_create( 
                     link->mode,
                     link->source_key,
                     link->dest_key,
