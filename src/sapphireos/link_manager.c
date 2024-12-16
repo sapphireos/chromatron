@@ -1070,7 +1070,80 @@ PT_BEGIN( pt );
 
 					// aggregate and add to data buffer
 					// log_v_debug_P( PSTR("aggregate recv") );
-				
+					
+					int64_t data = aggregate( meta );
+
+					// check if data is changing or if the timer has expired:
+					bool changed = FALSE;
+
+					if( data != meta->current_data ){
+
+						meta->current_data = data;
+
+						changed = TRUE;
+
+						// if retransmit timer is above the min tick rate,
+						// reset it to transmit sooner.
+						if( meta->retransmit_ticks > LINK_MIN_TICK_RATE ){
+
+							meta->retransmit_ticks = LINK_MIN_TICK_RATE;
+						}
+					}
+
+					// update retransmission timer	
+					if( meta->retransmit_ticks > 0 ){
+
+		                meta->retransmit_ticks -= LINK_MIN_TICK_RATE;    
+		            }
+					
+					// check timer expiry
+					if( meta->retransmit_ticks > 0 ){
+
+						goto next;
+					}
+
+					// check if retransmit timer needs to be reset
+					if( meta->retransmit_ticks <= 0 ){
+
+						if( changed ){
+
+							// retransmit at higher rate on change
+							meta->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
+						}
+						else{
+
+							meta->retransmit_ticks = LINK_RETRANSMIT_RATE;    
+						}
+		            }					
+
+		            data_ptr->key = meta->link.dest_key;
+					data_ptr->data = data;
+
+					log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed: %d next_ticks: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, meta->retransmit_ticks );
+
+					data_ptr++;
+                    current_data_count++;
+
+                    if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
+
+                        // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
+                        //     follower->ip.ip3,
+                        //     follower->ip.ip2,
+                        //     follower->ip.ip1,
+                        //     follower->ip.ip0,
+                        //     current_data_count
+                        // );
+
+                        // transmit message
+                        if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
+
+                            log_v_debug_P( PSTR("data send fail") );
+                        }                
+
+                        // reset pointers
+                        data_ptr = (link2_data_t *)( data_hdr + 1 );
+                        current_data_count = 0;
+                    }
 				}
 
 next:
