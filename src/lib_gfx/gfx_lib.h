@@ -65,6 +65,7 @@ typedef struct  __attribute__((packed)){
     int32_t reserved3;
 } gfx_pixel_array_t;
 
+#define PIX_ATTR_COUNT          0
 #define PIX_ATTR_IS_V_FADING    200
 #define PIX_ATTR_IS_HS_FADING   201
 

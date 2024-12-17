@@ -3227,6 +3227,12 @@ int32_t gfx_i32_get_pixel_attr( uint8_t obj, uint8_t attr ){
 
         return gfx_u16_get_is_hs_fading( 65535, 65535, obj );
     }
+    else if( ( virtual_array_length > 0 ) && 
+             ( attr == PIX_ATTR_COUNT ) &&
+             ( obj == 0 ) ){
+
+        return virtual_array_length;
+    }
 
     gfx_pixel_array_t *array = 0;
 
