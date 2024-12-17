@@ -859,7 +859,13 @@ PT_BEGIN( pt );
 
             while( vm_sync_b_is_leader() && vm_b_is_vm_running( 0 ) ){
 
-                TMR_WAIT( pt, 100 );
+                uint16_t frame_rate = gfx_u16_get_vm_frame_rate();
+                if( frame_rate < 10 ){
+
+                    frame_rate = 10;
+                }
+
+                TMR_WAIT( pt, frame_rate );
 
                 if( sys_b_is_shutting_down() ){
 
