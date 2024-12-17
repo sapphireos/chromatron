@@ -103,9 +103,9 @@ static gfx_pixel_array_t *pix_arrays;
 #ifdef ENABLE_VIRTUAL_ARRAY
 static uint16_t virtual_array_start;
 static uint16_t virtual_array_length;
-static uint8_t virtual_array_sub_position;
-static uint32_t scaled_pix_count;
-static uint32_t scaled_virtual_array_length;
+// static uint8_t virtual_array_sub_position;
+// static uint32_t scaled_pix_count;
+// static uint32_t scaled_virtual_array_length;
 #endif
 
 static uint16_t gfx_frame_rate = 100;
@@ -247,23 +247,23 @@ static void compute_sat_lookup( void ){
     }
 }
 
-#ifdef ENABLE_VIRTUAL_ARRAY
-static void setup_varray( void ){
+// #ifdef ENABLE_VIRTUAL_ARRAY
+// static void setup_varray( void ){
 
-    if( pix_count == 0 ){
+//     if( pix_count == 0 ){
 
-        virtual_array_sub_position = 0;
-        scaled_pix_count = 0;
-        scaled_virtual_array_length = 0;
+//         virtual_array_sub_position = 0;
+//         scaled_pix_count = 0;
+//         scaled_virtual_array_length = 0;
 
-        return;
-    }
+//         return;
+//     }
 
-    virtual_array_sub_position      = virtual_array_start / pix_count;
-    scaled_pix_count                = (uint32_t)pix_count * 65536;
-    scaled_virtual_array_length     = (uint32_t)virtual_array_length * 65536;
-}
-#endif
+//     virtual_array_sub_position      = virtual_array_start / pix_count;
+//     scaled_pix_count                = (uint32_t)pix_count * 65536;
+//     scaled_virtual_array_length     = (uint32_t)virtual_array_length * 65536;
+// }
+// #endif
 
 static void param_error_check( void ){
 
@@ -341,9 +341,9 @@ static void param_error_check( void ){
         }
     }
 
-    #ifdef ENABLE_VIRTUAL_ARRAY
-    setup_varray();
-    #endif
+    // #ifdef ENABLE_VIRTUAL_ARRAY
+    // setup_varray();
+    // #endif
 }
 
 
@@ -498,11 +498,11 @@ int8_t gfx_i8_kv_handler(
         #ifdef ENABLE_VIRTUAL_ARRAY
         else if( hash == __KV__gfx_virtual_array_length ){
 
-            setup_varray();
+            // setup_varray();
         }
         else if( hash == __KV__gfx_virtual_array_start ){
 
-            setup_varray();
+            // setup_varray();
         }
         #endif
     }
@@ -2363,31 +2363,33 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         #ifdef ENABLE_VIRTUAL_ARRAY
         }
         else{ 
-            // virtual array enabled
-            // note this only works in one dimension
+            
+            
+        //     // virtual array enabled
+        //     // note this only works in one dimension
 
-            uint16_t sub_array_offset = ( pix_count - pix_arrays[obj].count ) * virtual_array_sub_position;
-            uint16_t adjusted_virtual_array_start = virtual_array_start - sub_array_offset;
+        //     uint16_t sub_array_offset = ( pix_count - pix_arrays[obj].count ) * virtual_array_sub_position;
+        //     uint16_t adjusted_virtual_array_start = virtual_array_start - sub_array_offset;
 
-            ASSERT( pix_arrays[obj].count > 0 );
-            uint32_t sub_len = scaled_pix_count / pix_arrays[obj].count;
+        //     // ASSERT( pix_arrays[obj].count > 0 );
+        //     uint32_t sub_len = scaled_pix_count / pix_arrays[obj].count;
 
-            ASSERT( sub_len > 0 );
-            uint16_t adjusted_virtual_array_len = scaled_virtual_array_length / sub_len;
+        //     // ASSERT( sub_len > 0 );
+        //     uint16_t adjusted_virtual_array_len = scaled_virtual_array_length / sub_len;
 
-            i = x % adjusted_virtual_array_len;
+        //     i = x % adjusted_virtual_array_len;
 
-            // check if this index is within our local array
-            if( ( i < adjusted_virtual_array_start ) ||
-                ( i >= ( adjusted_virtual_array_start + pix_arrays[obj].count ) ) ){
+        //     // check if this index is within our local array
+        //     if( ( i < adjusted_virtual_array_start ) ||
+        //         ( i >= ( adjusted_virtual_array_start + pix_arrays[obj].count ) ) ){
 
-                // return invalid index
-                return 0xffff;
-            }
+        //         // return invalid index
+        //         return 0xffff;
+        //     }
 
             
-            // adjust index to local array
-            i -= adjusted_virtual_array_start;
+        //     // adjust index to local array
+        //     i -= adjusted_virtual_array_start;
 
             i %= pix_arrays[obj].count;
         }
