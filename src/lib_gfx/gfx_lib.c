@@ -2369,7 +2369,7 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
             i = x % virtual_array_length;
 
             // get coordinate of our local segment of the array:
-            uint16_t virtual_chunk_start = virtual_array_start;
+            uint16_t virtual_chunk_start = virtual_array_start + pix_arrays[obj].index;
             uint16_t virtual_chunk_end = pix_arrays[obj].count + virtual_array_start;
 
             // check if the requested index is in-bound of our
