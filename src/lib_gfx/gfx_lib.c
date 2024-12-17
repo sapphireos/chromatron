@@ -20,6 +20,7 @@
 // 
 // </license>
 
+#include "logging.h"
 #include "target.h"
 
 #include <inttypes.h>
@@ -246,6 +247,24 @@ static void compute_sat_lookup( void ){
     }
 }
 
+#ifdef ENABLE_VIRTUAL_ARRAY
+static void setup_varray( void ){
+
+    if( pix_count == 0 ){
+
+        virtual_array_sub_position = 0;
+        scaled_pix_count = 0;
+        scaled_virtual_array_length = 0;
+
+        return;
+    }
+
+    virtual_array_sub_position      = virtual_array_start / pix_count;
+    scaled_pix_count                = (uint32_t)pix_count * 65536;
+    scaled_virtual_array_length     = (uint32_t)virtual_array_length * 65536;
+}
+#endif
+
 static void param_error_check( void ){
 
     // update pix count
@@ -321,6 +340,10 @@ static void param_error_check( void ){
             log_v_error_P( PSTR("Mirroring not available, too many pixels") );
         }
     }
+
+    #ifdef ENABLE_VIRTUAL_ARRAY
+    setup_varray();
+    #endif
 }
 
 
@@ -411,7 +434,6 @@ KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
     #endif
 };
 
-
 int8_t gfx_i8_kv_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -473,6 +495,16 @@ int8_t gfx_i8_kv_handler(
                 v_fade[i]  = 0;
             }
         }
+        #ifdef ENABLE_VIRTUAL_ARRAY
+        else if( hash == __KV__gfx_virtual_array_length ){
+
+            setup_varray();
+        }
+        else if( hash == __KV__gfx_virtual_array_start ){
+
+            setup_varray();
+        }
+        #endif
     }
 
     return 0;
@@ -506,8 +538,8 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     #endif
 
     #ifdef ENABLE_VIRTUAL_ARRAY
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,                   "gfx_varray_start" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,                   "gfx_varray_length" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         gfx_i8_kv_handler,   "gfx_varray_start" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        gfx_i8_kv_handler,   "gfx_varray_length" },
     #endif
 
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
@@ -2332,29 +2364,49 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         }
         else{ 
 
+            i = x % pix_arrays[obj].count;
+
             // virtual array enabled
             // note this only works in one dimension
 
+// //             log_v_debug_P( PSTR("1") );
+
             uint16_t sub_array_offset = ( pix_count - pix_arrays[obj].count ) * virtual_array_sub_position;
+            
+
+// //             log_v_debug_P( PSTR("2") );
             uint16_t adjusted_virtual_array_start = virtual_array_start - sub_array_offset;
 
+// //             log_v_debug_P( PSTR("3") );
             uint32_t sub_len = scaled_pix_count / pix_arrays[obj].count;
+            
+// //             log_v_debug_P( PSTR("4") );
             uint16_t adjusted_virtual_array_len = scaled_virtual_array_length / sub_len;
 
-            i = x % adjusted_virtual_array_len;
+            log_v_debug_P( PSTR("%d %d %d %d"), sub_array_offset, adjusted_virtual_array_start, sub_len, adjusted_virtual_array_len );
 
-            // check if this index is within our local array
-            if( ( i < adjusted_virtual_array_start ) ||
-                ( i >= ( adjusted_virtual_array_start + pix_arrays[obj].count ) ) ){
+// //             log_v_debug_P( PSTR("5") );
+//             i = x % adjusted_virtual_array_len;
 
-                // return invalid index
-                return 0xffff;
-            }
+//             // check if this index is within our local array
+//             if( ( i < adjusted_virtual_array_start ) ||
+//                 ( i >= ( adjusted_virtual_array_start + pix_arrays[obj].count ) ) ){
 
-            // adjust index to local array
-            i -= adjusted_virtual_array_start;
+//                 log_v_debug_P( PSTR("invalid: %d"), i );
 
-            i %= pix_arrays[obj].count;
+//                 // return invalid index
+//                 // return 0xffff;
+//                 return 0;
+//             }
+
+//             // log_v_debug_P( PSTR("6") );
+
+//             // adjust index to local array
+//             i -= adjusted_virtual_array_start;
+
+// // log_v_debug_P( PSTR("7") );
+
+//             i %= pix_arrays[obj].count;
         }
         #endif
     }
