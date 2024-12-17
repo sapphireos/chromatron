@@ -2363,8 +2363,34 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         #ifdef ENABLE_VIRTUAL_ARRAY
         }
         else{ 
-            
-            
+
+            // wrap the X index around the overall virtual array
+            // size
+            i = x % virtual_array_length;
+
+            // get coordinate of our local segment of the array:
+            uint16_t virtual_chunk_start = virtual_array_start;
+            uint16_t virtual_chunk_end = pix_arrays[obj].count + virtual_array_start;
+
+            // check if the requested index is in-bound of our
+            // segment:
+            if( ( i < virtual_chunk_start ) ||
+                ( i >= virtual_chunk_end ) ){
+
+                // out of bounds
+
+                // we don't write to this index
+                return 0xffff;
+            }
+
+            // adjust from the segment start back to our actual array indexes
+            i -= virtual_array_start;
+
+            // make sure we are in bounds
+            i %= pix_arrays[obj].count;
+
+
+
         //     // virtual array enabled
         //     // note this only works in one dimension
 
@@ -2391,7 +2417,7 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         //     // adjust index to local array
         //     i -= adjusted_virtual_array_start;
 
-            i %= pix_arrays[obj].count;
+            // i %= pix_arrays[obj].count;
         }
         #endif
     }
