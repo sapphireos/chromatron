@@ -2363,50 +2363,33 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         #ifdef ENABLE_VIRTUAL_ARRAY
         }
         else{ 
-
-            i = x % pix_arrays[obj].count;
-
             // virtual array enabled
             // note this only works in one dimension
 
-// //             log_v_debug_P( PSTR("1") );
-
             uint16_t sub_array_offset = ( pix_count - pix_arrays[obj].count ) * virtual_array_sub_position;
-            
-
-// //             log_v_debug_P( PSTR("2") );
             uint16_t adjusted_virtual_array_start = virtual_array_start - sub_array_offset;
 
-// //             log_v_debug_P( PSTR("3") );
+            ASSERT( pix_arrays[obj].count > 0 );
             uint32_t sub_len = scaled_pix_count / pix_arrays[obj].count;
-            
-// //             log_v_debug_P( PSTR("4") );
+
+            ASSERT( sub_len > 0 );
             uint16_t adjusted_virtual_array_len = scaled_virtual_array_length / sub_len;
 
-            log_v_debug_P( PSTR("%d %d %d %d"), sub_array_offset, adjusted_virtual_array_start, sub_len, adjusted_virtual_array_len );
+            i = x % adjusted_virtual_array_len;
 
-// //             log_v_debug_P( PSTR("5") );
-//             i = x % adjusted_virtual_array_len;
+            // check if this index is within our local array
+            if( ( i < adjusted_virtual_array_start ) ||
+                ( i >= ( adjusted_virtual_array_start + pix_arrays[obj].count ) ) ){
 
-//             // check if this index is within our local array
-//             if( ( i < adjusted_virtual_array_start ) ||
-//                 ( i >= ( adjusted_virtual_array_start + pix_arrays[obj].count ) ) ){
+                // return invalid index
+                return 0xffff;
+            }
 
-//                 log_v_debug_P( PSTR("invalid: %d"), i );
+            
+            // adjust index to local array
+            i -= adjusted_virtual_array_start;
 
-//                 // return invalid index
-//                 // return 0xffff;
-//                 return 0;
-//             }
-
-//             // log_v_debug_P( PSTR("6") );
-
-//             // adjust index to local array
-//             i -= adjusted_virtual_array_start;
-
-// // log_v_debug_P( PSTR("7") );
-
-//             i %= pix_arrays[obj].count;
+            i %= pix_arrays[obj].count;
         }
         #endif
     }
