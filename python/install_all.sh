@@ -2,6 +2,6 @@
 
 pushd chromatron
 # python3 setup.py install
-pip3 install .
+pip3 install . --break-system-packages
 rm -rf build
 popd

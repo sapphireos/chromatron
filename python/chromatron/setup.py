@@ -73,7 +73,7 @@ setup(
         "prometheus-client==0.8.0",
         "paho-mqtt==1.5.1",
         "ifaddr==0.1.6",
-        "filelock==3.0.12",
+        "filelock==3.13.1",
         "influxdb==5.3.1",
         "colorama==0.4.6",
         "graphviz==0.20.1",
