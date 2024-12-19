@@ -23,6 +23,7 @@
 #include "system.h"
 #include "logging.h"
 #include "keyvalue.h"
+#include "target.h"
 #include "threading.h"
 #include "timers.h"
 #include "fs.h"
@@ -204,6 +205,12 @@ static void apply_power_limit( void ){
     }
 }
 
+#define SYNC_FADERS
+
+#ifdef SYNC_FADERS
+#include "timesync.h"
+#endif
+
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -219,15 +226,47 @@ PT_BEGIN( pt );
     THREAD_WAIT_WHILE( pt, pix_u8_get_mode() == 0 );
 
     pixel_v_signal();
-    
-    thread_v_create_timed_signal( GFX_SIGNAL_0, 20 );
+        
+    #ifdef SYNC_FADERS
+    static uint32_t next_alarm;
+    next_alarm = tmr_u32_get_system_time_ms();
+    #else
+    thread_v_create_timed_signal( GFX_SIGNAL_0, FADER_RATE );
+    #endif
 
     static uint32_t start;
     start = tmr_u32_get_system_time_us();
 
     while(1){        
 
+        #ifdef SYNC_FADERS
+        if( time_b_is_sync() ){
+
+            // align faders to net time on FADER_RATE intervals
+
+            uint32_t net_time = time_u32_get_network_time();            
+
+            // compute net time milliseconds in this cycle
+            uint32_t cycle_ticks = net_time % FADER_RATE;
+
+            // compute milliseconds remaining in this cycle
+            uint32_t ticks_remaining = FADER_RATE - cycle_ticks;
+
+            // set up delay
+            next_alarm = tmr_u32_get_system_time_ms() + ticks_remaining;
+            thread_v_set_alarm( next_alarm );
+            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        }
+        else{
+
+            next_alarm += FADER_RATE;
+            thread_v_set_alarm( next_alarm );
+            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        }
+        #else
         THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
+        #endif
+
 
         uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
         start = tmr_u32_get_system_time_us();

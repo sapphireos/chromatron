@@ -3027,6 +3027,9 @@ static uint8_t _get_next_event( uint8_t *stream, vm_state_t *state, uint64_t *ne
         block all other threads as the thread always indicates it is ready to
         run now.
 
+
+        Possibly yield is not implemented in FX3?
+
         */
 
         uint64_t thread_tick = state->threads[i].tick;
