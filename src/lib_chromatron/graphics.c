@@ -254,6 +254,13 @@ PT_BEGIN( pt );
 
             // set up delay
             next_alarm = tmr_u32_get_system_time_ms() + ticks_remaining;
+
+            // bounds check
+            if( next_alarm > FADER_RATE ){
+
+                next_alarm = FADER_RATE;
+            }
+
             thread_v_set_alarm( next_alarm );
             THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
         }
