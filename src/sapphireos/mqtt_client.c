@@ -30,6 +30,7 @@
 #include "config.h"
 
 #include "controller.h"
+#include "system.h"
 #include "threading.h"
 #include "mqtt_client.h"
 
@@ -1067,6 +1068,11 @@ PT_BEGIN( pt );
 
 		    	mqtt_t->timeout--;
 
+		    	if( sys_b_is_shutting_down() ){
+
+   					mqtt_t->timeout = 0; // expire message if shutting down
+   				}
+
 		    	if( mqtt_t->timeout > 0 ){
 
 		    		// timer still valid, transmit message to broker
@@ -1093,7 +1099,10 @@ PT_BEGIN( pt );
 		    			log_v_warn_P( PSTR("MQTT publish q overflow") );
 		    		}
 
-		    		log_v_error_P( PSTR("Publish expired") );
+		    		if( !sys_b_is_shutting_down() ){
+
+		    			log_v_warn_P( PSTR("Publish expired") );	
+		    		}
 
 		    		// timer expired, remove message
 		    		if( mqtt_t->h > 0 ){
