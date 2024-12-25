@@ -878,6 +878,12 @@ int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t p
         // this allows scripts to get random numbers
         // unique to themselves when doing a frame sync
         // with other nodes (which syncs the VM rng)
+        // NOTE that this will break a VM sync:
+        // since it introduces unsynchronized data into the
+        // VM state, the checkpoints will differ and a 
+        // resync will occur.
+        // In general, this function is probably not 
+        // very useful for our typical usage.
         case __KV__urand:
             return urand( params, param_len );
     
