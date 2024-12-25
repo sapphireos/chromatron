@@ -960,11 +960,13 @@ int32_t thread_core( void ){
 
         uint32_t next_alarm_delta = thread_u32_get_next_alarm_delta();
 
+        #ifdef THREAD_ENABLE_TIMED_SIGNALS
         // check if timed signal is sooner
         if( timed_signals_ms_remaining < next_alarm_delta ){
 
             next_alarm_delta = timed_signals_ms_remaining;   
         }
+        #endif
 
         return next_alarm_delta;
     }

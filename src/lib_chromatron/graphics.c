@@ -238,7 +238,7 @@ PT_BEGIN( pt );
 
     while(1){        
 
-        #ifdef GFX_SYNC_FADERS
+    #ifdef GFX_SYNC_FADERS
 
         // Phase 1:
         // run VMs, faders, and power limiter
@@ -322,7 +322,7 @@ PT_BEGIN( pt );
             avg_timing_lag = util_u32_ewma( lag, avg_timing_lag, 4 );
         }
 
-        #else
+    #else
 
         THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
 
@@ -373,7 +373,7 @@ PT_BEGIN( pt );
 
         vm_fader_time = elapsed;
 
-        #endif
+    #endif
     }
 
 PT_END( pt );

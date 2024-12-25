@@ -527,6 +527,20 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_SIGNAL( pt, VM_SIGNAL_0 + state->vm_id );
 
+        #ifdef ENABLE_TIME_SYNC
+        if( state->vm_id == 0 ){
+
+            // check if syncing VM and hold if so
+            // this avoids corrupting the VM state as we synchronize it,
+            // since the synchronization can involve network delays
+            if( vm_sync_b_in_progress() ){
+
+                THREAD_WAIT_WHILE( pt, vm_sync_b_in_progress() );
+                // our synced frame is already behind, so we will run immediately.
+            }
+        }
+        #endif
+
         // get current sys time
         uint32_t now = tmr_u32_get_system_time_ms();
 
@@ -539,7 +553,23 @@ PT_BEGIN( pt );
         // run VM
         state->vm_return = vm_i8_run_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, delay );
 
+        #ifdef ENABLE_TIME_SYNC
+        if( state->vm_id == 0 ){
         
+            vm_v_update_checkpoints();
+
+            if( vm_sync_b_is_leader() ){
+
+                // record network timestamp and current VM tick
+                vm0_sync_ts = now;
+                vm0_sync_ticks = state->vm_state.tick;   
+            }
+        }
+        #endif   
+
+
+
+
 #else
 
         state->delay_adjust = 0;

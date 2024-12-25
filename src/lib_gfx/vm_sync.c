@@ -186,6 +186,11 @@ void vm_sync_v_reset( void ){
     memset( checkpoint_hashes, 0, sizeof(checkpoint_hashes) );
 }
 
+void vm_v_update_checkpoints( void ){
+
+    update_checkpoints();   
+}
+
 uint32_t vm_sync_u32_get_sync_group_hash( void ){
 
     return sync_group_hash;
@@ -857,6 +862,21 @@ PT_BEGIN( pt );
 
             sync_state = STATE_SYNC;
 
+        #ifdef GFX_SYNC_FADERS
+
+            THREAD_WAIT_WHILE( pt,
+                vm_sync_b_is_leader() &&
+                vm_b_is_vm_running( 0 ) &&
+                !sys_b_is_shutting_down() );
+
+            if( sys_b_is_shutting_down() ){
+
+                log_v_debug_P( PSTR("VM sync shut down") );
+
+                THREAD_EXIT( pt );
+            }
+
+        #else
             while( vm_sync_b_is_leader() && vm_b_is_vm_running( 0 ) ){
 
                 uint16_t frame_rate = gfx_u16_get_vm_frame_rate();
@@ -876,6 +896,7 @@ PT_BEGIN( pt );
 
                 update_checkpoints();
             }
+        #endif
 
             THREAD_RESTART( pt );
         }
@@ -918,6 +939,27 @@ PT_BEGIN( pt );
         // periodic resync
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
 
+    #ifdef GFX_SYNC_FADERS
+        THREAD_WAIT_WHILE( pt,
+            !ip_b_is_zeroes( leader_ip ) &&
+            vm_b_is_vm_running( 0 ) &&
+            ( sync_state == STATE_SYNC ) &&
+            thread_b_alarm_set() 
+        );
+
+        if( sys_b_is_shutting_down() ){
+
+            log_v_debug_P( PSTR("VM sync shut down") );
+
+            THREAD_EXIT( pt );
+        }
+
+        send_request( FALSE );
+
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
+
+    #else
+
         while( !ip_b_is_zeroes( leader_ip ) && 
                vm_b_is_vm_running( 0 ) &&
                ( sync_state == STATE_SYNC ) ){
@@ -940,6 +982,7 @@ PT_BEGIN( pt );
 
             update_checkpoints();
         }
+    #endif
     }
 
 PT_END( pt );

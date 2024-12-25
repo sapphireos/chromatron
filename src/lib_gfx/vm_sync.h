@@ -96,6 +96,8 @@ typedef struct __attribute__((packed)){
 void vm_sync_v_init( void );
 void vm_sync_v_reset( void );
 
+void vm_v_update_checkpoints( void );
+
 uint32_t vm_sync_u32_get_sync_group_hash( void );
 
 void vm_sync_v_hold( void );
