@@ -38,6 +38,10 @@
 #include "superconductor.h"
 #include "util.h"
 
+#ifdef GFX_SYNC_FADERS
+#include "timesync.h"
+#endif
+
 #ifdef ENABLE_GFX
 
 
@@ -205,11 +209,6 @@ static void apply_power_limit( void ){
     }
 }
 
-#define SYNC_FADERS
-
-#ifdef SYNC_FADERS
-#include "timesync.h"
-#endif
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
@@ -227,7 +226,7 @@ PT_BEGIN( pt );
 
     pixel_v_signal();
         
-    #ifdef SYNC_FADERS
+    #ifdef GFX_SYNC_FADERS
     static uint32_t next_alarm;
     next_alarm = tmr_u32_get_system_time_ms();
     #else
@@ -239,7 +238,7 @@ PT_BEGIN( pt );
 
     while(1){        
 
-        #ifdef SYNC_FADERS
+        #ifdef GFX_SYNC_FADERS
         if( time_b_is_sync() ){
 
             // align faders to net time on FADER_RATE intervals
