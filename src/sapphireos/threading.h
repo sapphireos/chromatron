@@ -34,6 +34,8 @@
 #include "pt.h"
 #include "system.h"
 
+// #define THREAD_ENABLE_TIMED_SIGNALS
+
 #define THREAD_MAX_NAME_LEN 64
 
 #define THREAD_MAX_SIGNALS  16
@@ -99,6 +101,7 @@ typedef struct __attribute__((packed)){
 #define THREAD_FLAGS_SIGNAL 		0b00001000
 #define THREAD_FLAGS_ALARM          0b00010000
 
+#ifdef THREAD_ENABLE_TIMED_SIGNALS
 typedef struct{
     uint8_t signal;
     int32_t rate; // microseconds
@@ -106,6 +109,7 @@ typedef struct{
 } thread_timed_signal_t;
 
 #define THREAD_MAX_TIMED_SIGNALS    4
+#endif
 
 #define THREAD_CAST( thread ) (PT_THREAD((*)(pt_t *pt, void *state )))thread
 
@@ -150,8 +154,11 @@ bool thread_b_signalled( uint8_t signum );
 void thread_v_set_signal_flag( void );
 void thread_v_clear_signal_flag( void );
 uint16_t thread_u16_get_signals( void );
+
+#ifdef THREAD_ENABLE_TIMED_SIGNALS
 void thread_v_create_timed_signal( uint8_t signum, uint8_t rate );
 void thread_v_destroy_timed_signal( uint8_t signum );
+#endif
 
 uint8_t thread_u8_get_run_cause( void );
 

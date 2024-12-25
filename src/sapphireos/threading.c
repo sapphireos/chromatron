@@ -121,8 +121,11 @@ static volatile uint8_t thread_flags;
 #define FLAGS_ACTIVE        0x04
 
 static volatile uint16_t signals;
+
+#ifdef THREAD_ENABLE_TIMED_SIGNALS
 static thread_timed_signal_t timed_signals[THREAD_MAX_TIMED_SIGNALS];
 static uint32_t last_timed_signal_check;
+#endif
 
 #ifdef ENABLE_STACK_LOGGING
 static uint16_t last_stack;
@@ -507,6 +510,7 @@ uint16_t thread_u16_get_signals( void ){
     return sig_copy;
 }
 
+#ifdef THREAD_ENABLE_TIMED_SIGNALS
 void thread_v_create_timed_signal( uint8_t signum, uint8_t rate ){
 
     // cannot create timed signals in safe mode
@@ -565,6 +569,7 @@ void thread_v_destroy_timed_signal( uint8_t signum ){
         }
     }
 }
+#endif
 
 uint8_t thread_u8_get_run_cause( void ){
 
@@ -777,7 +782,7 @@ void run_thread( thread_t thread, thread_state_t *state ){
     #endif
 }
 
-
+#ifdef THREAD_ENABLE_TIMED_SIGNALS
 static uint32_t process_timed_signals( void ){
 
     uint32_t now = tmr_u32_get_system_time_us();
@@ -813,6 +818,7 @@ static uint32_t process_timed_signals( void ){
 
     return min_time_remaining / 1000; // convert to milliseconds
 }
+#endif
 
 static void process_signalled_threads( void ){
 
@@ -877,7 +883,10 @@ int32_t thread_core( void ){
     thread_flags |= FLAGS_SLEEP;
 
     // process signals first
+    #ifdef THREAD_ENABLE_TIMED_SIGNALS
     uint32_t timed_signals_ms_remaining = process_timed_signals();
+    #endif
+
     process_signalled_threads();
 
     // ********************************************************************
@@ -918,7 +927,10 @@ int32_t thread_core( void ){
             run_thread( ln, state );
         }
 
+        #ifdef THREAD_ENABLE_TIMED_SIGNALS
         timed_signals_ms_remaining = process_timed_signals();
+        #endif
+        
         process_signalled_threads();
 
         #ifdef ENABLE_USB
