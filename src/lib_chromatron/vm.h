@@ -25,10 +25,26 @@
 
 #include "vm_core.h"
 #include "ffs_global.h"
+#include "threading.h"
 
 #define VM_THREAD_RATE 		1
 
 #define VM_LAST_VM ( VM_MAX_VMS - 1 )
+
+#ifdef GFX_SYNC_FADERS
+
+	#define VM_SIGNAL_0		SIGNAL_SYS_0
+	#if VM_MAX_VMS >= 2
+	#define VM_SIGNAL_1		SIGNAL_SYS_1
+	#endif
+	#if VM_MAX_VMS >= 3
+	#define VM_SIGNAL_2		SIGNAL_SYS_2
+	#endif
+	#if VM_MAX_VMS >= 4
+	#define VM_SIGNAL_3		SIGNAL_SYS_3
+	#endif
+
+#endif
 
 void vm_v_init( void );
 
@@ -42,6 +58,10 @@ void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t slot );
 bool vm_b_running( void );
 bool vm_b_is_vm_running( uint8_t i );
 
+#ifdef GFX_SYNC_FADERS
+void vm_v_signal( uint8_t vm_id );
+#endif
+
 void vm_v_sync( uint32_t ts, uint64_t ticks );
 
 uint32_t vm_u32_get_sync_time( void );
@@ -50,8 +70,8 @@ uint64_t vm_u64_get_sync_tick( void );
 // uint32_t vm_u32_get_checkpoint_hash( void );
 // void vm_v_clear_checkpoint( void );
 
-uint64_t vm_u64_get_tick( void );
-uint64_t vm_u64_get_frame( void );
+// uint64_t vm_u64_get_tick( void );
+// uint64_t vm_u64_get_frame( void );
 uint32_t vm_u32_get_sync_data_hash( void );
 uint16_t vm_u16_get_sync_data_len( void );
 int32_t* vm_i32p_get_sync_data( void ); 

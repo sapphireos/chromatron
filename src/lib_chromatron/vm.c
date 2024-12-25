@@ -51,7 +51,7 @@ static bool vm_run[VM_MAX_VMS];
 static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_run_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
-static uint8_t vm_timing_status;
+// static uint8_t vm_timing_status;
 
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
@@ -117,7 +117,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[0],         0,                  "vm_status" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[0],       0,                  "vm_run_time" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_peak_cycles" },
-    { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &vm_timing_status,     0,                  "vm_timing" },
+    // { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  &vm_timing_status,     0,                  "vm_timing" },
 
     #if VM_MAX_VMS >= 2
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[1],          0,                  "vm_reset_1" },
@@ -287,29 +287,29 @@ uint64_t vm_u64_get_sync_tick( void ){
     return vm0_sync_ticks;
 }
 
-uint64_t vm_u64_get_tick( void ){
+// uint64_t vm_u64_get_tick( void ){
 
-    vm_state_t *state = vm_p_get_state();
+//     vm_state_t *state = vm_p_get_state();
 
-    if( state == 0 ){
+//     if( state == 0 ){
 
-        return 0;
-    }
+//         return 0;
+//     }
 
-    return state->tick;
-}
+//     return state->tick;
+// }
 
-uint64_t vm_u64_get_frame( void ){
+// uint64_t vm_u64_get_frame( void ){
 
-    vm_state_t *state = vm_p_get_state();
+//     vm_state_t *state = vm_p_get_state();
 
-    if( state == 0 ){
+//     if( state == 0 ){
 
-        return 0;
-    }
+//         return 0;
+//     }
 
-    return state->frame_number;
-}
+//     return state->frame_number;
+// }
 
 uint32_t vm_u32_get_sync_data_hash( void ){
 
@@ -424,6 +424,49 @@ static void kill_vm( uint8_t vm_id ){
     vm_threads[state->vm_id] = -1;
 }
 
+
+#ifdef GFX_SYNC_FADERS
+void vm_v_signal( uint8_t vm_id ){
+
+    // check if VM is running
+    if( !vm_b_is_vm_running( vm_id ) ){
+
+        return;
+    }
+
+    uint8_t sig = 255;
+
+    if( vm_id == 0 ){
+
+        sig = VM_SIGNAL_0;
+    }
+    #if VM_MAX_VMS >= 2   
+    else if( vm_id == 1 ){
+
+        sig = VM_SIGNAL_1;
+    }
+    #endif
+    #if VM_MAX_VMS >= 3   
+    else if( vm_id == 2 ){
+
+        sig = VM_SIGNAL_2;
+    }
+    #endif
+    #if VM_MAX_VMS >= 4   
+    else if( vm_id == 3 ){
+
+        sig = VM_SIGNAL_3;
+    }
+    #endif
+
+    if( sig != 255 ){
+
+        thread_v_signal( sig );    
+    }
+}
+#endif
+
+
 PT_THREAD( vm_thread( pt_t *pt, vm_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
@@ -479,6 +522,26 @@ PT_BEGIN( pt );
     // main VM timing loop
     while( vm_status[state->vm_id] == VM_STATUS_OK ){
 
+
+#ifdef GFX_SYNC_FADERS
+
+        THREAD_WAIT_SIGNAL( pt, VM_SIGNAL_0 + state->vm_id );
+
+        // get current sys time
+        uint32_t now = tmr_u32_get_system_time_ms();
+
+        // get elapsed time between last run
+        uint32_t delay = tmr_u32_elapsed_times( state->last_run, now );
+
+        // update VM run timestamp
+        state->last_run = now;
+
+        // run VM
+        state->vm_return = vm_i8_run_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, delay );
+
+        
+#else
+
         state->delay_adjust = 0;
         
         #ifdef ENABLE_TIME_SYNC
@@ -507,13 +570,13 @@ PT_BEGIN( pt );
         // we cannot guarantee VM timing with this load.
         else if( state->vm_delay <= 0 ){
 
-            if( state->vm_id == 0 ){
+            // if( state->vm_id == 0 ){
 
-                if( vm_timing_status < 255 ){
+            //     if( vm_timing_status < 255 ){
 
-                   vm_timing_status++;
-                }
-            }
+            //        vm_timing_status++;
+            //     }
+            // }
 
             THREAD_YIELD( pt );
             THREAD_YIELD( pt );
@@ -573,13 +636,13 @@ PT_BEGIN( pt );
             #endif
         }
 
-        if( state->vm_id == 0 ){
+        // if( state->vm_id == 0 ){
 
-            if( vm_timing_status > 0 ){
+        //     if( vm_timing_status > 0 ){
 
-                vm_timing_status--;
-            }
-        }
+        //         vm_timing_status--;
+        //     }
+        // }
 
 
         // set alarm
@@ -635,10 +698,12 @@ PT_BEGIN( pt );
         }
 
         #endif
-        
+    
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
 
+#endif
+    
         // update timing
         uint32_t elapsed_us = state->vm_state.last_elapsed_us;
 

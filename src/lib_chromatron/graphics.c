@@ -239,6 +239,30 @@ PT_BEGIN( pt );
     while(1){        
 
         #ifdef GFX_SYNC_FADERS
+
+        // Phase 1:
+        // run VMs, faders, and power limiter
+
+        // signal VMs to run:
+        for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
+
+            vm_v_signal( i );
+        }
+
+        THREAD_YIELD( pt ); // yield so VM threads run
+
+        // HSV targets ready
+        
+        // process faders and run power limiter
+        gfx_v_process_faders();
+        calc_pixel_power();
+        apply_power_limit();
+
+        // HSV data is now ready for next tick
+
+        // Phase 2:
+        // run frame tick delay
+
         if( time_b_is_sync() ){
 
             // align faders to net time on FADER_RATE intervals
@@ -262,10 +286,45 @@ PT_BEGIN( pt );
             thread_v_set_alarm( next_alarm );
             THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
         }
-        #else
-        THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
-        #endif
 
+
+        // phase 3:
+        // frame tick
+
+        // sync RGB arrays
+        gfx_v_sync_array();
+
+        // run detection algorithm (if enabled) before signalling
+        // pixel driver to run
+        // this avoids signal cross talk between the LED signal line
+        // and the LED detection line.
+        led_detect_v_run_detect();
+
+        // signal pixel drivers to start output
+        pixel_v_signal();
+
+
+        // compute timing lag, after pixel start
+        uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
+        start = tmr_u32_get_system_time_us();
+
+        if( lag < 1000000000 ){
+
+            if( lag > max_timing_lag ){
+
+                // only record max after a delay to avoid recording startup lag.
+                if( tmr_u64_get_system_time_us() > 10000000 ){
+
+                    max_timing_lag = lag;    
+                }
+            }
+
+            avg_timing_lag = util_u32_ewma( lag, avg_timing_lag, 4 );
+        }
+
+        #else
+
+        THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
 
         uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
         start = tmr_u32_get_system_time_us();
@@ -313,6 +372,8 @@ PT_BEGIN( pt );
         uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 
         vm_fader_time = elapsed;
+
+        #endif
     }
 
 PT_END( pt );
