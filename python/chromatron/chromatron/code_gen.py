@@ -1349,18 +1349,24 @@ OPT_LEVELS = {
     'all': [OptPasses.SSA, OptPasses.GVN, OptPasses.LOOP, OptPasses.LS_SCHED],
 }
 
-# OPT_LEVELS['default'] = OPT_LEVELS['all']
+OPT_LEVELS['default'] = OPT_LEVELS['all']
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.GVN, OptPasses.LOOP]
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LS_SCHED, OptPasses.LOOP]
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LS_SCHED]
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.LOOP]
 
 # OPT_LEVELS['default'] = [OptPasses.SSA, OptPasses.GVN]
-OPT_LEVELS['default'] = [OptPasses.SSA]
+# OPT_LEVELS['default'] = [OptPasses.SSA]
 
 
 def main():
-    path = sys.argv[1]
+    try:
+        path = sys.argv[1]
+
+    except IndexError:
+        print("Must specify path to .fx file!")
+        sys.exit(-1)
+
     script_name = os.path.split(path)[1]
 
     setup_basic_logging(show_thread=False)
