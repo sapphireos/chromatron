@@ -1277,6 +1277,9 @@ class irBlock(IR):
                 # keep this instruction
                 new_code.append(ir)
 
+            else:
+                logging.debug(f'Removing instruction: {ir} from line {ir.lineno}')
+
         old_code = self.code
 
         self.code = new_code
