@@ -827,7 +827,7 @@ PT_BEGIN( pt );
             data_ptr->data = data;
 
 
-            log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed %d timer: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, binding_state->retransmit_ticks );
+            // log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed %d timer: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, binding_state->retransmit_ticks );
 
             data_ptr++;
             current_data_count++;
