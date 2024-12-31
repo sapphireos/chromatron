@@ -2319,9 +2319,26 @@ def init():
 """
 
 
+test_var_init_negative = """
+
+a = Number(-1, publish=True)
+b = Number(-2, publish=True)
+
+def init():
+    pass
+"""
+
 class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
+
+    def test_var_init_negative(self, opt_passes):
+        self.run_test(test_var_init_negative,
+            opt_passes=opt_passes,
+            expected={
+                'a': -1,
+                'b': -2,
+            })
 
     def test_for_loop_var_ref_loop_var(self, opt_passes):
         self.run_test(test_for_loop_var_ref_loop_var,
