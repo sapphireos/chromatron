@@ -31,7 +31,6 @@
 #include "bq25895.h"
 #include "charger2.h"
 #include "patch_board.h"
-#include "mcp73831.h"
 #include "solar.h"
 #include "pixel_power.h"
 #include "battery.h"
@@ -93,10 +92,6 @@ static void pixels_off( void ){
 
         charger2_v_set_boost( FALSE );
     }
-    else if( batt_b_is_mcp73831_enabled() ){
-
-        mcp73831_v_disable_pixels();   
-    }
     #if defined(ESP32)
     else if( ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ||
              ( ffs_u8_read_board_type() == BOARD_TYPE_CHARGER_3_1 ) ){
@@ -123,10 +118,6 @@ void pixelpower_v_init( void ){
 
     // check if hardware has power control:
     if( solar_b_has_charger2_board() ){
-
-        power_control_enabled = TRUE;
-    }
-    else if( batt_b_is_mcp73831_enabled() ){
 
         power_control_enabled = TRUE;
     }
@@ -227,10 +218,6 @@ PT_BEGIN( pt );
                 TMR_WAIT( pt, 40 );
 
                 charger2_v_set_boost( TRUE );
-            }
-            else if( batt_b_is_mcp73831_enabled() ){
-
-                mcp73831_v_enable_pixels();
             }
             #if defined(ESP32)
             else if( ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ||

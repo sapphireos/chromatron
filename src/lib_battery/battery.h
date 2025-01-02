@@ -48,7 +48,6 @@ bool batt_b_enabled( void );
 uint16_t batt_u16_get_charge_voltage( void );
 uint16_t batt_u16_get_min_discharge_voltage( void );
 
-bool batt_b_is_mcp73831_enabled( void );
 void batt_v_enable_charge( void );
 void batt_v_disable_charge( void );
 int8_t batt_i8_get_batt_temp( void );
