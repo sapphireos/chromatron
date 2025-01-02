@@ -20,6 +20,7 @@
 // 
 // </license>
 
+#include "logging.h"
 #include "target.h"
 
 #include <inttypes.h>
@@ -92,18 +93,19 @@ static uint16_t pix_size_y;
 static bool gfx_interleave_x;
 static bool gfx_invert_x;
 static bool gfx_transpose;
+static bool gfx_mirror_array;
 
 static uint8_t pix_array_count;
 static gfx_pixel_array_t *pix_arrays;
 
-// #define ENABLE_VIRTUAL_ARRAY
+#define ENABLE_VIRTUAL_ARRAY
 
 #ifdef ENABLE_VIRTUAL_ARRAY
 static uint16_t virtual_array_start;
 static uint16_t virtual_array_length;
-static uint8_t virtual_array_sub_position;
-static uint32_t scaled_pix_count;
-static uint32_t scaled_virtual_array_length;
+// static uint8_t virtual_array_sub_position;
+// static uint32_t scaled_pix_count;
+// static uint32_t scaled_virtual_array_length;
 #endif
 
 static uint16_t gfx_frame_rate = 100;
@@ -245,6 +247,24 @@ static void compute_sat_lookup( void ){
     }
 }
 
+// #ifdef ENABLE_VIRTUAL_ARRAY
+// static void setup_varray( void ){
+
+//     if( pix_count == 0 ){
+
+//         virtual_array_sub_position = 0;
+//         scaled_pix_count = 0;
+//         scaled_virtual_array_length = 0;
+
+//         return;
+//     }
+
+//     virtual_array_sub_position      = virtual_array_start / pix_count;
+//     scaled_pix_count                = (uint32_t)pix_count * 65536;
+//     scaled_virtual_array_length     = (uint32_t)virtual_array_length * 65536;
+// }
+// #endif
+
 static void param_error_check( void ){
 
     // update pix count
@@ -309,6 +329,21 @@ static void param_error_check( void ){
 
         sat_curve = GFX_SAT_CURVE_DEFAULT;
     }
+
+    if( gfx_mirror_array ){
+
+        // error check
+        if( ( pix_count > ( MAX_PIXELS / 2 ) ) ||
+            ( pix_count < 2 ) ){
+
+            gfx_mirror_array = FALSE;
+            log_v_error_P( PSTR("Mirroring not available, too many pixels") );
+        }
+    }
+
+    // #ifdef ENABLE_VIRTUAL_ARRAY
+    // setup_varray();
+    // #endif
 }
 
 
@@ -399,7 +434,6 @@ KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
     #endif
 };
 
-
 int8_t gfx_i8_kv_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -461,6 +495,16 @@ int8_t gfx_i8_kv_handler(
                 v_fade[i]  = 0;
             }
         }
+        #ifdef ENABLE_VIRTUAL_ARRAY
+        else if( hash == __KV__gfx_virtual_array_length ){
+
+            // setup_varray();
+        }
+        else if( hash == __KV__gfx_virtual_array_start ){
+
+            // setup_varray();
+        }
+        #endif
     }
 
     return 0;
@@ -480,6 +524,7 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,                   "gfx_interleave_x" },
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                0,                   "gfx_invert_x" },
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,                   "gfx_transpose" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_mirror_array,            0,                   "gfx_mirror_array" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              gfx_i8_kv_handler,   "gfx_hsfade" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               gfx_i8_kv_handler,   "gfx_vfade" },
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &dimmer_fade,                 gfx_i8_kv_handler,   "gfx_dimmer_fade" },
@@ -493,8 +538,8 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     #endif
 
     #ifdef ENABLE_VIRTUAL_ARRAY
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,                   "gfx_varray_start" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,                   "gfx_varray_length" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         gfx_i8_kv_handler,   "gfx_varray_start" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        gfx_i8_kv_handler,   "gfx_varray_length" },
     #endif
 
     { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
@@ -833,6 +878,12 @@ int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t p
         // this allows scripts to get random numbers
         // unique to themselves when doing a frame sync
         // with other nodes (which syncs the VM rng)
+        // NOTE that this will break a VM sync:
+        // since it introduces unsynchronized data into the
+        // VM state, the checkpoints will differ and a 
+        // resync will occur.
+        // In general, this function is probably not 
+        // very useful for our typical usage.
         case __KV__urand:
             return urand( params, param_len );
     
@@ -904,6 +955,16 @@ void gfx_v_set_pix_count( uint16_t setting ){
 }
 
 uint16_t gfx_u16_get_pix_count( void ){
+
+    return pix_count;
+}
+
+uint16_t gfx_u16_get_physical_pix_count( void ){
+
+    if( gfx_mirror_array ){
+
+        return pix_count * 2;
+    }
 
     return pix_count;
 }
@@ -2309,29 +2370,60 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         }
         else{ 
 
-            // virtual array enabled
-            // note this only works in one dimension
+            // wrap the X index around the overall virtual array
+            // size
+            i = x % virtual_array_length;
 
-            uint16_t sub_array_offset = ( pix_count - pix_arrays[obj].count ) * virtual_array_sub_position;
-            uint16_t adjusted_virtual_array_start = virtual_array_start - sub_array_offset;
+            // get coordinate of our local segment of the array:
+            uint16_t virtual_chunk_start = virtual_array_start + pix_arrays[obj].index;
+            uint16_t virtual_chunk_end = pix_arrays[obj].count + virtual_array_start;
 
-            uint32_t sub_len = scaled_pix_count / pix_arrays[obj].count;
-            uint16_t adjusted_virtual_array_len = scaled_virtual_array_length / sub_len;
+            // check if the requested index is in-bound of our
+            // segment:
+            if( ( i < virtual_chunk_start ) ||
+                ( i >= virtual_chunk_end ) ){
 
-            i = x % adjusted_virtual_array_len;
+                // out of bounds
 
-            // check if this index is within our local array
-            if( ( i < adjusted_virtual_array_start ) ||
-                ( i >= ( adjusted_virtual_array_start + pix_arrays[obj].count ) ) ){
-
-                // return invalid index
+                // we don't write to this index
                 return 0xffff;
             }
 
-            // adjust index to local array
-            i -= adjusted_virtual_array_start;
+            // adjust from the segment start back to our actual array indexes
+            i -= virtual_array_start;
 
+            // make sure we are in bounds
             i %= pix_arrays[obj].count;
+
+
+
+        //     // virtual array enabled
+        //     // note this only works in one dimension
+
+        //     uint16_t sub_array_offset = ( pix_count - pix_arrays[obj].count ) * virtual_array_sub_position;
+        //     uint16_t adjusted_virtual_array_start = virtual_array_start - sub_array_offset;
+
+        //     // ASSERT( pix_arrays[obj].count > 0 );
+        //     uint32_t sub_len = scaled_pix_count / pix_arrays[obj].count;
+
+        //     // ASSERT( sub_len > 0 );
+        //     uint16_t adjusted_virtual_array_len = scaled_virtual_array_length / sub_len;
+
+        //     i = x % adjusted_virtual_array_len;
+
+        //     // check if this index is within our local array
+        //     if( ( i < adjusted_virtual_array_start ) ||
+        //         ( i >= ( adjusted_virtual_array_start + pix_arrays[obj].count ) ) ){
+
+        //         // return invalid index
+        //         return 0xffff;
+        //     }
+
+            
+        //     // adjust index to local array
+        //     i -= adjusted_virtual_array_start;
+
+            // i %= pix_arrays[obj].count;
         }
         #endif
     }
@@ -2363,6 +2455,346 @@ uint16_t gfx_u16_calc_index( uint8_t obj, uint16_t x, uint16_t y ){
     return calc_index( obj, x, y );
 }
 
+
+#define GFX_GRID_RESOLUTION 100
+
+uint32_t _distance( int32_t x0, int32_t y0, int32_t x1, int32_t y1 ){
+
+    // using the alpha max beta min algorithm
+    // https://en.wikipedia.org/wiki/Alpha_max_plus_beta_min_algorithm
+
+    // compute distance between Xs and Ys
+    int32_t a = x1 - x0;
+    int32_t b = y1 - y0;
+
+    uint32_t abs_a = abs32( a );
+    uint32_t abs_b = abs32( b );  
+
+    uint32_t max = abs_a;
+    if( abs_b > max ){
+
+        max = abs_b;
+    }
+
+    uint32_t min = abs_a;
+    if( abs_b < min ){
+
+        min = abs_b;
+    }
+
+    #define ALPHA ( 1 / 1 )
+    #define BETA ( 3 / 8 )
+
+    uint32_t Z = max + 3 * min / 8;
+
+    return Z;
+}
+
+// static uint32_t grid_x;
+// static uint32_t grid_y;
+// static uint32_t grid_spacing_x;
+// static uint32_t grid_spacing_y;
+
+// KV_SECTION_META kv_meta_t gfx_lib_grid_kv[] = {
+//     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_x,                  0,                   "gfx_grid_size_x" },
+//     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_y,                  0,                   "gfx_grid_size_y" },
+//     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_spacing_x,          0,                   "gfx_grid_spacing_x" },
+//     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_spacing_y,          0,                   "gfx_grid_spacing_y" },
+// };
+
+// specify spacing between grid cells in units of pixels
+// IE:
+// 2.0 means there are 2 grid cells per pixel (grid is larger than pixel array)
+// 0.5 means there are 0.5 grid cells per pixel, or 2 pixels per grid cell.  Grid is smaller than array,  
+// we use 100 points for grid space
+// so in integer, 2.0 = 200, 0.5 = 50, etc
+void gfx_v_grid( uint32_t x_space, uint32_t y_space ){
+
+    // grid_spacing_x = x_space;
+    // grid_spacing_y = y_space;
+
+    // int32_t x_max = pix_arrays[0].size_x - 1;
+    // int32_t y_max = pix_arrays[0].size_y - 1;
+
+    // grid_x = x_max * grid_spacing_x;
+    // grid_y = y_max * grid_spacing_y;
+
+}
+
+// specify exact grid size
+void gfx_v_plane( uint16_t x_size, uint16_t y_size ){
+    
+    // grid_x = x_size;
+    // grid_y = y_size;
+
+
+    // // ERROR CHECK FOR DIV 0 HERE!
+
+    // int32_t x_max = pix_arrays[0].size_x - 1;
+    // int32_t y_max = pix_arrays[0].size_y - 1;
+
+    // grid_spacing_x = grid_x / x_max;
+    // grid_spacing_y = grid_y / y_max;
+}
+
+
+void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t diameter ){
+
+    /*
+    
+    Given a circle defined by an XY coordinate and diameter, find all
+    pixels that fit within the circle.
+
+    The input grid is mapped onto a standard unit grid size of 1.0 using fixed16.
+    In integer, this corresponds to an input range of 0 to 65535.
+
+    Grid coordinate 0 is pixel 0, coordinate 1.0 (65535) is the last pixel.
+        
+    Diameter uses the same fixed16.
+    Thus a diameter of 0.0 would be a nop and 1.0 would span the entire array.
+
+    */
+
+    int32_t pixels_x_max;
+    int32_t pixels_y_max;
+
+    // check if we are using 1D or 2D:
+    if( y < 0 ){
+
+        // 1D mode:
+        pixels_y_max = 0;
+        pixels_x_max = pix_arrays[0].count - 1;
+    }
+    else{
+        // 2D mode:
+        pixels_x_max = pix_arrays[0].size_x - 1;
+        pixels_y_max = pix_arrays[0].size_y - 1;
+    }
+
+    uint16_t radius = diameter / 2;
+
+    // Compute the bounding box for the circle:
+    int32_t bounds_x0 = x - radius;
+    int32_t bounds_x1 = x + radius;
+    int32_t bounds_y0 = y - radius;
+    int32_t bounds_y1 = y + radius;
+
+    // Convert to pixel coordinates:
+    int32_t pixels_x0 = ( bounds_x0 * pixels_x_max ) / 65536;
+    int32_t pixels_x1 = ( bounds_x1 * pixels_x_max ) / 65536;
+    int32_t pixels_y0 = ( bounds_y0 * pixels_y_max ) / 65536;
+    int32_t pixels_y1 = ( bounds_y1 * pixels_y_max ) / 65536;
+
+    // search within the bounding box:
+    if( y < 0 ){
+
+        // 1D
+        for( uint32_t x_i = pixels_x0; x_i <= pixels_x1; x_i++ ){
+
+            // compute distance, using the 1.0 grid units
+            // note the conversion of x_i (pixel coordinate) back to grid coorindate
+            int32_t x_coord = ( x_i * 65536 ) / pixels_x_max;
+            int32_t distance = _distance( x, 0, x_coord, 0 );
+
+            // check for match
+            if( distance <= radius ){
+
+                // match!
+
+                // calc pixel index for the currently matched pixel
+                uint16_t index = calc_index( 0, x_i, 65535 );
+
+                // bounds check!
+                if( index >= MAX_PIXELS ){
+
+                   continue;
+                }
+
+                // test, write hue
+                _gfx_v_set_hue_1d( h, index );
+            }
+        }
+    }
+    else{
+
+        // 2D
+        for( uint16_t x_i = pixels_x0; x_i <= pixels_x1; x_i++ ){
+
+            for( uint16_t y_i = pixels_y0; y_i <= pixels_y1; y_i++ ){
+
+                // compute distance, using the 1.0 grid units
+                // note the conversion of x_i (pixel coordinate) back to grid coorindate
+                int32_t x_coord = ( x_i * 65536 ) / pixels_x_max;
+                int32_t y_coord = ( y_i * 65536 ) / pixels_y_max;
+                int32_t distance = _distance( x, y, x_coord, y_coord );
+                    
+                // check for match
+                if( distance <= radius ){
+
+                    // match!
+
+                    // calc pixel index for the currently matched pixel
+                    uint16_t index = calc_index( 0, x_i, y_i );
+
+                    // bounds check!
+                    if( index >= MAX_PIXELS ){
+
+                       continue;
+                    }
+
+                    // test, write hue
+                    _gfx_v_set_hue_1d( h, index );
+                }
+            }
+        }
+    }
+
+
+
+
+    // /*
+    
+    // Given a circle defined by an XY coordinate and radius, find all
+    // pixels that fit within the circle.
+
+    // The XY and radius are scaled by the grid resolution to allow
+    // coordinates between pixels.
+
+    // */
+
+    // // log_v_info_P( PSTR("%d %d"), x, y);
+
+
+    // int32_t x_max = pix_arrays[0].size_x - 1;
+    // int32_t y_max = pix_arrays[0].size_y - 1;
+
+    // // scale X and Y max to grid resolution
+    // x_max *= GFX_GRID_RESOLUTION;
+    // y_max *= GFX_GRID_RESOLUTION;
+
+    // // convert coordinate from grid to pixels
+    // //??????????????????????????????????????????????
+    // uint32_t fractional_x = x / grid_spacing_x;
+    // uint32_t fractional_y = y / grid_spacing_y;
+
+    // uint32_t radius_x = radius / grid_spacing_x;
+    // uint32_t radius_y = radius / grid_spacing_y;   
+
+
+    // // check if we are using 1D or 2D:
+    // if( y < 0 ){
+
+    //     // 1D mode:
+    //     y_max = 0;
+    //     x_max = pix_arrays[0].count - 1;
+    // }
+    
+    // // Compute the bounding box for the circle:
+    // // int32_t x0 = ( x - radius ) / GFX_GRID_RESOLUTION;
+    // // int32_t x1 = ( x + radius) / GFX_GRID_RESOLUTION;
+    // // int32_t y0 = ( y - radius ) / GFX_GRID_RESOLUTION;
+    // // int32_t y1 = ( y + radius ) / GFX_GRID_RESOLUTION;
+
+    // uint32_t x0 = ( fractional_x - radius_x ) / GFX_GRID_RESOLUTION;
+    // uint32_t x1 = ( fractional_x + radius_x ) / GFX_GRID_RESOLUTION;
+    // uint32_t y0 = ( fractional_y - radius_y ) / GFX_GRID_RESOLUTION;
+    // uint32_t y1 = ( fractional_y + radius_y ) / GFX_GRID_RESOLUTION;
+
+
+    // // constrain the bounding box to fit within the pixel grid
+    // if( x0 < 0 ){
+
+    //     x0 = 0;
+    // }
+
+    // if( x0 > x_max ){ // out of bounds
+
+    //     log_v_info_P( PSTR("bounds") );
+
+    //     return;
+    // }
+
+    // if( x1 > x_max ){
+
+    //     x1 = x_max;
+    // }    
+
+    // if( y0 < 0 ){
+
+    //     y0 = 0;
+    // }
+
+    // if( y0 > y_max ){ // out of bounds
+
+    //     log_v_info_P( PSTR("bounds") );
+
+    //     return;
+    // }
+
+    // if( y1 > y_max ){
+
+    //     y1 = y_max;
+    // }
+
+    // // log_v_info_P( PSTR("%d %d %d %d"), x0, y0, x1, y1);
+
+    // // search within the bounding box:
+    // if( y < 0 ){
+
+    //     // 1D
+    //     for( uint16_t x_i = x0; x_i <= x1; x_i++ ){
+
+    //         int32_t distance = _distance( x, 0, x_i * GFX_GRID_RESOLUTION, 0 );
+
+    //         // check for match
+    //         if( distance <= radius ){
+
+    //             // match!
+
+    //             // calc pixel index for the currently matched pixel
+    //             uint16_t index = calc_index( 0, x_i, 65535 );
+
+    //             // bounds check!
+    //             if( index >= MAX_PIXELS ){
+
+    //                continue;
+    //             }
+
+    //             // test, write hue
+    //             _gfx_v_set_hue_1d( h, index );
+    //         }
+    //     }
+    // }
+    // else{
+
+    //     // 2D
+    //     for( uint16_t x_i = x0; x_i <= x1; x_i++ ){
+
+    //         for( uint16_t y_i = y0; y_i <= y1; y_i++ ){
+                    
+    //             int32_t distance = _distance( x, y, x_i * GFX_GRID_RESOLUTION, y_i * GFX_GRID_RESOLUTION );
+
+    //             // check for match
+    //             if( distance <= radius ){
+
+    //                 // match!
+
+    //                 // calc pixel index for the currently matched pixel
+    //                 uint16_t index = calc_index( 0, x_i, y_i );
+
+    //                 // bounds check!
+    //                 if( index >= MAX_PIXELS ){
+
+    //                    continue;
+    //                 }
+
+    //                 // test, write hue
+    //                 _gfx_v_set_hue_1d( h, index );
+    //             }
+    //         }
+    //     }
+    // }
+}
 
 void gfx_v_set_hsv( int32_t h, int32_t s, int32_t v, uint16_t index ){
 
@@ -2801,6 +3233,12 @@ int32_t gfx_i32_get_pixel_attr( uint8_t obj, uint8_t attr ){
 
         return gfx_u16_get_is_hs_fading( 65535, 65535, obj );
     }
+    else if( ( virtual_array_length > 0 ) && 
+             ( attr == PIX_ATTR_COUNT ) &&
+             ( obj == 0 ) ){
+
+        return virtual_array_length;
+    }
 
     gfx_pixel_array_t *array = 0;
 
@@ -3117,6 +3555,8 @@ void gfxlib_v_init( void ){
     compute_dimmer_lookup();
     compute_sat_lookup();
 
+    // gfx_v_plane( pix_size_x, pix_size_y );
+
     // initialize pixel arrays to defaults
     gfx_v_reset();
 
@@ -3282,6 +3722,28 @@ void gfx_v_sync_array( void ){
             array_green[i] = g;
             array_blue[i] = b;
             array_misc[i] = dither;
+        }
+    }
+
+    if( gfx_mirror_array ){
+
+        // error check
+        if( ( pix_count > ( MAX_PIXELS / 2 ) ) ||
+            ( pix_count < 2 ) ){
+
+            gfx_mirror_array = FALSE;
+            log_v_error_P( PSTR("Mirroring not available, too many pixels") );            
+        }
+        else{
+
+            // mirror the RGB arrays:
+            for( uint16_t i = 0; i < pix_count; i++ ){
+
+                array_red[pix_count + i]    = array_red[( pix_count - 1 ) - i];
+                array_green[pix_count + i]  = array_green[( pix_count - 1 ) - i];
+                array_blue[pix_count + i]   = array_blue[( pix_count - 1 ) - i];
+                array_misc[pix_count + i]   = array_misc[( pix_count - 1 ) - i];
+            }
         }
     }
     

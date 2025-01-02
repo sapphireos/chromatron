@@ -64,7 +64,7 @@ static uint16_t setup_pixel_buffer( void ){
 
     uint8_t *buf = outputs;
 
-    uint16_t transfer_pixel_count = gfx_u16_get_pix_count();
+    uint16_t transfer_pixel_count = gfx_u16_get_physical_pix_count();
 
     if( transfer_pixel_count == 0 ){
 
@@ -242,6 +242,13 @@ static void _pixel_v_configure( void ){
         ( pix_mode == PIX_MODE_SK6812_RGBW ) ){
 
         freq = 3200000;
+    }
+
+    if( freq == 0 ){
+
+        // set a default frequency
+
+        freq = 1000000;
     }
 
     spi_v_init( PIXEL_SPI_CHANNEL, freq, 0 );

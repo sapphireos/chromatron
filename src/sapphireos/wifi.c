@@ -42,10 +42,10 @@ void wifi_v_init( void ){
 
     hal_wifi_v_init();
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return;
-    }
+    //     return;
+    // }
 
     thread_t_create( igmp_thread,
                      PSTR("igmp"),
@@ -84,10 +84,10 @@ PT_END( pt );
 
 int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return 0;
-    }
+    //     return 0;
+    // }
 
     for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
 
@@ -121,10 +121,10 @@ int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
 
 int8_t wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return 0;
-    }
+    //     return 0;
+    // }
 
     for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
 

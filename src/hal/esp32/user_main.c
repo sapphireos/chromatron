@@ -77,12 +77,12 @@ void sapphire_main()
     
     // set run time logging
     #ifdef ENABLE_TRACE
-    esp_log_level_set("*", ESP_LOG_INFO);
-    // esp_log_level_set("*", ESP_LOG_VERBOSE);
+    // esp_log_level_set("*", ESP_LOG_INFO);
+    esp_log_level_set("*", ESP_LOG_VERBOSE);
     // esp_log_level_set("*", ESP_LOG_DEBUG);
+    #endif
 
     esp_log_level_set("gpio", ESP_LOG_NONE);
-    #endif
 
     // sapphireos init
     if( sapphire_i8_init() == 0 ){
@@ -103,6 +103,8 @@ void sapphire_main()
     while(1){
 
         thread_core();
+
+        vTaskDelay( 1 / portTICK_PERIOD_MS );
 
         // trace_printf( "%u\r\n", thread_u32_get_next_alarm_delta() );
 

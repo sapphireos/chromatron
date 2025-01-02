@@ -28,6 +28,7 @@
 #include "system.h"
 #include "io_intf.h"
 #include "driver/gpio.h"
+#include "driver/rtc_io.h"
 
 // pins 34, 35, 36, and 39 are input only on the ESP32!
 
@@ -44,7 +45,7 @@
 #define IO_PIN_21			9
 #define IO_PIN_17_TX		10
 #define IO_PIN_16_RX		11
-#define IO_PIN_19_MISO		12
+#define IO_PIN_19_MISO		12 // not actually a MISO pin...
 #define IO_PIN_18_MOSI		13
 #define IO_PIN_5_SCK 		14
 #define IO_PIN_4_A5 		15

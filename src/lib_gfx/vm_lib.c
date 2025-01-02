@@ -35,6 +35,10 @@
 #include "vm.h"
 #include "vm_core.h"
 
+#ifdef ENABLE_CONTROLLER
+#include "mqtt_client.h"
+#endif
+
 #ifdef ENABLE_BATTERY
 #include "battery.h"
 #include "buttons.h"
@@ -66,6 +70,62 @@ int8_t vm_lib_i8_libcall_built_in(
     #endif
 
 	switch( func_hash ){
+        #ifdef ENABLE_CONTROLLER
+        case __KV__drop_h:
+
+            gfx_v_drop( params[0], -1, -1, params[1], params[2], params[3] );
+            
+            break;
+
+        case __KV__mqtt_publish:
+
+            // dereference to pool:
+            // topic is param 0
+            ref.n = params[0];
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+            str = (char *)ptr;
+
+            // KV key
+            ref.n = params[1];
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+            str2 = (char *)ptr; 
+
+            *result = mqtt_client_i8_publish_kv( str, str2, 0, FALSE );
+
+            break;
+ 
+         case __KV__mqtt_subscribe:
+
+            // dereference to pool:
+            // topic is param 0
+            ref.n = params[0];
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+            str = (char *)ptr;
+
+            // KV key
+            ref.n = params[1];
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+            str2 = (char *)ptr; 
+
+            *result = mqtt_client_i8_subscribe_kv( str, str2, 0, vm_u8_current_id() | MQTT_VM_TAG_OFFSET );
+
+            break;
+
+        case __KV__mqtt_unsubscribe:
+
+            // dereference to pool:
+            // topic is param 0
+            ref.n = params[0];
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+            str = (char *)ptr;
+
+            mqtt_client_v_unsubscribe( str );
+
+            break;
+ 
+
+        #endif
+
         case __KV__rand:
 
             if( param_len == 0 ){

@@ -73,7 +73,7 @@ DEBUG = False
 DEBUG_FILTER_LOAD_STORE = False
 DEBUG_PRINT = True
 EXCEPTION_ON_LIVENESS_ERROR = False
-SHOW_LIVENESS = False
+SHOW_LIVENESS = True
 LIVENESS_MODE = 'register'
 # LIVENESS_MODE = 'mem'
 
@@ -1276,6 +1276,9 @@ class irBlock(IR):
 
                 # keep this instruction
                 new_code.append(ir)
+
+            else:
+                logging.debug(f'Removing instruction: {ir} from line {ir.lineno}')
 
         old_code = self.code
 

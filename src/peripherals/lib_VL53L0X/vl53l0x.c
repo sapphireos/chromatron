@@ -254,6 +254,10 @@ PT_END( pt );
 }
 
 
+uint16_t vl53l0x_u16_get_distance( void ){
+
+    return distance_mm;
+}
 
 void vl53l0x_v_init( void ){
 

@@ -32,10 +32,11 @@
 #define BOARD_TYPE_CHROMATRON32_v0_0        1
 #define BOARD_TYPE_CHROMATRON32_v0_1        2
 #define BOARD_TYPE_WROVER_KIT               3
-#define BOARD_TYPE_ELITE                    4
+#define BOARD_TYPE_ELITE                    4 // Elite and Charger3
 #define BOARD_TYPE_ESP32_MINI_BUTTONS       5
+#define BOARD_TYPE_CHARGER_3_1              6 // Charger3.1
 
-#define BOARD_TYPE_COUNT                    6
+#define BOARD_TYPE_COUNT                    7
 
 #define BOARD_TYPE_UNSET                    0xff
 

@@ -50,7 +50,7 @@
 #define LINK_REMOTE_TIMEOUT                 32000
 #define LINK_STAT_TIMEOUT                   32000
 
-#define LINK_MIN_TICK_RATE                  20
+#define LINK_MIN_TICK_RATE                  50
 #define LINK_MAX_TICK_RATE                  2000
 
 #define LINK_RETRANSMIT_RATE                2000

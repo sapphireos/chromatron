@@ -58,7 +58,7 @@ setup(
     install_requires=[
         "crcmod == 1.7",
         "appdirs==1.4.3",
-        "requests==2.22.0",
+        "requests==2.32.3",
         # "setuptools >= 50.3.2",
         "pyserial == 3.4.0",
         # "cmd2 == 0.6.9", # now included directly in source tree (because pip broke the ability to install it)
@@ -73,13 +73,14 @@ setup(
         "prometheus-client==0.8.0",
         "paho-mqtt==1.5.1",
         "ifaddr==0.1.6",
-        "filelock==3.0.12",
+        "filelock==3.13.1",
         "influxdb==5.3.1",
         "colorama==0.4.6",
         "graphviz==0.20.1",
         "pytest==6.2.4",
         "pytest-cov==2.11.1",
         "pytest-xdist==2.5.0",
+        "pyparsing-3.2.1",
     ],
 
     entry_points='''

@@ -22,10 +22,10 @@
 // </license>
  */
 
+#include "config.h"
 #include "system.h"
 #include "memory.h"
 #include "timers.h"
-#include "msgflow.h"
 #include "fs.h"
 #include "threading.h"
 #include "logging.h"
@@ -33,8 +33,9 @@
 #include "keyvalue.h"
 #include "time_ntp.h"
 #include "datalogger.h"
+#include "mqtt_client.h"
 
-#ifdef ENABLE_MSGFLOW
+#ifdef ENABLE_CONTROLLER
 
 typedef struct{
     catbus_hash_t32 hash;
@@ -49,7 +50,6 @@ typedef struct{
 
 static mem_handle_t datalog_handle = -1;
 static mem_handle_t datalog_buffer_handle = -1;
-static msgflow_t msgflow = -1;
 static ntp_ts_t ntp_base;
 static uint32_t systime_base;
 static uint16_t buffer_offset;
@@ -94,6 +94,8 @@ PT_BEGIN( pt );
 
     static uint32_t file_hash;
     file_hash = 0;
+
+    TMR_WAIT( pt, 1000 ); // delay so optional KV DB items have time to register
 
     while(1){
 
@@ -195,7 +197,7 @@ PT_END( pt );
 
 static int8_t record_data( datalog_entry_t *entry, uint32_t timestamp ){
 
-#if DATALOG_VERSION == 2
+#if DATALOG_VERSION == 4
 
     if( entry->hash == 0 ){
 
@@ -212,19 +214,24 @@ static int8_t record_data( datalog_entry_t *entry, uint32_t timestamp ){
         return -3;
     }
 
+    if( !mqtt_b_connected() ){
+
+        return -4;
+    }
+
     uint8_t *ptr = mem2_vp_get_ptr( datalog_buffer_handle );
 
     int16_t remaining_space = DATALOG_MAX_BUFFER_SIZE - buffer_offset;
 
     uint16_t data_size = type_u16_size_meta( &entry->meta );
-    uint16_t chunk_size = ( sizeof(datalog_data_v2_t) - 1 ) + data_size;
+    uint16_t chunk_size = ( sizeof(datalog_data_v4_t) - 1 ) + data_size;
 
     if( remaining_space < chunk_size ){
 
         return 1;
     }
 
-    datalog_data_v2_t *chunk = (datalog_data_v2_t *)&ptr[buffer_offset];
+    datalog_data_v4_t *chunk = (datalog_data_v4_t *)&ptr[buffer_offset];
 
     uint32_t ntp_offset = tmr_u32_elapsed_times( systime_base, timestamp );
 
@@ -250,34 +257,34 @@ static int8_t record_data( datalog_entry_t *entry, uint32_t timestamp ){
 
 #elif DATALOG_VERSION == 1
 
-    #define MAX_DATA_LEN 128
+    // #define MAX_DATA_LEN 128
 
-    uint8_t buf[sizeof(datalog_header_t) + sizeof(datalog_data_v1_t) + MAX_DATA_LEN];
-    memset( buf, 0, sizeof(buf) );
-    datalog_header_t *header = (datalog_header_t *)buf;
+    // uint8_t buf[sizeof(datalog_header_t) + sizeof(datalog_data_v1_t) + MAX_DATA_LEN];
+    // memset( buf, 0, sizeof(buf) );
+    // datalog_header_t *header = (datalog_header_t *)buf;
 
-    header->magic = DATALOG_MAGIC;
-    header->version = DATALOG_VERSION;
+    // header->magic = DATALOG_MAGIC;
+    // header->version = DATALOG_VERSION;
 
-    if( time_b_is_ntp_sync() ){
+    // if( time_b_is_ntp_sync() ){
 
-        header->flags |= DATALOG_FLAGS_NTP_SYNC;
-    }
+    //     header->flags |= DATALOG_FLAGS_NTP_SYNC;
+    // }
 
-    datalog_data_v1_t *data_msg = (datalog_data_v1_t *)( header + 1 );
-    uint8_t *data = &data_msg->data.data;
+    // datalog_data_v1_t *data_msg = (datalog_data_v1_t *)( header + 1 );
+    // uint8_t *data = &data_msg->data.data;
 
-    uint16_t msglen = ( sizeof(datalog_data_v1_t) - 1 ) + type_u16_size_meta( &entry->meta ) + sizeof(datalog_header_t);
+    // uint16_t msglen = ( sizeof(datalog_data_v1_t) - 1 ) + type_u16_size_meta( &entry->meta ) + sizeof(datalog_header_t);
 
-    if( kv_i8_get( entry->hash, data, MAX_DATA_LEN ) == KV_ERR_STATUS_OK ){
+    // if( kv_i8_get( entry->hash, data, MAX_DATA_LEN ) == KV_ERR_STATUS_OK ){
 
-        data_msg->data.meta = entry->meta;
+    //     data_msg->data.meta = entry->meta;
 
-        // transmit!
-        msgflow_b_send( msgflow, buf, msglen );
-    }
+    //     // transmit!
+    //     msgflow_b_send( msgflow, buf, msglen );
+    // }
 
-    return 0;
+    // return 0;
 #endif
 }
 
@@ -300,12 +307,12 @@ static void flush( void ){
         return;
     }
 
-    if( !msgflow_b_connected( msgflow ) ){
+    if( !mqtt_b_connected() ){
 
         return;
     }
 
-    uint8_t buf[MSGFLOW_MAX_LEN];
+    uint8_t buf[CATBUS_MAX_DATA];
 
     datalog_header_t *header = (datalog_header_t *)buf;
     memset( header, 0, sizeof(datalog_header_t) );
@@ -327,7 +334,7 @@ static void flush( void ){
 
     buffer_offset = 0;
 
-    msgflow_b_send( msgflow, buf, msg_size );
+    mqtt_client_i8_publish( PSTR("chromatron/datalogger"), buf, msg_size, 0, 0 );
 }
 
 
@@ -349,22 +356,11 @@ PT_BEGIN( pt );
         THREAD_EXIT( pt );
     }
 
-    msgflow = msgflow_m_listen( __KV__datalogger, MSGFLOW_CODE_ANY, 128 );
-
-    // msgflow creation failed
-    if( msgflow <= 0 ){
-
-        THREAD_EXIT( pt );
-    }
-
     while(1){
 
-        THREAD_WAIT_WHILE( pt, !msgflow_b_connected( msgflow ) || ( datalog_handle < 0 ) );
+        THREAD_WAIT_WHILE( pt, !mqtt_b_connected() || ( datalog_handle < 0 ) );
 
         if( sys_b_is_shutting_down() ){
-
-            msgflow_v_close( msgflow );
-            msgflow = -1;
 
             THREAD_EXIT( pt );
         }
@@ -373,12 +369,9 @@ PT_BEGIN( pt );
 
         thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
-        while( msgflow_b_connected( msgflow ) && ( datalog_handle > 0 ) ){
+        while( mqtt_b_connected() && ( datalog_handle > 0 ) ){
 
             if( sys_b_is_shutting_down() ){
-
-                msgflow_v_close( msgflow );
-                msgflow = -1;
 
                 THREAD_EXIT( pt );
             }
@@ -413,7 +406,7 @@ PT_BEGIN( pt );
 
                 if( buffer_offset == 0 ){
 
-                    datalog_v2_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
+                    datalog_v4_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
 
                     // memset( buf_meta_ptr, 0, mem2_u16_get_size( datalog_buffer_handle ) );
 
@@ -421,8 +414,9 @@ PT_BEGIN( pt );
                     ntp_v_get_timestamp( &ntp_base, &systime_base );
 
                     buf_meta_ptr->ntp_base = ntp_base;
+                    buf_meta_ptr->ip = cfg_ip_get_ipaddr();
 
-                    buffer_offset += sizeof(datalog_v2_meta_t);
+                    buffer_offset += sizeof(datalog_v4_meta_t);
                 }
 
                 entry_ptr->ticks = entry_ptr->tick_rate;
@@ -436,7 +430,7 @@ PT_BEGIN( pt );
 
                     if( buffer_offset == 0 ){
 
-                        datalog_v2_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
+                        datalog_v4_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
 
                         // memset( buf_meta_ptr, 0, mem2_u16_get_size( datalog_buffer_handle ) );
 
@@ -445,7 +439,7 @@ PT_BEGIN( pt );
 
                         buf_meta_ptr->ntp_base = ntp_base;
 
-                        buffer_offset += sizeof(datalog_v2_meta_t);
+                        buffer_offset += sizeof(datalog_v4_meta_t);
                     }
 
                     record_data( entry_ptr, timestamp );
@@ -474,7 +468,7 @@ PT_END( pt );
 
 void datalogger_v_refresh_config( void ){
 
-    #ifdef ENABLE_MSGFLOW
+    #ifdef ENABLE_CONTROLLER
     refresh_config = TRUE;
     #endif
 }

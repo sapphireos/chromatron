@@ -1206,7 +1206,7 @@ static void update_consumer( uint64_t hash, sock_addr_t *raddr ){
     // make sure link was found!
     if( link < 0 ){
 
-        trace_printf("LINK: link not found!\n");
+        log_v_warn_P( PSTR("LINK: link not found!\n") );
 
         // TODO: is this right?
         // we are getting consumer leaks.

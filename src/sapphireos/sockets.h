@@ -67,13 +67,13 @@ typedef int8_t sock_type_t8;
 #define SOCK_STATUS_PORT_BUF_FULL   -2
 #define SOCK_STATUS_MCAST_SELF      -15
 #define SOCK_STATUS_SEND_ONLY       -20
-#define SOCK_STATUS_NO_SEC          -21
+// #define SOCK_STATUS_NO_SEC          -21
 
 
 // options flags
 typedef uint8_t sock_options_t8;
 #define SOCK_OPTIONS_TTL_1                      0x01 // set TTL to 1, currently only works on UDP
-#define SOCK_OPTIONS_NO_SECURITY                0x02 // disable packet security on wireless
+// #define SOCK_OPTIONS_NO_SECURITY                0x02 // disable packet security on wireless
 #define SOCK_OPTIONS_SEND_ONLY                  0x04 // socket will not receive data
 #define SOCK_OPTIONS_NO_WIRELESS                0x10 // socket will not transmit over the wireless
 

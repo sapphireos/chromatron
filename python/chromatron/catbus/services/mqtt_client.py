@@ -22,7 +22,7 @@
 # </license>
 #
 
-
+import os
 import sys
 import time
 import json
@@ -32,52 +32,86 @@ from sapphire.common import util, Ribbon
 import logging
 
 import paho.mqtt.client as mqtt
+import socket
 
+class MQTTHostNotFound(Exception):
+    pass
 
 class MQTTClient(Ribbon):
-    def __init__(self, settings={}):
+    def __init__(self, host='localhost'):
         super().__init__()
 
-        self.settings = settings
+        if "MQTT_HOST" in os.environ:
+            host = os.environ["MQTT_HOST"]
 
+        self.host = host
         self.mqtt = mqtt.Client()
 
         self.mqtt.on_connect = self.on_connect
         self.mqtt.on_disconnect = self.on_disconnect
         self.mqtt.on_message = self.on_message
 
-    def connect(self, host='localhost'):
-        if host is None:
-            try:
-                host = self.settings['host']   
+        self._connected = False
+        self._connecting = False
 
-            except KeyError:
-                host = 'localhost'
+    @property
+    def connected(self):
+        return self._connected
 
-        self.mqtt.connect(host)
+    def connect(self):
+        try:
+            self.mqtt.connect(self.host)        
+
+        except socket.gaierror:
+            raise MQTTHostNotFound(self.host)
 
     def clean_up(self):
         self.mqtt.disconnect()
 
     def on_connect(self, client, userdata, flags, rc):
+        self._connected = True
+        self._connecting = False
+
         logging.info("Connected with result code "+str(rc))
 
     def on_disconnect(self, client, userdata, rc):
+        self._connected = False
+        self._connecting = False
+
         if rc != 0:
             logging.info("Unexpected disconnection.")
+
+        time.sleep(1.0)
 
     def on_message(self, client, userdata, msg):
         logging.info(msg.topic + " " + str(msg.payload))
 
-    def publish(self, topic, payload):
-        self.mqtt.publish(topic, payload, qos=0, retain=False)
+    def publish(self, topic, payload, qos=0, retain=False):
+        # logging.debug(f'Publish to: {topic}')
+        self.mqtt.publish(topic, payload, qos=qos, retain=retain)
 
-    def subscribe(self, topic):
-        self.mqtt.subscribe(topic, qos=0)
+    def subscribe(self, topic, qos=0):
+        # logging.debug(f'Subcribe to: {topic}')
+        self.mqtt.subscribe(topic, qos=qos)
 
     def unsubscribe(self, topic):
+        # logging.debug(f'Unsubcribe from: {topic}')
         self.mqtt.unsubscribe(topic)
 
     def _process(self):
-        self.mqtt.loop(timeout=1.0)
+        if not self._connected and not self._connecting:
+            try:
+                self._connecting = True
+                self.connect()
+                logging.info(f'MQTT connected')
 
+            except socket.error:
+                self._connecting = False
+                logging.warning(f'MQTT connection failed')
+                
+                time.sleep(2.0)
+
+        self.mqtt.loop(timeout=1.0)
+        
+        
+        

@@ -263,6 +263,10 @@ typedef struct __attribute__((packed)){
 
 void catbus_v_init( void );
 
+int8_t catbus_i8_set_i64(
+    catbus_hash_t32 hash, 
+    int64_t data );
+
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
     catbus_type_t8 type,
@@ -276,6 +280,11 @@ int8_t catbus_i8_array_set(
     uint16_t count,
     void *data,
     uint16_t data_len );
+
+
+int8_t catbus_i8_get_i64(
+    catbus_hash_t32 hash, 
+    int64_t *data );
 
 int8_t catbus_i8_get(
     catbus_hash_t32 hash,
@@ -296,6 +305,21 @@ void catbus_v_shutdown( void );
 uint64_t catbus_u64_get_origin_id( void );
 const catbus_hash_t32* catbus_hp_get_tag_hashes( void );
 bool catbus_b_query_self( catbus_query_t *query );
+bool catbus_b_query_single( catbus_hash_t32 hash, catbus_query_t *tags );
+bool catbus_b_query_tags( catbus_query_t *query, catbus_query_t *tags );
+void catbus_v_get_query( catbus_query_t *query );
+
+#define CATBUS_MAX_HASH_RESOLVER_LOOKUPS    4
+#define CATBUS_HASH_LOOKUP_INTERVAL         2000 // ms
+#define CATBUS_HASH_LOOKUP_TRIES            4
+
+typedef struct  __attribute__((packed)){
+    catbus_hash_t32 hash;
+    ip_addr4_t host_ip;
+    uint8_t tries;
+} catbus_hash_lookup_t;
+
+int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN], ip_addr4_t *host_ip );
 
 #endif
 

@@ -27,6 +27,8 @@
 
 #include "veml7700.h"
 
+#ifdef ESP32
+
 
 #define FILTER_RATIO 8
 
@@ -100,3 +102,20 @@ PT_BEGIN( pt );
 PT_END( pt );	
 }
 
+#else
+
+void light_sensor_v_init( void ){
+
+}
+
+uint32_t light_sensor_u32_read( void ){
+
+	return 0;
+}
+
+uint32_t light_sensor_u32_read_delta( void ){
+
+	return 0;
+}
+
+#endif

@@ -46,11 +46,11 @@ typedef struct __attribute__((packed)){
 } coproc_hdr_t;
 
 #define COPROC_BUF_SIZE				255
-#define COPROC_FLASH_XFER_LEN		252
+#define COPROC_FLASH_XFER_LEN		200
 
 #define OPCODE_TEST					0x01
 #define OPCODE_REBOOT				0x02
-#define OPCODE_LOAD_DISABLE			0x03
+// #define OPCODE_LOAD_DISABLE			0x03
 #define OPCODE_GET_RESET_SOURCE		0x04
 #define OPCODE_GET_WIFI				0x05
 #define OPCODE_DEBUG_PRINT  		0x06
@@ -58,6 +58,11 @@ typedef struct __attribute__((packed)){
 #define OPCODE_LOADFW_1				0x08
 #define OPCODE_LOADFW_2				0x09
 #define OPCODE_SAFE_MODE     		0x0A
+#define OPCODE_GET_ERROR_FLAGS		0x0B
+#define OPCODE_CLEAR_ERROR_FLAGS	0x0C
+#define OPCODE_GET_ERROR_OPCODE		0x0D
+#define OPCODE_GET_ERROR_LENGTH		0x0E
+#define OPCODE_GET_ERROR_LOG		0x0F
 
 #define OPCODE_IO_SET_MODE			0x10
 #define OPCODE_IO_GET_MODE			0x11
@@ -168,5 +173,25 @@ int32_t coproc_i32_callv( uint8_t opcode, const uint8_t *data, uint16_t len );
 int32_t coproc_i32_callp( uint8_t opcode, uint8_t *data, uint16_t len );
 int32_t coproc_i32_callp1( uint8_t opcode, int32_t param0, uint8_t *data, uint16_t len );
 int32_t coproc_i32_callp2( uint8_t opcode, int32_t param0, int32_t param1, uint8_t *data, uint16_t len );
+
+
+
+#define COPROC_ERROR_RX_FAIL	0x00000001
+#define COPROC_ERROR_CRC_FAIL	0x00000002
+#define COPROC_ERROR_SYNC_FAIL	0x00000004
+#define COPROC_ERROR_PIX_STALL	0x00000008
+#define COPROC_ERROR_BAD_SOF	0x00000010
+#define COPROC_ERROR_BAD_OPCODE	0x00000020
+#define COPROC_ERROR_HEADER		0x00008000
+#define COPROC_ERROR_VERSION	0x10000000
+#define COPROC_ERROR_IMAGE_CRC	0x20000000
+
+#ifdef AVR
+void coproc_v_set_error_flags( uint32_t flags, uint8_t opcode, uint8_t length );
+void coproc_v_clear_error_flags( void );
+#else
+#define coproc_v_set_error_flags( a, b, c )
+#define coproc_v_clear_error_flags()
+#endif
 
 #endif

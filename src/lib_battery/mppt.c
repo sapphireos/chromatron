@@ -28,6 +28,7 @@
 #include "mppt.h"
 #include "bq25895.h"
 
+#ifdef ESP32 // MPPT/Solar only on ESP32
 
 static bool enable_mppt;
 static uint16_t mppt_current_vindpm;
@@ -165,3 +166,41 @@ bool mppt_b_is_running( void ){
 
     return !mppt_done;
 }
+
+
+#else
+
+
+void mppt_v_init( void ){
+
+
+}
+
+void mppt_v_run( uint16_t charge_current ){
+
+    
+}
+
+void mppt_v_reset( void ){
+
+
+}
+
+void mppt_v_enable( void ){
+
+
+}
+
+void mppt_v_disable( void ){
+
+
+}
+
+bool mppt_b_is_running( void ){
+
+    return FALSE;
+}
+
+
+
+#endif

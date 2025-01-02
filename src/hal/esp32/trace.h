@@ -32,9 +32,9 @@ int dummy_printf(const char* format, ...);
     #define trace_printf ets_printf
 #else
     #ifdef ENABLE_TRACE
-    #define trace_printf printf
+        #define trace_printf printf
     #else
-    #define trace_printf dummy_printf
+        #define trace_printf dummy_printf
     #endif
 #endif
 

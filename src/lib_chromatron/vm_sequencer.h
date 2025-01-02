@@ -34,8 +34,10 @@
 // #define VM_SEQ_SELECT_MODE_SHUFFLE		2
 
 
-
-
 void vm_seq_v_init( void );
+uint8_t vm_seq_u8_get_time_mode( void );
+uint8_t vm_seq_u8_get_step( void );
+void vm_seq_v_set_step( uint8_t step );
+bool vm_seq_b_running( void );
 
 #endif

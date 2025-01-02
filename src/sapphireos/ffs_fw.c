@@ -486,7 +486,7 @@ void ffs_fw_v_erase( uint8_t partition, bool immediate ){
         return;
     }
 
-    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
         
         immediate = TRUE;
     }

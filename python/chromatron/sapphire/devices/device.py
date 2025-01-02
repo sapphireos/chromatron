@@ -448,8 +448,8 @@ class Device(object):
 
         return responses
 
-    def lookup_hash(self, key):
-        value = self._client.lookup_hash(key)[key]
+    def lookup_hash(self, key, host=None):
+        value = self._client.lookup_hash(key, host=host)[key]
 
         if value == key:
             raise KeyError(key)
@@ -705,6 +705,14 @@ class Device(object):
         data = self.get_file("vm0_threads")
 
         info = sapphiredata.VMThreadEntryArray()
+        info.unpack(data)
+
+        return info
+
+    def get_directory(self):
+        data = self.get_file("directory")
+
+        info = sapphiredata.DirectoryArray()
         info.unpack(data)
 
         return info
@@ -1064,6 +1072,10 @@ class Device(object):
             29: "link_remote",
             30: "kv_opt",
             31: "vm_thread_context",
+            32: "fs_page_cache",
+            33: "mqtt_sub",
+            34: "mqtt_broker_sub",
+            35: "controller_node",
         }
 
         total_size = 0
@@ -1836,7 +1848,7 @@ class Device(object):
                 except KeyboardInterrupt:
                     return ""
 
-        except DeviceCommsErrorException:
+        except (DeviceCommsErrorException, NoResponseFromHost):
             return "Lost connection!"
 
     def cli_telemetry_info(self, line):
@@ -1870,6 +1882,37 @@ class Device(object):
                 
             print(item)
 
+    def cli_directory(self, line):
+        try:
+            data = self.get_directory()
+
+        except OSError:
+            return
+
+        if len(data) == 0:
+            return
+
+        s = '\nIP           Query                            Svc  Timeout\n'
+
+        for item in data:
+            query_s = ''
+            for q in list(item.query)[:2]:
+                try:
+                    v = self.lookup_hash(q, (str(item.ipaddr), CATBUS_MAIN_PORT))
+
+                    if v is None:
+                        continue
+
+                except KeyError:
+                    v = f'{q:x}'
+
+                query_s += f'{v} '
+
+            s += f'{item.ipaddr:12} {query_s:32} {item.service_flags:04x} {item.timeout}\n'
+            
+        #     s += f'{self._client.lookup_hash(item.hash)[item.hash]:20}   {item.rate}\n'
+
+        return s
 
     # def cli_batt_recorder_info(self, line):
     #     try:

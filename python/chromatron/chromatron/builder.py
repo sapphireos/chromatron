@@ -1574,7 +1574,9 @@ class Builder(object):
         zero = self.get_var(0, lineno=-1)
         self.assign(iterator, zero, lineno=lineno)
 
-        compare = self.binop('lt', iterator, stop, lineno=lineno)
+        # NOTE the copy on the stop iterator, this fixes a potential liveness
+        # error that comes up when the SSA construction is wrong.
+        compare = self.binop('lt', iterator, copy(stop), lineno=lineno)
 
         ir = irBranch(compare, self.loop_header[-1], self.loop_end[-1], lineno=lineno)
         self.append_node(ir)

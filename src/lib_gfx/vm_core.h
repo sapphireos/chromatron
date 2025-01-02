@@ -30,6 +30,9 @@
 #include "target.h"
 #include "keyvalue.h"
 
+#ifdef ENABLE_CONTROLLER
+#include "link.h"
+#endif
 
 // #define VM_DEBUG
 
@@ -321,8 +324,8 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t link_count;
     uint16_t link_start;
 
-    #ifdef ENABLE_CATBUS_LINK
-    link_handle_t links[VM_MAX_LINKS];
+    #ifdef ENABLE_CONTROLLER
+    link2_handle_t links[VM_MAX_LINKS];
     #endif
 
     uint16_t db_count;
@@ -390,6 +393,8 @@ int8_t vm_i8_load_program(
     char *program_fname, 
     mem_handle_t *handle,
     vm_state_t *state );
+
+uint8_t vm_u8_current_id( void );
 
 /*void vm_v_init_db(
     uint8_t *stream,

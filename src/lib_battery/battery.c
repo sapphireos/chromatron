@@ -35,6 +35,7 @@
 #include "charger2.h"
 #include "bq25895.h"
 #include "bq25895_aux.h"
+#include "led_detect.h"
 
 #include "solar.h"
 #include "buttons.h"
@@ -120,8 +121,6 @@ KV_SECTION_META kv_meta_t battery_enable_kv[] = {
 };
 
 KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &charger2_board_installed,  0,  "solar_enable_charger2" },
-
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,     batt_kv_handler,  "batt_max_charge_voltage" },
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_min_discharge_voltage,  batt_kv_handler,  "batt_min_discharge_voltage" },
 
@@ -134,7 +133,7 @@ KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
 
 
 
-PT_THREAD( battery_cutoff_thread( pt_t *pt, void *state ) );
+PT_THREAD( battery_monitor_thread( pt_t *pt, void *state ) );
 
 void batt_v_init( void ){
 
@@ -156,20 +155,14 @@ void batt_v_init( void ){
         return;
     }
 
-    #ifdef ENABLE_AUX_BATTERY
-    bq25895_aux_v_init();
-    #endif
 
     // only add batt info if a battery controller is actually present
     kv_v_add_db_info( battery_info_kv, sizeof(battery_info_kv) );
-
-    set_batt_nameplate_capacity();
-
+    
     if( charger2_board_installed ){
         
         charger2_v_init();
     }
-
 
     energy_v_init();
 
@@ -180,8 +173,8 @@ void batt_v_init( void ){
 
     trace_printf("Battery controller enabled\n");
 
-    thread_t_create( battery_cutoff_thread,
-                     PSTR("batt_cutoff_monitor"),
+    thread_t_create( battery_monitor_thread,
+                     PSTR("batt_monitor"),
                      0,
                      0 );
 
@@ -243,6 +236,7 @@ bool batt_b_is_vbus_connected( void ){
 
 uint16_t batt_u16_get_batt_volts( void ){
 
+   
     return bq25895_u16_get_batt_voltage();
 }
 
@@ -301,26 +295,67 @@ bool batt_b_startup_on_vbus( void ){
     return startup_on_vbus;
 }
 
-PT_THREAD( battery_cutoff_thread( pt_t *pt, void *state ) )
+PT_THREAD( battery_monitor_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
     
+    static uint16_t monitor_volts;
+
     // wait until connection to battery is established
     THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
 
     // check if VBUS connected on startup    
     startup_on_vbus = batt_b_is_vbus_connected();
 
+    monitor_volts = batt_u16_get_batt_volts();
+
+
+    log_v_info_P( PSTR("Battery start up level: %d mV"), monitor_volts );
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() >= BATT_EMERGENCY_VOLTAGE );
-
-        log_v_critical_P( PSTR("Battery voltage critical, emergency shutdown") );
-
-        batt_v_shutdown_power();
-
         TMR_WAIT( pt, 10000 );
+
+        if( batt_u16_get_batt_volts() < BATT_EMERGENCY_VOLTAGE ){
+
+            log_v_critical_P( PSTR("Battery voltage critical, emergency shutdown") );
+
+            batt_v_shutdown_power();
+
+            TMR_WAIT( pt, 10000 );
+        }
+
+
+        // check battery voltage against the last checkpoint and log
+        // ever 100 mV:
+
+        uint16_t batt_volts = batt_u16_get_batt_volts();
+
+        uint8_t monitor_level = monitor_volts / 100;
+        uint8_t batt_level = batt_volts / 100;
+
+        // discharging:
+        if( !batt_b_is_charging() ){
+
+            if( batt_level < monitor_level ){
+
+                monitor_volts = batt_volts;
+
+                // update monitor and log:
+                log_v_info_P( PSTR("Battery level: %d mV"), monitor_volts );
+            }
+        }
+        // charging:
+        else{
+
+            if( batt_level > monitor_level ){
+
+                monitor_volts = batt_volts;
+
+                // update monitor and log:
+                log_v_info_P( PSTR("Battery level: %d mV %d mA"), monitor_volts, batt_u16_get_charge_current() );
+            }
+        }
     }
 
 PT_END( pt );

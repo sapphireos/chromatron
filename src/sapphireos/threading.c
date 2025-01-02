@@ -259,6 +259,16 @@ void thread_v_get_cpu_info( cpu_info_t *info ){
     *info = cpu_info;
 }
 
+uint8_t thread_u8_get_cpu_percent( void ){
+
+    if( cpu_info.run_time == 0 ){ // prevent divide by 0 if run time is not initialized
+
+        return 0;
+    }
+
+    return cpu_info.task_time * 100 / cpu_info.run_time;
+}
+
 void thread_v_dump( void ){
 
     // delete file
@@ -791,7 +801,7 @@ static uint32_t process_timed_signals( void ){
             signals |= ( 1 << timed_signals[i].signal );
         }
         
-        if( timed_signals[i].ticks < min_time_remaining ){
+        if( timed_signals[i].ticks < (int32_t)min_time_remaining ){
 
             // track minimum time left on any timed signal
 

@@ -1660,7 +1660,7 @@ def get_build_configs():
 
         filepath = os.path.join(BUILD_CONFIGS_DIR, filename)
         
-        parser = configparser.SafeConfigParser()
+        parser = configparser.ConfigParser()
 
         try:
             parser.read(filepath)

@@ -73,6 +73,11 @@
 
 #ifdef ENABLE_MSGFLOW
 #include "msgflow.h"
+#endif
+
+#ifdef ENABLE_CONTROLLER
+#include "controller.h"
+#include "mqtt_client.h"
 #include "datalogger.h"
 #endif
 
@@ -211,6 +216,12 @@ int8_t sapphire_i8_init( void ){
 
     catbus_v_init();
 
+    #ifdef ENABLE_CONTROLLER
+    controller_v_init();
+    mqtt_client_v_init();
+    datalog_v_init();
+    #endif
+
     #ifdef ENABLE_TIME_SYNC
     time_v_init();
     ntp_v_init();
@@ -219,7 +230,6 @@ int8_t sapphire_i8_init( void ){
 
     #ifdef ENABLE_MSGFLOW
     msgflow_v_init();
-    datalog_v_init();
     #endif
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){

@@ -38,23 +38,30 @@
 
 #include "coproc_app.h"
 
+
+#include "boot_data.h"
+extern boot_data_t BOOTDATA boot_data;
+
 // static bool boot_esp;
 
 static bool loadfw_enable_1;
 static bool loadfw_enable_2;
 static bool loadfw_request;
+static uint32_t err_flags;
 
 
 KV_SECTION_META kv_meta_t coproc_cfg_kv[] = {
     // { CATBUS_TYPE_BOOL,      0, 0,  &boot_esp, 0,  "boot_esp" },
     { CATBUS_TYPE_BOOL,      0, 0,  &loadfw_request, 0,  "request_load_wifi_firmware" },
 
+    { CATBUS_TYPE_UINT32,    0, 0,   0,                  cfg_i8_kv_handler,   "coproc_error_flags" },
+    { CATBUS_TYPE_UINT8,     0, 0,   0,                  cfg_i8_kv_handler,   "coproc_error_opcode" },
+    { CATBUS_TYPE_UINT8,     0, 0,   0,                  cfg_i8_kv_handler,   "coproc_error_length" },
+
     // backup wifi keys.
     // if these aren't present in the KV index, the config module won't find them.
-
-    
-    { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
-    { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_password" },
+    { CATBUS_TYPE_STRING32,  0, 0,   0,                  cfg_i8_kv_handler,   "wifi_ssid" },
+    { CATBUS_TYPE_STRING32,  0, 0,   0,                  cfg_i8_kv_handler,   "wifi_password" },
 };
 
 static uint32_t fw_addr;
@@ -70,6 +77,51 @@ static uint32_t flash_len;
 static i2c_setup_t i2c_setup;
 static uint8_t response[COPROC_BUF_SIZE];
 
+void coproc_v_set_error_flags( uint32_t flags, uint8_t opcode, uint8_t length ){
+
+    err_flags |= flags;
+
+    cfg_v_set( __KV__coproc_error_flags, &err_flags );
+    cfg_v_set( __KV__coproc_error_opcode, &opcode );
+    cfg_v_set( __KV__coproc_error_length, &length );
+}
+
+void coproc_v_clear_error_flags( void ){
+
+    uint32_t flags = 0;
+    err_flags = 0;
+    cfg_v_set( __KV__coproc_error_flags, &flags );
+
+    uint8_t opcode = 0;
+    cfg_v_set( __KV__coproc_error_opcode, &opcode );
+
+    uint8_t length = 0;
+    cfg_v_set( __KV__coproc_error_length, &length );
+}
+
+uint32_t get_err_flags( void ){
+
+    uint32_t flags = 0;
+    cfg_i8_get( __KV__coproc_error_flags, &flags );
+
+    return flags;
+}
+
+uint32_t get_err_opcode( void ){
+
+    uint32_t opcode = 0;
+    cfg_i8_get( __KV__coproc_error_opcode, &opcode );
+
+    return opcode;
+}
+
+uint32_t get_err_length( void ){
+
+    uint32_t length = 0;
+    cfg_i8_get( __KV__coproc_error_length, &length );
+
+    return length;
+}
 
 static uint32_t map_flash_addr( uint32_t flash_addr ){
 
@@ -193,6 +245,32 @@ void coproc_v_dispatch(
 
         *retval = sys_u8_get_reset_source();
     }
+    else if( hdr->opcode == OPCODE_GET_ERROR_FLAGS ){
+
+        *retval = get_err_flags();
+    }
+    else if( hdr->opcode == OPCODE_GET_ERROR_OPCODE ){
+
+        *retval = get_err_opcode();
+    }
+    else if( hdr->opcode == OPCODE_GET_ERROR_LENGTH ){
+
+        *retval = get_err_length();
+    }
+    else if( hdr->opcode == OPCODE_GET_ERROR_LOG ){
+        
+        cfg_error_log_t error_log;
+        cfg_v_read_error_log( &error_log );
+
+        memcpy( response, error_log.log, COPROC_FLASH_XFER_LEN );
+
+        *response_len = COPROC_FLASH_XFER_LEN;
+    }
+    else if( hdr->opcode == OPCODE_CLEAR_ERROR_FLAGS ){
+
+        coproc_v_clear_error_flags();
+        cfg_v_erase_error_log();
+    }
     else if( hdr->opcode == OPCODE_GET_BOOT_MODE ){
 
         *retval = sys_m_get_startup_boot_mode();
@@ -245,6 +323,8 @@ void coproc_v_dispatch(
         *retval = ffs_fw_u16_crc();
     }
     else if( hdr->opcode == OPCODE_FW_ERASE ){
+
+        // This command was timed at 822 ms
         
         status_led_v_set( 1, STATUS_LED_TEAL );
 
@@ -265,6 +345,10 @@ void coproc_v_dispatch(
         while(1);
     }
     else if( hdr->opcode == OPCODE_FW_VERSION ){
+
+        // char ver[FW_VER_LEN] = "0.1.850e73bf6";
+
+        // memcpy(response, &ver, FW_VER_LEN);
 
         sys_v_get_fw_version( (char *)response );
         *response_len = FW_VER_LEN;
@@ -588,11 +672,29 @@ PT_END( pt );
 
 
 uint8_t current_opcode;
+uint8_t current_length;
 
 
 PT_THREAD( app_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
+
+    flash_start     = FLASH_FS_FILE_SYSTEM_START + ( (uint32_t)ffs_block_u16_total_blocks() * FLASH_FS_ERASE_BLOCK_SIZE );
+    flash_size      = ( flash25_u32_capacity() - flash_start ) + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
+    fw0_start       = FLASH_FS_FIRMWARE_0_PARTITION_START;
+    fw0_end         = fw0_start + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
+    
+    // MUST INIT WIFI FIRST!
+    hal_wifi_v_init();
+
+
+// start USB recovery mode
+// thread_t_create( usart_recovery_thread,
+//          PSTR("usart_recovery"),
+//          0,
+//          0 );
+
+// THREAD_EXIT( pt );
 
     status_led_v_set( 0, STATUS_LED_RED );
     status_led_v_set( 0, STATUS_LED_GREEN );
@@ -601,6 +703,18 @@ PT_BEGIN( pt );
     uint8_t reset_source = sys_u8_get_reset_source();
 
     if( reset_source == RESET_SOURCE_WATCHDOG ){
+
+        // // boot loop detection
+        // if( boot_data.reboots > 16 ){
+
+        //     // start USB recovery mode
+        //     thread_t_create( usart_recovery_thread,
+        //              PSTR("usart_recovery"),
+        //              0,
+        //              0 );
+
+        //     THREAD_EXIT( pt );
+        // }
 
         status_led_v_set( 1, STATUS_LED_RED );
 
@@ -623,14 +737,10 @@ PT_BEGIN( pt );
         status_led_v_set( 0, STATUS_LED_GREEN );
         TMR_WAIT( pt, 250 );        
     }
+    // else{
 
-    
-    flash_start     = FLASH_FS_FILE_SYSTEM_START + ( (uint32_t)ffs_block_u16_total_blocks() * FLASH_FS_ERASE_BLOCK_SIZE );
-    flash_size      = ( flash25_u32_capacity() - flash_start ) + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
-    fw0_start       = FLASH_FS_FIRMWARE_0_PARTITION_START;
-    fw0_end         = fw0_start + ( (uint32_t)FLASH_FS_FIRMWARE_2_SIZE_KB * 1024 );
-    
-    hal_wifi_v_init();
+    //     boot_data.reboots = 0;        
+    // }
 
     // loadfw_request = TRUE;
      
@@ -731,6 +841,8 @@ PT_BEGIN( pt );
 
         TMR_WAIT( pt, 1000 );
 
+        coproc_v_set_error_flags( COPROC_ERROR_SYNC_FAIL, current_opcode, current_length );
+
         // watchdog timeout here
         while(1);
     }
@@ -746,18 +858,32 @@ PT_BEGIN( pt );
     // main message loop
     while(1){
 
+        sys_v_wdt_reset();
+
         THREAD_YIELD( pt );
 
         THREAD_WAIT_WHILE( pt, !hal_wifi_b_usart_rx_available() );
 
         current_opcode = 0;
+        current_length = 0;
 
         coproc_hdr_t hdr;
         coproc_v_receive_block( (uint8_t *)&hdr, TRUE );
 
-        ASSERT( hdr.sof == COPROC_SOF );
+        if( hdr.sof != COPROC_SOF ){
+
+            coproc_v_set_error_flags( COPROC_ERROR_BAD_SOF, current_opcode, current_length );
+            while(1);
+        }
 
         current_opcode = hdr.opcode;
+        current_length = hdr.length;
+
+        if( current_opcode == 0 ){
+
+            coproc_v_set_error_flags( COPROC_ERROR_BAD_OPCODE, current_opcode, current_length );
+            while(1);
+        }
 
         uint8_t buf[COPROC_BUF_SIZE];
 
@@ -784,7 +910,7 @@ PT_BEGIN( pt );
 
         if( loadfw_request && loadfw_enable_1 && loadfw_enable_2 ){
 
-            log_v_debug_P( PSTR("valid load sequence") );
+            trace_printf( "valid load sequence\n" );
 
             THREAD_RESTART( pt );
         }
@@ -813,15 +939,40 @@ PT_BEGIN( pt );
             while( pix_transfer_count > 0 ){
 
                 uint8_t temp_r, temp_g, temp_b, temp_d;
+                uint8_t pix_buf[4];
+                // memset( pix_buf, 0, sizeof(pix_buf) );
 
-                while( !hal_wifi_b_usart_rx_available() );
-                temp_r = hal_wifi_i16_usart_get_char();
-                while( !hal_wifi_b_usart_rx_available() );
-                temp_g = hal_wifi_i16_usart_get_char();
-                while( !hal_wifi_b_usart_rx_available() );
-                temp_b = hal_wifi_i16_usart_get_char();
-                while( !hal_wifi_b_usart_rx_available() );
-                temp_d = hal_wifi_i16_usart_get_char();                
+                if( hal_wifi_i8_usart_receive( pix_buf, sizeof(pix_buf), 1000000 ) != 0 ){
+
+                    coproc_v_set_error_flags( COPROC_ERROR_PIX_STALL, current_opcode, current_length );
+                    while(1);
+                }
+
+                // for( uint8_t i = 0; i < cnt_of_array(pix_buf); i++ ){
+                    
+                //     uint32_t start = tmr_u32_get_system_time_ms();
+                //     while( !hal_wifi_b_usart_rx_available() && ( tmr_u32_elapsed_time_ms( start ) < 500 ) );
+
+                //     if( !hal_wifi_b_usart_rx_available() ){
+
+                //         coproc_v_set_error_flags( COPROC_ERROR_PIX_STALL );
+                //         while(1);
+                //     }
+
+                //     pix_buf[i] = hal_wifi_i16_usart_get_char();
+                // }
+
+                // while( !hal_wifi_b_usart_rx_available() );
+                // temp_r = hal_wifi_i16_usart_get_char();
+
+                // while( !hal_wifi_b_usart_rx_available() );
+                // temp_g = hal_wifi_i16_usart_get_char();
+                
+                // while( !hal_wifi_b_usart_rx_available() );
+                // temp_b = hal_wifi_i16_usart_get_char();
+                
+                // while( !hal_wifi_b_usart_rx_available() );
+                // temp_d = hal_wifi_i16_usart_get_char();                
 
                 pix_transfer_count--;
 
@@ -829,6 +980,11 @@ PT_BEGIN( pt );
 
                     hal_wifi_v_usart_send_char( COPROC_SYNC );
                 }
+
+                temp_r = pix_buf[0];
+                temp_g = pix_buf[1];
+                temp_b = pix_buf[2];
+                temp_d = pix_buf[3];
 
                 ATOMIC;
                 *r++ = temp_r;
@@ -851,6 +1007,8 @@ void app_v_init( void ){
     loadfw_enable_1 = FALSE;
     loadfw_enable_2 = FALSE;
     loadfw_request = FALSE;
+
+    err_flags = get_err_flags();
 
     #ifndef ENABLE_WIFI
     thread_t_create( app_thread,

@@ -28,16 +28,15 @@
 #ifdef ENABLE_TIME_SYNC
 
 #define NTP_PROTOCOL_MAGIC             0x50544e53 // 'SNTP' in ASCII
-#define NTP_PROTOCOL_VERSION           1
+#define NTP_PROTOCOL_VERSION           2
 
-// #define NTP_SERVER_PORT                32038
+#define NTP_SERVER_PORT                32038
 
-#define NTP_ELECTION_SERVICE           __KV__ntpclock
+// #define NTP_ELECTION_SERVICE           __KV__ntpclock
 
-#define NTP_SYNC_INTERVAL              600 // in seconds
+// #define NTP_SYNC_INTERVAL              600 // in seconds
 
-// #define NTP_MASTER_CLOCK_TIMEOUT       60 // for debug
-#define NTP_MASTER_CLOCK_TIMEOUT       3600 // in seconds
+#define NTP_MASTER_CLOCK_TIMEOUT       1800 // in seconds
 
 #define NTP_HARD_SYNC_THRESHOLD_MS     2000 // in ms
 
@@ -68,31 +67,43 @@
 #define NTP_SOURCE_INVALID             0
 
 
-typedef struct  __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-    uint64_t origin_system_time_ms;
-} ntp_msg_request_sync_t;
-#define NTP_MSG_REQUEST_SYNC           1
+// typedef struct  __attribute__((packed)){
+//     uint32_t magic;
+//     uint8_t version;
+//     uint8_t type;
+//     uint64_t origin_system_time_ms;
+// } ntp_msg_request_sync_t;
+// #define NTP_MSG_REQUEST_SYNC           1
+
+// typedef struct  __attribute__((packed)){
+//     uint32_t magic;
+//     uint8_t version;
+//     uint8_t type;
+//     uint8_t source;
+//     uint64_t origin_system_time_ms;
+//     ntp_ts_t ntp_timestamp;
+// } ntp_msg_reply_sync_t;
+// #define NTP_MSG_REPLY_SYNC             2
 
 typedef struct  __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
     uint8_t source;
-    uint64_t origin_system_time_ms;
     ntp_ts_t ntp_timestamp;
-} ntp_msg_reply_sync_t;
-#define NTP_MSG_REPLY_SYNC             2
-
+} ntp_msg_clock_t;
+#define NTP_MSG_SOURCE                  3
+#define NTP_MSG_CLOCK                   4
 
 
 void ntp_v_init( void );
 
+// void ntp_v_set_master_clock( 
+//     ntp_ts_t source_ntp, 
+//     uint64_t local_system_time_ms,
+//     uint8_t source );
 void ntp_v_set_master_clock( 
     ntp_ts_t source_ntp, 
-    uint64_t local_system_time_ms,
     uint8_t source );
 
 void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time );
@@ -100,6 +111,8 @@ ntp_ts_t ntp_t_from_system_time( uint64_t sys_time_ms );
 ntp_ts_t ntp_t_now( void );
 ntp_ts_t ntp_t_local_now( void );
 bool ntp_b_is_sync( void );
+void ntp_v_transmit( ntp_ts_t source_ntp, uint8_t source );
+void ntp_v_transmit_source_to_controller( ntp_ts_t source_ntp, uint8_t source );
 
 #endif
 

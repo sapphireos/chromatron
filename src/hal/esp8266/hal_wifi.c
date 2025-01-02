@@ -41,6 +41,8 @@
 #include "mem.h"
 #include "espconn.h"
 
+#include "lwipopts.h"
+
 #ifdef ENABLE_WIFI
 
 static uint8_t wifi_mac[6];
@@ -1018,6 +1020,8 @@ PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+log_v_debug_P( PSTR("ARP table size: %d queueing: %d queue len: %d"), ARP_TABLE_SIZE, ARP_QUEUEING, ARP_QUEUE_LEN );
+
     static uint8_t scan_timeout;
 
     connected = FALSE;
@@ -1043,7 +1047,7 @@ PT_BEGIN( pt );
         while( ( current_scan_backoff > 0 ) && !_wifi_b_ap_mode_enabled() ){
 
             current_scan_backoff--;
-            TMR_WAIT( pt, 1000 );
+            TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) );
         }
 
         
@@ -1110,20 +1114,20 @@ PT_BEGIN( pt );
                     }
                     else if( scan_backoff < 64 ){
 
-                        scan_backoff *= 2;
+                        scan_backoff += 2;
 
                         log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
 
                         TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // add 2 seconds of random delay
                     }
-                    else if( scan_backoff < 192 ){
+                    // else if( scan_backoff < 192 ){
 
-                        scan_backoff += 64;
+                    //     scan_backoff += 64;
 
-                        log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
+                    //     log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
 
-                        TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // add 4 seconds of random delay
-                    }
+                    //     TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // add 4 seconds of random delay
+                    // }
 
                     goto end;
                 }            
@@ -1204,7 +1208,7 @@ PT_BEGIN( pt );
                 snprintf_P( &mac[2], 3, PSTR("%02x"), wifi_mac[4] ); 
                 snprintf_P( &mac[4], 3, PSTR("%02x"), wifi_mac[5] );
 
-                strncat( ap_ssid, mac, sizeof(ap_ssid) );
+                strncat( ap_ssid, mac, sizeof(ap_ssid) - 1 );
 
                 strlcpy_P( ap_pass, PSTR("12345678"), sizeof(ap_pass) );
 
@@ -1335,7 +1339,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
         hal_arp_v_gratuitous_arp();
-        TMR_WAIT( pt, 2000 );
+        TMR_WAIT( pt, ( rnd_u16_get_int() >> 5 ) + 1000 );
 
         hal_arp_v_gratuitous_arp();
         TMR_WAIT( pt, 4000 );
@@ -1344,7 +1348,7 @@ PT_BEGIN( pt );
 
         while( wifi_b_connected() ){
 
-            TMR_WAIT( pt, ARP_GRATUITOUS_INTERVAL * 1000 );
+            TMR_WAIT( pt, ARP_GRATUITOUS_INTERVAL * 1000 + ( rnd_u16_get_int() >> 5 ) );
 
             hal_arp_v_gratuitous_arp();
         }
@@ -1427,6 +1431,113 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+#if 0
+void custom_crash_callback( struct rst_info * rst_info, uint32_t stack, uint32_t stack_end ){
+
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+    //     return;
+    // }
+
+    cfg_error_log_t error_log = {0};
+
+    snprintf_P(
+        error_log.log,
+        sizeof(error_log.log), 
+        PSTR("Exception: Reason: %d exccause: %d EPC1: %d EPC2: %d EPC3: %d EXCVADDR: %d DEPC: %d stack: 0x%08x -> 0x%08x"),
+        rst_info->reason,
+        rst_info->exccause,
+        rst_info->epc1,
+        rst_info->epc2,
+        rst_info->epc3,
+        rst_info->excvaddr,
+        rst_info->depc,
+        stack,
+        stack_end
+    );
+
+    cfg_v_write_error_log( &error_log );
+
+    ee_v_commit();
+
+    // log_v_critical_P( PSTR("Exception: Reason: %d exccause: %d EPC1: %d EPC2: %d EPC3: %d EXCVADDR: %d DEPC: %d stack: 0x%08x -> 0x%08x"),
+    //     rst_info->reason,
+    //     rst_info->exccause,
+    //     rst_info->epc1,
+    //     rst_info->epc2,
+    //     rst_info->epc3,
+    //     rst_info->excvaddr,
+    //     rst_info->depc,
+    //     stack,
+    //     stack_end
+    // );
+
+  // Note that 'EEPROM.begin' method is reserving a RAM buffer
+  // The buffer size is SAVE_CRASH_EEPROM_OFFSET + SAVE_CRASH_SPACE_SIZE
+  // EEPROM.begin(EspSaveCrash::_offset + EspSaveCrash::_size);
+
+  // byte crashCounter = EEPROM.read(EspSaveCrash::_offset + SAVE_CRASH_COUNTER);
+  // int16_t writeFrom;
+  // if(crashCounter == 0)
+  // {
+  //   writeFrom = SAVE_CRASH_DATA_SETS;
+  // }
+  // else
+  // {
+  //   EEPROM.get(EspSaveCrash::_offset + SAVE_CRASH_WRITE_FROM, writeFrom);
+  // }
+
+  // // is there free EEPROM space available to save data for this crash?
+  // if (writeFrom + SAVE_CRASH_STACK_TRACE > EspSaveCrash::_size)
+  // {
+  //   return;
+  // }
+
+  // // increment crash counter and write it to EEPROM
+  // EEPROM.write(EspSaveCrash::_offset + SAVE_CRASH_COUNTER, ++crashCounter);
+
+  // // now address EEPROM contents including _offset
+  // writeFrom += EspSaveCrash::_offset;
+
+  // // write crash time to EEPROM
+  // uint32_t crashTime = millis();
+  // EEPROM.put(writeFrom + SAVE_CRASH_CRASH_TIME, crashTime);
+
+  // // write reset info to EEPROM
+  // EEPROM.write(writeFrom + SAVE_CRASH_RESTART_REASON, rst_info->reason);
+  // EEPROM.write(writeFrom + SAVE_CRASH_EXCEPTION_CAUSE, rst_info->exccause);
+
+  // // write epc1, epc2, epc3, excvaddr and depc to EEPROM
+  // EEPROM.put(writeFrom + SAVE_CRASH_EPC1, rst_info->epc1);
+  // EEPROM.put(writeFrom + SAVE_CRASH_EPC2, rst_info->epc2);
+  // EEPROM.put(writeFrom + SAVE_CRASH_EPC3, rst_info->epc3);
+  // EEPROM.put(writeFrom + SAVE_CRASH_EXCVADDR, rst_info->excvaddr);
+  // EEPROM.put(writeFrom + SAVE_CRASH_DEPC, rst_info->depc);
+
+  // // write stack start and end address to EEPROM
+  // EEPROM.put(writeFrom + SAVE_CRASH_STACK_START, stack);
+  // EEPROM.put(writeFrom + SAVE_CRASH_STACK_END, stack_end);
+
+  // // write stack trace to EEPROM
+  // int16_t currentAddress = writeFrom + SAVE_CRASH_STACK_TRACE;
+  // for (uint32_t iAddress = stack; iAddress < stack_end; iAddress++)
+  // {
+  //   byte* byteValue = (byte*) iAddress;
+  //   EEPROM.write(currentAddresss++, *byteValue);
+  //   if (currentAddress - EspSaveCrash::_offset > EspSaveCrash::_size)
+  //   {
+  //     // ToDo: flag an incomplete stack trace written to EEPROM!
+  //     break;
+  //   }
+  // }
+  // // now exclude _offset from address written to EEPROM
+  // currentAddress -= EspSaveCrash::_offset;
+  // EEPROM.put(EspSaveCrash::_offset + SAVE_CRASH_WRITE_FROM, currentAddress);
+
+  // EEPROM.commit();
+}
+#endif
 
 #else
 

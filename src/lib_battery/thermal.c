@@ -76,7 +76,8 @@ void thermal_v_init( void ){
 
     #if defined(ESP32)
     
-    if( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ){
+    if( ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ||
+        ( ffs_u8_read_board_type() == BOARD_TYPE_CHARGER_3_1 ) ){
 
         kv_v_add_db_info( thermal_info_kv, sizeof(thermal_info_kv) );
 
@@ -310,7 +311,8 @@ PT_THREAD( fan_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    if( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ){
+    if( ( ffs_u8_read_board_type() != BOARD_TYPE_ELITE ) &&
+        ( ffs_u8_read_board_type() != BOARD_TYPE_CHARGER_3_1 ) ){
 
         THREAD_EXIT( pt );
     }

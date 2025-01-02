@@ -27,7 +27,8 @@
 #include "random.h"
 #include "config.h"
 
-static uint32_t lfsr32, lfsr31;
+static uint32_t lfsr32 = 0x45145894;
+static uint32_t lfsr31 = 0xAA98915B;
 
 // 31 and 32 bit XOR's LFSR from https://www.maximintegrated.com/en/app-notes/index.mvp/id/4400
 #define POLY32 0xB4BCD35C

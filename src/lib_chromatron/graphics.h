@@ -27,6 +27,9 @@
 #include "gfx_lib.h"
 #include "keyvalue.h"
 
+#define GFX_SYNC_FADERS
+
+
 void gfx_v_init( void );
 bool gfx_b_pixels_enabled( void );
 uint32_t gfx_u32_get_pixel_power( void );
