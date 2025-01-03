@@ -31,7 +31,7 @@
 #define BATT_CUTOFF_VOLTAGE			3100
 #define BATT_EMERGENCY_VOLTAGE		3050
 
-#define BATT_RECHARGE_THRESHOLD		50 // mV below full charge setting
+#define BATT_RECHARGE_THRESHOLD		100 // mV below full charge setting
 
 #define BATT_CHARGE_DONE_CURRENT    100 // mA
 

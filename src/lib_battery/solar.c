@@ -115,8 +115,8 @@ static catbus_string_t state_name;
 static uint16_t charge_timer;
 // #define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
 // #define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
-// #define DISCHARGE_HOLD_TIME				( 4 ) // time to remain in discharge before allowing a switch back to charge
-// #define CHARGE_HOLD_TIME				( 4 )  // time to remain in charge before allowing a switch back to discharge or full
+#define DISCHARGE_HOLD_TIME				( 4 ) // time to remain in discharge before allowing a switch back to charge
+#define CHARGE_HOLD_TIME				( 4 )  // time to remain in charge before allowing a switch back to discharge or full
 #define FAULT_HOLD_TIME					( 10 )  // minimum time to remain in fault state
 
 #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
@@ -310,6 +310,11 @@ static bool is_charging( void ){
 bool solar_b_is_charging( void ){
 
 	return is_charging();
+}
+
+static bool is_recharge_threshold( void ){
+
+	return batt_u16_get_batt_volts() < RECHARGE_THRESHOLD;
 }
 
 
@@ -596,17 +601,54 @@ PT_BEGIN( pt );
 		}
 		else if( solar_state == SOLAR_MODE_DISCHARGE ){
 
-			// // check charge timer, do not allow a switch to a charge mode
-			// // until the minimum discharge time is reached.
-			// // this is to prevent bouncing around charge and discharge with 
-			// // poor VBUS input (low light or bad adapter)
-			// if( charge_timer < DISCHARGE_HOLD_TIME ){
+			// check charge timer, do not allow a switch to a charge mode
+			// until the minimum discharge time is reached.
+			// this is to prevent bouncing around charge and discharge with 
+			// poor VBUS input (low light or bad adapter)
+			if( charge_timer < DISCHARGE_HOLD_TIME ){
 
-			// 	if( seconds_counter == 0 ){
+				if( seconds_counter == 0 ){
 
-			// 		charge_timer++;	
-			// 	}
+					charge_timer++;	
+				}
+			}
+			// check if battery is below the recharge threshold:
+			// else if( is_recharge_threshold() ){
+
+			// check if one of the chargers is connected
+			else if( batt_b_is_vbus_connected() ){
+
+				if( batt_b_is_charge_complete() ){
+
+					next_state = SOLAR_MODE_FULL_CHARGE;
+				}
+				else{
+
+					next_state = SOLAR_MODE_CHARGE_DC;	
+				}
+			}
+			else if( bq25895_aux_b_is_vbus_connected() ){
+
+				if( bq25895_aux_b_is_charge_complete() ){
+
+					next_state = SOLAR_MODE_FULL_CHARGE;
+				}
+				else{
+
+					next_state = SOLAR_MODE_CHARGE_SOLAR;	
+				}
+			}
 			// }
+			// check if the chargers are actively charging
+			else if( batt_u16_get_charge_current() > 0 ){
+
+				next_state = SOLAR_MODE_CHARGE_DC;
+			}
+			else if( bq25895_aux_u16_get_charge_current() > 0 ){
+
+				next_state = SOLAR_MODE_CHARGE_SOLAR;
+			}
+
 
 			// // check for fault?
 			// // go to fault state?
@@ -667,24 +709,22 @@ PT_BEGIN( pt );
 			// 	}	
 			// 	// }
 			// }
-
-			// check if one of the chargers is connected
-			if( batt_b_is_vbus_connected() ){
-
-				next_state = SOLAR_MODE_CHARGE_DC;
-			}
-			else if( bq25895_aux_b_is_vbus_connected() ){
-
-				next_state = SOLAR_MODE_CHARGE_SOLAR;
-			}
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_DC ){
 
 			// make sure aux charger is disabled!
 			bq25895_aux_v_disable_charger();
 
+			// make sure we hit the minimum charge time before changing states
+			if( charge_timer < CHARGE_HOLD_TIME ){
+
+				if( seconds_counter == 0 ){
+
+					charge_timer++;	
+				}
+			}
 			// check if finished charging:
-			if( batt_b_is_charge_complete() ){
+			else if( batt_b_is_charge_complete() ){
 
 				next_state = SOLAR_MODE_FULL_CHARGE;
 			}
@@ -727,8 +767,16 @@ PT_BEGIN( pt );
 			// make sure main charger is disabled!
 			batt_v_disable_charge();
 
+			// make sure we hit the minimum charge time before changing states
+			if( charge_timer < CHARGE_HOLD_TIME ){
+
+				if( seconds_counter == 0 ){
+
+					charge_timer++;	
+				}
+			}
 			// check if finished charging:
-			if( bq25895_aux_b_is_charge_complete() ){
+			else if( bq25895_aux_b_is_charge_complete() ){
 
 				next_state = SOLAR_MODE_FULL_CHARGE;
 			}
@@ -818,7 +866,11 @@ PT_BEGIN( pt );
 
 			if( next_state == SOLAR_MODE_FAULT ){
 
-				charge_timer = FAULT_HOLD_TIME;
+				
+			}
+			else if( next_state == SOLAR_MODE_DISCHARGE ){
+
+
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_DC ){
 
