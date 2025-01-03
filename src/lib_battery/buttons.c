@@ -30,6 +30,7 @@
 #include "status_led.h"
 
 // #include "solar.h"
+#include "pixel_power.h"
 #include "charger2.h"
 // #include "patch_board.h"
 #include "buttons.h"
@@ -555,10 +556,6 @@ PT_BEGIN( pt );
 
                         // set shutdown request
                         batt_request_shutdown = TRUE;
-
-                        TMR_WAIT( pt, 120000 ); 
-                        // power should be off by now, but if not,
-                        // just carry on?    
                     }
                 }
                 else{
@@ -567,6 +564,29 @@ PT_BEGIN( pt );
 
                     wifi_v_switch_to_ap();
                 }
+            }
+
+            if( batt_request_shutdown ){
+
+                sys_v_initiate_shutdown( 3 );
+
+                THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+
+                log_v_debug_P( PSTR("Power off") );
+
+                pixelpower_v_system_shutdown();
+
+                _delay_ms( 50 );            
+
+                batt_v_shutdown_power();
+                // if on battery power, this should not return
+                // as the power will be cut off.
+                // if an external power source was plugged in during
+                // the shutdown, then this will return.
+
+                // we will delay here and wait
+                // for the reboot thread to reboot the system.
+                TMR_WAIT( pt, 120000 ); 
             }
         }
     }
