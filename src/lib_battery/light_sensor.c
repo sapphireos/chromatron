@@ -21,12 +21,15 @@
 // </license>
 
 
+#include "cnt_of_array.h"
 #include "sapphire.h"
 
 #include "light_sensor.h"
 
+#include "timers.h"
 #include "veml7700.h"
 
+#ifdef ENABLE_SOLAR
 
 #define FILTER_RATIO 8
 
@@ -66,6 +69,11 @@ uint32_t light_sensor_u32_read_delta( void ){
 }
 
 
+#define FILTER_DEPTH 64
+static uint32_t samples[FILTER_DEPTH];
+static uint8_t sample_index;
+
+
 PT_THREAD( light_sensor_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );
@@ -74,29 +82,78 @@ PT_BEGIN( pt );
 	counter = 0;
 
 	// init filter
-	filtered_light = veml7700_u32_read_als();
+	uint32_t init_sample = veml7700_u32_read_als();
 
-	
+	for( uint32_t i = 0; i < cnt_of_array(samples); i++ ){
+
+		samples[i] = init_sample;
+	}
+
 	while(1){
 
 		TMR_WAIT( pt, 4000 );
 
-		uint32_t light = veml7700_u32_read_als();
+		// add sample to circular buffer
+		samples[sample_index] = veml7700_u32_read_als();
+		sample_index++;
+		sample_index %= cnt_of_array(samples);
 
-		uint32_t temp = util_u32_ewma( light, filtered_light, FILTER_RATIO );
+		// compute moving average
+		filtered_light = 0;
+	
+		for( uint32_t i = 0; i < cnt_of_array(samples); i++ ){
 
+			filtered_light += samples[i];
+		}
+
+		filtered_light /= cnt_of_array(samples);
+	
+		// update counter		
 		counter++;
 
 		if( counter >= 15 ){ // approx 1 minute at 4 second rate
 
 			counter = 0;
 
+			// compute delta
 			current_delta = temp - (int32_t)filtered_light;
 		}
 
-		filtered_light = temp;
 	}
+
+
+
+
+
+
+	// static uint8_t counter;
+	// counter = 0;
+
+	// // init filter
+	// filtered_light = veml7700_u32_read_als();
+
+	
+	// while(1){
+
+	// 	TMR_WAIT( pt, 4000 );
+
+	// 	uint32_t light = veml7700_u32_read_als();
+
+	// 	uint32_t temp = util_u32_ewma( light, filtered_light, FILTER_RATIO );
+
+	// 	counter++;
+
+	// 	if( counter >= 15 ){ // approx 1 minute at 4 second rate
+
+	// 		counter = 0;
+
+	// 		current_delta = temp - (int32_t)filtered_light;
+	// 	}
+
+	// 	filtered_light = temp;
+	// }
 
 PT_END( pt );	
 }
 
+#endif

@@ -80,7 +80,7 @@ FAULT: Either charger has some kind of fault reported.  Charging is stopped.
 #include "pixel_power.h"
 #include "fuel_gauge.h"
 #include "energy.h"
-#include "light_sensor.h"
+#include "veml7700.h"
 
 #include "bq25895_aux.h"
 
@@ -109,18 +109,17 @@ static bool enable_solar_charge;
 // static bool mppt_enabled;
 
 static uint8_t solar_state;
-
 static catbus_string_t state_name;
 
 
-static uint16_t charge_timer;
-#define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
-#define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
-#define DISCHARGE_HOLD_TIME				( 4 ) // time to remain in discharge before allowing a switch back to charge
-#define CHARGE_HOLD_TIME				( 4 )  // time to remain in charge before allowing a switch back to discharge or full
-#define FAULT_HOLD_TIME					( 10 )  // minimum time to remain in fault state
+// static uint16_t charge_timer;
+// #define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
+// #define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
+// #define DISCHARGE_HOLD_TIME				( 4 ) // time to remain in discharge before allowing a switch back to charge
+// #define CHARGE_HOLD_TIME				( 4 )  // time to remain in charge before allowing a switch back to discharge or full
+// #define FAULT_HOLD_TIME					( 10 )  // minimum time to remain in fault state
 
-#define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
+// #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
 
 
 static uint16_t solar_vindpm = 5800;
@@ -136,7 +135,11 @@ static uint16_t solar_vindpm = 5800;
 // static uint8_t solar_volts_filter_index;
 // #endif
 
-static uint32_t charge_minimum_light = SOLAR_MIN_CHARGE_LIGHT_DEFAULT;
+KV_SECTION_META kv_meta_t solar_enable_kv[] = {
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &enable_solar_charge,         0,  "solar_enable" },
+};
+
+// static uint32_t charge_minimum_light = SOLAR_MIN_CHARGE_LIGHT_DEFAULT;
 
 KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
@@ -152,14 +155,14 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 
 	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
+	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
 	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
 
-	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&charge_minimum_light,  	0,  "solar_charge_minimum_light" },
+	// { CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&charge_minimum_light,  	0,  "solar_charge_minimum_light" },
 
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&solar_vindpm,  			0,  "solar_vindpm" },
 
-	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
+	// { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
 };
 
 
@@ -174,14 +177,30 @@ PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) );
 
 void solar_v_init( void ){
 
-	kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
-
-
 	thermal_v_init();
 
 	// mppt_v_init();
 
-	// #ifdef ENABLE_PATCH_BOARD
+	if( enable_solar_charge ){
+
+		kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
+
+		light_sensor_v_init();
+
+		thread_t_create( solar_control_thread,
+                     PSTR("solar_control"),
+                     0,
+                     0 );
+
+		thread_t_create( solar_cycle_thread,
+	                     PSTR("solar_cycle"),
+	                     0,
+	                     0 );
+	}
+
+
+
+		// #ifdef ENABLE_PATCH_BOARD
 	// if( patch_board_installed && charger2_board_installed ){
 
 	// 	log_v_error_P( PSTR("Cannot enable patch board and charger2 on the same system") );
@@ -210,18 +229,6 @@ void solar_v_init( void ){
     //                  0 );
 	// #endif
 
-	if( enable_solar_charge ){
-
-		thread_t_create( solar_control_thread,
-                     PSTR("solar_control"),
-                     0,
-                     0 );
-
-		thread_t_create( solar_cycle_thread,
-	                     PSTR("solar_cycle"),
-	                     0,
-	                     0 );
-	}
 }
 
 // #ifdef ENABLE_PATCH_BOARD
