@@ -573,9 +573,34 @@ PT_BEGIN( pt );
                         // set shutdown request
                         batt_request_shutdown = TRUE;
 
-                        TMR_WAIT( pt, 120000 ); 
-                        // power should be off by now, but if not,
-                        // just carry on?    
+
+                        sys_v_initiate_shutdown( 3 );
+
+                        THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+
+
+                        log_v_debug_P( PSTR("Power off") );
+
+                        pixelpower_v_system_shutdown();
+
+                        _delay_ms( 50 );            
+
+                        batt_v_shutdown_power();
+                        // if on battery power, this should not return
+                        // as the power will be cut off.
+                        // if an external power source was plugged in during
+                        // the shutdown, then this will return.
+
+                        // we will delay here and wait
+                        // for the reboot thread to reboot the system.
+                        TMR_WAIT( pt, 10000 );
+
+                        log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
+
+                        // This is a corner case, the system somehow still has power.
+                        // We have already shut down most of the system by now though,
+                        // so the only way to get it back is to restart.
+                        sys_reboot();
                     }
                 }
                 else{
