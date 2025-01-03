@@ -744,9 +744,21 @@ PT_BEGIN( pt );
 		}
 		else if( solar_state == SOLAR_MODE_FULL_CHARGE ){
 
-			// // we do not leave full charge state until we start discharging,
-			// // IE battery voltage drops below a threshold
+
+			// full charge condition:
+			// battery voltage is over the recharge threshold AND
+			// we have a VBUS power source on either charger
+
+
+			// battery voltage below threshold:
 			if( batt_u16_get_batt_volts() < RECHARGE_THRESHOLD ){
+
+				// switch to discharge state
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+			// neither VBUS source connected
+			else if( !batt_b_is_vbus_connected() &&
+					 !bq25895_aux_b_is_vbus_connected() ){
 
 				// switch to discharge state
 				next_state = SOLAR_MODE_DISCHARGE;
@@ -793,6 +805,16 @@ PT_BEGIN( pt );
 			if( next_state == SOLAR_MODE_FAULT ){
 
 				charge_timer = FAULT_HOLD_TIME;
+			}
+			else if( next_state == SOLAR_MODE_CHARGE_DC ){
+
+				bq25895_aux_v_disable_charger();
+				batt_v_enable_charge();
+			}
+			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
+
+				batt_v_disable_charge();
+				bq25895_aux_v_enable_charger();
 			}
 
 
