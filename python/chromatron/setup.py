@@ -80,7 +80,7 @@ setup(
         "pytest==6.2.4",
         "pytest-cov==2.11.1",
         "pytest-xdist==2.5.0",
-        "pyparsing-3.2.1",
+        "pyparsing==3.2.1",
     ],
 
     entry_points='''
