@@ -105,7 +105,7 @@ charger is reporting a fault.
 
 // static bool charger2_board_installed;
 // static bool enable_dc_charge = TRUE;
-static bool enable_solar_charge;
+static bool enable_solar;
 // static bool mppt_enabled;
 
 static uint8_t solar_state;
@@ -136,7 +136,7 @@ static uint16_t solar_vindpm = 5800;
 // #endif
 
 KV_SECTION_META kv_meta_t solar_enable_kv[] = {
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &enable_solar_charge,         0,  "solar_enable" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &enable_solar,               0,  "solar_enable" },
 };
 
 // static uint32_t charge_minimum_light = SOLAR_MIN_CHARGE_LIGHT_DEFAULT;
@@ -154,7 +154,7 @@ KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&charger2_board_installed, 	0,  "solar_enable_charger2" },
 
 	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
+	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
 	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
 	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
 
@@ -181,7 +181,7 @@ void solar_v_init( void ){
 
 	// mppt_v_init();
 
-	if( enable_solar_charge ){
+	if( enable_solar ){
 
 		kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
 
