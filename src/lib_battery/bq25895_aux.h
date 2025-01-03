@@ -32,6 +32,10 @@
 void bq25895_aux_v_init( void );
 
 bool bq25895_aux_b_is_batt_fault( void );
+bool bq25895_aux_b_is_vbus_connected( void );
+
+void bq25895_aux_v_enable_charger( void );
+void bq25895_aux_v_disable_charger( void );
 
 #endif
 

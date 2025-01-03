@@ -667,8 +667,33 @@ PT_BEGIN( pt );
 			// 	}	
 			// 	// }
 			// }
+
+			// check if one of the chargers is connected
+			if( batt_b_is_vbus_connected() ){
+
+				next_state = SOLAR_MODE_CHARGE_DC;
+			}
+			else if( bq25895_aux_b_is_vbus_connected() ){
+
+				next_state = SOLAR_MODE_CHARGE_SOLAR;
+			}
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_DC ){
+
+			// make sure aux charger is disabled!
+			bq25895_aux_v_disable_charger();
+
+			// check if finished charging:
+			if( batt_b_is_charge_complete() ){
+
+				next_state = SOLAR_MODE_FULL_CHARGE;
+			}
+			// or otherwise not charging:
+			else if( !batt_b_is_charging() ){
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+
 
 			// if( !enable_dc_charge ){					
 

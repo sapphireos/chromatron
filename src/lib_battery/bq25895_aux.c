@@ -28,6 +28,8 @@
 
 #ifdef ENABLE_AUX_BATTERY
 
+#include "battery.h"
+
 static uint16_t aux_batt_volts;
 static uint16_t aux_batt_volts_raw;
 static uint16_t aux_vbus_volts;
@@ -194,6 +196,12 @@ uint16_t bq25895_aux_u16_read_vbus( void ){
 
 	return temp;
 }
+
+bool bq25895_aux_b_is_vbus_connected( void ){
+
+    return bq25895_aux_u16_read_vbus() >= BATT_MIN_CHARGE_VBUS_VOLTS;
+}
+
 
 bool bq25895_aux_b_is_charging( void ){
 
