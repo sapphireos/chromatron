@@ -36,6 +36,7 @@
 #include "buttons.h"
 #include "battery.h"
 #include "pca9536.h"
+#include "pixel_power.h"
 
 
 #define MAX_BUTTONS 4
