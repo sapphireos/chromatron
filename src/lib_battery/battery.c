@@ -31,6 +31,7 @@
 #include "fuel_gauge.h"
 #include "pixel_power.h"
 #include "energy.h"
+#include "led_detect.h"
 
 #include "charger2.h"
 #include "bq25895.h"
@@ -121,6 +122,7 @@ KV_SECTION_META kv_meta_t battery_enable_kv[] = {
 
 KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &charger2_board_installed,  0,  "solar_enable_charger2" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
 
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,     batt_kv_handler,  "batt_max_charge_voltage" },
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_min_discharge_voltage,  batt_kv_handler,  "batt_min_discharge_voltage" },
@@ -177,6 +179,10 @@ void batt_v_init( void ){
 
     pixelpower_v_init();
 
+    if( kv_b_get_boolean( __KV__batt_enable_led_detect ) ){
+
+        led_detect_v_init();
+    }
 
     trace_printf("Battery controller enabled\n");
 

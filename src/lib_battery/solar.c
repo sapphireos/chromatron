@@ -77,9 +77,7 @@ FAULT: Either charger has some kind of fault reported.  Charging is stopped.
 #include "thermal.h"
 #include "battery.h"
 // #include "patch_board.h"
-#include "charger2.h"
 #include "pixel_power.h"
-#include "led_detect.h"
 #include "fuel_gauge.h"
 #include "energy.h"
 #include "light_sensor.h"
@@ -178,23 +176,8 @@ void solar_v_init( void ){
 
 	kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
 
-	// energy_v_init();
-
-	// fuel_v_init();
 
 	thermal_v_init();
-
-
-
-
-	light_sensor_v_init();
-
-	if( kv_b_get_boolean( __KV__solar_enable_led_detect ) ){
-
-		led_detect_v_init();
-	}
-
-	// pixelpower_v_init();
 
 	// mppt_v_init();
 
