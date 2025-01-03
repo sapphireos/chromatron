@@ -121,8 +121,8 @@ KV_SECTION_META kv_meta_t battery_enable_kv[] = {
 };
 
 KV_SECTION_OPT kv_meta_t battery_info_kv[] = {
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &charger2_board_installed,  0,  "solar_enable_charger2" },
-    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &charger2_board_installed,  0,                  "batt_enable_charger2" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    0,                          0,                  "batt_enable_led_detect" },
 
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_max_charge_voltage,     batt_kv_handler,  "batt_max_charge_voltage" },
     { CATBUS_TYPE_UINT16, 0, KV_FLAGS_PERSIST,    &batt_min_discharge_voltage,  batt_kv_handler,  "batt_min_discharge_voltage" },
