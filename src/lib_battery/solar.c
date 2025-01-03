@@ -112,12 +112,12 @@ static uint8_t solar_state;
 static catbus_string_t state_name;
 
 
-// static uint16_t charge_timer;
+static uint16_t charge_timer;
 // #define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
 // #define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
 // #define DISCHARGE_HOLD_TIME				( 4 ) // time to remain in discharge before allowing a switch back to charge
 // #define CHARGE_HOLD_TIME				( 4 )  // time to remain in charge before allowing a switch back to discharge or full
-// #define FAULT_HOLD_TIME					( 10 )  // minimum time to remain in fault state
+#define FAULT_HOLD_TIME					( 10 )  // minimum time to remain in fault state
 
 // #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
 
@@ -562,19 +562,37 @@ PT_BEGIN( pt );
 			// }
 		// }
 		// else 
+
 		if( solar_state == SOLAR_MODE_FAULT ){
 
-			// if( charge_timer < FAULT_HOLD_TIME ){
+			if( charge_timer < FAULT_HOLD_TIME ){
 
-			// 	if( seconds_counter == 0 ){
+				if( seconds_counter == 0 ){
 
-			// 		charge_timer++;	
-			// 	}
-			// }
-			// else if( !batt_b_is_batt_fault() ){
+					charge_timer++;	
+				}
+			}
+			else if( !batt_b_is_batt_fault() &&
+				     !bq25895_aux_b_is_batt_fault() ){
 
-			// 	next_state = SOLAR_MODE_DISCHARGE;
-			// }
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+		}
+		// check if battery module is reporting a fault:
+		else if( batt_b_is_batt_fault() ||
+				 bq25895_aux_b_is_batt_fault() ){
+
+			if( batt_b_is_batt_fault() ){
+
+				log_v_warning_P( PSTR("Fault mode: main charger") );
+			}
+
+			if( bq25895_aux_b_is_batt_fault() ){
+
+				log_v_warning_P( PSTR("Fault mode: aux charger") );
+			}
+
+			next_state = SOLAR_MODE_FAULT;
 		}
 		else if( solar_state == SOLAR_MODE_DISCHARGE ){
 
@@ -745,7 +763,13 @@ PT_BEGIN( pt );
 
 		if( next_state != solar_state ){
 
-			// charge_timer = 0;
+			charge_timer = 0;
+
+			if( next_state == SOLAR_MODE_FAULT ){
+
+				charge_timer = FAULT_HOLD_TIME;
+			}
+
 
 			// // set up any init conditions for entry to next state
 			// if( next_state == SOLAR_MODE_SHUTDOWN ){
