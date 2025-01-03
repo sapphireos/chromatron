@@ -782,10 +782,10 @@ int8_t sock_i8_transmit( socket_t sock, mem_handle_t handle, sock_addr_t *raddr 
         uint8_t nm_flags = 0;
 
         // check options
-        if( s->options & SOCK_OPTIONS_NO_SECURITY ){
+        // if( s->options & SOCK_OPTIONS_NO_SECURITY ){
 
-            nm_flags |= NETMSG_FLAGS_WCOM_SECURITY_DISABLE;
-        }
+        //     nm_flags |= NETMSG_FLAGS_WCOM_SECURITY_DISABLE;
+        // }
 
         if( s->options & SOCK_OPTIONS_NO_WIRELESS ){
 
@@ -928,7 +928,7 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
 
     // check if remote address is us.
     // with multicasting we could receive our own messages.
-    if( ip_b_addr_compare( state->raddr.ipaddr, cfg_ip_get_ipaddr() ) ){
+    if( ip_b_check_multicast( state->raddr.ipaddr ) && ip_b_addr_compare( state->raddr.ipaddr, cfg_ip_get_ipaddr() ) ){
 
         return SOCK_STATUS_MCAST_SELF;
     }
@@ -940,17 +940,17 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
     }
 
     // check security flags
-    if( state->flags & NETMSG_FLAGS_WCOM_SECURITY_DISABLE ){
-        // security disabled on this netmsg
+    // if( state->flags & NETMSG_FLAGS_WCOM_SECURITY_DISABLE ){
+    //     // security disabled on this netmsg
 
-        // check if this socket requires secure messages
-        if( !( dgram->raw.options & SOCK_OPTIONS_NO_SECURITY ) ){
+    //     // check if this socket requires secure messages
+    //     if( !( dgram->raw.options & SOCK_OPTIONS_NO_SECURITY ) ){
 
-            // socket requires secure messages
+    //         // socket requires secure messages
 
-            return SOCK_STATUS_NO_SEC;
-        }
-    }
+    //         return SOCK_STATUS_NO_SEC;
+    //     }
+    // }
 
     #ifdef SOCK_SINGLE_BUF
     // check if the socket is already holding data that has not been
@@ -976,13 +976,13 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
             // app hasn't received data, so we bail out and this new data
             // gets dropped.
 
-            log_v_debug_P( PSTR("dropped to: %u from %d.%d.%d.%d:%u"), 
-                dgram->lport, 
-                state->raddr.ipaddr.ip3,
-                state->raddr.ipaddr.ip2,
-                state->raddr.ipaddr.ip1,
-                state->raddr.ipaddr.ip0,
-                state->raddr.port );
+            // log_v_debug_P( PSTR("dropped to: %u from %d.%d.%d.%d:%u"), 
+            //     dgram->lport, 
+            //     state->raddr.ipaddr.ip3,
+            //     state->raddr.ipaddr.ip2,
+            //     state->raddr.ipaddr.ip1,
+            //     state->raddr.ipaddr.ip0,
+            //     state->raddr.port );
 
             return SOCK_STATUS_PORT_BUF_FULL;
         }
@@ -1010,13 +1010,14 @@ int8_t sock_i8_recv( netmsg_t netmsg ){
             // app hasn't received data, so we bail out and this new data
             // gets dropped.
 
-            log_v_debug_P( PSTR("dropped to: %u from %d.%d.%d.%d:%u"), 
-                dgram->lport, 
-                state->raddr.ipaddr.ip3,
-                state->raddr.ipaddr.ip2,
-                state->raddr.ipaddr.ip1,
-                state->raddr.ipaddr.ip0,
-                state->raddr.port );
+            // log_v_debug_P( PSTR("dropped to: %u from %d.%d.%d.%d:%u state: %d"), 
+            //     dgram->lport, 
+            //     state->raddr.ipaddr.ip3,
+            //     state->raddr.ipaddr.ip2,
+            //     state->raddr.ipaddr.ip1,
+            //     state->raddr.ipaddr.ip0,
+            //     state->raddr.port,
+            //     dgram->state );
 
             return SOCK_STATUS_PORT_BUF_FULL;
         }

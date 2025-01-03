@@ -131,6 +131,9 @@ class BaseClient(object):
             except socket.error:
                 pass
 
+            timeout += 0.1
+            self._sock.settimeout(timeout)
+
         raise NoResponseFromHost(msg.header.msg_type, host)
 
     def flush(self):
@@ -170,7 +173,7 @@ class Client(BaseClient):
         self.nodes = {}
         self._meta = {}
 
-        self._filelock = FileLock(CACHE_LOCK, timeout=1)
+        self._filelock = FileLock(CACHE_LOCK, timeout=4)
 
     def __str__(self):
         return f'Client({self._connected_host})'
@@ -266,7 +269,7 @@ class Client(BaseClient):
                     # ensure file is committed to disk
                     f.flush()
 
-    def lookup_hash(self, *args, skip_cache=False):
+    def lookup_hash(self, *args, skip_cache=False, host=None):
         cache = {}
         
         if not skip_cache:
@@ -316,7 +319,7 @@ class Client(BaseClient):
 
             msg = LookupHashMsg(hashes=hashes)
 
-            response, sender = self._exchange(msg)
+            response, sender = self._exchange(msg, host=host)
 
             for i in range(len(response.keys)):
                 key = response.keys[i]

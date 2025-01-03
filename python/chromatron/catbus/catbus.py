@@ -45,7 +45,6 @@ import time
 import sys
 import os
 
-from sapphire.protocols import services
 from sapphire.common import catbus_string_hash, run_all, synchronized
 from sapphire.common.util import setup_basic_logging
 
@@ -69,8 +68,8 @@ class CatbusService(Database):
         super(CatbusService, self).__init__(**kwargs)
 
         self._server = Server(data_port=data_port, database=self, visible=visible)
-        self._service_manager = services.ServiceManager()
-        self._link_manager = LinkManager(database=self, service_manager=self._service_manager)
+        # self._service_manager = services.ServiceManager()
+        # self._link_manager = LinkManager(database=self, service_manager=self._service_manager)
         
         self._data_port = self._server._port
 

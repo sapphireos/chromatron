@@ -64,4 +64,6 @@ typedef int8_t catbus_type_t8;
 uint16_t type_u16_size( catbus_type_t8 type );
 bool type_b_is_string( catbus_type_t8 type );
 
+typedef int32_t fixed16_t;
+
 #endif

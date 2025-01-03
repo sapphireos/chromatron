@@ -35,9 +35,10 @@ try:
         # time.sleep(0.10)  
 
         # generate random len
-        data_len = random.randint(4, MAX_DATA_LEN)
+        # data_len = random.randint(4, MAX_DATA_LEN)
         # data_len = MAX_DATA_LEN
         # data_len = 463
+        data_len = 64
 
         # generate random data
         # data = ''

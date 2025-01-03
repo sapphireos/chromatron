@@ -68,7 +68,7 @@ ffs_file_t ffs_i8_create_file( char filename[] );
 int8_t ffs_i8_delete_file( ffs_file_t file_id );
 int32_t ffs_i32_read( ffs_file_t file_id, uint32_t position, void *data, uint32_t len );
 int32_t ffs_i32_write( ffs_file_t file_id, uint32_t position, const void *data, uint32_t len );
-
+void ffs_v_close( ffs_file_t file_id );
 
 
 #endif

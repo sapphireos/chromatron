@@ -56,6 +56,7 @@ static const led_profile_t led_profiles[] = {
         0, // pix count
         0, // pix size x
         0, // pix size y
+        0, // rgb order
         {""}, // vm prog
     },
     {
@@ -64,7 +65,9 @@ static const led_profile_t led_profiles[] = {
         50, // pix count
         50, // pix size x
         1, // pix size y
-        {"rainbow.fxb"}, // vm prog
+        // {"rainbow.fxb"}, // vm prog
+        0, // rgb order
+        {""},
     },
     {
         LED_UNIT_TYPE_SUNSTREAK,
@@ -72,6 +75,34 @@ static const led_profile_t led_profiles[] = {
         366, // pix count
         122, // pix size x
         3, // pix size y
+        2, // rgb order
+        {""}, // vm prog
+    },
+    {
+        LED_UNIT_TYPE_BACKPACK_HEXAGON,
+        PIX_MODE_WS2811, // led type
+        18, // pix count
+        6, // pix size x
+        3, // pix size y
+        2, // rgb order
+        {""}, // vm prog
+    },
+    {
+        LED_UNIT_TYPE_BM_LANTERN,
+        PIX_MODE_WS2811, // led type
+        60, // pix count
+        60, // pix size x
+        1, // pix size y
+        2, // rgb order
+        {""}, // vm prog
+    },
+    {
+        LED_UNIT_TYPE_BATT_CHECK,
+        PIX_MODE_WS2811, // led type
+        4, // pix count
+        4, // pix size x
+        1, // pix size y
+        2, // rgb order
         {""}, // vm prog
     },
 };
@@ -93,7 +124,27 @@ static const led_unit_t led_units[] = {
     {
         1145896795,
         LED_UNIT_TYPE_STRAND50,
-    }
+    },
+    {
+        1145794472,
+        LED_UNIT_TYPE_BACKPACK_HEXAGON,
+    },
+    {
+        1145796786,
+        LED_UNIT_TYPE_BM_LANTERN,
+    },
+    {
+        1146047159,
+        LED_UNIT_TYPE_STRAND50,
+    },
+    {
+        1145802567,
+        LED_UNIT_TYPE_STRAND50,
+    },
+    {
+        1145957452,
+        LED_UNIT_TYPE_BATT_CHECK,
+    },
 };
 
 
@@ -162,6 +213,7 @@ static void load_profile( uint8_t type ){
     catbus_i8_set( __KV__pix_count,     CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_count, sizeof(profile->pix_count) );
     catbus_i8_set( __KV__pix_size_x,    CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_size_x, sizeof(profile->pix_size_x) );
     catbus_i8_set( __KV__pix_size_y,    CATBUS_TYPE_UINT16, (uint16_t *)&profile->pix_size_y, sizeof(profile->pix_size_y) );
+    catbus_i8_set( __KV__pix_rgb_order, CATBUS_TYPE_UINT8,  (uint8_t *)&profile->rgb_order, sizeof(profile->rgb_order) );
 
 
     // Should add a max dimmer setting too

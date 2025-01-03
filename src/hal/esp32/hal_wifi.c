@@ -70,6 +70,9 @@ static uint8_t disconnect_reason;
 static uint8_t scan_backoff;
 static uint8_t current_scan_backoff;
 
+static uint16_t rescan_timer;
+static bool request_connection_reset;
+
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
 
 static uint8_t wifi_power_mode;
@@ -110,6 +113,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
 
     { CATBUS_TYPE_UINT8,         0, KV_FLAGS_READ_ONLY,   &wifi_power_mode,                  0,   "wifi_power_mode" },
     { CATBUS_TYPE_BOOL,          0, KV_FLAGS_PERSIST,     &enable_modem_sleep,               0,   "wifi_enable_modem_sleep" },
+
+    { CATBUS_TYPE_BOOL,          0, 0,                    &request_connection_reset,         0,   "wifi_request_connection_reset" },
 };
 
 // this lives in the wifi driver because it is the easiest place to get to hardware specific code
@@ -227,6 +232,76 @@ void hal_wifi_v_init( void ){
 
     // log reset reason for ESP32
     log_v_info_P( PSTR("ESP reset reason: %d"), esp_reset_reason() );
+
+    /*
+
+    typedef enum {
+        ESP_RST_UNKNOWN,    //!< Reset reason can not be determined
+        ESP_RST_POWERON,    //!< Reset due to power-on event
+        ESP_RST_EXT,        //!< Reset by external pin (not applicable for ESP32)
+        ESP_RST_SW,         //!< Software reset via esp_restart
+        ESP_RST_PANIC,      //!< Software reset due to exception/panic
+        ESP_RST_INT_WDT,    //!< Reset (software or hardware) due to interrupt watchdog
+        ESP_RST_TASK_WDT,   //!< Reset due to task watchdog
+        ESP_RST_WDT,        //!< Reset due to other watchdogs
+        ESP_RST_DEEPSLEEP,  //!< Reset after exiting deep sleep mode
+        ESP_RST_BROWNOUT,   //!< Brownout reset (software or hardware)
+        ESP_RST_SDIO,       //!< Reset over SDIO
+    } esp_reset_reason_t;
+
+
+    // one of the fusion cells is getting ESP_RST_SDIO on power on start from vbus plug in?
+    // fusion1
+    // appears to be consistent?
+    // maybe we just ignore that reset code?  internet doesn't know what it actually means either.
+    // nope, depends on USB cable.  Sometimes doesn't charge either.
+    // so, yet another BQ25895 glitch, but since an SDIO reset is really never a valid reset,
+    // instead of safe mode we could just do a restart (within the recovery counter).
+    // if we hit the recovery counter we go to safe mode either way.
+    
+    
+
+
+typedef enum {
+    WIFI_REASON_UNSPECIFIED              = 1,
+    WIFI_REASON_AUTH_EXPIRE              = 2,
+    WIFI_REASON_AUTH_LEAVE               = 3,
+    WIFI_REASON_ASSOC_EXPIRE             = 4,
+    WIFI_REASON_ASSOC_TOOMANY            = 5,
+    WIFI_REASON_NOT_AUTHED               = 6,
+    WIFI_REASON_NOT_ASSOCED              = 7,
+    WIFI_REASON_ASSOC_LEAVE              = 8,
+    WIFI_REASON_ASSOC_NOT_AUTHED         = 9,
+    WIFI_REASON_DISASSOC_PWRCAP_BAD      = 10,
+    WIFI_REASON_DISASSOC_SUPCHAN_BAD     = 11,
+    WIFI_REASON_BSS_TRANSITION_DISASSOC  = 12,
+    WIFI_REASON_IE_INVALID               = 13,
+    WIFI_REASON_MIC_FAILURE              = 14,
+    WIFI_REASON_4WAY_HANDSHAKE_TIMEOUT   = 15,
+    WIFI_REASON_GROUP_KEY_UPDATE_TIMEOUT = 16,
+    WIFI_REASON_IE_IN_4WAY_DIFFERS       = 17,
+    WIFI_REASON_GROUP_CIPHER_INVALID     = 18,
+    WIFI_REASON_PAIRWISE_CIPHER_INVALID  = 19,
+    WIFI_REASON_AKMP_INVALID             = 20,
+    WIFI_REASON_UNSUPP_RSN_IE_VERSION    = 21,
+    WIFI_REASON_INVALID_RSN_IE_CAP       = 22,
+    WIFI_REASON_802_1X_AUTH_FAILED       = 23,
+    WIFI_REASON_CIPHER_SUITE_REJECTED    = 24,
+
+    WIFI_REASON_INVALID_PMKID            = 53,
+
+    WIFI_REASON_BEACON_TIMEOUT           = 200,
+    WIFI_REASON_NO_AP_FOUND              = 201,
+    WIFI_REASON_AUTH_FAIL                = 202,
+    WIFI_REASON_ASSOC_FAIL               = 203,
+    WIFI_REASON_HANDSHAKE_TIMEOUT        = 204,
+    WIFI_REASON_CONNECTION_FAIL          = 205,
+    WIFI_REASON_AP_TSF_RESET             = 206,
+    WIFI_REASON_ROAMING                  = 207,
+} wifi_err_reason_t;
+
+
+    */
 
     if( cfg_b_get_boolean( __KV__enable_brownout_restart ) ){
 
@@ -422,10 +497,10 @@ PT_END( pt );
 
 int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return 0;
-    }
+    //     return 0;
+    // }
 
     tcpip_adapter_ip_info_t info;
         memset( &info, 0, sizeof(info) );
@@ -439,10 +514,10 @@ int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
 
 int8_t hal_wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return 0;
-    }
+    //     return 0;
+    // }
 
     tcpip_adapter_ip_info_t info;
         memset( &info, 0, sizeof(info) );
@@ -682,17 +757,17 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
     destAddr.sin_family = AF_INET;
     destAddr.sin_port = htons(netmsg_state->raddr.port);
 
-    if( sys_u8_get_mode() != SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-        if( !hal_arp_b_find( netmsg_state->raddr.ipaddr ) ){
+    if( !hal_arp_b_find( netmsg_state->raddr.ipaddr ) ){
 
-            wifi_arp_misses++;
-        }
-        else{
-
-            wifi_arp_hits++;
-        }
+        wifi_arp_misses++;
     }
+    else{
+
+        wifi_arp_hits++;
+    }
+    // }
 
     int status = sendto( conn->sock, data, data_len, 0, (struct sockaddr *)&destAddr, sizeof(destAddr) );
 
@@ -793,7 +868,7 @@ static bool is_ssid_configured( void ){
    	return FALSE;
 }
 
-static void scan_cb( void ){
+static int8_t scan_cb( void ){
 
     scan_done = FALSE;
 
@@ -804,7 +879,7 @@ static void scan_cb( void ){
 
     if( h < 0 ){
 
-        return;
+        return -1;
     }
 
     wifi_ap_record_t *ap_info = mem2_vp_get_ptr_fast( h );
@@ -827,6 +902,7 @@ static void scan_cb( void ){
     for( uint32_t i = 0; i < ap_count; i++ ){
 
         // trace_printf( "%s %u %d", ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi );
+        log_v_debug_P( PSTR("AP: %s %u %d"), ap_info[i].ssid, ap_info[i].primary, ap_info[i].rssi );
 
         int8_t router = -1;
 
@@ -867,13 +943,30 @@ static void scan_cb( void ){
 
         // log_v_debug_P( PSTR("no routers found") );
 
-        return;
+        return -2;
     }
 
     // select router
     wifi_router = best_router;
     memcpy( wifi_bssid, best_bssid, sizeof(wifi_bssid) );
     wifi_channel = best_channel;
+
+    // check if this router is better than our current
+    int16_t delta = best_rssi - wifi_rssi;
+
+    // check for improvement over current router 
+    if( wifi_b_connected() ){
+
+        // if at least 3 db better
+        if( delta >= 3 ){
+
+            log_v_debug_P( PSTR("Found better AP") );
+
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 
@@ -961,6 +1054,27 @@ static void apply_power_save_mode( void ){
     }
 }
 
+static esp_err_t start_scan( bool active ){
+
+    wifi_scan_config_t config = { 0 };
+    config.show_hidden = FALSE;
+
+    if( active ){
+
+        config.scan_type = WIFI_SCAN_TYPE_ACTIVE;
+        config.scan_time.active.min = 50;
+        config.scan_time.active.max = 500;
+    }
+    else{
+
+        config.scan_type = WIFI_SCAN_TYPE_PASSIVE;
+        config.scan_time.passive = 1000;
+    }
+
+    return esp_wifi_scan_start( &config, FALSE );
+}
+
+
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -969,9 +1083,9 @@ PT_BEGIN( pt );
     // don't remove this, we need to confirm we didn't screw up these settings
     // on an IDF update...
     log_v_debug_P( PSTR("ARP table size: %d queueing: %d queue len: %d"), ARP_TABLE_SIZE, ARP_QUEUEING, ARP_QUEUE_LEN );
-
-    static uint16_t scan_timeout;
+ 
     static uint32_t wifi_connect_start;
+    static uint16_t scan_timeout;
 
     connected = FALSE;
     wifi_rssi = -127;
@@ -986,7 +1100,11 @@ PT_BEGIN( pt );
     // check if we are connected
     while( !wifi_b_connected() && !wifi_shutdown ){
 
+        request_connection_reset = FALSE;
+
         wifi_rssi = -127;
+
+        rescan_timer = WIFI_RESCAN_INTERVAL;
 
         esp_wifi_disconnect();
         TMR_WAIT( pt, 100 ); // this delay seems to be important
@@ -1000,7 +1118,7 @@ PT_BEGIN( pt );
         while( ( current_scan_backoff > 0 ) && !_wifi_b_ap_mode_enabled() ){
 
             current_scan_backoff--;
-            TMR_WAIT( pt, 1000 );
+            TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) );
         }
         
         ap_mode = _wifi_b_ap_mode_enabled();
@@ -1041,9 +1159,11 @@ station_mode:
                 wifi_router = -1;
                 // log_v_debug_P( PSTR("Scanning...") );
                 
+                
+                // start scan
                 scan_done = FALSE;
-                    
-                esp_err_t err = esp_wifi_scan_start(NULL, FALSE);
+
+                esp_err_t err = start_scan( TRUE );
                 if( err != 0 ){
 
                 	log_v_error_P( PSTR("Scan error: %d"), err );
@@ -1053,6 +1173,7 @@ station_mode:
                     goto end;
                 }
 
+                // wait for scan to complete or timeout
                 scan_timeout = 500;
                 while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
 
@@ -1061,6 +1182,7 @@ station_mode:
                     TMR_WAIT( pt, 50 );
                 }
 
+                // check scan completion
                 if( scan_done ){
 
                     scan_cb();
@@ -1087,20 +1209,20 @@ station_mode:
                     }
                     else if( scan_backoff < 64 ){
 
-                        scan_backoff *= 2;
+                        scan_backoff += 2;
 
                         log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
 
                         TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // add 2 seconds of random delay
                     }
-                    else if( scan_backoff < 192 ){
+                    // else if( scan_backoff < 192 ){
 
-                        scan_backoff += 64;
+                    //     scan_backoff += 64;
 
-                        log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
+                    //     log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
 
-                        TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // add 4 seconds of random delay
-                    }
+                    //     TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // add 4 seconds of random delay
+                    // }
 
                     goto end;
                 }
@@ -1312,9 +1434,40 @@ end:
         }
     }
 
-    THREAD_WAIT_WHILE( pt, wifi_b_connected() && !wifi_shutdown );
+    THREAD_WAIT_WHILE( pt, wifi_b_connected() && !wifi_shutdown && !request_connection_reset );
     
-    log_v_debug_P( PSTR("Wifi disconnected: %d Last RSSI: %d ch: %d"), disconnect_reason, wifi_rssi, wifi_channel );
+    if( !wifi_b_connected() ){
+
+        log_v_debug_P( PSTR("Wifi disconnected: %d Last RSSI: %d ch: %d"), disconnect_reason, wifi_rssi, wifi_channel );    
+    }
+
+    // if we are not shutting down AND
+    // wifi is not shut down OR
+    // reconnect is requested
+    if( ( !wifi_shutdown && !sys_b_is_shutting_down() ) || request_connection_reset ){
+
+        // assume this is an unintentional disconnection
+        // we will reset the stored router so 
+        // we do a scan on the next attempt
+
+        if( request_connection_reset ){
+
+            log_v_debug_P( PSTR("Reconnect requested, resetting AP") );    
+        } 
+        else{
+
+            log_v_debug_P( PSTR("Unexpected disconnection: Resetting AP") );
+        }
+
+        // reset router
+        wifi_router = -1;
+        wifi_channel = -1;
+        memset( wifi_bssid, 0, sizeof(wifi_bssid) );
+
+        kv_i8_persist( __KV__wifi_channel );
+        kv_i8_persist( __KV__wifi_bssid );
+        kv_i8_persist( __KV__wifi_router );
+    }
 
     wifi_v_reset_scan_timeout();
 
@@ -1336,6 +1489,63 @@ PT_BEGIN( pt );
 
             wifi_uptime++;
             connected = TRUE;
+
+            // if( rescan_timer > 0 ){
+
+            //     rescan_timer--;
+
+            //     if( rescan_timer == 0 ){
+
+            //         // start scan
+            //         scan_done = FALSE;
+
+            //         esp_err_t err = start_scan( TRUE );
+            //         if( err != 0 ){
+
+            //             log_v_error_P( PSTR("Scan error: %d"), err );
+
+            //             esp_wifi_scan_stop();
+            //         }
+
+            //         // wait for scan to complete or timeout
+            //         static uint16_t scan_timeout;
+            //         scan_timeout = 500;
+            //         while( ( scan_done == FALSE ) && ( scan_timeout > 0 ) ){
+
+            //             scan_timeout--;
+
+            //             TMR_WAIT( pt, 50 );
+            //         }
+
+            //         // check scan completion
+            //         if( scan_done ){
+
+            //             if( scan_cb() == 1 ){
+
+            //                 // signals better router
+            //                 request_connection_reset = TRUE;
+            //             }
+            //         }
+            //         else{
+
+            //             log_v_error_P( PSTR("scan timeout!") );
+
+            //             // call the scan callback anyway.
+            //             // the ESP32 seems to sometimes fail to signal scan completion so we timeout.
+            //             // or maybe it fails to scan entirely? can't tell so far.
+            //             if( scan_cb() == 1 ){
+
+            //                 // signals better router
+            //                 request_connection_reset = TRUE;
+            //             }
+            //         }
+
+            //         esp_wifi_scan_stop();
+
+            //         // set up next scan
+            //         rescan_timer = WIFI_RESCAN_INTERVAL;
+            //     }    
+            // }            
 
             wifi_ap_record_t wifi_info;
             if( esp_wifi_sta_get_ap_info( &wifi_info ) == 0 ){
@@ -1367,7 +1577,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
         hal_arp_v_gratuitous_arp();
-        TMR_WAIT( pt, 2000 );
+        TMR_WAIT( pt, ( rnd_u16_get_int() >> 5 ) + 1000 );
 
         hal_arp_v_gratuitous_arp();
         TMR_WAIT( pt, 4000 );
@@ -1376,7 +1586,7 @@ PT_BEGIN( pt );
 
         while( wifi_b_connected() ){
 
-            TMR_WAIT( pt, ARP_GRATUITOUS_INTERVAL * 1000 );
+            TMR_WAIT( pt, ARP_GRATUITOUS_INTERVAL * 1000 + ( rnd_u16_get_int() >> 5 ));
 
             hal_arp_v_gratuitous_arp();
         }

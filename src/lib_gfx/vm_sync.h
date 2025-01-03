@@ -29,14 +29,18 @@
 #ifdef ENABLE_TIME_SYNC
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
-#define SYNC_PROTOCOL_VERSION           	8
+#define SYNC_PROTOCOL_VERSION           	9
+#define SYNC_SERVER_PORT                    44777
 
-#define SYNC_SERVICE                        __KV__vmsync
+// #define SYNC_SERVICE                        __KV__vmsync
 
-#define SYNC_INTERVAL                       8000
+
+#define SYNC_INTERVAL                       4000
+#define SYNC_INTERVAL_SEQ                   1000 // sync interval when sequencer is running
 #define SYNC_CHECKPOINT                     512
 
 #define SYNC_MAX_THREADS                    16
+#define SYNC_MAX_CHECKPOINTS                16
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
@@ -60,8 +64,11 @@ typedef struct __attribute__((packed)){
     uint64_t rng_seed;
     uint32_t frame_number;
 
-    uint32_t checkpoint;
-    uint32_t checkpoint_hash;
+    // uint32_t checkpoints[SYNC_MAX_CHECKPOINTS];
+    uint32_t checkpoint_hashes[SYNC_MAX_CHECKPOINTS];
+
+    uint16_t sequencer_step;
+    uint16_t padding;
     
     uint16_t data_len;
 
@@ -88,6 +95,8 @@ typedef struct __attribute__((packed)){
 
 void vm_sync_v_init( void );
 void vm_sync_v_reset( void );
+
+uint32_t vm_sync_u32_get_sync_group_hash( void );
 
 void vm_sync_v_hold( void );
 void vm_sync_v_unhold( void );

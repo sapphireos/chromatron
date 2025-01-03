@@ -45,6 +45,10 @@
 #endif
 #endif
 
+#ifdef ENABLE_CONTROLLER
+#include "link.h"
+#endif
+
 #if defined(ESP8266) && defined(VM_OPTIMIZED_DECODE)
 #error "VM_OPTIMIZED_DECODE does not work on ESP8266!"
 #endif
@@ -62,6 +66,8 @@
 //     __KV__pix_count,
 //     __KV__pix_mode,    
 // };
+
+static uint8_t current_vm_id;
 
 static uint32_t cycles;
 
@@ -2875,6 +2881,8 @@ int8_t vm_i8_run(
     uint16_t pc_offset,
     vm_state_t *state ){
 
+    current_vm_id = state->vm_id;
+
     // trace_printf("VM run func: %d\r\n", func_addr);
 
     uint32_t start_time = tmr_u32_get_system_time_us();
@@ -3018,6 +3026,9 @@ static uint8_t _get_next_event( uint8_t *stream, vm_state_t *state, uint64_t *ne
         get a chance to run.  As it stands, a yield in a loop will
         block all other threads as the thread always indicates it is ready to
         run now.
+
+
+        Possibly yield is not implemented in FX3?
 
         */
 
@@ -3494,16 +3505,17 @@ int8_t vm_i8_load_program(
                 goto error;
             }   
 
+            #ifdef ENABLE_CONTROLLER
             link_t *link = (link_t *)obj_ptr;
 
-            #ifdef ENABLE_CATBUS_LINK
             link_handle_t link_h = 
-                link_l_create( 
+                link2_l_create( 
                     link->mode,
                     link->source_key,
                     link->dest_key,
                     &link->query,
-                    link->tag,
+                    // link->tag,
+                    1 << vm_id,
                     link->rate,
                     link->aggregation,
                     LINK_FILTER_OFF );   
@@ -3763,4 +3775,10 @@ error:
     }
     
     return status;
+}
+
+
+uint8_t vm_u8_current_id( void ){
+
+    return current_vm_id;
 }

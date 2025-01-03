@@ -1360,7 +1360,13 @@ OPT_LEVELS['default'] = OPT_LEVELS['all']
 
 
 def main():
-    path = sys.argv[1]
+    try:
+        path = sys.argv[1]
+
+    except IndexError:
+        print("Must specify path to .fx file!")
+        sys.exit(-1)
+
     script_name = os.path.split(path)[1]
 
     setup_basic_logging(show_thread=False)

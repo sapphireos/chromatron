@@ -26,7 +26,7 @@
         
 #define _TARGET_H
 
-// #define TRACE
+// #define ENABLE_TRACE
 // #define ENABLE_LOG_TO_TRACE_PRINT
 
 // modules
@@ -45,8 +45,6 @@
 
 #define ENABLE_ESP8266_LOADER
 #define ENABLE_USB
-
-// #define DISABLE_SAFE_MODE
 
 // recovery mode
 #define DISABLE_RECOVERY_MODE

@@ -14,7 +14,9 @@
         "-Os",
         "-g3",
         "-Wall",
+        "-MMD",
         "-fno-strict-aliasing",
+        "-Wunused-function",
         "-Wno-unused",
         "-Wno-main",
         "-Wno-unknown-pragmas",
@@ -45,7 +47,8 @@
         "-I%(BASE_DIR)/src/hal/esp8266/sdk/include/nopoll",
         "-I%(BASE_DIR)/src/hal/esp8266/sdk/include/ssl",
         "-I%(BASE_DIR)/src/hal/esp8266/sdk/include/json",
-        "-I%(BASE_DIR)/src/hal/esp8266/sdk/include/openssl"
+        "-I%(BASE_DIR)/src/hal/esp8266/sdk/include/openssl",
+        "-I%(BASE_DIR)/src/hal/esp8266/lwip2/include"
     ],
 
     "AR_FLAGS": [

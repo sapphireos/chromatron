@@ -40,6 +40,8 @@ static uint64_t origin_id;
 
 static socket_t sock;
 static thread_t file_sessions[CATBUS_MAX_FILE_SESSIONS];
+
+static list_t name_lookup_list;
 #endif
 
 static catbus_hash_t32 meta_tag_hashes[CATBUS_QUERY_LEN];
@@ -98,6 +100,9 @@ static void _catbus_v_setup_tag_hashes( void ){
         if( cfg_i8_get( hash, s ) == 0 ){
 
             meta_tag_hashes[i] = hash_u32_string( s );
+
+            // add to names db
+            kvdb_v_set_name( s );
         }
         else{
 
@@ -215,6 +220,8 @@ void catbus_v_init( void ){
 
     trace_printf("Catbus max data len: %d\r\n", CATBUS_MAX_DATA);
 
+    _catbus_v_setup_tag_hashes();
+
     #ifdef ENABLE_CATBUS_LINK
     // list_v_init( &send_list );
     // list_v_init( &receive_cache );
@@ -223,12 +230,15 @@ void catbus_v_init( void ){
 
     }
     else{
-
+        
         link_v_init();
     }
     #endif
 
     #ifdef ENABLE_NETWORK
+
+    list_v_init( &name_lookup_list );
+
     thread_t_create( catbus_server_thread,
                      PSTR("catbus_server"),
                      0,
@@ -269,7 +279,7 @@ static void _catbus_v_msg_init( catbus_header_t *header,
     header->origin_id       = origin_id;
 }
 
-static void _catbus_v_get_query( catbus_query_t *query ){
+void catbus_v_get_query( catbus_query_t *query ){
 
     for( uint8_t i = 0; i < cnt_of_array(query->tags); i++ ){
 
@@ -308,6 +318,40 @@ bool catbus_b_query_self( catbus_query_t *query ){
     return TRUE;
 }
 
+// return TRUE if has is found in tags
+bool catbus_b_query_single( catbus_hash_t32 hash, catbus_query_t *tags ){
+
+    if( hash == 0 ){
+
+        return TRUE;
+    }
+
+    for( uint8_t i = 0; i < CATBUS_QUERY_LEN; i++ ){
+
+        if( hash == tags->tags[i] ){
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+// return TRUE if all hashes in the query are found in the tags
+bool catbus_b_query_tags( catbus_query_t *query, catbus_query_t *tags ){
+
+    for( uint8_t i = 0; i < CATBUS_QUERY_LEN; i++ ){
+
+        if( !catbus_b_query_single( query->tags[i], tags ) ){
+
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
+
 static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id ){
 
     if( sys_b_is_shutting_down() ){
@@ -328,7 +372,7 @@ static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id )
     msg->flags = 0;
     msg->data_port = sock_u16_get_lport( sock );
 
-    _catbus_v_get_query( &msg->query );
+    catbus_v_get_query( &msg->query );
 
     sock_i16_sendto_m( sock, h, raddr );
 }
@@ -437,6 +481,12 @@ int8_t _catbus_i8_internal_set(
     return status;
 }
 
+int8_t catbus_i8_set_i64(
+    catbus_hash_t32 hash, 
+    int64_t data )
+{
+    return catbus_i8_set( hash, CATBUS_TYPE_INT64, &data, sizeof(data) );
+}
 
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
@@ -466,6 +516,14 @@ int8_t catbus_i8_get(
 {
 
     return catbus_i8_array_get( hash, type, 0, 1, data );
+}
+
+int8_t catbus_i8_get_i64(
+    catbus_hash_t32 hash, 
+    int64_t *data)
+{
+
+    return catbus_i8_get( hash, CATBUS_TYPE_INT64, data );
 }
 
 int8_t catbus_i8_array_get(
@@ -650,6 +708,9 @@ PT_THREAD( catbus_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    static uint32_t last_lookup_check;
+    last_lookup_check = tmr_u32_get_system_time_ms();
+
     // create socket
     sock = sock_s_create( SOS_SOCK_DGRAM );
 
@@ -678,15 +739,107 @@ PT_BEGIN( pt );
     }
 
     // set up tag hashes
-    _catbus_v_setup_tag_hashes();
+    // _catbus_v_setup_tag_hashes();
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && ( list_u8_count( &name_lookup_list ) == 0 ) );
 
         uint16_t error = CATBUS_STATUS_OK;
 
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+            // only do the resolve if the server is not processing a message
+
+            if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+                goto end; // don't do any of this in safe mode
+            }
+
+            if( list_u8_count( &name_lookup_list ) == 0 ){
+
+                // no lookups to process, we got here via socket timeout
+                goto end; // nothing to do
+            }
+
+            if( !wifi_b_connected() ){
+
+                // wifi not connected, we cannot do a lookup
+                goto end;
+            }
+
+            // check if it is time for a hash lookup
+            if( tmr_u32_elapsed_time_ms( last_lookup_check ) > CATBUS_HASH_LOOKUP_INTERVAL ){
+
+                last_lookup_check = tmr_u32_get_system_time_ms();
+
+                list_node_t ln = name_lookup_list.head;
+
+                while( ln >= 0 ){
+
+                    catbus_hash_lookup_t *lookup = list_vp_get_data( ln );
+                    list_node_t next_ln = list_ln_next( ln );
+
+
+                    lookup->tries--;
+
+                    if( lookup->tries == 0 ){
+
+                        // timeout, delete
+                        list_v_remove( &name_lookup_list, ln );
+                        list_v_release_node( ln );                                  
+
+                        goto next_lookup;
+                    }
+
+                    // we are only doing a single lookup at a time
+                    // this mechanism does not need to be efficient,
+                    // since the lookup is recorded by the requesting 
+                    // device, it should never need to ask again.
+
+                    mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_lookup_hash_t) );
+
+                    if( h < 0 ){
+
+                        break; // bummer!  
+                    }
+
+                    catbus_msg_lookup_hash_t *msg = mem2_vp_get_ptr_fast( h );
+
+                    _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_LOOKUP_HASH, 0 );
+                    msg->count = 1;
+                    msg->first_hash = lookup->hash;
+
+                    sock_addr_t raddr = {
+                        lookup->host_ip,
+                        CATBUS_MAIN_PORT
+                    };
+
+                    if( sock_i16_sendto_m( sock, h, &raddr ) < 0 ){
+
+                        // if transmission fails, bail out of the loop
+
+                        break;
+                    }
+
+                    log_v_debug_P( PSTR("Looking up hash: 0x%08x at %d.%d.%d.%d"), 
+                        lookup->hash,
+                        lookup->host_ip.ip3,
+                        lookup->host_ip.ip2,
+                        lookup->host_ip.ip1,
+                        lookup->host_ip.ip0
+                    );
+
+                next_lookup:
+                    ln = next_ln;
+                }            
+            }
+            else{
+
+                // it is NOT time for a lookup,
+                // do a short delay so we don't swamp the CPU poking the list
+                TMR_WAIT( pt, 5 );
+            }
 
             goto end;
         }
@@ -783,55 +936,52 @@ PT_BEGIN( pt );
 
                 uint32_t hash = LOAD32(hash_ptr);
 
-                if( kvdb_i8_lookup_name( hash, str->str ) != KVDB_STATUS_OK ){
+                if( kv_i8_get_name( hash, str->str ) != KV_ERR_STATUS_OK ){
+                
+                    // try query tags
+                    for( uint8_t i = 0; i < cnt_of_array(meta_tag_hashes); i++ ){
 
-                    if( kv_i8_get_name( hash, str->str ) != KV_ERR_STATUS_OK ){
-                    
-                        // try query tags
-                        for( uint8_t i = 0; i < cnt_of_array(meta_tag_hashes); i++ ){
+                        if( meta_tag_hashes[i] == hash ){
 
-                            if( meta_tag_hashes[i] == hash ){
+                            uint32_t meta_kv = 0;
 
-                                uint32_t meta_kv = 0;
+                            if( i == 0 ){
 
-                                if( i == 0 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_0;
-                                }
-                                else if( i == 1 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_1;
-                                }
-                                else if( i == 2 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_2;
-                                }
-                                else if( i == 3 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_3;
-                                }
-                                else if( i == 4 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_4;
-                                }
-                                else if( i == 5 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_5;
-                                }
-                                else if( i == 6 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_6;
-                                }
-                                else if( i == 7 ){
-
-                                    meta_kv = CFG_PARAM_META_TAG_7;
-                                }
-
-                                // retrieve string from config DB
-                                cfg_i8_get( meta_kv, str->str );
-
-                                break;
+                                meta_kv = CFG_PARAM_META_TAG_0;
                             }
+                            else if( i == 1 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_1;
+                            }
+                            else if( i == 2 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_2;
+                            }
+                            else if( i == 3 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_3;
+                            }
+                            else if( i == 4 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_4;
+                            }
+                            else if( i == 5 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_5;
+                            }
+                            else if( i == 6 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_6;
+                            }
+                            else if( i == 7 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_7;
+                            }
+
+                            // retrieve string from config DB
+                            cfg_i8_get( meta_kv, str->str );
+
+                            break;
                         }
                     }
                 }
@@ -841,6 +991,62 @@ PT_BEGIN( pt );
             }
 
             sock_i16_sendto_m( sock, h, 0 );
+        }
+        // this is a client response message, so there is no reply (this is the reply)
+        else if( header->msg_type == CATBUS_MSG_TYPE_RESOLVED_HASH ){
+
+            catbus_msg_resolved_hash_t *msg = (catbus_msg_resolved_hash_t *)header;
+
+            if( msg->count == 0 ){
+
+                error = CATBUS_ERROR_PROTOCOL_ERROR;
+                goto end;
+            }
+            else if( msg->count > CATBUS_MAX_HASH_LOOKUPS ){
+
+                error = CATBUS_ERROR_PROTOCOL_ERROR;
+                goto end;
+            }
+
+            catbus_string_t *str = &msg->first_string;
+
+            while( msg->count > 0 ){
+
+                msg->count--;
+
+                log_v_debug_P( PSTR("Resolved hash: %s from %d.%d.%d.%d"), 
+                        str->str,
+                        raddr.ipaddr.ip3,
+                        raddr.ipaddr.ip2,
+                        raddr.ipaddr.ip1,
+                        raddr.ipaddr.ip0
+                    );
+
+                kvdb_v_set_name( str->str );
+
+                // check for a lookup entry and delete it if needed
+                catbus_hash_t32 hash = hash_u32_string( str->str );
+                list_node_t ln = name_lookup_list.head;
+
+                while( ln >= 0 ){
+
+                    catbus_hash_lookup_t *lookup = list_vp_get_data( ln );
+                    list_node_t next_ln = list_ln_next( ln );
+
+                    if( lookup->hash == hash ){
+
+                        // timeout, delete
+                        list_v_remove( &name_lookup_list, ln );
+                        list_v_release_node( ln );                                  
+
+                        break;
+                    }
+
+                    ln = next_ln;
+                }
+
+                str++;
+            }        
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_GET_KEY_META ){
 
@@ -1014,7 +1220,9 @@ PT_BEGIN( pt );
                 }
                 else{
 
-                    ASSERT( FALSE ); // all requested keys were already checked, so they must exist here
+                    // ASSERT( FALSE ); // all requested keys were already checked, so they must exist here
+                    error = CATBUS_ERROR_KEY_NOT_FOUND;
+                    goto end;
                 }
 
                 hash++;
@@ -1590,3 +1798,106 @@ const catbus_hash_t32* catbus_hp_get_tag_hashes( void ){
     return meta_tag_hashes;
 }
 #endif
+
+
+
+static bool is_hash_lookup_in_list( catbus_hash_t32 hash ){
+
+    list_node_t ln = name_lookup_list.head;
+
+    while( ln >= 0 ){
+
+        catbus_hash_lookup_t *lookup = list_vp_get_data( ln );
+
+        if( lookup->hash == hash ){
+
+            // reset tries, since we obviously still want this lookup
+            // lookup->tries = CATBUS_HASH_LOOKUP_TRIES;
+
+            // let it expire?
+            // callers can add it back of course.
+
+            return TRUE;
+        }
+
+        ln = list_ln_next( ln );
+    }     
+
+    return FALSE;
+}
+
+
+int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN], ip_addr4_t *host_ip ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        // do not enable this function in safe mode
+
+        return -1;
+    }
+
+    memset( name, 0, CATBUS_STRING_LEN );
+
+    if( hash == 0 ){
+
+        // set default string so we at least return something
+
+        if( host_ip == 0 ){
+
+            snprintf_P( name, CATBUS_STRING_LEN, PSTR("0x%08x"), hash );
+        }
+        else{
+
+            snprintf_P( name, CATBUS_STRING_LEN, PSTR("%d.%d.%d.%d"), host_ip->ip3, host_ip->ip2, host_ip->ip1, host_ip->ip0 );
+        }
+
+        return 0;
+    }
+
+    // try to look up string, from KV database
+    int8_t status = kv_i8_get_name( hash, name );
+
+    if( status != KV_ERR_STATUS_OK ){
+
+        // check name lookup list and if host IP is given
+        if( ( host_ip != 0 ) &&
+            ( list_u8_count( &name_lookup_list ) < CATBUS_MAX_HASH_RESOLVER_LOOKUPS ) ){
+
+            // search list to see if this hash is already present
+            // note that since the hash is only a couple bytes and we are using
+            // the linked list, there is a lot of overhead.
+            // however, we limit the size of the list and it is ephemeral,
+            // lookups either resolve or time out.
+
+            if( !is_hash_lookup_in_list( hash ) ){
+
+                // add new lookup
+                catbus_hash_lookup_t lookup = {
+                    hash,
+                    *host_ip,
+                    CATBUS_HASH_LOOKUP_TRIES                    
+                };
+
+                list_node_t ln = list_ln_create_node( &lookup, sizeof(lookup) );
+
+                if( ln > 0 ){
+
+                    list_v_insert_tail( &name_lookup_list, ln );
+                }
+            }   
+        }
+
+        // set default string so we at least return something
+        if( host_ip == 0 ){
+
+            snprintf_P( name, CATBUS_STRING_LEN, PSTR("0x%08x"), hash );
+        }
+        else{
+
+            snprintf_P( name, CATBUS_STRING_LEN, PSTR("%d.%d.%d.%d"), host_ip->ip3, host_ip->ip2, host_ip->ip1, host_ip->ip0 );
+        }
+    }
+
+    return status;
+}
+

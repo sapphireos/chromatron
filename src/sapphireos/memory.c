@@ -798,6 +798,11 @@ void mem2_v_check_canaries( void ){
 
 			uint8_t *canary = CANARY_PTR( header );
 
+            if( *canary != generate_canary( header ) ){
+
+                log_v_debug_P( PSTR("Bad canary.  Type: %d"), header->type );
+            }
+
 			// check the canary
 			ASSERT_MSG( *canary == generate_canary( header ), "Invalid canary!" );
 		}

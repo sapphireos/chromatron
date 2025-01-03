@@ -106,7 +106,7 @@ class MQTTChromatron(MQTTClient):
 
     @property
     def mqtt_discovery(self):
-        payload = {
+        payload = {['']
                     'name':                         self.device_name,
                     'unique_id':                    self.unique_id,
                     'state_topic':                  self.state_topic,

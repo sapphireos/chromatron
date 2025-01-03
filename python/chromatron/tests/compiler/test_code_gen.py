@@ -2291,10 +2291,68 @@ def init():
 
 """
 
+test_for_loop_var = """
+
+a = Number(publish=True)
+
+def init():
+    y = Number()
+    y = 1
+
+    for i in y:
+        a += 1
+
+"""
+
+test_for_loop_var_ref_loop_var = """
+
+a = Number(publish=True)
+
+def init():
+    y = Number()
+    y = 1
+
+    for i in y:
+        y = 1
+        a += 1
+
+"""
+
+
+test_var_init_negative = """
+
+a = Number(-1, publish=True)
+b = Number(-2, publish=True)
+
+def init():
+    pass
+"""
 
 class CompilerTests(object):
     def run_test(self, program, expected={}, opt_passes=[OptPasses.SSA]):
         pass
+
+    def test_var_init_negative(self, opt_passes):
+        self.run_test(test_var_init_negative,
+            opt_passes=opt_passes,
+            expected={
+                'a': -1,
+                'b': -2,
+            })
+
+    def test_for_loop_var_ref_loop_var(self, opt_passes):
+        self.run_test(test_for_loop_var_ref_loop_var,
+            opt_passes=opt_passes,
+            expected={
+                'a': 1,
+            })
+
+    def test_for_loop_var(self, opt_passes):
+        self.run_test(test_for_loop_var,
+            opt_passes=opt_passes,
+            expected={
+                'a': 1,
+            })
 
     def test_pixel_channel_load(self, opt_passes):
         self.run_test(test_pixel_channel_load,

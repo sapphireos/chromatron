@@ -24,13 +24,42 @@
 
 #include "sht40.h"
 
-static int16_t temp;
 static int16_t rh;
+
+static int16_t temp_C;
+static int16_t temp_F;
+
+static int8_t sht40_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_GET ){
+
+        if( hash == __KV__sht40_temp_F ){
+
+            fixed16_t temp_F_f16 = type_f16_from_decimal( temp_F / 10, temp_F % 10 );
+
+            memcpy( data, &temp_F_f16, sizeof(temp_F_f16) );
+        }
+        else if( hash == __KV__sht40_temp_C ){
+
+            fixed16_t temp_C_f16 = type_f16_from_decimal( temp_C / 10, temp_C % 10 );
+
+            memcpy( data, &temp_C_f16, sizeof(temp_C_f16) );
+        }
+
+    }
+
+    return 0;
+}
 
 	
 KV_SECTION_META kv_meta_t sht40_kv[] = {
-    {CATBUS_TYPE_INT16,     0, KV_FLAGS_READ_ONLY, &temp,    0, "sht40_temp"},   
-    {CATBUS_TYPE_INT16,     0, KV_FLAGS_READ_ONLY, &rh,      0, "sht40_rh"},   
+    {CATBUS_TYPE_FIXED16,   0, KV_FLAGS_READ_ONLY, 0, sht40_kv_handler, "sht40_temp_F"},   
+    {CATBUS_TYPE_FIXED16,   0, KV_FLAGS_READ_ONLY, 0, sht40_kv_handler, "sht40_temp_C"},   
+    {CATBUS_TYPE_INT16,     0, KV_FLAGS_READ_ONLY, &rh,              0, "sht40_rh"},   
 };
 
 
@@ -49,10 +78,11 @@ PT_BEGIN( pt );
 
     while(1){
 
-        TMR_WAIT( pt, 1000 );
-
+        int16_t temp;
         sht40_v_meas_raw( &temp, &rh );
 
+        TMR_WAIT( pt, 1000 );
+                
         // trace_printf("%d %d\r\n", temp, rh);
     }
     
@@ -81,6 +111,17 @@ uint32_t sht40_u32_read_serial( void ){
             ( (uint32_t)resp[3] << 0 );
 }
 
+uint16_t sht40_u16_read_temp_C( void ){
+
+    return temp_C;
+}
+
+uint16_t sht40_u16_read_temp_F( void ){
+
+    return temp_F;
+}
+
+// temp in C / 10
 void sht40_v_meas_raw( int16_t *temp, int16_t *RH ){
 
     *temp = -127;
@@ -92,7 +133,10 @@ void sht40_v_meas_raw( int16_t *temp, int16_t *RH ){
     uint16_t t_ticks = resp[0] * 256 + resp[1];
     uint16_t rh_ticks = resp[3] * 256 + resp[4];
 
-    *temp = -45 + 175 * t_ticks / 65535;
+    temp_C = -450 + 175 * ( (uint32_t)t_ticks * 10 ) / 65535;
+    temp_F = -490 + 315 * ( (uint32_t)t_ticks * 10 ) / 65535;
+
+    *temp = temp_C;
     *RH = -6 + 125 * rh_ticks / 65535;
 
     if( *RH > 100 ){

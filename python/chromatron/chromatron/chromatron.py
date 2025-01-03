@@ -32,7 +32,8 @@ from collections import UserDict
 import getpass
 import zipfile
 import hashlib
-import pkg_resources
+# import pkg_resources
+import importlib.resources
 from .filewatcher import Watcher
 from sapphire.buildtools import firmware_package
 from sapphire.buildtools.firmware_package import FirmwarePackage
@@ -198,8 +199,9 @@ PIXEL_SETTINGS = [
 MAX_UPDATE_THREADS = 4
 
 def get_package_fx_script(fname):
-    return pkg_resources.resource_filename('chromatron', fname)
-
+    # return pkg_resources.resource_filename('chromatron', fname)
+    ref = importlib.resources.files('chromatron') / fname # thanks 3.12 for removing a thing that worked fine
+    return importlib.resources.as_file(ref)
 
 # note - this is just a convenience wrapper around the
 # underlying Device object.
@@ -514,14 +516,19 @@ class Chromatron(object):
         # change vm program
         if vm_index == 0:
             vm_prog_slot = 'vm_prog'
+            vm_run = 'vm_run'
+            vm_reset = 'vm_reset'
+
         else:
-            vm_prog_slot = 'vm_prog_%d' % (vm_index)
+            vm_prog_slot = f'vm_prog_{vm_index}'
+            vm_run = f'vm_run_{vm_index}'
+            vm_reset = f'vm_reset_{vm_index}'
 
         if start:
-            self.set_keys(**{vm_prog_slot: bin_filename, 'vm_run': True, 'vm_reset': True})
+            self.set_keys(**{vm_prog_slot: bin_filename, vm_run: True, vm_reset: True})
 
         else:
-            self.set_keys({vm_prog_slot: bin_filename, 'vm_run': False})
+            self.set_keys({vm_prog_slot: bin_filename, vm_run: False})
 
     def reset_vm(self, vm_index=0):
         if vm_index == 0:
@@ -1274,7 +1281,12 @@ def show(ctx):
     click.echo(s)
 
     for ct in sorted(group.values(), key=lambda a: a.name):
-        keys = ct.get_keys('wifi_rssi', 'wifi_uptime', 'supply_voltage', catbus.META_TAG_LOC, 'meta_tag_0', 'meta_tag_1')
+        try:
+            keys = ct.get_keys('wifi_rssi', 'wifi_uptime', 'supply_voltage', catbus.META_TAG_LOC, 'meta_tag_0', 'meta_tag_1')
+
+        except catbus.client.NoResponseFromHost:
+            click.echo(f'No response from {ct}')
+            continue
 
         name = ct.name
         rssi = keys['wifi_rssi']

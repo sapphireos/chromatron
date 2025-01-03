@@ -34,6 +34,10 @@
 
 void sht40_v_init( void );
 uint32_t sht40_u32_read_serial( void );
+
+uint16_t sht40_u16_read_temp_C( void );
+uint16_t sht40_u16_read_temp_F( void );
+
 void sht40_v_meas_raw( int16_t *temp, int16_t *RH );
 
 #endif

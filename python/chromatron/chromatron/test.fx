@@ -1,13 +1,21 @@
 
 def init():
-    # while pixels.is_hs_fading:
-        # print(pixels[0].hue)
+    span = Number()
 
-    # if pixels.is_hs_fading:
-        # print(0)
+    for i in span:
+        # span += 1
+        span = 1
 
-    for i in pixels.is_hs_fading:
-        pass
+
+# def init():
+#     # while pixels.is_hs_fading:
+#         # print(pixels[0].hue)
+
+#     # if pixels.is_hs_fading:
+#         # print(0)
+
+#     for i in pixels.is_hs_fading:
+#         pass
 
     # return pixels.is_hs_fading
 

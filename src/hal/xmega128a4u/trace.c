@@ -32,6 +32,7 @@
 #ifndef BOOTLOADER
 
 int _trace_printf(PGM_P format, ...){
+  #ifdef ENABLE_TRACE
   int ret;
   va_list ap;
 
@@ -50,7 +51,11 @@ int _trace_printf(PGM_P format, ...){
     }
 
   va_end (ap);
+
   return ret;
+  #else
+  return 0;
+  #endif
 }
 
 int trace_printf_ram(const char* format, ...){

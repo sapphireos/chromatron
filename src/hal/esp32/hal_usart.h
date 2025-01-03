@@ -27,11 +27,9 @@
 #include "cpu.h"
 #include "usart_bauds.h"
 
-#ifdef ENABLE_COPROCESSOR
-#define USER_USART          1
-#else
-#define USER_USART          0
-#endif
+#include "driver/uart.h"
+
+#define USER_USART          UART_NUM_2
 
 
 void usart_v_init( uint8_t channel );

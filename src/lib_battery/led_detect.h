@@ -26,9 +26,12 @@
 #define _LED_DETECT_H
 
 
-#define LED_UNIT_TYPE_NONE          0
-#define LED_UNIT_TYPE_STRAND50      1
-#define LED_UNIT_TYPE_SUNSTREAK     2
+#define LED_UNIT_TYPE_NONE              0
+#define LED_UNIT_TYPE_STRAND50          1
+#define LED_UNIT_TYPE_SUNSTREAK         2
+#define LED_UNIT_TYPE_BACKPACK_HEXAGON  3
+#define LED_UNIT_TYPE_BM_LANTERN        4
+#define LED_UNIT_TYPE_BATT_CHECK        5
 
 
 
@@ -40,6 +43,7 @@ typedef struct{
     uint16_t pix_count;
     uint16_t pix_size_x;
     uint16_t pix_size_y;
+    uint8_t rgb_order;
     // vm prog name
     catbus_string_t vm_prog;
     // this will load VM 0

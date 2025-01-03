@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include "catbus_common.h"
+#include "catbus_types.h"
 
 int64_t specific_to_i64( catbus_type_t8 type, const void *data ){
 
@@ -358,4 +359,17 @@ uint16_t type_u16_size_meta( catbus_meta_t *meta ){
     return ( meta->count + 1 ) * type_u16_size( meta->type );
 }
 
+fixed16_t type_f16_from_i32( int32_t n ){
 
+    return n * 65536;
+}
+
+int32_t type_i32_from_f16( fixed16_t n ){
+
+    return n / 65536;
+}
+
+fixed16_t type_f16_from_decimal( int16_t n, uint16_t decimal ){
+
+    return (int32_t)n * 65536 + ( (uint32_t)decimal * 65536 ) / 10;
+}

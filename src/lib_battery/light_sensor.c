@@ -21,12 +21,10 @@
 // </license>
 
 
-#include "cnt_of_array.h"
 #include "sapphire.h"
 
 #include "light_sensor.h"
 
-#include "timers.h"
 #include "veml7700.h"
 
 #ifdef ENABLE_SOLAR
@@ -119,6 +117,7 @@ PT_BEGIN( pt );
 			current_delta = temp - (int32_t)filtered_light;
 		}
 
+		filtered_light = temp;
 	}
 
 

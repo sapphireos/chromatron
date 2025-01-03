@@ -28,7 +28,7 @@
 #include "esp_task.h"
 
 // modules
-#define ENABLE_CATBUS_LINK
+// #define ENABLE_CATBUS_LINK
 #define ENABLE_TIME_SYNC
 #define ENABLE_WIFI
 #define ENABLE_FFS
@@ -38,14 +38,18 @@
 #define ENABLE_USB_UDP_TRANSPORT
 // #define ENABLE_USB
 #define ENABLE_GFX
-#define ENABLE_MSGFLOW
-#define ENABLE_SERVICES
+// #define ENABLE_MSGFLOW
+// #define ENABLE_SERVICES
 #define ENABLE_BATTERY
 #define ENABLE_AUX_BATTERY
-// #define ENABLE_SOLAR
+#define ENABLE_SOLAR
 #define ENABLE_LED_DETECT
+#define ENABLE_CONTROLLER
 
+// DEBUG!
+// Turn this off for normal operation!
 #define ENABLE_TRACE
+
 
 // wifi
 #define WIFI_MAX_PORTS          16
@@ -58,7 +62,7 @@
 #define PIXEL_SPI_CHANNEL		0
 #define USER_SPI_CHANNEL        1
 
-#define ENABLE_PIXEL_MAPPER
+// #define ENABLE_PIXEL_MAPPER
 
 // if defined, places pixel buffers in malloc region
 #define PIXEL_USE_MALLOC
@@ -92,6 +96,8 @@
 #define FLASH_FS_MAX_USER_FILES 64
 
 #define FLASH_FS_TIMING
+#define FLASH_FS_CACHE
+#define FFS_CACHE_ENTRIES 128
 
 #define FFS_ALIGN32
 
@@ -132,8 +138,7 @@
 // comment this out to turn off run-time asserts
 #define INCLUDE_ASSERTS
 
-#define DISABLE_FFS_FW_COPY
-#define DISABLE_SLEEP
+// #define DISABLE_FFS_FW_COPY
 
 // recovery mode
 // #define DISABLE_SAFE_MODE

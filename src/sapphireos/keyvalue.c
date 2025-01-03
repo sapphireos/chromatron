@@ -280,7 +280,7 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     // check if hash exists
     if( hash == 0 ){
 
-        return -1;
+        return KV_ERR_STATUS_NOT_FOUND;
     }
 
     // check cache
@@ -590,6 +590,10 @@ int8_t kv_i8_get_name( catbus_hash_t32 hash, char name[KV_NAME_LEN] ){
     if( status == 0 ){
 
         strlcpy( name, meta.name, KV_NAME_LEN );
+    }
+    else if( status < 0 ){
+
+        status = kvdb_i8_lookup_name( hash, name );
     }
 
     return status;

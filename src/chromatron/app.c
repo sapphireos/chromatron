@@ -31,11 +31,11 @@
 #include "energy.h"
 #include "battery.h"
 #include "flash_fs.h"
-
-#include "veml7700.h"
-#include "ssd1306.h"
+#include "buttons.h"
 
 #ifdef ESP32
+#include "veml7700.h"
+#include "ssd1306.h"
 #include "telemetry.h"
 #endif
 
@@ -62,6 +62,8 @@ void app_v_init( void ){
     telemetry_v_init();
 
     #endif
+
+    button_v_init();
 
     #ifdef ENABLE_BATTERY
     batt_v_init();
