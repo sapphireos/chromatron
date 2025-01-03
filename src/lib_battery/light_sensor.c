@@ -77,6 +77,7 @@ PT_THREAD( light_sensor_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
 	static uint8_t counter;
+	static uint32_t last_delta_sample;
 	counter = 0;
 
 	// init filter
@@ -86,6 +87,8 @@ PT_BEGIN( pt );
 
 		samples[i] = init_sample;
 	}
+
+	last_delta_sample = init_sample;
 
 	while(1){
 
@@ -114,10 +117,10 @@ PT_BEGIN( pt );
 			counter = 0;
 
 			// compute delta
-			current_delta = temp - (int32_t)filtered_light;
-		}
+			current_delta = (int32_t)filtered_light - (int32_t)last_delta_sample;
 
-		filtered_light = temp;
+			last_delta_sample = filtered_light;
+		}
 	}
 
 

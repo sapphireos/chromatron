@@ -80,7 +80,7 @@ FAULT: Either charger has some kind of fault reported.  Charging is stopped.
 #include "pixel_power.h"
 #include "fuel_gauge.h"
 #include "energy.h"
-#include "veml7700.h"
+#include "light_sensor.h"
 
 #include "bq25895_aux.h"
 
@@ -584,12 +584,12 @@ PT_BEGIN( pt );
 
 			if( batt_b_is_batt_fault() ){
 
-				log_v_warning_P( PSTR("Fault mode: main charger") );
+				log_v_warn_P( PSTR("Fault mode: main charger") );
 			}
 
 			if( bq25895_aux_b_is_batt_fault() ){
 
-				log_v_warning_P( PSTR("Fault mode: aux charger") );
+				log_v_warn_P( PSTR("Fault mode: aux charger") );
 			}
 
 			next_state = SOLAR_MODE_FAULT;
