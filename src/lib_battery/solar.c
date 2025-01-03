@@ -724,6 +724,20 @@ PT_BEGIN( pt );
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
 
+			// make sure main charger is disabled!
+			batt_v_disable_charge();
+
+			// check if finished charging:
+			if( bq25895_aux_b_is_charge_complete() ){
+
+				next_state = SOLAR_MODE_FULL_CHARGE;
+			}
+			// or otherwise not charging:
+			else if( !bq25895_aux_b_is_charging() ){
+
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+
 			// if( !enable_solar_charge ){						
 
 			// 	next_state = SOLAR_MODE_DISCHARGE;

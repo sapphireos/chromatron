@@ -229,6 +229,35 @@ uint8_t bq25895_aux_u8_get_charge_status( void ){
 	return temp;
 }
 
+
+uint16_t bq25895_aux_u16_get_charge_current( void ){
+
+    uint16_t temp = 0;
+
+    set_register_bank_aux();
+
+    temp = bq25895_u16_get_charge_current();
+
+    set_register_bank_main();   
+
+    return temp;
+}
+
+bool bq25895_aux_b_is_charge_complete( void ){
+
+    uint16_t full_charge_threshold = batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD;
+    uint16_t batt_voltage = batt_u16_get_batt_volts();
+    uint16_t charge_current = bq25895_aux_u16_get_charge_current();
+
+    if( ( batt_voltage > full_charge_threshold ) && 
+        ( charge_current < BATT_CHARGE_DONE_CURRENT ) ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 static bool is_charging( void ){
 
     return ( aux_charge_status == BQ25895_CHARGE_STATUS_PRE_CHARGE ) ||
