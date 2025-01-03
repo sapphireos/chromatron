@@ -119,7 +119,7 @@ static uint16_t charge_timer;
 // #define CHARGE_HOLD_TIME				( 4 )  // time to remain in charge before allowing a switch back to discharge or full
 #define FAULT_HOLD_TIME					( 10 )  // minimum time to remain in fault state
 
-// #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
+#define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
 
 
 static uint16_t solar_vindpm = 5800;
@@ -313,52 +313,52 @@ bool solar_b_is_charging( void ){
 }
 
 
-static void enable_charge( uint8_t target_state ){
+// static void enable_charge( uint8_t target_state ){
 
-	// batt_v_enable_charge();
+// 	// batt_v_enable_charge();
 
-	/*
+// 	/*
 	
-	Move the BQ25895 specific stuff to a lower layer!
-	After confirming it works!
+// 	Move the BQ25895 specific stuff to a lower layer!
+// 	After confirming it works!
 
-	*/
+// 	*/
 
-	// if( target_state == SOLAR_MODE_CHARGE_SOLAR ){
+// 	// if( target_state == SOLAR_MODE_CHARGE_SOLAR ){
 
-	// 	if( mppt_enabled ){
+// 	// 	if( mppt_enabled ){
 
-	// 		mppt_v_enable();	
-	// 	}
-	// 	else{
+// 	// 		mppt_v_enable();	
+// 	// 	}
+// 	// 	else{
 
-	// 		// debug!
-	// 		bq25895_v_set_vindpm( solar_vindpm );
-	// 	}
-	// }
-	// // else if( target_state == SOLAR_MODE_CHARGE_DC ){
+// 	// 		// debug!
+// 	// 		bq25895_v_set_vindpm( solar_vindpm );
+// 	// 	}
+// 	// }
+// 	// // else if( target_state == SOLAR_MODE_CHARGE_DC ){
 
-	// // 	bq25895_v_set_vindpm( 0 );
+// 	// // 	bq25895_v_set_vindpm( 0 );
 
-	// // 	// turn on ICO
-    // // 	// bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
-	// // }
-	// else{
+// 	// // 	// turn on ICO
+//     // // 	// bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
+// 	// // }
+// 	// else{
 
-	// 	log_v_warn_P( PSTR("This is not a valid charge state!") );
-	// }
-}
+// 	// 	log_v_warn_P( PSTR("This is not a valid charge state!") );
+// 	// }
+// }
 
-static void disable_charge( void ){
+// static void disable_charge( void ){
 
-	// mppt_v_disable();
+// 	// mppt_v_disable();
 	
-	// BQ25895: we don't actually want to turn the charger off, 
-	// this messes with BATFET Q4 and there's not really any reason
-	// to do it.
+// 	// BQ25895: we don't actually want to turn the charger off, 
+// 	// this messes with BATFET Q4 and there's not really any reason
+// 	// to do it.
 
-	// batt_v_disable_charge();	
-}
+// 	// batt_v_disable_charge();	
+// }
 
 // static void enable_solar_vbus( void ){
 
@@ -746,11 +746,11 @@ PT_BEGIN( pt );
 
 			// // we do not leave full charge state until we start discharging,
 			// // IE battery voltage drops below a threshold
-			// if( batt_u16_get_batt_volts() < RECHARGE_THRESHOLD ){
+			if( batt_u16_get_batt_volts() < RECHARGE_THRESHOLD ){
 
-			// 	// switch to discharge state
-			// 	next_state = SOLAR_MODE_DISCHARGE;
-			// }
+				// switch to discharge state
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
 		}
 		else{
 

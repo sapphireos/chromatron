@@ -267,7 +267,22 @@ bool batt_b_is_charging( void ){
 
 bool batt_b_is_charge_complete( void ){
 
-    return bq25895_u8_get_charge_status() == BQ25895_CHARGE_STATUS_CHARGE_DONE;
+    // return bq25895_u8_get_charge_status() == BQ25895_CHARGE_STATUS_CHARGE_DONE;
+
+    // the charge status indication isn't... great.
+
+    // use battery voltage and charge current instead:
+    uint16_t full_charge_threshold = batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD;
+    uint16_t batt_voltage = batt_u16_get_batt_volts();
+    uint16_t charge_current = batt_u16_get_charge_current();
+
+    if( ( batt_voltage > full_charge_threshold ) && 
+        ( charge_current < BATT_CHARGE_DONE_CURRENT ) ){
+
+        return TRUE;
+    }
+
+    return FALSE;
 }
 
 bool batt_b_is_external_power( void ){
