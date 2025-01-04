@@ -726,12 +726,12 @@ PT_BEGIN( pt );
 			// check if finished charging:
 			else if( batt_b_is_charge_complete() ){
 
-				next_state = SOLAR_MODE_FULL_CHARGE;
+				// next_state = SOLAR_MODE_FULL_CHARGE;
 			}
 			// or otherwise not charging:
 			else if( !batt_b_is_charging() ){
 
-				next_state = SOLAR_MODE_DISCHARGE;
+				// next_state = SOLAR_MODE_DISCHARGE;
 			}
 
 
@@ -874,8 +874,8 @@ PT_BEGIN( pt );
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_DC ){
 
-				bq25895_aux_v_disable_charger();
-				batt_v_enable_charge();
+				// bq25895_aux_v_disable_charger();
+				// batt_v_enable_charge();
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
 

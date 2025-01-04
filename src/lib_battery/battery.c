@@ -222,10 +222,14 @@ uint16_t batt_u16_get_min_discharge_voltage( void ){
 
 void batt_v_enable_charge( void ){
 
+    log_v_debug_P( PSTR("enable charger") );
+
     bq25895_v_enable_charger();
 }
 
 void batt_v_disable_charge( void ){
+
+    log_v_debug_P( PSTR("disable charger") );
     
     bq25895_v_disable_charger();   
 }
