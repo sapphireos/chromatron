@@ -135,8 +135,6 @@ void bq25895_aux_v_init( void ){
 
             init_charger();
 
-            bq25895_v_set_boost_voltage(4500);
-
             thread_t_create( bq25895_aux_mon_thread,
                      PSTR("bq25895_aux"),
                      0,
