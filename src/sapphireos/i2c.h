@@ -42,4 +42,9 @@ void i2c_v_mem_read( uint8_t dev_addr, uint16_t mem_addr, uint8_t addr_size, uin
 void i2c_v_write_reg8( uint8_t dev_addr, uint8_t reg_addr, uint8_t data );
 uint8_t i2c_u8_read_reg8( uint8_t dev_addr, uint8_t reg_addr );
 
+#ifdef ESP32
+void i2c_v_set_baud( i2c_baud_t8 baud );
+#endif
+
+
 #endif

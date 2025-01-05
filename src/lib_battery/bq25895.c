@@ -128,7 +128,8 @@ void set_register_bank_main( void ){
     register_bank_aux = FALSE;
 
     i2c_v_set_pins( ELITE_MAIN_I2C_SCL, ELITE_MAIN_I2C_SDA );
-    i2c_v_init( I2C_BAUD_400K );
+    // i2c_v_init( I2C_BAUD_100K );
+    // i2c_v_set_baud( I2C_BAUD_400K );
 }
 
 void set_register_bank_aux( void ){
@@ -136,13 +137,14 @@ void set_register_bank_aux( void ){
     register_bank_aux = TRUE;
 
     i2c_v_set_pins( ELITE_AUX_I2C_SCL, ELITE_AUX_I2C_SDA );
-    i2c_v_init( I2C_BAUD_400K );
+    // i2c_v_init( I2C_BAUD_100K );
+    // i2c_v_set_baud( I2C_BAUD_400K );
 }
 
 #else
 static void set_register_bank_main( void ){
 
-    i2c_v_init( I2C_BAUD_400K );
+    // i2c_v_init( I2C_BAUD_400K );
 }
 #endif
 
@@ -150,6 +152,8 @@ static void set_register_bank_main( void ){
 PT_THREAD( bq25895_mon_thread( pt_t *pt, void *state ) );
 
 int8_t bq25895_i8_init( void ){
+
+    i2c_v_init( I2C_BAUD_400K );
 
     set_register_bank_main();
 
@@ -938,8 +942,17 @@ uint8_t bq25895_u8_get_device_id( void ){
 void bq25895_v_print_regs( void ){
     
     uint8_t data;
+    #ifdef ENABLE_AUX_BATTERY
+    if( register_bank_aux ){
+        log_v_debug_P( PSTR("BQ25895 AUX:") );
+    }
+    else{
 
+        log_v_debug_P( PSTR("BQ25895:") );
+    }
+    #else
     log_v_debug_P( PSTR("BQ25895:") );
+    #endif
     
     data = read_cached_reg( 0x00 );
     bool hiz            = ( data & BQ25895_BIT_ENABLE_HIZ ) != 0;

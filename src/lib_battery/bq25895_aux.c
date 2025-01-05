@@ -103,9 +103,10 @@ KV_SECTION_OPT kv_meta_t bq25895_aux_info_kv[] = {
 };
 
 
-void init_charger( void );
-void set_register_bank_main( void );
-void set_register_bank_aux( void );
+extern void init_charger( void );
+extern void set_register_bank_main( void );
+extern void set_register_bank_aux( void );
+
 static bool read_adc_aux( void );
 
 
@@ -134,6 +135,8 @@ void bq25895_aux_v_init( void ){
 
             init_charger();
 
+            bq25895_v_set_boost_voltage(4500);
+
             thread_t_create( bq25895_aux_mon_thread,
                      PSTR("bq25895_aux"),
                      0,
@@ -146,6 +149,8 @@ void bq25895_aux_v_init( void ){
 
 void bq25895_aux_v_enable_charger( void ){
 
+    // log_v_debug_P( PSTR("enable aux charger") );
+
 	set_register_bank_aux();
 
 	bq25895_v_enable_charger();
@@ -154,6 +159,8 @@ void bq25895_aux_v_enable_charger( void ){
 }
 
 void bq25895_aux_v_disable_charger( void ){
+
+    // log_v_debug_P( PSTR("disable aux charger") );
 
 	set_register_bank_aux();
 
@@ -328,16 +335,12 @@ static bool aux_adc_ready( void ){
 
     bool temp = FALSE;
 
-    #ifdef ENABLE_AUX_BATTERY
     set_register_bank_aux();
-    #endif
-
+    
     temp = bq25895_b_adc_ready();
 
-    #ifdef ENABLE_AUX_BATTERY
     set_register_bank_main();
-    #endif
-
+    
     return temp;
 }
 
@@ -353,9 +356,8 @@ PT_BEGIN( pt );
 
         static uint32_t start_time;
 
-        #ifdef ENABLE_AUX_BATTERY
+
         set_register_bank_aux();
-        #endif
 
         bq25895_v_start_adc_oneshot();
         start_time = tmr_u32_get_system_time_ms();
@@ -363,9 +365,7 @@ PT_BEGIN( pt );
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !aux_adc_ready() );
 
-        #ifdef ENABLE_AUX_BATTERY
         set_register_bank_aux();
-        #endif
 
         // read all registers
         bq25895_v_read_all();
