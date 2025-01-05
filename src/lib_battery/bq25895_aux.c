@@ -196,15 +196,7 @@ bool bq25895_aux_b_is_batt_fault( void ){
 
 uint16_t bq25895_aux_u16_read_vbus( void ){
 
-	uint16_t temp = 0;
-
-	set_register_bank_aux();
-
-	temp = bq25895_u16_read_vbus();
-
-	set_register_bank_main();	
-
-	return temp;
+	return aux_vbus_volts;
 }
 
 bool bq25895_aux_b_is_vbus_connected( void ){
