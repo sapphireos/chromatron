@@ -37,7 +37,7 @@ static uint16_t aux_sys_volts;
 static uint16_t aux_batt_charge_current;
 static uint16_t aux_batt_instant_charge_current;
 static uint16_t aux_batt_charge_power;
-static uint16_t aux_batt_max_charge_current;
+// static uint16_t aux_batt_max_charge_current;
 static bool aux_batt_charging;
 static uint8_t aux_batt_fault;
 static uint8_t aux_vbus_status;
@@ -49,7 +49,7 @@ static bool aux_dump_regs;
 static uint16_t aux_vindpm;
 static uint16_t aux_iindpm;
 
-static uint16_t aux_current_fast_charge_setting;
+// static uint16_t aux_current_fast_charge_setting;
 
 // true if MCU system power is sourced from the boost converter
 // static bool aux_mcu_source_pmid;
@@ -80,13 +80,13 @@ KV_SECTION_OPT kv_meta_t bq25895_aux_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_batt_charge_current,        0,  "batt_aux_charge_current" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_batt_instant_charge_current,0,  "batt_aux_charge_current_instant" },
     
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_current_fast_charge_setting,0,  "batt_aux_charge_current_setting" },
+    // { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_current_fast_charge_setting,0,  "batt_aux_charge_current_setting" },
     
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_batt_charge_power,          0,  "batt_aux_charge_power" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &aux_batt_fault,                 0,  "batt_aux_fault" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &aux_vbus_status,                0,  "batt_aux_vbus_status" },
     
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &aux_batt_max_charge_current,    0,  "batt_aux_max_charge_current" },
+    // { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &aux_batt_max_charge_current,    0,  "batt_aux_max_charge_current" },
     
     // { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &aux_boost_enabled,              0,  "batt_aux_boost_enabled" },
     // { CATBUS_TYPE_UINT16,  0, KV_FLAGS_PERSIST,    &aux_boost_voltage,              0,  "batt_aux_boost_voltage" },
@@ -143,6 +143,11 @@ void bq25895_aux_v_init( void ){
 
         set_register_bank_main();
     }
+}
+
+bool bq25895_aux_b_present( void ){
+
+    return aux_present;    
 }
 
 void bq25895_aux_v_enable_charger( void ){

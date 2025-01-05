@@ -27,6 +27,7 @@
 #include "i2c.h"
 
 #include "bq25895.h"
+#include "bq25895_aux.h"
 #include "util.h"
 #include "energy.h"
 
@@ -1221,7 +1222,7 @@ void init_charger( void ){
     bq25895_v_set_pre_charge_current( 160 );
     
     uint32_t fast_charge_current = get_fast_charge_current();
-    
+
     // #ifdef BQ25895_SOFT_START
     // current_fast_charge_setting = BQ25895_SOFT_START_INITIAL_CHARGE;
     // bq25895_v_set_fast_charge_current( BQ25895_SOFT_START_INITIAL_CHARGE );
@@ -1469,7 +1470,21 @@ PT_BEGIN( pt );
             // if current setting is changing, apply it
             if( current_fast_charge_setting != prev_fast_charge_setting ){
 
-                bq25895_v_set_fast_charge_current( current_fast_charge_setting );   
+                #ifdef ENABLE_AUX_BATTERY
+
+                // set both chargers if aux is enabled
+                if( bq25895_aux_b_present() ){
+
+                    set_register_bank_aux();
+                    bq25895_v_set_fast_charge_current( current_fast_charge_setting );      
+                }
+
+                set_register_bank_main();
+                bq25895_v_set_fast_charge_current( current_fast_charge_setting );  
+
+                #else
+                bq25895_v_set_fast_charge_current( current_fast_charge_setting );  
+                #endif 
             }
         }
         else{

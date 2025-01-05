@@ -149,6 +149,10 @@ void batt_v_init( void ){
         return;
     }
 
+    kv_v_add_db_info( battery_info_kv, sizeof(battery_info_kv) );
+
+    set_batt_nameplate_capacity();
+
     if( bq25895_i8_init() < 0 ){
     
         log_v_warn_P( PSTR("No battery controlled enabled or detected") );
@@ -159,11 +163,6 @@ void batt_v_init( void ){
     #ifdef ENABLE_AUX_BATTERY
     bq25895_aux_v_init();
     #endif
-
-    // only add batt info if a battery controller is actually present
-    kv_v_add_db_info( battery_info_kv, sizeof(battery_info_kv) );
-
-    set_batt_nameplate_capacity();
 
     if( charger2_board_installed ){
         
@@ -333,7 +332,7 @@ PT_BEGIN( pt );
     // wait until connection to battery is established
     THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
 
-    set_batt_nameplate_capacity();
+    // set_batt_nameplate_capacity();
 
     // check if VBUS connected on startup    
     startup_on_vbus = batt_b_is_vbus_connected();
