@@ -483,28 +483,12 @@ PT_BEGIN( pt );
 	// wait if battery is not connected (this could also be a charge system fault)
 	THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
 
-	// check if above solar threshold
-	// if( is_solar_enable_threshold() ){
-	// if( light_sensor_u32_read() >= charge_minimum_light ){
-
-	// 	// if so, start in discharge state, so it will then switch to solar charge
-	// 	// and enable the panel connection.
-	// 	// this is done before the full charge check, so that if it is fully charged,
-	// 	// we will still be able to power off the panel instead of the battery.
-	// 	solar_state = SOLAR_MODE_DISCHARGE;		
-	// }
-	// // check if fully charged:
-	// else if( batt_u16_get_batt_volts() >= batt_u16_get_charge_voltage() ){
-
-	// 	solar_state = SOLAR_MODE_FULL_CHARGE;
-	// }
-	// else{
-
-	// 	solar_state = SOLAR_MODE_DISCHARGE;
-	// }
-
+	solar_state = SOLAR_MODE_DISCHARGE;
 
 	apply_state_name();
+
+	bq25895_aux_v_enable_charger();
+	batt_v_enable_charge();
 
 
 	while(1){
@@ -623,8 +607,16 @@ PT_BEGIN( pt );
 
 				next_state = SOLAR_MODE_CHARGE_DC;	
 			}
-			else if( bq25895_aux_b_is_vbus_connected() ||
-				   ( bq25895_aux_u16_get_charge_current() > 0 ) ){
+			else if( bq25895_aux_u16_get_charge_current() > 450 ){
+
+				// starting out with a strong solar charge current
+
+				next_state = SOLAR_MODE_CHARGE_SOLAR;	
+			}
+			else if( bq25895_aux_b_is_vbus_connected() ){
+
+				// if solar VBUS is connected, but 
+				// not enough charge current:
 
 				next_state = SOLAR_MODE_LOW_SOLAR;	
 			}
@@ -783,22 +775,35 @@ PT_BEGIN( pt );
 			}
 			else if( next_state == SOLAR_MODE_DISCHARGE ){
 
+				bq25895_aux_v_enable_charger();
+				batt_v_enable_charge();
 
+				gfx_v_set_system_enable( TRUE );
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_DC ){
+
+				gfx_v_set_system_enable( FALSE );
 
 				bq25895_aux_v_disable_charger();
 				batt_v_enable_charge();
 			}
 			else if( next_state == SOLAR_MODE_LOW_SOLAR ){
 
+				gfx_v_set_system_enable( FALSE );
+
 				batt_v_disable_charge();
 				bq25895_aux_v_enable_charger();
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
 
+				gfx_v_set_system_enable( FALSE );
+
 				batt_v_disable_charge();
 				bq25895_aux_v_enable_charger();
+			}
+			else if( next_state == SOLAR_MODE_FULL_CHARGE ){
+
+				gfx_v_set_system_enable( TRUE );
 			}
 
 
