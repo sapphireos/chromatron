@@ -44,6 +44,7 @@
 #define SOLAR_MODE_CHARGE_DC			1
 #define SOLAR_MODE_CHARGE_SOLAR			2
 #define SOLAR_MODE_FULL_CHARGE			3
+#define SOLAR_MODE_LOW_SOLAR			4
 // #define SOLAR_MODE_STOPPED				4
 // #define SOLAR_MODE_SHUTDOWN	  			5
 #define SOLAR_MODE_FAULT	  			6

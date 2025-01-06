@@ -117,6 +117,7 @@ static uint16_t charge_timer;
 // #define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
 #define DISCHARGE_HOLD_TIME				( 4 ) // time to remain in discharge before allowing a switch back to charge
 #define CHARGE_HOLD_TIME				( 4 )  // time to remain in charge before allowing a switch back to discharge or full
+#define SOLAR_HOLD_TIME					( 20 )  // time to remain in charge before allowing a switch back to discharge or full
 #define FAULT_HOLD_TIME					( 10 )  // minimum time to remain in fault state
 
 #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
@@ -277,6 +278,10 @@ static PGM_P get_state_name( uint8_t state ){
 
 		return PSTR("charge_solar");
 	}
+	else if( state == SOLAR_MODE_LOW_SOLAR ){
+
+		return PSTR("low_solar");
+	}
 	else if( state == SOLAR_MODE_FULL_CHARGE ){
 
 		return PSTR("full_charge");
@@ -312,10 +317,10 @@ bool solar_b_is_charging( void ){
 	return is_charging();
 }
 
-static bool is_recharge_threshold( void ){
+// static bool is_recharge_threshold( void ){
 
-	return batt_u16_get_batt_volts() < RECHARGE_THRESHOLD;
-}
+// 	return batt_u16_get_batt_volts() < RECHARGE_THRESHOLD;
+// }
 
 
 // static void enable_charge( uint8_t target_state ){
@@ -612,103 +617,17 @@ PT_BEGIN( pt );
 					charge_timer++;	
 				}
 			}
-			// check if battery is below the recharge threshold:
-			// else if( is_recharge_threshold() ){
-
 			// check if one of the chargers is connected
-			else if( batt_b_is_vbus_connected() ){
-
-				// if( batt_b_is_charge_complete() ){
-
-				// 	next_state = SOLAR_MODE_FULL_CHARGE;
-				// }
-				// else{
+			else if( batt_b_is_vbus_connected() ||
+					( batt_u16_get_charge_current() > 0 ) ){
 
 				next_state = SOLAR_MODE_CHARGE_DC;	
-				// }
 			}
-			else if( bq25895_aux_b_is_vbus_connected() ){
+			else if( bq25895_aux_b_is_vbus_connected() ||
+				   ( bq25895_aux_u16_get_charge_current() > 0 ) ){
 
-				// if( bq25895_aux_b_is_charge_complete() ){
-
-				// 	next_state = SOLAR_MODE_FULL_CHARGE;
-				// }
-				// else{
-
-				next_state = SOLAR_MODE_CHARGE_SOLAR;	
-				// }
+				next_state = SOLAR_MODE_LOW_SOLAR;	
 			}
-			// }
-			// check if the chargers are actively charging
-			else if( batt_u16_get_charge_current() > 0 ){
-
-				next_state = SOLAR_MODE_CHARGE_DC;
-			}
-			else if( bq25895_aux_u16_get_charge_current() > 0 ){
-
-				next_state = SOLAR_MODE_CHARGE_SOLAR;
-			}
-
-
-			// // check for fault?
-			// // go to fault state?
-			// else if( batt_b_is_batt_fault() ){
-
-			// 	next_state = SOLAR_MODE_FAULT;
-			// }
-			// else{
-
-			// 	// minimum discharge time reached
-			// 	// #ifdef ENABLE_PATCH_BOARD
-			// 	// if( patch_board_installed ){
-
-			// 	// 	// patch board has a dedicated DC detect signal:
-			// 	// 	// also validate that VBUS sees it
-			// 	// 	// and no charger faults
-			// 	// 	if( dc_detect && batt_b_is_vbus_connected() ){
-
-			// 	// 		next_state = SOLAR_MODE_CHARGE_DC;
-			// 	// 	}
-			// 	// 	// check solar enable threshold AND
-			// 	// 	// that there are no charger faults reported.
-			// 	// 	else if( is_solar_enable_threshold() ){
-
-			// 	// 		log_v_debug_P( PSTR("entering solar charge: %u mV %u lux"), solar_volts, light_sensor_u32_read() );
-
-			// 	// 		next_state = SOLAR_MODE_CHARGE_SOLAR;
-			// 	// 	}
-			// 	// }
-			// 	// else if( charger2_board_installed ){
-			// 	// #else
-			// 	// if( charger2_board_installed ){
-			// 	// // #endif
-
-			// 	// 	// charger2 board is USB powered
-			// 	// 	if( batt_b_is_vbus_connected() ){
-
-			// 	// 		next_state = SOLAR_MODE_CHARGE_DC;
-			// 	// 	}
-			// 	// }
-			// 	// else{
-
-			// 		// generic board
-			// 		// no dedicated DC detection.
-			// 		// we make an assumption based on configuration here.
-
-			// 	if( batt_b_is_vbus_connected() ){
-
-			// 		if( enable_solar_charge ){
-
-			// 			// if solar is enabled, assume charging on solar power
-			// 			next_state = SOLAR_MODE_CHARGE_SOLAR;
-			// 		}
-			// 		// else if( enable_dc_charge ){
-
-			// 		// 	next_state = SOLAR_MODE_CHARGE_DC;	
-			// 		// }
-			// 	}	
-			// 	// }
-			// }
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_DC ){
 
@@ -733,34 +652,45 @@ PT_BEGIN( pt );
 
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
+		}
+		else if( solar_state == SOLAR_MODE_LOW_SOLAR ){
 
+			// make sure main charger is disabled!
+			batt_v_disable_charge();
 
-			// if( !enable_dc_charge ){					
+			// check if the DC charger has connected
+			if( batt_b_is_vbus_connected() ||
+			   ( batt_u16_get_charge_current() > 0 ) ){
 
-			// 	log_v_error_P( PSTR("DC charge is not enabled!") );
+				next_state = SOLAR_MODE_CHARGE_DC;	
+			}
+			else if( charge_timer < SOLAR_HOLD_TIME ){
 
-			// 	next_state = SOLAR_MODE_DISCHARGE;
-			// }
-			// else if( charge_timer < CHARGE_HOLD_TIME ){
+				if( seconds_counter == 0 ){
 
-			// 	if( seconds_counter == 0 ){
+					charge_timer++;	
+				}
+			}
+			// check if solar VBUS is not present
+			else if( !bq25895_aux_b_is_vbus_connected() ){
 
-			// 		charge_timer++;	
-			// 	}
-			// }
-			// else if( batt_b_is_batt_fault() ){
+				// switch to discharge
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
 
-			// 	next_state = SOLAR_MODE_FAULT;
-			// }
-			// // check if no longer charging:
-			// else if( batt_b_is_charge_complete() ){
+			// check if charge current is too low
+			else if( bq25895_aux_u16_get_charge_current() < 150 ){
 
-			// 	next_state = SOLAR_MODE_FULL_CHARGE;
-			// }
-			// else if( !batt_b_is_charging() ){
+				// we have VBUS, but almost no current
+				// stay in low solar state
+			}
+			else{
 
-			// 	next_state = SOLAR_MODE_DISCHARGE;
-			// }
+				// charge timer has expired and we have had
+				// a sustained charge for the duration
+				// switch states
+				next_state = SOLAR_MODE_CHARGE_SOLAR;
+			}
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
 
@@ -785,24 +715,6 @@ PT_BEGIN( pt );
 
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
-
-			// if( !enable_solar_charge ){						
-
-			// 	next_state = SOLAR_MODE_DISCHARGE;
-			// }
-			// // check if no longer charging:
-			// else if( batt_b_is_batt_fault() ){
-
-			// 	next_state = SOLAR_MODE_FAULT;
-			// }
-			// else if( batt_b_is_charge_complete() ){
-
-			// 	next_state = SOLAR_MODE_FULL_CHARGE;
-			// }
-			// else if( !batt_b_is_charging() ){
-
-			// 	next_state = SOLAR_MODE_DISCHARGE;
-			// }
 		}
 		else if( solar_state == SOLAR_MODE_FULL_CHARGE ){
 
@@ -866,7 +778,8 @@ PT_BEGIN( pt );
 
 			if( next_state == SOLAR_MODE_FAULT ){
 
-				
+				bq25895_aux_v_disable_charger();
+				batt_v_disable_charge();
 			}
 			else if( next_state == SOLAR_MODE_DISCHARGE ){
 
@@ -876,6 +789,11 @@ PT_BEGIN( pt );
 
 				bq25895_aux_v_disable_charger();
 				batt_v_enable_charge();
+			}
+			else if( next_state == SOLAR_MODE_LOW_SOLAR ){
+
+				batt_v_disable_charge();
+				bq25895_aux_v_enable_charger();
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
 
