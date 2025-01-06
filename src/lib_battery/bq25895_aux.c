@@ -70,10 +70,10 @@ static bool aux_present;
 
 KV_SECTION_OPT kv_meta_t bq25895_aux_info_kv[] = {
     { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &aux_batt_temp,                  0,  "batt_aux_temp" },
-    { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &aux_batt_temp_raw,              0,  "batt_aux_temp_raw" },
+    // { CATBUS_TYPE_INT8,    0, KV_FLAGS_READ_ONLY,  &aux_batt_temp_raw,              0,  "batt_aux_temp_raw" },
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &aux_batt_charging,              0,  "batt_aux_charging" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_batt_volts,                 0,  "batt_aux_volts" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_batt_volts_raw,             0,  "batt_aux_volts_raw" },
+    // { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_batt_volts_raw,             0,  "batt_aux_volts_raw" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_vbus_volts,                 0,  "batt_aux_vbus_volts" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_sys_volts,                  0,  "batt_aux_sys_volts" },
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &aux_charge_status,              0,  "batt_aux_charge_status" },
