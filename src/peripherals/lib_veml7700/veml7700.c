@@ -334,10 +334,10 @@ void veml7700_v_init( void ){
     
     i2c_v_init( I2C_BAUD_400K );
 
-    // thread_t_create( veml7700_thread,
-    //                  PSTR("veml7700"),
-    //                  0,
-    //                  0 );
+    thread_t_create( veml7700_thread,
+                     PSTR("veml7700"),
+                     0,
+                     0 );
 }
 
 #endif
