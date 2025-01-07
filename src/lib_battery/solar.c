@@ -579,14 +579,34 @@ PT_BEGIN( pt );
 			if( batt_b_is_batt_fault() ){
 
 				log_v_warn_P( PSTR("Fault mode: main charger 0x%02x"), bq25895_u8_get_faults() );
+
+				next_state = SOLAR_MODE_FAULT;
 			}
 
 			if( bq25895_aux_b_is_batt_fault() ){
 
-				log_v_warn_P( PSTR("Fault mode: aux charger: 0x%02x"), bq25895_aux_u8_get_faults() );
-			}
+				uint8_t faults = bq25895_aux_u8_get_faults();
 
-			next_state = SOLAR_MODE_FAULT;
+				// check if input fault - this is normal behavior in low light on the aux/solar
+				// charger.
+				if( ( faults & ~BQ25895_MASK_CHRG_FAULT ) == 0 ){
+
+					// input fault - this is ok
+				}
+				else{
+
+					// some other fault, not ok
+
+					log_v_warn_P( PSTR("Fault mode: aux charger: 0x%02x"), faults );
+					next_state = SOLAR_MODE_FAULT;
+				}
+			}
+		}
+
+		if( ( solar_state == SOLAR_MODE_FAULT ) || ( next_state == SOLAR_MODE_FAULT ) ){
+
+			// skip state machine if we are going in to fault mode.
+
 		}
 		else if( solar_state == SOLAR_MODE_DISCHARGE ){
 
