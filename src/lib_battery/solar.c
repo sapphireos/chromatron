@@ -76,7 +76,7 @@ FAULT: Either charger has some kind of fault reported.  Charging is stopped.
 #include "buttons.h"
 #include "thermal.h"
 #include "battery.h"
-// #include "patch_board.h"
+#include "bq25895.h"
 #include "pixel_power.h"
 #include "fuel_gauge.h"
 #include "energy.h"
@@ -578,12 +578,12 @@ PT_BEGIN( pt );
 
 			if( batt_b_is_batt_fault() ){
 
-				log_v_warn_P( PSTR("Fault mode: main charger") );
+				log_v_warn_P( PSTR("Fault mode: main charger 0x%02x"), bq25895_u8_get_faults() );
 			}
 
 			if( bq25895_aux_b_is_batt_fault() ){
 
-				log_v_warn_P( PSTR("Fault mode: aux charger") );
+				log_v_warn_P( PSTR("Fault mode: aux charger: 0x%02x"), bq25895_aux_u8_get_faults() );
 			}
 
 			next_state = SOLAR_MODE_FAULT;

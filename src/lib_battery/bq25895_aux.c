@@ -204,6 +204,16 @@ bool bq25895_aux_b_is_vbus_connected( void ){
     return bq25895_aux_u16_read_vbus() >= BATT_MIN_CHARGE_VBUS_VOLTS;
 }
 
+uint8_t bq25895_aux_u8_get_faults( void ){
+
+    set_register_bank_aux();
+
+    uint8_t data = bq25895_u8_get_faults();
+
+    set_register_bank_main();
+
+    return data;
+}
 
 bool bq25895_aux_b_is_charging( void ){
 
