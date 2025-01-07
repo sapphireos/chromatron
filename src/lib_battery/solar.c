@@ -814,7 +814,7 @@ PT_BEGIN( pt );
 				batt_v_disable_charge();				
 
 				bq25895_aux_v_enable_charger();
-				bq25895_aux_v_set_vindpm( 5800 );
+				bq25895_aux_v_set_vindpm( solar_vindpm );
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
 
@@ -823,7 +823,7 @@ PT_BEGIN( pt );
 				batt_v_disable_charge();
 
 				bq25895_aux_v_enable_charger();
-				bq25895_aux_v_set_vindpm( 5800 );
+				bq25895_aux_v_set_vindpm( solar_vindpm );
 			}
 			else if( next_state == SOLAR_MODE_FULL_CHARGE ){
 
