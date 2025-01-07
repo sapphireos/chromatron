@@ -1086,8 +1086,11 @@ void bq25895_v_print_regs( void ){
 
 void bq25895_v_set_vindpm( int16_t mv ){
 
-    vindpm = mv;
+    if( !register_bank_aux ){
 
+        vindpm = mv;    
+    }
+    
     uint16_t original_mv = mv;
 
     if( mv < BQ25895_MIN_VINDPM ){

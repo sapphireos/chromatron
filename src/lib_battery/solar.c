@@ -117,7 +117,7 @@ static uint16_t charge_timer;
 // #define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
 #define DISCHARGE_HOLD_TIME				( 4 ) // time to remain in discharge before allowing a switch back to charge
 #define CHARGE_HOLD_TIME				( 4 )  // time to remain in charge before allowing a switch back to discharge or full
-#define SOLAR_HOLD_TIME					( 20 )  // time to remain in charge before allowing a switch back to discharge or full
+#define SOLAR_HOLD_TIME					( 4 )  // time to remain in charge before allowing a switch back to discharge or full
 #define FAULT_HOLD_TIME					( 10 )  // minimum time to remain in fault state
 
 #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
@@ -691,7 +691,7 @@ PT_BEGIN( pt );
 			}
 
 			// check if charge current is too low
-			else if( bq25895_aux_u16_get_charge_current() < 150 ){
+			else if( bq25895_aux_u16_get_charge_current() < 200 ){
 
 				// we have VBUS, but almost no current
 				// stay in low solar state
@@ -811,15 +811,19 @@ PT_BEGIN( pt );
 
 				gfx_v_set_system_enable( FALSE );
 
-				batt_v_disable_charge();
+				batt_v_disable_charge();				
+
 				bq25895_aux_v_enable_charger();
+				bq25895_aux_v_set_vindpm( 5800 );
 			}
 			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
 
 				gfx_v_set_system_enable( FALSE );
 
 				batt_v_disable_charge();
+
 				bq25895_aux_v_enable_charger();
+				bq25895_aux_v_set_vindpm( 5800 );
 			}
 			else if( next_state == SOLAR_MODE_FULL_CHARGE ){
 

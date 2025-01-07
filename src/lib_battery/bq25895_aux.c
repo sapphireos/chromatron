@@ -178,6 +178,8 @@ void bq25895_aux_v_set_vindpm( int16_t mv ){
 
 	bq25895_v_set_vindpm( mv );
 
+    aux_vindpm = mv;
+
 	set_register_bank_main();
 }
 
@@ -202,6 +204,15 @@ uint16_t bq25895_aux_u16_read_vbus( void ){
 bool bq25895_aux_b_is_vbus_connected( void ){
 
     return bq25895_aux_u16_read_vbus() >= BATT_MIN_CHARGE_VBUS_VOLTS;
+}
+
+void bq25895_aux_v_set_hiz( bool enable ){
+
+    set_register_bank_aux();
+
+    bq25895_v_set_hiz( enable );
+
+    set_register_bank_main();
 }
 
 uint8_t bq25895_aux_u8_get_faults( void ){
