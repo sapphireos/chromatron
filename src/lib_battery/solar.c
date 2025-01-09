@@ -97,14 +97,6 @@ charger is reporting a fault.
 
 */
 
-
-// config parameters:
-// #ifdef ENABLE_PATCH_BOARD
-// static bool patch_board_installed;
-// #endif
-
-// static bool charger2_board_installed;
-// static bool enable_dc_charge = TRUE;
 static bool enable_solar;
 // static bool mppt_enabled;
 
@@ -114,7 +106,6 @@ static catbus_string_t state_name;
 
 static uint16_t charge_timer;
 // #define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
-// #define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
 #define DISCHARGE_HOLD_TIME				( 4 ) // time to remain in discharge before allowing a switch back to charge
 #define CHARGE_HOLD_TIME				( 4 )  // time to remain in charge before allowing a switch back to discharge or full
 #define SOLAR_HOLD_TIME					( 4 )  // time to remain in charge before allowing a switch back to discharge or full
@@ -126,31 +117,19 @@ static uint16_t charge_timer;
 static uint16_t solar_vindpm = 5800;
 
 
-// #ifdef ENABLE_PATCH_BOARD
-// static bool dc_detect;
-// static uint8_t dc_detect_filter[SOLAR_DC_FILTER_DEPTH];
-// static uint8_t dc_detect_filter_index;
-
-// static uint16_t solar_volts;
-// static uint16_t solar_volts_filter[SOLAR_VOLTS_FILTER_DEPTH];
-// static uint8_t solar_volts_filter_index;
-// #endif
 
 KV_SECTION_META kv_meta_t solar_enable_kv[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &enable_solar,               0,  "solar_enable" },
 };
 
-// static uint32_t charge_minimum_light = SOLAR_MIN_CHARGE_LIGHT_DEFAULT;
 
 KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&state_name,				0,  "solar_control_state_text" },
-	
+
 	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
 
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&solar_vindpm,  			0,  "solar_vindpm" },
-
-	// { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
 };
 
 
@@ -201,11 +180,6 @@ uint8_t solar_u8_get_state( void ){
 
 static PGM_P get_state_name( uint8_t state ){
 
-	// if( state == SOLAR_MODE_STOPPED ){
-
-	// 	return PSTR("stopped");
-	// }
-	// else 
 	if( state == SOLAR_MODE_DISCHARGE ){
 
 		return PSTR("discharge");
@@ -226,10 +200,6 @@ static PGM_P get_state_name( uint8_t state ){
 
 		return PSTR("full_charge");
 	}
-	// else if( state == SOLAR_MODE_SHUTDOWN ){
-
-	// 	return PSTR("shutdown");
-	// }
 	else if( state == SOLAR_MODE_FAULT ){
 
 		return PSTR("fault");
