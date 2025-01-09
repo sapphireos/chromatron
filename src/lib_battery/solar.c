@@ -235,7 +235,10 @@ PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
 	static uint8_t seconds_counter;
-	seconds_counter = 10;
+	seconds_counter = 1;
+
+	static uint8_t log_timer;
+	log_timer = 0;
 
 	// wait if battery is not connected (this could also be a charge system fault)
 	THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
@@ -379,6 +382,13 @@ PT_BEGIN( pt );
 			// make sure main charger is disabled!
 			batt_v_disable_charge();
 
+			if( log_timer == 0 ){
+
+				log_timer = 30;
+			
+				log_v_debug_P( PSTR("low solar: %d mA %d mV"), bq25895_aux_u16_get_charge_current(), batt_u16_get_batt_volts() );
+			}
+
 			// check if the DC charger has connected
 			if( batt_b_is_vbus_connected() ||
 			   ( batt_u16_get_charge_current() > 0 ) ){
@@ -417,6 +427,13 @@ PT_BEGIN( pt );
 
 			// make sure main charger is disabled!
 			batt_v_disable_charge();
+
+			if( log_timer == 0 ){
+				
+				log_timer = 30;
+
+				log_v_debug_P( PSTR("solar: %d mA %d mV"), bq25895_aux_u16_get_charge_current(), batt_u16_get_batt_volts() );
+			}
 
 			// make sure we hit the minimum charge time before changing states
 			if( charge_timer < CHARGE_HOLD_TIME ){
@@ -464,6 +481,13 @@ PT_BEGIN( pt );
 			ASSERT( FALSE );
 		}
 
+		if( seconds_counter == 0 ){
+
+			if( log_timer > 0 ){
+
+				log_timer--;
+			}	
+		}
 
 		// if state is changing:
 
@@ -616,8 +640,7 @@ PT_BEGIN( pt );
 
 
 	solar_cycle = SOLAR_CYCLE_UNKNOWN;
-	// candidate_next_cycle = SOLAR_CYCLE_UNKNOWN;
-
+	
 	TMR_WAIT( pt, 10000 );
 
 	while(1){
