@@ -56,19 +56,19 @@ static uint32_t filtered_white;
 static uint16_t raw_als;
 static uint16_t raw_white;
 
-static uint8_t gain = VEML7700_ALS_GAIN_x0_25;
+static uint8_t gain = VEML7700_ALS_GAIN_x0_125;
 static uint8_t int_time = VEML7700_ALS_INT_TIME_100ms;
 
 #define FILTER_RATIO 16
 
 KV_SECTION_OPT kv_meta_t veml7700_kv[] = {
     {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &als,               0, "veml7700_als"},   
-    {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &white,             0, "veml7700_white"},   
+    // {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &white,             0, "veml7700_white"},   
     {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &filtered_als,      0, "veml7700_filtered_als"},   
-    {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &filtered_white,    0, "veml7700_filtered_white"},   
+    // {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &filtered_white,    0, "veml7700_filtered_white"},   
     
     {CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_als,           0, "veml7700_raw_als"},   
-    {CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_white,         0, "veml7700_raw_white"},   
+    // {CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_white,         0, "veml7700_raw_white"},   
     {CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &gain,              0, "veml7700_gain"},   
     {CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &int_time,          0, "veml7700_int_time"},   
 };
@@ -229,13 +229,30 @@ static uint32_t calc_lux( uint16_t val, uint8_t _gain, uint8_t _int_time ){
 }
 
 
+static uint32_t median_filter[5];
+static uint8_t median_index;
+
+
 // returns 0 if sample was computed,
 // non-zero if a setting needed to be changed and
 // the sample is not ready
 static int8_t process_sensor( void ){
 
     raw_als = _veml7700_u16_read_als();
-    raw_white = _veml7700_u16_read_white();
+
+    // update median filter:
+    median_filter[median_index] = raw_als;
+    median_index++;
+    median_index %= cnt_of_array(median_filter);
+
+    // sort filter
+    util_v_bubble_sort_u32( median_filter, cnt_of_array(median_filter) );
+
+    uint32_t median_als = median_filter[(cnt_of_array(median_filter) - 1) / 2]; // select middle item from filter
+
+
+
+    // raw_white = _veml7700_u16_read_white();
 
     // if( gain == VEML7700_ALS_GAIN_x0_125 ){
 
@@ -280,11 +297,11 @@ static int8_t process_sensor( void ){
     //     }            
     // }
 
-    als = calc_lux( raw_als, gain, int_time );
-    white = calc_lux( raw_white, gain, int_time );
+    als = calc_lux( median_als, gain, int_time );
+    // white = calc_lux( raw_white, gain, int_time );
 
     filtered_als = util_u32_ewma( als, filtered_als, FILTER_RATIO );
-    filtered_white = util_u32_ewma( white, filtered_white, FILTER_RATIO );
+    // filtered_white = util_u32_ewma( white, filtered_white, FILTER_RATIO );
         
     return 0;
 }
