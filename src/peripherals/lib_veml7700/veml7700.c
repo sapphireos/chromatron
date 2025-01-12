@@ -69,8 +69,11 @@ KV_SECTION_OPT kv_meta_t veml7700_kv[] = {
     
     {CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_als,           0, "veml7700_raw_als"},   
     // {CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_white,         0, "veml7700_raw_white"},   
-    {CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &gain,              0, "veml7700_gain"},   
-    {CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &int_time,          0, "veml7700_int_time"},   
+    
+    // {CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &gain,              0, "veml7700_gain"},   
+    // {CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &int_time,          0, "veml7700_int_time"},   
+    {CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY,   &gain,              0, "veml7700_gain"},   
+    {CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY,   &int_time,          0, "veml7700_int_time"},   
 };
 
 
@@ -107,8 +110,8 @@ void veml7700_v_configure( uint8_t _gain, uint8_t _int_time ){
 
     set_shutdown( TRUE );
 
-    // gain = _gain;
-    // int_time = _int_time;
+    gain = _gain;
+    int_time = _int_time;
 
     uint16_t config = _read_reg16( VEML7700_REG_ALS_CONF_0 );
     config &= ~( VEML7700_ALS_GAIN_MASK << VEML7700_ALS_GAIN_SHIFT );
@@ -239,9 +242,62 @@ static uint8_t median_index;
 static int8_t process_sensor( void ){
 
     raw_als = _veml7700_u16_read_als();
+    // raw_white = _veml7700_u16_read_white();
+
+    if( gain == VEML7700_ALS_GAIN_x0_125 ){
+
+        // if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
+        if( raw_als < 100 ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }
+    }
+    else if( gain == VEML7700_ALS_GAIN_x0_25 ){
+
+        // if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
+        if( raw_als < 100 ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }
+        // else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
+        else if( raw_als > 10000 ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }
+    }
+    else if( gain == VEML7700_ALS_GAIN_x1 ){
+
+        // if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
+        if( raw_als < 100 ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x2, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }                
+        // else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
+        else if( raw_als > 10000 ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }
+    }
+    else if( gain == VEML7700_ALS_GAIN_x2 ){
+    
+        // if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
+        if( raw_als > 10000 ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }            
+    }    
+
+    als = calc_lux( raw_als, gain, int_time );
+    // white = calc_lux( raw_white, gain, int_time );
 
     // update median filter:
-    median_filter[median_index] = raw_als;
+    median_filter[median_index] = als;
     median_index++;
     median_index %= cnt_of_array(median_filter);
 
@@ -251,56 +307,7 @@ static int8_t process_sensor( void ){
     uint32_t median_als = median_filter[(cnt_of_array(median_filter) - 1) / 2]; // select middle item from filter
 
 
-
-    // raw_white = _veml7700_u16_read_white();
-
-    // if( gain == VEML7700_ALS_GAIN_x0_125 ){
-
-    //     if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
-
-    //         veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
-    //         return -1;
-    //     }
-    // }
-    // else if( gain == VEML7700_ALS_GAIN_x0_25 ){
-
-    //     if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
-
-    //         veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
-    //         return -1;
-    //     }
-    //     else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
-
-    //         veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_100ms );
-    //         return -1;
-    //     }
-    // }
-    // else if( gain == VEML7700_ALS_GAIN_x1 ){
-
-    //     if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
-
-    //         veml7700_v_configure( VEML7700_ALS_GAIN_x2, VEML7700_ALS_INT_TIME_100ms );
-    //         return -1;
-    //     }                
-    //     else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
-
-    //         veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
-    //         return -1;
-    //     }
-    // }
-    // else if( gain == VEML7700_ALS_GAIN_x2 ){
-    
-    //     if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
-
-    //         veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
-    //         return -1;
-    //     }            
-    // }
-
-    als = calc_lux( median_als, gain, int_time );
-    // white = calc_lux( raw_white, gain, int_time );
-
-    filtered_als = util_u32_ewma( als, filtered_als, FILTER_RATIO );
+    filtered_als = util_u32_ewma( median_als, filtered_als, FILTER_RATIO );
     // filtered_white = util_u32_ewma( white, filtered_white, FILTER_RATIO );
         
     return 0;
