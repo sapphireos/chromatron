@@ -80,6 +80,8 @@ PT_BEGIN( pt );
 	static uint32_t last_delta_sample;
 	counter = 0;
 
+	TMR_WAIT( pt, 4000 ); // wait for sensor to warm up
+
 	// init filter
 	uint32_t init_sample = veml7700_u32_read_als();
 
