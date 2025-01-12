@@ -46,11 +46,9 @@
 #define ENABLE_LED_DETECT
 #define ENABLE_CONTROLLER
 
-#define ENABLE_PATCH_BOARD
-
 // DEBUG!
 // Turn this off for normal operation!
-// #define ENABLE_TRACE
+#define ENABLE_TRACE
 
 
 // wifi

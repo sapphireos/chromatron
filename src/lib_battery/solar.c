@@ -86,8 +86,6 @@ FAULT: Either charger has some kind of fault reported.  Charging is stopped.
 
 #include "hal_boards.h"
 
-#include "patch_board.h"
-
 
 /*
 
@@ -125,14 +123,11 @@ KV_SECTION_META kv_meta_t solar_enable_kv[] = {
 };
 
 
-static bool patchboard_enabled;
-
 KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&state_name,				0,  "solar_control_state_text" },
 
 	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &patchboard_enabled,              0,  "solar_enable_patch_board" },
 
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&solar_vindpm,  			0,  "solar_vindpm" },
 };
@@ -164,11 +159,6 @@ void solar_v_init( void ){
 	                     PSTR("solar_cycle"),
 	                     0,
 	                     0 );
-
-		if( patchboard_enabled ){
-
-			patchboard_v_init();
-		}
 	}
 }
 
@@ -176,11 +166,6 @@ void solar_v_init( void ){
 uint8_t solar_u8_get_state( void ){
 
 	return solar_state;
-}
-
-bool solar_b_has_patch_board( void ){
-
-	return patchboard_enabled;
 }
 
 // bool solar_b_is_dc_power( void ){
