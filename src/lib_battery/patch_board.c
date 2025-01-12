@@ -50,7 +50,7 @@ void patchboard_v_init( void ){
     io_v_set_mode( ELITE_PANEL_VOLTS_IO, IO_MODE_INPUT );    
     #endif
 
-    patchboard_v_set_solar_en( FALSE );
+    patchboard_v_set_solar_en( TRUE );
 }
 
 bool patchboard_b_read_dc_detect( void ){
