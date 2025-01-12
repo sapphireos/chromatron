@@ -102,14 +102,14 @@ PT_BEGIN( pt );
 		sample_index %= cnt_of_array(samples);
 
 		// compute moving average
-		filtered_light = 0;
+		uint64_t temp = 0;
 	
 		for( uint32_t i = 0; i < cnt_of_array(samples); i++ ){
 
-			filtered_light += samples[i];
+			temp += samples[i];
 		}
 
-		filtered_light /= cnt_of_array(samples);
+		filtered_light = temp / cnt_of_array(samples);
 	
 		// update counter		
 		counter++;
