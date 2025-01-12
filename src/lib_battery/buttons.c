@@ -30,7 +30,7 @@
 #include "flash_fs.h"
 #include "status_led.h"
 
-// #include "solar.h"
+#include "solar.h"
 #include "pixel_power.h"
 #include "charger2.h"
 #include "patch_board.h"
