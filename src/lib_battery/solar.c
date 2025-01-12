@@ -382,6 +382,8 @@ PT_BEGIN( pt );
 			// make sure main charger is disabled!
 			batt_v_disable_charge();
 
+			bq25895_aux_v_set_vindpm( solar_vindpm );
+
 			if( log_timer == 0 ){
 
 				log_timer = 30;
@@ -427,6 +429,8 @@ PT_BEGIN( pt );
 
 			// make sure main charger is disabled!
 			batt_v_disable_charge();
+
+			bq25895_aux_v_set_vindpm( solar_vindpm );
 
 			if( log_timer == 0 ){
 				
