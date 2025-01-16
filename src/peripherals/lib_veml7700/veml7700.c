@@ -50,11 +50,11 @@ Luminance Example
 
 // values in lux
 static uint32_t als;
-static uint32_t white;
+// static uint32_t white;
 static uint32_t filtered_als;
-static uint32_t filtered_white;
+// static uint32_t filtered_white;
 static uint16_t raw_als;
-static uint16_t raw_white;
+// static uint16_t raw_white;
 
 static uint8_t gain = VEML7700_ALS_GAIN_x0_125;
 static uint8_t int_time = VEML7700_ALS_INT_TIME_100ms;
@@ -130,20 +130,20 @@ uint32_t veml7700_u32_read_als( void ){
     return filtered_als;
 }
 
-uint32_t veml7700_u32_read_white( void ){
+// uint32_t veml7700_u32_read_white( void ){
 
-    return filtered_white;
-}
+//     return filtered_white;
+// }
 
 uint16_t _veml7700_u16_read_als( void ){
 
     return _read_reg16( VEML7700_REG_ALS );
 }
 
-uint16_t _veml7700_u16_read_white( void ){
+// uint16_t _veml7700_u16_read_white( void ){
 
-    return _read_reg16( VEML7700_REG_WHITE );
-}
+//     return _read_reg16( VEML7700_REG_WHITE );
+// }
 
 static uint32_t calc_lux( uint16_t val, uint8_t _gain, uint8_t _int_time ){
 

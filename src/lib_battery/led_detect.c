@@ -145,6 +145,18 @@ static const led_unit_t led_units[] = {
         1145957452,
         LED_UNIT_TYPE_BATT_CHECK,
     },
+    {
+        1145534905,
+        LED_UNIT_TYPE_STRAND50,
+    },
+    {
+        1145800754,
+        LED_UNIT_TYPE_STRAND50,
+    },
+    {
+        1145796081,
+        LED_UNIT_TYPE_STRAND50,
+    },
 };
 
 
