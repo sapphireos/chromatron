@@ -1086,10 +1086,15 @@ void bq25895_v_print_regs( void ){
 
 void bq25895_v_set_vindpm( int16_t mv ){
 
+    #ifdef ENABLE_AUX_BATTERY
     if( !register_bank_aux ){
 
         vindpm = mv;    
     }
+    #else
+    vindpm = mv;
+    #endif
+
     
     uint16_t original_mv = mv;
 

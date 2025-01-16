@@ -140,9 +140,6 @@ PT_THREAD( battery_monitor_thread( pt_t *pt, void *state ) );
 
 void batt_v_init( void ){
 
-    // always init button module
-    button_v_init();
-
     // check if battery module enabled
     if( !batt_enable ){
 
