@@ -1086,6 +1086,9 @@ PT_BEGIN( pt );
 
 					if( send_status == -1 ){ // no broker available
 
+						// release memory!
+						mem2_v_free( mqtt->h );
+
 						mqtt_t->timeout = 0; // expire message
 						mqtt_t->h = -1;
 					}
