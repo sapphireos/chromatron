@@ -65,6 +65,9 @@ class MQTTClient(Ribbon):
         except socket.gaierror:
             raise MQTTHostNotFound(self.host)
 
+    def match_topic(self, sub, topic):
+        return mqtt.topic_matches_sub(sub, topic)
+
     def clean_up(self):
         self.mqtt.disconnect()
 

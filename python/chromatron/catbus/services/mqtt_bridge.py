@@ -245,13 +245,19 @@ class DeviceClient(object):
         self.mqtt_client.mqtt.on_message = self.on_message
         self.mqtt_client.start()
 
-        logging.info(f'Started client: {self.host}')
+        logging.info(f'Started client: {self.name} at {self.host}')
 
         self.subs = {}
 
     def on_message(self, client, userdata, msg):
-        if msg.topic in self.subs:
-            timeout, data_type = self.subs[msg.topic]
+        matched_sub = None
+
+        for sub in self.subs:
+            if self.mqtt_client.match_topic(sub, msg.topic):
+                matched_sub = sub
+
+        if matched_sub is not None:
+            timeout, data_type = self.subs[matched_sub]
             
             # convert data types
             if data_type in [CATBUS_TYPE_BOOL, 
@@ -278,16 +284,23 @@ class DeviceClient(object):
                 logging.error(f"Unsupported data type: {data_type}")
                 return
 
+            topic = MQTTTopic(topic=msg.topic)
+
             if data_type is not None:
                 meta = CatbusMeta(hash=0, type=data_type)
                 data = CatbusData(meta=meta, value=value)
 
                 kv_payload = MQTTKVPayload(data=data)
 
-                publish_msg = MqttPublishKVMsg(topic=msg.topic, payload=kv_payload)
+                publish_msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
 
             else:
-                publish_msg = MqttPublishMsg(topic=msg.topic, payload=value)
+                print(type(value), value)
+                payload = MQTTPayload(data=value)
+                publish_msg = MqttPublishMsg(topic=topic, payload=payload)
+
+                print(self.name, msg.topic, self.subs)
+                print(publish_msg)
 
             self.bridge.transmit(publish_msg, self.host)
 

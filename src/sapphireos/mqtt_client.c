@@ -1205,9 +1205,13 @@ PT_BEGIN( pt );
         }
         else if( header->msg_type == MQTT_MSG_SHUTDOWN ){
 
-			log_v_info_P( PSTR("MQTT bridge shut down") );
-			broker_ip = ip_a_addr( 0, 0, 0, 0 );
-			broker_port = 0;
+        	if( !ip_b_is_zeroes(broker_ip) ){
+
+        		log_v_info_P( PSTR("MQTT bridge shut down") );
+
+				broker_ip = ip_a_addr( 0, 0, 0, 0 );
+				broker_port = 0;	
+        	}
         }
         else{
 
