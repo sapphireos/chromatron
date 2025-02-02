@@ -298,9 +298,6 @@ class DeviceClient(object):
                 payload = MQTTPayload(data=value)
                 publish_msg = MqttPublishMsg(topic=topic, payload=payload)
 
-                print(self.name, msg.topic, self.subs)
-                print(publish_msg)
-
             self.bridge.transmit(publish_msg, self.host)
 
         else: # topic not in subs, unsubscribe
