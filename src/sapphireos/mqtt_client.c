@@ -224,7 +224,7 @@ static int16_t send_msg_to_broker( mem_handle_t h ){
 
 	sock_addr_t raddr = get_broker_raddr();
 
-	if( ip_b_is_zeroes( raddr.ipaddr) ){
+	if( ip_b_is_zeroes( raddr.ipaddr ) ){
 
 		mem2_v_free( h );
 
@@ -261,13 +261,18 @@ static int8_t transmit_publish(
 	uint8_t qos, 
 	bool retain ){
 
-
-// return 0;
-
 	if( !wifi_b_connected() ){
 
 		// if no wifi, don't bother trying to transmit.
 		// this is not an error case.
+		return 0;
+	}
+
+	// check if broker is connected
+	sock_addr_t raddr = get_broker_raddr();
+
+	if( ip_b_is_zeroes( raddr.ipaddr ) ){
+
 		return 0;
 	}
 
