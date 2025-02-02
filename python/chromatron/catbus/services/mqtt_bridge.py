@@ -295,7 +295,6 @@ class DeviceClient(object):
                 publish_msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
 
             else:
-                print(type(value), value)
                 payload = MQTTPayload(data=value)
                 publish_msg = MqttPublishMsg(topic=topic, payload=payload)
 
@@ -309,6 +308,9 @@ class DeviceClient(object):
 
     def clean_up(self):
         topic = f'chromatron/status/{self.name}'
+        self.publish(topic, '') # remove from status topic
+
+        topic = f'chromatron/status_binary/{self.name}'
         self.publish(topic, '') # remove from status topic
 
         logging.info(f'Stopping client: {self.host}')
@@ -523,8 +525,13 @@ class MqttBridge(MsgServer):
 
         self.clients[host].reset_timeout()
 
+        # JSON version
         topic = f'chromatron/status/{name}'
         self.clients[host].publish(topic, json.dumps(dict_data))
+
+        # send the binary version for device usage
+        topic = f'chromatron/status_binary/{name}'
+        self.clients[host].publish(topic, msg.pack())
 
 
 
