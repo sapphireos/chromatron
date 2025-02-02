@@ -920,7 +920,7 @@ PT_BEGIN( pt );
 	// wait for wifi
 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
-	log_v_debug_P( PSTR("controller idle") );
+	// log_v_debug_P( PSTR("controller idle") );
 
 	// wait for timeout or leader/candidate is available
 	thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_IDLE_TIMEOUT * 1000 );
