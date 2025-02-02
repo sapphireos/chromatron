@@ -323,6 +323,9 @@ class Ipv4Field(Uint32Field):
 class StringField(Field):
     def __init__(self, _value="", _length=None, **kwargs):
 
+        # this can be an oops
+        assert "_len" not in kwargs
+
         if _length == None:
             _length = len(_value)
             self._fixed_length = False
