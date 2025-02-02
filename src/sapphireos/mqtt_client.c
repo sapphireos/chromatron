@@ -840,7 +840,6 @@ static void process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 	
 	uint16_t data_len = 0;	
 	memcpy( &data_len, ptr, sizeof(data_len) );
-	data_len = HTONS(data_len); // reverse bytes
 	ptr += sizeof(data_len);
 	
 	uint8_t *data = ptr;

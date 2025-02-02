@@ -74,7 +74,7 @@ class MQTTTopic(StructField):
         super().__init__(_fields=fields, **kwargs)
 
         if 'topic' in kwargs:
-            self.topic_len = len(self.topic)
+            self.topic_len = len(self.topic) + 1
 
     def unpack(self, buffer):
         super().unpack(buffer)
@@ -296,6 +296,8 @@ class DeviceClient(object):
 
             else:
                 payload = MQTTPayload(data=value)
+
+                print(msg.topic, len(msg.topic), topic.pack(), len(topic.pack()), topic.topic_len)
                 publish_msg = MqttPublishMsg(topic=topic, payload=payload)
 
             self.bridge.transmit(publish_msg, self.host)
