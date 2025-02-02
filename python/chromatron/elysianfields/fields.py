@@ -714,9 +714,7 @@ class ArrayField(Field):
         except AttributeError:
             return value
 
-        print(type(temp), temp)
-
-        if temp.startswith('[') and temp.endswith(']'):
+        if isinstance(temp, str) and temp.startswith('[') and temp.endswith(']'):
             temp = temp[1:]
             temp = temp[:-1]
 
