@@ -296,8 +296,6 @@ class DeviceClient(object):
 
             else:
                 payload = MQTTPayload(data=value)
-
-                print(msg.topic, len(msg.topic), topic.pack(), len(topic.pack()), topic.topic_len)
                 publish_msg = MqttPublishMsg(topic=topic, payload=payload)
 
             self.bridge.transmit(publish_msg, self.host)
