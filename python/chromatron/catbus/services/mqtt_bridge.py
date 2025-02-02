@@ -223,7 +223,7 @@ class MqttStatusMsg(StructField):
                   Uint8Field(_name="cpu_percent"),
                   Uint16Field(_name="used_heap"),
                   Uint16Field(_name="pixel_power"),
-                  StringField(_name="os_version", _len=16)]
+                  StringField(_name="os_version", _length=16)]
 
         super().__init__(_name="mqtt_status_msg", _fields=fields, **kwargs)
 
