@@ -313,8 +313,9 @@ class DeviceClient(object):
         self.mqtt_client.subscribe(topic)
 
     def unsubscribe(self, topic):
-        del self.subs[topic]
-        self.mqtt_client.unsubscribe(topic)   
+        if topic in self.subs:
+            del self.subs[topic]
+            self.mqtt_client.unsubscribe(topic)   
 
     def process_timeouts(self, elapsed):
         self.timeout -= elapsed
