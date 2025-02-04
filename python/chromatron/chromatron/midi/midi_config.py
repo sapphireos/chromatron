@@ -24,19 +24,22 @@ import configparser
 
 CONFIG_EXTENSION = '.cfg'
 
-def load_config(path=os.getcwd()):
+# def load_config(path=os.getcwd()):
+def load_config(path=os.path.dirname(os.path.abspath(__file__))):
 
     midi_cfg_data = {'midi_in':{}, 'midi_out':{}}
 
-    config = configparser.RawConfigParser()
+    config = configparser.ConfigParser(strict=False)
 
-    for f in os.listdir(path):
-        fname, ext = os.path.splitext(f)
+    for file in os.listdir(path):
+        fname, ext = os.path.splitext(file)
 
         if ext != CONFIG_EXTENSION:
             continue
 
-        config.read(f)
+        config.read([os.path.join(path, file)])
+
+        print(config.sections())
 
         for section in config.sections():
             try:
