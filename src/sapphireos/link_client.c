@@ -30,6 +30,69 @@
 
 #ifdef ENABLE_CONTROLLER
 
+/*
+
+Link types:
+
+SEND:
+
+Send a variable from this node to devices matching the target query.
+
+Sends will be aggregated by the controller.
+
+
+RECV:
+
+Receive a variable to this node from devices matching the target query.
+
+Receives will be aggregated by the controller.
+
+This is basically the inverse of send.
+
+
+
+SYNC:
+
+Synchronize a variable among all nodes in the link group.
+Source and dest key are the same.
+This requires integration with the FX engine: synced variable
+writes are intercepted, only the link leader is passed through.
+Link followers update the variable to match the leader, and ignore
+local writes from the FX engine.
+
+
+Sync leverages the send and receive machinery.  It shares attributes with 
+both.
+
+A key difference is that all members of the sync group have a copy
+of the link.  Thus some shared context is already available.
+
+Sync followers send a consumer match in the discovery process.
+
+The leader will receive the consumer matches, which will create the data
+binding.  The sync leader will transmit to consumers at the configured rate.
+The transmit_to_consumers function should work without modification.  This
+is simliar to the leader on receive.
+
+No aggregation is performed, however, the aggregate function may be used
+since it will retrieve the local data item and format it for 
+transmission.
+
+The link module must provide an API to check if a given key is
+synchronized and if it is the leader.
+
+
+
+
+
+
+
+
+
+
+*/
+
+
 static socket_t sock;
 static list_t link_list;
 static list_t binding_list;
