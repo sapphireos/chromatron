@@ -89,6 +89,7 @@ typedef struct __attribute__((packed)){
     uint32_t data_hash;
     int16_t retransmit_timer;
     int16_t ticks;
+    uint8_t flags;
 
     uint64_t hash; // must be last!
 } link2_state_t;
@@ -117,6 +118,7 @@ typedef struct __attribute__((packed)){
     // uint64_t origin_id;
     catbus_hash_t32 universe;
 } link2_msg_header_t;
+#define LINK_FLAGS_DELETE               0x01
 
 typedef struct __attribute__((packed)){
     link2_msg_header_t header;
@@ -149,6 +151,10 @@ link2_handle_t link2_l_create(
     link_aggregation_t8 aggregation,
     link_filter_t16 filter );
 link2_handle_t link2_l_create2( link2_state_t *state );
+
+void link2_v_delete( link_handle_t link );
+void link2_v_delete_by_tag( catbus_hash_t32 tag );
+void link2_v_delete_by_hash( uint64_t hash );
 
 void link2_v_init_header( link2_msg_header_t *header, uint8_t msg_type );
 

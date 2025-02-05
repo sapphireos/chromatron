@@ -1076,6 +1076,10 @@ class Device(object):
             33: "mqtt_sub",
             34: "mqtt_broker_sub",
             35: "controller_node",
+            36: "link2",
+            37: "link2_binding",
+            38: "link2_data_cache",
+            39: "link2_meta",
         }
 
         total_size = 0

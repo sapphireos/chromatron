@@ -41,6 +41,10 @@
 #include "vm_cron.h"
 #include "vm_sequencer.h"
 
+#ifdef ENABLE_CONTROLLER
+#include "link.h"
+#endif
+
 #ifdef ENABLE_GFX
 
 static thread_t vm_threads[VM_MAX_VMS];
@@ -212,9 +216,13 @@ static void reset_published_data( uint8_t vm_id ){
 
     kvdb_v_clear_tag( 0, 1 << vm_id );
 
-    #ifdef ENABLE_CATBUS_LINK
-    link_v_delete_by_tag( 1 << vm_id );
+    #ifdef ENABLE_CONTROLLER
+    link2_v_delete_by_tag( 1 << vm_id );
     #endif
+
+    // #ifdef ENABLE_CATBUS_LINK
+    // link_v_delete_by_tag( 1 << vm_id );
+    // #endif
 } 
 
 static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){

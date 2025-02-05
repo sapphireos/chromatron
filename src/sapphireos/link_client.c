@@ -464,7 +464,7 @@ link2_handle_t link2_l_create2( link2_state_t *state ){
 
     state->hash = link2_u64_hash( &state->link );
 
-    list_node_t ln = list_ln_create_node2( state, sizeof(link2_state_t), MEM_TYPE_CATBUS_LINK );
+    list_node_t ln = list_ln_create_node2( state, sizeof(link2_state_t), MEM_TYPE_LINK2 );
 
     if( ln < 0 ){
 
@@ -484,6 +484,49 @@ link2_handle_t link2_l_create2( link2_state_t *state ){
 
     return ln;
 }
+
+void link2_v_delete( link_handle_t link ){
+    
+    link2_state_t *state = list_vp_get_data( link );    
+    state->flags |= LINK_FLAGS_DELETE;
+}
+
+void link2_v_delete_by_tag( catbus_hash_t32 tag ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        link2_state_t *state = list_vp_get_data( ln );
+        list_node_t next_ln = list_ln_next( ln );
+
+        if( state->link.tag == tag ){
+
+            state->flags |= LINK_FLAGS_DELETE;
+        }
+
+        ln = next_ln;
+    }
+}
+
+void link2_v_delete_by_hash( uint64_t hash ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        link2_state_t *state = list_vp_get_data( ln );
+        list_node_t next_ln = list_ln_next( ln );
+
+        if( state->hash == hash ){
+
+            state->flags |= LINK_FLAGS_DELETE;
+        }
+
+        ln = next_ln;
+    }
+}
+
 
 uint8_t link2_u8_count( void ){
 
@@ -515,7 +558,7 @@ static void add_or_update_binding( link2_binding_t *link_binding ){
 
     if( state == 0 ){
 
-        list_node_t ln = list_ln_create_node( 0, sizeof(binding_state_t) );
+        list_node_t ln = list_ln_create_node2( 0, sizeof(binding_state_t), MEM_TYPE_LINK2_BINDING );
 
         if( ln < 0 ){
 
@@ -679,6 +722,25 @@ PT_BEGIN( pt );
             ln = next_ln;
         }   
 
+        // process link deletions
+        ln = link_list.head;
+
+        while( ln >= 0 ){
+
+            const link2_state_t *link_state = list_vp_get_data( ln );
+            list_node_t next_ln = list_ln_next( ln );
+
+            if( link_state->flags & LINK_FLAGS_DELETE ){
+
+                // delete link
+                log_v_debug_P( PSTR("deleting link") );
+
+                list_v_remove( &link_list, ln );
+                list_v_release_node( ln );
+            }
+
+            ln = next_ln;
+        }
 
 
         // check if controller is available

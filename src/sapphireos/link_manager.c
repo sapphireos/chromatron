@@ -48,7 +48,6 @@ typedef struct __attribute__((packed)){
 
     int16_t retransmit_ticks;
 
-    // int16_t timer;
     // link2_node_t follows
 } link2_meta_t;
 
@@ -101,7 +100,7 @@ static int8_t update_data_cache( ip_addr4_t ip, catbus_hash_t32 hash, int64_t da
 	if( ln < 0 ){
 
 		// create new cache item
-		ln = list_ln_create_node( 0, sizeof(link2_data_cache_t) );
+		ln = list_ln_create_node2( 0, sizeof(link2_data_cache_t), MEM_TYPE_LINK2_DATA_CACHE );
 
 		if( ln < 0 ){
 
@@ -339,7 +338,7 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 	if( ln < 0 ){
 
 		// link not found
-		ln = list_ln_create_node( 0, sizeof(link2_meta_t) + sizeof(link2_node_t) );
+		ln = list_ln_create_node2( 0, sizeof(link2_meta_t) + sizeof(link2_node_t), MEM_TYPE_LINK2_META );
 
 	    if( ln < 0 ){
 
@@ -389,7 +388,7 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 		// reallocate and add new IP
 
 		node_count++;
-		list_node_t new_ln = list_ln_create_node( 0, sizeof(link2_meta_t) + node_count * sizeof(link2_node_t) );
+		list_node_t new_ln = list_ln_create_node2( 0, sizeof(link2_meta_t) + node_count * sizeof(link2_node_t), MEM_TYPE_LINK2_META );
 
 		if( new_ln < 0 ){
 
