@@ -3520,7 +3520,7 @@ int8_t vm_i8_load_program(
                     link->aggregation,
                     LINK_FILTER_OFF );   
 
-            if( link_h <= 0){
+            if( link_h <= 0 ){
 
                 status = VM_STATUS_LOAD_ALLOC_FAIL;
                 goto error;

@@ -63,5 +63,6 @@ typedef uint8_t mem_type_t8;
 #define MEM_TYPE_LINK2_BINDING      37
 #define MEM_TYPE_LINK2_DATA_CACHE   38
 #define MEM_TYPE_LINK2_META   		39
+#define MEM_TYPE_DEVICEDB   		40
 
 #endif

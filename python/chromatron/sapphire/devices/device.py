@@ -1080,6 +1080,7 @@ class Device(object):
             37: "link2_binding",
             38: "link2_data_cache",
             39: "link2_meta",
+            40: "devicedb",
         }
 
         total_size = 0
