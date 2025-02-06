@@ -931,6 +931,7 @@ PT_BEGIN( pt );
 						link2_binding_t binding = {
 							meta->link.source_key,
 							meta->link.rate,
+							link2_u64_hash( &meta->link ), // hash, so sender can check it still has this link
 						};
 
 						bindings[count] = binding;
@@ -953,6 +954,7 @@ PT_BEGIN( pt );
 						link2_binding_t binding = {
 							meta->link.source_key,
 							meta->link.rate,
+							0 // zero hash, no need for receiver to validate link
 						};
 
 						bindings[count] = binding;
@@ -1130,6 +1132,7 @@ PT_BEGIN( pt );
 
 					data_ptr->key = meta->link.dest_key;
 					data_ptr->data = data;
+					data_ptr->link_hash = 0; // zero hash, no need for receivers to validate an incoming send data
 
 					log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed: %d next_ticks: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, meta->retransmit_ticks );
 
@@ -1217,6 +1220,7 @@ PT_BEGIN( pt );
 
 		            data_ptr->key = meta->link.dest_key;
 					data_ptr->data = data;
+					data_ptr->link_hash = link2_u64_hash( &meta->link ); // set hash for receivers to validate incoming data matches their link
 
 					log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed: %d next_ticks: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, meta->retransmit_ticks );
 
