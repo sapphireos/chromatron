@@ -24,6 +24,7 @@
 
 #include "catbus_link.h"
 #include "ip.h"
+#include "logging.h"
 #include "sapphire.h"
 
 #include "controller.h"
@@ -391,6 +392,15 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 	if( ln < 0 ){
 
 		// link not found
+
+		// check mode
+		if( link->mode & LINK_MODE_DELETE ){
+
+			// we are deleting a node from this link, but it isn't here anyway
+			// great we go home early!
+			return;
+		}
+
 		ln = list_ln_create_node2( 0, sizeof(link2_meta_t) + sizeof(link2_node_t), MEM_TYPE_LINK2_META );
 
 	    if( ln < 0 ){
@@ -430,6 +440,19 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 
 			// log_v_debug_P( PSTR("found: %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
 
+			// check mode
+			if( link->mode & LINK_MODE_DELETE ){
+
+				// we are deleting this node from the link
+				// the code to do the deletion is a bit involved and is
+				// already being done in the timeout handler.
+
+				// so, just set the timeout to expire on the next cycle
+				node->timeout = 1;
+
+				return;
+			}
+
 			ip_found = TRUE;
 			break;
 		}
@@ -442,6 +465,14 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 	}
 
 	if( !ip_found ){
+
+		// // check mode
+		// if( link->mode == LINK_MODE_DELETE ){
+
+		// 	// we are deleting this node from the link, but we didn't find this IP anyway
+		// 	// we are done!
+		// 	return;
+		// }
 
 		// check if there is a free node available:
 		if( free_node != 0 ){

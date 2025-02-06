@@ -44,7 +44,7 @@
 #define LINK_RETRANSMIT_RATE                2000
 #define LINK_RETRANSMIT_RATE_FAST           100
 
-#define LINK2_MGR_LINK_TIMEOUT				60
+#define LINK2_MGR_LINK_TIMEOUT				30
 
 typedef list_node_t link2_handle_t;
 
@@ -59,6 +59,7 @@ typedef uint8_t link_mode_t8;
 #define LINK_MODE_SEND						0
 #define LINK_MODE_RECV						1
 #define LINK_MODE_SYNC						2
+#define LINK_MODE_DELETE                    0x80 // not a real mode, this signals the manager can delete the link
 
 typedef uint16_t link_filter_t16;
 #define LINK_FILTER_OFF                     0
