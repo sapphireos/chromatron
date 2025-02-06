@@ -23,6 +23,7 @@
  */
 
 #include "catbus_link.h"
+#include "ip.h"
 #include "sapphire.h"
 
 #include "controller.h"
@@ -225,6 +226,58 @@ static bool link_has_ip( link2_meta_t *meta, uint16_t len, ip_addr4_t ip ){
 	return FALSE;
 }
 
+static void process_link_node_timeouts( void ){
+
+	list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        link2_meta_t *meta = list_vp_get_data( ln );
+        list_node_t next_ln = list_ln_next( ln );
+        		
+        // iterate over nodes
+        uint8_t node_count = count_nodes_for_link( meta, list_u16_node_size( ln ) );
+        link2_node_t *node = (link2_node_t *)( meta + 1 );
+
+        uint8_t count = node_count;
+        uint8_t timed_out_count = 0;
+
+        while( count > 0 ){
+
+        	if( !ip_b_is_zeroes( node->ip ) ){
+
+	        	node->timeout--;
+
+	        	if( node->timeout == 0 ){
+
+	        		log_v_debug_P( PSTR("Link node timed out: 0x%08lx->0x%08lx %d.%d.%d.%d"), meta->link.source_key, meta->link.dest_key, node->ip.ip3, node->ip.ip2, node->ip.ip1, node->ip.ip0 );	
+
+	        		node->ip = ip_a_addr(0,0,0,0);
+	        	}
+	        }
+
+	        if( ip_b_is_zeroes( node->ip ) ){
+
+	        	timed_out_count++;
+	        }
+
+        	node++;
+        	count--;
+        }
+
+        // check if all nodes have timed out
+        if( timed_out_count == node_count ){
+
+        	log_v_debug_P( PSTR("Link timed out: 0x%08lx->0x%08lx"), meta->link.source_key, meta->link.dest_key );	
+
+        	list_v_remove( &link_list, ln );
+     		list_v_release_node( ln );
+        }
+
+        ln = next_ln;
+    }	
+}
+
 static int64_t aggregate( link2_meta_t *meta ){
 
 	bool first = TRUE;
@@ -369,6 +422,7 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 	uint8_t node_count = count_nodes_for_link( meta, list_u16_node_size( ln ) );
 	link2_node_t *node = (link2_node_t *)( meta + 1 );
 	bool ip_found = FALSE;
+	link2_node_t *free_node = 0;
 
 	for( uint8_t i = 0; i < node_count; i++ ){
 
@@ -379,38 +433,54 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 			ip_found = TRUE;
 			break;
 		}
+		else if( ip_b_is_zeroes( node->ip ) ){
+
+			free_node = node;
+		}
 
 		node++;
 	}
 
 	if( !ip_found ){
 
-		// reallocate and add new IP
+		// check if there is a free node available:
+		if( free_node != 0 ){
 
-		node_count++;
-		list_node_t new_ln = list_ln_create_node2( 0, sizeof(link2_meta_t) + node_count * sizeof(link2_node_t), MEM_TYPE_LINK2_META );
+			// free node!
+			free_node->ip = raddr->ipaddr;
+			free_node->timeout = LINK2_MGR_LINK_TIMEOUT;
 
-		if( new_ln < 0 ){
+			log_v_debug_P( PSTR("Add new IP: %d.%d.%d.%d to free node"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
+		}
+		else{
 
-	        return;
-	    }
+			// reallocate and add new IP
 
-		link2_meta_t *new_meta = (link2_meta_t *)list_vp_get_data( new_ln );
+			node_count++;
+			list_node_t new_ln = list_ln_create_node2( 0, sizeof(link2_meta_t) + node_count * sizeof(link2_node_t), MEM_TYPE_LINK2_META );
 
-		memcpy( new_meta, meta, list_u16_node_size( ln ) );
+			if( new_ln < 0 ){
 
-		// add node to end of list
-		node = (link2_node_t *)( new_meta + 1 ) + ( node_count - 1 );
-		node->ip = raddr->ipaddr;
-		node->timeout = LINK2_MGR_LINK_TIMEOUT;
+		        return;
+		    }
 
-		log_v_debug_P( PSTR("Add new IP: %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
+			link2_meta_t *new_meta = (link2_meta_t *)list_vp_get_data( new_ln );
 
-		list_v_insert_tail( &link_list, new_ln );    
+			memcpy( new_meta, meta, list_u16_node_size( ln ) );
 
-		// release old node
-		list_v_remove( &link_list, ln );
-		list_v_release_node( ln );
+			// add node to end of list
+			node = (link2_node_t *)( new_meta + 1 ) + ( node_count - 1 );
+			node->ip = raddr->ipaddr;
+			node->timeout = LINK2_MGR_LINK_TIMEOUT;
+
+			log_v_debug_P( PSTR("Add new IP: %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
+
+			list_v_insert_tail( &link_list, new_ln );    
+
+			// release old node
+			list_v_remove( &link_list, ln );
+			list_v_release_node( ln );
+		}
 	}	
 
 	// reset timeout
@@ -881,8 +951,7 @@ PT_BEGIN( pt );
     		follower = controller_db_p_get_next();
     	}
 
-
-
+    	process_link_node_timeouts();
     	process_data_cache_timeouts();
     }
 

@@ -471,16 +471,10 @@ link2_handle_t link2_l_create2( link2_state_t *state ){
         return -1;
     }
 
-    // services_v_join_team( LINK_SERVICE, state->hash, LINK_BASE_PRIORITY - link_u8_count(), LINK_PORT );
-
     list_v_insert_tail( &link_list, ln );    
 
-    // if( state->mode == LINK_MODE_SEND ){
-    //     trace_printf("SEND LINK\n");
-    // }
-    // else if( state->mode == LINK_MODE_RECV ){
-    //     trace_printf("RECV LINK\n");
-    // }
+    log_v_debug_P( PSTR("Created link: 0x%0x"), state->link.tag );
+
 
     return ln;
 }
@@ -733,7 +727,7 @@ PT_BEGIN( pt );
             if( link_state->flags & LINK_FLAGS_DELETE ){
 
                 // delete link
-                log_v_debug_P( PSTR("deleting link") );
+                log_v_debug_P( PSTR("Deleting link: 0x%0x"), link_state->link.tag );
 
                 list_v_remove( &link_list, ln );
                 list_v_release_node( ln );
