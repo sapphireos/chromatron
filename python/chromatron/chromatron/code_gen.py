@@ -341,9 +341,28 @@ class cg1Module(cg1Node):
 
                     builder.link(node.target, src, dest, query, aggregation, rate, tag, lineno=node.lineno)
 
-                elif node.target in ['send', 'receive']:
-                    src = node.params[1].s
-                    dest = node.params[0].s
+                elif node.target in ['send', 'receive', 'recv']:
+                    # recv is shorthand
+                    if node.target == 'recv':
+                        node.target = 'receive'
+
+                    # SEND:
+                    # src -> dest
+
+                    # RECV:
+                    # dst <- src
+
+                    # first parameter is the local key,
+                    # second is remote
+
+                    if node.target == 'send':
+                        src = node.params[0].s
+                        dest = node.params[1].s
+
+                    elif node.target == 'receive':
+                        dest = node.params[0].s
+                        src = node.params[1].s
+
                     query = [a.s for a in node.params[2].items]
                     try:
                         rate = int(node.params[3].s)
