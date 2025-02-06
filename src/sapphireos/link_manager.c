@@ -535,6 +535,10 @@ static int8_t _kv_i8_link_mgr_handler(
             
             STORE16(data, list_u8_count( &link_list ));
         }
+        else if( hash == __KV__link2_mgr_data_count ){
+            
+            STORE16(data, list_u8_count( &data_list ));
+        }
         
         return 0;
     }
@@ -542,8 +546,20 @@ static int8_t _kv_i8_link_mgr_handler(
     return -1;
 }
 
+
+static uint32_t link2_mgr_msgs_rx_link;
+static uint32_t link2_mgr_msgs_rx_data;
+static uint32_t link2_mgr_msgs_tx_data;
+static uint32_t link2_mgr_msgs_tx_bind;
+
 KV_SECTION_OPT kv_meta_t link_mgr_kv[] = {
-    { CATBUS_TYPE_UINT16,   0, 0,               0, _kv_i8_link_mgr_handler,  "link2_mgr_link_count" }, 
+    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 0, _kv_i8_link_mgr_handler,  "link2_mgr_link_count" }, 
+    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 0, _kv_i8_link_mgr_handler,  "link2_mgr_data_count" }, 
+
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_mgr_msgs_rx_link, 0,  "link2_mgr_msgs_rx_link" }, 
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_mgr_msgs_rx_data, 0,  "link2_mgr_msgs_rx_data" }, 
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_mgr_msgs_tx_data, 0,  "link2_mgr_msgs_tx_data" }, 
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_mgr_msgs_tx_bind, 0,  "link2_mgr_msgs_tx_bind" }, 
 };
 
 
@@ -669,6 +685,8 @@ PT_BEGIN( pt );
 
         if( header->msg_type == LINK_MSG_TYPE_LINK ){
 
+        	link2_mgr_msgs_rx_link++;
+
         	uint8_t count = ( sock_i16_get_bytes_read( sock ) - sizeof(link2_msg_header_t) ) / sizeof(link2_t);
 
         	// iterate through links
@@ -683,6 +701,8 @@ PT_BEGIN( pt );
         	}
         }
         else if( header->msg_type == LINK_MSG_TYPE_DATA ){
+
+        	link2_mgr_msgs_rx_data++;
 
         	bytes_read -= sizeof(link2_msg_header_t);
 	        	
@@ -805,6 +825,8 @@ static void send_bind_msg( link2_binding_t *bindings, uint8_t count, ip_addr4_t 
 
 		log_v_error_P( PSTR("msg fail") );
 	}
+
+	link2_mgr_msgs_tx_bind++;
 
 	// log_v_debug_P( PSTR("send bind: %d.%d.%d.%d"), ip.ip3, ip.ip2, ip.ip1, ip.ip0 );
 }
@@ -1153,7 +1175,9 @@ PT_BEGIN( pt );
                         if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
 
                             log_v_debug_P( PSTR("data send fail") );
-                        }                
+                        }        
+
+                        link2_mgr_msgs_tx_data++;
 
                         // reset pointers
                         data_ptr = (link2_data_t *)( data_hdr + 1 );
@@ -1241,7 +1265,9 @@ PT_BEGIN( pt );
                         if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
 
                             log_v_debug_P( PSTR("data send fail") );
-                        }                
+                        }            
+
+                        link2_mgr_msgs_tx_data++;    
 
                         // reset pointers
                         data_ptr = (link2_data_t *)( data_hdr + 1 );

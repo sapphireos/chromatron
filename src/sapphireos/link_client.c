@@ -157,12 +157,23 @@ static int8_t _kv_i8_link_client_handler(
     return -1;
 }
 
-KV_SECTION_META kv_meta_t link2_kv[] = {
-    { CATBUS_TYPE_UINT16,  0, 0,               0, _kv_i8_link_client_handler,  "link2_binding_count" },
-    { CATBUS_TYPE_UINT16,  0, 0,               0, _kv_i8_link_client_handler,  "link2_link_count" },
 
-    { CATBUS_TYPE_INT32,   0, 0,                   &link2_test_key,        0,  "link2_test_key" },
-    { CATBUS_TYPE_INT32,   0, 0,                   &link2_test_key2,       0,  "link2_test_key2" },
+static uint32_t link2_msgs_tx_link;
+static uint32_t link2_msgs_rx_bind;
+static uint32_t link2_msgs_tx_data;
+static uint32_t link2_msgs_rx_data;
+
+KV_SECTION_META kv_meta_t link2_kv[] = {
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_link_client_handler,   "link2_binding_count" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_link_client_handler,   "link2_link_count" },
+
+    { CATBUS_TYPE_INT32,   0, 0,                   &link2_test_key,             0,  "link2_test_key" },
+    { CATBUS_TYPE_INT32,   0, 0,                   &link2_test_key2,            0,  "link2_test_key2" },
+
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_msgs_tx_link,         0,  "link2_msgs_tx_link" }, 
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_msgs_rx_bind,         0,  "link2_msgs_rx_bind" }, 
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_msgs_tx_data,         0,  "link2_msgs_tx_data" }, 
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_msgs_rx_data,         0,  "link2_msgs_rx_data" }, 
 };
 
 
@@ -638,6 +649,8 @@ PT_BEGIN( pt );
 
         if( header->msg_type == LINK_MSG_TYPE_BIND ){
 
+            link2_msgs_rx_bind++;
+
             uint8_t count = ( sock_i16_get_bytes_read( sock ) - sizeof(link2_msg_header_t) ) / sizeof(link2_binding_t);
 
             // iterate through bindings
@@ -677,6 +690,8 @@ PT_BEGIN( pt );
             }
         }
         else if( header->msg_type == LINK_MSG_TYPE_DATA ){
+
+            link2_msgs_rx_data++;
 
             link2_data_t *data_ptr = (link2_data_t *)( header + 1 );
 
@@ -854,6 +869,8 @@ PT_BEGIN( pt );
 
 	        	}
 
+                link2_msgs_tx_link++;
+
 	        	h = -1; // clear handle
 	        }
 
@@ -1018,7 +1035,9 @@ PT_BEGIN( pt );
                 if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &link_mgr_raddr ) < 0 ){
 
                     log_v_debug_P( PSTR("data send fail") );
-                }                
+                }
+
+                link2_msgs_tx_data++;
 
                 // reset pointers
                 data_ptr = (link2_data_t *)( data_hdr + 1 );
@@ -1047,6 +1066,8 @@ next_binding:
 
                 log_v_debug_P( PSTR("data send fail") );
             }      
+
+            link2_msgs_tx_data++;
 
             current_data_count = 0;          
         }
