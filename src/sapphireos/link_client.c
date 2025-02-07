@@ -658,19 +658,6 @@ PT_BEGIN( pt );
 
             while( count > 0 ){
 
-                // if binding is from a SEND link,
-                // check that we have a matching link
-                if( binding->link_hash != 0 ){
-
-                    link2_handle_t link = link2_l_lookup_by_hash( binding->link_hash );
-
-                    if( link <= 0 ){
-
-                        goto next_binding;
-                    }
-                }
-
-
                 // check if key is present:
                 if( kv_i16_search_hash( binding->key ) >= 0 ){
 
@@ -684,7 +671,6 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("recv binding not found: 0x%08x"), binding->key );
                 }
 
-            next_binding:
                 binding++;
                 count--;
             }
@@ -697,31 +683,10 @@ PT_BEGIN( pt );
 
             while( (uint8_t *)data_ptr < ( (uint8_t *)header + sock_i16_get_bytes_read( sock ) ) ){
 
-                // check if data is from a RECV link,
-                // if so, we should have a matching link
-                // this way, if we delete our receive link,
-                // we will immediately stop accepting inbound data.
-                if( data_ptr->link_hash != 0 ){
-
-                    link2_handle_t link = link2_l_lookup_by_hash( data_ptr->link_hash );
-
-                    if( link <= 0 ){
-
-                        goto next_data;
-                    }
-                }
-
-
-                // if the data is coming from a SEND link, we trust that the 
-                // link manager knows what it is doing.
-                
-
-
                 // log_v_debug_P( PSTR("recv data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data );
 
                 catbus_i8_set_i64( data_ptr->key, data_ptr->data );
 
-            next_data:
                 data_ptr++;
             }
         }   
