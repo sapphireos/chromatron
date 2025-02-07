@@ -1185,8 +1185,8 @@ PT_BEGIN( pt );
 
 	            data_ptr->key 		= meta->link.dest_key;
 				data_ptr->data 		= data;
+				data_ptr->mode 		= meta->link.mode;
 				data_ptr->link_hash = link2_u64_hash( &meta->link );
-				// data_ptr->mode = meta->link.mode;
 
 				data_ptr++;
                 current_data_count++;

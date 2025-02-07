@@ -792,7 +792,6 @@ PT_BEGIN( pt );
 
                         goto next_binding;
                     }
-
                 }
 
                 // check if key is present:
@@ -821,23 +820,22 @@ PT_BEGIN( pt );
 
             while( (uint8_t *)data_ptr < ( (uint8_t *)header + sock_i16_get_bytes_read( sock ) ) ){
 
-                // // check data item mode
-                // // if the item is from a receive, then there should be matching receive
-                // // link on this device.
-                // if( data_ptr->mode == LINK_MODE_RECV ){
+                // check data item mode
+                // if the item is from a receive, then there should be matching receive
+                // link on this device.
+                if( data_ptr->mode == LINK_MODE_RECV ){
 
-                //     if( !link2_b_is_linked_by_dest_key( LINK_MODE_RECV, data_ptr->key ) ){
+                    if( link2_l_lookup_by_hash( data_ptr->link_hash ) < 0 ){
 
-                //         goto next_data;
-                //     }
-                // }                
-
+                        goto next_data;
+                    }
+                }
 
                 // log_v_debug_P( PSTR("recv data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data );
 
                 catbus_i8_set_i64( data_ptr->key, data_ptr->data );
 
-            // next_data:
+            next_data:
                 data_ptr++;
             }
         }   

@@ -107,6 +107,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     catbus_hash_t32 key;
     int64_t data;
+    uint8_t mode;
     uint64_t link_hash;
 } link2_data_t;
 #define LINK_MAX_DATA_ENTRIES         ( ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_data_t) )
