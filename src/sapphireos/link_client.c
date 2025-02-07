@@ -50,6 +50,41 @@ Receives will be aggregated by the controller.
 This is basically the inverse of send.
 
 
+BOTH:
+
+A send and receive.
+
+Both is used as a 2 way "remote control".
+It acts as a receive link that automatically creates a local
+binding to transmit to the manager.
+
+Initially (and most of the time), the link operates as as receive with 
+a few differences.
+When it receives data, it updates the tracked data in the local binding.
+
+The local binding (set to BOTH mode) will check for a local data change.
+If the data was changed *locally*, it will start transmitting data
+as if it were an otherwise normal binding, until the local data hasn't
+changed for a timeout period.
+
+In this way, the link operates in both directions. Normally it is receiving
+remote data.  If data is changed locally, it switches to a send operation
+for a period of time, and then if local data has stopped changing, switches
+back to a receive.
+
+This can be used for interactive remote controls that can display
+the current state of a variable and track changes from elsewhere
+in the network, and also be able to push local updates as needed.
+
+Note that if multiple devices have the same BOTH link and are
+attempting to send at the same time, there is no conflict
+resolution mechanism - much as if multiple TV remotes are being
+used on the same TV, the results will be unpredictable until
+only one user is in control.  
+Sometimes the solution to the multiple writers problem is to 
+tell everyone else to stop writing ;-)
+
+
 
 SYNC:
 

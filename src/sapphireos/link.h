@@ -89,7 +89,6 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     link2_t link;
 
-    uint32_t data_hash;
     int16_t retransmit_timer;
     int16_t ticks;
     uint8_t flags;
