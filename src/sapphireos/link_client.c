@@ -141,7 +141,6 @@ typedef struct __attribute__((packed)){
     int16_t retransmit_ticks;
 
     int16_t ticks;
-    uint8_t flags;
     uint8_t timeout;
 
     uint64_t link_hash;
@@ -305,22 +304,14 @@ link2_state_t* link2_ls_get_data( link2_handle_t link ){
     return list_vp_get_data( link );    
 }
 
-bool link2_b_compare( link2_state_t *link1, link2_state_t *link2 ){
+bool link2_b_compare( const link2_state_t *link1, const link2_state_t *link2 ){
  
 	return memcmp( link1, link2, sizeof(link2_state_t) ) == 0;
 }
 
 uint64_t link2_u64_hash( link2_t *link ){
 
-    // bool is_del = link->mode & LINK_MODE_DELETE;
-    // link->mode &= ~LINK_MODE_DELETE;
-
 	uint64_t hash = hash_u64_data( (uint8_t *)link, sizeof(link2_t) );	
-
-    // if( is_del ){
-
-    //     link->mode |= LINK_MODE_DELETE;
-    // }
 
     return hash;
 }
@@ -350,7 +341,7 @@ link2_handle_t link2_l_lookup_by_hash( uint64_t hash ){
 
     while( ln >= 0 ){
 
-        link2_state_t *state = list_vp_get_data( ln );
+        const link2_state_t *state = list_vp_get_data( ln );
 
         if( state->hash == hash ){
 
@@ -656,8 +647,7 @@ static void delete_binding( uint64_t link_hash ){
 
 void link2_v_delete( link_handle_t link ){
     
-    link2_state_t *state = list_vp_get_data( link );    
-    // state->flags |= LINK_FLAGS_DELETE;
+    const link2_state_t *state = list_vp_get_data( link );    
 
     delete_binding( state->hash );
 
@@ -673,12 +663,10 @@ void link2_v_delete_by_tag( catbus_hash_t32 tag ){
 
     while( ln >= 0 ){
 
-        link2_state_t *state = list_vp_get_data( ln );
+        const link2_state_t *state = list_vp_get_data( ln );
         list_node_t next_ln = list_ln_next( ln );
 
         if( state->link.tag == tag ){
-
-            // state->flags |= LINK_FLAGS_DELETE;
 
             delete_binding( state->hash );
 
@@ -698,12 +686,10 @@ void link2_v_delete_by_hash( uint64_t hash ){
 
     while( ln >= 0 ){
 
-        link2_state_t *state = list_vp_get_data( ln );
+        const link2_state_t *state = list_vp_get_data( ln );
         list_node_t next_ln = list_ln_next( ln );
 
         if( state->hash == hash ){
-
-            // state->flags |= LINK_FLAGS_DELETE;
 
             delete_binding( state->hash );
 
@@ -955,11 +941,6 @@ PT_BEGIN( pt );
 	        link2_state_t *link_state = list_vp_get_data( ln );
 
             link_ptr->mode = link_state->link.mode;    
-
-            // if( link_state->flags & LINK_FLAGS_DELETE ){
-
-            //     link_ptr->mode |= LINK_MODE_DELETE;
-            // }
             	        
 	        link_ptr->aggregation 	= link_state->link.aggregation;
 	        link_ptr->rate 			= link_state->link.rate;
@@ -990,26 +971,6 @@ PT_BEGIN( pt );
 
 	        ln = list_ln_next( ln );     
 	    } 	
-
-        // // process link deletions
-        // ln = link_list.head;
-
-        // while( ln >= 0 ){
-
-        //     const link2_state_t *link_state = list_vp_get_data( ln );
-        //     list_node_t next_ln = list_ln_next( ln );
-
-        //     if( link_state->flags & LINK_FLAGS_DELETE ){
-
-        //         // delete link
-        //         log_v_debug_P( PSTR("Deleting link: 0x%0x"), link_state->link.tag );
-
-        //         list_v_remove( &link_list, ln );
-        //         list_v_release_node( ln );
-        //     }
-
-        //     ln = next_ln;
-        // }
     }
 
 PT_END( pt );
@@ -1048,22 +1009,6 @@ PT_BEGIN( pt );
         while( ln >= 0 ){
 
             binding_state_t *binding_state = list_vp_get_data( ln );
-
-            // check if this is a send binding and not a recv binding
-            // this means we should have at least one corresponding link
-            // sending the source key
-            // if this is a receive binding, we are sourcing data to
-            // a receive link somewhere else.
-            // if( ( binding_state->modes & ( 1 << LINK_MODE_SEND ) ) == ( 1 << LINK_MODE_SEND ) ){
-
-            //     // check if we have a matching link for this source
-            //     if( !link2_b_is_linked_by_source_key( LINK_MODE_SEND, binding_state->key ) ){
-
-            //         // no match, we can skip this binding!
-            //         goto next_binding;
-            //     }
-            // }
-
 
             binding_state->ticks -= LINK_MIN_TICK_RATE;
 

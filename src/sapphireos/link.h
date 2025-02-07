@@ -91,7 +91,6 @@ typedef struct __attribute__((packed)){
 
     int16_t retransmit_timer;
     int16_t ticks;
-    uint8_t flags;
 
     uint64_t hash; // must be last!
 } link2_state_t;
@@ -121,7 +120,6 @@ typedef struct __attribute__((packed)){
     // uint64_t origin_id;
     catbus_hash_t32 universe;
 } link2_msg_header_t;
-// #define LINK_FLAGS_DELETE               0x01
 
 typedef struct __attribute__((packed)){
     link2_msg_header_t header;
