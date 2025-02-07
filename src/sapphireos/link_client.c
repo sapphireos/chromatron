@@ -135,7 +135,6 @@ static list_t binding_list;
 typedef struct __attribute__((packed)){
     catbus_hash_t32 key;
     uint16_t rate;
-    uint8_t modes;
 
     int64_t last_data;
     int16_t retransmit_ticks;
@@ -681,8 +680,6 @@ static void add_or_update_binding( link2_binding_t *link_binding ){
     }
 
     state->timeout  = LINK_BINDING_TIMEOUT;
-
-    state->modes |= ( 1 << link_binding->mode );
 }
 
 PT_THREAD( link2_server_thread( pt_t *pt, void *state ) )
@@ -771,23 +768,23 @@ PT_BEGIN( pt );
 
             while( (uint8_t *)data_ptr < ( (uint8_t *)header + sock_i16_get_bytes_read( sock ) ) ){
 
-                // check data item mode
-                // if the item is from a receive, then there should be matching receive
-                // link on this device.
-                if( data_ptr->mode == LINK_MODE_RECV ){
+                // // check data item mode
+                // // if the item is from a receive, then there should be matching receive
+                // // link on this device.
+                // if( data_ptr->mode == LINK_MODE_RECV ){
 
-                    if( !link2_b_is_linked_by_dest_key( LINK_MODE_RECV, data_ptr->key ) ){
+                //     if( !link2_b_is_linked_by_dest_key( LINK_MODE_RECV, data_ptr->key ) ){
 
-                        goto next_data;
-                    }
-                }                
+                //         goto next_data;
+                //     }
+                // }                
 
 
                 // log_v_debug_P( PSTR("recv data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data );
 
                 catbus_i8_set_i64( data_ptr->key, data_ptr->data );
 
-            next_data:
+            // next_data:
                 data_ptr++;
             }
         }   
@@ -1006,15 +1003,15 @@ PT_BEGIN( pt );
             // sending the source key
             // if this is a receive binding, we are sourcing data to
             // a receive link somewhere else.
-            if( ( binding_state->modes & ( 1 << LINK_MODE_SEND ) ) == ( 1 << LINK_MODE_SEND ) ){
+            // if( ( binding_state->modes & ( 1 << LINK_MODE_SEND ) ) == ( 1 << LINK_MODE_SEND ) ){
 
-                // check if we have a matching link for this source
-                if( !link2_b_is_linked_by_source_key( LINK_MODE_SEND, binding_state->key ) ){
+            //     // check if we have a matching link for this source
+            //     if( !link2_b_is_linked_by_source_key( LINK_MODE_SEND, binding_state->key ) ){
 
-                    // no match, we can skip this binding!
-                    goto next_binding;
-                }
-            }
+            //         // no match, we can skip this binding!
+            //         goto next_binding;
+            //     }
+            // }
 
 
             binding_state->ticks -= LINK_MIN_TICK_RATE;
