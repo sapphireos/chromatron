@@ -580,7 +580,7 @@ link2_handle_t link2_l_create2( link2_state_t *state ){
 
 
 
-static binding_state_t* get_binding_for_key(catbus_hash_t32 key){
+static binding_state_t* get_binding_for_hash( uint64_t link_hash ){
 
     list_node_t ln = binding_list.head;
 
@@ -588,7 +588,7 @@ static binding_state_t* get_binding_for_key(catbus_hash_t32 key){
 
         binding_state_t *state = list_vp_get_data( ln );
 
-        if( state->key == key ){
+        if( state->link_hash == link_hash ){
 
             return state;
         }
@@ -599,9 +599,9 @@ static binding_state_t* get_binding_for_key(catbus_hash_t32 key){
     return 0;
 }
 
-static void add_or_update_binding( link2_binding_t *link_binding ){
+static void add_or_update_binding( const link2_binding_t *link_binding ){
 
-    binding_state_t *state = get_binding_for_key( link_binding->key );
+    binding_state_t *state = get_binding_for_hash( link_binding->link_hash );
 
     if( state == 0 ){
 
