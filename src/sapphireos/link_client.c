@@ -543,8 +543,11 @@ link2_handle_t link2_l_create2( link2_state_t *state ){
 
 void link2_v_delete( link_handle_t link ){
     
-    link2_state_t *state = list_vp_get_data( link );    
-    state->flags |= LINK_FLAGS_DELETE;
+    // link2_state_t *state = list_vp_get_data( link );    
+    // state->flags |= LINK_FLAGS_DELETE;
+
+    list_v_remove( &link_list, link );
+    list_v_release_node( link );    
 }
 
 void link2_v_delete_by_tag( catbus_hash_t32 tag ){
@@ -558,7 +561,10 @@ void link2_v_delete_by_tag( catbus_hash_t32 tag ){
 
         if( state->link.tag == tag ){
 
-            state->flags |= LINK_FLAGS_DELETE;
+            // state->flags |= LINK_FLAGS_DELETE;
+
+            list_v_remove( &link_list, ln );
+            list_v_release_node( ln );    
         }
 
         ln = next_ln;
@@ -576,7 +582,10 @@ void link2_v_delete_by_hash( uint64_t hash ){
 
         if( state->hash == hash ){
 
-            state->flags |= LINK_FLAGS_DELETE;
+            // state->flags |= LINK_FLAGS_DELETE;
+
+            list_v_remove( &link_list, ln );
+            list_v_release_node( ln );    
         }
 
         ln = next_ln;
@@ -899,25 +908,25 @@ PT_BEGIN( pt );
 	        ln = list_ln_next( ln );     
 	    } 	
 
-        // process link deletions
-        ln = link_list.head;
+        // // process link deletions
+        // ln = link_list.head;
 
-        while( ln >= 0 ){
+        // while( ln >= 0 ){
 
-            const link2_state_t *link_state = list_vp_get_data( ln );
-            list_node_t next_ln = list_ln_next( ln );
+        //     const link2_state_t *link_state = list_vp_get_data( ln );
+        //     list_node_t next_ln = list_ln_next( ln );
 
-            if( link_state->flags & LINK_FLAGS_DELETE ){
+        //     if( link_state->flags & LINK_FLAGS_DELETE ){
 
-                // delete link
-                log_v_debug_P( PSTR("Deleting link: 0x%0x"), link_state->link.tag );
+        //         // delete link
+        //         log_v_debug_P( PSTR("Deleting link: 0x%0x"), link_state->link.tag );
 
-                list_v_remove( &link_list, ln );
-                list_v_release_node( ln );
-            }
+        //         list_v_remove( &link_list, ln );
+        //         list_v_release_node( ln );
+        //     }
 
-            ln = next_ln;
-        }
+        //     ln = next_ln;
+        // }
     }
 
 PT_END( pt );

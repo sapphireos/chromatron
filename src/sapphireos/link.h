@@ -120,7 +120,7 @@ typedef struct __attribute__((packed)){
     // uint64_t origin_id;
     catbus_hash_t32 universe;
 } link2_msg_header_t;
-#define LINK_FLAGS_DELETE               0x01
+// #define LINK_FLAGS_DELETE               0x01
 
 typedef struct __attribute__((packed)){
     link2_msg_header_t header;

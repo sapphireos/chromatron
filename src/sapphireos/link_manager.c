@@ -1125,63 +1125,63 @@ PT_BEGIN( pt );
 					// aggregate and add to data buffer
 					// log_v_debug_P( PSTR("aggregate send") );
 
-					int64_t data = 0;
-					if( !aggregate( meta, &data ) ){
+					// int64_t data = 0;
+					// if( !aggregate( meta, &data ) ){
 
-						// no values reported, bail out
+					// 	// no values reported, bail out
 
-						goto next;
-					}
+					// 	goto next;
+					// }
 
-					// check if data is changing or if the timer has expired:
-					bool changed = FALSE;
+					// // check if data is changing or if the timer has expired:
+					// bool changed = FALSE;
 
-					if( data != meta->current_data ){
+					// if( data != meta->current_data ){
 
-						meta->current_data = data;
+					// 	meta->current_data = data;
 
-						changed = TRUE;
+					// 	changed = TRUE;
 
-						// if retransmit timer is above the min tick rate,
-						// reset it to transmit sooner.
-						if( meta->retransmit_ticks > LINK_MIN_TICK_RATE ){
+					// 	// if retransmit timer is above the min tick rate,
+					// 	// reset it to transmit sooner.
+					// 	if( meta->retransmit_ticks > LINK_MIN_TICK_RATE ){
 
-							meta->retransmit_ticks = LINK_MIN_TICK_RATE;
-						}
-					}
+					// 		meta->retransmit_ticks = LINK_MIN_TICK_RATE;
+					// 	}
+					// }
 
-					// update retransmission timer	
-					if( meta->retransmit_ticks > 0 ){
+					// // update retransmission timer	
+					// if( meta->retransmit_ticks > 0 ){
 
-		                meta->retransmit_ticks -= LINK_MIN_TICK_RATE;    
-		            }
+		            //     meta->retransmit_ticks -= LINK_MIN_TICK_RATE;    
+		            // }
 					
-					// check timer expiry
-					if( meta->retransmit_ticks > 0 ){
+					// // check timer expiry
+					// if( meta->retransmit_ticks > 0 ){
 
-						// link2_mgr_trace |= 0x04;
+					// 	// link2_mgr_trace |= 0x04;
 
-						goto next;
-					}
+					// 	goto next;
+					// }
 
-					// check if retransmit timer needs to be reset
-					if( meta->retransmit_ticks <= 0 ){
+					// // check if retransmit timer needs to be reset
+					// if( meta->retransmit_ticks <= 0 ){
 
-						if( changed ){
+					// 	if( changed ){
 
-							// retransmit at higher rate on change
-							meta->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
-						}
-						else{
+					// 		// retransmit at higher rate on change
+					// 		meta->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
+					// 	}
+					// 	else{
 
-							meta->retransmit_ticks = LINK_RETRANSMIT_RATE;    
-						}
-		            }
+					// 		meta->retransmit_ticks = LINK_RETRANSMIT_RATE;    
+					// 	}
+		            // }
 
 
-					data_ptr->key = meta->link.dest_key;
-					data_ptr->data = data;
-					data_ptr->mode = meta->link.mode;
+					// data_ptr->key = meta->link.dest_key;
+					// data_ptr->data = data;
+					// data_ptr->mode = meta->link.mode;
 
 					// log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed: %d next_ticks: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, meta->retransmit_ticks );
 
@@ -1224,60 +1224,60 @@ PT_BEGIN( pt );
 					// aggregate and add to data buffer
 					// log_v_debug_P( PSTR("aggregate recv") );
 					
-					int64_t data = 0;
-					if( !aggregate( meta, &data ) ){
+					// int64_t data = 0;
+					// if( !aggregate( meta, &data ) ){
 
-						// no values reported, bail out
+					// 	// no values reported, bail out
 
-						goto next;
-					}
+					// 	goto next;
+					// }
 
-					// check if data is changing or if the timer has expired:
-					bool changed = FALSE;
+					// // check if data is changing or if the timer has expired:
+					// bool changed = FALSE;
 
-					if( data != meta->current_data ){
+					// if( data != meta->current_data ){
 
-						meta->current_data = data;
+					// 	meta->current_data = data;
 
-						changed = TRUE;
+					// 	changed = TRUE;
 
-						// if retransmit timer is above the min tick rate,
-						// reset it to transmit sooner.
-						if( meta->retransmit_ticks > LINK_MIN_TICK_RATE ){
+					// 	// if retransmit timer is above the min tick rate,
+					// 	// reset it to transmit sooner.
+					// 	if( meta->retransmit_ticks > LINK_MIN_TICK_RATE ){
 
-							meta->retransmit_ticks = LINK_MIN_TICK_RATE;
-						}
-					}
+					// 		meta->retransmit_ticks = LINK_MIN_TICK_RATE;
+					// 	}
+					// }
 
-					// update retransmission timer	
-					if( meta->retransmit_ticks > 0 ){
+					// // update retransmission timer	
+					// if( meta->retransmit_ticks > 0 ){
 
-		                meta->retransmit_ticks -= LINK_MIN_TICK_RATE;    
-		            }
+		            //     meta->retransmit_ticks -= LINK_MIN_TICK_RATE;    
+		            // }
 					
-					// check timer expiry
-					if( meta->retransmit_ticks > 0 ){
+					// // check timer expiry
+					// if( meta->retransmit_ticks > 0 ){
 
-						goto next;
-					}
+					// 	goto next;
+					// }
 
-					// check if retransmit timer needs to be reset
-					if( meta->retransmit_ticks <= 0 ){
+					// // check if retransmit timer needs to be reset
+					// if( meta->retransmit_ticks <= 0 ){
 
-						if( changed ){
+					// 	if( changed ){
 
-							// retransmit at higher rate on change
-							meta->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
-						}
-						else{
+					// 		// retransmit at higher rate on change
+					// 		meta->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
+					// 	}
+					// 	else{
 
-							meta->retransmit_ticks = LINK_RETRANSMIT_RATE;    
-						}
-		            }					
+					// 		meta->retransmit_ticks = LINK_RETRANSMIT_RATE;    
+					// 	}
+		            // }					
 
-		            data_ptr->key = meta->link.dest_key;
-					data_ptr->data = data;
-					data_ptr->mode = meta->link.mode;
+		            // data_ptr->key = meta->link.dest_key;
+					// data_ptr->data = data;
+					// data_ptr->mode = meta->link.mode;
 
 					// log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed: %d next_ticks: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, meta->retransmit_ticks );
 
@@ -1307,6 +1307,61 @@ PT_BEGIN( pt );
                     //     current_data_count = 0;
                     // }
 				}
+
+				int64_t data = 0;
+				if( !aggregate( meta, &data ) ){
+
+					// no values reported, bail out
+
+					goto next;
+				}
+
+				// check if data is changing or if the timer has expired:
+				bool changed = FALSE;
+
+				if( data != meta->current_data ){
+
+					meta->current_data = data;
+
+					changed = TRUE;
+
+					// if retransmit timer is above the min tick rate,
+					// reset it to transmit sooner.
+					if( meta->retransmit_ticks > LINK_MIN_TICK_RATE ){
+
+						meta->retransmit_ticks = LINK_MIN_TICK_RATE;
+					}
+				}
+
+				// update retransmission timer	
+				if( meta->retransmit_ticks > 0 ){
+
+	                meta->retransmit_ticks -= LINK_MIN_TICK_RATE;    
+	            }
+				
+				// check timer expiry
+				if( meta->retransmit_ticks > 0 ){
+
+					goto next;
+				}
+
+				// check if retransmit timer needs to be reset
+				if( meta->retransmit_ticks <= 0 ){
+
+					if( changed ){
+
+						// retransmit at higher rate on change
+						meta->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
+					}
+					else{
+
+						meta->retransmit_ticks = LINK_RETRANSMIT_RATE;    
+					}
+	            }					
+
+	            data_ptr->key = meta->link.dest_key;
+				data_ptr->data = data;
+				data_ptr->mode = meta->link.mode;
 
 				data_ptr++;
                 current_data_count++;
