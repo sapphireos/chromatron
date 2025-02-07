@@ -142,6 +142,8 @@ typedef struct __attribute__((packed)){
     int16_t ticks;
     uint8_t flags;
     uint8_t timeout;
+
+    uint64_t link_hash;
 } binding_state_t;
 
 static int32_t link2_test_key;
@@ -680,6 +682,8 @@ static void add_or_update_binding( link2_binding_t *link_binding ){
     }
 
     state->timeout  = LINK_BINDING_TIMEOUT;
+
+    state->link_hash = link_binding->link_hash;
 }
 
 PT_THREAD( link2_server_thread( pt_t *pt, void *state ) )
@@ -1090,8 +1094,9 @@ PT_BEGIN( pt );
             }
 
             // set up entry in message:
-            data_ptr->key = binding_state->key;
-            data_ptr->data = data;
+            data_ptr->key       = binding_state->key;
+            data_ptr->data      = data;
+            data_ptr->link_hash = binding_state->link_hash;
 
 
             // log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed %d timer: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, binding_state->retransmit_ticks );

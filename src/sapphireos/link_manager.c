@@ -59,12 +59,13 @@ static list_t data_list;
 typedef struct __attribute__((packed)){
     ip_addr4_t ip;
     uint8_t timeout;
-    catbus_hash_t32 hash;
-	int64_t data;    
+    catbus_hash_t32 key;
+	int64_t data;
+	uint64_t link_hash;
 } link2_data_cache_t;
 
 
-static list_node_t get_cache_data_for_ip( ip_addr4_t ip, catbus_hash_t32 hash ){
+static list_node_t get_cache_data_for_ip( ip_addr4_t ip, uint64_t link_hash ){
 
     list_node_t ln = data_list.head;
 
@@ -72,7 +73,7 @@ static list_node_t get_cache_data_for_ip( ip_addr4_t ip, catbus_hash_t32 hash ){
 
         list_node_t next_ln = list_ln_next( ln );
 
-        link2_data_cache_t *cache = list_vp_get_data( ln );
+        const link2_data_cache_t *cache = list_vp_get_data( ln );
 
         // check IP
         if( !ip_b_addr_compare( ip, cache->ip ) ){
@@ -80,9 +81,15 @@ static list_node_t get_cache_data_for_ip( ip_addr4_t ip, catbus_hash_t32 hash ){
         	goto next;
         }
 
-        if( memcmp( &cache->hash, &hash, sizeof(cache->hash) ) == 0 ){
+        // if( memcmp( &cache->hash, &hash, sizeof(cache->hash) ) == 0 ){
 
         	// match
+        	// return ln;
+        // }
+
+        if( cache->link_hash == link_hash ){
+
+        	// match!
         	return ln;
         }
 
@@ -94,10 +101,10 @@ next:
     return -1;
 }
 
-static int8_t update_data_cache( ip_addr4_t ip, catbus_hash_t32 hash, int64_t data ){
+static int8_t update_data_cache( ip_addr4_t ip, catbus_hash_t32 key, int64_t data, uint64_t link_hash ){
 
 	// check for existing entry
-	list_node_t ln = get_cache_data_for_ip( ip, hash );
+	list_node_t ln = get_cache_data_for_ip( ip, link_hash );
 
 	if( ln < 0 ){
 
@@ -124,9 +131,10 @@ static int8_t update_data_cache( ip_addr4_t ip, catbus_hash_t32 hash, int64_t da
 
 	link2_data_cache_t *cache = list_vp_get_data( ln );
 
-	cache->ip 		= ip;
-	cache->hash 	= hash;
-	cache->timeout 	= LINK2_MGR_LINK_TIMEOUT;
+	cache->ip 			= ip;
+	cache->key 			= key;
+	cache->timeout 		= LINK2_MGR_LINK_TIMEOUT;
+	cache->link_hash 	= link_hash;
 	
 	// cache->data 	= specific_to_i64( meta->type, data );	
 
@@ -165,12 +173,13 @@ static void process_data_cache_timeouts( void ){
 
      	if( cache->timeout == 0 ){
 
-     		log_v_debug_P( PSTR("Cache entry:0x%08x from %d.%d.%d.%d timed out"),
-     			cache->hash,
+     		log_v_debug_P( PSTR("Cache entry:0x%08x from %d.%d.%d.%d timed out 0x%x"),
+     			cache->key,
      			cache->ip.ip3,
      			cache->ip.ip2,
      			cache->ip.ip1,
-     			cache->ip.ip0
+     			cache->ip.ip0,
+     			cache->link_hash
      		);
 
      		list_v_remove( &data_list, ln );
@@ -270,6 +279,8 @@ static bool aggregate( link2_meta_t *meta, int64_t *value ){
 
 	bool valid = FALSE;
 
+	uint64_t link_hash = link2_u64_hash( &meta->link );
+
 	// loop through data items that match this link
 	
     list_node_t ln = data_list.head;
@@ -278,10 +289,16 @@ static bool aggregate( link2_meta_t *meta, int64_t *value ){
 
         list_node_t next_ln = list_ln_next( ln );
 
-        link2_data_cache_t *cache = list_vp_get_data( ln );
+        const link2_data_cache_t *cache = list_vp_get_data( ln );
+
+        // check if hash matches
+        if( link_hash != cache->link_hash ){
+
+        	goto next;
+        }
 
         // check if cache key matches link source key
-        if( meta->link.source_key != cache->hash ){
+        if( meta->link.source_key != cache->key ){
 
         	goto next;
         }
@@ -703,7 +720,7 @@ PT_BEGIN( pt );
 
         	while( bytes_read > 0 ){
 
-        		int8_t status = update_data_cache( raddr.ipaddr, data->key, data->data );
+        		int8_t status = update_data_cache( raddr.ipaddr, data->key, data->data, data->link_hash );
 
         		if( status == 1 ){
 
@@ -944,7 +961,7 @@ PT_BEGIN( pt );
 						link2_binding_t binding = {
 							meta->link.source_key,
 							meta->link.rate,
-							meta->link.mode,
+							link2_u64_hash( &meta->link ),
 						};
 
 						bindings[count] = binding;
@@ -967,7 +984,7 @@ PT_BEGIN( pt );
 						link2_binding_t binding = {
 							meta->link.source_key,
 							meta->link.rate,
-							meta->link.mode,
+							link2_u64_hash( &meta->link ),
 						};
 
 						bindings[count] = binding;
@@ -1164,8 +1181,9 @@ PT_BEGIN( pt );
 					}
 	            }					
 
-	            data_ptr->key = meta->link.dest_key;
-				data_ptr->data = data;
+	            data_ptr->key 		= meta->link.dest_key;
+				data_ptr->data 		= data;
+				data_ptr->link_hash = link2_u64_hash( &meta->link );
 				// data_ptr->mode = meta->link.mode;
 
 				data_ptr++;
