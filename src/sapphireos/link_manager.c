@@ -552,7 +552,7 @@ static uint32_t link2_mgr_msgs_rx_data;
 static uint32_t link2_mgr_msgs_tx_data;
 static uint32_t link2_mgr_msgs_tx_bind;
 
-static uint32_t link2_mgr_trace;
+// static uint32_t link2_mgr_trace;
 
 KV_SECTION_OPT kv_meta_t link_mgr_kv[] = {
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 0, _kv_i8_link_mgr_handler,  "link2_mgr_link_count" }, 
@@ -563,7 +563,7 @@ KV_SECTION_OPT kv_meta_t link_mgr_kv[] = {
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_mgr_msgs_tx_data, 0,  "link2_mgr_msgs_tx_data" }, 
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_mgr_msgs_tx_bind, 0,  "link2_mgr_msgs_tx_bind" }, 
 
-    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_mgr_trace, 0,  "link2_mgr_trace" }, 
+    // { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_mgr_trace, 0,  "link2_mgr_trace" }, 
 };
 
 
@@ -1071,12 +1071,12 @@ PT_BEGIN( pt );
 
 				if( meta->link.mode == LINK_MODE_SEND ){
 
-					link2_mgr_trace |= 0x01;
+					// link2_mgr_trace |= 0x01;
 
 					// check link query against follower
 					if( !catbus_b_query_tags( &meta->link.query, &follower->tags ) ){
 
-						link2_mgr_trace |= 0x02;
+						// link2_mgr_trace |= 0x02;
 
 						goto next;
 					}
@@ -1145,7 +1145,7 @@ PT_BEGIN( pt );
 					// check timer expiry
 					if( meta->retransmit_ticks > 0 ){
 
-						link2_mgr_trace |= 0x04;
+						// link2_mgr_trace |= 0x04;
 
 						goto next;
 					}

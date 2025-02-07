@@ -807,10 +807,10 @@ PT_BEGIN( pt );
 
             link_ptr->mode = link_state->link.mode;    
 
-            if( link_state->flags & LINK_FLAGS_DELETE ){
+            // if( link_state->flags & LINK_FLAGS_DELETE ){
 
-                link_ptr->mode |= LINK_MODE_DELETE;
-            }
+            //     link_ptr->mode |= LINK_MODE_DELETE;
+            // }
             	        
 	        link_ptr->aggregation 	= link_state->link.aggregation;
 	        link_ptr->rate 			= link_state->link.rate;
