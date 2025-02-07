@@ -51,11 +51,11 @@ Receives will be aggregated by the controller.
 This is basically the inverse of send.
 
 
-BOTH:
+CTRL:
 
 A send and receive.
 
-Both is used as a 2 way "remote control".
+Control is used as a 2 way "remote control".
 It acts as a receive link that automatically creates a local
 binding to transmit to the manager.
 
@@ -63,7 +63,7 @@ Initially (and most of the time), the link operates as as receive with
 a few differences.
 When it receives data, it updates the tracked data in the local binding.
 
-The local binding (set to BOTH mode) will check for a local data change.
+The local binding (set to CTRL mode) will check for a local data change.
 If the data was changed *locally*, it will start transmitting data
 as if it were an otherwise normal binding, until the local data hasn't
 changed for a timeout period.
@@ -77,7 +77,7 @@ This can be used for interactive remote controls that can display
 the current state of a variable and track changes from elsewhere
 in the network, and also be able to push local updates as needed.
 
-Note that if multiple devices have the same BOTH link and are
+Note that if multiple devices have the same CTRL link and are
 attempting to send at the same time, there is no conflict
 resolution mechanism - much as if multiple TV remotes are being
 used on the same TV, the results will be unpredictable until

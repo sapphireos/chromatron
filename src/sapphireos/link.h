@@ -61,7 +61,7 @@ typedef uint8_t link_mode_t8;
 #define LINK_MODE_SEND						0
 #define LINK_MODE_RECV						1
 #define LINK_MODE_SYNC						2
-#define LINK_MODE_DELETE                    0x80 // not a real mode, this signals the manager can delete the link
+#define LINK_MODE_CTRL                      3
 
 typedef uint16_t link_filter_t16;
 #define LINK_FILTER_OFF                     0
