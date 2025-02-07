@@ -153,7 +153,9 @@ link2_handle_t link2_l_create(
     link_filter_t16 filter );
 link2_handle_t link2_l_create2( link2_state_t *state );
 
-void link2_v_delete( link_handle_t link );
+uint8_t link2_u8_get_mode( link2_handle_t link );
+
+void link2_v_delete( link2_handle_t link );
 void link2_v_delete_by_tag( catbus_hash_t32 tag );
 void link2_v_delete_by_hash( uint64_t hash );
 

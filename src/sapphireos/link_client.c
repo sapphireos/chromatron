@@ -354,6 +354,13 @@ link2_handle_t link2_l_lookup_by_hash( uint64_t hash ){
     return -1;
 }
 
+uint8_t link2_u8_get_mode( link2_handle_t link ){
+
+    const link2_state_t *state = list_vp_get_data( link );
+
+    return state->link.mode;
+}
+
 bool link2_b_is_linked_by_source_key( link_mode_t8 mode, catbus_hash_t32 source_key ){
 
     list_node_t ln = link_list.head;
@@ -645,7 +652,7 @@ static void delete_binding( uint64_t link_hash ){
 }
 
 
-void link2_v_delete( link_handle_t link ){
+void link2_v_delete( link2_handle_t link ){
     
     const link2_state_t *state = list_vp_get_data( link );    
 
