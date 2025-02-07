@@ -312,15 +312,15 @@ bool link2_b_compare( link2_state_t *link1, link2_state_t *link2 ){
 
 uint64_t link2_u64_hash( link2_t *link ){
 
-    bool is_del = link->mode & LINK_MODE_DELETE;
-    link->mode &= ~LINK_MODE_DELETE;
+    // bool is_del = link->mode & LINK_MODE_DELETE;
+    // link->mode &= ~LINK_MODE_DELETE;
 
 	uint64_t hash = hash_u64_data( (uint8_t *)link, sizeof(link2_t) );	
 
-    if( is_del ){
+    // if( is_del ){
 
-        link->mode |= LINK_MODE_DELETE;
-    }
+    //     link->mode |= LINK_MODE_DELETE;
+    // }
 
     return hash;
 }
@@ -572,7 +572,7 @@ link2_handle_t link2_l_create2( link2_state_t *state ){
 
     list_v_insert_tail( &link_list, ln );    
 
-    log_v_debug_P( PSTR("Created link: 0x%0x hash: 0x%0lx"), state->link.tag, state->hash );
+    log_v_debug_P( PSTR("Created link: 0x%0x hash: 0x%0llx"), state->link.tag, state->hash );
 
 
     return ln;
@@ -643,7 +643,7 @@ static void delete_binding( uint64_t link_hash ){
 
         if( state->link_hash == link_hash ){
 
-            log_v_debug_P( PSTR("delete binding: 0x%0lx"), link_hash );
+            log_v_debug_P( PSTR("delete binding: 0x%0llx"), link_hash );
 
             list_v_remove( &binding_list, ln );
             list_v_release_node( ln );    
@@ -661,7 +661,7 @@ void link2_v_delete( link_handle_t link ){
 
     delete_binding( state->hash );
 
-    log_v_debug_P( PSTR("Deleted link: 0x%0x hash: 0x%0lx"), state->link.tag, state->hash );
+    log_v_debug_P( PSTR("Deleted link: 0x%0x hash: 0x%0llx"), state->link.tag, state->hash );
 
     list_v_remove( &link_list, link );
     list_v_release_node( link );    
@@ -682,7 +682,7 @@ void link2_v_delete_by_tag( catbus_hash_t32 tag ){
 
             delete_binding( state->hash );
 
-            log_v_debug_P( PSTR("Deleted link: 0x%0x hash: 0x%0lx"), state->link.tag, state->hash );
+            log_v_debug_P( PSTR("Deleted link: 0x%0x hash: 0x%0llx"), state->link.tag, state->hash );
 
             list_v_remove( &link_list, ln );
             list_v_release_node( ln );    
@@ -707,7 +707,7 @@ void link2_v_delete_by_hash( uint64_t hash ){
 
             delete_binding( state->hash );
 
-            log_v_debug_P( PSTR("Deleted link: 0x%0x hash: 0x%0lx"), state->link.tag, state->hash );
+            log_v_debug_P( PSTR("Deleted link: 0x%0x hash: 0x%0llx"), state->link.tag, state->hash );
 
             list_v_remove( &link_list, ln );
             list_v_release_node( ln );    
@@ -788,7 +788,7 @@ PT_BEGIN( pt );
                 if( binding->mode == LINK_MODE_SEND ){
 
                     // send bindings must have a corresponding local link
-                    if( link2_l_lookup_by_hash( binding->link_hash ) == 0 ){
+                    if( link2_l_lookup_by_hash( binding->link_hash ) < 0 ){
 
                         goto next_binding;
                     }
