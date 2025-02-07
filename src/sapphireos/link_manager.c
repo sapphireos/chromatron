@@ -961,6 +961,7 @@ PT_BEGIN( pt );
 						link2_binding_t binding = {
 							meta->link.source_key,
 							meta->link.rate,
+							meta->link.mode,
 							link2_u64_hash( &meta->link ),
 						};
 
@@ -984,6 +985,7 @@ PT_BEGIN( pt );
 						link2_binding_t binding = {
 							meta->link.source_key,
 							meta->link.rate,
+							meta->link.mode,
 							link2_u64_hash( &meta->link ),
 						};
 

@@ -28,6 +28,7 @@
 #include "link.h"
 #include "threading.h"
 
+
 #ifdef ENABLE_CONTROLLER
 
 /*
@@ -577,62 +578,7 @@ link2_handle_t link2_l_create2( link2_state_t *state ){
     return ln;
 }
 
-void link2_v_delete( link_handle_t link ){
-    
-    // link2_state_t *state = list_vp_get_data( link );    
-    // state->flags |= LINK_FLAGS_DELETE;
 
-    list_v_remove( &link_list, link );
-    list_v_release_node( link );    
-}
-
-void link2_v_delete_by_tag( catbus_hash_t32 tag ){
-
-    list_node_t ln = link_list.head;
-
-    while( ln >= 0 ){
-
-        link2_state_t *state = list_vp_get_data( ln );
-        list_node_t next_ln = list_ln_next( ln );
-
-        if( state->link.tag == tag ){
-
-            // state->flags |= LINK_FLAGS_DELETE;
-
-            list_v_remove( &link_list, ln );
-            list_v_release_node( ln );    
-        }
-
-        ln = next_ln;
-    }
-}
-
-void link2_v_delete_by_hash( uint64_t hash ){
-
-    list_node_t ln = link_list.head;
-
-    while( ln >= 0 ){
-
-        link2_state_t *state = list_vp_get_data( ln );
-        list_node_t next_ln = list_ln_next( ln );
-
-        if( state->hash == hash ){
-
-            // state->flags |= LINK_FLAGS_DELETE;
-
-            list_v_remove( &link_list, ln );
-            list_v_release_node( ln );    
-        }
-
-        ln = next_ln;
-    }
-}
-
-
-uint8_t link2_u8_count( void ){
-
-    return list_u8_count( &link_list );
-}
 
 static binding_state_t* get_binding_for_key(catbus_hash_t32 key){
 
@@ -684,6 +630,91 @@ static void add_or_update_binding( link2_binding_t *link_binding ){
     state->timeout  = LINK_BINDING_TIMEOUT;
 
     state->link_hash = link_binding->link_hash;
+}
+
+static void delete_binding( uint64_t link_hash ){
+
+    list_node_t ln = binding_list.head;
+
+    while( ln >= 0 ){
+
+        const binding_state_t *state = list_vp_get_data( ln );
+        list_node_t next_ln = list_ln_next( ln );
+
+        if( state->link_hash == link_hash ){
+
+            log_v_debug_P( PSTR("delete binding: 0x%0x"), link_hash );
+
+            list_v_remove( &binding_list, ln );
+            list_v_release_node( ln );    
+        }
+
+        ln = next_ln;
+    }
+}
+
+
+void link2_v_delete( link_handle_t link ){
+    
+    link2_state_t *state = list_vp_get_data( link );    
+    // state->flags |= LINK_FLAGS_DELETE;
+
+    delete_binding( state->hash );
+
+    list_v_remove( &link_list, link );
+    list_v_release_node( link );    
+}
+
+void link2_v_delete_by_tag( catbus_hash_t32 tag ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        link2_state_t *state = list_vp_get_data( ln );
+        list_node_t next_ln = list_ln_next( ln );
+
+        if( state->link.tag == tag ){
+
+            // state->flags |= LINK_FLAGS_DELETE;
+
+            delete_binding( state->hash );
+
+            list_v_remove( &link_list, ln );
+            list_v_release_node( ln );    
+        }
+
+        ln = next_ln;
+    }
+}
+
+void link2_v_delete_by_hash( uint64_t hash ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        link2_state_t *state = list_vp_get_data( ln );
+        list_node_t next_ln = list_ln_next( ln );
+
+        if( state->hash == hash ){
+
+            // state->flags |= LINK_FLAGS_DELETE;
+
+            delete_binding( state->hash );
+
+            list_v_remove( &link_list, ln );
+            list_v_release_node( ln );    
+        }
+
+        ln = next_ln;
+    }
+}
+
+
+uint8_t link2_u8_count( void ){
+
+    return list_u8_count( &link_list );
 }
 
 PT_THREAD( link2_server_thread( pt_t *pt, void *state ) )
@@ -747,6 +778,17 @@ PT_BEGIN( pt );
 
             while( count > 0 ){
 
+                // check if this is a send binding
+                if( binding->mode == LINK_MODE_SEND ){
+
+                    // send bindings must have a corresponding local link
+                    if( link2_l_lookup_by_hash( binding->link_hash ) == 0 ){
+
+                        goto next_binding;
+                    }
+
+                }
+
                 // check if key is present:
                 if( kv_i16_search_hash( binding->key ) >= 0 ){
 
@@ -760,6 +802,7 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("recv binding not found: 0x%08x"), binding->key );
                 }
 
+            next_binding:
                 binding++;
                 count--;
             }
