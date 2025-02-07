@@ -957,6 +957,7 @@ PT_BEGIN( pt );
 						link2_binding_t binding = {
 							meta->link.source_key,
 							meta->link.rate,
+							meta->link.mode,
 						};
 
 						bindings[count] = binding;
@@ -979,6 +980,7 @@ PT_BEGIN( pt );
 						link2_binding_t binding = {
 							meta->link.source_key,
 							meta->link.rate,
+							meta->link.mode,
 						};
 
 						bindings[count] = binding;
@@ -1167,34 +1169,35 @@ PT_BEGIN( pt );
 
 					data_ptr->key = meta->link.dest_key;
 					data_ptr->data = data;
+					data_ptr->mode = meta->link.mode;
 
-					log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed: %d next_ticks: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, meta->retransmit_ticks );
+					// log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed: %d next_ticks: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, meta->retransmit_ticks );
 
-					data_ptr++;
-                    current_data_count++;
+					// data_ptr++;
+                    // current_data_count++;
 
-                    if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
+                    // if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
 
-                        // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
-                        //     follower->ip.ip3,
-                        //     follower->ip.ip2,
-                        //     follower->ip.ip1,
-                        //     follower->ip.ip0,
-                        //     current_data_count
-                        // );
+                    //     // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
+                    //     //     follower->ip.ip3,
+                    //     //     follower->ip.ip2,
+                    //     //     follower->ip.ip1,
+                    //     //     follower->ip.ip0,
+                    //     //     current_data_count
+                    //     // );
 
-                        // transmit message
-                        if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
+                    //     // transmit message
+                    //     if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
 
-                            log_v_debug_P( PSTR("data send fail") );
-                        }        
+                    //         log_v_debug_P( PSTR("data send fail") );
+                    //     }        
 
-                        link2_mgr_msgs_tx_data++;
+                    //     link2_mgr_msgs_tx_data++;
 
-                        // reset pointers
-                        data_ptr = (link2_data_t *)( data_hdr + 1 );
-                        current_data_count = 0;
-                    }
+                    //     // reset pointers
+                    //     data_ptr = (link2_data_t *)( data_hdr + 1 );
+                    //     current_data_count = 0;
+                    // }
 				}
 				else if( meta->link.mode == LINK_MODE_RECV ){
 
@@ -1256,35 +1259,65 @@ PT_BEGIN( pt );
 
 		            data_ptr->key = meta->link.dest_key;
 					data_ptr->data = data;
+					data_ptr->mode = meta->link.mode;
 
-					log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed: %d next_ticks: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, meta->retransmit_ticks );
+					// log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed: %d next_ticks: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, meta->retransmit_ticks );
 
-					data_ptr++;
-                    current_data_count++;
+					// data_ptr++;
+                    // current_data_count++;
 
-                    if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
+                    // if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
 
-                        // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
-                        //     follower->ip.ip3,
-                        //     follower->ip.ip2,
-                        //     follower->ip.ip1,
-                        //     follower->ip.ip0,
-                        //     current_data_count
-                        // );
+                    //     // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
+                    //     //     follower->ip.ip3,
+                    //     //     follower->ip.ip2,
+                    //     //     follower->ip.ip1,
+                    //     //     follower->ip.ip0,
+                    //     //     current_data_count
+                    //     // );
 
-                        // transmit message
-                        if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
+                    //     // transmit message
+                    //     if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
 
-                            log_v_debug_P( PSTR("data send fail") );
-                        }            
+                    //         log_v_debug_P( PSTR("data send fail") );
+                    //     }            
 
-                        link2_mgr_msgs_tx_data++;    
+                    //     link2_mgr_msgs_tx_data++;    
 
-                        // reset pointers
-                        data_ptr = (link2_data_t *)( data_hdr + 1 );
-                        current_data_count = 0;
-                    }
+                    //     // reset pointers
+                    //     data_ptr = (link2_data_t *)( data_hdr + 1 );
+                    //     current_data_count = 0;
+                    // }
 				}
+
+				data_ptr++;
+                current_data_count++;
+
+				if( current_data_count >= LINK_MAX_DATA_ENTRIES ){
+
+                    // log_v_debug_P( PSTR("data send %d.%d.%d.%d %d"), 
+                    //     follower->ip.ip3,
+                    //     follower->ip.ip2,
+                    //     follower->ip.ip1,
+                    //     follower->ip.ip0,
+                    //     current_data_count
+                    // );
+
+                    // transmit message
+                    if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &raddr ) < 0 ){
+
+                        log_v_debug_P( PSTR("data send fail") );
+                    }            
+
+                    link2_mgr_msgs_tx_data++;    
+
+                    // reset pointers
+                    data_ptr = (link2_data_t *)( data_hdr + 1 );
+                    current_data_count = 0;
+                }
+
+
+
 
 next:
 		        ln = list_ln_next( ln );

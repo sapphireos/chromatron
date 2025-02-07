@@ -44,7 +44,9 @@
 #define LINK_RETRANSMIT_RATE                2000
 #define LINK_RETRANSMIT_RATE_FAST           100
 
-#define LINK2_MGR_LINK_TIMEOUT				30
+#define LINK2_MGR_LINK_TIMEOUT				8
+#define LINK_BINDING_TIMEOUT                8
+
 
 typedef list_node_t link2_handle_t;
 
@@ -95,18 +97,17 @@ typedef struct __attribute__((packed)){
     uint64_t hash; // must be last!
 } link2_state_t;
 
-
-#define LINK_BINDING_TIMEOUT  30
-
 typedef struct __attribute__((packed)){
     catbus_hash_t32 key;
     uint16_t rate;
+    uint8_t mode;
 } link2_binding_t;
 #define LINK_MAX_BIND_ENTRIES         ( ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_binding_t) )
 
 typedef struct __attribute__((packed)){
     catbus_hash_t32 key;
     int64_t data;
+    uint8_t mode;
 } link2_data_t;
 #define LINK_MAX_DATA_ENTRIES         ( ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_data_t) )
 

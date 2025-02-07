@@ -100,6 +100,7 @@ static list_t binding_list;
 typedef struct __attribute__((packed)){
     catbus_hash_t32 key;
     uint16_t rate;
+    uint8_t modes;
 
     int64_t last_data;
     int16_t retransmit_ticks;
@@ -323,6 +324,46 @@ link2_handle_t link2_l_lookup_by_hash( uint64_t hash ){
     }
 
     return -1;
+}
+
+bool link2_b_is_linked_by_source_key( link_mode_t8 mode, catbus_hash_t32 source_key ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        const link2_state_t *state = list_vp_get_data( ln );
+
+        if( ( state->link.source_key == source_key ) &&
+            ( state->link.mode == mode ) ){
+
+            return TRUE;
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return FALSE;
+}
+
+bool link2_b_is_linked_by_dest_key( link_mode_t8 mode, catbus_hash_t32 dest_key ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        const link2_state_t *state = list_vp_get_data( ln );
+
+        if( ( state->link.dest_key == dest_key ) &&
+            ( state->link.mode == mode ) ){
+
+            return TRUE;
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return FALSE;
 }
 
 link2_t link2_ls_assemble(
@@ -594,7 +635,10 @@ static void add_or_update_binding( link2_binding_t *link_binding ){
 
         state->rate = link_binding->rate;    
     }
+
     state->timeout  = LINK_BINDING_TIMEOUT;
+
+    state->modes |= ( 1 << link_binding->mode );
 }
 
 PT_THREAD( link2_server_thread( pt_t *pt, void *state ) )
@@ -683,10 +727,23 @@ PT_BEGIN( pt );
 
             while( (uint8_t *)data_ptr < ( (uint8_t *)header + sock_i16_get_bytes_read( sock ) ) ){
 
+                // check data item mode
+                // if the item is from a receive, then there should be matching receive
+                // link on this device.
+                if( data_ptr->mode == LINK_MODE_RECV ){
+
+                    if( !link2_b_is_linked_by_dest_key( LINK_MODE_RECV, data_ptr->key ) ){
+
+                        goto next_data;
+                    }
+                }                
+
+
                 // log_v_debug_P( PSTR("recv data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data );
 
                 catbus_i8_set_i64( data_ptr->key, data_ptr->data );
 
+            next_data:
                 data_ptr++;
             }
         }   
@@ -899,6 +956,22 @@ PT_BEGIN( pt );
         while( ln >= 0 ){
 
             binding_state_t *binding_state = list_vp_get_data( ln );
+
+            // check if this is a send binding and not a recv binding
+            // this means we should have at least one corresponding link
+            // sending the source key
+            // if this is a receive binding, we are sourcing data to
+            // a receive link somewhere else.
+            if( ( binding_state->modes & ( 1 << LINK_MODE_SEND ) ) == ( 1 << LINK_MODE_SEND ) ){
+
+                // check if we have a matching link for this source
+                if( !link2_b_is_linked_by_source_key( LINK_MODE_SEND, binding_state->key ) ){
+
+                    // no match, we can skip this binding!
+                    goto next_binding;
+                }
+            }
+
 
             binding_state->ticks -= LINK_MIN_TICK_RATE;
 
