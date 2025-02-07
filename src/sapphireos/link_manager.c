@@ -173,7 +173,7 @@ static void process_data_cache_timeouts( void ){
 
      	if( cache->timeout == 0 ){
 
-     		log_v_debug_P( PSTR("Cache entry:0x%08x from %d.%d.%d.%d timed out 0x%x"),
+     		log_v_debug_P( PSTR("Cache entry:0x%08x from %d.%d.%d.%d timed out 0x%llx"),
      			cache->key,
      			cache->ip.ip3,
      			cache->ip.ip2,
@@ -243,7 +243,7 @@ static void process_link_node_timeouts( void ){
 
 	        	if( node->timeout == 0 ){
 
-	        		log_v_debug_P( PSTR("Link node timed out: 0x%08lx->0x%08lx %d.%d.%d.%d"), meta->link.source_key, meta->link.dest_key, node->ip.ip3, node->ip.ip2, node->ip.ip1, node->ip.ip0 );	
+	        		log_v_debug_P( PSTR("Link node timed out: 0x%08lx->0x%08lx %d.%d.%d.%d, 0x%0llx"), meta->link.source_key, meta->link.dest_key, node->ip.ip3, node->ip.ip2, node->ip.ip1, node->ip.ip0, link2_u64_hash( &meta->link ) );	
 
 	        		node->ip = ip_a_addr(0,0,0,0);
 	        	}
@@ -261,7 +261,7 @@ static void process_link_node_timeouts( void ){
         // check if all nodes have timed out
         if( timed_out_count == node_count ){
 
-        	log_v_debug_P( PSTR("Link timed out: 0x%08lx->0x%08lx"), meta->link.source_key, meta->link.dest_key );	
+        	log_v_debug_P( PSTR("Link timed out: 0x%08lx->0x%08lx, 0x%0llx"), meta->link.source_key, meta->link.dest_key, link2_u64_hash( &meta->link ) );	
 
         	list_v_remove( &link_list, ln );
      		list_v_release_node( ln );
