@@ -572,7 +572,7 @@ link2_handle_t link2_l_create2( link2_state_t *state ){
 
     list_v_insert_tail( &link_list, ln );    
 
-    log_v_debug_P( PSTR("Created link: 0x%0x"), state->link.tag );
+    log_v_debug_P( PSTR("Created link: 0x%0x hash: 0x%0lx"), state->link.tag, state->hash );
 
 
     return ln;
@@ -643,7 +643,7 @@ static void delete_binding( uint64_t link_hash ){
 
         if( state->link_hash == link_hash ){
 
-            log_v_debug_P( PSTR("delete binding: 0x%0x"), link_hash );
+            log_v_debug_P( PSTR("delete binding: 0x%0lx"), link_hash );
 
             list_v_remove( &binding_list, ln );
             list_v_release_node( ln );    
@@ -660,6 +660,8 @@ void link2_v_delete( link_handle_t link ){
     // state->flags |= LINK_FLAGS_DELETE;
 
     delete_binding( state->hash );
+
+    log_v_debug_P( PSTR("Deleted link: 0x%0x hash: 0x%0lx"), state->link.tag, state->hash );
 
     list_v_remove( &link_list, link );
     list_v_release_node( link );    
@@ -679,6 +681,8 @@ void link2_v_delete_by_tag( catbus_hash_t32 tag ){
             // state->flags |= LINK_FLAGS_DELETE;
 
             delete_binding( state->hash );
+
+            log_v_debug_P( PSTR("Deleted link: 0x%0x hash: 0x%0lx"), state->link.tag, state->hash );
 
             list_v_remove( &link_list, ln );
             list_v_release_node( ln );    
@@ -702,6 +706,8 @@ void link2_v_delete_by_hash( uint64_t hash ){
             // state->flags |= LINK_FLAGS_DELETE;
 
             delete_binding( state->hash );
+
+            log_v_debug_P( PSTR("Deleted link: 0x%0x hash: 0x%0lx"), state->link.tag, state->hash );
 
             list_v_remove( &link_list, ln );
             list_v_release_node( ln );    
