@@ -279,11 +279,13 @@ static void process_link_node_timeouts( void ){
     }	
 }
 
-static int64_t aggregate( link2_meta_t *meta ){
+static bool aggregate( link2_meta_t *meta, int64_t *value ){
 
 	bool first = TRUE;
 	int64_t integer_accum = 0;
 	uint16_t count = 0;
+
+	bool valid = FALSE;
 
 	// loop through data items that match this link
 	
@@ -300,6 +302,8 @@ static int64_t aggregate( link2_meta_t *meta ){
 
         	goto next;
         }
+
+        valid = TRUE;
 
         count++;
         int64_t data = cache->data;
@@ -362,7 +366,9 @@ next:
     	}
 	}
 
-    return integer_accum;
+	*value = integer_accum;
+
+    return valid;
 }
 
 list_node_t _link2_mgr_l_lookup_by_hash( uint64_t hash ){
@@ -1119,7 +1125,13 @@ PT_BEGIN( pt );
 					// aggregate and add to data buffer
 					// log_v_debug_P( PSTR("aggregate send") );
 
-					int64_t data = aggregate( meta );
+					int64_t data = 0;
+					if( !aggregate( meta, &data ) ){
+
+						// no values reported, bail out
+
+						goto next;
+					}
 
 					// check if data is changing or if the timer has expired:
 					bool changed = FALSE;
@@ -1212,7 +1224,13 @@ PT_BEGIN( pt );
 					// aggregate and add to data buffer
 					// log_v_debug_P( PSTR("aggregate recv") );
 					
-					int64_t data = aggregate( meta );
+					int64_t data = 0;
+					if( !aggregate( meta, &data ) ){
+
+						// no values reported, bail out
+
+						goto next;
+					}
 
 					// check if data is changing or if the timer has expired:
 					bool changed = FALSE;
