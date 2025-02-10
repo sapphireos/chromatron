@@ -1696,6 +1696,8 @@ PT_BEGIN( pt );
                     char filename[FS_MAX_FILE_NAME_LEN];
                     fs_i8_get_filename_id( index, filename, sizeof(filename) );
 
+                    kvdb_v_set_name( filename );
+
                     item->hash = hash_u32_string( filename );
 
                     item++;
