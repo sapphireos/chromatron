@@ -22,6 +22,7 @@
 // </license>
  */
 
+#include "catbus_common.h"
 #include "sapphire.h"
 
 #include "config.h"
@@ -1649,8 +1650,6 @@ PT_BEGIN( pt );
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_GET_FILE_HASH_LIST ){
 
-            log_v_debug_P( PSTR("CATBUS_MSG_TYPE_GET_FILE_HASH_LIST") );
-
             // catbus_msg_file_list_t *msg = (catbus_msg_file_list_t *)header;
 
             int16_t file_count = fs_u32_get_file_count();
@@ -1997,10 +1996,11 @@ PT_THREAD( catbus_hash_list_session_thread( pt_t *pt, file_hash_list_thread_stat
 {
 PT_BEGIN( pt );
         
-    log_v_debug_P( PSTR("get hash list") );
-
     catbus_header_t header;
     _catbus_v_msg_init( &header, CATBUS_MSG_TYPE_GET_FILE_HASH_LIST, 0 );
+
+    // fake origin ID so we can loopback
+    header.origin_id = 1;
 
     sock_v_set_timeout( state->sock, 2 );
     sock_i16_sendto( state->sock, (uint8_t *)&header, sizeof(header), &state->raddr );
@@ -2017,7 +2017,10 @@ PT_BEGIN( pt );
         
         for( uint8_t i = 0; i < msg->file_count; i++ ){
 
-            log_v_debug_P( PSTR("file: 0x%08x %d"), hash->hash, hash->size );
+            char str[CATBUS_STRING_LEN];
+            catbus_i8_get_string_for_hash( hash->hash, str, &state->raddr.ipaddr );
+
+            log_v_debug_P( PSTR("file: 0x%08x %s %d"), hash->hash, str, hash->size );
 
             state->hash_list[i] = *hash;
 
@@ -2036,11 +2039,6 @@ PT_END( pt );
 static thread_t _catbus_t_create_file_hash_list_session(
     ip_addr4_t ipaddr,
     catbus_file_hash_list_callback_t callback ){
-
-
-    log_v_debug_P( PSTR("_catbus_t_create_file_hash_list_session") );
-
-    // return 0;
 
     mem_handle_t h = mem2_h_alloc( sizeof(file_hash_list_thread_state_t) );
 
