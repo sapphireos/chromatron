@@ -336,6 +336,11 @@ int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STR
 typedef void (*catbus_file_hash_list_callback_t)( uint16_t file_count, catbus_file_hash_t *hashes );
 void catbus_v_get_file_hash_list( ip_addr4_t ipaddr, catbus_file_hash_list_callback_t callback );
 
+void catbus_v_set_key( 
+    ip_addr4_t ipaddr, 
+    catbus_hash_t32 hash, 
+    catbus_type_t8 type,
+    void *data );
 
 #endif
 
