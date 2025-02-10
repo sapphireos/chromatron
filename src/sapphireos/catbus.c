@@ -1649,6 +1649,8 @@ PT_BEGIN( pt );
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_GET_FILE_HASH_LIST ){
 
+            log_v_debug_P( PSTR("CATBUS_MSG_TYPE_GET_FILE_HASH_LIST") );
+
             // catbus_msg_file_list_t *msg = (catbus_msg_file_list_t *)header;
 
             int16_t file_count = fs_u32_get_file_count();
@@ -2038,30 +2040,44 @@ static thread_t _catbus_t_create_file_hash_list_session(
 
     log_v_debug_P( PSTR("_catbus_t_create_file_hash_list_session") );
 
-    return 0;
+    // return 0;
 
-    // file_hash_list_thread_state_t state;
-    // state.timeout       = FILE_SESSION_TIMEOUT;
-    // state.callback      = callback;
-    // state.raddr.ipaddr  = ipaddr;
-    // state.raddr.port    = CATBUS_MAIN_PORT;
+    mem_handle_t h = mem2_h_alloc( sizeof(file_hash_list_thread_state_t) );
+
+    if( h < 0 ){
+
+        return 0;
+    }
+
+    file_hash_list_thread_state_t *state = mem2_vp_get_ptr( h );
+    state->timeout       = FILE_SESSION_TIMEOUT;
+    state->callback      = callback;
+    state->raddr.ipaddr  = ipaddr;
+    state->raddr.port    = CATBUS_MAIN_PORT;
     
-    // memset( state.hash_list, 0, sizeof(state.hash_list) );
+    memset( state->hash_list, 0, sizeof(state->hash_list) );
 
-    // state.sock = sock_s_create( SOS_SOCK_DGRAM );
+    state->sock = sock_s_create( SOS_SOCK_DGRAM );
 
-    // if( state.sock <= 0 ){
+    if( state->sock <= 0 ){
 
-    //     return 0;
-    // }
+        mem2_v_free( h );
 
-    // thread_t t = thread_t_create( 
-    //                 THREAD_CAST(catbus_hash_list_session_thread),
-    //                 PSTR("catbus_hash_list_session"),
-    //                 (uint8_t *)&state,
-    //                 sizeof(state) );
+        return 0;
+    }
+
+    // return 0;
+
+    thread_t t = thread_t_create( 
+                    THREAD_CAST(catbus_hash_list_session_thread),
+                    PSTR("catbus_hash_list_session"),
+                    (uint8_t *)state,
+                    sizeof(file_hash_list_thread_state_t) );
+
+
+    mem2_v_free( h );
     
-    // return t;
+    return t;
 }
 
 void catbus_v_get_file_hash_list( ip_addr4_t ipaddr, catbus_file_hash_list_callback_t callback ){
