@@ -261,6 +261,18 @@ typedef struct __attribute__((packed)){
 #define CATBUS_MAX_FILE_ENTRIES                  ( CATBUS_MAX_DATA / sizeof(catbus_file_meta_t) )
 
 
+
+#define CATBUS_MSG_TYPE_GET_FILE_HASH_LIST       ( 12 + CATBUS_MSG_FILE_GROUP_OFFSET )
+
+typedef struct __attribute__((packed)){
+    catbus_header_t header;
+    uint16_t file_count;
+    catbus_file_hash_t first_hash;
+} catbus_msg_file_hash_list_t;
+#define CATBUS_MSG_TYPE_FILE_HASH_LIST           ( 13 + CATBUS_MSG_FILE_GROUP_OFFSET )
+#define CATBUS_MAX_FILE_HASH_ENTRIES             ( CATBUS_MAX_DATA / sizeof(catbus_file_hash_t) )
+
+
 void catbus_v_init( void );
 
 int8_t catbus_i8_set_i64(
@@ -320,6 +332,10 @@ typedef struct  __attribute__((packed)){
 } catbus_hash_lookup_t;
 
 int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN], ip_addr4_t *host_ip );
+
+typedef void (*catbus_file_hash_list_callback_t)( uint16_t file_count, catbus_file_hash_t *hashes );
+void catbus_v_get_file_hash_list( ip_addr4_t ipaddr, catbus_file_hash_list_callback_t callback );
+
 
 #endif
 
