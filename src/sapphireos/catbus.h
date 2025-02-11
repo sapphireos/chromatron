@@ -333,7 +333,7 @@ typedef struct  __attribute__((packed)){
 
 int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN], ip_addr4_t *host_ip );
 
-typedef void (*catbus_file_hash_list_callback_t)( uint16_t file_count, catbus_file_hash_t *hashes );
+typedef void (*catbus_file_hash_list_callback_t)( uint16_t file_count, catbus_file_hash_t *hashes, ip_addr4_t ipaddr );
 void catbus_v_get_file_hash_list( ip_addr4_t ipaddr, catbus_file_hash_list_callback_t callback );
 
 void catbus_v_set_key( 

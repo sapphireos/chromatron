@@ -2032,7 +2032,7 @@ PT_BEGIN( pt );
                 hash++;
             }
 
-            state->callback( reply->file_count, state->hash_list );
+            state->callback( reply->file_count, state->hash_list, state->raddr.ipaddr );
 
             goto done;
         }
