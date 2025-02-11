@@ -1985,53 +1985,65 @@ int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STR
 
 
 typedef struct{
-    uint8_t timeout;
+    uint8_t tries;
     socket_t sock;
     sock_addr_t raddr;
     catbus_file_hash_t hash_list[CATBUS_MAX_FILE_HASH_ENTRIES * sizeof(catbus_file_hash_t)];
     catbus_file_hash_list_callback_t callback;
 } file_hash_list_thread_state_t;
-#define FILE_HASH_LIST_SESSION_TIMEOUT            40
 
 
 PT_THREAD( catbus_hash_list_session_thread( pt_t *pt, file_hash_list_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
-        
-    catbus_header_t header;
-    _catbus_v_msg_init( &header, CATBUS_MSG_TYPE_GET_FILE_HASH_LIST, 0 );
 
-    // fake origin ID so we can loopback
-    header.origin_id = 1;
+    while( state->tries > 0 ){
 
-    sock_v_set_timeout( state->sock, 2 );
-    sock_i16_sendto( state->sock, (uint8_t *)&header, sizeof(header), &state->raddr );
+        state->tries--;
+            
+        catbus_header_t header;
+        _catbus_v_msg_init( &header, CATBUS_MSG_TYPE_GET_FILE_HASH_LIST, 0 );
 
-    THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) );
+        // fake origin ID so we can loopback
+        header.origin_id = 1;
 
-    if( sock_i16_get_bytes_read( state->sock ) > 0 ){
+        sock_v_set_timeout( state->sock, 2 );
+        sock_i16_sendto( state->sock, (uint8_t *)&header, sizeof(header), &state->raddr );
 
-        const catbus_msg_file_hash_list_t *reply = sock_vp_get_data( state->sock );
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) );
 
-        log_v_debug_P( PSTR("file count: %d"), reply->file_count );
+        if( sock_i16_get_bytes_read( state->sock ) > 0 ){
 
-        const catbus_file_hash_t *hash = &reply->first_hash;
-        
-        for( uint8_t i = 0; i < reply->file_count; i++ ){
+            const catbus_msg_file_hash_list_t *reply = sock_vp_get_data( state->sock );
 
-            char str[CATBUS_STRING_LEN];
-            catbus_i8_get_string_for_hash( hash->hash, str, &state->raddr.ipaddr );
+            log_v_debug_P( PSTR("file count: %d"), reply->file_count );
 
-            log_v_debug_P( PSTR("file: 0x%08x %s %d"), hash->hash, str, hash->size );
+            const catbus_file_hash_t *hash = &reply->first_hash;
+            
+            for( uint8_t i = 0; i < reply->file_count; i++ ){
 
-            state->hash_list[i] = *hash;
+                char str[CATBUS_STRING_LEN];
+                catbus_i8_get_string_for_hash( hash->hash, str, &state->raddr.ipaddr );
 
-            hash++;
+                log_v_debug_P( PSTR("file: 0x%08x %s %d"), hash->hash, str, hash->size );
+
+                state->hash_list[i] = *hash;
+
+                hash++;
+            }
+
+            state->callback( reply->file_count, state->hash_list );
+
+            goto done;
         }
-
-        state->callback( reply->file_count, state->hash_list );
     }
-    
+
+    if( state->tries == 0 ){
+
+        log_v_info_P( PSTR("List files failed") );
+    }
+
+done:
     sock_v_release( state->sock );
 
 PT_END( pt );
@@ -2050,7 +2062,7 @@ static thread_t _catbus_t_create_file_hash_list_session(
     }
 
     file_hash_list_thread_state_t *state = mem2_vp_get_ptr( h );
-    state->timeout       = FILE_SESSION_TIMEOUT;
+    state->tries         = 5;
     state->callback      = callback;
     state->raddr.ipaddr  = ipaddr;
     state->raddr.port    = CATBUS_MAIN_PORT;
@@ -2089,7 +2101,7 @@ void catbus_v_get_file_hash_list( ip_addr4_t ipaddr, catbus_file_hash_list_callb
 
 
 typedef struct{
-    uint8_t timeout;
+    uint8_t tries;
     socket_t sock;
     sock_addr_t raddr;
     catbus_meta_t meta;
@@ -2097,64 +2109,52 @@ typedef struct{
 } set_key_thread_state_t;
 
 
-
 PT_THREAD( catbus_set_key_session_thread( pt_t *pt, set_key_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
     
-    // mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_set_keys_t) - 1 + state->data_len )l
-    
-    // if( h < 0 ){
+    while( state->tries > 0 ){
 
-    //     THREAD_EXIT( pt );
-    // }
+        state->tries--;
 
-    log_v_debug_P( PSTR("set key") );
+        uint8_t buf[128];
+        catbus_msg_set_keys_t *msg = (catbus_msg_set_keys_t *)buf;
+        _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_SET_KEYS, 0 );
 
+        uint16_t data_len = type_u16_size( state->meta.type );
 
-    uint8_t buf[128];
-    catbus_msg_set_keys_t *msg = (catbus_msg_set_keys_t *)buf;
-    _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_SET_KEYS, 0 );
+        // fake origin ID so we can loopback
+        msg->header.origin_id = 1;
+        msg->count = 1;
+        msg->first_data.meta = state->meta;
 
-    uint16_t data_len = type_u16_size( state->meta.type );
+        const uint8_t *src = (uint8_t *)( state + 1 );
+        uint8_t *dst = (uint8_t *)&msg->first_data.data; 
+        memcpy( dst, src, data_len );
 
-    // fake origin ID so we can loopback
-    msg->header.origin_id = 1;
-    msg->count = 1;
-    msg->first_data.meta = state->meta;
+        sock_v_set_timeout( state->sock, 2 );
+        sock_i16_sendto( state->sock, (uint8_t *)msg, sizeof(catbus_msg_set_keys_t) - 1 + data_len, &state->raddr );
 
-    const uint8_t *src = (uint8_t *)( state + 1 );
-    uint8_t *dst = (uint8_t *)&msg->first_data.data; 
-    memcpy( dst, src, data_len );
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) );
 
-    sock_v_set_timeout( state->sock, 2 );
-    sock_i16_sendto( state->sock, (uint8_t *)msg, sizeof(catbus_msg_set_keys_t) - 1 + data_len, &state->raddr );
+        if( sock_i16_get_bytes_read( state->sock ) > 0 ){
 
-    THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) );
+            // const catbus_msg_key_data_t *reply = sock_vp_get_data( state->sock );
 
-    if( sock_i16_get_bytes_read( state->sock ) > 0 ){
+            // log_v_debug_P( PSTR("count: %d"), reply->count );
 
-        const catbus_msg_key_data_t *reply = sock_vp_get_data( state->sock );
+            // state->callback( reply->file_count, state->hash_list );
 
-        log_v_debug_P( PSTR("count: %d"), reply->count );
-
-        // const catbus_file_hash_t *hash = &reply->first_hash;
-        
-        // for( uint8_t i = 0; i < reply->file_count; i++ ){
-
-        //     char str[CATBUS_STRING_LEN];
-        //     catbus_i8_get_string_for_hash( hash->hash, str, &state->raddr.ipaddr );
-
-        //     log_v_debug_P( PSTR("file: 0x%08x %s %d"), hash->hash, str, hash->size );
-
-        //     state->hash_list[i] = *hash;
-
-        //     hash++;
-        // }
-
-        // state->callback( reply->file_count, state->hash_list );
+            goto done;
+        }
     }
-    
+
+    if( state->tries == 0 ){
+
+        log_v_info_P( PSTR("Set key failed") );
+    }
+        
+done:
     sock_v_release( state->sock );
 
 PT_END( pt );
@@ -2165,7 +2165,7 @@ void catbus_v_set_key(
     ip_addr4_t ipaddr, 
     catbus_hash_t32 hash, 
     catbus_type_t8 type,
-    void *data ){
+    const void *data ){
 
     uint16_t data_len = type_u16_size( type );
 
@@ -2178,7 +2178,7 @@ void catbus_v_set_key(
 
     set_key_thread_state_t *state = mem2_vp_get_ptr( h );
 
-    state->timeout          = 0;
+    state->tries            = 5;
     state->raddr.ipaddr     = ipaddr;
     state->raddr.port       = CATBUS_MAIN_PORT;
     state->meta.count       = 0;

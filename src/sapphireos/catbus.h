@@ -340,7 +340,7 @@ void catbus_v_set_key(
     ip_addr4_t ipaddr, 
     catbus_hash_t32 hash, 
     catbus_type_t8 type,
-    void *data );
+    const void *data );
 
 #endif
 
