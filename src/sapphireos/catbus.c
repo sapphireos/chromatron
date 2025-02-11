@@ -2108,7 +2108,10 @@ PT_BEGIN( pt );
 
     //     THREAD_EXIT( pt );
     // }
-    
+
+    log_v_debug_P( PSTR("set key") );
+
+
     uint8_t buf[128];
     catbus_msg_set_keys_t *msg = (catbus_msg_set_keys_t *)buf;
     _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_SET_KEYS, 0 );
@@ -2125,7 +2128,7 @@ PT_BEGIN( pt );
     memcpy( dst, src, data_len );
 
     sock_v_set_timeout( state->sock, 2 );
-    sock_i16_sendto( state->sock, (uint8_t *)&msg, sizeof(msg), &state->raddr );
+    sock_i16_sendto( state->sock, (uint8_t *)msg, sizeof(catbus_msg_set_keys_t) - 1 + data_len, &state->raddr );
 
     THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) );
 
@@ -2202,7 +2205,7 @@ void catbus_v_set_key(
                     THREAD_CAST(catbus_set_key_session_thread),
                     PSTR("catbus_set_key_session"),
                     (uint8_t *)state,
-                    sizeof(set_key_thread_state_t) );
+                    sizeof(set_key_thread_state_t) + data_len );
 
 
     mem2_v_free( h );
