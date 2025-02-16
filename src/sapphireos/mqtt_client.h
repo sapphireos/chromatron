@@ -40,13 +40,6 @@
 
 #define MQTT_VM_TAG_OFFSET      0x80
 
-// #ifdef ESP32
-#define ENABLE_BROKER
-// #endif
-
-#ifdef ENABLE_BROKER
-#define MQTT_BROKER_SUB_TIMEOUT 60
-#endif
 
 void mqtt_client_v_init( void );
 
@@ -156,10 +149,6 @@ int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish
 int8_t mqtt_client_i8_subscribe_kv( const char *topic, const char *key, uint8_t qos, uint8_t tag );
 void mqtt_client_v_unsubscribe( const char *topic );
 void mqtt_client_v_unsubscribe_tag( uint8_t tag );
-
-void mqtt_broker_v_init( void );
-
-
 
 
 // int8_t mqtt_client_i8_publish_data( const char *topic, catbus_meta_t *meta, const void *data, uint8_t qos, bool retain );

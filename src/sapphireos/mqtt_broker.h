@@ -29,6 +29,12 @@
 #include "catbus.h"
 
 
+// #ifdef ESP32
+#define ENABLE_BROKER
+// #endif
+
+#define MQTT_BROKER_SUB_TIMEOUT 60
+
 void mqtt_broker_v_start( void );
 void mqtt_broker_v_stop( void );
 

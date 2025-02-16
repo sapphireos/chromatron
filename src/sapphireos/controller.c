@@ -29,6 +29,7 @@
 #include "config.h"
 
 #include "controller.h"
+#include "mqtt_broker.h"
 
 #include "link.h"
 #include "system.h"

@@ -28,6 +28,7 @@
 #include "sapphire.h"
 #include "controller.h"
 #include "mqtt_client.h"
+#include "mqtt_broker.h"
 #include "sockets.h"
 
 #ifdef ENABLE_BROKER
