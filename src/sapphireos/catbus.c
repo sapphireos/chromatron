@@ -2225,12 +2225,14 @@ typedef struct{
 PT_THREAD( catbus_get_key_session_thread( pt_t *pt, get_key_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
+
+    log_v_debug_P( PSTR("get key") );
     
     while( state->tries > 0 ){
 
         state->tries--;
 
-        catbus_msg_get_keys_t msg;;
+        catbus_msg_get_keys_t msg;
         _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_GET_KEYS, 0 );
 
         // fake origin ID so we can loopback
@@ -2250,7 +2252,7 @@ PT_BEGIN( pt );
 
             log_v_debug_P( PSTR("count: %d"), reply->count );
 
-            state->callback( state->hash,  reply->first_data.meta.type, data, state->raddr.ipaddr );
+            state->callback( state->hash,  reply->first_data.meta.type, reply->first_data.meta.count + 1, data, state->raddr.ipaddr );
 
             goto done;
         }
@@ -2287,7 +2289,8 @@ void catbus_v_get_key(
     state->raddr.port       = CATBUS_MAIN_PORT;
     state->hash             = hash;
     state->callback         = callback;
-    state->sock = sock_s_create( SOS_SOCK_DGRAM );
+
+    state->sock             = sock_s_create( SOS_SOCK_DGRAM );
 
     if( state->sock <= 0 ){
 

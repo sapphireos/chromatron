@@ -31,6 +31,7 @@
 #include "ntp.h"
 #include "list.h"
 #include "udp.h"
+#include <stdint.h>
 
 #define CATBUS_ANNOUNCE_PORT                44631
 #define CATBUS_MAIN_PORT                    44632
@@ -342,7 +343,7 @@ void catbus_v_set_key(
     catbus_type_t8 type,
     const void *data );
 
-typedef void (*catbus_get_key_callback_t)( catbus_hash_t32 hash, catbus_type_t8 type, const uint8_t *data, ip_addr4_t ipaddr );
+typedef void (*catbus_get_key_callback_t)( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t count, const uint8_t *data, ip_addr4_t ipaddr );
 void catbus_v_get_key( 
     ip_addr4_t ipaddr, 
     catbus_hash_t32 hash,
