@@ -60,6 +60,8 @@ static uint8_t vm_timing_status;
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
 
+static catbus_hash_t32 vm_published_hash[8];
+
 
 int8_t vm_i8_kv_handler(
     kv_op_t8 op,
@@ -151,6 +153,8 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     #endif
 
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
+
+    { CATBUS_TYPE_UINT32,   cnt_of_array(vm_published_hash) - 1, KV_FLAGS_READ_ONLY,  &vm_published_hash,    0,                  "vm_published_hashes" },
 };
 
 static const char* vm_names[VM_MAX_VMS] = {
@@ -380,8 +384,31 @@ vm_state_t* vm_p_get_state( void ){
     return &state->vm_state;
 }
 
+void vm_v_add_published_var( uint8_t index, catbus_hash_t32 hash, catbus_type_t8 type, uint8_t flags, uint8_t vm_id ){
+
+    if( vm_id == 0 ){
+
+        if( index < cnt_of_array(vm_published_hash) ){
+
+            vm_published_hash[index] = hash;
+        }
+    }
+
+    kvdb_i8_add( hash, type, 1, 0, 0 );
+    kvdb_v_set_tag( hash, ( 1 << vm_id ) );
+
+    if( flags & KV_FLAGS_PERSIST ){
+
+        kvdb_i8_set_persist( hash, TRUE );
+    }
+}
 
 static void kill_vm( uint8_t vm_id ){
+
+    if( vm_id == 0 ){
+
+        memset( vm_published_hash, 0, sizeof(vm_published_hash) );
+    }
 
     vm_run[vm_id] = FALSE;
     vm_reset[vm_id] = FALSE;
