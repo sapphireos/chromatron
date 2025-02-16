@@ -124,7 +124,7 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr,
 	// get topic length
 	// uint8_t topic_len = *ptr;
 	ptr++;
-	char *topic = (char *)ptr;
+	const char *topic = (char *)ptr;
 		
 	// got the topic
 	// we don't care about the data
@@ -174,7 +174,7 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr,
 	
 // }
 
-static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
+static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, const sock_addr_t *raddr ){
 
 	// get byte pointer after headers:
 	uint8_t *ptr = (uint8_t *)( msg + 1 );
@@ -182,7 +182,7 @@ static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *ra
 	// get topic length
 	uint8_t topic_len = *ptr;
 	ptr++;
-	char *topic = (char *)ptr;
+	const char *topic = (char *)ptr;
 
 	list_node_t ln = broker_sub_list.head;
 
@@ -232,7 +232,7 @@ static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *ra
 }
 
 
-static void broker_process_unsubscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
+static void broker_process_unsubscribe( mqtt_msg_subscribe_t *msg, const sock_addr_t *raddr ){
 
 	// get byte pointer after headers:
 	uint8_t *ptr = (uint8_t *)( msg + 1 );
@@ -240,7 +240,7 @@ static void broker_process_unsubscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *
 	// get topic length
 	// uint8_t topic_len = *ptr;
 	ptr++;
-	char *topic = (char *)ptr;
+	const char *topic = (char *)ptr;
 
 	list_node_t ln = broker_sub_list.head;
 
@@ -248,7 +248,7 @@ static void broker_process_unsubscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *
 
     	list_node_t next_ln = list_ln_next( ln );
 
-        mqtt_broker_sub_t *sub = list_vp_get_data( ln );
+        const mqtt_broker_sub_t *sub = list_vp_get_data( ln );
 
         if( ( strncmp( topic, sub->topic, MQTT_MAX_TOPIC_LEN ) == 0 ) &&
         	( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ) ){
@@ -263,7 +263,7 @@ static void broker_process_unsubscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *
 }
 
 
-static void clear_subs_by_ip( sock_addr_t *raddr ){
+static void clear_subs_by_ip( const sock_addr_t *raddr ){
 
 	list_node_t ln = broker_sub_list.head;
 
@@ -271,7 +271,7 @@ static void clear_subs_by_ip( sock_addr_t *raddr ){
 
     	list_node_t next_ln = list_ln_next( ln );
 
-        mqtt_broker_sub_t *sub = list_vp_get_data( ln );
+        const mqtt_broker_sub_t *sub = list_vp_get_data( ln );
 
         if( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ){
         

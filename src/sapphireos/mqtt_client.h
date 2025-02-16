@@ -26,6 +26,7 @@
 #define __MQTT_CLIENT_H
 
 #include "catbus.h"
+#include "catbus_common.h"
 
 #define MQTT_MAX_TOPIC_LEN      128
 #define MQTT_MAX_PAYLOAD_LEN    256
@@ -120,12 +121,28 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;
+    uint8_t msg_id;
+    catbus_hash_t32 topic_hash;
+    uint16_t payload_len;
+    // payload
+} mqtt_msg_publish2_t;
+#define MQTT_MSG_PUBLISH2           23
+
+
+typedef struct __attribute__((packed)){
+    mqtt_msg_header_t header;
     // uint8_t topic_len;
     // topic data
 } mqtt_msg_subscribe_t;
 #define MQTT_MSG_SUBSCRIBE          30
 #define MQTT_MSG_SUBSCRIBE_KV       31
 #define MQTT_MSG_UNSUBSCRIBE        40
+
+typedef struct __attribute__((packed)){
+    mqtt_msg_header_t header;
+    catbus_hash_t32 topic_hash;
+} mqtt_msg_subscribe2_t;
+#define MQTT_MSG_SUBSCRIBE2         32
 
 
 typedef void ( *mqtt_on_publish_callback_t )( char *topic, uint8_t *data, uint16_t data_len, sock_addr_t *raddr );
