@@ -2210,3 +2210,98 @@ void catbus_v_set_key(
 
     mem2_v_free( h );
 }
+
+
+
+typedef struct{
+    uint8_t tries;
+    socket_t sock;
+    sock_addr_t raddr;
+    catbus_hash_t32 hash;
+    catbus_get_key_callback_t callback;
+} get_key_thread_state_t;
+
+
+PT_THREAD( catbus_get_key_session_thread( pt_t *pt, get_key_thread_state_t *state ) )
+{
+PT_BEGIN( pt );
+    
+    while( state->tries > 0 ){
+
+        state->tries--;
+
+        catbus_msg_get_keys_t msg;;
+        _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_GET_KEYS, 0 );
+
+        // fake origin ID so we can loopback
+        msg.header.origin_id = 1;
+        msg.count = 1;
+        msg.first_hash = state->hash;
+
+        sock_v_set_timeout( state->sock, 2 );
+        sock_i16_sendto( state->sock, (uint8_t *)&msg, sizeof(catbus_msg_get_keys_t), &state->raddr );
+
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) );
+
+        if( sock_i16_get_bytes_read( state->sock ) > 0 ){
+
+            const catbus_msg_key_data_t *reply = sock_vp_get_data( state->sock );
+            const uint8_t *data = &reply->first_data.data;
+
+            log_v_debug_P( PSTR("count: %d"), reply->count );
+
+            state->callback( state->hash,  reply->first_data.meta.type, data, state->raddr.ipaddr );
+
+            goto done;
+        }
+    }
+
+    if( state->tries == 0 ){
+
+        log_v_info_P( PSTR("Get key failed") );
+    }
+        
+done:
+    sock_v_release( state->sock );
+
+PT_END( pt );
+}
+
+
+void catbus_v_get_key( 
+    ip_addr4_t ipaddr, 
+    catbus_hash_t32 hash,
+    catbus_get_key_callback_t callback ){
+
+    mem_handle_t h = mem2_h_alloc( sizeof(get_key_thread_state_t) );
+
+    if( h < 0 ){
+
+        return;
+    }
+
+    get_key_thread_state_t *state = mem2_vp_get_ptr( h );
+
+    state->tries            = 5;
+    state->raddr.ipaddr     = ipaddr;
+    state->raddr.port       = CATBUS_MAIN_PORT;
+    state->hash             = hash;
+    state->callback         = callback;
+    state->sock = sock_s_create( SOS_SOCK_DGRAM );
+
+    if( state->sock <= 0 ){
+
+        mem2_v_free( h );
+
+        return;
+    }
+
+    thread_t_create( 
+                    THREAD_CAST(catbus_get_key_session_thread),
+                    PSTR("catbus_get_key_session"),
+                    (uint8_t *)state,
+                    sizeof(get_key_thread_state_t) );
+
+
+    mem2_v_free( h );
+}
