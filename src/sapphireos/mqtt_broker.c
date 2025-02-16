@@ -24,9 +24,11 @@
  */
 
 
+#include "list.h"
 #include "sapphire.h"
 #include "controller.h"
 #include "mqtt_client.h"
+#include "sockets.h"
 
 #ifdef ENABLE_BROKER
 
@@ -88,7 +90,19 @@ KV_SECTION_OPT kv_meta_t mqtt_broker_kv[] = {
     { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_broker_msgs_publish_drop,		0,  				 "mqtt_broker_msgs_publish_drop" },
 };
 
-void mqtt_broker_v_init( void ){
+static bool broker_running;
+static thread_t server_thread;
+static thread_t timeout_thread;
+
+
+void mqtt_broker_v_start( void ){
+
+    if( broker_running ){
+
+        return;
+    }
+
+    broker_running = TRUE;
 
 	kv_v_add_db_info( mqtt_broker_kv, sizeof(mqtt_broker_kv) );
 
@@ -103,16 +117,40 @@ void mqtt_broker_v_init( void ){
     
     list_v_init( &broker_sub_list );
 
-
+    server_thread = 
 	thread_t_create( mqtt_broker_server_thread,
                      PSTR("mqtt_broker_server"),
                      0,
                      0 );
 
+    timeout_thread = 
 	thread_t_create( mqtt_broker_timeout_thread,
                  PSTR("mqtt_broker_timeout"),
                  0,
                  0 );
+}
+
+void mqtt_broker_v_stop( void ){
+
+    if( !broker_running ){
+
+        return;
+    }
+
+    broker_running = FALSE;
+
+    kv_v_remove_db_info( mqtt_broker_kv );
+
+    sock_v_release( broker_sock );
+    broker_sock = -1;
+
+    thread_v_kill( server_thread );
+    thread_v_kill( timeout_thread );
+
+    server_thread = -1;
+    timeout_thread = -1;
+
+    list_v_destroy( &broker_sub_list );
 }
 
 

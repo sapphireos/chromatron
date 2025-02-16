@@ -596,6 +596,8 @@ void link_mgr_v_stop( void ){
 
 	link_mgr_running = FALSE;
 
+	kv_v_remove_db_info( link_mgr_kv );
+
 	thread_v_kill( server_thread );
 	thread_v_kill( process_thread );
 	thread_v_kill( timer_thread );

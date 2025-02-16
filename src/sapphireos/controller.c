@@ -1064,6 +1064,10 @@ PT_BEGIN( pt );
 
 			link_mgr_v_start();
 
+			#ifdef ENABLE_BROKER    
+	    	mqtt_broker_v_start();
+		    #endif
+
 			// broadcast announcement
 			send_announce();
 
@@ -1086,6 +1090,10 @@ PT_BEGIN( pt );
 		}
 
 		// no longer leader:
+		#ifdef ENABLE_BROKER    
+    	mqtt_broker_v_stop();
+	    #endif
+
 		link_mgr_v_stop();
 		TMR_WAIT( pt, 100 ); // give the manager time to stop
 	}

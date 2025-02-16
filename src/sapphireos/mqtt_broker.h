@@ -29,7 +29,8 @@
 #include "catbus.h"
 
 
-void mqtt_broker_v_init( void );
+void mqtt_broker_v_start( void );
+void mqtt_broker_v_stop( void );
 
 
 #endif

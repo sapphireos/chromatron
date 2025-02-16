@@ -106,9 +106,9 @@ static uint32_t mqtt_client_msgs_publish_acks;
 // static uint16_t test_publish_rate;
 
 KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
-	#ifdef ENABLE_BROKER
-	{ CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST, 0, 						0,  "mqtt_broker_enable" },
-    #endif
+	// #ifdef ENABLE_BROKER
+	// { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST, 0, 						0,  "mqtt_broker_enable" },
+    // #endif
     { CATBUS_TYPE_IPv4, 	0, 0, 				   &broker_ip, 							0,  "mqtt_broker_ip" },
     { CATBUS_TYPE_UINT16, 	0, 0, 				   &broker_port,							0,  "mqtt_broker_port" },
 
@@ -176,13 +176,13 @@ void mqtt_client_v_init( void ){
     //                  0 );
    	// }
 
-   	#ifdef ENABLE_BROKER
+   	// #ifdef ENABLE_BROKER
   
-    if( kv_b_get_boolean( __KV__mqtt_broker_enable ) ){
+    // if( kv_b_get_boolean( __KV__mqtt_broker_enable ) ){
 
-    	mqtt_broker_v_init();
-    }
-    #endif
+    // 	mqtt_broker_v_init();
+    // }
+    // #endif
 
 }
 
@@ -331,7 +331,7 @@ static int8_t transmit_publish(
 	return 0;
 }
 
-
+#if 0
 static int8_t transmit_publish2( 
 	catbus_hash_t32 topic_hash,
 	const void *data,
@@ -406,7 +406,7 @@ static int8_t transmit_publish2(
 
 	return 0;
 }
-
+#endif
 
 bool mqtt_b_match_topic( const char *topic, const char *sub ){
 
