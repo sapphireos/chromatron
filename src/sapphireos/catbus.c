@@ -2016,6 +2016,13 @@ PT_BEGIN( pt );
 
             const catbus_msg_file_hash_list_t *reply = sock_vp_get_data( state->sock );
 
+            if( reply->header.msg_type != CATBUS_MSG_TYPE_FILE_HASH_LIST ){
+
+                log_v_error_P( PSTR("Error") );
+
+                goto done;
+            }
+
             log_v_debug_P( PSTR("file count: %d"), reply->file_count );
 
             const catbus_file_hash_t *hash = &reply->first_hash;
@@ -2139,7 +2146,14 @@ PT_BEGIN( pt );
 
         if( sock_i16_get_bytes_read( state->sock ) > 0 ){
 
-            // const catbus_msg_key_data_t *reply = sock_vp_get_data( state->sock );
+            const catbus_msg_key_data_t *reply = sock_vp_get_data( state->sock );
+
+            if( reply->header.msg_type != CATBUS_MSG_TYPE_KEY_DATA ){
+
+                log_v_error_P( PSTR("Error") );
+
+                goto done;
+            }
 
             // log_v_debug_P( PSTR("count: %d"), reply->count );
 
@@ -2226,7 +2240,7 @@ PT_THREAD( catbus_get_key_session_thread( pt_t *pt, get_key_thread_state_t *stat
 {
 PT_BEGIN( pt );
 
-    log_v_debug_P( PSTR("get key") );
+    // log_v_debug_P( PSTR("get key") );
     
     while( state->tries > 0 ){
 
@@ -2248,11 +2262,24 @@ PT_BEGIN( pt );
         if( sock_i16_get_bytes_read( state->sock ) > 0 ){
 
             const catbus_msg_key_data_t *reply = sock_vp_get_data( state->sock );
+
+            if( reply->header.msg_type != CATBUS_MSG_TYPE_KEY_DATA ){
+
+                log_v_error_P( PSTR("Error") );
+
+                goto done;
+            }
+
             const uint8_t *data = &reply->first_data.data;
 
-            log_v_debug_P( PSTR("count: %d"), reply->count );
+            log_v_debug_P( PSTR("count: %d / %d"), reply->count, reply->first_data.meta.count );
 
-            state->callback( state->hash,  reply->first_data.meta.type, reply->first_data.meta.count + 1, data, state->raddr.ipaddr );
+            state->callback( 
+                state->hash,
+                reply->first_data.meta.type, 
+               reply->first_data.meta.count + 1, 
+                       data, 
+               state->raddr.ipaddr );
 
             goto done;
         }
