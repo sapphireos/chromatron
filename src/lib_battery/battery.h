@@ -41,6 +41,11 @@
 #define LION_MAX_VOLTAGE    4200
 #define LION_MIN_VOLTAGE    2900
 
+typedef struct __attribute__((packed)){
+	uint16_t volts;
+	uint16_t charge_current;
+	int8_t temp;
+} batt_status_t;
 
 void batt_v_init( void );
 bool batt_b_enabled( void );
