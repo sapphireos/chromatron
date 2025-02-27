@@ -1,8 +1,12 @@
 file(REMOVE_RECURSE
   "CMakeFiles/__idf_esp_timer.dir/src/esp_timer.c.obj"
+  "CMakeFiles/__idf_esp_timer.dir/src/esp_timer.c.obj.d"
   "CMakeFiles/__idf_esp_timer.dir/src/esp_timer_impl_lac.c.obj"
+  "CMakeFiles/__idf_esp_timer.dir/src/esp_timer_impl_lac.c.obj.d"
   "CMakeFiles/__idf_esp_timer.dir/src/ets_timer_legacy.c.obj"
+  "CMakeFiles/__idf_esp_timer.dir/src/ets_timer_legacy.c.obj.d"
   "CMakeFiles/__idf_esp_timer.dir/src/system_time.c.obj"
+  "CMakeFiles/__idf_esp_timer.dir/src/system_time.c.obj.d"
   "libesp_timer.a"
   "libesp_timer.pdb"
 )

@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/__idf_esp_ringbuf.dir/ringbuf.c.obj"
+  "CMakeFiles/__idf_esp_ringbuf.dir/ringbuf.c.obj.d"
   "libesp_ringbuf.a"
   "libesp_ringbuf.pdb"
 )

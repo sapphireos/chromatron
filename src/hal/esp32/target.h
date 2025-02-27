@@ -50,7 +50,7 @@
 
 
 // wifi
-#define WIFI_MAX_PORTS          16
+#define WIFI_MAX_PORTS          64
 #define WIFI_MAX_IGMP           8
 
 // pixel config
