@@ -46,7 +46,7 @@
 
 // DEBUG!
 // Turn this off for normal operation!
-#define ENABLE_TRACE
+// #define ENABLE_TRACE
 
 
 // wifi
