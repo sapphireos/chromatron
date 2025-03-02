@@ -43,6 +43,10 @@
 #define CATBUS_ANNOUNCE_INTERVAL            24
 #define CATBUS_MAX_FILE_SESSIONS            8
 
+#ifndef CATBUS_MAX_CLIENT_SESSIONS
+#define CATBUS_MAX_CLIENT_SESSIONS          8
+#endif
+
 typedef struct __attribute__((packed)){
     uint32_t meow;
     uint8_t msg_type;

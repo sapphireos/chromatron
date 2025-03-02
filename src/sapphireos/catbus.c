@@ -1894,6 +1894,18 @@ static bool is_hash_lookup_in_list( catbus_hash_t32 hash ){
 }
 
 
+
+
+
+
+
+
+
+
+
+// Clients
+
+
 int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN], ip_addr4_t *host_ip ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -1971,18 +1983,7 @@ int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STR
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+static uint8_t client_count;
 
 typedef struct{
     uint8_t tries;
@@ -1996,6 +1997,17 @@ typedef struct{
 PT_THREAD( catbus_hash_list_session_thread( pt_t *pt, file_hash_list_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
+
+    THREAD_WAIT_WHILE( pt, client_count >= CATBUS_MAX_CLIENT_SESSIONS );
+
+    state->sock = sock_s_create( SOS_SOCK_DGRAM );
+
+    if( state->sock <= 0 ){
+    
+        THREAD_EXIT( pt );    
+    }
+
+    client_count++;
 
     while( state->tries > 0 ){
 
@@ -2051,6 +2063,7 @@ PT_BEGIN( pt );
     }
 
 done:
+    client_count--;
     sock_v_release( state->sock );
 
 PT_END( pt );
@@ -2075,17 +2088,6 @@ static thread_t _catbus_t_create_file_hash_list_session(
     state->raddr.port    = CATBUS_MAIN_PORT;
     
     memset( state->hash_list, 0, sizeof(state->hash_list) );
-
-    state->sock = sock_s_create( SOS_SOCK_DGRAM );
-
-    if( state->sock <= 0 ){
-
-        mem2_v_free( h );
-
-        return 0;
-    }
-
-    // return 0;
 
     thread_t t = thread_t_create( 
                     THREAD_CAST(catbus_hash_list_session_thread),
@@ -2119,7 +2121,18 @@ typedef struct{
 PT_THREAD( catbus_set_key_session_thread( pt_t *pt, set_key_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
-    
+
+    THREAD_WAIT_WHILE( pt, client_count >= CATBUS_MAX_CLIENT_SESSIONS );
+
+    state->sock = sock_s_create( SOS_SOCK_DGRAM );
+
+    if( state->sock <= 0 ){
+
+        THREAD_EXIT( pt );        
+    }
+
+    client_count++;
+
     while( state->tries > 0 ){
 
         state->tries--;
@@ -2169,6 +2182,7 @@ PT_BEGIN( pt );
     }
         
 done:
+    client_count--;
     sock_v_release( state->sock );
 
 PT_END( pt );
@@ -2204,17 +2218,6 @@ void catbus_v_set_key(
     void *state_data    = (void *)( state + 1 );
     memcpy( state_data, data, data_len );
 
-    state->sock = sock_s_create( SOS_SOCK_DGRAM );
-
-    if( state->sock <= 0 ){
-
-        mem2_v_free( h );
-
-        return;
-    }
-
-    // return 0;
-
     thread_t_create( 
                     THREAD_CAST(catbus_set_key_session_thread),
                     PSTR("catbus_set_key_session"),
@@ -2239,6 +2242,17 @@ typedef struct{
 PT_THREAD( catbus_get_key_session_thread( pt_t *pt, get_key_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
+    
+    THREAD_WAIT_WHILE( pt, client_count >= CATBUS_MAX_CLIENT_SESSIONS );
+
+    state->sock = sock_s_create( SOS_SOCK_DGRAM );
+
+    if( state->sock <= 0 ){
+
+        THREAD_EXIT( pt );
+    }
+
+    client_count++;
 
     // log_v_debug_P( PSTR("get key") );
     
@@ -2291,6 +2305,7 @@ PT_BEGIN( pt );
     }
         
 done:
+    client_count--;
     sock_v_release( state->sock );
 
 PT_END( pt );
@@ -2316,15 +2331,6 @@ void catbus_v_get_key(
     state->raddr.port       = CATBUS_MAIN_PORT;
     state->hash             = hash;
     state->callback         = callback;
-
-    state->sock             = sock_s_create( SOS_SOCK_DGRAM );
-
-    if( state->sock <= 0 ){
-
-        mem2_v_free( h );
-
-        return;
-    }
 
     thread_t_create( 
                     THREAD_CAST(catbus_get_key_session_thread),
