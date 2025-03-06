@@ -838,7 +838,7 @@ static void transmit_status( void ){
 
 	sys_v_get_os_version( msg.os_version );
 
-	mqtt_client_i8_publish( PSTR("chromatron/status"), (uint8_t *)&msg, sizeof(msg), 0, 1 );
+	mqtt_client_i8_publish( PSTR("chromatron/status_binary"), (uint8_t *)&msg, sizeof(msg), 0, 1 );
 }
 
 static void transmit_shutdown( void ){

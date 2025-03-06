@@ -456,7 +456,7 @@ class MqttBridge(MsgServer):
 
     def _handle_publish(self, msg, host):
         # redirect status messages
-        if msg.topic.topic == "chromatron/status":
+        if msg.topic.topic == "chromatron/status_binary":
             # send ack
             ack = MqttPublishAckMsg(msg_id=msg.msg_id)
             self.transmit(ack, host)        
@@ -526,9 +526,9 @@ class MqttBridge(MsgServer):
         topic = f'chromatron/status/{name}'
         self.clients[host].publish(topic, json.dumps(dict_data))
 
-        # send the binary version for device usage
-        topic = f'chromatron/status_binary/{name}'
-        self.clients[host].publish(topic, msg.pack())
+        # # send the binary version for device usage
+        # topic = f'chromatron/status_binary/{name}'
+        # self.clients[host].publish(topic, msg.pack())
 
 
 
