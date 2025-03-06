@@ -228,6 +228,17 @@ class MqttStatusMsg(StructField):
         super().__init__(_name="mqtt_status_msg", _fields=fields, **kwargs)
 
 
+class MqttBattMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint16Field(_name="volts"),
+                  Uint16Field(_name="charge_current"),
+                  Int8Field(_name="temp"),
+                  Uint16Field(_name="vbus")]
+
+        super().__init__(_name="mqtt_batt_msg", _fields=fields, **kwargs)
+
+
+
 class ClientTimedOut(Exception):
     pass
 
@@ -464,6 +475,14 @@ class MqttBridge(MsgServer):
             status = MqttStatusMsg().unpack(msg.payload.data.pack())
             self._handle_status(status, host)
             return
+        elif msg.topic.topic == "chromatron/batt_binary":
+            # send ack
+            ack = MqttPublishAckMsg(msg_id=msg.msg_id)
+            self.transmit(ack, host)        
+
+            status = MqttBattMsg().unpack(msg.payload.data.pack())
+            self._handle_batt(status, host)
+            return
 
         if host not in self.clients:
             # logging.warn(f'Host {host} not a client!')
@@ -530,6 +549,32 @@ class MqttBridge(MsgServer):
         # topic = f'chromatron/status_binary/{name}'
         # self.clients[host].publish(topic, msg.pack())
 
+    def _handle_batt(self, msg, host):
+        if host not in self.clients:
+            return
+        
+        dict_data = msg.toBasic()
+        
+        # convert hashes to strings
+        c = Client((host[0], CATBUS_MAIN_PORT))
+        tags = [c.lookup_hash(t)[t] for t in dict_data['tags'] if t != 0]
+        dict_data['tags'] = tags
+
+        # fix os version string, remove 0 padding.
+        # strip() does not remove nulls
+        dict_data['os_version'] = dict_data['os_version'].rstrip('\x00')
+
+        name = tags[0]
+
+        self.clients[host].reset_timeout()
+
+        # JSON version
+        topic = f'chromatron/batt/{name}'
+        self.clients[host].publish(topic, json.dumps(dict_data))
+
+        # # send the binary version for device usage
+        # topic = f'chromatron/status_binary/{name}'
+        # self.clients[host].publish(topic, msg.pack())
 
 
 def main():

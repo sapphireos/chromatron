@@ -448,9 +448,10 @@ PT_BEGIN( pt );
             batt_volts,
             batt_u16_get_charge_current(),
             batt_i8_get_batt_temp(),
+            batt_u16_get_vbus_volts(),
         };
 
-        mqtt_client_i8_publish( PSTR("chromatron/batt"), &status, sizeof(status), 0, TRUE );
+        mqtt_client_i8_publish( PSTR("chromatron/batt_binary"), &status, sizeof(status), 0, TRUE );
 
         #endif
     }

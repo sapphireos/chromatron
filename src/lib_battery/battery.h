@@ -45,6 +45,7 @@ typedef struct __attribute__((packed)){
 	uint16_t volts;
 	uint16_t charge_current;
 	int8_t temp;
+	uint16_t vbus;
 } batt_status_t;
 
 void batt_v_init( void );
