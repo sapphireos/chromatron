@@ -24,7 +24,6 @@
  */
 
 
-#include "list.h"
 #include "sapphire.h"
 #include "controller.h"
 #include "mqtt_client.h"
@@ -155,7 +154,24 @@ void mqtt_broker_v_stop( void ){
 }
 
 
+static void send_publish_ack( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
+
+    mqtt_msg_publish_t ack = {0};
+
+    ack.header.magic        = MQTT_MSG_MAGIC;
+    ack.header.version      = MQTT_MSG_VERSION;
+    ack.header.msg_type     = MQTT_MSG_PUBLISH_ACK;
+    ack.header.qos          = 0;
+    ack.header.flags        = 0;
+
+    ack.msg_id = msg->msg_id;
+
+    sock_i16_sendto( broker_sock, (uint8_t *)&ack, sizeof(ack), raddr );
+}
+
 static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr, mem_handle_t packet_h ){
+
+    send_publish_ack( msg, raddr );
 
 	// get byte pointer after headers:
 	uint8_t *ptr = (uint8_t *)( msg + 1 );
@@ -229,9 +245,10 @@ static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, const sock_addr
 
         mqtt_broker_sub_t *sub = list_vp_get_data( ln );
 
-        log_v_debug_P( PSTR("%s %d %d.%d.%d.%d"), sub->topic, mqtt_b_match_topic( topic, sub->topic ), sub->raddr.ipaddr.ip3, sub->raddr.ipaddr.ip2, sub->raddr.ipaddr.ip1, sub->raddr.ipaddr.ip0 );
+        // log_v_debug_P( PSTR("%s %d %d.%d.%d.%d"), sub->topic, mqtt_b_match_topic( topic, sub->topic ), sub->raddr.ipaddr.ip3, sub->raddr.ipaddr.ip2, sub->raddr.ipaddr.ip1, sub->raddr.ipaddr.ip0 );
         
-        if( ( mqtt_b_match_topic( topic, sub->topic ) ) &&
+        // if( ( mqtt_b_match_topic( topic, sub->topic ) ) &&
+        if( ( strcmp( topic, sub->topic ) == 0 ) &&
         	( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ) ){
 
         	// already subscribed
