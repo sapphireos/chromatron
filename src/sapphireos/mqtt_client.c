@@ -1014,6 +1014,7 @@ static void reset_broker( void ){
 	broker_ip = ip_a_addr( 0, 0, 0, 0 );
 	broker_port = 0;
 
+	bridge_running = FALSE;
 	connected = FALSE;	
 }
 
@@ -1030,8 +1031,6 @@ PT_BEGIN( pt );
 
 			if( !wifi_b_connected() ){
 
-	        	bridge_running = FALSE;
-
 	        	reset_broker();
 
 	        	continue;
@@ -1044,11 +1043,21 @@ PT_BEGIN( pt );
 		        if( broker_timeout == 0 ){
 
 					log_v_info_P( PSTR("MQTT bridge timed out") );
-
-					bridge_running = FALSE;
 					
 					reset_broker();
+
+					continue;
 		        }
+		    }
+
+		    if( !bridge_running ){
+
+		    	if( !controller_b_is_connected() ){
+
+	        		reset_broker();
+
+	        		continue;
+		    	}
 		    }
 		}
 		else{
