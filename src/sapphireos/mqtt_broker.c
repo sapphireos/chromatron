@@ -229,7 +229,7 @@ static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, const sock_addr
 
         mqtt_broker_sub_t *sub = list_vp_get_data( ln );
 
-        // log_v_debug_P( PSTR("%s %d %d.%d.%d.%d"), sub->topic, mqtt_b_match_topic( topic, sub->topic ), sub->raddr.ipaddr.ip3, sub->raddr.ipaddr.ip2, sub->raddr.ipaddr.ip1, sub->raddr.ipaddr.ip0 );
+        log_v_debug_P( PSTR("%s %d %d.%d.%d.%d"), sub->topic, mqtt_b_match_topic( topic, sub->topic ), sub->raddr.ipaddr.ip3, sub->raddr.ipaddr.ip2, sub->raddr.ipaddr.ip1, sub->raddr.ipaddr.ip0 );
         
         if( ( mqtt_b_match_topic( topic, sub->topic ) ) &&
         	( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ) ){

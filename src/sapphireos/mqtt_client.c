@@ -22,8 +22,6 @@
 // </license>
  */
 
-#include "catbus_common.h"
-#include "logging.h"
 #include "sapphire.h"
 #include "config.h"
 #include "controller.h"
@@ -93,6 +91,7 @@ static socket_t sock;
 static ip_addr4_t broker_ip;
 static uint16_t broker_port;
 static int8_t broker_timeout;
+static bool bridge_running;
 static bool connected;
 
 static uint32_t mqtt_client_msgs_publish_recv;
@@ -126,6 +125,7 @@ KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
 };
 
 
+PT_THREAD( mqtt_connection_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_transmit_thread( pt_t *pt, void *state ) );
 // PT_THREAD( mqtt_test_thread( pt_t *pt, void *state ) );
@@ -153,6 +153,13 @@ void mqtt_client_v_init( void ){
 
     sock_v_bind( sock, MQTT_BRIDGE_PORT );
     sock_v_set_timeout( sock, 1 );
+
+    thread_t_create( mqtt_connection_thread,
+                     PSTR("mqtt_connection"),
+                     0,
+                     0 );
+
+
 
     thread_t_create( mqtt_client_thread,
                      PSTR("mqtt_client"),
@@ -1010,32 +1017,89 @@ static void reset_broker( void ){
 	connected = FALSE;	
 }
 
+
+PT_THREAD( mqtt_connection_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+	
+	while(1){
+
+		TMR_WAIT( pt, 1000 );
+
+		if( mqtt_b_connected() ){
+
+			if( !wifi_b_connected() ){
+
+	        	bridge_running = FALSE;
+
+	        	reset_broker();
+
+	        	continue;
+	        }
+
+			if( broker_timeout > 0 ){
+				
+		        broker_timeout--;
+
+		        if( broker_timeout == 0 ){
+
+					log_v_info_P( PSTR("MQTT bridge timed out") );
+
+					bridge_running = FALSE;
+					
+					reset_broker();
+		        }
+		    }
+		}
+		else{
+
+			// not connected
+
+			// check controller
+			if( controller_b_is_connected() ){
+
+				sock_addr_t raddr = {0};
+				controller_i8_get_addr( &raddr );   		
+
+				broker_ip = raddr.ipaddr;
+				broker_port = MQTT_BROKER_PORT;   		
+				connected = TRUE;
+
+				log_v_debug_P( PSTR("Setting MQTT bridge to controller") );
+			}
+		}
+	}
+	
+PT_END( pt );
+}
+
+
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 	
 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
    	
-   	broker_timeout = MQTT_BRIDGE_INITIAL_TIMEOUT;
+   	// broker_timeout = MQTT_BRIDGE_INITIAL_TIMEOUT;
 
-   	while( ( broker_timeout >= 0 ) && !mqtt_b_connected() ){
+   	// while( ( broker_timeout >= 0 ) && !mqtt_b_connected() ){
 
-   		TMR_WAIT( pt, 1000 );	
+   	// 	TMR_WAIT( pt, 1000 );	
 
-   		broker_timeout--;	
-   	}
+   	// 	broker_timeout--;	
+   	// }
 		
-   	if( !mqtt_b_connected() ){
+   	// if( !mqtt_b_connected() ){
 
-   		log_v_debug_P( PSTR("Setting MQTT bridge to controller") );
+   	// 	log_v_debug_P( PSTR("Setting MQTT bridge to controller") );
 
-   		sock_addr_t raddr = {0};
-		controller_i8_get_addr( &raddr );   		
+   	// 	sock_addr_t raddr = {0};
+	// 	controller_i8_get_addr( &raddr );   		
 
-		broker_ip = raddr.ipaddr;
-		broker_port = MQTT_BROKER_PORT;   		
-		connected = TRUE;
-   	}
+	// 	broker_ip = raddr.ipaddr;
+	// 	broker_port = MQTT_BROKER_PORT;   		
+	// 	connected = TRUE;
+   	// }
 
 	// if( kv_b_get_boolean( __KV__mqtt_test_mode_subscribe ) ){
 
@@ -1054,23 +1118,6 @@ PT_BEGIN( pt );
 
         	THREAD_EXIT( pt );
         }
-
-        broker_timeout -= 2;
-
-        if( broker_timeout < 0 ){
-
-			log_v_info_P( PSTR("MQTT bridge timed out") );
-			
-			reset_broker();
-
-			THREAD_RESTART( pt );
-        }
-        else if( !wifi_b_connected() ){
-
-        	reset_broker();
-
-        	THREAD_RESTART( pt );
-       }
 
     	// send subscriptions
 		static list_node_t ln;
@@ -1287,6 +1334,7 @@ PT_BEGIN( pt );
         	}
 
         	connected = TRUE;
+        	bridge_running = TRUE;
 
         	// reset timeout
         	broker_timeout = MQTT_BRIDGE_TIMEOUT;
