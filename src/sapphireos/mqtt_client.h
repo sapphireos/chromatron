@@ -28,17 +28,18 @@
 #include "catbus.h"
 #include "catbus_common.h"
 
-#define MQTT_MAX_TOPIC_LEN      128
-#define MQTT_MAX_PAYLOAD_LEN    256
+#define MQTT_MAX_TOPIC_LEN              128
+#define MQTT_MAX_PAYLOAD_LEN            256
 
-#define MQTT_BRIDGE_PORT        44899
-#define MQTT_BROKER_PORT        44900
+#define MQTT_BRIDGE_PORT                44899
+#define MQTT_BROKER_PORT                44900
 
-#define MQTT_BRIDGE_TIMEOUT     60
-#define MQTT_PUB_ACK_TIMEOUT    16   // ticks at 100 ms
-#define MQTT_MAX_Q_SIZE         16
+#define MQTT_BRIDGE_TIMEOUT             24
+#define MQTT_BRIDGE_INITIAL_TIMEOUT     8
+#define MQTT_PUB_ACK_TIMEOUT            16   // ticks at 100 ms
+#define MQTT_MAX_Q_SIZE                 16
 
-#define MQTT_VM_TAG_OFFSET      0x80
+#define MQTT_VM_TAG_OFFSET              0x80
 
 
 void mqtt_client_v_init( void );

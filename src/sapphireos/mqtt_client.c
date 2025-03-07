@@ -23,6 +23,7 @@
  */
 
 #include "catbus_common.h"
+#include "logging.h"
 #include "sapphire.h"
 #include "config.h"
 #include "controller.h"
@@ -1015,7 +1016,26 @@ PT_BEGIN( pt );
 	
 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
    	
-	TMR_WAIT( pt, 1000 );	
+   	broker_timeout = MQTT_BRIDGE_INITIAL_TIMEOUT;
+
+   	while( ( broker_timeout >= 0 ) && !mqtt_b_connected() ){
+
+   		TMR_WAIT( pt, 1000 );	
+
+   		broker_timeout--;	
+   	}
+		
+   	if( !mqtt_b_connected() ){
+
+   		log_v_debug_P( PSTR("Setting MQTT bridge to controller") );
+
+   		sock_addr_t raddr = {0};
+		controller_i8_get_addr( &raddr );   		
+
+		broker_ip = raddr.ipaddr;
+		broker_port = MQTT_BROKER_PORT;   		
+		connected = TRUE;
+   	}
 
 	// if( kv_b_get_boolean( __KV__mqtt_test_mode_subscribe ) ){
 
@@ -1042,12 +1062,14 @@ PT_BEGIN( pt );
 			log_v_info_P( PSTR("MQTT bridge timed out") );
 			
 			reset_broker();
-			continue;
+
+			THREAD_RESTART( pt );
         }
         else if( !wifi_b_connected() ){
 
         	reset_broker();
-        	continue;
+
+        	THREAD_RESTART( pt );
        }
 
     	// send subscriptions
