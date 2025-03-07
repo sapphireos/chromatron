@@ -218,10 +218,10 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr,
 
             drop = FALSE;
         }
-        else{
+        // else{
 
-            log_v_debug_P( PSTR("%s %s"), topic, sub->topic );
-        }
+        //     log_v_debug_P( PSTR("%s %s"), topic, sub->topic );
+        // }
 
         ln = list_ln_next( ln );        
     }
