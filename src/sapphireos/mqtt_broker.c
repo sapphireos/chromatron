@@ -184,6 +184,8 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr,
 	// got the topic
 	// we don't care about the data
 
+    bool drop = TRUE;
+
 	list_node_t ln = broker_sub_list.head;
 
     while( ln >= 0 ){
@@ -213,13 +215,20 @@ static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr,
 
     			break;
     		}
+
+            drop = FALSE;
         }
         else{
 
-			mqtt_broker_msgs_publish_drop++;        	
+            log_v_debug_P( PSTR("%s %s"), topic, sub->topic );
         }
 
         ln = list_ln_next( ln );        
+    }
+
+    if( drop ){
+
+        mqtt_broker_msgs_publish_drop++;            
     }
 }
 
