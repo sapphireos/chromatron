@@ -857,6 +857,11 @@ PT_BEGIN( pt );
 
             sync_state = STATE_SYNC;
 
+            // set hit stats for leader
+            // this makes the CLI less confusing
+            sync_least_hits = 0;
+            sync_most_hits = SYNC_MAX_CHECKPOINTS;
+
             while( vm_sync_b_is_leader() && vm_b_is_vm_running( 0 ) ){
 
                 uint16_t frame_rate = gfx_u16_get_vm_frame_rate();
