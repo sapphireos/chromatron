@@ -1052,7 +1052,17 @@ PT_BEGIN( pt );
 
 		    if( !bridge_running ){
 
-		    	if( !controller_b_is_connected() ){
+		    	if( controller_b_is_connected() ){
+
+		    		// update controller address
+		    		sock_addr_t raddr = {0};
+					controller_i8_get_addr( &raddr );   		
+
+					broker_ip = raddr.ipaddr;
+					broker_port = MQTT_BROKER_PORT; 
+		    	}
+		    	else{
+		    		// no controller
 
 	        		reset_broker();
 
