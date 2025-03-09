@@ -420,7 +420,7 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 
 	    list_v_insert_tail( &link_list, ln );    
 
-	    log_v_debug_P( PSTR("Add new link: 0x%08lx->0x%08lx %d.%d.%d.%d, 0x%0llx"), link->source_key, link->dest_key, raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0, link2_u64_hash( link ) );
+	    log_v_debug_P( PSTR("Add new link: 0x%08lx->0x%08lx mode: %d %d.%d.%d.%d, 0x%0llx"), link->source_key, link->dest_key, link->mode, raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0, link2_u64_hash( link ) );
 	}
 	
 

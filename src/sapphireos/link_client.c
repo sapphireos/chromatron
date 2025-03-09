@@ -570,7 +570,7 @@ link2_handle_t link2_l_create2( link2_state_t *state ){
 
     list_v_insert_tail( &link_list, ln );    
 
-    log_v_debug_P( PSTR("Created link: 0x%0x hash: 0x%0llx"), state->link.tag, state->hash );
+    log_v_debug_P( PSTR("Created link: 0x%0x mode: %d hash: 0x%0llx"), state->link.tag, state->link.mode, state->hash );
 
 
     return ln;
@@ -658,7 +658,7 @@ void link2_v_delete( link2_handle_t link ){
 
     delete_binding( state->hash );
 
-    log_v_debug_P( PSTR("Deleted link: 0x%0x hash: 0x%0llx"), state->link.tag, state->hash );
+    log_v_debug_P( PSTR("Deleted link: 0x%0x mode: %d hash: 0x%0llx"), state->link.tag, state->link.mode, state->hash );
 
     list_v_remove( &link_list, link );
     list_v_release_node( link );    
