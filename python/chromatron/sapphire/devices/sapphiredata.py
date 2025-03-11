@@ -367,22 +367,23 @@ class Link2Binding(StructField):
 
 class Link2BindingArray(ArrayField):
     def __init__(self, **kwargs):
-        field = Link2Data
+        field = Link2Binding
 
         super().__init__(_field=field, **kwargs)
 
-class Link2Data(StructField):
+class Link2DataCache(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="key"),
+        fields = [Ipv4Field(_name="ip"),
+                  Uint8Field(_name="timeout"),
+                  Uint32Field(_name="key"),
                   Int64Field(_name="data"),
-                  Uint8Field(_name="mode"),
                   Uint64Field(_name="hash")]
 
         super().__init__(_fields=fields, **kwargs)
 
-class Link2DataArray(ArrayField):
+class Link2DataCacheArray(ArrayField):
     def __init__(self, **kwargs):
-        field = Link2Data
+        field = Link2DataCache
 
         super().__init__(_field=field, **kwargs)
 

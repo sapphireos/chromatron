@@ -747,7 +747,7 @@ class Device(object):
 
     def get_link_info(self):
         data = self.get_file("link_info")
-        info = sapphiredata.Link2Array()
+        info = sapphiredata.Link2StateArray()
         info.unpack(data)
 
         return info
@@ -761,7 +761,7 @@ class Device(object):
 
     def get_link_data_info(self):
         data = self.get_file("link_data_info")
-        info = sapphiredata.Link2DataArray()
+        info = sapphiredata.Link2DataCacheArray()
         info.unpack(data)
 
         return info
@@ -1281,6 +1281,7 @@ class Device(object):
             #          query_s)
 
         except IOError:
+            raise
             pass
 
         
@@ -1310,6 +1311,7 @@ class Device(object):
             #          info.link_hash)
 
         except IOError:
+            raise
             pass
 
         try:
@@ -1332,6 +1334,7 @@ class Device(object):
                 
 
         except IOError:
+            raise
             pass
         
         return s
