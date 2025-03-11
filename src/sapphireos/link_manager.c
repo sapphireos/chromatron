@@ -23,6 +23,7 @@
  */
 
 #include "catbus_link.h"
+#include "fs.h"
 #include "ip.h"
 #include "logging.h"
 #include "sapphire.h"
@@ -63,6 +64,50 @@ typedef struct __attribute__((packed)){
 	int64_t data;
 	uint64_t link_hash;
 } link2_data_cache_t;
+
+
+
+static uint32_t link_mgr_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &link_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &link_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
+
+static uint32_t link_data_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &data_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &data_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
 
 
 static list_node_t get_cache_data_for_ip( ip_addr4_t ip, uint64_t link_hash ){
@@ -554,6 +599,9 @@ static thread_t server_thread;
 static thread_t process_thread;
 static thread_t timer_thread;
 
+static file_t link_mgr_file;
+static file_t link_data_file;
+
 void link_mgr_v_start( void ){
 
 	if( link_mgr_running ){
@@ -565,6 +613,16 @@ void link_mgr_v_start( void ){
 
 	list_v_init( &link_list );
 	list_v_init( &data_list );
+
+	if( link_mgr_file <= 0 ){
+
+		link_mgr_file = fs_f_create_virtual( PSTR("link_mgr_info"), link_mgr_vfile );	
+	}
+
+	if( link_data_file <= 0 ){
+
+		link_data_file = fs_f_create_virtual( PSTR("link_data_info"), link_data_vfile );	
+	}
 
 	kv_v_add_db_info( link_mgr_kv, sizeof(link_mgr_kv) );
 
@@ -592,6 +650,16 @@ void link_mgr_v_stop( void ){
 	if( !link_mgr_running ){
 
 		return;
+	}
+
+	if( link_mgr_file > 0 ){
+
+		link_mgr_file = fs_f_close( link_mgr_file );
+	}
+
+	if( link_data_file > 0 ){
+
+		link_data_file = fs_f_close( link_data_file );
 	}
 
 	link_mgr_running = FALSE;
