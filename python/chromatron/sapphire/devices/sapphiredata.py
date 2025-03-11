@@ -335,6 +335,12 @@ class Link2(StructField):
 
         super().__init__(_fields=fields, **kwargs)
 
+class Link2Array(ArrayField):
+    def __init__(self, **kwargs):
+        field = Link2
+
+        super().__init__(_field=field, **kwargs)
+
 class Link2State(StructField):
     def __init__(self, **kwargs):
         fields = [Link2(_name="link"),
@@ -344,6 +350,41 @@ class Link2State(StructField):
 
         super().__init__(_fields=fields, **kwargs)
 
+class Link2StateArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = Link2State
+
+        super().__init__(_field=field, **kwargs)
+
+class Link2Binding(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint32Field(_name="key"),
+                  Uint16Field(_name="rate"),
+                  Uint8Field(_name="mode"),
+                  Uint64Field(_name="hash")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class Link2BindingArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = Link2Data
+
+        super().__init__(_field=field, **kwargs)
+
+class Link2Data(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint32Field(_name="key"),
+                  Int64Field(_name="data"),
+                  Uint8Field(_name="mode"),
+                  Uint64Field(_name="hash")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class Link2DataArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = Link2Data
+
+        super().__init__(_field=field, **kwargs)
 
 
 # class LinkProducerInfo(StructField):
