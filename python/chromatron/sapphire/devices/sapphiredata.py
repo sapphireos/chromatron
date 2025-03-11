@@ -323,40 +323,63 @@ class LinkInfoArray(ArrayField):
         super().__init__(_field=field, **kwargs)
 
 
-class LinkProducerInfo(StructField):
+class Link2(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="source_key"),
-                  Uint64Field(_name="link_hash"),
-                  Ipv4Field(_name="leader_ip"),
-                  Uint16Field(_name="leader_port"),
-                  Uint32Field(_name="data_hash"),
+        fields = [Uint8Field(_name="mode"),
+                  Uint8Field(_name="aggregation"),
                   Uint16Field(_name="rate"),
-                  Int16Field(_name="ticks"),
+                  Uint32Field(_name="source_key"),
+                  Uint32Field(_name="dest_key"),
+                  Uint32Field(_name="tag"),
+                  ArrayField(_name="query", _field=Uint32Field, _length=8)]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class Link2State(StructField):
+    def __init__(self, **kwargs):
+        fields = [Link2(_name="link"),
                   Int16Field(_name="retransmit_timer"),
-                  Int32Field(_name="timeout")]
+                  Int16Field(_name="ticks"),
+                  Uint64Field(_name="hash")]
 
         super().__init__(_fields=fields, **kwargs)
 
-class LinkProducerInfoArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = LinkProducerInfo
 
-        super().__init__(_field=field, **kwargs)
 
-class LinkConsumerInfo(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint64Field(_name="link_hash"),
-                  Ipv4Field(_name="ip"),
-                  Uint16Field(_name="port"),
-                  Int32Field(_name="timeout")]
+# class LinkProducerInfo(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint32Field(_name="source_key"),
+#                   Uint64Field(_name="link_hash"),
+#                   Ipv4Field(_name="leader_ip"),
+#                   Uint16Field(_name="leader_port"),
+#                   Uint32Field(_name="data_hash"),
+#                   Uint16Field(_name="rate"),
+#                   Int16Field(_name="ticks"),
+#                   Int16Field(_name="retransmit_timer"),
+#                   Int32Field(_name="timeout")]
 
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
-class LinkConsumerInfoArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = LinkConsumerInfo
+# class LinkProducerInfoArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = LinkProducerInfo
 
-        super().__init__(_field=field, **kwargs)
+#         super().__init__(_field=field, **kwargs)
+
+# class LinkConsumerInfo(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint64Field(_name="link_hash"),
+#                   Ipv4Field(_name="ip"),
+#                   Uint16Field(_name="port"),
+#                   Int32Field(_name="timeout")]
+
+#         super().__init__(_fields=fields, **kwargs)
+
+# class LinkConsumerInfoArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = LinkConsumerInfo
+
+#         super().__init__(_field=field, **kwargs)
 
 # this data structure needs rework to be viable
 # class LinkRemoteInfo(StructField):
