@@ -1208,8 +1208,8 @@ class Device(object):
             linkinfo = self.get_link_info()
             print(linkinfo)
 
-            # if len(linkinfo) == 0:
-            #     raise IOError
+            if len(linkinfo) == 0:
+                raise IOError
 
             s += 'Links:\n'
             s += 'Source           Dest             Mode Agg  Rate Hash             Query\n'
@@ -1282,7 +1282,6 @@ class Device(object):
                      query_s)
 
         except IOError:
-            raise
             pass
 
         
@@ -1290,8 +1289,8 @@ class Device(object):
             binding_info = self.get_link_binding_info()
             print(binding_info)
 
-            # if len(binding_info) == 0:
-            #     raise IOError
+            if len(binding_info) == 0:
+                raise IOError
 
             s += 'Bindings:\n'
             s += 'Key                Rate Data Rexmit Ticks Timeout Hash\n'
@@ -1331,7 +1330,6 @@ class Device(object):
             #          info.link_hash)
 
         except IOError:
-            raise
             pass
 
         try:
@@ -1339,8 +1337,8 @@ class Device(object):
             print(data_info)
 
 
-            # if len(data_info) == 0:
-            #     raise IOError
+            if len(data_info) == 0:
+                raise IOError
 
             s += 'Data cache:\n'
             s += 'Hash                  IP           Key                 Data  Timeout\n'
@@ -1367,7 +1365,6 @@ class Device(object):
                 
 
         except IOError:
-            raise
             pass
         
         return s
