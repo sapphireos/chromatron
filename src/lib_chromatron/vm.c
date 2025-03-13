@@ -1063,7 +1063,7 @@ void vm_v_init( void ){
     vm_seq_v_init();
 
     #ifdef VM_DEBUG
-    fs_f_create_virtual( PSTR("vm0_threads"), threads_vfile );
+    fs_v_create_virtual( PSTR("vm0_threads"), threads_vfile );
     #endif
 
     #endif

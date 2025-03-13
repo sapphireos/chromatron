@@ -294,8 +294,8 @@ file_t fs_f_open_id( file_id_t8 file_id, uint8_t mode ){
     return fs_f_open( name, mode );
 }
 
-file_t fs_f_create_virtual( PGM_P filename,
-                            uint32_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ) ){
+void fs_v_create_virtual( PGM_P filename,
+                          uint32_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ) ){
 
     for( uint8_t i = 0; i < FS_MAX_VIRTUAL_FILES; i++ ){
 
@@ -304,11 +304,23 @@ file_t fs_f_create_virtual( PGM_P filename,
             vfiles[i].filename  = filename;
             vfiles[i].handler   = handler;
 
-            return i;
+            return;
         }
     }
+}
 
-    return -1;
+void fs_v_destroy_virtual( PGM_P filename ){
+
+    for( uint8_t i = 0; i < FS_MAX_VIRTUAL_FILES; i++ ){
+
+        if( strncmp_P( filename, vfiles[i].filename, FS_MAX_FILE_NAME_LEN ) == 0 ){
+
+            vfiles[i].filename  = 0;
+            vfiles[i].handler   = 0;
+
+            return;
+        }
+    }
 }
 
 uint32_t fs_u32_get_virtual_file_count( void ){
@@ -567,7 +579,7 @@ file_t fs_f_close( file_t file ){
 void fs_v_init( void ){
 
     // create vfile
-    // fs_f_create_virtual( PSTR("fileinfo"), vfile );
+    // fs_v_create_virtual( PSTR("fileinfo"), vfile );
 }
 
 

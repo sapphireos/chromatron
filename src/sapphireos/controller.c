@@ -482,7 +482,7 @@ void controller_v_init( void ){
     list_v_init( &follower_list );	
 
     // create vfile
-    fs_f_create_virtual( PSTR("directory"), vfile );
+    fs_v_create_virtual( PSTR("directory"), vfile );
 
     // create socket
     sock = sock_s_create( SOS_SOCK_DGRAM );

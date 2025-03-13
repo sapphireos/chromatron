@@ -599,8 +599,7 @@ static thread_t server_thread;
 static thread_t process_thread;
 static thread_t timer_thread;
 
-static file_t link_mgr_file;
-static file_t link_data_file;
+
 
 void link_mgr_v_start( void ){
 
@@ -609,20 +608,15 @@ void link_mgr_v_start( void ){
 		return;
 	}
 
+	log_v_debug_P( PSTR("Link mgr start") );
+
 	link_mgr_running = TRUE;
 
 	list_v_init( &link_list );
 	list_v_init( &data_list );
 
-	if( link_mgr_file <= 0 ){
-
-		link_mgr_file = fs_f_create_virtual( PSTR("link_mgr_info"), link_mgr_vfile );	
-	}
-
-	if( link_data_file <= 0 ){
-
-		link_data_file = fs_f_create_virtual( PSTR("link_data_info"), link_data_vfile );	
-	}
+	fs_v_create_virtual( PSTR("link_mgr_info"), link_mgr_vfile );	
+	fs_v_create_virtual( PSTR("link_data_info"), link_data_vfile );	
 
 	kv_v_add_db_info( link_mgr_kv, sizeof(link_mgr_kv) );
 
@@ -652,15 +646,10 @@ void link_mgr_v_stop( void ){
 		return;
 	}
 
-	if( link_mgr_file > 0 ){
+	log_v_debug_P( PSTR("Link mgr stop") );
 
-		link_mgr_file = fs_f_close( link_mgr_file );
-	}
-
-	if( link_data_file > 0 ){
-
-		link_data_file = fs_f_close( link_data_file );
-	}
+	fs_v_destroy_virtual( PSTR("link_mgr_info") );
+	fs_v_destroy_virtual( PSTR("link_data_info") );
 
 	link_mgr_running = FALSE;
 
@@ -700,10 +689,10 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
         // check if shutting down
-        if( sys_b_is_shutting_down() ){
+        // if( sys_b_is_shutting_down() ){
 
-            THREAD_EXIT( pt );
-        }
+        //     THREAD_EXIT( pt );
+        // }
 
         int16_t bytes_read = sock_i16_get_bytes_read( sock );
 
@@ -893,10 +882,10 @@ PT_BEGIN( pt );
     	TMR_WAIT( pt, 1000 );
 
         // check if shutting down
-        if( sys_b_is_shutting_down() ){
+        // if( sys_b_is_shutting_down() ){
 
-            THREAD_EXIT( pt );
-        }
+        //     THREAD_EXIT( pt );
+        // }
 
     	/*
 		
@@ -1077,10 +1066,10 @@ PT_BEGIN( pt );
     	THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         // check if shutting down
-        if( sys_b_is_shutting_down() ){
+        // if( sys_b_is_shutting_down() ){
 
-            THREAD_EXIT( pt );
-        }
+        //     THREAD_EXIT( pt );
+        // }
 
 
     	// SINK DATA:

@@ -1006,7 +1006,7 @@ void thread_start( void ){
     thread_t_create( cpu_stats_thread, PSTR("cpu_stats"), 0, 0 );
 
     // create vfile
-    fs_f_create_virtual( PSTR("threadinfo"), vfile );
+    fs_v_create_virtual( PSTR("threadinfo"), vfile );
 
 
     #if defined(ESP8266) || defined(ESP32)

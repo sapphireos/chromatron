@@ -282,8 +282,8 @@ void link2_v_init( void ){
 	list_v_init( &link_list );
     list_v_init( &binding_list );
 
-    fs_f_create_virtual( PSTR("link_info"), link_vfile );
-    fs_f_create_virtual( PSTR("link_binding_info"), binding_vfile );
+    fs_v_create_virtual( PSTR("link_info"), link_vfile );
+    fs_v_create_virtual( PSTR("link_binding_info"), binding_vfile );
 
 	#ifdef ESP8266
 	

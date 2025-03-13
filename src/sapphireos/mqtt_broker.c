@@ -30,6 +30,7 @@
 #include "mqtt_broker.h"
 #include "sockets.h"
 
+
 #ifdef ENABLE_BROKER
 
 PT_THREAD( mqtt_broker_server_thread( pt_t *pt, void *state ) );
@@ -102,6 +103,8 @@ void mqtt_broker_v_start( void ){
         return;
     }
 
+    log_v_debug_P( PSTR("MQTT broker start") );
+
     broker_running = TRUE;
 
 	kv_v_add_db_info( mqtt_broker_kv, sizeof(mqtt_broker_kv) );
@@ -136,6 +139,8 @@ void mqtt_broker_v_stop( void ){
 
         return;
     }
+
+    log_v_debug_P( PSTR("MQTT broker stop") );
 
     broker_running = FALSE;
 
@@ -392,16 +397,16 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( broker_sock ) < 0 );
 
-        if( sys_b_is_shutting_down() ){
+        // if( sys_b_is_shutting_down() ){
 
-        	// transmit_shutdown();
-        	// TMR_WAIT( pt, 100 );
-        	// transmit_shutdown();
-        	// TMR_WAIT( pt, 100 );
-        	// transmit_shutdown();
+        // 	// transmit_shutdown();
+        // 	// TMR_WAIT( pt, 100 );
+        // 	// transmit_shutdown();
+        // 	// TMR_WAIT( pt, 100 );
+        // 	// transmit_shutdown();
 
-        	THREAD_EXIT( pt );
-        }
+        // 	THREAD_EXIT( pt );
+        // }
 
         if( sock_i16_get_bytes_read( broker_sock ) <= 0 ){
 

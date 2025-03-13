@@ -312,7 +312,7 @@ typedef enum {
              0 );
     }
 
-    fs_f_create_virtual( PSTR("coredump"), coredump_vfile_handler );
+    fs_v_create_virtual( PSTR("coredump"), coredump_vfile_handler );
 
 
 
