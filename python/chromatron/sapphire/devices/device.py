@@ -1206,13 +1206,13 @@ class Device(object):
 
         try:
             linkinfo = self.get_link_info()
-            print(linkinfo)
+            # print(linkinfo)
 
             if len(linkinfo) == 0:
                 raise IOError
 
             s += 'Links:\n'
-            s += 'Source           Dest             Mode Agg  Rate Hash             Query\n'
+            s += 'Source                 Dest               Mode Agg  Rate Hash             Query\n'
 
             for info in sorted(linkinfo, key=lambda x: x.hash):
                 link = info.link
@@ -1272,7 +1272,7 @@ class Device(object):
 
                     query_s += f'{v} '
 
-                s += "%16s %16s %4s %3s %5d %16x %s\n" % \
+                s += "%20s %20s %4s %3s %5d %16x %s\n" % \
                     (source,
                      dest,
                      mode,
@@ -1287,13 +1287,13 @@ class Device(object):
         
         try:
             binding_info = self.get_link_binding_info()
-            print(binding_info)
+            # print(binding_info)
 
             if len(binding_info) == 0:
                 raise IOError
 
             s += 'Bindings:\n'
-            s += 'Key                Rate Data Rexmit Ticks Timeout Hash\n'
+            s += 'Key                  Rate Data Rexmit Ticks Timeout Hash\n'
 
             for info in sorted(binding_info, key=lambda x: x.hash):
                 try:
@@ -1302,7 +1302,7 @@ class Device(object):
                 except KeyError:
                     key = f'{info.key:x}'                
                 
-                s += "%16s %5d %5d %5d %5d %5d %16x\n" % \
+                s += "%20s %5d %5d %5d %5d %5d %16x\n" % \
                     (key,
                      info.rate,
                      info.last_data,
@@ -1334,7 +1334,7 @@ class Device(object):
 
         try:
             data_info = self.get_link_data_info()
-            print(data_info)
+            # print(data_info)
 
 
             if len(data_info) == 0:
