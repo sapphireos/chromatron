@@ -313,6 +313,11 @@ void fs_v_destroy_virtual( PGM_P filename ){
 
     for( uint8_t i = 0; i < FS_MAX_VIRTUAL_FILES; i++ ){
 
+        if( vfiles[i].filename == 0 ){
+
+            continue;
+        }
+
         if( strncmp_P( filename, vfiles[i].filename, FS_MAX_FILE_NAME_LEN ) == 0 ){
 
             vfiles[i].filename  = 0;
