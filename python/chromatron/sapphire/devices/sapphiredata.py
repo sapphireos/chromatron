@@ -360,7 +360,10 @@ class Link2Binding(StructField):
     def __init__(self, **kwargs):
         fields = [Uint32Field(_name="key"),
                   Uint16Field(_name="rate"),
-                  Uint8Field(_name="mode"),
+                  Int64Field(_name="last_data"),
+                  Int16Field(_name="retransmit_ticks"),
+                  Int16Field(_name="ticks"),
+                  Uint8Field(_name="timeout"),
                   Uint64Field(_name="hash")]
 
         super().__init__(_fields=fields, **kwargs)
