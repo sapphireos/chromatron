@@ -303,6 +303,16 @@ bool button_b_is_button_hold_released( uint8_t button ){
     return FALSE;
 }
 
+void button_v_request_shutdown( void ){
+
+    if( !batt_request_shutdown ){
+
+        
+    }
+
+    batt_request_shutdown = TRUE;
+}
+
 bool button_b_is_shutdown_requested( void ){
 
     return batt_request_shutdown;

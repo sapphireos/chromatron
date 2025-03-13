@@ -70,6 +70,7 @@ bool batt_b_is_batt_fault( void );
 uint16_t batt_u16_get_nameplate_capacity( void );
 
 void batt_v_shutdown_power( void );
+void batt_v_request_shutdown( void );
 
 bool batt_b_startup_on_vbus( void );
 
