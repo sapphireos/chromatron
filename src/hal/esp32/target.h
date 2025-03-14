@@ -46,7 +46,7 @@
 
 // DEBUG!
 // Turn this off for normal operation!
-// #define ENABLE_TRACE
+#define ENABLE_TRACE
 
 
 // wifi
@@ -84,7 +84,7 @@
 
 // memory
 #define MAX_MEM_HANDLES         512
-#define MEM_MAX_STACK           4096
+#define MEM_MAX_STACK           (1024 * 6)
 #define MEM_HEAP_SIZE			65535
 
 // flash fs
