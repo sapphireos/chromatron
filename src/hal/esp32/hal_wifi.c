@@ -312,7 +312,7 @@ typedef enum {
              0 );
     }
 
-    fs_f_create_virtual( PSTR("coredump"), coredump_vfile_handler );
+    fs_v_create_virtual( PSTR("coredump"), coredump_vfile_handler );
 
 
 
@@ -1005,10 +1005,14 @@ static void event_handler( void* arg, esp_event_base_t event_base, int32_t event
 
         if( event_id == IP_EVENT_STA_GOT_IP ){
 
+            #ifdef ENABLE_TRACE
             ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
+            
             ip_addr4_t *ip = (ip_addr4_t *)&event->ip_info.ip;
 
             trace_printf("wifi connected, IP: %d.%d.%d.%d\n", ip->ip3, ip->ip2, ip->ip1, ip->ip0);
+            #endif
+            
             connect_done = TRUE;
             connected = TRUE;
         }

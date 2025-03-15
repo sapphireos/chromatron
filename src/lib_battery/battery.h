@@ -43,6 +43,12 @@
 #define LION_MAX_VOLTAGE    4200
 #define LION_MIN_VOLTAGE    2900
 
+typedef struct __attribute__((packed)){
+	uint16_t volts;
+	uint16_t charge_current;
+	int8_t temp;
+	uint16_t vbus;
+} batt_status_t;
 
 void batt_v_init( void );
 bool batt_b_enabled( void );
@@ -67,6 +73,7 @@ bool batt_b_is_batt_fault( void );
 uint16_t batt_u16_get_nameplate_capacity( void );
 
 void batt_v_shutdown_power( void );
+void batt_v_request_shutdown( void );
 
 bool batt_b_startup_on_vbus( void );
 

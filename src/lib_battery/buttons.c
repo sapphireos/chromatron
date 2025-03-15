@@ -68,6 +68,7 @@ static uint8_t button_hold_duration[MAX_BUTTONS];
 #define BUTTON_WIFI_TIME            ( 1000 / BUTTON_CHECK_TIMING )
 
 static bool batt_request_shutdown;
+// static bool shutdown_on_vbus_unplug;
 
 #ifdef ENABLE_VBUS_SHUTDOWN
 static bool shutdown_on_vbus_unplug;
@@ -303,6 +304,16 @@ bool button_b_is_button_hold_released( uint8_t button ){
     }
     
     return FALSE;
+}
+
+void button_v_request_shutdown( void ){
+
+    if( !batt_request_shutdown ){
+
+        
+    }
+
+    batt_request_shutdown = TRUE;
 }
 
 bool button_b_is_shutdown_requested( void ){
@@ -577,6 +588,10 @@ PT_BEGIN( pt );
 
                         // set shutdown request
                         batt_request_shutdown = TRUE;
+
+                        TMR_WAIT( pt, 120000 ); 
+                        // power should be off by now, but if not,
+                        // just carry on?    
                     }
                 }
                 else{

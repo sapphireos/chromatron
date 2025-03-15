@@ -915,11 +915,11 @@ void cfg_v_init( void ){
     clean_blocks();
 
     // create virtual files
-    fs_f_create_virtual( PSTR("error_log.txt"), error_log_vfile_handler );
-    fs_f_create_virtual( PSTR("fwinfo"), fw_info_vfile_handler );
+    fs_v_create_virtual( PSTR("error_log.txt"), error_log_vfile_handler );
+    fs_v_create_virtual( PSTR("fwinfo"), fw_info_vfile_handler );
 
     #ifdef ENABLE_CFG_VFILE
-    fs_f_create_virtual( PSTR("cfg_eeprom"), eeprom_vfile_handler );
+    fs_v_create_virtual( PSTR("cfg_eeprom"), eeprom_vfile_handler );
     #endif
 
     // check config version

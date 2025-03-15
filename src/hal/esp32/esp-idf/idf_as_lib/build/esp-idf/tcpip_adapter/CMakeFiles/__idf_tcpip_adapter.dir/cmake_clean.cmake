@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj"
+  "CMakeFiles/__idf_tcpip_adapter.dir/tcpip_adapter_compat.c.obj.d"
   "libtcpip_adapter.a"
   "libtcpip_adapter.pdb"
 )

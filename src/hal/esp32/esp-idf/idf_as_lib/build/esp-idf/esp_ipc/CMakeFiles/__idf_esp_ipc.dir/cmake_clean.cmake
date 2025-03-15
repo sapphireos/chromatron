@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc.c.obj"
+  "CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc.c.obj.d"
   "CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.obj"
+  "CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr.c.obj.d"
   "CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_handler.S.obj"
   "CMakeFiles/__idf_esp_ipc.dir/src/esp_ipc_isr/esp_ipc_isr_routines.S.obj"
   "libesp_ipc.a"

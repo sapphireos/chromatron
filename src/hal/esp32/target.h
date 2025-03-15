@@ -52,7 +52,7 @@
 
 
 // wifi
-#define WIFI_MAX_PORTS          16
+#define WIFI_MAX_PORTS          64
 #define WIFI_MAX_IGMP           8
 
 // pixel config
@@ -86,7 +86,7 @@
 
 // memory
 #define MAX_MEM_HANDLES         512
-#define MEM_MAX_STACK           4096
+#define MEM_MAX_STACK           (1024 * 6)
 #define MEM_HEAP_SIZE			65535
 
 // flash fs
@@ -114,8 +114,8 @@
 #define ENABLE_LOG_TO_TRACE_PRINT
 
 // msgflow
-#define MSGFLOW_MAX_Q_SIZE      8192
-#define MSGFLOW_MAX_Q_MSGS      128
+// #define MSGFLOW_MAX_Q_SIZE      8192
+// #define MSGFLOW_MAX_Q_MSGS      128
 
 // ARP
 #define ARP_GRATUITOUS_INTERVAL 16

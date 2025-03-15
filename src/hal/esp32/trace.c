@@ -23,7 +23,7 @@
 
 #include "trace.h"
 
-int dummy_printf(const char* format, ...){
+// int dummy_printf(const char* format, ...){
 
-    return 0;
-}
+//     return 0;
+// }

@@ -24,12 +24,17 @@
 
 #include "keyvalue.h"
 #include "logging.h"
+#include "memory.h"
 #include "sapphire.h"
 #include "config.h"
 
 #include "controller.h"
+#include "mqtt_broker.h"
 
 #include "link.h"
+#include "system.h"
+#include "threading.h"
+#include "wifi.h"
 
 /*
 
@@ -477,7 +482,7 @@ void controller_v_init( void ){
     list_v_init( &follower_list );	
 
     // create vfile
-    fs_f_create_virtual( PSTR("directory"), vfile );
+    fs_v_create_virtual( PSTR("directory"), vfile );
 
     // create socket
     sock = sock_s_create( SOS_SOCK_DGRAM );
@@ -558,11 +563,31 @@ static void send_announce( void ){
 
 static void init_status_msg( controller_msg_status_t *msg ){
 
-	msg->gfx_sync_group = 0;
-
-	kv_i8_get( __KV__gfx_sync_group_hash, &msg->gfx_sync_group, sizeof(msg->gfx_sync_group) );
+	memset( msg, 0, sizeof(controller_msg_status_t) );
 
 	catbus_v_get_query( &msg->query );
+
+	msg->ip 			= cfg_ip_get_ipaddr();
+	// msg->uptime 		= tmr_u64_get_system_time_us();
+	// msg->mode 			= sys_u8_get_mode();
+	// msg->rssi 			= wifi_i8_rssi();
+	// msg->wifi_channel   = wifi_i8_get_channel();
+	// msg->cpu_percent    = thread_u8_get_cpu_percent();
+	// msg->used_heap      = mem2_u16_get_used();
+
+	// kv_i8_get( __KV__pixel_power, &msg->pixel_power, sizeof(msg->pixel_power) );
+	kv_i8_get( __KV__gfx_sync_group_hash, &msg->gfx_sync_group, sizeof(msg->gfx_sync_group) );
+	// kv_i8_get( __KV__gfx_master_dimmer, &msg->gfx_master_dimmer, sizeof(msg->gfx_master_dimmer) );
+	// kv_i8_get( __KV__gfx_sub_dimmer, &msg->gfx_sub_dimmer, sizeof(msg->gfx_sub_dimmer) );
+	// kv_i8_get( __KV__vm_status, &msg->vm_status_0, sizeof(msg->vm_status_0) );
+	// kv_i8_get( __KV__vm_status_1, &msg->vm_status_1, sizeof(msg->vm_status_1) );
+	// kv_i8_get( __KV__vm_status_2, &msg->vm_status_2, sizeof(msg->vm_status_2) );
+	// kv_i8_get( __KV__vm_status_3, &msg->vm_status_3, sizeof(msg->vm_status_3) );
+
+	// kv_i8_get( __KV__batt_volts, &msg->batt_volts, sizeof(msg->batt_volts) );
+	// kv_i8_get( __KV__batt_charge_current, &msg->batt_charge_current, sizeof(msg->batt_charge_current) );
+	// kv_i8_get( __KV__batt_temp, &msg->batt_temp, sizeof(msg->batt_temp) );
+	// kv_i8_get( __KV__light_level, &msg->light_level, sizeof(msg->light_level) );
 }
 
 static void send_status( void ){
@@ -752,8 +777,15 @@ static void process_announce( controller_msg_announce_t *msg, sock_addr_t *raddr
 	}
 }
 
+// void controller_v_on_received_status( controller_msg_status_t *msg, sock_addr_t *raddr ){
+
+// }
 
 static void process_status( controller_msg_status_t *msg, sock_addr_t *raddr ){
+
+	// run callback
+	// hmmmmmmmm
+	// controller_v_on_received_status( msg, raddr );
 
 	if( controller_state != STATE_LEADER ){
 
@@ -920,7 +952,7 @@ PT_BEGIN( pt );
 	// wait for wifi
 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
-	log_v_debug_P( PSTR("controller idle") );
+	// log_v_debug_P( PSTR("controller idle") );
 
 	// wait for timeout or leader/candidate is available
 	thread_v_set_alarm( tmr_u32_get_system_time_ms() + CONTROLLER_IDLE_TIMEOUT * 1000 );
@@ -1033,6 +1065,10 @@ PT_BEGIN( pt );
 
 			link_mgr_v_start();
 
+			#ifdef ENABLE_BROKER    
+	    	mqtt_broker_v_start();
+		    #endif
+
 			// broadcast announcement
 			send_announce();
 
@@ -1055,6 +1091,10 @@ PT_BEGIN( pt );
 		}
 
 		// no longer leader:
+		#ifdef ENABLE_BROKER    
+    	mqtt_broker_v_stop();
+	    #endif
+
 		link_mgr_v_stop();
 		TMR_WAIT( pt, 100 ); // give the manager time to stop
 	}

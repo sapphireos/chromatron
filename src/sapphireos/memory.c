@@ -329,7 +329,7 @@ void mem2_v_init( void ){
 
 	mem_rt_data.handles_used = 0;
 
-    fs_f_create_virtual( PSTR("handleinfo"), mem_info_vfile_handler );
+    fs_v_create_virtual( PSTR("handleinfo"), mem_info_vfile_handler );
 }
 
 // for debug only, returns a copy of the header at given index

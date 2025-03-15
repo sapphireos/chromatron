@@ -201,7 +201,9 @@ MAX_UPDATE_THREADS = 4
 def get_package_fx_script(fname):
     # return pkg_resources.resource_filename('chromatron', fname)
     ref = importlib.resources.files('chromatron') / fname # thanks 3.12 for removing a thing that worked fine
-    return importlib.resources.as_file(ref)
+
+    with importlib.resources.as_file(ref) as path:
+        return str(path)
 
 # note - this is just a convenience wrapper around the
 # underlying Device object.

@@ -802,6 +802,33 @@ void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
 }
 
 
+void kv_v_remove_db_info( kv_meta_t *meta ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
+    list_node_t ln = kv_opt_list.head;
+
+    while( ln >= 0 ){
+
+        const kv_opt_info_t *info = list_vp_get_data( ln );
+        
+        if( info->meta == meta ){
+
+            // remove node
+            list_v_remove( &kv_opt_list, ln );
+            list_v_release_node( ln );
+
+            return;
+        }
+
+        ln = list_ln_next( ln );
+    }
+}
+
+
 static int8_t _kv_i8_persist_set_internal(
     file_t f,
     kv_meta_t *meta,

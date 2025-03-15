@@ -22,6 +22,7 @@
 // </license>
  */
 
+#include "catbus_common.h"
 #include "sapphire.h"
 
 #include "config.h"
@@ -1647,6 +1648,72 @@ PT_BEGIN( pt );
             // send reply
             sock_i16_sendto_m( sock, h, 0 );
         }
+        else if( header->msg_type == CATBUS_MSG_TYPE_GET_FILE_HASH_LIST ){
+
+            // catbus_msg_file_list_t *msg = (catbus_msg_file_list_t *)header;
+
+            int16_t file_count = fs_u32_get_file_count();
+            // int16_t index = msg->index;
+            int16_t item_count = CATBUS_MAX_FILE_HASH_ENTRIES;
+            
+            uint16_t reply_len = sizeof(catbus_msg_file_hash_list_t) + ( ( item_count - 1 ) * sizeof(catbus_file_hash_t) );
+
+            mem_handle_t h = mem2_h_alloc( reply_len );
+
+            if( h < 0 ){
+
+                error = CATBUS_ERROR_ALLOC_FAIL;
+                goto end;
+            }
+
+            catbus_msg_file_hash_list_t *reply = mem2_vp_get_ptr( h );
+
+            memset( reply, 0, reply_len );
+
+            _catbus_v_msg_init( &reply->header, CATBUS_MSG_TYPE_FILE_HASH_LIST, header->transaction_id );
+
+            reply->file_count       = file_count;
+            catbus_file_hash_t *item = &reply->first_hash;
+
+            for( uint8_t i = 0; i < item_count; i++ ){
+
+                item[i].size = -1;
+            }
+
+            uint8_t index = 0;
+
+            while( ( item_count > 0 ) && ( index < FS_MAX_FILES ) ){
+                
+                item->size = fs_i32_get_size_id( index );  
+
+                if( item->size >= 0 ){
+
+                    // if( FS_FILE_IS_VIRTUAL( index ) ){
+
+                    //     item->flags = FS_INFO_FLAGS_VIRTUAL;
+                    // }
+
+                    char filename[FS_MAX_FILE_NAME_LEN];
+                    fs_i8_get_filename_id( index, filename, sizeof(filename) );
+
+                    kvdb_v_set_name( filename );
+
+                    item->hash = hash_u32_string( filename );
+
+                    item++;
+                    item_count--;
+                }
+
+                index++;
+            }
+
+            // send next index to client, because some indexes will be empty and 
+            // we skip those.
+            // reply->next_index = index;
+
+            // send reply
+            sock_i16_sendto_m( sock, h, 0 );
+        }
         else if( header->msg_type == CATBUS_MSG_TYPE_ERROR ){
 
             // catbus_msg_error_t *msg = (catbus_msg_error_t *)header;
@@ -1827,6 +1894,18 @@ static bool is_hash_lookup_in_list( catbus_hash_t32 hash ){
 }
 
 
+
+
+
+
+
+
+
+
+
+// Clients
+
+
 int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN], ip_addr4_t *host_ip ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -1901,3 +1980,364 @@ int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STR
     return status;
 }
 
+
+
+
+static uint8_t client_count;
+
+typedef struct{
+    uint8_t tries;
+    socket_t sock;
+    sock_addr_t raddr;
+    catbus_file_hash_t hash_list[CATBUS_MAX_FILE_HASH_ENTRIES * sizeof(catbus_file_hash_t)];
+    catbus_file_hash_list_callback_t callback;
+} file_hash_list_thread_state_t;
+
+
+PT_THREAD( catbus_hash_list_session_thread( pt_t *pt, file_hash_list_thread_state_t *state ) )
+{
+PT_BEGIN( pt );
+
+    THREAD_WAIT_WHILE( pt, client_count >= CATBUS_MAX_CLIENT_SESSIONS );
+
+    state->sock = sock_s_create( SOS_SOCK_DGRAM );
+
+    if( state->sock <= 0 ){
+    
+        THREAD_EXIT( pt );    
+    }
+
+    client_count++;
+
+    while( state->tries > 0 ){
+
+        state->tries--;
+            
+        catbus_header_t header;
+        _catbus_v_msg_init( &header, CATBUS_MSG_TYPE_GET_FILE_HASH_LIST, 0 );
+
+        // fake origin ID so we can loopback
+        header.origin_id = 1;
+
+        sock_v_set_timeout( state->sock, 2 );
+        sock_i16_sendto( state->sock, (uint8_t *)&header, sizeof(header), &state->raddr );
+
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) );
+
+        if( sock_i16_get_bytes_read( state->sock ) > 0 ){
+
+            const catbus_msg_file_hash_list_t *reply = sock_vp_get_data( state->sock );
+
+            if( reply->header.msg_type != CATBUS_MSG_TYPE_FILE_HASH_LIST ){
+
+                log_v_error_P( PSTR("Error") );
+
+                goto done;
+            }
+
+            log_v_debug_P( PSTR("file count: %d"), reply->file_count );
+
+            const catbus_file_hash_t *hash = &reply->first_hash;
+            
+            for( uint8_t i = 0; i < reply->file_count; i++ ){
+
+                char str[CATBUS_STRING_LEN];
+                catbus_i8_get_string_for_hash( hash->hash, str, &state->raddr.ipaddr );
+
+                log_v_debug_P( PSTR("file: 0x%08x %s %d"), hash->hash, str, hash->size );
+
+                state->hash_list[i] = *hash;
+
+                hash++;
+            }
+
+            state->callback( reply->file_count, state->hash_list, state->raddr.ipaddr );
+
+            goto done;
+        }
+    }
+
+    if( state->tries == 0 ){
+
+        log_v_info_P( PSTR("List files failed") );
+    }
+
+done:
+    client_count--;
+    sock_v_release( state->sock );
+
+PT_END( pt );
+}
+
+
+static thread_t _catbus_t_create_file_hash_list_session(
+    ip_addr4_t ipaddr,
+    catbus_file_hash_list_callback_t callback ){
+
+    mem_handle_t h = mem2_h_alloc( sizeof(file_hash_list_thread_state_t) );
+
+    if( h < 0 ){
+
+        return 0;
+    }
+
+    file_hash_list_thread_state_t *state = mem2_vp_get_ptr( h );
+    state->tries         = 5;
+    state->callback      = callback;
+    state->raddr.ipaddr  = ipaddr;
+    state->raddr.port    = CATBUS_MAIN_PORT;
+    
+    memset( state->hash_list, 0, sizeof(state->hash_list) );
+
+    thread_t t = thread_t_create( 
+                    THREAD_CAST(catbus_hash_list_session_thread),
+                    PSTR("catbus_hash_list_session"),
+                    (uint8_t *)state,
+                    sizeof(file_hash_list_thread_state_t) );
+
+
+    mem2_v_free( h );
+    
+    return t;
+}
+
+void catbus_v_get_file_hash_list( ip_addr4_t ipaddr, catbus_file_hash_list_callback_t callback ){
+
+    _catbus_t_create_file_hash_list_session( ipaddr, callback );
+}
+
+
+
+
+typedef struct{
+    uint8_t tries;
+    socket_t sock;
+    sock_addr_t raddr;
+    catbus_meta_t meta;
+    // data bytes follow
+} set_key_thread_state_t;
+
+
+PT_THREAD( catbus_set_key_session_thread( pt_t *pt, set_key_thread_state_t *state ) )
+{
+PT_BEGIN( pt );
+
+    THREAD_WAIT_WHILE( pt, client_count >= CATBUS_MAX_CLIENT_SESSIONS );
+
+    state->sock = sock_s_create( SOS_SOCK_DGRAM );
+
+    if( state->sock <= 0 ){
+
+        THREAD_EXIT( pt );        
+    }
+
+    client_count++;
+
+    while( state->tries > 0 ){
+
+        state->tries--;
+
+        uint8_t buf[128];
+        catbus_msg_set_keys_t *msg = (catbus_msg_set_keys_t *)buf;
+        _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_SET_KEYS, 0 );
+
+        uint16_t data_len = type_u16_size( state->meta.type );
+
+        // fake origin ID so we can loopback
+        msg->header.origin_id = 1;
+        msg->count = 1;
+        msg->first_data.meta = state->meta;
+
+        const uint8_t *src = (uint8_t *)( state + 1 );
+        uint8_t *dst = (uint8_t *)&msg->first_data.data; 
+        memcpy( dst, src, data_len );
+
+        sock_v_set_timeout( state->sock, 2 );
+        sock_i16_sendto( state->sock, (uint8_t *)msg, sizeof(catbus_msg_set_keys_t) - 1 + data_len, &state->raddr );
+
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) );
+
+        if( sock_i16_get_bytes_read( state->sock ) > 0 ){
+
+            const catbus_msg_key_data_t *reply = sock_vp_get_data( state->sock );
+
+            if( reply->header.msg_type != CATBUS_MSG_TYPE_KEY_DATA ){
+
+                log_v_error_P( PSTR("Error") );
+
+                goto done;
+            }
+
+            // log_v_debug_P( PSTR("count: %d"), reply->count );
+
+            // state->callback( reply->file_count, state->hash_list );
+
+            goto done;
+        }
+    }
+
+    if( state->tries == 0 ){
+
+        log_v_info_P( PSTR("Set key failed") );
+    }
+        
+done:
+    client_count--;
+    sock_v_release( state->sock );
+
+PT_END( pt );
+}
+
+
+void catbus_v_set_key( 
+    ip_addr4_t ipaddr, 
+    catbus_hash_t32 hash, 
+    catbus_type_t8 type,
+    const void *data ){
+
+    uint16_t data_len = type_u16_size( type );
+
+    mem_handle_t h = mem2_h_alloc( sizeof(set_key_thread_state_t) + data_len );
+
+    if( h < 0 ){
+
+        return;
+    }
+
+    set_key_thread_state_t *state = mem2_vp_get_ptr( h );
+
+    state->tries            = 5;
+    state->raddr.ipaddr     = ipaddr;
+    state->raddr.port       = CATBUS_MAIN_PORT;
+    state->meta.count       = 0;
+    state->meta.flags       = 0;
+    state->meta.hash        = hash;
+    state->meta.type        = type;
+    state->meta.reserved    = 0;
+
+    void *state_data    = (void *)( state + 1 );
+    memcpy( state_data, data, data_len );
+
+    thread_t_create( 
+                    THREAD_CAST(catbus_set_key_session_thread),
+                    PSTR("catbus_set_key_session"),
+                    (uint8_t *)state,
+                    sizeof(set_key_thread_state_t) + data_len );
+
+
+    mem2_v_free( h );
+}
+
+
+
+typedef struct{
+    uint8_t tries;
+    socket_t sock;
+    sock_addr_t raddr;
+    catbus_hash_t32 hash;
+    catbus_get_key_callback_t callback;
+} get_key_thread_state_t;
+
+
+PT_THREAD( catbus_get_key_session_thread( pt_t *pt, get_key_thread_state_t *state ) )
+{
+PT_BEGIN( pt );
+    
+    THREAD_WAIT_WHILE( pt, client_count >= CATBUS_MAX_CLIENT_SESSIONS );
+
+    state->sock = sock_s_create( SOS_SOCK_DGRAM );
+
+    if( state->sock <= 0 ){
+
+        THREAD_EXIT( pt );
+    }
+
+    client_count++;
+
+    // log_v_debug_P( PSTR("get key") );
+    
+    while( state->tries > 0 ){
+
+        state->tries--;
+
+        catbus_msg_get_keys_t msg;
+        _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_GET_KEYS, 0 );
+
+        // fake origin ID so we can loopback
+        msg.header.origin_id = 1;
+        msg.count = 1;
+        msg.first_hash = state->hash;
+
+        sock_v_set_timeout( state->sock, 2 );
+        sock_i16_sendto( state->sock, (uint8_t *)&msg, sizeof(catbus_msg_get_keys_t), &state->raddr );
+
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) );
+
+        if( sock_i16_get_bytes_read( state->sock ) > 0 ){
+
+            const catbus_msg_key_data_t *reply = sock_vp_get_data( state->sock );
+
+            if( reply->header.msg_type != CATBUS_MSG_TYPE_KEY_DATA ){
+
+                log_v_error_P( PSTR("Error") );
+
+                goto done;
+            }
+
+            const uint8_t *data = &reply->first_data.data;
+
+            log_v_debug_P( PSTR("count: %d / %d"), reply->count, reply->first_data.meta.count );
+
+            state->callback( 
+                state->hash,
+                reply->first_data.meta.type, 
+               reply->first_data.meta.count + 1, 
+                       data, 
+               state->raddr.ipaddr );
+
+            goto done;
+        }
+    }
+
+    if( state->tries == 0 ){
+
+        log_v_info_P( PSTR("Get key failed") );
+    }
+        
+done:
+    client_count--;
+    sock_v_release( state->sock );
+
+PT_END( pt );
+}
+
+
+void catbus_v_get_key( 
+    ip_addr4_t ipaddr, 
+    catbus_hash_t32 hash,
+    catbus_get_key_callback_t callback ){
+
+    mem_handle_t h = mem2_h_alloc( sizeof(get_key_thread_state_t) );
+
+    if( h < 0 ){
+
+        return;
+    }
+
+    get_key_thread_state_t *state = mem2_vp_get_ptr( h );
+
+    state->tries            = 5;
+    state->raddr.ipaddr     = ipaddr;
+    state->raddr.port       = CATBUS_MAIN_PORT;
+    state->hash             = hash;
+    state->callback         = callback;
+
+    thread_t_create( 
+                    THREAD_CAST(catbus_get_key_session_thread),
+                    PSTR("catbus_get_key_session"),
+                    (uint8_t *)state,
+                    sizeof(get_key_thread_state_t) );
+
+
+    mem2_v_free( h );
+}

@@ -44,7 +44,9 @@
 #define LINK_RETRANSMIT_RATE                2000
 #define LINK_RETRANSMIT_RATE_FAST           100
 
-#define LINK2_MGR_LINK_TIMEOUT				60
+#define LINK2_MGR_LINK_TIMEOUT				8
+#define LINK_BINDING_TIMEOUT                8
+
 
 typedef list_node_t link2_handle_t;
 
@@ -59,6 +61,7 @@ typedef uint8_t link_mode_t8;
 #define LINK_MODE_SEND						0
 #define LINK_MODE_RECV						1
 #define LINK_MODE_SYNC						2
+#define LINK_MODE_CTRL                      3
 
 typedef uint16_t link_filter_t16;
 #define LINK_FILTER_OFF                     0
@@ -86,25 +89,25 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     link2_t link;
 
-    uint32_t data_hash;
     int16_t retransmit_timer;
     int16_t ticks;
 
     uint64_t hash; // must be last!
 } link2_state_t;
 
-
-#define LINK_BINDING_TIMEOUT  30
-
 typedef struct __attribute__((packed)){
     catbus_hash_t32 key;
     uint16_t rate;
+    uint8_t mode;
+    uint64_t link_hash;
 } link2_binding_t;
 #define LINK_MAX_BIND_ENTRIES         ( ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_binding_t) )
 
 typedef struct __attribute__((packed)){
     catbus_hash_t32 key;
     int64_t data;
+    uint8_t mode;
+    uint64_t link_hash;
 } link2_data_t;
 #define LINK_MAX_DATA_ENTRIES         ( ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_data_t) )
 
@@ -149,6 +152,12 @@ link2_handle_t link2_l_create(
     link_aggregation_t8 aggregation,
     link_filter_t16 filter );
 link2_handle_t link2_l_create2( link2_state_t *state );
+
+uint8_t link2_u8_get_mode( link2_handle_t link );
+
+void link2_v_delete( link2_handle_t link );
+void link2_v_delete_by_tag( catbus_hash_t32 tag );
+void link2_v_delete_by_hash( uint64_t hash );
 
 void link2_v_init_header( link2_msg_header_t *header, uint8_t msg_type );
 

@@ -74,7 +74,7 @@ class MQTTTopic(StructField):
         super().__init__(_fields=fields, **kwargs)
 
         if 'topic' in kwargs:
-            self.topic_len = len(self.topic)
+            self.topic_len = len(self.topic) + 1
 
     def unpack(self, buffer):
         super().unpack(buffer)
@@ -223,9 +223,20 @@ class MqttStatusMsg(StructField):
                   Uint8Field(_name="cpu_percent"),
                   Uint16Field(_name="used_heap"),
                   Uint16Field(_name="pixel_power"),
-                  StringField(_name="os_version", _len=16)]
+                  StringField(_name="os_version", _length=16)]
 
         super().__init__(_name="mqtt_status_msg", _fields=fields, **kwargs)
+
+
+class MqttBattMsg(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint16Field(_name="volts"),
+                  Uint16Field(_name="charge_current"),
+                  Int8Field(_name="temp"),
+                  Uint16Field(_name="vbus")]
+
+        super().__init__(_name="mqtt_batt_msg", _fields=fields, **kwargs)
+
 
 
 class ClientTimedOut(Exception):
@@ -245,13 +256,19 @@ class DeviceClient(object):
         self.mqtt_client.mqtt.on_message = self.on_message
         self.mqtt_client.start()
 
-        logging.info(f'Started client: {self.host}')
+        logging.info(f'Started client: {self.name} at {self.host}')
 
         self.subs = {}
 
     def on_message(self, client, userdata, msg):
-        if msg.topic in self.subs:
-            timeout, data_type = self.subs[msg.topic]
+        matched_sub = None
+
+        for sub in self.subs:
+            if self.mqtt_client.match_topic(sub, msg.topic):
+                matched_sub = sub
+
+        if matched_sub is not None:
+            timeout, data_type = self.subs[matched_sub]
             
             # convert data types
             if data_type in [CATBUS_TYPE_BOOL, 
@@ -278,16 +295,19 @@ class DeviceClient(object):
                 logging.error(f"Unsupported data type: {data_type}")
                 return
 
+            topic = MQTTTopic(topic=msg.topic)
+
             if data_type is not None:
                 meta = CatbusMeta(hash=0, type=data_type)
                 data = CatbusData(meta=meta, value=value)
 
                 kv_payload = MQTTKVPayload(data=data)
 
-                publish_msg = MqttPublishKVMsg(topic=msg.topic, payload=kv_payload)
+                publish_msg = MqttPublishKVMsg(topic=topic, payload=kv_payload)
 
             else:
-                publish_msg = MqttPublishMsg(topic=msg.topic, payload=value)
+                payload = MQTTPayload(data=value)
+                publish_msg = MqttPublishMsg(topic=topic, payload=payload)
 
             self.bridge.transmit(publish_msg, self.host)
 
@@ -296,6 +316,9 @@ class DeviceClient(object):
 
     def clean_up(self):
         topic = f'chromatron/status/{self.name}'
+        self.publish(topic, '') # remove from status topic
+
+        topic = f'chromatron/status_binary/{self.name}'
         self.publish(topic, '') # remove from status topic
 
         logging.info(f'Stopping client: {self.host}')
@@ -313,8 +336,9 @@ class DeviceClient(object):
         self.mqtt_client.subscribe(topic)
 
     def unsubscribe(self, topic):
-        del self.subs[topic]
-        self.mqtt_client.unsubscribe(topic)   
+        if topic in self.subs:
+            del self.subs[topic]
+            self.mqtt_client.unsubscribe(topic)   
 
     def process_timeouts(self, elapsed):
         self.timeout -= elapsed
@@ -443,13 +467,21 @@ class MqttBridge(MsgServer):
 
     def _handle_publish(self, msg, host):
         # redirect status messages
-        if msg.topic.topic == "chromatron/status":
+        if msg.topic.topic == "chromatron/status_binary":
             # send ack
             ack = MqttPublishAckMsg(msg_id=msg.msg_id)
             self.transmit(ack, host)        
 
             status = MqttStatusMsg().unpack(msg.payload.data.pack())
             self._handle_status(status, host)
+            return
+        elif msg.topic.topic == "chromatron/batt_binary":
+            # send ack
+            ack = MqttPublishAckMsg(msg_id=msg.msg_id)
+            self.transmit(ack, host)        
+
+            status = MqttBattMsg().unpack(msg.payload.data.pack())
+            self._handle_batt(status, host)
             return
 
         if host not in self.clients:
@@ -509,9 +541,40 @@ class MqttBridge(MsgServer):
 
         self.clients[host].reset_timeout()
 
+        # JSON version
         topic = f'chromatron/status/{name}'
         self.clients[host].publish(topic, json.dumps(dict_data))
 
+        # # send the binary version for device usage
+        # topic = f'chromatron/status_binary/{name}'
+        # self.clients[host].publish(topic, msg.pack())
+
+    def _handle_batt(self, msg, host):
+        if host not in self.clients:
+            return
+        
+        dict_data = msg.toBasic()
+        
+        # convert hashes to strings
+        c = Client((host[0], CATBUS_MAIN_PORT))
+        tags = [c.lookup_hash(t)[t] for t in dict_data['tags'] if t != 0]
+        dict_data['tags'] = tags
+
+        # fix os version string, remove 0 padding.
+        # strip() does not remove nulls
+        dict_data['os_version'] = dict_data['os_version'].rstrip('\x00')
+
+        name = tags[0]
+
+        self.clients[host].reset_timeout()
+
+        # JSON version
+        topic = f'chromatron/batt/{name}'
+        self.clients[host].publish(topic, json.dumps(dict_data))
+
+        # # send the binary version for device usage
+        # topic = f'chromatron/status_binary/{name}'
+        # self.clients[host].publish(topic, msg.pack())
 
 
 def main():

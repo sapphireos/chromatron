@@ -23,7 +23,7 @@
 #ifndef _TRACE_H	
 #define _TRACE_H
 
-int dummy_printf(const char* format, ...);
+// int dummy_printf(const char* format, ...);
 
 #include "target.h"
 
@@ -34,7 +34,7 @@ int dummy_printf(const char* format, ...);
     #ifdef ENABLE_TRACE
         #define trace_printf printf
     #else
-        #define trace_printf dummy_printf
+        #define trace_printf(...)
     #endif
 #endif
 

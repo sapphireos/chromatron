@@ -26,26 +26,21 @@
 #define __MQTT_CLIENT_H
 
 #include "catbus.h"
+#include "catbus_common.h"
 
-#define MQTT_MAX_TOPIC_LEN      128
-#define MQTT_MAX_PAYLOAD_LEN    256
+#define MQTT_MAX_TOPIC_LEN              128
+#define MQTT_MAX_PAYLOAD_LEN            256
 
-#define MQTT_BRIDGE_PORT        44899
-#define MQTT_BROKER_PORT        44900
+#define MQTT_BRIDGE_PORT                44899
+#define MQTT_BROKER_PORT                44900
 
-#define MQTT_BRIDGE_TIMEOUT     60
-#define MQTT_PUB_ACK_TIMEOUT    16   // ticks at 100 ms
-#define MQTT_MAX_Q_SIZE         16
+#define MQTT_BRIDGE_TIMEOUT             24
+#define MQTT_BRIDGE_INITIAL_TIMEOUT     8
+#define MQTT_PUB_ACK_TIMEOUT            16   // ticks at 100 ms
+#define MQTT_MAX_Q_SIZE                 16
 
-#define MQTT_VM_TAG_OFFSET      0x80
+#define MQTT_VM_TAG_OFFSET              0x80
 
-// #ifdef ESP32
-// #define ENABLE_BROKER
-// #endif
-
-#ifdef ENABLE_BROKER
-#define MQTT_BROKER_SUB_TIMEOUT 60
-#endif
 
 void mqtt_client_v_init( void );
 
@@ -120,12 +115,28 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     mqtt_msg_header_t header;
+    uint8_t msg_id;
+    catbus_hash_t32 topic_hash;
+    uint16_t payload_len;
+    // payload
+} mqtt_msg_publish2_t;
+#define MQTT_MSG_PUBLISH2           23
+
+
+typedef struct __attribute__((packed)){
+    mqtt_msg_header_t header;
     // uint8_t topic_len;
     // topic data
 } mqtt_msg_subscribe_t;
 #define MQTT_MSG_SUBSCRIBE          30
 #define MQTT_MSG_SUBSCRIBE_KV       31
 #define MQTT_MSG_UNSUBSCRIBE        40
+
+typedef struct __attribute__((packed)){
+    mqtt_msg_header_t header;
+    catbus_hash_t32 topic_hash;
+} mqtt_msg_subscribe2_t;
+#define MQTT_MSG_SUBSCRIBE2         32
 
 
 typedef void ( *mqtt_on_publish_callback_t )( char *topic, uint8_t *data, uint16_t data_len, sock_addr_t *raddr );
@@ -139,10 +150,6 @@ int8_t mqtt_client_i8_subscribe( const char *topic, uint8_t qos, mqtt_on_publish
 int8_t mqtt_client_i8_subscribe_kv( const char *topic, const char *key, uint8_t qos, uint8_t tag );
 void mqtt_client_v_unsubscribe( const char *topic );
 void mqtt_client_v_unsubscribe_tag( uint8_t tag );
-
-void mqtt_broker_v_init( void );
-
-
 
 
 // int8_t mqtt_client_i8_publish_data( const char *topic, catbus_meta_t *meta, const void *data, uint8_t qos, bool retain );
