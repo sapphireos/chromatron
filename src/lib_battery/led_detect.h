@@ -32,6 +32,7 @@
 #define LED_UNIT_TYPE_BACKPACK_HEXAGON  3
 #define LED_UNIT_TYPE_BM_LANTERN        4
 #define LED_UNIT_TYPE_BATT_CHECK        5
+#define LED_UNIT_TYPE_SPIRE             6
 
 
 

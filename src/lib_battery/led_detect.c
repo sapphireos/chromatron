@@ -105,6 +105,15 @@ static const led_profile_t led_profiles[] = {
         2, // rgb order
         {""}, // vm prog
     },
+    {
+        LED_UNIT_TYPE_SPIRE,
+        PIX_MODE_WS2811, // led type
+        216, // pix count
+        72, // pix size x
+        3, // pix size y
+        2, // rgb order
+        {""}, // vm prog
+    },
 };
 
 // known units
@@ -156,6 +165,18 @@ static const led_unit_t led_units[] = {
     {
         1145796081,
         LED_UNIT_TYPE_STRAND50,
+    },
+    {
+        1327306781,
+        LED_UNIT_TYPE_SPIRE,
+    },
+    {
+        1327170325,
+        LED_UNIT_TYPE_SPIRE,
+    },
+    {
+        1327155805,
+        LED_UNIT_TYPE_SPIRE,
     },
 };
 
