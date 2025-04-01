@@ -40,10 +40,20 @@ static uint8_t current_profile;
 static uint8_t force_profile;
 static bool detection_enabled;
 
+static uint16_t led_connections;
+static uint16_t led_disconnections;
+static uint32_t led_reads;
+static uint32_t led_misreads;
+
 KV_SECTION_OPT kv_meta_t led_detect_opt_kv[] = {    
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &led_detected,               0,  "led_detected" },
     { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &led_id,                     0,  "led_id"},
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &current_profile,            0,  "led_profile"},
+
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &led_connections,            0,  "led_connections"},
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &led_disconnections,         0,  "led_disconnections"},
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &led_reads,                  0,  "led_detect_reads"},
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &led_misreads,               0,  "led_detect_misreads"},
 
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &force_profile,              0,  "led_force_profile" },
 };
@@ -312,7 +322,9 @@ void led_detect_v_run_detect( void ){
     uint64_t id = 0;
     uint8_t family = 0;
 
-    if( device_present ){        
+    if( device_present ){     
+
+        led_reads++;   
 
         bool rom_valid = FALSE;
 
@@ -324,7 +336,9 @@ void led_detect_v_run_detect( void ){
         }
         else{
 
-            log_v_warn_P( PSTR("Presence detect, but ROM invalid") );
+            led_misreads++;   
+
+            // log_v_warn_P( PSTR("Presence detect, but ROM invalid") );
         }
     }
 
@@ -364,6 +378,8 @@ void led_detect_v_run_detect( void ){
 
             log_v_warn_P( PSTR("No profile found!") );
         }
+
+        led_connections++;
     }
 
     if( detected ){
@@ -375,6 +391,8 @@ void led_detect_v_run_detect( void ){
         // detection miss, probably actually unplugged
         led_id = 0;
         led_detected = FALSE;
+
+        led_disconnections++;
 
         log_v_info_P( PSTR("LED disconnected") );
     }
