@@ -75,6 +75,11 @@ typedef struct __attribute__((packed)){
     char filename[CATBUS_STRING_LEN];
 } catbus_file_meta_t;
 
+typedef struct __attribute__((packed)){
+    catbus_hash_t32 hash;
+    int32_t size;
+} catbus_file_hash_t;
+
 
 int64_t specific_to_i64( catbus_type_t8 type, const void *data );
 void i64_to_specific( int64_t source_data, catbus_type_t8 type, void *data );

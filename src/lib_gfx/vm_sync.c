@@ -861,6 +861,11 @@ PT_BEGIN( pt );
             log_v_debug_P( PSTR("VM sync leader") );
 
             sync_state = STATE_SYNC;
+	
+	    // set hit stats for leader
+            // this makes the CLI less confusing
+            sync_least_hits = 0;
+            sync_most_hits = SYNC_MAX_CHECKPOINTS;
 
         #ifdef GFX_SYNC_FADERS
 

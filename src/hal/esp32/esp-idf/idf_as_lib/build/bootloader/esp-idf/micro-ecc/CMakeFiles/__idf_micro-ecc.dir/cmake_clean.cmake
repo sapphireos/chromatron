@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/__idf_micro-ecc.dir/uECC_verify_antifault.c.obj"
+  "CMakeFiles/__idf_micro-ecc.dir/uECC_verify_antifault.c.obj.d"
   "libmicro-ecc.a"
   "libmicro-ecc.pdb"
 )

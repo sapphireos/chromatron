@@ -747,17 +747,25 @@ class Device(object):
 
     def get_link_info(self):
         data = self.get_file("link_info")
-        info = sapphiredata.LinkInfoArray()
+        info = sapphiredata.Link2StateArray()
         info.unpack(data)
 
         return info
 
-    def get_link_consumer_info(self):
-        data = self.get_file("link_consumers")
-        info = sapphiredata.LinkConsumerInfoArray()
+    def get_link_binding_info(self):
+        data = self.get_file("link_binding_info")
+        info = sapphiredata.Link2BindingArray()
         info.unpack(data)
 
         return info
+
+    def get_link_data_info(self):
+        data = self.get_file("link_data_info")
+        info = sapphiredata.Link2DataCacheArray()
+        info.unpack(data)
+
+        return info
+
 
     def get_link_producer_info(self):
         data = self.get_file("link_producers")
@@ -1076,6 +1084,11 @@ class Device(object):
             33: "mqtt_sub",
             34: "mqtt_broker_sub",
             35: "controller_node",
+            36: "link2",
+            37: "link2_binding",
+            38: "link2_data_cache",
+            39: "link2_meta",
+            40: "devicedb",
         }
 
         total_size = 0
@@ -1193,51 +1206,53 @@ class Device(object):
 
         try:
             linkinfo = self.get_link_info()
+            # print(linkinfo)
 
             if len(linkinfo) == 0:
                 raise IOError
 
             s += 'Links:\n'
-            s += 'Source           Dest             Mode Agg  Rate Hash             Query\n'
+            s += 'Source                 Dest               Mode Agg  Rate Hash             Query\n'
 
             for info in sorted(linkinfo, key=lambda x: x.hash):
+                link = info.link
                 try:
-                    source = self.lookup_hash(info.source_key)
+                    source = self.lookup_hash(link.source_key)
 
                 except KeyError:
-                    source = f'{info.source_key:x}'                
+                    source = f'{link.source_key:x}'                
 
                 try:
-                    dest = self.lookup_hash(info.dest_key)
+                    dest = self.lookup_hash(link.dest_key)
 
                 except KeyError:
-                    dest = f'{info.dest_key:x}'       
+                    dest = f'{link.dest_key:x}'       
 
-                if info.mode == LINK_MODE_SEND:
+                if link.mode == LINK_MODE_SEND:
                     mode = "send"
                 
-                elif info.mode == LINK_MODE_RECV:
+                elif link.mode == LINK_MODE_RECV:
                     mode = "recv"
 
-                elif info.mode == LINK_MODE_SYNC:
+                elif link.mode == LINK_MODE_SYNC:
                     mode = "sync"
 
                 else:
                     mode = "????"
 
-                if info.aggregation == LINK_AGG_ANY:
+                if link.aggregation == LINK_AGG_ANY:
                     agg = "any"
 
-                elif info.aggregation == LINK_AGG_MIN:
+                elif link.aggregation == LINK_AGG_MIN:
                     agg = "min"
 
-                elif info.aggregation == LINK_AGG_MAX:
+                elif link.aggregation == LINK_AGG_MAX:
                     agg = "max"
 
-                elif info.aggregation == LINK_AGG_SUM:
+                elif link.aggregation == LINK_AGG_SUM:
                     agg = "sum"
 
-                elif info.aggregation == LINK_AGG_AVG:
+                elif link.aggregation == LINK_AGG_AVG:
                     agg = "avg"
 
                 else:
@@ -1245,7 +1260,7 @@ class Device(object):
 
 
                 query_s = ''
-                for q in info.query:
+                for q in link.query:
                     try:
                         v = self.lookup_hash(q)
 
@@ -1257,12 +1272,12 @@ class Device(object):
 
                     query_s += f'{v} '
 
-                s += "%16s %16s %4s %3s %5d %16x %s\n" % \
+                s += "%20s %20s %4s %3s %5d %16x %s\n" % \
                     (source,
                      dest,
                      mode,
                      agg,
-                     info.rate,
+                     link.rate,
                      info.hash,
                      query_s)
 
@@ -1271,47 +1286,82 @@ class Device(object):
 
         
         try:
-            linkinfo = self.get_link_producer_info()
+            binding_info = self.get_link_binding_info()
+            # print(binding_info)
 
-            if len(linkinfo) == 0:
+            if len(binding_info) == 0:
                 raise IOError
 
-            s += 'Producers:\n'
-            s += 'Source                Leader: IP Port   Rate Timeout Hash\n'
+            s += 'Bindings:\n'
+            s += 'Key                  Rate Data Rexmit Ticks Timeout Hash\n'
 
-            for info in sorted(linkinfo, key=lambda x: x.link_hash):
+            for info in sorted(binding_info, key=lambda x: x.hash):
                 try:
-                    source = self.lookup_hash(info.source_key)
+                    key = self.lookup_hash(info.key)
 
                 except KeyError:
-                    source = f'{info.source_key:x}'                
+                    key = f'{info.key:x}'                
                 
-                s += "%16s %15s %5d %5d %5d   %16x\n" % \
-                    (source,
-                     info.leader_ip,
-                     info.leader_port,
+                s += "%20s %5d %5d %5d %5d %5d %16x\n" % \
+                    (key,
                      info.rate,
+                     info.last_data,
+                     info.retransmit_ticks,
+                     info.ticks,
                      info.timeout,
-                     info.link_hash)
+                     info.hash)
+
+            # s += 'Producers:\n'
+            # s += 'Source                Leader: IP Port   Rate Timeout Hash\n'
+
+            # for info in sorted(linkinfo, key=lambda x: x.link_hash):
+            #     try:
+            #         source = self.lookup_hash(info.source_key)
+
+            #     except KeyError:
+            #         source = f'{info.source_key:x}'                
+                
+            #     s += "%16s %15s %5d %5d %5d   %16x\n" % \
+            #         (source,
+            #          info.leader_ip,
+            #          info.leader_port,
+            #          info.rate,
+            #          info.timeout,
+            #          info.link_hash)
 
         except IOError:
             pass
 
         try:
-            linkinfo = self.get_link_consumer_info()
+            data_info = self.get_link_data_info()
+            # print(data_info)
 
-            if len(linkinfo) == 0:
+
+            if len(data_info) == 0:
                 raise IOError
 
-            s += 'Consumers:\n'
-            s += 'Hash                IP           Port  Timeout\n'
-            
-            for info in sorted(linkinfo, key=lambda x: x.link_hash):
-                s += "%16x %15s %5d %5d\n" % \
-                    (info.link_hash,
+            s += 'Data cache:\n'
+            s += 'Hash                  IP           Key                 Data  Timeout\n'
+
+
+            for info in sorted(data_info, key=lambda x: x.hash):
+                s += "%16x %15s %20s %5d %3d\n" % \
+                    (info.hash,
                      info.ip,
-                     info.port,
+                     self.lookup_hash(info.key),
+                     info.data,
                      info.timeout)
+                
+
+            # s += 'Consumers:\n'
+            # s += 'Hash                IP           Port  Timeout\n'
+            
+            # for info in sorted(linkinfo, key=lambda x: x.link_hash):
+            #     s += "%16x %15s %5d %5d\n" % \
+            #         (info.link_hash,
+            #          info.ip,
+            #          info.port,
+            #          info.timeout)
                 
 
         except IOError:

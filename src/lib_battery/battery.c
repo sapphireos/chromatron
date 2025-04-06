@@ -37,6 +37,10 @@
 #include "solar.h"
 #include "buttons.h"
 
+#ifdef ENABLE_CONTROLLER
+#include "mqtt_client.h"
+#endif
+
 #ifdef ENABLE_BATTERY
 
 static bool batt_enable;
@@ -437,6 +441,19 @@ PT_BEGIN( pt );
                 log_v_info_P( PSTR("Battery level: %d mV %d mA"), monitor_volts, batt_u16_get_charge_current() );
             }
         }
+
+        #ifdef ENABLE_CONTROLLER
+
+        batt_status_t status = {
+            batt_volts,
+            batt_u16_get_charge_current(),
+            batt_i8_get_batt_temp(),
+            batt_u16_get_vbus_volts(),
+        };
+
+        mqtt_client_i8_publish( PSTR("chromatron/batt_binary"), &status, sizeof(status), 0, TRUE );
+
+        #endif
     }
 
 PT_END( pt );

@@ -41,6 +41,10 @@
 #include "vm_cron.h"
 #include "vm_sequencer.h"
 
+#ifdef ENABLE_CONTROLLER
+#include "link.h"
+#endif
+
 #ifdef ENABLE_GFX
 
 static thread_t vm_threads[VM_MAX_VMS];
@@ -55,6 +59,8 @@ static uint16_t vm_max_cycles[VM_MAX_VMS];
 
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
+
+static catbus_hash_t32 vm_published_hash[8];
 
 
 int8_t vm_i8_kv_handler(
@@ -147,6 +153,8 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     #endif
 
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
+
+    { CATBUS_TYPE_UINT32,   cnt_of_array(vm_published_hash) - 1, KV_FLAGS_READ_ONLY,  &vm_published_hash,    0,                  "vm_published_hashes" },
 };
 
 static const char* vm_names[VM_MAX_VMS] = {
@@ -212,9 +220,13 @@ static void reset_published_data( uint8_t vm_id ){
 
     kvdb_v_clear_tag( 0, 1 << vm_id );
 
-    #ifdef ENABLE_CATBUS_LINK
-    link_v_delete_by_tag( 1 << vm_id );
+    #ifdef ENABLE_CONTROLLER
+    link2_v_delete_by_tag( 1 << vm_id );
     #endif
+
+    // #ifdef ENABLE_CATBUS_LINK
+    // link_v_delete_by_tag( 1 << vm_id );
+    // #endif
 } 
 
 static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
@@ -372,8 +384,31 @@ vm_state_t* vm_p_get_state( void ){
     return &state->vm_state;
 }
 
+void vm_v_add_published_var( uint8_t index, catbus_hash_t32 hash, catbus_type_t8 type, uint8_t flags, uint8_t vm_id ){
+
+    if( vm_id == 0 ){
+
+        if( index < cnt_of_array(vm_published_hash) ){
+
+            vm_published_hash[index] = hash;
+        }
+    }
+
+    kvdb_i8_add( hash, type, 1, 0, 0 );
+    kvdb_v_set_tag( hash, ( 1 << vm_id ) );
+
+    if( flags & KV_FLAGS_PERSIST ){
+
+        kvdb_i8_set_persist( hash, TRUE );
+    }
+}
 
 static void kill_vm( uint8_t vm_id ){
+
+    if( vm_id == 0 ){
+
+        memset( vm_published_hash, 0, sizeof(vm_published_hash) );
+    }
 
     vm_run[vm_id] = FALSE;
     vm_reset[vm_id] = FALSE;
@@ -1123,7 +1158,7 @@ void vm_v_init( void ){
     vm_seq_v_init();
 
     #ifdef VM_DEBUG
-    fs_f_create_virtual( PSTR("vm0_threads"), threads_vfile );
+    fs_v_create_virtual( PSTR("vm0_threads"), threads_vfile );
     #endif
 
     #endif

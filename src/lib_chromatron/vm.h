@@ -77,4 +77,6 @@ uint16_t vm_u16_get_sync_data_len( void );
 int32_t* vm_i32p_get_sync_data( void ); 
 vm_state_t* vm_p_get_state( void );
 
+void vm_v_add_published_var( uint8_t index, catbus_hash_t32 hash, catbus_type_t8 type, uint8_t flags, uint8_t vm_id );
+
 #endif

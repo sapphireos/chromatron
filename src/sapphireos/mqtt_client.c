@@ -22,16 +22,12 @@
 // </license>
  */
 
-#include "list.h"
-#include "logging.h"
-#include "memory.h"
 #include "sapphire.h"
-#include "ip.h"
 #include "config.h"
-
 #include "controller.h"
 #include "system.h"
 #include "threading.h"
+#include "wifi.h"
 #include "mqtt_client.h"
 
 /*
@@ -95,6 +91,7 @@ static socket_t sock;
 static ip_addr4_t broker_ip;
 static uint16_t broker_port;
 static int8_t broker_timeout;
+static bool bridge_running;
 static bool connected;
 
 static uint32_t mqtt_client_msgs_publish_recv;
@@ -109,9 +106,9 @@ static uint32_t mqtt_client_msgs_publish_acks;
 // static uint16_t test_publish_rate;
 
 KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
-	#ifdef ENABLE_BROKER
-	{ CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST, 0, 						0,  "mqtt_broker_enable" },
-    #endif
+	// #ifdef ENABLE_BROKER
+	// { CATBUS_TYPE_BOOL, 	0, KV_FLAGS_PERSIST, 0, 						0,  "mqtt_broker_enable" },
+    // #endif
     { CATBUS_TYPE_IPv4, 	0, 0, 				   &broker_ip, 							0,  "mqtt_broker_ip" },
     { CATBUS_TYPE_UINT16, 	0, 0, 				   &broker_port,							0,  "mqtt_broker_port" },
 
@@ -128,15 +125,12 @@ KV_SECTION_META kv_meta_t mqtt_client_kv[] = {
 };
 
 
+PT_THREAD( mqtt_connection_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_transmit_thread( pt_t *pt, void *state ) );
 // PT_THREAD( mqtt_test_thread( pt_t *pt, void *state ) );
 PT_THREAD( mqtt_client_server_thread( pt_t *pt, void *state ) );
 
-#ifdef ENABLE_BROKER
-PT_THREAD( mqtt_broker_server_thread( pt_t *pt, void *state ) );
-PT_THREAD( mqtt_broker_timeout_thread( pt_t *pt, void *state ) );
-#endif
 
 // static void test_mode_on_publish_callback( char *topic, uint8_t *data, uint16_t data_len, sock_addr_t *raddr );
 
@@ -159,6 +153,13 @@ void mqtt_client_v_init( void ){
 
     sock_v_bind( sock, MQTT_BRIDGE_PORT );
     sock_v_set_timeout( sock, 1 );
+
+    thread_t_create( mqtt_connection_thread,
+                     PSTR("mqtt_connection"),
+                     0,
+                     0 );
+
+
 
     thread_t_create( mqtt_client_thread,
                      PSTR("mqtt_client"),
@@ -183,31 +184,19 @@ void mqtt_client_v_init( void ){
     //                  0 );
    	// }
 
-   	#ifdef ENABLE_BROKER
+   	// #ifdef ENABLE_BROKER
   
-    if( kv_b_get_boolean( __KV__mqtt_broker_enable ) ){
+    // if( kv_b_get_boolean( __KV__mqtt_broker_enable ) ){
 
-    	mqtt_broker_v_init();
-    }
-    #endif
+    // 	mqtt_broker_v_init();
+    // }
+    // #endif
 
 }
 
 bool mqtt_b_connected( void ){
 
-	return connected;
-
-	// if( ip_b_is_zeroes( broker_ip ) ){
-
-	// 	return FALSE;
-	// }
-
-	// if( broker_port == 0 ){
-
-	// 	return FALSE;
-	// }
-
-	// return TRUE;
+	return wifi_b_connected() && connected;
 }
 
 static sock_addr_t get_broker_raddr( void ){
@@ -224,7 +213,7 @@ static int16_t send_msg_to_broker( mem_handle_t h ){
 
 	sock_addr_t raddr = get_broker_raddr();
 
-	if( ip_b_is_zeroes( raddr.ipaddr) ){
+	if( ip_b_is_zeroes( raddr.ipaddr ) ){
 
 		mem2_v_free( h );
 
@@ -261,13 +250,18 @@ static int8_t transmit_publish(
 	uint8_t qos, 
 	bool retain ){
 
-
-// return 0;
-
-	if( !wifi_b_connected() ){
+	if( !mqtt_b_connected() ){
 
 		// if no wifi, don't bother trying to transmit.
 		// this is not an error case.
+		return 0;
+	}
+
+	// check if broker is connected
+	sock_addr_t raddr = get_broker_raddr();
+
+	if( ip_b_is_zeroes( raddr.ipaddr ) ){
+
 		return 0;
 	}
 
@@ -345,6 +339,82 @@ static int8_t transmit_publish(
 	return 0;
 }
 
+#if 0
+static int8_t transmit_publish2( 
+	catbus_hash_t32 topic_hash,
+	const void *data,
+	uint16_t data_len,
+	uint8_t qos, 
+	bool retain ){
+
+	if( !mqtt_b_connected() ){
+
+		// if no wifi, don't bother trying to transmit.
+		// this is not an error case.
+		return 0;
+	}
+
+	// check if broker is connected
+	sock_addr_t raddr = get_broker_raddr();
+
+	if( ip_b_is_zeroes( raddr.ipaddr ) ){
+
+		return 0;
+	}
+
+	// check if publish q is too deep:
+	if( list_u8_count( &transmit_list ) >= MQTT_MAX_Q_SIZE ){
+
+		return 0;
+	}
+
+	uint16_t msg_len = sizeof(mqtt_msg_publish2_t) + data_len;
+
+	mem_handle_t h = mem2_h_alloc( msg_len );
+
+	if( h < 0 ){
+
+		return -1;
+	}
+
+	mqtt_msg_publish2_t *msg = (mqtt_msg_publish2_t *)mem2_vp_get_ptr_fast( h );
+
+	msg->msg_id 		= next_msg_id++;
+	msg->topic_hash 	= topic_hash;
+	msg->payload_len 	= data_len;
+
+	// get byte pointer after headers:
+	uint8_t *ptr = (uint8_t *)( msg + 1 );
+
+	// payload
+	memcpy( ptr, data, data_len );
+	
+	// header
+	mqtt_msg_header_t *header = (mqtt_msg_header_t *)msg;
+
+	header->magic 		= MQTT_MSG_MAGIC;
+	header->version 	= MQTT_MSG_VERSION;
+	header->msg_type 	= MQTT_MSG_PUBLISH2;
+	header->qos    		= qos;
+	header->flags       = 0;
+
+	mqtt_transmit_t mqtt_t = {
+		h,
+		MQTT_PUB_ACK_TIMEOUT,
+	};
+
+	list_node_t ln = list_ln_create_node( &mqtt_t, sizeof(mqtt_t) );
+
+	if( ln > 0 ){
+
+		list_v_insert_head( &transmit_list, ln );	
+	}
+
+	mqtt_client_msgs_publish_sent++;
+
+	return 0;
+}
+#endif
 
 bool mqtt_b_match_topic( const char *topic, const char *sub ){
 
@@ -517,7 +587,7 @@ int8_t transmit_subscribe(
 	catbus_meta_t *meta, 
 	uint8_t qos ){
 
-	if( !wifi_b_connected() ){
+	if( !mqtt_b_connected() ){
 
 		// if no wifi, don't bother trying to transmit.
 		// this is not an error case.
@@ -601,7 +671,7 @@ int8_t mqtt_client_i8_subscribe(
 
     while( ln >= 0 ){
 
-        mqtt_sub_t *sub = list_vp_get_data( ln );
+        const mqtt_sub_t *sub = list_vp_get_data( ln );
         
         if( strncmp( topic, sub->topic, MQTT_MAX_TOPIC_LEN ) == 0 ){
 
@@ -653,7 +723,7 @@ int8_t mqtt_client_i8_subscribe_kv(
 
     while( ln >= 0 ){
 
-        mqtt_sub_t *sub = list_vp_get_data( ln );
+        const mqtt_sub_t *sub = list_vp_get_data( ln );
         
         if( strncmp( topic, sub->topic, MQTT_MAX_TOPIC_LEN ) == 0 ){
 
@@ -712,7 +782,7 @@ void mqtt_client_v_unsubscribe( const char *topic ){
 
     while( ln >= 0 ){
 
-        mqtt_sub_t *sub = list_vp_get_data( ln );
+        const mqtt_sub_t *sub = list_vp_get_data( ln );
         list_node_t next_ln = list_ln_next( ln );
 
         if( strncmp( topic, sub->topic, MQTT_MAX_TOPIC_LEN ) == 0 ){
@@ -734,7 +804,7 @@ void mqtt_client_v_unsubscribe_tag( uint8_t tag ){
 
     while( ln >= 0 ){
 
-        mqtt_sub_t *sub = list_vp_get_data( ln );
+        const mqtt_sub_t *sub = list_vp_get_data( ln );
         list_node_t next_ln = list_ln_next( ln );
 
         if( sub->tag == tag ){
@@ -776,15 +846,7 @@ static void transmit_status( void ){
 
 	sys_v_get_os_version( msg.os_version );
 
-	mqtt_client_i8_publish( PSTR("chromatron/status"), (uint8_t *)&msg, sizeof(msg), 0, 1 );
-
-	// msg.header.magic 		= MQTT_MSG_MAGIC;
-	// msg.header.version 		= MQTT_MSG_VERSION;
-	// msg.header.msg_type 	= MQTT_MSG_PUBLISH_STATUS;
-	// msg.header.qos    		= 0;
-	// msg.header.flags       	= 0;
-
-	// send_msg_to_broker_ptr( (uint8_t *)&msg, sizeof(msg) );
+	mqtt_client_i8_publish( PSTR("chromatron/status_binary"), (uint8_t *)&msg, sizeof(msg), 0, 1 );
 }
 
 static void transmit_shutdown( void ){
@@ -874,7 +936,7 @@ static void process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 	// get topic length
 	uint8_t topic_len = *ptr;
 	ptr++;
-	char *topic = (char *)ptr;
+	const char *topic = (char *)ptr;
 		
 	ptr += topic_len;
 	
@@ -884,7 +946,7 @@ static void process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
     while( ln >= 0 ){
 
-        mqtt_sub_t *sub = list_vp_get_data( ln );
+        const mqtt_sub_t *sub = list_vp_get_data( ln );
         
         // if( strncmp( topic, sub->topic, topic_len ) == 0 ){
         if( mqtt_b_match_topic( topic, sub->topic ) ){
@@ -920,7 +982,7 @@ static void process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 }
 
 
-static void process_publish_ack( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
+static void process_publish_ack( const mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
 	// process timers
 	list_node_t ln = transmit_list.head;	
@@ -929,9 +991,9 @@ static void process_publish_ack( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
     	list_node_t next_ln = list_ln_next( ln );
 
-    	mqtt_transmit_t *mqtt_t = list_vp_get_data( ln );
+    	const mqtt_transmit_t *mqtt_t = list_vp_get_data( ln );
 
-    	mqtt_msg_publish_t *pub_msg = ( mqtt_msg_publish_t * )mem2_vp_get_ptr( mqtt_t->h );
+    	const mqtt_msg_publish_t *pub_msg = ( mqtt_msg_publish_t * )mem2_vp_get_ptr( mqtt_t->h );
 
     	if( pub_msg->msg_id == msg->msg_id ){
 
@@ -947,6 +1009,89 @@ static void process_publish_ack( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 	}
 }
 
+static void reset_broker( void ){
+
+	broker_ip = ip_a_addr( 0, 0, 0, 0 );
+	broker_port = 0;
+
+	bridge_running = FALSE;
+	connected = FALSE;	
+}
+
+
+PT_THREAD( mqtt_connection_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+	
+	while(1){
+
+		TMR_WAIT( pt, 1000 );
+
+		if( mqtt_b_connected() ){
+
+			if( !wifi_b_connected() ){
+
+	        	reset_broker();
+
+	        	continue;
+	        }
+
+			if( broker_timeout > 0 ){
+				
+		        broker_timeout--;
+
+		        if( broker_timeout == 0 ){
+
+					log_v_info_P( PSTR("MQTT bridge timed out") );
+					
+					reset_broker();
+
+					continue;
+		        }
+		    }
+
+		    if( !bridge_running ){
+
+		    	if( controller_b_is_connected() ){
+
+		    		// update controller address
+		    		sock_addr_t raddr = {0};
+					controller_i8_get_addr( &raddr );   		
+
+					broker_ip = raddr.ipaddr;
+					broker_port = MQTT_BROKER_PORT; 
+		    	}
+		    	else{
+		    		// no controller
+
+	        		reset_broker();
+
+	        		continue;
+		    	}
+		    }
+		}
+		else{
+
+			// not connected
+
+			// check controller
+			if( controller_b_is_connected() ){
+
+				sock_addr_t raddr = {0};
+				controller_i8_get_addr( &raddr );   		
+
+				broker_ip = raddr.ipaddr;
+				broker_port = MQTT_BROKER_PORT;   		
+				connected = TRUE;
+
+				log_v_debug_P( PSTR("Setting MQTT bridge to controller") );
+			}
+		}
+	}
+	
+PT_END( pt );
+}
+
 
 PT_THREAD( mqtt_client_thread( pt_t *pt, void *state ) )
 {
@@ -954,7 +1099,26 @@ PT_BEGIN( pt );
 	
 	THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
    	
-	TMR_WAIT( pt, 1000 );	
+   	// broker_timeout = MQTT_BRIDGE_INITIAL_TIMEOUT;
+
+   	// while( ( broker_timeout >= 0 ) && !mqtt_b_connected() ){
+
+   	// 	TMR_WAIT( pt, 1000 );	
+
+   	// 	broker_timeout--;	
+   	// }
+		
+   	// if( !mqtt_b_connected() ){
+
+   	// 	log_v_debug_P( PSTR("Setting MQTT bridge to controller") );
+
+   	// 	sock_addr_t raddr = {0};
+	// 	controller_i8_get_addr( &raddr );   		
+
+	// 	broker_ip = raddr.ipaddr;
+	// 	broker_port = MQTT_BROKER_PORT;   		
+	// 	connected = TRUE;
+   	// }
 
 	// if( kv_b_get_boolean( __KV__mqtt_test_mode_subscribe ) ){
 
@@ -974,26 +1138,13 @@ PT_BEGIN( pt );
         	THREAD_EXIT( pt );
         }
 
-        broker_timeout -= 2;
-
-        if( broker_timeout < 0 ){
-
-			log_v_info_P( PSTR("MQTT bridge timed out") );
-			broker_ip = ip_a_addr( 0, 0, 0, 0 );
-			broker_port = 0;
-
-			connected = FALSE;
-
-			continue;
-        }
-
     	// send subscriptions
 		static list_node_t ln;
 		ln = sub_list.head;	
 
 	    while( ln >= 0 ){
 
-	        mqtt_sub_t *sub = list_vp_get_data( ln );
+	        const mqtt_sub_t *sub = list_vp_get_data( ln );
 
 	        catbus_meta_t meta = { 0 };
 
@@ -1079,6 +1230,9 @@ PT_BEGIN( pt );
 		    		int8_t send_status = send_msg_to_broker_ptr( mem2_vp_get_ptr( mqtt_t->h ), mem2_u16_get_size( mqtt_t->h ) );
 
 					if( send_status == -1 ){ // no broker available
+
+						// release memory!
+						mem2_v_free( mqtt_t->h );
 
 						mqtt_t->timeout = 0; // expire message
 						mqtt_t->h = -1;
@@ -1199,15 +1353,20 @@ PT_BEGIN( pt );
         	}
 
         	connected = TRUE;
+        	bridge_running = TRUE;
 
         	// reset timeout
         	broker_timeout = MQTT_BRIDGE_TIMEOUT;
         }
         else if( header->msg_type == MQTT_MSG_SHUTDOWN ){
 
-			log_v_info_P( PSTR("MQTT bridge shut down") );
-			broker_ip = ip_a_addr( 0, 0, 0, 0 );
-			broker_port = 0;
+        	if( !ip_b_is_zeroes(broker_ip) ){
+
+        		log_v_info_P( PSTR("MQTT bridge shut down") );
+
+				broker_ip = ip_a_addr( 0, 0, 0, 0 );
+				broker_port = 0;	
+        	}
         }
         else{
 
@@ -1258,436 +1417,6 @@ PT_END( pt );
 // PT_END( pt );
 // }
 
-
-#ifdef ENABLE_BROKER
-/**********************************
-			 BROKER
-**********************************/
-
-static socket_t broker_sock;
-
-typedef struct __attribute__((packed)){
-	char topic[MQTT_MAX_TOPIC_LEN];
-	// uint8_t qos;
-	sock_addr_t raddr;
-	uint8_t timeout;
-} mqtt_broker_sub_t;
-
-static list_t broker_sub_list;
-
-
-int8_t _broker_kv_handler(
-    kv_op_t8 op,
-    catbus_hash_t32 hash,
-    void *data,
-    uint16_t len )
-{
-    if( op == KV_OP_GET ){
-
-        if( hash == __KV__mqtt_broker_sub_count ){
-
-            STORE16(data, list_u8_count( &broker_sub_list ) );
-        }
-    }
-    else if( op == KV_OP_SET ){
-
-    }
-    else{
-
-        ASSERT( FALSE );
-    }
-
-    return 0;
-}
-
-static uint32_t mqtt_broker_msgs_publish_recv;
-static uint32_t mqtt_broker_msgs_subscribe_recv;
-static uint32_t mqtt_broker_msgs_publish_route;
-static uint32_t mqtt_broker_msgs_publish_drop;
-
-
-KV_SECTION_OPT kv_meta_t mqtt_broker_kv[] = {
-    { CATBUS_TYPE_UINT16, 	0, KV_FLAGS_READ_ONLY, 0,									_broker_kv_handler,  "mqtt_broker_sub_count" },
-    { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_broker_msgs_publish_recv,		0,  				 "mqtt_broker_msgs_publish_recv" },
-    { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_broker_msgs_subscribe_recv,	0,  				 "mqtt_broker_msgs_subscribe_recv" },
-    { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_broker_msgs_publish_route,		0,  				 "mqtt_broker_msgs_publish_route" },
-    { CATBUS_TYPE_UINT32, 	0, KV_FLAGS_READ_ONLY, &mqtt_broker_msgs_publish_drop,		0,  				 "mqtt_broker_msgs_publish_drop" },
-};
-
-void mqtt_broker_v_init( void ){
-
-	kv_v_add_db_info( mqtt_broker_kv, sizeof(mqtt_broker_kv) );
-
-   	// create socket
-    broker_sock = sock_s_create( SOS_SOCK_DGRAM );
-
-    ASSERT( broker_sock >= 0 );
-
-    sock_v_bind( broker_sock, MQTT_BROKER_PORT );
-    sock_v_set_timeout( broker_sock, 1 );
-
-    
-    list_v_init( &broker_sub_list );
-
-
-	thread_t_create( mqtt_broker_server_thread,
-                     PSTR("mqtt_broker_server"),
-                     0,
-                     0 );
-
-	thread_t_create( mqtt_broker_timeout_thread,
-                 PSTR("mqtt_broker_timeout"),
-                 0,
-                 0 );
-}
-
-
-static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr, mem_handle_t packet_h ){
-
-	// get byte pointer after headers:
-	uint8_t *ptr = (uint8_t *)( msg + 1 );
-
-	// get topic length
-	// uint8_t topic_len = *ptr;
-	ptr++;
-	char *topic = (char *)ptr;
-		
-	// got the topic
-	// we don't care about the data
-
-	list_node_t ln = broker_sub_list.head;
-
-    while( ln >= 0 ){
-
-        mqtt_broker_sub_t *sub = list_vp_get_data( ln );
-        
-        // if( strncmp( topic, sub->topic, topic_len ) == 0 ){
-        if( mqtt_b_match_topic( topic, sub->topic ) ){
-
-            // match!
-
-            // log_v_debug_P( PSTR("broker match: %s from %d.%d.%d.%d to %d.%d.%d.%d"), 
-            // 	topic, 
-            // 	raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0, 
-            // 	sub->raddr.ipaddr.ip3, sub->raddr.ipaddr.ip2, sub->raddr.ipaddr.ip1, sub->raddr.ipaddr.ip0 );
-
-        	// deref packet handle
-        	uint16_t packet_size = mem2_u16_get_size( packet_h );
-        	void *packet_ptr = mem2_vp_get_ptr( packet_h );
-
-        	mqtt_broker_msgs_publish_route++;
-
-        	// retransmit this message
-    		if( sock_i16_sendto( broker_sock, packet_ptr, packet_size, &sub->raddr ) < 0 ){
-
-    			log_v_error_P( PSTR("MQTT packet flinging failed") );
-
-    			break;
-    		}
-        }
-        else{
-
-			mqtt_broker_msgs_publish_drop++;        	
-        }
-
-        ln = list_ln_next( ln );        
-    }
-}
-
-
-// static void broker_process_publish_kv( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
-
-	
-// }
-
-static void broker_process_subscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
-
-	// get byte pointer after headers:
-	uint8_t *ptr = (uint8_t *)( msg + 1 );
-
-	// get topic length
-	uint8_t topic_len = *ptr;
-	ptr++;
-	char *topic = (char *)ptr;
-
-	list_node_t ln = broker_sub_list.head;
-
-    while( ln >= 0 ){
-
-        mqtt_broker_sub_t *sub = list_vp_get_data( ln );
-
-        // log_v_debug_P( PSTR("%s %d %d.%d.%d.%d"), sub->topic, mqtt_b_match_topic( topic, sub->topic ), sub->raddr.ipaddr.ip3, sub->raddr.ipaddr.ip2, sub->raddr.ipaddr.ip1, sub->raddr.ipaddr.ip0 );
-        
-        if( ( mqtt_b_match_topic( topic, sub->topic ) ) &&
-        	( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ) ){
-
-        	// already subscribed
-
-        	// update timeout
-        	sub->timeout = MQTT_BROKER_SUB_TIMEOUT;
-
-            return; 
-        }
-
-        ln = list_ln_next( ln );     
-    }
-
-    // not subscribed, create new subscription
-
-    log_v_debug_P( PSTR("new sub: %s %d.%d.%d.%d"), topic, raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
-
-	mqtt_broker_sub_t new_sub = {
-		{ 0 }, // topic
-		// qos,
-		*raddr, // remote host address
-		MQTT_BROKER_SUB_TIMEOUT, // timeout
-	}; 
-
-	strncpy( new_sub.topic, topic, topic_len );
-
-    ln = list_ln_create_node2( &new_sub, sizeof(new_sub), MEM_TYPE_MQTT_BROKER_SUB );
-
-    if( ln < 0 ){
-
-    	log_v_error_P( PSTR("failed to add sub") );
-
-        return;
-    }
-
-    list_v_insert_tail( &broker_sub_list, ln );
-}
-
-
-static void broker_process_unsubscribe( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
-
-	// get byte pointer after headers:
-	uint8_t *ptr = (uint8_t *)( msg + 1 );
-
-	// get topic length
-	// uint8_t topic_len = *ptr;
-	ptr++;
-	char *topic = (char *)ptr;
-
-	list_node_t ln = broker_sub_list.head;
-
-    while( ln >= 0 ){
-
-    	list_node_t next_ln = list_ln_next( ln );
-
-        mqtt_broker_sub_t *sub = list_vp_get_data( ln );
-
-        if( ( strncmp( topic, sub->topic, MQTT_MAX_TOPIC_LEN ) == 0 ) &&
-        	( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ) ){
-
-			// remove from list
-            list_v_remove( &broker_sub_list, ln );
-         	list_v_release_node( ln );         	
-        }
-
-        ln = next_ln;   
-    }
-}
-
-
-static void clear_subs_by_ip( sock_addr_t *raddr ){
-
-	list_node_t ln = broker_sub_list.head;
-
-    while( ln >= 0 ){
-
-    	list_node_t next_ln = list_ln_next( ln );
-
-        mqtt_broker_sub_t *sub = list_vp_get_data( ln );
-
-        if( ip_b_addr_compare( raddr->ipaddr, sub->raddr.ipaddr ) ){
-        
-        	// remove from list
-            list_v_remove( &broker_sub_list, ln);
-         	list_v_release_node( ln );         	
-        }
-
-        ln = next_ln;
-    }	  
-}
-
-
-
-// static void broker_process_subscribe_kv( mqtt_msg_subscribe_t *msg, sock_addr_t *raddr ){
-
-// 	// get byte pointer after headers:
-// 	uint8_t *ptr = (uint8_t *)( msg + 1 );
-
-// 	// get topic length
-// 	uint8_t topic_len = *ptr;
-// 	ptr++;
-// 	char *topic = (char *)ptr;
-		
-// }
-
-
-PT_THREAD( mqtt_broker_server_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-	
-	// hash lookup test:
-	// while(1){
-
-	// 	char name[CATBUS_STRING_LEN];
-	// 	memset( name, 0, sizeof(name) );
-	// 	ip_addr4_t ip = ip_a_addr(10,0,0,211);
-
-	// 	int8_t status = catbus_i8_get_string_for_hash( 0x86b026c3, name, &ip );
-
-	// 	log_v_debug_P( PSTR("resolve %d %s"), status, name );
-
-	// 	if( status == 0 ){
-
-	// 		break;
-	// 	}
-
-	// 	TMR_WAIT( pt, 1000 );
-	// }
- 	
-
-   	while(1){
-
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( broker_sock ) < 0 );
-
-        if( sys_b_is_shutting_down() ){
-
-        	// transmit_shutdown();
-        	// TMR_WAIT( pt, 100 );
-        	// transmit_shutdown();
-        	// TMR_WAIT( pt, 100 );
-        	// transmit_shutdown();
-
-        	THREAD_EXIT( pt );
-        }
-
-        if( sock_i16_get_bytes_read( broker_sock ) <= 0 ){
-
-            goto end;
-        }
-
-        mqtt_msg_header_t *header = sock_vp_get_data( broker_sock );
-
-        // verify message
-        if( header->magic != MQTT_MSG_MAGIC ){
-
-            goto end;
-        }
-
-        if( header->version != MQTT_MSG_VERSION ){
-
-            goto end;
-        }
-
-        sock_addr_t raddr;
-        sock_v_get_raddr( broker_sock, &raddr );
-
-        // log_v_debug_P( PSTR("broker recv: %d from %d.%d.%d.%d"), header->msg_type, raddr.ipaddr.ip3, raddr.ipaddr.ip2, raddr.ipaddr.ip1, raddr.ipaddr.ip0 );
-
-        mem_handle_t packet_h = sock_h_get_data_handle( broker_sock );
-
-        ASSERT( packet_h > 0 );
-
-        if( header->msg_type == MQTT_MSG_PUBLISH ){
-
-        	mqtt_broker_msgs_publish_recv++;
-
-        	broker_process_publish( (mqtt_msg_publish_t *)header, &raddr, packet_h );
-        }
-        else if( header->msg_type == MQTT_MSG_PUBLISH_KV ){
-
-        	mqtt_broker_msgs_publish_recv++;
-
-        	broker_process_publish( (mqtt_msg_publish_t *)header, &raddr, packet_h );
-        }
-        else if( header->msg_type == MQTT_MSG_SUBSCRIBE ){
-
-        	mqtt_broker_msgs_subscribe_recv++;
-
-        	broker_process_subscribe( (mqtt_msg_subscribe_t *)header, &raddr );
-        }
-        else if( header->msg_type == MQTT_MSG_SUBSCRIBE_KV ){
-
-        	mqtt_broker_msgs_subscribe_recv++;
-
-        	broker_process_subscribe( (mqtt_msg_subscribe_t *)header, &raddr );
-        }
-        else if( header->msg_type == MQTT_MSG_UNSUBSCRIBE ){
-
-        	broker_process_unsubscribe( (mqtt_msg_subscribe_t *)header, &raddr );
-        }
-        else if( header->msg_type == MQTT_MSG_BRIDGE ){
-
-        	// broker_ip = raddr.ipaddr;
-        }
-        else if( header->msg_type == MQTT_MSG_SHUTDOWN ){
-
-        	// broker_ip = raddr.ipaddr;
-        	clear_subs_by_ip( &raddr );
-        }
-        else{
-
-        	// invalid message
-        	log_v_error_P( PSTR("Invalid msg: %d"), header->msg_type );
-        }
-
-        // release original handle
-		mem2_v_free( packet_h );
-
-    end:
-
-    	// THREAD_YIELD( pt );
-    	{};
-	}
-    
-PT_END( pt );
-}
-
-PT_THREAD( mqtt_broker_timeout_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-   	while(1){
-
-        TMR_WAIT( pt, 1000 );
-
- 		list_node_t ln = broker_sub_list.head;
-
-	    while( ln >= 0 ){
-
-	    	list_node_t next_ln = list_ln_next( ln );
-
-	        mqtt_broker_sub_t *sub = list_vp_get_data( ln );
-	        
-	        sub->timeout--;
-
-	        if( sub->timeout == 0 ){
-
-	        	log_v_info_P( PSTR("Sub timeout: %d.%d.%d.%d %s"), 
-	        		sub->raddr.ipaddr.ip3,
-	        		sub->raddr.ipaddr.ip2,
-	        		sub->raddr.ipaddr.ip1,
-	        		sub->raddr.ipaddr.ip0,
-	        		sub->topic
-	        	);
-
-				// remove from list
-	            list_v_remove( &broker_sub_list, ln);
-	         	list_v_release_node( ln );         	
-	        }
-
-	        ln = next_ln;
-	    }	   
-	}
-    
-PT_END( pt );
-}
-
-
-#endif
 
 
 /*

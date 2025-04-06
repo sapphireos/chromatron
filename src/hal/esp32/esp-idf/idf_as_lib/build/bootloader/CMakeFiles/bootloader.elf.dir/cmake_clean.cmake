@@ -5,6 +5,7 @@ file(REMOVE_RECURSE
   "config/sdkconfig.h"
   "project_elf_src_esp32.c"
   "CMakeFiles/bootloader.elf.dir/project_elf_src_esp32.c.obj"
+  "CMakeFiles/bootloader.elf.dir/project_elf_src_esp32.c.obj.d"
   "bootloader.elf"
   "bootloader.elf.pdb"
   "project_elf_src_esp32.c"

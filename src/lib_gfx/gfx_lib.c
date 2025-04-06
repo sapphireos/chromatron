@@ -3528,11 +3528,11 @@ void gfxlib_v_init( void ){
 
     if( gfx_debug ){
 
-        fs_f_create_virtual( PSTR("gfx_hue"), gfx_debug_hue_vfile_handler );
-        fs_f_create_virtual( PSTR("gfx_sat"), gfx_debug_sat_vfile_handler );
-        fs_f_create_virtual( PSTR("gfx_val"), gfx_debug_val_vfile_handler );
-        fs_f_create_virtual( PSTR("gfx_hs_fade"), gfx_debug_hs_fade_vfile_handler );
-        fs_f_create_virtual( PSTR("gfx_v_fade"), gfx_debug_v_fade_vfile_handler );
+        fs_v_create_virtual( PSTR("gfx_hue"), gfx_debug_hue_vfile_handler );
+        fs_v_create_virtual( PSTR("gfx_sat"), gfx_debug_sat_vfile_handler );
+        fs_v_create_virtual( PSTR("gfx_val"), gfx_debug_val_vfile_handler );
+        fs_v_create_virtual( PSTR("gfx_hs_fade"), gfx_debug_hs_fade_vfile_handler );
+        fs_v_create_virtual( PSTR("gfx_v_fade"), gfx_debug_v_fade_vfile_handler );
     }
     
 

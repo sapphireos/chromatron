@@ -354,10 +354,10 @@ void link_v_init( void )
 	}
 
     // create vfiles
-    fs_f_create_virtual( PSTR("link_info"), link_vfile );
-    fs_f_create_virtual( PSTR("link_consumers"), consumer_vfile );
-    fs_f_create_virtual( PSTR("link_producers"), producer_vfile );
-    fs_f_create_virtual( PSTR("link_remotes"), remote_vfile );
+    fs_v_create_virtual( PSTR("link_info"), link_vfile );
+    fs_v_create_virtual( PSTR("link_consumers"), consumer_vfile );
+    fs_v_create_virtual( PSTR("link_producers"), producer_vfile );
+    fs_v_create_virtual( PSTR("link_remotes"), remote_vfile );
 
 
     thread_t_create( link_server_thread,

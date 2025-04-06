@@ -324,7 +324,7 @@ void netmsg_v_init( void ){
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
         #ifndef ENABLE_COPROCESSOR
-        fs_f_create_virtual( PSTR("portinfo"), vfile );
+        fs_v_create_virtual( PSTR("portinfo"), vfile );
         #endif
 
         list_v_init( &rx_q );

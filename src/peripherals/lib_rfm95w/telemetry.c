@@ -508,7 +508,7 @@ PT_THREAD( telemetry_base_station_rx_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    fs_f_create_virtual( PSTR("telemetry_data"), telemetry_data_vfile_handler );
+    fs_v_create_virtual( PSTR("telemetry_data"), telemetry_data_vfile_handler );
 
     while( 1 ){
 

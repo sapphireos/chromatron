@@ -32,7 +32,8 @@ from collections import UserDict
 import getpass
 import zipfile
 import hashlib
-import pkg_resources
+# import pkg_resources
+import importlib.resources
 from .filewatcher import Watcher
 from sapphire.buildtools import firmware_package
 from sapphire.buildtools.firmware_package import FirmwarePackage
@@ -198,8 +199,11 @@ PIXEL_SETTINGS = [
 MAX_UPDATE_THREADS = 4
 
 def get_package_fx_script(fname):
-    return pkg_resources.resource_filename('chromatron', fname)
+    # return pkg_resources.resource_filename('chromatron', fname)
+    ref = importlib.resources.files('chromatron') / fname # thanks 3.12 for removing a thing that worked fine
 
+    with importlib.resources.as_file(ref) as path:
+        return str(path)
 
 # note - this is just a convenience wrapper around the
 # underlying Device object.

@@ -1,7 +1,10 @@
 file(REMOVE_RECURSE
   "CMakeFiles/__idf_xtensa.dir/eri.c.obj"
+  "CMakeFiles/__idf_xtensa.dir/eri.c.obj.d"
   "CMakeFiles/__idf_xtensa.dir/xt_trax.c.obj"
+  "CMakeFiles/__idf_xtensa.dir/xt_trax.c.obj.d"
   "CMakeFiles/__idf_xtensa.dir/xtensa_intr.c.obj"
+  "CMakeFiles/__idf_xtensa.dir/xtensa_intr.c.obj.d"
   "CMakeFiles/__idf_xtensa.dir/xtensa_intr_asm.S.obj"
   "libxtensa.a"
   "libxtensa.pdb"

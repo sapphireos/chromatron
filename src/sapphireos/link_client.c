@@ -28,7 +28,106 @@
 #include "link.h"
 #include "threading.h"
 
+
 #ifdef ENABLE_CONTROLLER
+
+/*
+
+Link types:
+
+SEND:
+
+Send a variable from this node to devices matching the target query.
+
+Sends will be aggregated by the controller.
+
+
+RECV:
+
+Receive a variable to this node from devices matching the target query.
+
+Receives will be aggregated by the controller.
+
+This is basically the inverse of send.
+
+
+CTRL:
+
+A send and receive.
+
+Control is used as a 2 way "remote control".
+It acts as a receive link that automatically creates a local
+binding to transmit to the manager.
+
+Initially (and most of the time), the link operates as as receive with 
+a few differences.
+When it receives data, it updates the tracked data in the local binding.
+
+The local binding (set to CTRL mode) will check for a local data change.
+If the data was changed *locally*, it will start transmitting data
+as if it were an otherwise normal binding, until the local data hasn't
+changed for a timeout period.
+
+In this way, the link operates in both directions. Normally it is receiving
+remote data.  If data is changed locally, it switches to a send operation
+for a period of time, and then if local data has stopped changing, switches
+back to a receive.
+
+This can be used for interactive remote controls that can display
+the current state of a variable and track changes from elsewhere
+in the network, and also be able to push local updates as needed.
+
+Note that if multiple devices have the same CTRL link and are
+attempting to send at the same time, there is no conflict
+resolution mechanism - much as if multiple TV remotes are being
+used on the same TV, the results will be unpredictable until
+only one user is in control.  
+Sometimes the solution to the multiple writers problem is to 
+tell everyone else to stop writing ;-)
+
+
+
+SYNC:
+
+Synchronize a variable among all nodes in the link group.
+Source and dest key are the same.
+This requires integration with the FX engine: synced variable
+writes are intercepted, only the link leader is passed through.
+Link followers update the variable to match the leader, and ignore
+local writes from the FX engine.
+
+
+Sync leverages the send and receive machinery.  It shares attributes with 
+both.
+
+A key difference is that all members of the sync group have a copy
+of the link.  Thus some shared context is already available.
+
+Sync followers send a consumer match in the discovery process.
+
+The leader will receive the consumer matches, which will create the data
+binding.  The sync leader will transmit to consumers at the configured rate.
+The transmit_to_consumers function should work without modification.  This
+is simliar to the leader on receive.
+
+No aggregation is performed, however, the aggregate function may be used
+since it will retrieve the local data item and format it for 
+transmission.
+
+The link module must provide an API to check if a given key is
+synchronized and if it is the leader.
+
+
+
+
+
+
+
+
+
+
+*/
+
 
 static socket_t sock;
 static list_t link_list;
@@ -42,12 +141,57 @@ typedef struct __attribute__((packed)){
     int16_t retransmit_ticks;
 
     int16_t ticks;
-    uint8_t flags;
     uint8_t timeout;
+
+    uint64_t link_hash;
 } binding_state_t;
 
 static int32_t link2_test_key;
 static int32_t link2_test_key2;
+
+
+static uint32_t link_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &link_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &link_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
+
+
+static uint32_t binding_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &binding_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &binding_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
 
 static uint8_t get_binding_count( void ){
 
@@ -94,12 +238,23 @@ static int8_t _kv_i8_link_client_handler(
     return -1;
 }
 
-KV_SECTION_META kv_meta_t link2_kv[] = {
-    { CATBUS_TYPE_UINT16,  0, 0,               0, _kv_i8_link_client_handler,  "link2_binding_count" },
-    { CATBUS_TYPE_UINT16,  0, 0,               0, _kv_i8_link_client_handler,  "link2_link_count" },
 
-    { CATBUS_TYPE_INT32,   0, 0,                   &link2_test_key,        0,  "link2_test_key" },
-    { CATBUS_TYPE_INT32,   0, 0,                   &link2_test_key2,       0,  "link2_test_key2" },
+static uint32_t link2_msgs_tx_link;
+static uint32_t link2_msgs_rx_bind;
+static uint32_t link2_msgs_tx_data;
+static uint32_t link2_msgs_rx_data;
+
+KV_SECTION_META kv_meta_t link2_kv[] = {
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_link_client_handler,   "link2_binding_count" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_link_client_handler,   "link2_link_count" },
+
+    { CATBUS_TYPE_INT32,   0, 0,                   &link2_test_key,             0,  "link2_test_key" },
+    { CATBUS_TYPE_INT32,   0, 0,                   &link2_test_key2,            0,  "link2_test_key2" },
+
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_msgs_tx_link,         0,  "link2_msgs_tx_link" }, 
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_msgs_rx_bind,         0,  "link2_msgs_rx_bind" }, 
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_msgs_tx_data,         0,  "link2_msgs_tx_data" }, 
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &link2_msgs_rx_data,         0,  "link2_msgs_rx_data" }, 
 };
 
 
@@ -126,6 +281,9 @@ void link2_v_init( void ){
 
 	list_v_init( &link_list );
     list_v_init( &binding_list );
+
+    fs_v_create_virtual( PSTR("link_info"), link_vfile );
+    fs_v_create_virtual( PSTR("link_binding_info"), binding_vfile );
 
 	#ifdef ESP8266
 	
@@ -193,14 +351,16 @@ link2_state_t* link2_ls_get_data( link2_handle_t link ){
     return list_vp_get_data( link );    
 }
 
-bool link2_b_compare( link2_state_t *link1, link2_state_t *link2 ){
+bool link2_b_compare( const link2_state_t *link1, const link2_state_t *link2 ){
  
 	return memcmp( link1, link2, sizeof(link2_state_t) ) == 0;
 }
 
 uint64_t link2_u64_hash( link2_t *link ){
 
-	return hash_u64_data( (uint8_t *)link, sizeof(link2_t) );	
+	uint64_t hash = hash_u64_data( (uint8_t *)link, sizeof(link2_t) );	
+
+    return hash;
 }
 
 link2_handle_t link2_l_lookup( link2_state_t *link ){
@@ -228,7 +388,7 @@ link2_handle_t link2_l_lookup_by_hash( uint64_t hash ){
 
     while( ln >= 0 ){
 
-        link2_state_t *state = list_vp_get_data( ln );
+        const link2_state_t *state = list_vp_get_data( ln );
 
         if( state->hash == hash ){
 
@@ -239,6 +399,53 @@ link2_handle_t link2_l_lookup_by_hash( uint64_t hash ){
     }
 
     return -1;
+}
+
+uint8_t link2_u8_get_mode( link2_handle_t link ){
+
+    const link2_state_t *state = list_vp_get_data( link );
+
+    return state->link.mode;
+}
+
+bool link2_b_is_linked_by_source_key( link_mode_t8 mode, catbus_hash_t32 source_key ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        const link2_state_t *state = list_vp_get_data( ln );
+
+        if( ( state->link.source_key == source_key ) &&
+            ( state->link.mode == mode ) ){
+
+            return TRUE;
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return FALSE;
+}
+
+bool link2_b_is_linked_by_dest_key( link_mode_t8 mode, catbus_hash_t32 dest_key ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        const link2_state_t *state = list_vp_get_data( ln );
+
+        if( ( state->link.dest_key == dest_key ) &&
+            ( state->link.mode == mode ) ){
+
+            return TRUE;
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return FALSE;
 }
 
 link2_t link2_ls_assemble(
@@ -401,33 +608,24 @@ link2_handle_t link2_l_create2( link2_state_t *state ){
 
     state->hash = link2_u64_hash( &state->link );
 
-    list_node_t ln = list_ln_create_node2( state, sizeof(link2_state_t), MEM_TYPE_CATBUS_LINK );
+    list_node_t ln = list_ln_create_node2( state, sizeof(link2_state_t), MEM_TYPE_LINK2 );
 
     if( ln < 0 ){
 
         return -1;
     }
 
-    // services_v_join_team( LINK_SERVICE, state->hash, LINK_BASE_PRIORITY - link_u8_count(), LINK_PORT );
-
     list_v_insert_tail( &link_list, ln );    
 
-    // if( state->mode == LINK_MODE_SEND ){
-    //     trace_printf("SEND LINK\n");
-    // }
-    // else if( state->mode == LINK_MODE_RECV ){
-    //     trace_printf("RECV LINK\n");
-    // }
+    log_v_debug_P( PSTR("Created link: 0x%0x mode: %d hash: 0x%0llx"), state->link.tag, state->link.mode, state->hash );
+
 
     return ln;
 }
 
-uint8_t link2_u8_count( void ){
 
-    return list_u8_count( &link_list );
-}
 
-static binding_state_t* get_binding_for_key(catbus_hash_t32 key){
+static binding_state_t* get_binding_for_hash( uint64_t link_hash ){
 
     list_node_t ln = binding_list.head;
 
@@ -435,7 +633,7 @@ static binding_state_t* get_binding_for_key(catbus_hash_t32 key){
 
         binding_state_t *state = list_vp_get_data( ln );
 
-        if( state->key == key ){
+        if( state->link_hash == link_hash ){
 
             return state;
         }
@@ -446,13 +644,13 @@ static binding_state_t* get_binding_for_key(catbus_hash_t32 key){
     return 0;
 }
 
-static void add_or_update_binding( link2_binding_t *link_binding ){
+static void add_or_update_binding( const link2_binding_t *link_binding ){
 
-    binding_state_t *state = get_binding_for_key( link_binding->key );
+    binding_state_t *state = get_binding_for_hash( link_binding->link_hash );
 
     if( state == 0 ){
 
-        list_node_t ln = list_ln_create_node( 0, sizeof(binding_state_t) );
+        list_node_t ln = list_ln_create_node2( 0, sizeof(binding_state_t), MEM_TYPE_LINK2_BINDING );
 
         if( ln < 0 ){
 
@@ -462,6 +660,8 @@ static void add_or_update_binding( link2_binding_t *link_binding ){
         list_v_insert_tail( &binding_list, ln );
 
         state = list_vp_get_data( ln );
+        memset( state, 0, sizeof(binding_state_t) );
+
         state->key      = link_binding->key;
         state->rate     = link_binding->rate;
     }
@@ -471,7 +671,96 @@ static void add_or_update_binding( link2_binding_t *link_binding ){
 
         state->rate = link_binding->rate;    
     }
+
     state->timeout  = LINK_BINDING_TIMEOUT;
+
+    state->link_hash = link_binding->link_hash;
+}
+
+static void delete_binding( uint64_t link_hash ){
+
+    list_node_t ln = binding_list.head;
+
+    while( ln >= 0 ){
+
+        const binding_state_t *state = list_vp_get_data( ln );
+        list_node_t next_ln = list_ln_next( ln );
+
+        if( state->link_hash == link_hash ){
+
+            log_v_debug_P( PSTR("delete binding: 0x%0llx"), link_hash );
+
+            list_v_remove( &binding_list, ln );
+            list_v_release_node( ln );    
+        }
+
+        ln = next_ln;
+    }
+}
+
+
+void link2_v_delete( link2_handle_t link ){
+    
+    const link2_state_t *state = list_vp_get_data( link );    
+
+    delete_binding( state->hash );
+
+    log_v_debug_P( PSTR("Deleted link: 0x%0x mode: %d hash: 0x%0llx"), state->link.tag, state->link.mode, state->hash );
+
+    list_v_remove( &link_list, link );
+    list_v_release_node( link );    
+}
+
+void link2_v_delete_by_tag( catbus_hash_t32 tag ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        const link2_state_t *state = list_vp_get_data( ln );
+        list_node_t next_ln = list_ln_next( ln );
+
+        if( state->link.tag == tag ){
+
+            delete_binding( state->hash );
+
+            log_v_debug_P( PSTR("Deleted link: 0x%0x hash: 0x%0llx"), state->link.tag, state->hash );
+
+            list_v_remove( &link_list, ln );
+            list_v_release_node( ln );    
+        }
+
+        ln = next_ln;
+    }
+}
+
+void link2_v_delete_by_hash( uint64_t hash ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        const link2_state_t *state = list_vp_get_data( ln );
+        list_node_t next_ln = list_ln_next( ln );
+
+        if( state->hash == hash ){
+
+            delete_binding( state->hash );
+
+            log_v_debug_P( PSTR("Deleted link: 0x%0x hash: 0x%0llx"), state->link.tag, state->hash );
+
+            list_v_remove( &link_list, ln );
+            list_v_release_node( ln );    
+        }
+
+        ln = next_ln;
+    }
+}
+
+
+uint8_t link2_u8_count( void ){
+
+    return list_u8_count( &link_list );
 }
 
 PT_THREAD( link2_server_thread( pt_t *pt, void *state ) )
@@ -526,12 +815,24 @@ PT_BEGIN( pt );
 
         if( header->msg_type == LINK_MSG_TYPE_BIND ){
 
+            link2_msgs_rx_bind++;
+
             uint8_t count = ( sock_i16_get_bytes_read( sock ) - sizeof(link2_msg_header_t) ) / sizeof(link2_binding_t);
 
             // iterate through bindings
             link2_binding_t *binding = (link2_binding_t *)( header + 1 );
 
             while( count > 0 ){
+
+                // check if this is a send binding
+                if( binding->mode == LINK_MODE_SEND ){
+
+                    // send bindings must have a corresponding local link
+                    if( link2_l_lookup_by_hash( binding->link_hash ) < 0 ){
+
+                        goto next_binding;
+                    }
+                }
 
                 // check if key is present:
                 if( kv_i16_search_hash( binding->key ) >= 0 ){
@@ -546,20 +847,35 @@ PT_BEGIN( pt );
                     log_v_debug_P( PSTR("recv binding not found: 0x%08x"), binding->key );
                 }
 
+            next_binding:
                 binding++;
                 count--;
             }
         }
         else if( header->msg_type == LINK_MSG_TYPE_DATA ){
 
+            link2_msgs_rx_data++;
+
             link2_data_t *data_ptr = (link2_data_t *)( header + 1 );
 
             while( (uint8_t *)data_ptr < ( (uint8_t *)header + sock_i16_get_bytes_read( sock ) ) ){
+
+                // check data item mode
+                // if the item is from a receive, then there should be matching receive
+                // link on this device.
+                if( data_ptr->mode == LINK_MODE_RECV ){
+
+                    if( link2_l_lookup_by_hash( data_ptr->link_hash ) < 0 ){
+
+                        goto next_data;
+                    }
+                }
 
                 // log_v_debug_P( PSTR("recv data: 0x%08lx %ld"), data_ptr->key, (int32_t)data_ptr->data );
 
                 catbus_i8_set_i64( data_ptr->key, data_ptr->data );
 
+            next_data:
                 data_ptr++;
             }
         }   
@@ -615,8 +931,6 @@ PT_BEGIN( pt );
 
             ln = next_ln;
         }   
-
-
 
         // check if controller is available
         sock_addr_t link_mgr_raddr;
@@ -680,7 +994,8 @@ PT_BEGIN( pt );
 
 	        link2_state_t *link_state = list_vp_get_data( ln );
 
-	        link_ptr->mode 			= link_state->link.mode;
+            link_ptr->mode = link_state->link.mode;    
+            	        
 	        link_ptr->aggregation 	= link_state->link.aggregation;
 	        link_ptr->rate 			= link_state->link.rate;
 	        link_ptr->source_key 	= link_state->link.source_key;
@@ -702,6 +1017,8 @@ PT_BEGIN( pt );
 
 
 	        	}
+
+                link2_msgs_tx_link++;
 
 	        	h = -1; // clear handle
 	        }
@@ -823,11 +1140,12 @@ PT_BEGIN( pt );
             }
 
             // set up entry in message:
-            data_ptr->key = binding_state->key;
-            data_ptr->data = data;
+            data_ptr->key       = binding_state->key;
+            data_ptr->data      = data;
+            data_ptr->link_hash = binding_state->link_hash;
 
 
-            log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed %d timer: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, binding_state->retransmit_ticks );
+            // log_v_debug_P( PSTR("packing data: 0x%08lx %ld changed %d timer: %d"), data_ptr->key, (int32_t)data_ptr->data, changed, binding_state->retransmit_ticks );
 
             data_ptr++;
             current_data_count++;
@@ -847,7 +1165,9 @@ PT_BEGIN( pt );
                 if( sock_i16_sendto( sock, data_buf, sizeof(link2_msg_header_t) + current_data_count * sizeof(link2_data_t), &link_mgr_raddr ) < 0 ){
 
                     log_v_debug_P( PSTR("data send fail") );
-                }                
+                }
+
+                link2_msgs_tx_data++;
 
                 // reset pointers
                 data_ptr = (link2_data_t *)( data_hdr + 1 );
@@ -876,6 +1196,8 @@ next_binding:
 
                 log_v_debug_P( PSTR("data send fail") );
             }      
+
+            link2_msgs_tx_data++;
 
             current_data_count = 0;          
         }

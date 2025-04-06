@@ -36,6 +36,7 @@
 #include "fs.h"
 #include "config.h"
 #include "vm_cron.h"
+#include "vm.h"
 
 #ifdef VM_ENABLE_KV
 #include "keyvalue.h"
@@ -3478,15 +3479,9 @@ int8_t vm_i8_load_program(
             if( publish->type == CATBUS_TYPE_STRREF ){
 
                 type = CATBUS_TYPE_STRING64;
-            }   
-
-            kvdb_i8_add( publish->hash, type, 1, 0, 0 );
-            kvdb_v_set_tag( publish->hash, ( 1 << vm_id ) );
-
-            if( publish->flags & KV_FLAGS_PERSIST ){
-
-                kvdb_i8_set_persist( publish->hash, TRUE );
             }
+
+            vm_v_add_published_var( i, publish->hash, type, publish->flags, vm_id );   
 
             obj_ptr += sizeof(vm_publish_t);
         }
@@ -3520,7 +3515,7 @@ int8_t vm_i8_load_program(
                     link->aggregation,
                     LINK_FILTER_OFF );   
 
-            if( link_h <= 0){
+            if( link_h <= 0 ){
 
                 status = VM_STATUS_LOAD_ALLOC_FAIL;
                 goto error;

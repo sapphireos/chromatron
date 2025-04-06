@@ -436,7 +436,7 @@ void services_v_init( void ){
                      0 );
 
     // create vfile
-    fs_f_create_virtual( PSTR("serviceinfo"), vfile );
+    fs_v_create_virtual( PSTR("serviceinfo"), vfile );
 
     #ifdef TEST_MODE
     thread_t_create( service_test_thread,

@@ -31,7 +31,8 @@ bool controller_b_is_connected( void );
 bool controller_b_is_leader( void );
 bool controller_b_is_follower( void );
 
-#define CONTROLLER_PORT         44701
+#define CONTROLLER_PORT         44702
+// #define CONTROLLER_PORT         44701
 
 #define CONTROLLER_IDLE_TIMEOUT         10
 #define CONTROLLER_FOLLOWER_TIMEOUT     20
@@ -39,13 +40,13 @@ bool controller_b_is_follower( void );
 
 
 #define CONTROLLER_MSG_MAGIC    0x4C525443 // 'CTRL'
-#define CONTROLLER_MSG_VERSION  1
+#define CONTROLLER_MSG_VERSION  2
 typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t msg_type;
     uint8_t version;
     uint16_t reserved;
-} controller_header_t;
+} controller_header_t; // 8 bytes
 
 
 #define CONTROLLER_FLAGS_IS_LEADER      0x0001
@@ -65,9 +66,27 @@ typedef struct __attribute__((packed)){
 #define CONTROLLER_MSG_DROP                 2
 
 typedef struct __attribute__((packed)){
-    controller_header_t header;
-    catbus_query_t query;
+    controller_header_t header; // 8 bytes
+    catbus_query_t query; // 32 bytes
+    ip_addr4_t ip;  // 4 bytes
+    // uint64_t uptime;
+    // uint8_t mode;
+    // int8_t rssi;
+    // int8_t wifi_channel;
+    // uint8_t cpu_percent;
+    // uint16_t used_heap;
+    // uint16_t pixel_power;
     uint32_t gfx_sync_group;
+    // uint16_t gfx_master_dimmer;
+    // uint16_t gfx_sub_dimmer;
+    // int8_t vm_status_0;
+    // int8_t vm_status_1;
+    // int8_t vm_status_2;
+    // int8_t vm_status_3;
+    // uint16_t batt_volts;
+    // uint16_t batt_charge_current;
+    // uint8_t batt_temp;
+    // uint16_t light_level;
 }  controller_msg_status_t;
 #define CONTROLLER_MSG_STATUS               3
 
@@ -98,6 +117,7 @@ typedef struct __attribute__((packed)){
 } follower_t;
 
 
+// void controller_v_on_received_status( controller_msg_status_t *msg, sock_addr_t *raddr ) __attribute((weak));
 
 void controller_db_v_reset_iter( void );
 follower_t* controller_db_p_get_next( void );
