@@ -135,6 +135,11 @@ static bool is_scene_data( const char *s ){
 	return FALSE;
 }
 
+static bool is_whitespace( char c ){
+
+	return (c == ' ') || (c == '\t');
+}
+
 static int8_t load_scene( const char *s ){
 
 	if( s[0] == 0 ){
@@ -171,6 +176,13 @@ static int8_t load_scene( const char *s ){
 
 		// parse key and value
 		char *key = buf;
+
+		// string whitespace from prefix of key
+		while( is_whitespace( *key ) ){
+
+			key++;
+		}
+
 		char *value = buf;
 
 		for( uint8_t i = 0; i < strlen(buf) - 1; i++ ){
