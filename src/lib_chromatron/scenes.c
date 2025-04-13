@@ -20,6 +20,10 @@
 // 
 // </license>
 
+#include <stdlib.h>
+
+#include "catbus_common.h"
+#include "hash.h"
 #include "sapphire.h"
 #include "scenes.h"
 
@@ -159,6 +163,7 @@ static int8_t load_scene( const char *s ){
 
 	while( fs_i16_readline( f, buf, sizeof(buf) ) > 0 ){
 
+		// we got to a scene header, done parsing this scene
 		if( !is_scene_data( buf ) ){
 
 			break;
@@ -166,6 +171,52 @@ static int8_t load_scene( const char *s ){
 
 		log_v_info_P( PSTR("%s"), buf );
 
+		// parse key and value
+		char *key = buf;
+		char *value = buf;
+
+		for( uint8_t i = 0; i < strlen(buf) - 1; i++ ){
+
+			if( buf[i] == ' ' ){
+
+				buf[i] = 0; // replace space with null term
+				// set value to next character
+				value = &buf[i + 1];
+			}
+		}
+
+		log_v_info_P( PSTR("%s = %s"), key, value );
+
+		catbus_hash_t32 key_hash = hash_u32_string( key );
+
+		// get value type for this key
+		catbus_type_t8 val_type = kv_i8_type( key_hash );
+
+		if( val_type < 0 ){
+
+			// key not found
+			log_v_info_P( PSTR("Key %s not found"), key );
+			
+			goto next;
+		}
+
+		if( type_b_is_string( val_type ) ){
+
+			// apply string value
+			kv_i8_set( key_hash, value, strlen(value) );
+		}
+		else{
+
+			// convert to integer
+			int32_t val_int = atoi( value );
+
+			log_v_info_P( PSTR("int %d"), val_int );
+
+			kv_i8_set( key_hash, &val_int, sizeof(val_int) );
+		}
+
+
+next:
 		memset( buf, 0, sizeof(buf) );
 	}
 
