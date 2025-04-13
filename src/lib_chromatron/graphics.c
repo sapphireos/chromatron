@@ -226,12 +226,12 @@ PT_BEGIN( pt );
 
     pixel_v_signal();
         
-    #ifdef GFX_SYNC_FADERS
-    static uint32_t next_alarm;
-    next_alarm = tmr_u32_get_system_time_ms();
-    #else
+    // #ifdef GFX_SYNC_FADERS
+    // static uint32_t next_alarm;
+    // next_alarm = tmr_u32_get_system_time_ms();
+    // #else
     thread_v_create_timed_signal( GFX_SIGNAL_0, FADER_RATE );
-    #endif
+    // #endif
 
     static uint32_t start;
     start = tmr_u32_get_system_time_us();
@@ -276,15 +276,19 @@ PT_BEGIN( pt );
             uint32_t ticks_remaining = FADER_RATE - cycle_ticks;
 
             // set up delay
-            next_alarm = tmr_u32_get_system_time_ms() + ticks_remaining;
-            thread_v_set_alarm( next_alarm );
-            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+            // next_alarm = tmr_u32_get_system_time_ms() + ticks_remaining;
+            // thread_v_set_alarm( next_alarm );
+            // THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+            THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
         }
         else{
 
-            next_alarm += FADER_RATE;
-            thread_v_set_alarm( next_alarm );
-            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+            THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
+
+            // next_alarm += FADER_RATE;
+            // thread_v_set_alarm( next_alarm );
+            // THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
         }
 
 
