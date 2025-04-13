@@ -422,8 +422,8 @@ int16_t fs_i16_readline( file_t file, void *dst, uint16_t maxlen ){
                 state->current_pos += bytes_read;
             }
 
-            // set null termination
-            ((char *)dst)[bytes_read] = 0;
+            // set null termination on top of the newline
+            ((char *)dst)[bytes_read - 1] = 0;
 
             return bytes_read;
         }
