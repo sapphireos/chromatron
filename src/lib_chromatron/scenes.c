@@ -22,8 +22,6 @@
 
 #include <stdlib.h>
 
-#include "catbus_common.h"
-#include "hash.h"
 #include "sapphire.h"
 #include "scenes.h"
 
@@ -203,7 +201,16 @@ static int8_t load_scene( const char *s ){
 		if( type_b_is_string( val_type ) ){
 
 			// apply string value
-			kv_i8_set( key_hash, value, strlen(value) );
+			char catbus_str[CATBUS_STRING_LEN];
+			memset( catbus_str, 0, sizeof(catbus_str) );
+			strncpy( catbus_str, value, sizeof(catbus_str) );
+
+			int8_t status = kv_i8_set( key_hash, catbus_str, sizeof(catbus_str) );
+
+			if( status < 0 ){
+
+				log_v_error_P( PSTR("%d"), status );
+			}
 		}
 		else{
 
@@ -212,7 +219,12 @@ static int8_t load_scene( const char *s ){
 
 			log_v_info_P( PSTR("int %d"), val_int );
 
-			kv_i8_set( key_hash, &val_int, sizeof(val_int) );
+			int8_t status = kv_i8_set( key_hash, &val_int, sizeof(val_int) );
+
+			if( status < 0 ){
+
+				log_v_error_P( PSTR("%d"), status );
+			}
 		}
 
 
