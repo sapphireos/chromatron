@@ -75,8 +75,34 @@ if sequencer is not enabled and vm_run is true:
 
 static char current_scene[CATBUS_STRING_LEN];
 
+static int8_t load_scene( const char *s );
+
+int8_t _scene_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_GET ){
+
+        if( hash == __KV__scene_current ){
+
+         	load_scene( current_scene );   
+        }
+    }
+    else if( op == KV_OP_SET ){
+
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    return 0;
+}
+
 KV_SECTION_META kv_meta_t scene_info_kv[] = {
-    { CATBUS_TYPE_STRING32,   0, KV_FLAGS_PERSIST,  current_scene,        0,                  "scene_current" },
+    { CATBUS_TYPE_STRING32,   0, KV_FLAGS_PERSIST,  current_scene,        _scene_kv_handler,                  "scene_current" },
 };
 
 
