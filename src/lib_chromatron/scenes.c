@@ -85,13 +85,13 @@ int8_t _scene_kv_handler(
 {
     if( op == KV_OP_GET ){
 
+    }
+    else if( op == KV_OP_SET ){
+
         if( hash == __KV__scene_current ){
 
          	load_scene( current_scene );   
         }
-    }
-    else if( op == KV_OP_SET ){
-
     }
     else{
 
