@@ -288,6 +288,18 @@ next:
 
 static void erase_scene( file_t f, const char *s ){
 
+	// scan line by line and write out to tempfile
+	// until we hit the target scene.
+	// keep scanning until next scene without writing.
+	// then we want to write the new scene,
+	// then write out rest of file.
+
+
+
+
+
+
+
 	search_scene( f, s );
 
 	uint8_t len = strlen( s );
