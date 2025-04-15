@@ -86,6 +86,10 @@ int8_t _scene_kv_handler(
 {
     if( op == KV_OP_GET ){
 
+    	if( hash == __KV__scene_save_as ){
+
+    		memset( data, 0, len );
+    	}
     }
     else if( op == KV_OP_SET ){
 
@@ -284,7 +288,46 @@ next:
 
 static void erase_scene( file_t f, const char *s ){
 
-	
+	search_scene( f, s );
+
+	uint8_t len = strlen( s );
+
+	// rewind file
+	// fs_v_seek( f, fs_i32_tell( f ) - len );
+
+	// record start index
+	uint32_t start_index = fs_i32_tell( f ) - len;
+	uint32_t end_index = 0;
+
+	char buf[SCENE_BUF_LEN];
+	memset( buf, 0, sizeof(buf) );
+
+	while( fs_i16_readline( f, buf, sizeof(buf) ) > 0 ){
+
+		if( !is_scene_data( buf ) ){
+
+			end_index = fs_i32_tell( f );
+			break;
+		}		
+		
+		memset( buf, 0, sizeof(buf) );
+	}	
+
+	// check for end of file
+	if( end_index == 0 ){
+
+		end_index = fs_i32_tell( f );
+	}
+
+	fs_v_seek( f, start_index );
+
+	log_v_debug_P( PSTR(" %d %d"), start_index, end_index );
+
+	for( uint32_t i = start_index; i < end_index; i++ ){
+
+		uint8_t zero = 0;
+		fs_i16_write( f, &zero, sizeof(zero) );
+	}
 }
 
 static void write_scene_header( file_t f, const char *s ){
@@ -294,13 +337,18 @@ static void write_scene_header( file_t f, const char *s ){
 	// seek to end
 	fs_v_seek( f, fs_i32_get_size( f ) - 1 );
 
-	fs_i16_write( f, s, strlen(s) );
 	char newline = '\n';
+	fs_i16_write( f, &newline, sizeof(newline) );	
+
+	fs_i16_write( f, s, strlen(s) );
+
 	fs_i16_write( f, &newline, sizeof(newline) );	
 }	
 
 static void write_scene_key_str( file_t f, const char *key, const char *value ){
 
+	char tab = '\t';
+	fs_i16_write( f, &tab, sizeof(tab) );	
 	fs_i16_write( f, key, strlen(key) );
 	char space = ' ';
 	fs_i16_write( f, &space, sizeof(space) );	
@@ -360,7 +408,7 @@ static int8_t save_scene( const char *s ){
 		char vm_prog[CATBUS_STRING_LEN] = {0};
 		kv_i8_get( __KV__vm_prog, &vm_prog, sizeof(vm_prog) );
 
-		write_scene_key_int( f, PSTR("vm_prog"), vm_prog );
+		write_scene_key_str( f, PSTR("vm_prog"), vm_prog );
 
 		goto done;
 	}
