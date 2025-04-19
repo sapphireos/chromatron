@@ -613,17 +613,17 @@ static int8_t save_scene( const char *s ){
 	// write sequencer settings
 
 
-	
+
 
 done:
 
 	// warp to next scene
 	while( fs_i16_readline( current_f, buf, sizeof(buf) ) > 0 ){
 
-		if( is_scene_data( buf ) ){
+		if( !is_scene_data( buf ) ){
 
 			// rewind
-			fs_v_seek( current_f, fs_i32_tell( current_f ) - strlen( buf  ) );
+			fs_v_seek( current_f, fs_i32_tell( current_f ) - strlen( buf ) );
 			break;
 		}
 
