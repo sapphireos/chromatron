@@ -20,6 +20,7 @@
 // 
 // </license>
 
+
 #include <stdlib.h>
 
 #include "sapphire.h"
@@ -28,6 +29,12 @@
 
 
 /*
+
+Scene manager
+
+
+
+
 
 Scenes file:
 
@@ -74,6 +81,13 @@ if sequencer is not enabled and vm_run is true:
 
 
 static char current_scene[CATBUS_STRING_LEN];
+
+typedef struct{
+	catbus_hash_t32 key;	
+	catbus_hash_t32 value;
+} scene_data_t;
+
+static list_t scene_list;
 
 static int8_t load_scene( const char *s );
 static int8_t save_scene( const char *s );
@@ -175,6 +189,117 @@ static bool is_whitespace( char c ){
 
 	return (c == ' ') || (c == '\t');
 }
+
+// static int8_t load_scene_data( void ){
+
+// 	file_t f = open_scene_file();
+
+// 	if( f < 0 ){
+
+// 		return -1;
+// 	}
+
+// 	char buf[SCENE_BUF_LEN];
+// 	memset( buf, 0, sizeof(buf) );
+
+// 	catbus_hash_t32 scene_header = 0;
+// 	uint8_t data_count = 0;
+// 	scene_data_t scene_data[SCENE_MAX_KEYS] = {0};
+
+// 	while( fs_i16_readline( f, buf, sizeof(buf) ) > 0 ){
+
+// 		// check if scene header
+// 		if( !is_scene_data( buf ) ){
+
+// 			// check if there is a scene to store
+// 			if( data_count > 0 ){
+
+// 				list_node_t ln = list_ln_create_node( 0, sizeof(scene_data_t) * data_count + sizeof(catbus_hash_t32) );
+
+// 				if( ln < 0 ){
+
+// 					continue;
+// 				}
+
+
+// 			}
+
+
+
+// 			memset( scene_data, 0, sizeof(scene_data) );
+
+// 			scene_header = hash_u32_string( buf );
+// 			data_count = 0;
+// 		}
+// 		else{
+
+// 			// parse data
+// 			char *key = buf;
+
+// 			// string whitespace from prefix of key
+// 			while( is_whitespace( *key ) ){
+
+// 				key++;
+// 			}
+
+// 			char *value = buf;
+
+// 			for( uint8_t i = 0; i < strlen(buf) - 1; i++ ){
+
+// 				if( buf[i] == ' ' ){
+
+// 					buf[i] = 0; // replace space with null term
+// 					// set value to next character
+// 					value = &buf[i + 1];
+// 				}
+// 			}
+
+// 			log_v_info_P( PSTR("%s = %s"), key, value );
+
+// 			catbus_hash_t32 key_hash = hash_u32_string( key );
+// 			int32_t value_i32 = 0;
+
+// 			// get value type for this key
+// 			catbus_type_t8 val_type = kv_i8_type( key_hash );
+
+// 			if( val_type < 0 ){
+
+// 				// key not found
+// 				log_v_info_P( PSTR("Key %s not found"), key );
+				
+// 				continue;
+// 			}	
+
+// 			if( type_b_is_string( val_type ) ){
+
+// 				// convert to hash
+// 				value_i32 = hash_u32_string( value );
+// 			}
+// 			else{
+
+// 				// convert to integer
+// 				value_i32 = atoi( value );
+
+// 				// log_v_info_P( PSTR("int %d"), value_u32 );
+// 			}
+
+// 			if( data_count >= SCENE_MAX_KEYS ){
+
+// 				log_v_warn_P( PSTR("Max scene data") );
+// 			}
+// 			else{
+
+// 				// add data
+// 				scene_data[data_count].key = key_hash;
+// 				scene_data[data_count].value = value_i32;
+// 				data_count++;
+// 			}
+// 		}
+// 	}
+
+
+// 	fs_f_close( f );
+// }
 
 static int8_t load_scene( const char *s ){
 
@@ -286,13 +411,21 @@ next:
 }
 
 
-static void erase_scene( file_t f, const char *s ){
+// static void erase_scene( file_t f, const char *s ){
 
-	// scan line by line and write out to tempfile
-	// until we hit the target scene.
-	// keep scanning until next scene without writing.
-	// then we want to write the new scene,
-	// then write out rest of file.
+// 	// scan line by line and write out to tempfile
+// 	// until we hit the target scene.
+// 	// keep scanning until next scene without writing.
+// 	// then we want to write the new scene,
+// 	// then write out rest of file.
+// 	// then create new empty scenes file and copy
+// 	// tempfile into it.
+// 	// this could in theory get corrupted if the
+// 	// system restarts in the middle of it,
+// 	// but since scene config is a manual process
+// 	// anyway, the operator can just fix it.  
+// 	// it is a rare corner case.
+// 	//
 
 
 
@@ -300,54 +433,56 @@ static void erase_scene( file_t f, const char *s ){
 
 
 
-	search_scene( f, s );
 
-	uint8_t len = strlen( s );
 
-	// rewind file
-	// fs_v_seek( f, fs_i32_tell( f ) - len );
+// 	search_scene( f, s );
 
-	// record start index
-	uint32_t start_index = fs_i32_tell( f ) - len;
-	uint32_t end_index = 0;
+// 	uint8_t len = strlen( s );
 
-	char buf[SCENE_BUF_LEN];
-	memset( buf, 0, sizeof(buf) );
+// 	// rewind file
+// 	// fs_v_seek( f, fs_i32_tell( f ) - len );
 
-	while( fs_i16_readline( f, buf, sizeof(buf) ) > 0 ){
+// 	// record start index
+// 	uint32_t start_index = fs_i32_tell( f ) - len;
+// 	uint32_t end_index = 0;
 
-		if( !is_scene_data( buf ) ){
+// 	char buf[SCENE_BUF_LEN];
+// 	memset( buf, 0, sizeof(buf) );
 
-			end_index = fs_i32_tell( f );
-			break;
-		}		
+// 	while( fs_i16_readline( f, buf, sizeof(buf) ) > 0 ){
+
+// 		if( !is_scene_data( buf ) ){
+
+// 			end_index = fs_i32_tell( f );
+// 			break;
+// 		}		
 		
-		memset( buf, 0, sizeof(buf) );
-	}	
+// 		memset( buf, 0, sizeof(buf) );
+// 	}	
 
-	// check for end of file
-	if( end_index == 0 ){
+// 	// check for end of file
+// 	if( end_index == 0 ){
 
-		end_index = fs_i32_tell( f );
-	}
+// 		end_index = fs_i32_tell( f );
+// 	}
 
-	fs_v_seek( f, start_index );
+// 	fs_v_seek( f, start_index );
 
-	log_v_debug_P( PSTR(" %d %d"), start_index, end_index );
+// 	log_v_debug_P( PSTR(" %d %d"), start_index, end_index );
 
-	for( uint32_t i = start_index; i < end_index; i++ ){
+// 	for( uint32_t i = start_index; i < end_index; i++ ){
 
-		uint8_t zero = 0;
-		fs_i16_write( f, &zero, sizeof(zero) );
-	}
-}
+// 		uint8_t zero = 0;
+// 		fs_i16_write( f, &zero, sizeof(zero) );
+// 	}
+// }
 
 static void write_scene_header( file_t f, const char *s ){
 
-	erase_scene( f, s );
+	// erase_scene( f, s );
 
 	// seek to end
-	fs_v_seek( f, fs_i32_get_size( f ) - 1 );
+	// fs_v_seek( f, fs_i32_get_size( f ) - 1 );
 
 	char newline = '\n';
 	fs_i16_write( f, &newline, sizeof(newline) );	
@@ -380,19 +515,68 @@ static void write_scene_key_int( file_t f, const char *key, int32_t value ){
 
 static int8_t save_scene( const char *s ){
 
-	file_t f = open_scene_file_writable();
+	file_t current_f = open_scene_file();
 
-	if( f < 0 ){
+	// check if scenes file does not exist
+	if( current_f < 0 ){
 
-		return -1;
+		current_f = fs_f_open_P( PSTR("scenes"), FS_MODE_WRITE_OVERWRITE | FS_MODE_CREATE_IF_NOT_FOUND );
+
+		if( current_f < 0 ){
+
+			return -1;
+		}
 	}
 
-	write_scene_header( f, s );
+	file_t new_f = fs_f_open_P( PSTR("_scenes"), FS_MODE_READ_ONLY );	
 
+	// erase temp file
+	if( new_f > 0 ){
+
+		fs_v_delete( new_f );
+		fs_f_close( new_f );
+		new_f = -1;
+	}
+
+	new_f = fs_f_open_P( PSTR("_scenes"), FS_MODE_WRITE_OVERWRITE | FS_MODE_CREATE_IF_NOT_FOUND );
+
+	if( new_f < 0 ){
+
+		fs_f_close( current_f );
+
+		return -2;
+	}
+
+
+	// copy file until scene is reached
+
+	char nl = '\n';
+	char buf[SCENE_BUF_LEN];
+	memset( buf, 0, sizeof(buf) );
+
+	while( fs_i16_readline( current_f, buf, sizeof(buf) ) > 0 ){
+
+		if( strncmp( buf, s, sizeof(buf) ) == 0 ){
+
+			break;
+		}
+
+		fs_i16_write( new_f, buf, strlen(buf) );
+		fs_i16_write( new_f, &nl, sizeof(nl) );
+
+		memset( buf, 0, sizeof(buf) );
+	}
+
+	// write new scene
+	fs_i16_write( new_f, s, strlen(s) );	
+	fs_i16_write( new_f, &nl, sizeof(nl) );
+
+
+	// write scene data
 	bool gfx_enable = FALSE;
 	kv_i8_get( __KV__gfx_enable, &gfx_enable, sizeof(gfx_enable) );
 
-	write_scene_key_int( f, PSTR("gfx_enable"), gfx_enable );
+	write_scene_key_int( new_f, PSTR("gfx_enable"), gfx_enable );
 
 	if( !gfx_enable ){
 
@@ -402,7 +586,7 @@ static int8_t save_scene( const char *s ){
 	bool vm_run = FALSE;
 	kv_i8_get( __KV__vm_run, &vm_run, sizeof(vm_run) );
 
-	write_scene_key_int( f, PSTR("vm_run"), vm_run );
+	write_scene_key_int( new_f, PSTR("vm_run"), vm_run );
 
 	if( !vm_run ){
 
@@ -412,7 +596,7 @@ static int8_t save_scene( const char *s ){
 	uint8_t seq_time_mode = FALSE;
 	kv_i8_get( __KV__seq_time_mode, &seq_time_mode, sizeof(seq_time_mode) );
 
-	write_scene_key_int( f, PSTR("seq_time_mode"), seq_time_mode );
+	write_scene_key_int( new_f, PSTR("seq_time_mode"), seq_time_mode );
 
 	if( seq_time_mode == 0 ){
 
@@ -420,7 +604,7 @@ static int8_t save_scene( const char *s ){
 		char vm_prog[CATBUS_STRING_LEN] = {0};
 		kv_i8_get( __KV__vm_prog, &vm_prog, sizeof(vm_prog) );
 
-		write_scene_key_str( f, PSTR("vm_prog"), vm_prog );
+		write_scene_key_str( new_f, PSTR("vm_prog"), vm_prog );
 
 		goto done;
 	}
@@ -429,14 +613,154 @@ static int8_t save_scene( const char *s ){
 	// write sequencer settings
 
 
-done:
 	
-	fs_f_close( f );
+
+done:
+
+	// warp to next scene
+	while( fs_i16_readline( current_f, buf, sizeof(buf) ) > 0 ){
+
+		if( is_scene_data( buf ) ){
+
+			// rewind
+			fs_v_seek( current_f, fs_i32_tell( current_f ) - strlen( buf  ) );
+			break;
+		}
+
+		memset( buf, 0, sizeof(buf) );
+	}
+
+	// copy rest of file	
+	while( fs_i16_readline( current_f, buf, sizeof(buf) ) > 0 ){
+
+		if( strncmp( buf, s, sizeof(buf) ) == 0 ){
+
+			break;
+		}
+
+		fs_i16_write( new_f, buf, strlen(buf) );
+		fs_i16_write( new_f, &nl, sizeof(nl) );
+
+		memset( buf, 0, sizeof(buf) );
+	}
+
+
+
+	
+	fs_f_close( current_f );
+	fs_f_close( new_f );
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+ 
+	
+ 	
+
+	// fs_i16_write( new_f, s, strlen(s) );	
+
+	// if( current_f > 0 ){
+
+	// 	// copy file until scene is reached
+
+	// 	char buf[SCENE_BUF_LEN];
+	// 	memset( buf, 0, sizeof(buf) );
+
+	// 	while( fs_i16_readline( current_f, buf, sizeof(buf) ) > 0 ){
+
+	// 		if( strncmp( buf, s, sizeof(buf) ) ){
+
+	// 			break;
+	// 		}
+
+	// 		fs_i16_write( new_f, buf, strlen(buf) );
+	// 		memset( buf, 0, sizeof(buf) );
+	// 	}
+	// }
+
+
+
+
+
+
+
+
+
+
+
+
+	// file_t f = open_scene_file_writable();
+
+	// if( f < 0 ){
+
+	// 	return -1;
+	// }
+
+	// write_scene_header( f, s );
+
+	// bool gfx_enable = FALSE;
+	// kv_i8_get( __KV__gfx_enable, &gfx_enable, sizeof(gfx_enable) );
+
+	// write_scene_key_int( f, PSTR("gfx_enable"), gfx_enable );
+
+	// if( !gfx_enable ){
+
+	// 	goto done;
+	// }
+
+	// bool vm_run = FALSE;
+	// kv_i8_get( __KV__vm_run, &vm_run, sizeof(vm_run) );
+
+	// write_scene_key_int( f, PSTR("vm_run"), vm_run );
+
+	// if( !vm_run ){
+
+	// 	goto done;
+	// }
+
+	// uint8_t seq_time_mode = FALSE;
+	// kv_i8_get( __KV__seq_time_mode, &seq_time_mode, sizeof(seq_time_mode) );
+
+	// write_scene_key_int( f, PSTR("seq_time_mode"), seq_time_mode );
+
+	// if( seq_time_mode == 0 ){
+
+	// 	// write vm_prog
+	// 	char vm_prog[CATBUS_STRING_LEN] = {0};
+	// 	kv_i8_get( __KV__vm_prog, &vm_prog, sizeof(vm_prog) );
+
+	// 	write_scene_key_str( f, PSTR("vm_prog"), vm_prog );
+
+	// 	goto done;
+	// }
+
+
+	// write sequencer settings
+
+
+// done:
+	
+	// fs_f_close( f );
 
 	return 0;
 }
 
 void scenes_v_init( void ){
+
+	list_v_init( &scene_list );
 
 	load_scene( current_scene );
 }

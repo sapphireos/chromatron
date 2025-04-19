@@ -23,6 +23,8 @@
 #ifndef _SCENES_H
 #define _SCENES_H
 
+#define SCENE_MAX_ENTRIES	16
+#define SCENE_MAX_KEYS		16
 
 void scenes_v_init( void );
 
