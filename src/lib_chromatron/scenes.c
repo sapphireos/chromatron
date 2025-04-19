@@ -23,6 +23,7 @@
 
 #include <stdlib.h>
 
+#include "fs.h"
 #include "sapphire.h"
 #include "scenes.h"
 
@@ -645,115 +646,34 @@ done:
 	}
 
 
-
-	
+	// delete scenes file
+	fs_v_delete( current_f );
 	fs_f_close( current_f );
+
+	// recreate file
+	current_f = fs_f_open_P( PSTR("scenes"), FS_MODE_WRITE_OVERWRITE | FS_MODE_CREATE_IF_NOT_FOUND );	
+
+	if( current_f < 0 ){
+
+		fs_f_close( new_f );
+		return -1;
+	}
+
+	// copy temp file to scenes
+	fs_v_seek( new_f, 0 );
+
+	int16_t bytes_read = fs_i16_read( new_f, buf, sizeof(buf) );
+
+	while( bytes_read > 0 ){
+
+		fs_i16_write( current_f, buf, bytes_read );
+	}
+
+	// delete temp file
+	fs_v_delete( new_f );
 	fs_f_close( new_f );
+	fs_f_close( current_f );
 
-
-
-
-
-
-
-
-
-
-
-
-
-	
-
-
-
- 
-	
- 	
-
-	// fs_i16_write( new_f, s, strlen(s) );	
-
-	// if( current_f > 0 ){
-
-	// 	// copy file until scene is reached
-
-	// 	char buf[SCENE_BUF_LEN];
-	// 	memset( buf, 0, sizeof(buf) );
-
-	// 	while( fs_i16_readline( current_f, buf, sizeof(buf) ) > 0 ){
-
-	// 		if( strncmp( buf, s, sizeof(buf) ) ){
-
-	// 			break;
-	// 		}
-
-	// 		fs_i16_write( new_f, buf, strlen(buf) );
-	// 		memset( buf, 0, sizeof(buf) );
-	// 	}
-	// }
-
-
-
-
-
-
-
-
-
-
-
-
-	// file_t f = open_scene_file_writable();
-
-	// if( f < 0 ){
-
-	// 	return -1;
-	// }
-
-	// write_scene_header( f, s );
-
-	// bool gfx_enable = FALSE;
-	// kv_i8_get( __KV__gfx_enable, &gfx_enable, sizeof(gfx_enable) );
-
-	// write_scene_key_int( f, PSTR("gfx_enable"), gfx_enable );
-
-	// if( !gfx_enable ){
-
-	// 	goto done;
-	// }
-
-	// bool vm_run = FALSE;
-	// kv_i8_get( __KV__vm_run, &vm_run, sizeof(vm_run) );
-
-	// write_scene_key_int( f, PSTR("vm_run"), vm_run );
-
-	// if( !vm_run ){
-
-	// 	goto done;
-	// }
-
-	// uint8_t seq_time_mode = FALSE;
-	// kv_i8_get( __KV__seq_time_mode, &seq_time_mode, sizeof(seq_time_mode) );
-
-	// write_scene_key_int( f, PSTR("seq_time_mode"), seq_time_mode );
-
-	// if( seq_time_mode == 0 ){
-
-	// 	// write vm_prog
-	// 	char vm_prog[CATBUS_STRING_LEN] = {0};
-	// 	kv_i8_get( __KV__vm_prog, &vm_prog, sizeof(vm_prog) );
-
-	// 	write_scene_key_str( f, PSTR("vm_prog"), vm_prog );
-
-	// 	goto done;
-	// }
-
-
-	// write sequencer settings
-
-
-// done:
-	
-	// fs_f_close( f );
 
 	return 0;
 }
