@@ -393,7 +393,7 @@ int16_t fs_i16_readline( file_t file, void *dst, uint16_t maxlen ){
     maxlen--; // leave space at the end for a null terminator
 
     // read buffer of data from file
-    uint16_t bytes_read = fs_i16_read( file, dst, maxlen );
+    int16_t bytes_read = fs_i16_read( file, dst, maxlen );
 
     // get file state
 	file_state_t *state = mem2_vp_get_ptr( file );
@@ -422,15 +422,17 @@ int16_t fs_i16_readline( file_t file, void *dst, uint16_t maxlen ){
                 state->current_pos += bytes_read;
             }
 
-            // set null termination
-            ((char *)dst)[bytes_read] = 0;
+            // set null termination on top of the newline
+            ((char *)dst)[bytes_read - 1] = 0;
 
             return bytes_read;
         }
     }
 
+    state->current_pos += bytes_read;
+
     // did not find terminator, or EOF
-    return 0;
+    return bytes_read;
 }
 
 // write to a file

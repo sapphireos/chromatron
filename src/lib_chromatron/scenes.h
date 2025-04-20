@@ -20,19 +20,12 @@
 // 
 // </license>
 
-#ifndef _GRAPHICS_H
-#define _GRAPHICS_H
+#ifndef _SCENES_H
+#define _SCENES_H
 
-#include "target.h"
-#include "gfx_lib.h"
-#include "keyvalue.h"
+// #define SCENE_MAX_ENTRIES	16
+// #define SCENE_MAX_KEYS		16
 
-// #define GFX_SYNC_FADERS
-
-
-void gfx_v_init( void );
-bool gfx_b_pixels_enabled( void );
-uint32_t gfx_u32_get_pixel_power( void );
-uint16_t gfx_u16_get_pixel_power_mw( void );
+void scenes_v_init( void );
 
 #endif
