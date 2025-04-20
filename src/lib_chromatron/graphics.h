@@ -27,7 +27,7 @@
 #include "gfx_lib.h"
 #include "keyvalue.h"
 
-#define GFX_SYNC_FADERS
+// #define GFX_SYNC_FADERS
 
 
 void gfx_v_init( void );
