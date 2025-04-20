@@ -332,10 +332,11 @@ PT_BEGIN( pt );
 
 
         // compute timing lag, after pixel start
-        uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
+        // uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
+        uint32_t lag = tmr_u32_elapsed_time_us( start );
         start = tmr_u32_get_system_time_us();
 
-        
+
         if( lag >= 50000 ){
 
             timing_lag_50ms++;
