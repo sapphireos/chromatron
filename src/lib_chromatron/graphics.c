@@ -68,7 +68,9 @@ static uint32_t timing_lag_0ms;
 static uint32_t timing_lag_5ms;
 static uint32_t timing_lag_10ms;
 static uint32_t timing_lag_15ms;
+static uint32_t timing_lag_18ms;
 static uint32_t timing_lag_20ms;
+static uint32_t timing_lag_22ms;
 static uint32_t timing_lag_25ms;
 static uint32_t timing_lag_30ms;
 static uint32_t timing_lag_40ms;
@@ -83,7 +85,9 @@ KV_SECTION_META kv_meta_t gfx_info_kv[] = {
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_5ms,       0,                  "gfx_timing_lag_05ms" },
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_10ms,      0,                  "gfx_timing_lag_10ms" },
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_15ms,      0,                  "gfx_timing_lag_15ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_18ms,      0,                  "gfx_timing_lag_18ms" },
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_20ms,      0,                  "gfx_timing_lag_20ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_22ms,      0,                  "gfx_timing_lag_22ms" },
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_25ms,      0,                  "gfx_timing_lag_25ms" },
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_30ms,      0,                  "gfx_timing_lag_30ms" },
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_40ms,      0,                  "gfx_timing_lag_40ms" },
@@ -306,9 +310,17 @@ PT_BEGIN( pt );
 
             timing_lag_25ms++;
         }
+        else if( lag >= 22000 ){
+
+            timing_lag_22ms++;
+        }
         else if( lag >= 20000 ){
 
             timing_lag_20ms++;
+        }
+        else if( lag >= 18000 ){
+
+            timing_lag_18ms++;
         }
         else if( lag >= 15000 ){
 
