@@ -335,6 +335,52 @@ PT_BEGIN( pt );
         uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
         start = tmr_u32_get_system_time_us();
 
+        
+        if( lag >= 50000 ){
+
+            timing_lag_50ms++;
+        }
+        else if( lag >= 40000 ){
+
+            timing_lag_40ms++;
+        }
+        else if( lag >= 30000 ){
+
+            timing_lag_30ms++;
+        }
+        else if( lag >= 25000 ){
+
+            timing_lag_25ms++;
+        }
+        else if( lag >= 22000 ){
+
+            timing_lag_22ms++;
+        }
+        else if( lag >= 20000 ){
+
+            timing_lag_20ms++;
+        }
+        else if( lag >= 18000 ){
+
+            timing_lag_18ms++;
+        }
+        else if( lag >= 15000 ){
+
+            timing_lag_15ms++;
+        }
+        else if( lag >= 10000 ){
+
+            timing_lag_10ms++;
+        }
+        else if( lag >= 5000 ){
+
+            timing_lag_5ms++;
+        }
+        else{
+
+            timing_lag_0ms++;
+        }
+
         if( lag < 1000000000 ){
 
             if( lag > max_timing_lag ){
