@@ -188,6 +188,18 @@ static const led_unit_t led_units[] = {
         1327155805,
         LED_UNIT_TYPE_SPIRE,
     },
+    {
+        1327168772,
+        LED_UNIT_TYPE_SPIRE,
+    },
+    {
+        1327306632,
+        LED_UNIT_TYPE_SPIRE,
+    },
+    {
+        1327170323,
+        LED_UNIT_TYPE_SPIRE,
+    },
 };
 
 
