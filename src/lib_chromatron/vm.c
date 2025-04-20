@@ -35,6 +35,7 @@
 #include "vm_sync.h"
 #include "util.h"
 #include "mqtt_client.h"
+#include "scenes.h"
 
 #include "vm.h"
 #include "vm_core.h"
@@ -1156,6 +1157,7 @@ void vm_v_init( void ){
 
     vm_cron_v_init();
     vm_seq_v_init();
+    scenes_v_init();
 
     #ifdef VM_DEBUG
     fs_v_create_virtual( PSTR("vm0_threads"), threads_vfile );
