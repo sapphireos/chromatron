@@ -307,7 +307,7 @@ void led_detect_v_run_detect( void ){
         return;
     }
 
-    if( tmr_u32_elapsed_time_ms( timer ) < 2000 ){
+    if( tmr_u32_elapsed_time_ms( timer ) < 500 ){
 
         return;
     }
