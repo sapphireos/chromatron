@@ -228,7 +228,7 @@ bool solar_b_is_charging( void ){
 }
 
 
-
+#define NEXT_STATE_VALID 3
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
@@ -239,6 +239,12 @@ PT_BEGIN( pt );
 
 	static uint8_t log_timer;
 	log_timer = 0;
+
+	static uint8_t candidate_next_state;
+	candidate_next_state = solar_state;
+
+	static uint8_t next_state_validation_counter;
+	next_state_validation_counter = 0;
 
 	// wait if battery is not connected (this could also be a charge system fault)
 	THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
@@ -500,55 +506,77 @@ PT_BEGIN( pt );
 
 		if( next_state != solar_state ){
 
-			charge_timer = 0;
+			if( next_state_validation_counter == 0 ){
 
-			if( next_state == SOLAR_MODE_FAULT ){
-
-				bq25895_aux_v_disable_charger();
-				batt_v_disable_charge();
-			}
-			else if( next_state == SOLAR_MODE_DISCHARGE ){
-
-				bq25895_aux_v_enable_charger();
-				batt_v_enable_charge();
-
-				gfx_v_set_system_enable( TRUE );
-			}
-			else if( next_state == SOLAR_MODE_CHARGE_DC ){
-
-				gfx_v_set_system_enable( FALSE );
-
-				bq25895_aux_v_disable_charger();
-				batt_v_enable_charge();
-			}
-			else if( next_state == SOLAR_MODE_LOW_SOLAR ){
-
-				gfx_v_set_system_enable( TRUE );
-
-				batt_v_disable_charge();				
-
-				bq25895_aux_v_enable_charger();
-				bq25895_aux_v_set_vindpm( solar_vindpm );
-			}
-			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
-
-				gfx_v_set_system_enable( FALSE );
-
-				batt_v_disable_charge();
-
-				bq25895_aux_v_enable_charger();
-				bq25895_aux_v_set_vindpm( solar_vindpm );
-			}
-			else if( next_state == SOLAR_MODE_FULL_CHARGE ){
-
-				gfx_v_set_system_enable( TRUE );
+				candidate_next_state = next_state;
 			}
 
-			log_v_debug_P( PSTR("Changing states from %s to %s"), get_state_name( solar_state ), get_state_name( next_state ) );
+			if( next_state == candidate_next_state ){
 
-			// switch states for next cycle
-			solar_state = next_state;
-			apply_state_name();
+				next_state_validation_counter++;	
+			}
+			else{
+
+				next_state_validation_counter = 0;
+			}
+
+			if( next_state_validation_counter >= NEXT_STATE_VALID ){
+
+				charge_timer = 0;
+
+				if( next_state == SOLAR_MODE_FAULT ){
+
+					bq25895_aux_v_disable_charger();
+					batt_v_disable_charge();
+				}
+				else if( next_state == SOLAR_MODE_DISCHARGE ){
+
+					bq25895_aux_v_enable_charger();
+					batt_v_enable_charge();
+
+					gfx_v_set_system_enable( TRUE );
+				}
+				else if( next_state == SOLAR_MODE_CHARGE_DC ){
+
+					gfx_v_set_system_enable( FALSE );
+
+					bq25895_aux_v_disable_charger();
+					batt_v_enable_charge();
+				}
+				else if( next_state == SOLAR_MODE_LOW_SOLAR ){
+
+					gfx_v_set_system_enable( TRUE );
+
+					batt_v_disable_charge();				
+
+					bq25895_aux_v_enable_charger();
+					bq25895_aux_v_set_vindpm( solar_vindpm );
+				}
+				else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
+
+					gfx_v_set_system_enable( FALSE );
+
+					batt_v_disable_charge();
+
+					bq25895_aux_v_enable_charger();
+					bq25895_aux_v_set_vindpm( solar_vindpm );
+				}
+				else if( next_state == SOLAR_MODE_FULL_CHARGE ){
+
+					gfx_v_set_system_enable( TRUE );
+				}
+
+				log_v_debug_P( PSTR("Changing states from %s to %s"), get_state_name( solar_state ), get_state_name( next_state ) );
+
+				// switch states for next cycle
+				solar_state = next_state;
+				apply_state_name();
+
+			}
+		}
+		else{
+
+			next_state_validation_counter = 0;
 		}
 	}
 
