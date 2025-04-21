@@ -34,6 +34,7 @@ void bq25895_aux_v_init( void );
 bool bq25895_aux_b_present( void );
 
 bool bq25895_aux_b_is_batt_fault( void );
+uint16_t bq25895_aux_u16_read_vbus( void );
 bool bq25895_aux_b_is_vbus_connected( void );
 uint16_t bq25895_aux_u16_get_charge_current( void );
 bool bq25895_aux_b_is_charge_complete( void );
