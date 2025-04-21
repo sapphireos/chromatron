@@ -228,7 +228,7 @@ bool solar_b_is_charging( void ){
 }
 
 
-#define NEXT_STATE_VALID 3
+#define NEXT_STATE_VALID 10
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
