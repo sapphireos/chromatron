@@ -36,7 +36,7 @@
 
 
 
-#define LED_MAX_DETECT_MISS_COUNT   3
+#define LED_MAX_DETECT_MISS_COUNT   8
 
 typedef struct{
     uint8_t unit_type;
