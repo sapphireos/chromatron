@@ -344,7 +344,7 @@ PT_BEGIN( pt );
 					( batt_u16_get_charge_current() > 0 ) ){
 
 				next_state = SOLAR_MODE_CHARGE_DC;	
-				log_v_debug_P( PSTR("SOLAR_MODE_CHARGE_DC: %d %d"), batt_b_is_vbus_connected(), batt_u16_get_charge_current() );
+				// log_v_debug_P( PSTR("SOLAR_MODE_CHARGE_DC: %d %d"), batt_b_is_vbus_connected(), batt_u16_get_charge_current() );
 			}
 			else if( bq25895_aux_u16_get_charge_current() > 450 ){
 
@@ -359,7 +359,7 @@ PT_BEGIN( pt );
 
 				next_state = SOLAR_MODE_LOW_SOLAR;	
 
-				log_v_debug_P( PSTR("SOLAR_MODE_LOW_SOLAR: %d %d"), bq25895_aux_b_is_vbus_connected(), bq25895_aux_u16_read_vbus() );
+				// log_v_debug_P( PSTR("SOLAR_MODE_LOW_SOLAR: %d %d"), bq25895_aux_b_is_vbus_connected(), bq25895_aux_u16_read_vbus() );
 			}
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_DC ){
