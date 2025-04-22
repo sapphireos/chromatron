@@ -56,10 +56,10 @@ static uint16_t aux_iindpm;
 // static bool aux_mcu_source_pmid;
 
 // DEBUG
-static uint16_t aux_adc_time_min = 65535;
-static uint16_t aux_adc_time_max;
-static uint32_t aux_adc_good;
-static uint32_t aux_adc_fail;
+// static uint16_t aux_adc_time_min = 65535;
+// static uint16_t aux_adc_time_max;
+// static uint32_t aux_adc_good;
+// static uint32_t aux_adc_fail;
 
 static int8_t aux_batt_temp = -127;
 static int16_t aux_batt_temp_state;
@@ -96,11 +96,11 @@ KV_SECTION_OPT kv_meta_t bq25895_aux_info_kv[] = {
 
     { CATBUS_TYPE_BOOL,    0, 0,                   &aux_dump_regs,                  0,  "batt_aux_dump_regs" },
 
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_adc_time_min,               0,  "batt_aux_adc_time_min" },
-    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_adc_time_max,               0,  "batt_aux_adc_time_max" },
+    // { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_adc_time_min,               0,  "batt_aux_adc_time_min" },
+    // { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &aux_adc_time_max,               0,  "batt_aux_adc_time_max" },
 
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &aux_adc_good,                   0,  "batt_aux_adc_reads" },
-    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &aux_adc_fail,                   0,  "batt_aux_adc_fails" },
+    // { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &aux_adc_good,                   0,  "batt_aux_adc_reads" },
+    // { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &aux_adc_fail,                   0,  "batt_aux_adc_fails" },
 };
 
 
@@ -137,6 +137,24 @@ void bq25895_aux_v_init( void ){
             aux_present = TRUE;
 
             init_charger();
+
+            /*
+            NOTE!
+
+            The ADC_CONV bit will be stuck at 1
+            when input source detection is running.
+            So that means it can't be checked for
+            conversion complete.
+
+            In low light with solar, the input source
+            detect might just keep running, so the bit
+            doesn't clear, even though the ADC is running.
+
+            So we just run continuous and check every 1
+            second and don't check for conversion complete.
+
+
+            */
 
             bq25895_v_enable_adc_continuous();
 
@@ -384,17 +402,17 @@ PT_BEGIN( pt );
 
     while(1){
 
-        static uint32_t start_time;
+        // static uint32_t start_time;
 
-        set_register_bank_aux();
+        // set_register_bank_aux();
 
-        bq25895_v_start_adc_oneshot();
-        start_time = tmr_u32_get_system_time_ms();
+        // bq25895_v_start_adc_oneshot();
+        // start_time = tmr_u32_get_system_time_ms();
 
-        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !aux_adc_ready() );
+        // thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
+        // THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !aux_adc_ready() );
 
-        // TMR_WAIT( pt, 1000 );
+        TMR_WAIT( pt, 1000 );
 
         set_register_bank_aux();
 
@@ -408,33 +426,35 @@ PT_BEGIN( pt );
             bq25895_v_print_regs();
         }
 
-        if( bq25895_b_adc_ready_cached() && read_adc_aux() ){
+        read_adc_aux();
+
+        // if( bq25895_b_adc_ready_cached() && read_adc_aux() ){
 
             // ADC success
 
-            uint16_t elapsed = tmr_u32_elapsed_time_ms( start_time );
+            // uint16_t elapsed = tmr_u32_elapsed_time_ms( start_time );
 
-            if( elapsed < aux_adc_time_min ){
+            // if( elapsed < aux_adc_time_min ){
 
-                aux_adc_time_min = elapsed;
-            }
+            //     aux_adc_time_min = elapsed;
+            // }
             
-            if( elapsed > aux_adc_time_max ){
+            // if( elapsed > aux_adc_time_max ){
 
-                aux_adc_time_max = elapsed;
-            }
+            //     aux_adc_time_max = elapsed;
+            // }
 
-            aux_adc_good++;
+            // aux_adc_good++;
 
             // run MPPT
             // mppt_v_run( batt_charge_current );
-        }
-        else{
+        // }
+        // else{
 
-            aux_adc_fail++;
+        //     aux_adc_fail++;
 
-            TMR_WAIT( pt, 200 );
-        }
+        //     TMR_WAIT( pt, 200 );
+        // }
     }
 
 PT_END( pt );
