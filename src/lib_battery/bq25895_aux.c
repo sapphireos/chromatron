@@ -28,6 +28,7 @@
 
 #ifdef ENABLE_AUX_BATTERY
 
+#include "bq25895_aux.h"
 #include "battery.h"
 
 static uint16_t aux_batt_volts;
@@ -118,6 +119,8 @@ void bq25895_aux_v_init( void ){
 
 	if( kv_b_get_boolean( __KV__batt_enable_aux ) ){
 
+        bq25895_aux_v_reset();
+
         set_register_bank_aux();
 
         // probe for battery charger
@@ -135,6 +138,8 @@ void bq25895_aux_v_init( void ){
 
             init_charger();
 
+            bq25895_v_enable_adc_continuous();
+
             thread_t_create( bq25895_aux_mon_thread,
                      PSTR("bq25895_aux"),
                      0,
@@ -143,6 +148,15 @@ void bq25895_aux_v_init( void ){
 
         set_register_bank_main();
     }
+}
+
+void bq25895_aux_v_reset( void ){
+
+    set_register_bank_aux();
+
+    bq25895_v_reset();
+
+    set_register_bank_main();
 }
 
 bool bq25895_aux_b_present( void ){
@@ -372,7 +386,6 @@ PT_BEGIN( pt );
 
         static uint32_t start_time;
 
-
         set_register_bank_aux();
 
         bq25895_v_start_adc_oneshot();
@@ -380,6 +393,8 @@ PT_BEGIN( pt );
 
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !aux_adc_ready() );
+
+        // TMR_WAIT( pt, 1000 );
 
         set_register_bank_aux();
 

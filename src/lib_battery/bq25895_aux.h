@@ -31,6 +31,8 @@
 
 void bq25895_aux_v_init( void );
 
+void bq25895_aux_v_reset( void );
+
 bool bq25895_aux_b_present( void );
 
 bool bq25895_aux_b_is_batt_fault( void );
