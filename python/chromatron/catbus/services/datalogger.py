@@ -356,7 +356,7 @@ class Datalogger(MQTTClient):
 
         self.q = Queue()
 
-        self.writer = InfluxWriter(self.q)
+        self.writer = InfluxWriter(influx_server, self.q)
 
         self._update_directory()
 
@@ -470,7 +470,7 @@ class Datalogger(MQTTClient):
             self.q.put(json_body)
 
 class InfluxWriter(Ribbon):
-    def __init__(self, q):
+    def __init__(self, influx_server, q):
         super().__init__()
 
         self.influx = InfluxDBClient(influx_server, 8086, 'root', 'root', 'chromatron')
