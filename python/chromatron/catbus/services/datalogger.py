@@ -357,6 +357,7 @@ class Datalogger(MQTTClient):
         self.q = Queue()
 
         self.writer = InfluxWriter(influx_server, self.q)
+        self.writer.start()
 
         self._update_directory()
 
