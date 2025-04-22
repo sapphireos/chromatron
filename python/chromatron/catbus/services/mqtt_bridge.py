@@ -475,14 +475,14 @@ class MqttBridge(MsgServer):
             status = MqttStatusMsg().unpack(msg.payload.data.pack())
             self._handle_status(status, host)
             return
-        elif msg.topic.topic == "chromatron/batt_binary":
-            # send ack
-            ack = MqttPublishAckMsg(msg_id=msg.msg_id)
-            self.transmit(ack, host)        
+        # elif msg.topic.topic == "chromatron/batt_binary":
+        #     # send ack
+        #     ack = MqttPublishAckMsg(msg_id=msg.msg_id)
+        #     self.transmit(ack, host)        
 
-            status = MqttBattMsg().unpack(msg.payload.data.pack())
-            self._handle_batt(status, host)
-            return
+        #     status = MqttBattMsg().unpack(msg.payload.data.pack())
+        #     self._handle_batt(status, host)
+        #     return
 
         if host not in self.clients:
             # logging.warn(f'Host {host} not a client!')
