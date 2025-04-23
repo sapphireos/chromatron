@@ -23,6 +23,7 @@
  */
 
 
+#include "list.h"
 #include "sapphire.h"
 
 #include "config.h"
@@ -502,6 +503,37 @@ telemetry_data_entry_t* search_remotes( uint64_t src_addr ){
     }   
 
     return 0;
+}
+
+uint8_t telemetry_u8_station_count( void ){
+
+    return list_u8_count( &remote_stations_list );
+}
+
+int8_t telemetry_i8_get_station_info( uint8_t index, telemetry_data_entry_t *data ){
+
+    list_node_t ln = remote_stations_list.head;
+    list_node_t next_ln;
+
+    while( ln > 0 ){
+
+        next_ln = list_ln_next( ln );
+
+        if( index == 0 ){
+
+            telemetry_data_entry_t *entry = list_vp_get_data( ln );
+
+            *data = *entry;
+
+            return 0;
+        }
+
+        index--;
+
+        ln = next_ln;
+    }   
+
+    return -1;
 }
 
 PT_THREAD( telemetry_base_station_rx_thread( pt_t *pt, void *state ) )
