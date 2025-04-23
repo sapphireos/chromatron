@@ -416,6 +416,12 @@ PT_BEGIN( pt );
 
         set_register_bank_aux();
 
+        // bq25895_v_set_hiz( TRUE );
+
+            // _delay_ms(50 );
+
+            // bq25895_v_set_hiz( FALSE );
+
         // read all registers
         bq25895_v_read_all();
 
@@ -427,6 +433,9 @@ PT_BEGIN( pt );
         }
 
         read_adc_aux();
+
+        set_register_bank_main();
+
 
         // if( bq25895_b_adc_ready_cached() && read_adc_aux() ){
 
