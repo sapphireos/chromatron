@@ -105,6 +105,10 @@ static void pixels_off( void ){
 
         bq25895_v_set_boost_mode( FALSE );
     }
+    else if( ffs_u8_read_board_type() == BOARD_TYPE_2025 ){
+
+        disable_pixel_power_fet();
+    }
     #endif
 
     pixels_enabled = FALSE;
@@ -132,6 +136,7 @@ void pixelpower_v_init( void ){
     }
     #if defined(ESP32)
     else if( ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ||
+             ( ffs_u8_read_board_type() == BOARD_TYPE_2025 ) ||
              ( ffs_u8_read_board_type() == BOARD_TYPE_CHARGER_3_1 ) ){
 
         power_control_enabled = TRUE;
@@ -242,6 +247,12 @@ PT_BEGIN( pt );
                 TMR_WAIT( pt, 40 );
 
                 // trace_printf("Pixel power BOOST ON\r\n");
+
+                enable_pixel_power_fet();
+
+                TMR_WAIT( pt, 10 );
+            }
+            else if( ffs_u8_read_board_type() == BOARD_TYPE_2025 ){
 
                 enable_pixel_power_fet();
 
