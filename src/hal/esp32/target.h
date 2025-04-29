@@ -45,6 +45,7 @@
 #define ENABLE_CONTROLLER
 #define ENABLE_BROKER
 #define ENABLE_KV_OPT
+#define ENABLE_KV_CACHE
 
 // DEBUG!
 // Turn this off for normal operation!

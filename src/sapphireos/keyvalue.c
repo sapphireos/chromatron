@@ -65,15 +65,17 @@ static list_t kv_opt_list;
 #endif
 
 static uint32_t kv_persist_writes;
+
+#ifdef ENABLE_KV_CACHE
 static int32_t kv_test_key;
 static int32_t kv_test_array[4];
 
 static uint64_t kv_cache_hits;
 static uint64_t kv_cache_misses;
 
-
 static uint8_t kv_cache_index;
 static kv_hash_index_t kv_cache[KV_CACHE_SIZE];
+#endif
 
 static const PROGMEM char kv_data_fname[] = "kv_data";
 static file_t kv_data_file_handle = -1;
@@ -182,14 +184,24 @@ static int8_t _kv_i8_dynamic_count_handler(
 
 KV_SECTION_META kv_meta_t kv_cfg[] = {
     { CATBUS_TYPE_UINT32,  0, 0,                   &kv_persist_writes,  0,           "kv_persist_writes" },
+    
+    #ifdef ENABLE_KV_CACHE
     { CATBUS_TYPE_INT32,   0, 0,                   &kv_test_key,        0,           "kv_test_key" },
     { CATBUS_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
+    #endif
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_count" },
+
+    #ifdef ENABLE_KV_OPT
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_optional_count" },
+    #endif
+
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
+
+    #ifdef ENABLE_KV_CACHE
     { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_hits,      0,           "kv_cache_hits" },
     { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_misses,    0,           "kv_cache_misses" },
+    #endif
 };
 
 #ifdef __SIM__
@@ -261,7 +273,7 @@ uint16_t kv_u16_count( void ){
 
 
 int16_t _kv_i16_search_cache( catbus_hash_t32 hash ){
-
+    #ifdef ENABLE_KV_CACHE
     for( uint8_t i = 0; i < cnt_of_array(kv_cache); i++ ){
 
         if( kv_cache[i].hash == hash ){
@@ -274,9 +286,12 @@ int16_t _kv_i16_search_cache( catbus_hash_t32 hash ){
 
     kv_cache_misses++;
 
+    #endif
+
     return -1;
 }
 
+#ifdef ENABLE_KV_CACHE
 void _kv_v_add_to_cache( catbus_hash_t32 hash, int16_t index ){
 
     kv_cache[kv_cache_index].hash = hash;
@@ -289,6 +304,7 @@ void _kv_v_add_to_cache( catbus_hash_t32 hash, int16_t index ){
         kv_cache_index = 0;
     }
 }
+#endif
 
 int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
@@ -345,7 +361,9 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
         else if( index_entry.hash == hash ){
 
             // update cache
+            #ifdef ENABLE_KV_CACHE
             _kv_v_add_to_cache( index_entry.hash, index_entry.index );
+            #endif
 
             return index_entry.index;
         }
@@ -412,7 +430,9 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
         kvdb_index += ( _kv_u16_fixed_count() + _kv_u16_optional_count() );
 
         // update cache
+        #ifdef ENABLE_KV_CACHE
         _kv_v_add_to_cache( hash, kvdb_index );
+        #endif
 
         return kvdb_index;
     }
@@ -420,10 +440,12 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     return KV_ERR_STATUS_NOT_FOUND;
 }
 
+#ifdef ENABLE_KV_CACHE
 void kv_v_reset_cache( void ){
 
     memset( kv_cache, 0, sizeof(kv_cache) );
 }
+#endif
 
 int8_t lookup_index( uint16_t index, kv_meta_t *meta )
 {
@@ -784,7 +806,9 @@ void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
     
     list_v_insert_tail( &kv_opt_list, ln );
 
+    #ifdef ENABLE_KV_CACHE
     kv_v_reset_cache();
+    #endif
 
     // load items for persist storage, if available
     for( uint16_t i = 0; i < count; i++ ){
