@@ -80,6 +80,7 @@ The RFM95 uses the PA_BOOST pin.
 */
 
 #define RFM95_SPI_CHANNEL USER_SPI_CHANNEL
+#define RFM95_SPI_FREQ    1000000
 
 // static uint32_t lora_rx;
 // static int16_t lora_rssi;
@@ -97,6 +98,12 @@ The RFM95 uses the PA_BOOST pin.
 // static bool rx_ready;
 // static bool tx_busy;
 
+static void init_spi( void ){
+
+    spi_v_set_freq ( RFM95_SPI_CHANNEL, RFM95_SPI_FREQ );
+    spi_v_set_mode( RFM95_SPI_CHANNEL, 0 );
+}
+
 int8_t rfm95w_i8_init( uint8_t cs, uint8_t reset ){
 
     cs_gpio = cs;
@@ -111,8 +118,8 @@ int8_t rfm95w_i8_init( uint8_t cs, uint8_t reset ){
     
     CHIP_DISABLE();
 
-    // spi_v_init( RFM95_SPI_CHANNEL, 10000000, 0 ); // !!! 10MHz can cause bit errors on the bus itself!
-    spi_v_init( RFM95_SPI_CHANNEL, 1000000, 0 );
+    spi_v_init( RFM95_SPI_CHANNEL, 10000000, 0 ); // !!! 10MHz can cause bit errors on the bus itself!
+    init_spi();
 
     // log_v_debug_P( PSTR("0x%x = 0x%x"), RFM95W_RegOpMode, rfm95w_u8_read_reg( RFM95W_RegOpMode ) );
     // log_v_debug_P( PSTR("0x%x = 0x%x"), RFM95W_RegPaConfig, rfm95w_u8_read_reg( RFM95W_RegPaConfig ) );
@@ -229,6 +236,8 @@ int8_t rfm95w_i8_init( uint8_t cs, uint8_t reset ){
 
 uint8_t rfm95w_u8_read_reg( uint8_t addr ){
 
+    init_spi();
+
     CHIP_ENABLE();
 
     spi_u8_send( RFM95_SPI_CHANNEL, addr );
@@ -241,6 +250,8 @@ uint8_t rfm95w_u8_read_reg( uint8_t addr ){
 }
 
 void rfm95w_v_write_reg( uint8_t addr, uint8_t data ){
+
+    init_spi();
 
     // set write command
     addr |= WRITE_BIT;
@@ -269,6 +280,8 @@ void rfm95w_v_clr_reg_bits( uint8_t addr, uint8_t mask ){
 
 void rfm95w_v_read_fifo( uint8_t *buf, uint8_t len ){
 
+    init_spi();
+
     rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
 
     CHIP_ENABLE();
@@ -280,6 +293,8 @@ void rfm95w_v_read_fifo( uint8_t *buf, uint8_t len ){
 }
 
 void rfm95w_v_write_fifo( uint8_t *buf, uint8_t len ){
+
+    init_spi();
 
     // rfm95w_v_write_reg( RFM95W_RegFifoAddrPtr, 0 );
 

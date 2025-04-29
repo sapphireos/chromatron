@@ -29,7 +29,7 @@
 #ifdef ENABLE_TIME_SYNC
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
-#define SYNC_PROTOCOL_VERSION           	9
+#define SYNC_PROTOCOL_VERSION           	10
 #define SYNC_SERVER_PORT                    44777
 
 // #define SYNC_SERVICE                        __KV__vmsync
@@ -37,10 +37,9 @@
 
 #define SYNC_INTERVAL                       4000
 #define SYNC_INTERVAL_SEQ                   1000 // sync interval when sequencer is running
-#define SYNC_CHECKPOINT                     512
 
 #define SYNC_MAX_THREADS                    16
-#define SYNC_MAX_CHECKPOINTS                16
+#define SYNC_MAX_CHECKPOINTS                32
 
 typedef struct __attribute__((packed)){
     uint32_t magic;

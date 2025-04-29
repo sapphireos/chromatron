@@ -82,6 +82,9 @@ typedef struct __attribute__((packed)){
 
 void telemetry_v_init( void );
 
+uint8_t telemetry_u8_station_count( void );
+int8_t telemetry_i8_get_station_info( uint8_t index, telemetry_data_entry_t *data );
+
 
 
 #endif

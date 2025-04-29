@@ -34,6 +34,7 @@ from sapphire.common import util, run_all, Ribbon
 from elysianfields import *
 
 import logging
+from queue import Queue, Empty
 
 from influxdb import InfluxDBClient
 
@@ -349,11 +350,14 @@ class Datalogger(MQTTClient):
         self._last_directory_update = time.monotonic()
         self.directory = None
 
-        self.influx = InfluxDBClient(influx_server, 8086, 'root', 'root', 'chromatron')
-
         # run local catbus directory
         self.client = Client()
         self.directory = {}
+
+        self.q = Queue()
+
+        self.writer = InfluxWriter(influx_server, self.q)
+        self.writer.start()
 
         self._update_directory()
 
@@ -463,7 +467,31 @@ class Datalogger(MQTTClient):
 
             # print(json_body)
 
-            self.influx.write_points([json_body])
+            # self.influx.write_points([json_body])
+            self.q.put(json_body)
+
+class InfluxWriter(Ribbon):
+    def __init__(self, influx_server, q):
+        super().__init__()
+
+        self.influx = InfluxDBClient(influx_server, 8086, 'root', 'root', 'chromatron')
+
+        self.q = q
+
+    def _process(self):
+        try:
+            chunks = [self.q.get(timeout=1.0)]
+
+            qsize = self.q.qsize()
+
+            while qsize > 0:
+                qsize -= 1
+                chunks.append(self.q.get())
+
+            self.influx.write_points(chunks)
+
+        except Empty:
+            pass
 
 
 
