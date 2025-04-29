@@ -750,6 +750,7 @@ PT_BEGIN( pt );
 
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
+        #ifdef ENABLE_WIFI
             // only do the resolve if the server is not processing a message
 
             if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -841,6 +842,8 @@ PT_BEGIN( pt );
                 // do a short delay so we don't swamp the CPU poking the list
                 TMR_WAIT( pt, 5 );
             }
+
+        #endif
 
             goto end;
         }
