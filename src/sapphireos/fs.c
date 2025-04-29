@@ -408,7 +408,7 @@ int16_t fs_i16_readline( file_t file, void *dst, uint16_t maxlen ){
     state->current_pos -= bytes_read;
 
     // find LF
-    for( uint16_t i = 0; i < bytes_read; i++ ){
+    for( int16_t i = 0; i < bytes_read; i++ ){
 
         if( ((char *)dst)[i] == 0x0A ){
 

@@ -35,8 +35,9 @@
 #define BOARD_TYPE_ELITE                    4 // Elite and Charger3
 #define BOARD_TYPE_ESP32_MINI_BUTTONS       5
 #define BOARD_TYPE_CHARGER_3_1              6 // Charger3.1
+#define BOARD_TYPE_2025                     7 // 2025 board
 
-#define BOARD_TYPE_COUNT                    7
+#define BOARD_TYPE_COUNT                    8
 
 #define BOARD_TYPE_UNSET                    0xff
 

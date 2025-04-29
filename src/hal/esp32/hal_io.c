@@ -242,6 +242,10 @@ void io_v_init( void ){
 
         gpios = gpios_charger_3_1;
     }
+    else if( board == BOARD_TYPE_2025 ){
+
+        gpios = gpios_charger_3_1;
+    }
     else{
 
         trace_printf("Unknown board type, setting default IO map.\r\n");

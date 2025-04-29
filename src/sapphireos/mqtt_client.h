@@ -36,8 +36,8 @@
 
 #define MQTT_BRIDGE_TIMEOUT             24
 #define MQTT_BRIDGE_INITIAL_TIMEOUT     8
-#define MQTT_PUB_ACK_TIMEOUT            16   // ticks at 100 ms
-#define MQTT_MAX_Q_SIZE                 16
+#define MQTT_PUB_ACK_TIMEOUT            5   // ticks at 100 ms
+#define MQTT_MAX_Q_SIZE                 8
 
 #define MQTT_VM_TAG_OFFSET              0x80
 
