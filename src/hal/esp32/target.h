@@ -43,6 +43,7 @@
 #define ENABLE_BATTERY
 #define ENABLE_LED_DETECT
 #define ENABLE_CONTROLLER
+#define ENABLE_BROKER
 
 // DEBUG!
 // Turn this off for normal operation!

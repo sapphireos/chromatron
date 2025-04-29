@@ -46,6 +46,7 @@
 // #define ENABLE_MSGFLOW
 // #define ENABLE_SERVICES
 #define ENABLE_CONTROLLER
+#define ENABLE_BROKER
 #endif
 
 // DEBUG!
