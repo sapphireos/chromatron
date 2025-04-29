@@ -176,7 +176,10 @@ static void send_publish_ack( mqtt_msg_publish_t *msg, sock_addr_t *raddr ){
 
 static void broker_process_publish( mqtt_msg_publish_t *msg, sock_addr_t *raddr, mem_handle_t packet_h ){
 
-    send_publish_ack( msg, raddr );
+    if( msg->header.qos != 0 ){
+
+        send_publish_ack( msg, raddr );    
+    }
 
 	// get byte pointer after headers:
 	uint8_t *ptr = (uint8_t *)( msg + 1 );

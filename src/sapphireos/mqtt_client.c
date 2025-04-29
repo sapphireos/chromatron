@@ -322,16 +322,24 @@ static int8_t transmit_publish(
 	header->qos    		= qos;
 	header->flags       = 0;
 
-	mqtt_transmit_t mqtt_t = {
-		h,
-		MQTT_PUB_ACK_TIMEOUT,
-	};
+	// QOS 0 is fire and forget, send it now and don't bother queueing
+	if( qos == 0 ){
 
-	list_node_t ln = list_ln_create_node( &mqtt_t, sizeof(mqtt_t) );
+		send_msg_to_broker_ptr( mem2_vp_get_ptr( h ), mem2_u16_get_size( h ) );
+	}
+	else{
 
-	if( ln > 0 ){
+		mqtt_transmit_t mqtt_t = {
+			h,
+			MQTT_PUB_ACK_TIMEOUT,
+		};
 
-		list_v_insert_head( &transmit_list, ln );	
+		list_node_t ln = list_ln_create_node( &mqtt_t, sizeof(mqtt_t) );
+
+		if( ln > 0 ){
+
+			list_v_insert_head( &transmit_list, ln );	
+		}
 	}
 
 	mqtt_client_msgs_publish_sent++;
