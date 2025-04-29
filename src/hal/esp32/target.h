@@ -44,6 +44,7 @@
 #define ENABLE_LED_DETECT
 #define ENABLE_CONTROLLER
 #define ENABLE_BROKER
+#define ENABLE_KV_OPT
 
 // DEBUG!
 // Turn this off for normal operation!

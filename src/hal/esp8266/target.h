@@ -47,6 +47,7 @@
 // #define ENABLE_SERVICES
 #define ENABLE_CONTROLLER
 #define ENABLE_BROKER
+#define ENABLE_KV_OPT
 #endif
 
 // DEBUG!

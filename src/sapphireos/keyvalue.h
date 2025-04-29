@@ -48,10 +48,12 @@
     #define KV_SECTION_META              __attribute__ ((section (".kv_meta"), used))
 #endif
 
+#ifdef ENABLE_KV_OPT
 #if defined(__SIM__) || defined(BOOTLOADER)
     #define KV_SECTION_OPT
 #else
     #define KV_SECTION_OPT               __attribute__ ((section (".kv_opt"), used))
+#endif
 #endif
 
 #if defined(__SIM__) || defined(BOOTLOADER)

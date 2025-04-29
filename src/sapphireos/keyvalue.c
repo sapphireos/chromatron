@@ -55,12 +55,14 @@ static kv_hash_index_t *ram_index;
 
 #endif
 
+#ifdef ENABLE_KV_OPT
 typedef struct{
     kv_meta_t *meta;
     uint16_t count;
 } kv_opt_info_t;
 
 static list_t kv_opt_list;
+#endif
 
 static uint32_t kv_persist_writes;
 static int32_t kv_test_key;
@@ -96,6 +98,9 @@ KV_SECTION_META_END kv_meta_t kv_end[] = {
     { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvend" }
 };
 
+
+// these items required for compiler KV record scanning:
+// #ifdef ENABLE_KV_OPT
 #if defined(__SIM__) || defined(BOOTLOADER)
     #define KV_SECTION_OPT_START
 #else
@@ -107,7 +112,9 @@ KV_SECTION_META_END kv_meta_t kv_end[] = {
 #else
     #define KV_SECTION_OPT_END         __attribute__ ((section (".kv_opt_end"), used))
 #endif
+// #endif
 
+// #ifdef ENABLE_KV_OPT
 KV_SECTION_OPT_START kv_meta_t kv_opt_start[] = {
     { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvoptstart" }
 };
@@ -115,10 +122,12 @@ KV_SECTION_OPT_START kv_meta_t kv_opt_start[] = {
 KV_SECTION_OPT_END kv_meta_t kv_opt_end[] = {
     { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvoptend" }
 };
+// #endif
 
 
 static uint16_t _kv_u16_optional_count( void ){
 
+    #ifdef ENABLE_KV_OPT
     uint16_t count = 0;
 
     list_node_t ln = kv_opt_list.head;
@@ -132,6 +141,12 @@ static uint16_t _kv_u16_optional_count( void ){
     }
 
     return count;
+
+    #else
+
+    return 0;
+
+    #endif
 }
 
 static int8_t _kv_i8_dynamic_count_handler(
@@ -343,6 +358,7 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     }
 
     // linear search through optional database
+    #ifdef ENABLE_KV_OPT
     int16_t index = 0;
     list_node_t ln = kv_opt_list.head;
 
@@ -385,7 +401,7 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
         ln = list_ln_next( ln );
     }    
-
+    #endif
 
     // try lookup by hash in dynamic database
     int16_t kvdb_index = kvdb_i16_get_index_for_hash( hash );
@@ -425,6 +441,7 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
         memcpy_P( meta, ptr, sizeof(kv_meta_t) );
     }
     // optional dynamically linked entries:
+    #ifdef ENABLE_KV_OPT
     else if( ( index >= _kv_u16_fixed_count() ) &&
              ( index < ( _kv_u16_fixed_count() + _kv_u16_optional_count() ) ) ){
 
@@ -454,6 +471,7 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
             ln = list_ln_next( ln );
         }
     }
+    #endif
     // runtime dynamic DB:
     else if( index < kv_u16_count() ){
 
@@ -680,7 +698,9 @@ retry:;
 
 void kv_v_init( void ){
 
+    #ifdef ENABLE_KV_OPT
     list_v_init( &kv_opt_list );
+    #endif
 
     // check if safe mode
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
@@ -722,7 +742,7 @@ void kv_v_init( void ){
     }
 }
 
-
+#ifdef ENABLE_KV_OPT
 void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -827,7 +847,7 @@ void kv_v_remove_db_info( kv_meta_t *meta ){
         ln = list_ln_next( ln );
     }
 }
-
+#endif
 
 static int8_t _kv_i8_persist_set_internal(
     file_t f,
@@ -1411,10 +1431,12 @@ PT_BEGIN( pt );
             ptr = (kv_meta_t *)kv_start;
             end_ptr = (kv_meta_t *)kv_end;
 
+            #ifdef ENABLE_KV_OPT
             if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
                 end_ptr = (kv_meta_t *)kv_opt_end;
             }
+            #endif
 
             // iterate through handlers
             while( ptr < end_ptr ){
