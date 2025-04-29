@@ -34,8 +34,6 @@
 #include "pt.h"
 #include "system.h"
 
-#define THREAD_ENABLE_TIMED_SIGNALS
-
 #define THREAD_MAX_NAME_LEN 64
 
 #define THREAD_MAX_SIGNALS  16

@@ -46,6 +46,7 @@
 #define ENABLE_BROKER
 #define ENABLE_KV_OPT
 #define ENABLE_KV_CACHE
+#define THREAD_ENABLE_TIMED_SIGNALS
 
 // DEBUG!
 // Turn this off for normal operation!
