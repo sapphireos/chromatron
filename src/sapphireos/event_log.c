@@ -46,8 +46,11 @@
 
     static volatile event_t log_buffer[EVENT_LOG_BUFFER_SIZE];
     static volatile uint8_t ins_idx;
+
+    #ifdef EVENT_LOG_IN_FILE
     static volatile uint8_t ext_idx;
     static volatile uint8_t buf_size;
+    #endif 
 
 #ifndef EVENT_LOG_IN_FILE
 static uint32_t events_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
@@ -124,15 +127,19 @@ void event_v_log( catbus_hash_t32 event_id, uint32_t param ){
 
     ATOMIC;
 
+    #ifdef EVENT_LOG_IN_FILE
     if( buf_size < cnt_of_array(log_buffer) ){
-
+    #endif
+        
         uint32_t timestamp = tmr_u32_get_system_time_us();
 
         log_buffer[ins_idx].event_id    = event_id;
         log_buffer[ins_idx].param       = param;
         log_buffer[ins_idx].timestamp   = timestamp;
 
+        #ifdef EVENT_LOG_IN_FILE
         buf_size++;
+        #endif
 
         ins_idx++;
 
@@ -140,11 +147,14 @@ void event_v_log( catbus_hash_t32 event_id, uint32_t param ){
 
             ins_idx = 0;
         }
+
+    #ifdef EVENT_LOG_IN_FILE
     }
     else{
 
         sys_v_set_warnings( SYS_WARN_EVENT_LOG_OVERFLOW );
     }
+    #endif
 
     END_ATOMIC;
 }
