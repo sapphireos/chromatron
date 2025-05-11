@@ -37,6 +37,7 @@
 #include "vm_sync.h"
 #include "superconductor.h"
 #include "util.h"
+#include "event_log.h"
 
 #ifdef GFX_SYNC_FADERS
 #include "timesync.h"
@@ -370,7 +371,8 @@ PT_BEGIN( pt );
         //     THREAD_EXIT( pt );
         // }
 
-        
+        EVENT(EVENT_ID_GFX_FADERS, 0);
+
         gfx_v_process_faders();
         calc_pixel_power();
         apply_power_limit();

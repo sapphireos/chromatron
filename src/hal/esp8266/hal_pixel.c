@@ -31,6 +31,7 @@
 #include "pixel_vars.h"
 #include "graphics.h"
 #include "timers.h"
+#include "event_log.h"
 
 #include "logging.h"
 
@@ -49,6 +50,7 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
+        EVENT(EVENT_ID_PIX_SIGNAL, 0);
 
         if( pix_mode == PIX_MODE_ANALOG ){
 

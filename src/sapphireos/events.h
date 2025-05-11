@@ -39,4 +39,7 @@
 
 #define EVENT_ID_MEM_DEFRAG                     __KV__mem_defrag
 
+#define EVENT_ID_GFX_FADERS                     __KV__gfx_faders
+#define EVENT_ID_PIX_SIGNAL                     __KV__pix_signal
+
 #endif

@@ -1381,7 +1381,24 @@ class Device(object):
                 event.event_str = self.lookup_hash(event.event_id)
 
             except KeyError:
-                event.event_str = event.event_id
+                event.event_str = str(event.event_id)
+
+                for event_str in [
+                    "evt_log_init",
+                    "evt_log_record",
+                    "log_record",
+                    "sys_assert",
+                    "signal",
+                    "watchdog_kick",
+                    "ffs_garbage_collect",
+                    "ffs_wear_level",
+                    "mem_defrag",
+                    "gfx_faders",
+                    "pix_signal"]:
+
+                    if catbus_string_hash(event_str) == event.event_id:
+                        event.event_str = event_str
+                        break
 
         eventlog = [event for event in events if fnmatch.fnmatch(event.event_str, line)]
 
