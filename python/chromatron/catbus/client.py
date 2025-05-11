@@ -174,6 +174,7 @@ class Client(BaseClient):
         self._meta = {}
 
         self._filelock = FileLock(CACHE_LOCK, timeout=4)
+        self._cache = self._get_cache_data()
 
     def __str__(self):
         return f'Client({self._connected_host})'
@@ -211,12 +212,22 @@ class Client(BaseClient):
                     with open(DATA_DIR_FILE_PATH_ALT, 'r') as f:
                         file_data = f.read()
 
-                return json.loads(file_data)
+                temp = json.loads(file_data)
+
+                cache = {}
+
+                # have to convert keys back to int because json only does string keys
+                for k, v in temp.items():
+                    cache[int(k)] = v
+
+                return cache
 
             except IOError:
                 return {}
 
     def _update_cache(self, cache):
+        self._cache.update(cache)
+
         with self._filelock:
             # get current cache from file
 
@@ -269,18 +280,14 @@ class Client(BaseClient):
                     # ensure file is committed to disk
                     f.flush()
 
+    def add_hashes(self, *args):
+        for arg in args:
+            h = catbus_string_hash(arg)
+            self._cache[h] = arg
+
     def lookup_hash(self, *args, skip_cache=False, host=None):
-        cache = {}
+        cache = self._cache
         
-        if not skip_cache:
-            # open cache file
-            temp = self._get_cache_data()
-
-            cache = {}
-            # have to convert keys back to int because json only does string keys
-            for k, v in temp.items():
-                cache[int(k)] = v
-
         resolved_keys = {}
         cache.update(SYSTEM_HASHES)
 

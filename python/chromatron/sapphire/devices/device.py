@@ -262,6 +262,20 @@ class KVMeta(UserDict):
         value.key = key
 
 
+EVENTS = [ 
+    "evt_log_init",
+    "evt_log_record",
+    "log_record",
+    "sys_assert",
+    "signal",
+    "watchdog_kick",
+    "ffs_garbage_collect",
+    "ffs_wear_level",
+    "mem_defrag",
+    "gfx_faders",
+    "pix_signal"
+]
+
 class Device(object):
     def __init__(self,
                  host=None,
@@ -319,6 +333,9 @@ class Device(object):
             self._bridge = channel.UDPSerialBridge(self._channel, CATBUS_MAIN_PORT)
     
             self._client.connect(('localhost', self._bridge.port))
+
+        if self._client is not None:
+            self._client.add_hashes(*EVENTS)
 
 
     def __str__(self):
@@ -1382,23 +1399,6 @@ class Device(object):
 
             except KeyError:
                 event.event_str = str(event.event_id)
-
-                for event_str in [
-                    "evt_log_init",
-                    "evt_log_record",
-                    "log_record",
-                    "sys_assert",
-                    "signal",
-                    "watchdog_kick",
-                    "ffs_garbage_collect",
-                    "ffs_wear_level",
-                    "mem_defrag",
-                    "gfx_faders",
-                    "pix_signal"]:
-
-                    if catbus_string_hash(event_str) == event.event_id:
-                        event.event_str = event_str
-                        break
 
         eventlog = [event for event in events if fnmatch.fnmatch(event.event_str, line)]
 
