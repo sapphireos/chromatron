@@ -34,7 +34,7 @@
 #define ENABLE_POWER
 // #define ENABLE_USB
 // #define ENABLE_WIFI_USB_LOADER
-// #define ENABLE_EVENT_LOG
+#define ENABLE_EVENT_LOG
 
 #define ENABLE_COPROCESSOR 
 

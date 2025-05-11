@@ -1376,6 +1376,13 @@ class Device(object):
         if len(line) == 0:
             line = '*'
 
+        for event in events:
+            try:
+                event.event_str = self.lookup_hash(event.event_id)
+
+            except KeyError:
+                event.event_str = event.event_id
+
         eventlog = [event for event in events if fnmatch.fnmatch(event.event_str, line)]
 
         s = "\n"

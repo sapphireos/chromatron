@@ -665,16 +665,20 @@ event_lookup = parse_raw_events(raw_events)
 
 class EventField(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint16Field(_name="event_id"),
-                  Uint16Field(_name="param"),
+        fields = [Uint32Field(_name="event_id"),
+                  Uint32Field(_name="param"),
                   Uint32Field(_name="timestamp")]
 
         super(EventField, self).__init__(_fields=fields, **kwargs)
 
-    def get_event_str(self):
-        return event_lookup[self.event_id]
+    # def get_event_str(self):
+    #     try:
+    #         return event_lookup[self.event_id]
 
-    event_str = property(get_event_str)
+    #     except KeyError:
+    #         return str(self.event_id)
+
+    # event_str = property(get_event_str)
 
 
 class EventArray(ArrayField):

@@ -33,13 +33,20 @@
 
 // #define ENABLE_EVENT_LOG
 
-#define EVENT_LOG_MAX_ENTRIES           1024
-#define EVENT_LOG_SLACK_SPACE           16
-#define EVENT_LOG_RECORD_INTERVAL       32
+// #define EVENT_LOG_IN_FILE
+
+#ifdef EVENT_LOG_IN_FILE
+    #define EVENT_LOG_MAX_ENTRIES           1024
+    #define EVENT_LOG_SLACK_SPACE           16
+    #define EVENT_LOG_RECORD_INTERVAL       32
+    #define EVENT_LOG_BUFFER_SIZE      ( EVENT_LOG_RECORD_INTERVAL + EVENT_LOG_SLACK_SPACE )     
+#else
+    #define EVENT_LOG_BUFFER_SIZE       128
+#endif
 
 // if defined, event log will stop logging after
 // EVENT_LOG_MAX_ENTRIES is written.
-#define EVENT_LOG_ONE_SHOT
+// #define EVENT_LOG_ONE_SHOT
 
 
 

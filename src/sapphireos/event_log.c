@@ -37,15 +37,44 @@
 
 
 #ifdef ENABLE_EVENT_LOG
-
+    
+    #ifdef EVENT_LOG_IN_FILE
     PT_THREAD( event_log_thread( pt_t *pt, void *state ) );
 
     static file_t evt_file;
+    #endif
 
-    static volatile event_t log_buffer[EVENT_LOG_RECORD_INTERVAL + EVENT_LOG_SLACK_SPACE];
+    static volatile event_t log_buffer[EVENT_LOG_BUFFER_SIZE];
     static volatile uint8_t ins_idx;
     static volatile uint8_t ext_idx;
     static volatile uint8_t buf_size;
+
+#ifndef EVENT_LOG_IN_FILE
+static uint32_t events_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    uint8_t *src_ptr = (uint8_t *)log_buffer;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            // len = list_u16_flatten( &query_list, pos, ptr, len );
+            memcpy( ptr, src_ptr + pos, len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = sizeof(log_buffer);
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
+#endif
 
 #endif
 
@@ -60,6 +89,7 @@ void event_v_init( void ){
             return;
         }
 
+    #ifdef EVENT_LOG_IN_FILE
         evt_file = fs_f_open_P( PSTR("event_log"),
                                 FS_MODE_CREATE_IF_NOT_FOUND |
                                 FS_MODE_WRITE_APPEND );
@@ -75,7 +105,11 @@ void event_v_init( void ){
                          PSTR("event_log"),
                          0,
                          0 );
+    #else
 
+    fs_v_create_virtual( PSTR("event_log"), events_vfile );
+
+    #endif
 
     #endif
 
@@ -115,6 +149,7 @@ void event_v_log( catbus_hash_t32 event_id, uint32_t param ){
     END_ATOMIC;
 }
 
+#ifdef EVENT_LOG_IN_FILE
 // flush all events to file.
 // this does not align the write to the FS page boundaries, so it
 // is slower than the logger thread.
@@ -146,6 +181,13 @@ void event_v_flush( void ){
     END_ATOMIC;
 }
 
+#else
+void event_v_flush( void ){
+
+}
+#endif
+
+#ifdef EVENT_LOG_IN_FILE
 // event logger thread
 PT_THREAD( event_log_thread( pt_t *pt, void *state ) )
 {
@@ -209,5 +251,6 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+#endif
 
 #endif
