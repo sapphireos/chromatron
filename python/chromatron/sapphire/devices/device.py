@@ -1223,7 +1223,81 @@ class Device(object):
         try:
             linkmgr = self.get_link_mgr_info()
 
-            print(linkmgr)
+            s += 'Link Mgr:\n'
+
+            s += 'Source               Dest                 Mode Agg  Rate Query\n'
+
+            for info in linkmgr:
+                link = info.link
+
+                try:
+                    source = self.lookup_hash(link.source_key)
+
+                except KeyError:
+                    source = f'{link.source_key:x}'                
+
+                try:
+                    dest = self.lookup_hash(link.dest_key)
+
+                except KeyError:
+                    dest = f'{link.dest_key:x}'       
+
+                if link.mode == LINK_MODE_SEND:
+                    mode = "send"
+                
+                elif link.mode == LINK_MODE_RECV:
+                    mode = "recv"
+
+                elif link.mode == LINK_MODE_SYNC:
+                    mode = "sync"
+
+                else:
+                    mode = "????"
+
+                if link.aggregation == LINK_AGG_ANY:
+                    agg = "any"
+
+                elif link.aggregation == LINK_AGG_MIN:
+                    agg = "min"
+
+                elif link.aggregation == LINK_AGG_MAX:
+                    agg = "max"
+
+                elif link.aggregation == LINK_AGG_SUM:
+                    agg = "sum"
+
+                elif link.aggregation == LINK_AGG_AVG:
+                    agg = "avg"
+
+                else:
+                    agg = "???"
+
+
+                query_s = ''
+                for q in link.query:
+                    try:
+                        v = self.lookup_hash(q)
+
+                        if v is None:
+                            continue
+
+                    except KeyError:
+                        v = f'{q:x}'
+
+                    query_s += f'{v} '
+
+                s += "%-20s %-20s %4s %3s %5d %s\n" % \
+                    (source,
+                     dest,
+                     mode,
+                     agg,
+                     link.rate,
+                     query_s)
+
+                for node in info.nodes:
+                    s += "\tIP: %15s Timeout: %3d\n" % (node.ip, node.timeout)
+
+                s += '\n'
 
 
         except IOError:
@@ -1238,7 +1312,7 @@ class Device(object):
                 raise IOError
 
             s += 'Links:\n'
-            s += 'Source                 Dest               Mode Agg  Rate Hash             Query\n'
+            s += 'Source               Dest                 Mode Agg  Rate Hash             Query\n'
 
             for info in sorted(linkinfo, key=lambda x: x.hash):
                 link = info.link
@@ -1298,7 +1372,7 @@ class Device(object):
 
                     query_s += f'{v} '
 
-                s += "%20s %20s %4s %3s %5d %16x %s\n" % \
+                s += "%-20s %-20s %4s %3s %5d %16x %s\n" % \
                     (source,
                      dest,
                      mode,
@@ -1328,7 +1402,7 @@ class Device(object):
                 except KeyError:
                     key = f'{info.key:x}'                
                 
-                s += "%20s %5d %5d %5d %5d %5d %16x\n" % \
+                s += "%-20s %5d %5d %5d %5d %5d %16x\n" % \
                     (key,
                      info.rate,
                      info.last_data,
@@ -1367,11 +1441,11 @@ class Device(object):
                 raise IOError
 
             s += 'Data cache:\n'
-            s += 'Hash                  IP           Key                 Data  Timeout\n'
+            s += 'Hash                  IP         Key                   Data  Timeout\n'
 
 
             for info in sorted(data_info, key=lambda x: x.hash):
-                s += "%16x %15s %20s %5d %3d\n" % \
+                s += "%16x %15s %-20s %5d %3d\n" % \
                     (info.hash,
                      info.ip,
                      self.lookup_hash(info.key),
