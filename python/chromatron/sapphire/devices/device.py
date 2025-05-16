@@ -783,10 +783,9 @@ class Device(object):
 
         return info
 
-
-    def get_link_producer_info(self):
-        data = self.get_file("link_producers")
-        info = sapphiredata.LinkProducerInfoArray()
+    def get_link_mgr_info(self):
+        data = self.get_file("link_mgr_info")
+        info = sapphiredata.Link2MgrInfoArray()
         info.unpack(data)
 
         return info
@@ -1220,6 +1219,16 @@ class Device(object):
 
     def cli_linkinfo(self, line):
         s = '\n'
+
+        try:
+            linkmgr = self.get_link_mgr_info()
+
+            print(linkmgr)
+
+
+        except IOError:
+            pass  
+
 
         try:
             linkinfo = self.get_link_info()

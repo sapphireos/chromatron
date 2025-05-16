@@ -390,6 +390,46 @@ class Link2DataCacheArray(ArrayField):
 
         super().__init__(_field=field, **kwargs)
 
+class Link2Node(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint8Field(_name="timeout"),
+                  Ipv4Field(_name="ip")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class Link2NodeArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = Link2Node
+
+        super().__init__(_field=field, **kwargs)
+
+class Link2MgrInfo(StructField):
+    def __init__(self, **kwargs):
+        fields = [Link2(_name="link"),
+                  Int64Field(_name="current_data"),
+                  Int16Field(_name="retransmit_ticks"),
+                  Uint16Field(_name="node_count")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+    def unpack(self, buffer):
+        super().unpack(buffer)
+
+        buffer = buffer[self.size():] # trim header
+        # trim tail so we just get this chunk
+        buffer = buffer[:self.node_count * Link2Node().size()]
+
+        array = Link2NodeArray(_name="nodes").unpack(buffer)
+        self._fields[array._name] = array
+
+        return self
+
+class Link2MgrInfoArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = Link2MgrInfo
+
+        super().__init__(_field=field, **kwargs)
+
 
 # class LinkProducerInfo(StructField):
 #     def __init__(self, **kwargs):

@@ -27,7 +27,7 @@
 #include "controller.h"
 #include "link.h"
 #include "threading.h"
-
+#include "event_log.h"
 
 #ifdef ENABLE_CONTROLLER
 

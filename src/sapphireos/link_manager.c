@@ -50,6 +50,7 @@ typedef struct __attribute__((packed)){
     int64_t current_data;
 
     int16_t retransmit_ticks;
+    uint16_t node_count;
 
     // link2_node_t follows
 } link2_meta_t;
@@ -236,18 +237,19 @@ static void process_data_cache_timeouts( void ){
 }
 
 
-static uint8_t count_nodes_for_link( link2_meta_t *meta, uint16_t len ){
+// static uint8_t count_nodes_for_link( link2_meta_t *meta, uint16_t len ){
 
-	ASSERT( len >= sizeof(link2_meta_t) );
+// 	ASSERT( len >= sizeof(link2_meta_t) );
 
-	len -= sizeof(link2_meta_t);
+// 	len -= sizeof(link2_meta_t);
 
-	return len / sizeof(link2_node_t);
-}
+// 	return len / sizeof(link2_node_t);
+// }
 
 static bool link_has_ip( link2_meta_t *meta, uint16_t len, ip_addr4_t ip ){
 
-	uint8_t count = count_nodes_for_link( meta, len );
+	// uint8_t count = count_nodes_for_link( meta, len );
+	uint16_t count = meta->node_count;
 	link2_node_t *node = (link2_node_t *)( meta + 1 );
 
 	while( count > 0 ){
@@ -274,7 +276,8 @@ static void process_link_node_timeouts( void ){
         list_node_t next_ln = list_ln_next( ln );
         		
         // iterate over nodes
-        uint8_t node_count = count_nodes_for_link( meta, list_u16_node_size( ln ) );
+        // uint8_t node_count = count_nodes_for_link( meta, list_u16_node_size( ln ) );
+        uint16_t node_count = meta->node_count;
         link2_node_t *node = (link2_node_t *)( meta + 1 );
 
         uint8_t count = node_count;
@@ -443,8 +446,9 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 	if( ln < 0 ){
 
 		// link not found
+		uint16_t size = sizeof(link2_meta_t) + sizeof(link2_node_t);
 
-		ln = list_ln_create_node2( 0, sizeof(link2_meta_t) + sizeof(link2_node_t), MEM_TYPE_LINK2_META );
+		ln = list_ln_create_node2( 0, size, MEM_TYPE_LINK2_META );
 
 	    if( ln < 0 ){
 
@@ -454,7 +458,9 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 	    // set up new link meta data
 
 	    meta = (link2_meta_t *)list_vp_get_data( ln );
+	    memset( meta, 0, size );
 	    meta->link = *link;
+	    meta->node_count = 1;
 
 	    // init the rexmit timer
 	    meta->retransmit_ticks = LINK_RETRANSMIT_RATE_FAST;
@@ -472,7 +478,8 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 	// link found
 	meta = (link2_meta_t *)list_vp_get_data( ln );
 	// update node`list
-	uint8_t node_count = count_nodes_for_link( meta, list_u16_node_size( ln ) );
+	// uint8_t node_count = count_nodes_for_link( meta, list_u16_node_size( ln ) );
+	uint16_t node_count = meta->node_count;
 	link2_node_t *node = (link2_node_t *)( meta + 1 );
 	bool ip_found = FALSE;
 	link2_node_t *free_node = 0;
@@ -520,6 +527,7 @@ void _link2_mgr_add_or_update_link( link2_t *link, sock_addr_t *raddr ){
 			link2_meta_t *new_meta = (link2_meta_t *)list_vp_get_data( new_ln );
 
 			memcpy( new_meta, meta, list_u16_node_size( ln ) );
+			new_meta->node_count = node_count;
 
 			// add node to end of list
 			node = (link2_node_t *)( new_meta + 1 ) + ( node_count - 1 );
