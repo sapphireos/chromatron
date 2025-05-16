@@ -662,21 +662,21 @@ class Device(object):
 
         return info
 
-    def get_service_info(self):
-        data = self.get_file("serviceinfo")
-        info = sapphiredata.ServiceInfoArray()
-        info.unpack(data)
+    # def get_service_info(self):
+    #     data = self.get_file("serviceinfo")
+    #     info = sapphiredata.ServiceInfoArray()
+    #     info.unpack(data)
 
-        return info
+    #     return info
 
-    def get_service(self, service_id, group):
-        services = self.get_service_info()
+    # def get_service(self, service_id, group):
+    #     services = self.get_service_info()
 
-        for s in services:
-            if s.id == service_id and s.group == group:
-                return s
+    #     for s in services:
+    #         if s.id == service_id and s.group == group:
+    #             return s
 
-        return None
+    #     return None
 
     def get_datalog_config(self):
         data = self.get_file("datalog_config")
@@ -1169,53 +1169,53 @@ class Device(object):
 
         return s
 
-    def cli_serviceinfo(self, line):
-        try:
-            serviceinfo = self.get_service_info()
+    # def cli_serviceinfo(self, line):
+    #     try:
+    #         serviceinfo = self.get_service_info()
 
-        except IOError:
-            return "No services found"
+    #     except IOError:
+    #         return "No services found"
 
-        states = {
-                0: 'listen',
-                1: 'connected',
-                2: 'server',
-            }
+    #     states = {
+    #             0: 'listen',
+    #             1: 'connected',
+    #             2: 'server',
+    #         }
         
-        s = "\nService          Group               IP           Port  Priority    Uptime    Timeout | State\n"
+    #     s = "\nService          Group               IP           Port  Priority    Uptime    Timeout | State\n"
 
-        # iterate over service cache entries
-        for e in serviceinfo:
-            if states[e.state] == 'server':
-                uptime = e.local_uptime
-                port = e.local_port
-            else:
-                uptime = e.server_uptime
-                port = e.server_port
+    #     # iterate over service cache entries
+    #     for e in serviceinfo:
+    #         if states[e.state] == 'server':
+    #             uptime = e.local_uptime
+    #             port = e.local_port
+    #         else:
+    #             uptime = e.server_uptime
+    #             port = e.server_port
 
-            try:
-                service_id = self.lookup_hash(e.id)
+    #         try:
+    #             service_id = self.lookup_hash(e.id)
 
-            except KeyError:
-                service_id = f'{e.id:x}'
+    #         except KeyError:
+    #             service_id = f'{e.id:x}'
 
-            try:
-                group_id = self.lookup_hash(e.group)
+    #         try:
+    #             group_id = self.lookup_hash(e.group)
 
-            except KeyError:
-                group_id = f'{e.group:x}'
+    #         except KeyError:
+    #             group_id = f'{e.group:x}'
 
-            s += "%16s %16s %15s %5d %3d     %7d     %3d         %-10s\n" % \
-                (service_id,
-                 group_id,
-                 e.server_ip,
-                 port,
-                 e.local_priority,
-                 uptime,
-                 e.timeout,
-                 states[e.state])
+    #         s += "%16s %16s %15s %5d %3d     %7d     %3d         %-10s\n" % \
+    #             (service_id,
+    #              group_id,
+    #              e.server_ip,
+    #              port,
+    #              e.local_priority,
+    #              uptime,
+    #              e.timeout,
+    #              states[e.state])
 
-        return s
+    #     return s
 
     def cli_linkinfo(self, line):
         s = '\n'
@@ -1225,7 +1225,7 @@ class Device(object):
 
             s += 'Link Mgr:\n'
 
-            s += 'Source               Dest                 Mode Agg  Rate Query\n'
+            s += 'Source               Dest                 Mode Agg  Rate Data Query\n'
 
             for info in linkmgr:
                 link = info.link
@@ -1286,12 +1286,13 @@ class Device(object):
 
                     query_s += f'{v} '
 
-                s += "%-20s %-20s %4s %3s %5d %s\n" % \
+                s += "%-20s %-20s %4s %3s %5d %5d %s\n" % \
                     (source,
                      dest,
                      mode,
                      agg,
                      link.rate,
+                     info.current_data,
                      query_s)
 
                 for node in info.nodes:
