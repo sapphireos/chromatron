@@ -407,6 +407,7 @@ class Link2MgrInfo(StructField):
     def __init__(self, **kwargs):
         fields = [Link2(_name="link"),
                   Int64Field(_name="current_data"),
+                  BooleanField(_name="changed"),
                   Int16Field(_name="retransmit_ticks"),
                   Uint16Field(_name="node_count")]
 
