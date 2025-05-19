@@ -69,6 +69,9 @@ typedef uint8_t link_mode_t8;
 #define LINK_MODE_SEND						0
 #define LINK_MODE_RECV						1
 #define LINK_MODE_SYNC						2
+    
+// used in some utility functions, not a real link mode
+#define LINK_MODE_ANY                      127
 
 typedef uint16_t link_filter_t16;
 #define LINK_FILTER_OFF                     0

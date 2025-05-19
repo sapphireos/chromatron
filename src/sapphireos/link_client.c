@@ -22,6 +22,8 @@
 // </license>
  */
 
+#include "catbus_link.h"
+#include "logging.h"
 #include "sapphire.h"
 
 #include "controller.h"
@@ -417,7 +419,8 @@ bool link2_b_is_linked_by_source_key( link_mode_t8 mode, catbus_hash_t32 source_
         const link2_state_t *state = list_vp_get_data( ln );
 
         if( ( state->link.source_key == source_key ) &&
-            ( state->link.mode == mode ) ){
+            ( ( state->link.mode == mode ) ||
+              ( state->link.mode == LINK_MODE_ANY ) ) ){
 
             return TRUE;
         }
@@ -437,7 +440,9 @@ bool link2_b_is_linked_by_dest_key( link_mode_t8 mode, catbus_hash_t32 dest_key 
         const link2_state_t *state = list_vp_get_data( ln );
 
         if( ( state->link.dest_key == dest_key ) &&
-            ( state->link.mode == mode ) ){
+            ( ( state->link.mode == mode ) ||
+              ( state->link.mode == LINK_MODE_ANY ) ) ){
+
 
             return TRUE;
         }
@@ -545,6 +550,16 @@ link2_handle_t link2_l_create2( link2_state_t *state ){
     else if( state->link.mode == LINK_MODE_SYNC ){
 
         if( state->link.source_key != state->link.dest_key ){
+
+            log_v_debug_P( PSTR("Sync link source and dest mismatch") );
+
+            return -1;
+        }
+
+        // check if already syncing on this key
+        if( link_b_is_synced( state->link.source_key ) ){
+
+            log_v_debug_P( PSTR("Link key already synced") );
 
             return -1;
         }
@@ -1211,20 +1226,81 @@ PT_END( pt );
 
 bool link_b_is_linked( catbus_hash_t32 key ){
 
+    if( link2_b_is_linked_by_source_key( LINK_MODE_ANY, key ) ){
+
+        return TRUE;
+    }
+
+    if( link2_b_is_linked_by_dest_key( LINK_MODE_ANY, key ) ){
+
+        return TRUE;
+    }
+
     return FALSE;
 }
 
 bool link_b_is_synced( catbus_hash_t32 key ){
+
+    if( link2_b_is_linked_by_source_key( LINK_MODE_SYNC, key ) ){
+
+        return TRUE;
+    }
 
     return FALSE;
 }
 
 bool link_b_is_synced_leader( catbus_hash_t32 key ){
 
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        const link2_state_t *state = list_vp_get_data( ln );
+
+        if( state->link.mode == LINK_MODE_SYNC ){
+
+            if( ( state->link.source_key == key ) ||
+                ( state->link.dest_key == key ) ){
+                
+                // match link - check for binding
+                if( get_binding_for_hash( state->hash ) != 0 ){
+                    // binding - leader
+
+                    return TRUE;
+                }
+            }
+        }
+
+        ln = list_ln_next( ln );
+    }
+
     return FALSE;
 }
 
 bool link_b_is_synced_follower( catbus_hash_t32 key ){
+
+        list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        const link2_state_t *state = list_vp_get_data( ln );
+
+        if( state->link.mode == LINK_MODE_SYNC ){
+
+            if( ( state->link.source_key == key ) ||
+                ( state->link.dest_key == key ) ){
+                
+                // match link - check for binding
+                if( get_binding_for_hash( state->hash ) == 0 ){
+                    // no binding - follower
+
+                    return TRUE;
+                }
+            }
+        }
+
+        ln = list_ln_next( ln );
+    }
 
     return FALSE;
 }

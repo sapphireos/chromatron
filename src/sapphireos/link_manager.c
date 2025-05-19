@@ -1033,7 +1033,49 @@ PT_BEGIN( pt );
                         count++;
                     }
                 }
+                else if( meta->link.mode == LINK_MODE_SYNC ){
 
+                    /*
+    
+                    For sync links, we select a specific node
+                    and user their data for the group.
+
+                    We select that node here and send a binding.
+                    Then the data process is just a straightforward
+                    route from that binding to the sync group.
+
+                    We have a list of IPs for each node that 
+                    has this link, we can just pick the first one.
+
+                    */
+
+                    // verify node count
+                    if( meta->node_count == 0 ){
+
+                        goto next;
+                    }
+
+                    // get first node
+                    const link2_node_t *node = (link2_node_t *)( meta + 1 );
+
+                    // compare the first node IP to this follower's IP.
+                    // if match, add this binding.
+                    if( ip_b_addr_compare( node->ip, follower->ip ) ){
+
+                        link2_binding_t binding = {
+                            meta->link.source_key,
+                            meta->link.rate,
+                            meta->link.mode,
+                            link2_u64_hash( &meta->link ),
+                        };
+
+                        bindings[count] = binding;
+
+                        count++;
+                    }
+                }
+
+next:
                 if( count >= LINK_MAX_BIND_ENTRIES ){
 
                     send_bind_msg( bindings, count, follower->ip );
@@ -1186,6 +1228,29 @@ PT_BEGIN( pt );
 
                     // MATCH
 
+                }
+                else if( meta->link.mode == LINK_MODE_SYNC ){
+
+                    // check follower IP against first IP in link
+                    // node list (which is the sync source).
+
+                    // verify node count
+                    if( meta->node_count == 0 ){
+
+                        goto next;
+                    }
+
+                    // get first node
+                    const link2_node_t *node = (link2_node_t *)( meta + 1 );
+
+                    if( ip_b_addr_compare( node->ip, follower->ip ) ){
+
+                        // this node is the sync leader, it already has the value, 
+                        // we don't need to send to it.
+                        goto next;
+                    }
+
+                    // MATCH
                 }
 
                 int64_t data = 0;
