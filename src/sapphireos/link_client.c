@@ -839,10 +839,11 @@ PT_BEGIN( pt );
 
             while( count > 0 ){
 
-                // check if this is a send binding
-                if( binding->mode == LINK_MODE_SEND ){
+                // check if this is a send or sync binding
+                if( ( binding->mode == LINK_MODE_SEND ) ||
+                    ( binding->mode == LINK_MODE_SYNC ) ){
 
-                    // send bindings must have a corresponding local link
+                    // send and sync bindings must have a corresponding local link
                     if( link2_l_lookup_by_hash( binding->link_hash ) < 0 ){
 
                         goto next_binding;
@@ -878,7 +879,9 @@ PT_BEGIN( pt );
                 // check data item mode
                 // if the item is from a receive, then there should be matching receive
                 // link on this device.
-                if( data_ptr->mode == LINK_MODE_RECV ){
+                // or sync, or control
+                if( ( data_ptr->mode == LINK_MODE_RECV ) ||
+                    ( data_ptr->mode == LINK_MODE_SYNC ) ){
 
                     if( link2_l_lookup_by_hash( data_ptr->link_hash ) < 0 ){
 
