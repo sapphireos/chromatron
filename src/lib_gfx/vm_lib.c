@@ -30,7 +30,7 @@
 #include "vm_lib.h"
 #include "io.h"
 #include "gfx_lib.h"
-#include "catbus_link.h"
+#include "link.h"
 #include "pixel_mapper.h"
 #include "vm.h"
 #include "vm_core.h"

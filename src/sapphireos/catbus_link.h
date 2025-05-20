@@ -25,9 +25,12 @@
 #ifndef __CATBUS_LINK_H
 #define __CATBUS_LINK_H
 
+#include "target.h"
 #include "list.h"
 #include "sockets.h"
 #include "catbus_common.h"
+
+#ifdef ENABLE_CATBUS_LINK
 
 #define LINK_PORT                           44634
 #define LINK_VERSION                        1
@@ -70,9 +73,6 @@ typedef uint8_t link_mode_t8;
 #define LINK_MODE_RECV						1
 #define LINK_MODE_SYNC						2
     
-// used in some utility functions, not a real link mode
-#define LINK_MODE_ANY                      127
-
 typedef uint16_t link_filter_t16;
 #define LINK_FILTER_OFF                     0
 
@@ -217,5 +217,7 @@ void link_v_delete_by_hash( uint64_t hash );
 bool link_b_is_synced( catbus_hash_t32 key );
 bool link_b_is_synced_leader( catbus_hash_t32 key );
 bool link_b_is_synced_follower( catbus_hash_t32 key );
+
+#endif
 
 #endif

@@ -3503,7 +3503,7 @@ int8_t vm_i8_load_program(
             #ifdef ENABLE_CONTROLLER
             link_t *link = (link_t *)obj_ptr;
 
-            link_handle_t link_h = 
+            link2_handle_t link_h = 
                 link2_l_create( 
                     link->mode,
                     link->source_key,

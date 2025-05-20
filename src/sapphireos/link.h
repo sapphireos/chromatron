@@ -33,6 +33,9 @@
 #define LINK2_PORT                           44637
 #define LINK2_MGR_PORT                       44638
 
+#define LINK_VERSION                        1
+#define LINK_MAGIC                          0x4b4e494c // 'LINK'
+
 #ifdef LINK_RATE_MIN
 #undef LINK_RATE_MIN
 #endif
@@ -47,6 +50,7 @@
 #define LINK2_MGR_LINK_TIMEOUT				8
 #define LINK_BINDING_TIMEOUT                8
 
+#define LINK_MAX_LINKS                      16
 
 typedef list_node_t link2_handle_t;
 
@@ -62,6 +66,8 @@ typedef uint8_t link_mode_t8;
 #define LINK_MODE_RECV						1
 #define LINK_MODE_SYNC						2
 #define LINK_MODE_CTRL                      3
+// used in some utility functions, not a real link mode
+#define LINK_MODE_ANY                      127
 
 typedef uint16_t link_filter_t16;
 #define LINK_FILTER_OFF                     0
@@ -161,6 +167,7 @@ void link2_v_delete_by_hash( uint64_t hash );
 
 void link2_v_init_header( link2_msg_header_t *header, uint8_t msg_type );
 
+bool link_b_is_linked( catbus_hash_t32 key );
 bool link_b_is_synced( catbus_hash_t32 key );
 bool link_b_is_synced_leader( catbus_hash_t32 key );
 bool link_b_is_synced_follower( catbus_hash_t32 key );
