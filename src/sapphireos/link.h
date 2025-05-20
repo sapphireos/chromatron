@@ -161,6 +161,10 @@ void link2_v_delete_by_hash( uint64_t hash );
 
 void link2_v_init_header( link2_msg_header_t *header, uint8_t msg_type );
 
+bool link_b_is_synced( catbus_hash_t32 key );
+bool link_b_is_synced_leader( catbus_hash_t32 key );
+bool link_b_is_synced_follower( catbus_hash_t32 key );
+bool link_b_is_ctrl( catbus_hash_t32 key );
 
 void link_mgr_v_start( void );
 void link_mgr_v_stop( void );

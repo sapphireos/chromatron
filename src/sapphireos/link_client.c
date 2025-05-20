@@ -22,8 +22,6 @@
 // </license>
  */
 
-#include "catbus_link.h"
-#include "logging.h"
 #include "sapphire.h"
 
 #include "controller.h"
@@ -281,14 +279,14 @@ PT_END( pt );
 
 void link2_v_init( void ){
 
-	list_v_init( &link_list );
+    list_v_init( &link_list );
     list_v_init( &binding_list );
 
     fs_v_create_virtual( PSTR("link_info"), link_vfile );
     fs_v_create_virtual( PSTR("link_binding_info"), binding_vfile );
 
-	#ifdef ESP8266
-	
+    #ifdef ESP8266
+    
 
     // catbus_query_t link_query = {
     //     {
@@ -315,28 +313,28 @@ void link2_v_init( void ){
 
     //     log_v_debug_P( PSTR("link create") );
 
-    // 	link2_l_create(
-    // 		LINK_MODE_SEND,
-    // 		__KV__link2_test_key,
-    // 		__KV__link2_test_key2,
-    // 		&query,
-    // 		0,
-    // 		5000,
-    // 		LINK_AGG_ANY,
-    // 		LINK_FILTER_OFF
-    // 	);
+    //  link2_l_create(
+    //      LINK_MODE_SEND,
+    //      __KV__link2_test_key,
+    //      __KV__link2_test_key2,
+    //      &query,
+    //      0,
+    //      5000,
+    //      LINK_AGG_ANY,
+    //      LINK_FILTER_OFF
+    //  );
 
     //     thread_t_create( link2_test_thread, PSTR("link2_test"), 0, 0 );
     // }
 
-	#endif
+    #endif
 
-	thread_t_create( link2_server_thread,
+    thread_t_create( link2_server_thread,
                  PSTR("link2_server"),
                  0,
                  0 );
 
-	thread_t_create( link2_meta_thread,
+    thread_t_create( link2_meta_thread,
                  PSTR("link2_meta"),
                  0,
                  0 );
@@ -355,33 +353,33 @@ link2_state_t* link2_ls_get_data( link2_handle_t link ){
 
 bool link2_b_compare( const link2_state_t *link1, const link2_state_t *link2 ){
  
-	return memcmp( link1, link2, sizeof(link2_state_t) ) == 0;
+    return memcmp( link1, link2, sizeof(link2_state_t) ) == 0;
 }
 
 uint64_t link2_u64_hash( link2_t *link ){
 
-	uint64_t hash = hash_u64_data( (uint8_t *)link, sizeof(link2_t) );	
+    uint64_t hash = hash_u64_data( (uint8_t *)link, sizeof(link2_t) );  
 
     return hash;
 }
 
 link2_handle_t link2_l_lookup( link2_state_t *link ){
 
-	list_node_t ln = link_list.head;
+    list_node_t ln = link_list.head;
 
-	while( ln >= 0 ){
+    while( ln >= 0 ){
 
-		link2_state_t *state = list_vp_get_data( ln );
+        link2_state_t *state = list_vp_get_data( ln );
 
-		if( link2_b_compare( link, state ) ){
+        if( link2_b_compare( link, state ) ){
 
-			return ln;
-		}
+            return ln;
+        }
 
-		ln = list_ln_next( ln );
-	}
+        ln = list_ln_next( ln );
+    }
 
-	return -1;
+    return -1;
 }
 
 link2_handle_t link2_l_lookup_by_hash( uint64_t hash ){
@@ -454,7 +452,7 @@ bool link2_b_is_linked_by_dest_key( link_mode_t8 mode, catbus_hash_t32 dest_key 
 }
 
 link2_t link2_ls_assemble(
-	link_mode_t8 mode, 
+    link_mode_t8 mode, 
     catbus_hash_t32 source_key, 
     catbus_hash_t32 dest_key, 
     catbus_query_t *query,
@@ -463,18 +461,18 @@ link2_t link2_ls_assemble(
     link_aggregation_t8 aggregation,
     link_filter_t16 filter ){
 
-	link2_t state = {
-		.mode 				= mode,
-		.source_key 		= source_key,
-		.dest_key 			= dest_key,
-		.query 				= *query,
-		.tag 				= tag,
-		.rate 			    = rate,
-		.aggregation 		= aggregation,
-		// .filter 			= filter,
-	};
+    link2_t state = {
+        .mode               = mode,
+        .source_key         = source_key,
+        .dest_key           = dest_key,
+        .query              = *query,
+        .tag                = tag,
+        .rate               = rate,
+        .aggregation        = aggregation,
+        // .filter          = filter,
+    };
 
-	return state;
+    return state;
 }
 
 link2_handle_t link2_l_create( 
@@ -487,23 +485,23 @@ link2_handle_t link2_l_create(
     link_aggregation_t8 aggregation,
     link_filter_t16 filter ){ 
 
-	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-		return -1;
-	}
+        return -1;
+    }
 
-	link2_t link = link2_ls_assemble(
-							mode,
-							source_key,
-							dest_key,
-							query,
-							tag,
-							rate,
-							aggregation,
-							filter );
+    link2_t link = link2_ls_assemble(
+                            mode,
+                            source_key,
+                            dest_key,
+                            query,
+                            tag,
+                            rate,
+                            aggregation,
+                            filter );
 
-	link2_state_t state = { 0 };
-	state.link = link;
+    link2_state_t state = { 0 };
+    state.link = link;
 
     return link2_l_create2( &state );
 }
@@ -575,6 +573,23 @@ link2_handle_t link2_l_create2( link2_state_t *state ){
         }
 
         state->link.aggregation = LINK_AGG_ANY;
+    }
+    else if( state->link.mode == LINK_MODE_CTRL ){
+
+        if( state->link.source_key != state->link.dest_key ){
+
+            log_v_debug_P( PSTR("Sync link source and dest mismatch") );
+
+            return -1;
+        }
+
+        // check if already syncing on this key
+        if( link_b_is_ctrl( state->link.source_key ) ){
+
+            log_v_debug_P( PSTR("Link key already on ctrl link") );
+
+            return -1;
+        }   
     }
     else{
 
@@ -959,90 +974,90 @@ PT_BEGIN( pt );
         }
 
         // send link meta data to link manager
-     	link_mgr_raddr.port = LINK2_MGR_PORT;
+        link_mgr_raddr.port = LINK2_MGR_PORT;
 
-     	uint8_t link_count = link2_u8_count();
+        uint8_t link_count = link2_u8_count();
 
-     	// no links, nothing to do!
-     	if( link_count == 0 ){
+        // no links, nothing to do!
+        if( link_count == 0 ){
 
-     		continue;
-     	}
+            continue;
+        }
 
-     	uint8_t max_links_per_message = ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_t);
-     	
-     	mem_handle_t h = -1;
-     	link2_msg_header_t *hdr = 0;
-     	link2_t *link_ptr = 0;
-     	uint8_t current_links_this_msg = 0;
-     	
- 		ln = link_list.head;
+        uint8_t max_links_per_message = ( UDP_MAX_LEN - sizeof(link2_msg_header_t) ) / sizeof(link2_t);
+        
+        mem_handle_t h = -1;
+        link2_msg_header_t *hdr = 0;
+        link2_t *link_ptr = 0;
+        uint8_t current_links_this_msg = 0;
+        
+        ln = link_list.head;
 
-	    while( ln >= 0 ){
+        while( ln >= 0 ){
 
-	    	// set up message data
-	    	if( h < 0 ){
+            // set up message data
+            if( h < 0 ){
 
-	    		current_links_this_msg = link_count;
+                current_links_this_msg = link_count;
 
-		     	if( current_links_this_msg > max_links_per_message ){
+                if( current_links_this_msg > max_links_per_message ){
 
-		     		current_links_this_msg = max_links_per_message;
-		     	}
+                    current_links_this_msg = max_links_per_message;
+                }
 
-	    		// allocate new message data
+                // allocate new message data
 
-	    		h = mem2_h_alloc( sizeof(link2_msg_header_t) + current_links_this_msg * sizeof(link2_t) );
+                h = mem2_h_alloc( sizeof(link2_msg_header_t) + current_links_this_msg * sizeof(link2_t) );
 
-		     	if( h < 0 ){
+                if( h < 0 ){
 
                     log_v_debug_P( PSTR("alloc fail") );
 
-		     		THREAD_RESTART( pt );
-		     	}
+                    THREAD_RESTART( pt );
+                }
 
-		     	hdr = (link2_msg_header_t *)mem2_vp_get_ptr_fast( h );
-		     	
-		     	link2_v_init_header( hdr, LINK_MSG_TYPE_LINK );
+                hdr = (link2_msg_header_t *)mem2_vp_get_ptr_fast( h );
+                
+                link2_v_init_header( hdr, LINK_MSG_TYPE_LINK );
 
-		     	link_ptr = (link2_t *)( hdr + 1 );
+                link_ptr = (link2_t *)( hdr + 1 );
 
-		     	// log_v_debug_P( PSTR("Link msg: %d"), current_links_this_msg );
-	    	}
+                // log_v_debug_P( PSTR("Link msg: %d"), current_links_this_msg );
+            }
 
-	        link2_state_t *link_state = list_vp_get_data( ln );
+            link2_state_t *link_state = list_vp_get_data( ln );
 
             link_ptr->mode = link_state->link.mode;    
-            	        
-	        link_ptr->aggregation 	= link_state->link.aggregation;
-	        link_ptr->rate 			= link_state->link.rate;
-	        link_ptr->source_key 	= link_state->link.source_key;
-	        link_ptr->dest_key 		= link_state->link.dest_key;
-	        link_ptr->tag 			= link_state->link.tag;
-	        link_ptr->query 		= link_state->link.query;
+                        
+            link_ptr->aggregation   = link_state->link.aggregation;
+            link_ptr->rate          = link_state->link.rate;
+            link_ptr->source_key    = link_state->link.source_key;
+            link_ptr->dest_key      = link_state->link.dest_key;
+            link_ptr->tag           = link_state->link.tag;
+            link_ptr->query         = link_state->link.query;
 
 
-	        current_links_this_msg--;
-	        link_ptr++;
-	        link_count--;
+            current_links_this_msg--;
+            link_ptr++;
+            link_count--;
 
-	        if( current_links_this_msg == 0 ){
+            if( current_links_this_msg == 0 ){
 
                 // log_v_debug_P( PSTR("send link") );
 
-	        	// send this message:
-	        	if( sock_i16_sendto_m( sock, h, &link_mgr_raddr ) < 0 ){
+                // send this message:
+                if( sock_i16_sendto_m( sock, h, &link_mgr_raddr ) < 0 ){
 
 
-	        	}
+                }
 
                 link2_msgs_tx_link++;
 
-	        	h = -1; // clear handle
-	        }
+                h = -1; // clear handle
+            }
 
-	        ln = list_ln_next( ln );     
-	    } 	
+            ln = list_ln_next( ln );     
+        }   
     }
 
 PT_END( pt );
@@ -1307,6 +1322,17 @@ bool link_b_is_synced_follower( catbus_hash_t32 key ){
 
     return FALSE;
 }
+
+bool link_b_is_ctrl( catbus_hash_t32 key ){
+
+    if( link2_b_is_linked_by_source_key( LINK_MODE_CTRL, key ) ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 
 #endif
 
