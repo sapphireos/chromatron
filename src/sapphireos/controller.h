@@ -119,6 +119,8 @@ typedef struct __attribute__((packed)){
 
 // void controller_v_on_received_status( controller_msg_status_t *msg, sock_addr_t *raddr ) __attribute((weak));
 
+uint16_t controller_u16_count_for_query( catbus_query_t *query );
+
 void controller_db_v_reset_iter( void );
 follower_t* controller_db_p_get_next( void );
 follower_t* controller_db_p_get_next_query( catbus_query_t *query );

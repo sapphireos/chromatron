@@ -22,9 +22,6 @@
 // </license>
  */
 
-#include "keyvalue.h"
-#include "logging.h"
-#include "memory.h"
 #include "sapphire.h"
 #include "config.h"
 
@@ -1226,8 +1223,30 @@ bool controller_b_is_follower( void ){
 }
 
 
+uint16_t controller_u16_count_for_query( catbus_query_t *query ){
+
+	uint16_t count = 0;
+
+	// search leader
+	list_node_t ln = follower_list.head;
+
+    while( ln > 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        follower_t *follower = (follower_t *)list_vp_get_data( ln );
 
 
+		if( catbus_b_query_tags( query, &follower->tags ) ){
+
+			count++;
+		}
+
+        ln = next_ln;
+    }	
+
+    return count;
+}
 
 
 static list_node_t follower_ln;

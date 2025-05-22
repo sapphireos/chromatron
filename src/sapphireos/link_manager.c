@@ -1074,6 +1074,32 @@ PT_BEGIN( pt );
                         count++;
                     }
                 }
+                else if( meta->link.mode == LINK_MODE_CTRL ){
+
+                    // check if any receiving nodes exist
+                    if( controller_u16_count_for_query( &meta->link.query ) == 0 ){
+
+                        // none, then we don't need to bind to senders
+                        goto next;
+                    }
+
+                    // check if node IP matches this link
+                    if( link_has_ip( meta, list_u16_node_size( ln ), follower->ip ) ){
+
+                        // log_v_debug_P( PSTR("prepare binding:  0x%08x"), meta->link.source_key);
+
+                        link2_binding_t binding = {
+                            meta->link.source_key,
+                            meta->link.rate,
+                            meta->link.mode,
+                            link2_u64_hash( &meta->link ),
+                        };
+
+                        bindings[count] = binding;
+
+                        count++;
+                    }
+                }
 
 next:
                 if( count >= LINK_MAX_BIND_ENTRIES ){
@@ -1249,6 +1275,18 @@ PT_BEGIN( pt );
                         // we don't need to send to it.
                         goto next;
                     }
+
+                    // MATCH
+                }
+                else if( meta->link.mode == LINK_MODE_CTRL ){
+
+                    // check link query against follower
+                    if( !catbus_b_query_tags( &meta->link.query, &follower->tags ) ){
+
+                        // link2_mgr_trace |= 0x02;
+
+                        goto next;
+                    }   
 
                     // MATCH
                 }
