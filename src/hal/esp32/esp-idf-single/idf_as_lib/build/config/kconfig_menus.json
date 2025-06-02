@@ -7623,12 +7623,12 @@
                     {
                         "children": [],
                         "depends_on": null,
-                        "help": "Sockets take up a certain amount of memory, and allowing fewer\nsockets to be open at the same time conserves memory. Specify\nthe maximum amount of sockets here. The valid value is from 1\nto 16.",
+                        "help": "Sockets take up a certain amount of memory, and allowing fewer\nsockets to be open at the same time conserves memory. Specify\nthe maximum amount of sockets here. The valid value is from 1\nto 128. JGB: https://github.com/espressif/esp-idf/commit/48295d31ca90d693356b632750630efd2f1b34eb",
                         "id": "LWIP_MAX_SOCKETS",
                         "name": "LWIP_MAX_SOCKETS",
                         "range": [
                             1,
-                            16
+                            48
                         ],
                         "title": "Max number of open sockets",
                         "type": "int"
@@ -8451,10 +8451,7 @@
                         "help": "Config max number of IPv6 packets to queue during MAC resolution.",
                         "id": "LWIP_IPV6_MEMP_NUM_ND6_QUEUE",
                         "name": "LWIP_IPV6_MEMP_NUM_ND6_QUEUE",
-                        "range": [
-                            3,
-                            20
-                        ],
+                        "range": null,
                         "title": "Max number of IPv6 packets to queue during MAC resolution",
                         "type": "int"
                     },
@@ -8464,10 +8461,7 @@
                         "help": "Config max number of entries in IPv6 neighbor cache",
                         "id": "LWIP_IPV6_ND6_NUM_NEIGHBORS",
                         "name": "LWIP_IPV6_ND6_NUM_NEIGHBORS",
-                        "range": [
-                            3,
-                            10
-                        ],
+                        "range": null,
                         "title": "Max number of entries in IPv6 neighbor cache",
                         "type": "int"
                     },

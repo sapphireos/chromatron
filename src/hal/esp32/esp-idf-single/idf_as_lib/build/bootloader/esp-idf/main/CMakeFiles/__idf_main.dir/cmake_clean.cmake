@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/__idf_main.dir/bootloader_start.c.obj"
+  "CMakeFiles/__idf_main.dir/bootloader_start.c.obj.d"
   "libmain.a"
   "libmain.pdb"
 )

@@ -1,9 +1,13 @@
 file(REMOVE_RECURSE
   "CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_crc.c.obj"
+  "CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_crc.c.obj.d"
   "CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_longjmp.S.obj"
   "CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_sys.c.obj"
+  "CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_sys.c.obj.d"
   "CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_tjpgd.c.obj"
+  "CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_tjpgd.c.obj.d"
   "CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_uart.c.obj"
+  "CMakeFiles/__idf_esp_rom.dir/patches/esp_rom_uart.c.obj.d"
   "libesp_rom.a"
   "libesp_rom.pdb"
 )
