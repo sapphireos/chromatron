@@ -392,7 +392,15 @@ static int8_t save_scene( const char *s ){
 		goto done;
 	}
 
-	uint8_t seq_time_mode = FALSE;
+	uint16_t dimmer = 0;
+	kv_i8_get( __KV__gfx_master_dimmer, &dimmer, sizeof(dimmer) );
+	write_scene_key_int( new_f, PSTR("gfx_master_dimmer"), dimmer );
+
+	kv_i8_get( __KV__gfx_sub_dimmer, &dimmer, sizeof(dimmer) );
+	write_scene_key_int( new_f, PSTR("gfx_sub_dimmer"), dimmer );
+
+	
+	uint8_t seq_time_mode = 0;
 	kv_i8_get( __KV__seq_time_mode, &seq_time_mode, sizeof(seq_time_mode) );
 
 	write_scene_key_int( new_f, PSTR("seq_time_mode"), seq_time_mode );
@@ -407,11 +415,85 @@ static int8_t save_scene( const char *s ){
 
 		goto done;
 	}
+	else{
+
+		// write sequencer settings
+
+		uint8_t seq_select_mode = 0;
+		kv_i8_get( __KV__seq_select_mode, &seq_select_mode, sizeof(seq_select_mode) );
+
+		write_scene_key_int( new_f, PSTR("seq_select_mode"), seq_select_mode );
 
 
-	// write sequencer settings
+		char seq_prog[CATBUS_STRING_LEN] = {0};
+
+		kv_i8_get( __KV__seq_slot_0, &seq_prog, sizeof(seq_prog) );
+		if( seq_prog[0] != 0 ){
+
+			write_scene_key_str( new_f, PSTR("seq_slot_0"), seq_prog );	
+		}
+		
+		kv_i8_get( __KV__seq_slot_1, &seq_prog, sizeof(seq_prog) );
+		if( seq_prog[0] != 0 ){
+
+			write_scene_key_str( new_f, PSTR("seq_slot_1"), seq_prog );	
+		}
+
+		kv_i8_get( __KV__seq_slot_2, &seq_prog, sizeof(seq_prog) );
+		if( seq_prog[0] != 0 ){
+
+			write_scene_key_str( new_f, PSTR("seq_slot_2"), seq_prog );	
+		}
+
+		kv_i8_get( __KV__seq_slot_3, &seq_prog, sizeof(seq_prog) );
+		if( seq_prog[0] != 0 ){
+
+			write_scene_key_str( new_f, PSTR("seq_slot_3"), seq_prog );	
+		}
+
+		kv_i8_get( __KV__seq_slot_4, &seq_prog, sizeof(seq_prog) );
+		if( seq_prog[0] != 0 ){
+
+			write_scene_key_str( new_f, PSTR("seq_slot_4"), seq_prog );	
+		}
+		
+		kv_i8_get( __KV__seq_slot_5, &seq_prog, sizeof(seq_prog) );
+		if( seq_prog[0] != 0 ){
+
+			write_scene_key_str( new_f, PSTR("seq_slot_5"), seq_prog );	
+		}
+
+		kv_i8_get( __KV__seq_slot_6, &seq_prog, sizeof(seq_prog) );
+		if( seq_prog[0] != 0 ){
+
+			write_scene_key_str( new_f, PSTR("seq_slot_6"), seq_prog );	
+		}
+
+		kv_i8_get( __KV__seq_slot_7, &seq_prog, sizeof(seq_prog) );
+		if( seq_prog[0] != 0 ){
+
+			write_scene_key_str( new_f, PSTR("seq_slot_7"), seq_prog );	
+		}
 
 
+		kv_i8_get( __KV__seq_slot_charging, &seq_prog, sizeof(seq_prog) );
+		if( seq_prog[0] != 0 ){
+
+			write_scene_key_str( new_f, PSTR("seq_slot_charging"), seq_prog );	
+		}
+
+		kv_i8_get( __KV__seq_slot_startup, &seq_prog, sizeof(seq_prog) );
+		if( seq_prog[0] != 0 ){
+
+			write_scene_key_str( new_f, PSTR("seq_slot_startup"), seq_prog );	
+		}
+
+		kv_i8_get( __KV__seq_slot_shutdown, &seq_prog, sizeof(seq_prog) );
+		if( seq_prog[0] != 0 ){
+
+			write_scene_key_str( new_f, PSTR("seq_slot_shutdown"), seq_prog );	
+		}
+	}
 
 
 done:
