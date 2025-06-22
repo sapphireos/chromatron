@@ -83,12 +83,6 @@ if sequencer is not enabled and vm_run is true:
 
 static char current_scene[CATBUS_STRING_LEN];
 
-typedef struct{
-	catbus_hash_t32 key;	
-	catbus_hash_t32 value;
-} scene_data_t;
-
-static list_t scene_list;
 
 static int8_t load_scene( const char *s );
 static int8_t save_scene( const char *s );
@@ -141,13 +135,6 @@ static file_t open_scene_file( void ){
 	return f;
 }
 
-// static file_t open_scene_file_writable( void ){
-
-// 	file_t f = fs_f_open_P( PSTR("scenes"), FS_MODE_WRITE_APPEND );
-
-// 	return f;
-// }
-
 // search for a scene by name
 static int8_t search_scene( file_t f, const char *s ){
 
@@ -158,7 +145,7 @@ static int8_t search_scene( file_t f, const char *s ){
 
 	while( fs_i16_readline( f, buf, sizeof(buf) ) > 0 ){
 
-		log_v_info_P( PSTR("search %s -> %s %d %d"), buf, s, strlen(buf), strlen(s) );
+		// log_v_info_P( PSTR("search %s -> %s %d %d"), buf, s, strlen(buf), strlen(s) );
 
 		if( strncmp( buf, s, sizeof(buf) ) == 0 ){
 
@@ -190,117 +177,6 @@ static bool is_whitespace( char c ){
 
 	return (c == ' ') || (c == '\t');
 }
-
-// static int8_t load_scene_data( void ){
-
-// 	file_t f = open_scene_file();
-
-// 	if( f < 0 ){
-
-// 		return -1;
-// 	}
-
-// 	char buf[SCENE_BUF_LEN];
-// 	memset( buf, 0, sizeof(buf) );
-
-// 	catbus_hash_t32 scene_header = 0;
-// 	uint8_t data_count = 0;
-// 	scene_data_t scene_data[SCENE_MAX_KEYS] = {0};
-
-// 	while( fs_i16_readline( f, buf, sizeof(buf) ) > 0 ){
-
-// 		// check if scene header
-// 		if( !is_scene_data( buf ) ){
-
-// 			// check if there is a scene to store
-// 			if( data_count > 0 ){
-
-// 				list_node_t ln = list_ln_create_node( 0, sizeof(scene_data_t) * data_count + sizeof(catbus_hash_t32) );
-
-// 				if( ln < 0 ){
-
-// 					continue;
-// 				}
-
-
-// 			}
-
-
-
-// 			memset( scene_data, 0, sizeof(scene_data) );
-
-// 			scene_header = hash_u32_string( buf );
-// 			data_count = 0;
-// 		}
-// 		else{
-
-// 			// parse data
-// 			char *key = buf;
-
-// 			// string whitespace from prefix of key
-// 			while( is_whitespace( *key ) ){
-
-// 				key++;
-// 			}
-
-// 			char *value = buf;
-
-// 			for( uint8_t i = 0; i < strlen(buf) - 1; i++ ){
-
-// 				if( buf[i] == ' ' ){
-
-// 					buf[i] = 0; // replace space with null term
-// 					// set value to next character
-// 					value = &buf[i + 1];
-// 				}
-// 			}
-
-// 			log_v_info_P( PSTR("%s = %s"), key, value );
-
-// 			catbus_hash_t32 key_hash = hash_u32_string( key );
-// 			int32_t value_i32 = 0;
-
-// 			// get value type for this key
-// 			catbus_type_t8 val_type = kv_i8_type( key_hash );
-
-// 			if( val_type < 0 ){
-
-// 				// key not found
-// 				log_v_info_P( PSTR("Key %s not found"), key );
-				
-// 				continue;
-// 			}	
-
-// 			if( type_b_is_string( val_type ) ){
-
-// 				// convert to hash
-// 				value_i32 = hash_u32_string( value );
-// 			}
-// 			else{
-
-// 				// convert to integer
-// 				value_i32 = atoi( value );
-
-// 				// log_v_info_P( PSTR("int %d"), value_u32 );
-// 			}
-
-// 			if( data_count >= SCENE_MAX_KEYS ){
-
-// 				log_v_warn_P( PSTR("Max scene data") );
-// 			}
-// 			else{
-
-// 				// add data
-// 				scene_data[data_count].key = key_hash;
-// 				scene_data[data_count].value = value_i32;
-// 				data_count++;
-// 			}
-// 		}
-// 	}
-
-
-// 	fs_f_close( f );
-// }
 
 static int8_t load_scene( const char *s ){
 
@@ -338,7 +214,7 @@ static int8_t load_scene( const char *s ){
 			break;
 		}
 
-		log_v_info_P( PSTR("%s"), buf );
+		// log_v_info_P( PSTR("%s"), buf );
 
 		// parse key and value
 		char *key = buf;
@@ -361,7 +237,7 @@ static int8_t load_scene( const char *s ){
 			}
 		}
 
-		log_v_info_P( PSTR("%s = %s"), key, value );
+		// log_v_info_P( PSTR("%s = %s"), key, value );
 
 		catbus_hash_t32 key_hash = hash_u32_string( key );
 
@@ -395,7 +271,7 @@ static int8_t load_scene( const char *s ){
 			// convert to integer
 			int32_t val_int = atoi( value );
 
-			log_v_info_P( PSTR("int %d"), val_int );
+			// log_v_info_P( PSTR("int %d"), val_int );
 
 			int8_t status = kv_i8_set( key_hash, &val_int, sizeof(val_int) );
 
@@ -414,88 +290,6 @@ next:
 
 	return 0;
 }
-
-
-// static void erase_scene( file_t f, const char *s ){
-
-// 	// scan line by line and write out to tempfile
-// 	// until we hit the target scene.
-// 	// keep scanning until next scene without writing.
-// 	// then we want to write the new scene,
-// 	// then write out rest of file.
-// 	// then create new empty scenes file and copy
-// 	// tempfile into it.
-// 	// this could in theory get corrupted if the
-// 	// system restarts in the middle of it,
-// 	// but since scene config is a manual process
-// 	// anyway, the operator can just fix it.  
-// 	// it is a rare corner case.
-// 	//
-
-
-
-
-
-
-
-
-
-// 	search_scene( f, s );
-
-// 	uint8_t len = strlen( s );
-
-// 	// rewind file
-// 	// fs_v_seek( f, fs_i32_tell( f ) - len );
-
-// 	// record start index
-// 	uint32_t start_index = fs_i32_tell( f ) - len;
-// 	uint32_t end_index = 0;
-
-// 	char buf[SCENE_BUF_LEN];
-// 	memset( buf, 0, sizeof(buf) );
-
-// 	while( fs_i16_readline( f, buf, sizeof(buf) ) > 0 ){
-
-// 		if( !is_scene_data( buf ) ){
-
-// 			end_index = fs_i32_tell( f );
-// 			break;
-// 		}		
-		
-// 		memset( buf, 0, sizeof(buf) );
-// 	}	
-
-// 	// check for end of file
-// 	if( end_index == 0 ){
-
-// 		end_index = fs_i32_tell( f );
-// 	}
-
-// 	fs_v_seek( f, start_index );
-
-// 	log_v_debug_P( PSTR(" %d %d"), start_index, end_index );
-
-// 	for( uint32_t i = start_index; i < end_index; i++ ){
-
-// 		uint8_t zero = 0;
-// 		fs_i16_write( f, &zero, sizeof(zero) );
-// 	}
-// }
-
-// static void write_scene_header( file_t f, const char *s ){
-
-// 	// erase_scene( f, s );
-
-// 	// seek to end
-// 	// fs_v_seek( f, fs_i32_get_size( f ) - 1 );
-
-// 	char newline = '\n';
-// 	fs_i16_write( f, &newline, sizeof(newline) );	
-
-// 	fs_i16_write( f, s, strlen(s) );
-
-// 	fs_i16_write( f, &newline, sizeof(newline) );	
-// }	
 
 static void write_scene_key_str( file_t f, const char *key, const char *value ){
 
@@ -688,8 +482,6 @@ done:
 }
 
 void scenes_v_init( void ){
-
-	list_v_init( &scene_list );
 
 	load_scene( current_scene );
 }
