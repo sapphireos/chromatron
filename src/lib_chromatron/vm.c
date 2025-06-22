@@ -117,10 +117,52 @@ static uint32_t threads_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t
 #endif
 
 
+int8_t _vm_prog_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_GET ){
+
+    }
+    else if( op == KV_OP_SET ){
+
+        if( hash == __KV__vm_prog ){
+
+            vm_v_reset( 0 );
+        }
+        #if VM_MAX_VMS >= 2
+        else if( hash == __KV__vm_prog_1 ){
+
+            vm_v_reset( 1 );
+        }
+        #endif
+        #if VM_MAX_VMS >= 3
+        else if( hash == __KV__vm_prog_2 ){
+
+            vm_v_reset( 2 );
+        }
+        #if VM_MAX_VMS >= 4
+        else if( hash == __KV__vm_prog_3 ){
+
+            vm_v_reset( 3 );
+        }
+        #endif
+        #endif
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    return 0;
+}
+
 KV_SECTION_META kv_meta_t vm_info_kv[] = {
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[0],          0,                  "vm_reset" },
     { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[0],            0,                  "vm_run" },
-    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog" },
+    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     _vm_prog_kv_handler,"vm_prog" },
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[0],         0,                  "vm_status" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[0],       0,                  "vm_run_time" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_peak_cycles" },
@@ -129,7 +171,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     #if VM_MAX_VMS >= 2
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[1],          0,                  "vm_reset_1" },
     { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[1],            0,                  "vm_run_1" },
-    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_1" },
+    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     _vm_prog_kv_handler,"vm_prog_1" },
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[1],         0,                  "vm_status_1" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[1],       0,                  "vm_run_time_1" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[1],     0,                  "vm_peak_cycles_1" },
@@ -138,7 +180,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     #if VM_MAX_VMS >= 3
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[2],          0,                  "vm_reset_2" },
     { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[2],            0,                  "vm_run_2" },
-    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_2" },
+    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     _vm_prog_kv_handler,"vm_prog_2" },
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[2],         0,                  "vm_status_2" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[2],       0,                  "vm_run_time_2" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[2],     0,                  "vm_peak_cycles_2" },
@@ -147,7 +189,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     #if VM_MAX_VMS >= 4
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[3],          0,                  "vm_reset_3" },
     { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[3],            0,                  "vm_run_3" },
-    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_3" },
+    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     _vm_prog_kv_handler,"vm_prog_3" },
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[3],         0,                  "vm_status_3" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[3],       0,                  "vm_run_time_3" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[3],     0,                  "vm_peak_cycles_3" },
