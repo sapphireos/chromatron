@@ -141,12 +141,12 @@ static file_t open_scene_file( void ){
 	return f;
 }
 
-static file_t open_scene_file_writable( void ){
+// static file_t open_scene_file_writable( void ){
 
-	file_t f = fs_f_open_P( PSTR("scenes"), FS_MODE_WRITE_APPEND );
+// 	file_t f = fs_f_open_P( PSTR("scenes"), FS_MODE_WRITE_APPEND );
 
-	return f;
-}
+// 	return f;
+// }
 
 // search for a scene by name
 static int8_t search_scene( file_t f, const char *s ){
@@ -313,12 +313,16 @@ static int8_t load_scene( const char *s ){
 
 	if( f < 0 ){
 
+		log_v_info_P( PSTR("scenes file not found") );
+
 		return -2;
 	}
 
 	if( search_scene( f, s ) < 0 ){
 
 		fs_f_close( f );
+
+		log_v_info_P( PSTR("Scene %s not found"), s );
 
 		return -3;
 	}
@@ -478,20 +482,20 @@ next:
 // 	}
 // }
 
-static void write_scene_header( file_t f, const char *s ){
+// static void write_scene_header( file_t f, const char *s ){
 
-	// erase_scene( f, s );
+// 	// erase_scene( f, s );
 
-	// seek to end
-	// fs_v_seek( f, fs_i32_get_size( f ) - 1 );
+// 	// seek to end
+// 	// fs_v_seek( f, fs_i32_get_size( f ) - 1 );
 
-	char newline = '\n';
-	fs_i16_write( f, &newline, sizeof(newline) );	
+// 	char newline = '\n';
+// 	fs_i16_write( f, &newline, sizeof(newline) );	
 
-	fs_i16_write( f, s, strlen(s) );
+// 	fs_i16_write( f, s, strlen(s) );
 
-	fs_i16_write( f, &newline, sizeof(newline) );	
-}	
+// 	fs_i16_write( f, &newline, sizeof(newline) );	
+// }	
 
 static void write_scene_key_str( file_t f, const char *key, const char *value ){
 
@@ -632,7 +636,11 @@ done:
 	}
 
 	// copy rest of file	
-	while( fs_i16_readline( current_f, buf, sizeof(buf) ) > 0 ){
+	int16_t bytes_read = fs_i16_readline( current_f, buf, sizeof(buf) );
+	log_v_debug_P( PSTR("%d"), bytes_read );
+	while( bytes_read > 0 ){
+
+		
 
 		if( strncmp( buf, s, sizeof(buf) ) == 0 ){
 
@@ -643,8 +651,9 @@ done:
 		fs_i16_write( new_f, &nl, sizeof(nl) );
 
 		memset( buf, 0, sizeof(buf) );
+		bytes_read = fs_i16_readline( current_f, buf, sizeof(buf) );
+		log_v_debug_P( PSTR("%d"), bytes_read );
 	}
-
 
 	// delete scenes file
 	fs_v_delete( current_f );
@@ -662,7 +671,7 @@ done:
 	// copy temp file to scenes
 	fs_v_seek( new_f, 0 );
 
-	int16_t bytes_read = fs_i16_read( new_f, buf, sizeof(buf) );
+	bytes_read = fs_i16_read( new_f, buf, sizeof(buf) );
 
 	while( bytes_read > 0 ){
 
