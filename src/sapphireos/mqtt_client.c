@@ -136,8 +136,6 @@ PT_THREAD( mqtt_client_server_thread( pt_t *pt, void *state ) );
 
 void mqtt_client_v_init( void ){
 
-	return;
-
 	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
 		return;
@@ -145,6 +143,10 @@ void mqtt_client_v_init( void ){
 
     list_v_init( &sub_list );
     list_v_init( &transmit_list );
+
+
+return;
+
 
     // create socket
     sock = sock_s_create( SOS_SOCK_DGRAM );
