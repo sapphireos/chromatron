@@ -637,10 +637,8 @@ done:
 
 	// copy rest of file	
 	int16_t bytes_read = fs_i16_readline( current_f, buf, sizeof(buf) );
-	log_v_debug_P( PSTR("%d"), bytes_read );
-	while( bytes_read > 0 ){
 
-		
+	while( bytes_read > 0 ){
 
 		if( strncmp( buf, s, sizeof(buf) ) == 0 ){
 
@@ -651,8 +649,8 @@ done:
 		fs_i16_write( new_f, &nl, sizeof(nl) );
 
 		memset( buf, 0, sizeof(buf) );
+
 		bytes_read = fs_i16_readline( current_f, buf, sizeof(buf) );
-		log_v_debug_P( PSTR("%d"), bytes_read );
 	}
 
 	// delete scenes file
@@ -676,6 +674,8 @@ done:
 	while( bytes_read > 0 ){
 
 		fs_i16_write( current_f, buf, bytes_read );
+
+		bytes_read = fs_i16_read( new_f, buf, sizeof(buf) );
 	}
 
 	// delete temp file
