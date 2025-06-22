@@ -395,6 +395,11 @@ int16_t fs_i16_readline( file_t file, void *dst, uint16_t maxlen ){
     // read buffer of data from file
     int16_t bytes_read = fs_i16_read( file, dst, maxlen );
 
+    if( bytes_read < 0 ){
+
+        return bytes_read;
+    }
+
     // get file state
 	file_state_t *state = mem2_vp_get_ptr( file );
 
