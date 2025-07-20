@@ -37,6 +37,7 @@
 #include "veml7700.h"
 #include "ssd1306.h"
 #include "telemetry.h"
+#include "pixel_power.h"
 #endif
 
 #ifdef ESP8266_UPGRADE
@@ -68,5 +69,7 @@ void app_v_init( void ){
     #ifdef ENABLE_BATTERY
     batt_v_init();
     #endif
+
+    pixelpower_v_init();
 }
 

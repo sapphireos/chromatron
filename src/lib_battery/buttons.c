@@ -141,6 +141,10 @@ void button_v_init( void ){
 
         batt_ui_button = IO_PIN_21;
     }
+    else if( board == BOARD_TYPE_2025 ){
+
+        batt_ui_button = IO_PIN_16_RX;
+    }
     else if( board == BOARD_TYPE_ESP32_MINI_BUTTONS ){
         
         batt_ui_button = MINI_BTN_BOARD_BTN_0;

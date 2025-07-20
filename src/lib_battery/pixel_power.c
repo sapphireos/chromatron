@@ -41,6 +41,7 @@ static bool request_pixels_disabled = FALSE;
 static bool pixels_enabled = TRUE; // default to ON, so systems that do not use the pixel power control will output pixels.
 static bool power_control_enabled = FALSE;
 
+static int8_t pixel_fet_gpio = -1;
 
 KV_SECTION_OPT kv_meta_t pixelpower_info_kv[] = {
     { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &pixels_enabled,              0,  "batt_pixel_power" },
@@ -54,11 +55,21 @@ PT_THREAD( pixel_power_thread( pt_t *pt, void *state ) );
 #if defined(ESP32)
 static void enable_pixel_power_fet( void ){
 
+    if( pixel_fet_gpio < 0 ){
+
+        return;
+    }
+
     io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
     io_v_digital_write( ELITE_BOOST_IO, 1 );
 }
 
 static void disable_pixel_power_fet( void ){
+
+    if( pixel_fet_gpio < 0 ){
+
+        return;
+    }
 
     io_v_set_mode( ELITE_BOOST_IO, IO_MODE_OUTPUT );    
     io_v_digital_write( ELITE_BOOST_IO, 0 );
@@ -120,28 +131,13 @@ void pixelpower_v_init( void ){
 
     // pixel power system defaults to OFF if power control is enabled
     pixels_enabled = FALSE;
-    
-    #if defined(ESP32)
-    disable_pixel_power_fet();
-    #endif
 
-    // check if hardware has power control:
+    #if defined(ESP8266)
+
     if( solar_b_has_charger2_board() ){
 
         power_control_enabled = TRUE;
     }
-    else if( batt_b_is_mcp73831_enabled() ){
-
-        power_control_enabled = TRUE;
-    }
-    #if defined(ESP32)
-    else if( ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ||
-             ( ffs_u8_read_board_type() == BOARD_TYPE_2025 ) ||
-             ( ffs_u8_read_board_type() == BOARD_TYPE_CHARGER_3_1 ) ){
-
-        power_control_enabled = TRUE;
-    }
-    #endif
     else{
 
         pixels_enabled = TRUE;
@@ -150,6 +146,64 @@ void pixelpower_v_init( void ){
 
         return;
     }
+
+    #elif defined(ESP32)
+
+    uint8_t board = ffs_u8_read_board_type();
+
+    if( board == BOARD_TYPE_ELITE ){
+
+        pixel_fet_gpio = ELITE_BOOST_IO;
+    }
+    else if( board == BOARD_TYPE_CHARGER_3_1 ){
+
+        pixel_fet_gpio = ELITE_BOOST_IO;
+    }
+    else if( board == BOARD_TYPE_2025 ){
+
+        pixel_fet_gpio = ELITE_BOOST_IO;
+    }
+    else{
+
+        pixels_enabled = TRUE;
+
+        // this hardware does not have power control
+
+        return;
+    }
+    #endif
+    
+    #if defined(ESP32)
+    disable_pixel_power_fet();
+    #endif
+
+    power_control_enabled = TRUE;
+
+    // // check if hardware has power control:
+    // if( solar_b_has_charger2_board() ){
+
+    //     power_control_enabled = TRUE;
+    // }
+    // else if( batt_b_is_mcp73831_enabled() ){
+
+    //     power_control_enabled = TRUE;
+    // }
+    // #if defined(ESP32)
+    // else if( ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ||
+    //          ( ffs_u8_read_board_type() == BOARD_TYPE_2025 ) ||
+    //          ( ffs_u8_read_board_type() == BOARD_TYPE_CHARGER_3_1 ) ){
+
+    //     power_control_enabled = TRUE;
+    // }
+    // #endif
+    // else{
+
+    //     pixels_enabled = TRUE;
+
+    //     // this hardware does not have power control
+
+    //     return;
+    // }
 
     kv_v_add_db_info( pixelpower_info_kv, sizeof(pixelpower_info_kv) );
 
