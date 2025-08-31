@@ -37,8 +37,9 @@
 #include "veml7700.h"
 #include "ssd1306.h"
 #include "telemetry.h"
-#include "pixel_power.h"
 #endif
+
+#include "pixel_power.h"
 
 #ifdef ESP8266_UPGRADE
 #error "ESP8266_UPGRADE must not be defined in Chromatron builds!"

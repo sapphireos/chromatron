@@ -313,7 +313,7 @@ class insProgram(object):
                 pix_size_x = p.keywords['size_x']
 
             else:
-                pix_size_x = self.pix_size_x
+                pix_size_x = self.pix_size_x ### Change to -1 to get HW KV instead?
 
             if 'size_y' in p.keywords:
                 pix_size_y = p.keywords['size_y']
