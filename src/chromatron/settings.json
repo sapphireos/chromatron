@@ -17,7 +17,7 @@
     "_comment": "os - build as operating system library",
     "_comment": "loader - build as boot loader application",
     "_comment": "lib - build as a library",
- 	"BUILD_TYPE": "app",
+ 	  "BUILD_TYPE": "app",
 
     "_comment": "Additional libraries to include with the build",
     "LIBRARIES": ["lib_gfx", 
@@ -25,6 +25,7 @@
                   "lib_battery", 
                   "lib_veml7700", 
                   "lib_ssd1306", 
+                  "lib_mpu9250",
                   "lib_rfm95w"],
 
     "_comment": "The following options are only used for libraries:",

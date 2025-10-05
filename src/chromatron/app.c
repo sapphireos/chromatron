@@ -39,6 +39,8 @@
 #include "telemetry.h"
 #endif
 
+#include "mpu9250.h"
+
 #include "pixel_power.h"
 
 #ifdef ESP8266_UPGRADE
@@ -70,6 +72,8 @@ void app_v_init( void ){
     #ifdef ENABLE_BATTERY
     batt_v_init();
     #endif
+
+    mpu9250_v_init();
 
     pixelpower_v_init();
 }
