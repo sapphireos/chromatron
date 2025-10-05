@@ -47,6 +47,13 @@
 #define MPU9250_REG_ACCEL_ZOUT_H			63
 #define MPU9250_REG_ACCEL_ZOUT_L			64
 
+#define MPU9250_REG_GYRO_XOUT_H				67
+#define MPU9250_REG_GYRO_XOUT_L				68
+#define MPU9250_REG_GYRO_YOUT_H				69
+#define MPU9250_REG_GYRO_YOUT_L				70
+#define MPU9250_REG_GYRO_ZOUT_H				71
+#define MPU9250_REG_GYRO_ZOUT_L				72
+
 #define MPU9250_REG_WHO_AM_I	    		117
 #define MPU9250_VAL_WHO_AM_I	    		0x71
 
@@ -58,6 +65,11 @@ void mpu9250_v_set_accel_scale( uint8_t scale );
 int16_t mpu9250_i16_read_accel_x( void );
 int16_t mpu9250_i16_read_accel_y( void );
 int16_t mpu9250_i16_read_accel_z( void );
+
+int16_t mpu9250_i16_read_gyro_x( void );
+int16_t mpu9250_i16_read_gyro_y( void );
+int16_t mpu9250_i16_read_gyro_z( void );
+
 
 #endif
 

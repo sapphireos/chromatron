@@ -34,6 +34,10 @@ static int16_t accel_z;
 // static fix16_t f16_accel_y;
 // static fix16_t f16_accel_z;
 
+static int16_t gyro_x;
+static int16_t gyro_y;
+static int16_t gyro_z;
+
 KV_SECTION_META kv_meta_t mpu9250_info_kv[] = {
     { CATBUS_TYPE_INT16,   0, KV_FLAGS_READ_ONLY,  &accel_x,             0,   "accel_x" },
     { CATBUS_TYPE_INT16,   0, KV_FLAGS_READ_ONLY,  &accel_y,             0,   "accel_y" },
@@ -42,6 +46,11 @@ KV_SECTION_META kv_meta_t mpu9250_info_kv[] = {
     // { CATBUS_TYPE_FIXED16, 0, KV_FLAGS_READ_ONLY,  &f16_accel_x,         0,   "accel_x_f16" },
     // { CATBUS_TYPE_FIXED16, 0, KV_FLAGS_READ_ONLY,  &f16_accel_y,         0,   "accel_y_f16" },
     // { CATBUS_TYPE_FIXED16, 0, KV_FLAGS_READ_ONLY,  &f16_accel_z,         0,   "accel_z_f16" },
+
+	{ CATBUS_TYPE_INT16,   0, KV_FLAGS_READ_ONLY,  &gyro_x,             0,   "gyro_x" },
+    { CATBUS_TYPE_INT16,   0, KV_FLAGS_READ_ONLY,  &gyro_y,             0,   "gyro_y" },
+    { CATBUS_TYPE_INT16,   0, KV_FLAGS_READ_ONLY,  &gyro_z,             0,   "gyro_z" },
+
 };
 
 
@@ -141,6 +150,30 @@ int16_t mpu9250_i16_read_accel_z( void ){
 }
 
 
+int16_t mpu9250_i16_read_gyro_x( void ){
+
+	int16_t temp = _mpu9250_u8_read_reg( MPU9250_REG_GYRO_XOUT_H ) << 8;
+	temp |= _mpu9250_u8_read_reg( MPU9250_REG_GYRO_XOUT_L );
+
+	return temp;
+}
+
+int16_t mpu9250_i16_read_gyro_y( void ){
+
+	int16_t temp = _mpu9250_u8_read_reg( MPU9250_REG_GYRO_YOUT_H ) << 8;
+	temp |= _mpu9250_u8_read_reg( MPU9250_REG_GYRO_YOUT_L );
+
+	return temp;
+}
+
+int16_t mpu9250_i16_read_gyro_z( void ){
+
+	int16_t temp = _mpu9250_u8_read_reg( MPU9250_REG_GYRO_ZOUT_H ) << 8;
+	temp |= _mpu9250_u8_read_reg( MPU9250_REG_GYRO_ZOUT_L );
+
+	return temp;
+}
+
 
 PT_THREAD( mpu9250_sensor_thread( pt_t *pt, void *state ) )
 {
@@ -148,11 +181,15 @@ PT_BEGIN( pt );
 
 	while( 1 ){
 
-		TMR_WAIT( pt, 100 );
+		TMR_WAIT( pt, 20 );
 
 		accel_x = mpu9250_i16_read_accel_x();
 		accel_y = mpu9250_i16_read_accel_y();
 		accel_z = mpu9250_i16_read_accel_z();
+
+		gyro_x = mpu9250_i16_read_gyro_x();
+		gyro_y = mpu9250_i16_read_gyro_y();
+		gyro_z = mpu9250_i16_read_gyro_z();
 
 		// f16_accel_x = (int32_t)accel_x << 2;
 		// f16_accel_y = (int32_t)accel_y << 2;
