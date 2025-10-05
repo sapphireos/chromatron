@@ -564,7 +564,12 @@ class Device(object):
 
         if fw_info.board not in fw.manifest['targets']:
             # board not found, or board not listed (from 2.x firmware without that information)
-            hw_type = self.get_key('hw_type')
+            try:
+                hw_type = self.get_key('hw_type')
+
+            except KeyError:
+                hw_type = 'Chromatron'
+
             if hw_type in ['Chromatron']:
                 if fw.FWID == CHROMATRON_ESP_UPGRADE_FWID:
                     fw_info.board = 'chromatron_classic_upgrade'
