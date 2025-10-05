@@ -64,6 +64,12 @@ static uint8_t _mpu9250_u8_read_reg( uint8_t reg_addr ){
 	return i2c_u8_read_reg8( i2c_addr, reg_addr );
 }
 
+
+static void _mpu9250_v_read_regs( uint8_t reg_addr, uint8_t *data, uint8_t len ){
+
+	return i2c_v_mem_read( i2c_addr, reg_addr, sizeof(uint8_t), data, len, 1 );
+}
+
 PT_THREAD( mpu9250_sensor_thread( pt_t *pt, void *state ) );
 
 
@@ -183,13 +189,25 @@ PT_BEGIN( pt );
 
 		TMR_WAIT( pt, 20 );
 
-		accel_x = mpu9250_i16_read_accel_x();
-		accel_y = mpu9250_i16_read_accel_y();
-		accel_z = mpu9250_i16_read_accel_z();
+		uint8_t regs[14];
+		_mpu9250_v_read_regs( MPU9250_REG_ACCEL_XOUT_H, regs, sizeof(regs) );
 
-		gyro_x = mpu9250_i16_read_gyro_x();
-		gyro_y = mpu9250_i16_read_gyro_y();
-		gyro_z = mpu9250_i16_read_gyro_z();
+		accel_x = ( regs[0] << 8 ) + regs[1];
+		accel_y = ( regs[2] << 8 ) + regs[3];
+		accel_z = ( regs[4] << 8 ) + regs[5];
+
+		gyro_x = ( regs[8] << 8 ) + regs[9];
+		gyro_y = ( regs[10] << 8 ) + regs[11];
+		gyro_z = ( regs[12] << 8 ) + regs[13];
+
+
+		// accel_x = mpu9250_i16_read_accel_x();
+		// accel_y = mpu9250_i16_read_accel_y();
+		// accel_z = mpu9250_i16_read_accel_z();
+
+		// gyro_x = mpu9250_i16_read_gyro_x();
+		// gyro_y = mpu9250_i16_read_gyro_y();
+		// gyro_z = mpu9250_i16_read_gyro_z();
 
 		// f16_accel_x = (int32_t)accel_x << 2;
 		// f16_accel_y = (int32_t)accel_y << 2;
