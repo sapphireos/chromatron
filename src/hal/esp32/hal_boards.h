@@ -51,5 +51,10 @@
 #define MINI_BTN_BOARD_BTN_2    IO_PIN_25_A1
 #define MINI_BTN_BOARD_BTN_3    IO_PIN_26_A0
 
+// 2025 board
+#define C2025_BTN_BOARD_BTN_1   IO_PIN_17_TX
+#define C2025_BTN_BOARD_BTN_2   IO_PIN_32_A7
+#define C2025_BTN_BOARD_BTN_3   IO_PIN_33_A9
+
 
 #endif
