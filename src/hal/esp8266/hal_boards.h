@@ -26,6 +26,18 @@
 #ifndef _HAL_BOARDS_H
 #define _HAL_BOARDS_H
 
+
+// ESP8266
+
 #include "boards.h"
+
+#include "hal_io.h"
+
+// Classic
+#define CLASSIC_BTN_0   		IO_PIN_6_DAC0
+#define CLASSIC_BTN_1   		IO_PIN_7_DAC1
+#define CLASSIC_BTN_2   		IO_PIN_4_ADC0
+#define CLASSIC_BTN_3   		IO_PIN_5_ADC1
+
 
 #endif

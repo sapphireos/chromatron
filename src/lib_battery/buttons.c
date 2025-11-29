@@ -70,6 +70,14 @@ static uint8_t button_hold_duration[MAX_BUTTONS];
 static bool batt_request_shutdown;
 // static bool shutdown_on_vbus_unplug;
 
+#ifdef ESP8266
+static bool enable_extended;
+
+KV_SECTION_META kv_meta_t button_extended_kv[] = {
+    { CATBUS_TYPE_BOOL,   0, 0,                   &enable_extended,             0,  "button_enable_extended" },
+};
+#endif
+
 
 KV_SECTION_OPT kv_meta_t button_batt_opt_kv[] = {
     { CATBUS_TYPE_BOOL,   0, 0,                   &batt_request_shutdown,       0,  "batt_request_shutdown" },
@@ -128,7 +136,15 @@ void button_v_init( void ){
     */
 
     #if defined(ESP8266)
-    batt_ui_button = IO_PIN_6_DAC0;
+    batt_ui_button = CLASSIC_BTN_0;
+
+    if( enable_extended ){
+
+        io_v_set_mode( CLASSIC_BTN_1, IO_MODE_INPUT_PULLUP );     
+        io_v_set_mode( CLASSIC_BTN_2, IO_MODE_INPUT_PULLUP );     
+        io_v_set_mode( CLASSIC_BTN_3, IO_MODE_INPUT_PULLUP );
+    }
+
     #elif defined(ESP32)
 
     uint8_t board = ffs_u8_read_board_type();
@@ -350,6 +366,9 @@ static bool _button_b_read_button( uint8_t ch ){
         //     return charger2_b_read_spare(); // spare has never been connected on actual hardware
         // }
     }
+    #endif
+
+    #if defined(ESP32)
     else if( solar_b_has_patch_board() ){
 
         if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
@@ -404,6 +423,31 @@ static bool _button_b_read_button( uint8_t ch ){
         #endif
     }
     #endif
+            
+    #if defined(ESP8266)
+    
+    else if(enable_extended){
+
+        if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
+
+            return io_b_digital_read( batt_ui_button );
+        }
+        else if( ch == 1 ){
+
+            return io_b_digital_read( CLASSIC_BTN_1 );
+        }
+        else if( ch == 2 ){
+
+            return io_b_digital_read( CLASSIC_BTN_2 );
+        }
+        else if( ch == 3 ){
+
+            return io_b_digital_read( CLASSIC_BTN_3 );
+        }
+    }
+
+    #endif
+
     else{
 
         if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){

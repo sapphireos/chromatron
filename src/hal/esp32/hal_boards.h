@@ -25,6 +25,8 @@
 #ifndef _HAL_BOARDS_H
 #define _HAL_BOARDS_H
 
+// ESP32
+
 #include "boards.h"
 
 #include "hal_io.h"
