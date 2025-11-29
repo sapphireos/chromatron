@@ -74,7 +74,7 @@ static bool batt_request_shutdown;
 static bool enable_extended;
 
 KV_SECTION_META kv_meta_t button_extended_kv[] = {
-    { CATBUS_TYPE_BOOL,   0, 0,                   &enable_extended,             0,  "button_enable_extended" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &enable_extended,             0,  "button_enable_extended" },
 };
 #endif
 
