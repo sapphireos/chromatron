@@ -538,7 +538,7 @@ PT_BEGIN( pt );
 				}
 				else if( next_state == SOLAR_MODE_CHARGE_DC ){
 
-					gfx_v_set_system_enable( TRUE );
+					gfx_v_set_system_enable( FALSE );
 
 					bq25895_aux_v_disable_charger();
 					batt_v_enable_charge();
