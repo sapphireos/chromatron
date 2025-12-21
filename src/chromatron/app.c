@@ -35,6 +35,7 @@
 
 #ifdef ESP32
 #include "veml7700.h"
+#include "hx711.h"
 #include "ssd1306.h"
 #include "telemetry.h"
 #endif
@@ -62,6 +63,7 @@ void app_v_init( void ){
 
     veml7700_v_init();
     ssd1306_v_init();
+    hx711_v_init();
 
     telemetry_v_init();
 
