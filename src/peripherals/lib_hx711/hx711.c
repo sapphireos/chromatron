@@ -29,6 +29,8 @@ static int32_t load_cell;
 static int32_t offset_cal;
 
 KV_SECTION_META kv_meta_t hx711_kv[] = {
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, 0,                        0, "hx711_enable" },
+
     { CATBUS_TYPE_INT32,      0, KV_FLAGS_READ_ONLY, &load_cell,             0, "hx711_load_cell" },
     { CATBUS_TYPE_INT32,      0, KV_FLAGS_PERSIST,   &offset_cal,            0, "hx711_offset_cal" },
 };
@@ -164,6 +166,13 @@ void hx711_v_set_io( uint8_t pd_clk, uint8_t dout ){
 }
 
 void hx711_v_init( void ){
+
+    if( !kv_b_get_boolean( __KV__hx711_enable ) ){
+
+        return;
+    }
+
+    log_v_info_P(PSTR("HX711 enabled") );
 
     hx711_v_set_io( IO_PIN_17_TX, IO_PIN_16_RX );
 
