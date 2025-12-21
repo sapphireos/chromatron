@@ -383,7 +383,7 @@ static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id )
 static void _catbus_v_broadcast_announce( void ){
 
     sock_addr_t raddr;
-    raddr.ipaddr = ip_a_addr(CATBUS_ANNOUNCE_MCAST_ADDR);
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
     raddr.port = CATBUS_ANNOUNCE_PORT;
 
     _catbus_v_send_announce( &raddr, 0 );
@@ -417,7 +417,7 @@ static void _catbus_v_send_shutdown( void ){
 
     // multicast shutdown to announce port
     raddr.port = CATBUS_ANNOUNCE_PORT;
-    raddr.ipaddr = ip_a_addr(CATBUS_ANNOUNCE_MCAST_ADDR);
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
     _catbus_v_transmit_shutdown( &raddr );
 }
 #endif
@@ -879,7 +879,9 @@ PT_BEGIN( pt );
         // DISCOVERY MESSAGES
         if( header->msg_type == CATBUS_MSG_TYPE_ANNOUNCE ){
 
-            // no op
+            catbus_msg_announce_t *msg = (catbus_msg_announce_t *)header;
+
+            device_db_v_process_announce( msg );
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_DISCOVER ){
 
