@@ -81,6 +81,8 @@
 #include "datalogger.h"
 #endif
 
+#include "device_db.h"
+
 #include "init.h"
 
 
@@ -221,6 +223,8 @@ int8_t sapphire_i8_init( void ){
     mqtt_client_v_init();
     datalog_v_init();
     #endif
+
+    device_db_v_init();
 
     #ifdef ENABLE_TIME_SYNC
     time_v_init();

@@ -35,6 +35,8 @@
 // #define NO_LOGGING
 #include "logging.h"
 
+#include "device_db.h"
+
 
 #ifdef ENABLE_NETWORK
 static uint64_t origin_id;
