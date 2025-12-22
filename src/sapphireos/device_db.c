@@ -19,13 +19,13 @@ KV_SECTION_META kv_meta_t devicedb_kv[] = {
 };
 
 
-// static device_status_t* _update_device_status( mqtt_msg_status_t *msg ){
+// static device_data_t* _update_device_status( mqtt_msg_status_t *msg ){
 
 // 	list_node_t ln = device_list.head;
 
 //     while( ln >= 0 ){
 
-//         device_status_t *status = list_vp_get_data( ln );
+//         device_data_t *status = list_vp_get_data( ln );
 
 //         if( ip_b_addr_compare( msg->ip, status->status.ip ) ){
 
@@ -41,7 +41,7 @@ KV_SECTION_META kv_meta_t devicedb_kv[] = {
 
 //     // device not found
 
-//     device_status_t status = {
+//     device_data_t status = {
 //     	*msg,
 //     	{ 0 },
 //     	DEVICE_TIMEOUT
@@ -89,7 +89,7 @@ KV_SECTION_META kv_meta_t devicedb_kv[] = {
 
 // 	// _update_device_status( msg );
 
-// 	device_status_t *status = device_db_p_get_ipaddr( raddr->ipaddr );
+// 	device_data_t *status = device_db_p_get_ipaddr( raddr->ipaddr );
 
 // 	if( status == 0 ){
 
@@ -115,13 +115,13 @@ PT_BEGIN( pt );
 
 	    	list_node_t next_ln = list_ln_next( ln );
 
-	        device_status_t *status = list_vp_get_data( ln );
+	        device_data_t *device = list_vp_get_data( ln );
 
-	        status->timeout--;
+	        device->timeout--;
 
-	        if( status->timeout == 0 ){
+	        if( device->timeout == 0 ){
 
-	        	trace_printf("device DB timeout: %d.%d.%d.%d\n", status->status.ip.ip3, status->status.ip.ip2, status->status.ip.ip1, status->status.ip.ip0 );
+	        	trace_printf("device DB timeout: %d.%d.%d.%d\n", device->ip.ip3, device->ip.ip2, device->ip.ip1, device->ip.ip0 );
 
 	        	list_v_remove( &device_list, ln );
 	        	list_v_release_node( ln );
@@ -169,14 +169,14 @@ void device_db_v_reset_iter( void ){
 	device_ln = device_list.head;
 }
 
-device_status_t* device_db_p_get_next( void ){
+device_data_t* device_db_p_get_next( void ){
 
 	if( device_ln <= 0 ){
 
 		return 0;
 	}
 
-	device_status_t *device = list_vp_get_data( device_ln );
+	device_data_t *device = list_vp_get_data( device_ln );
 
 	device_ln = list_ln_next( device_ln );     
 
@@ -186,13 +186,13 @@ device_status_t* device_db_p_get_next( void ){
 bool device_db_b_has_hash( catbus_hash_t32 hash ){
 
 	device_db_v_reset_iter();
-    const device_status_t *device = device_db_p_get_next_query( 0 );
+    const device_data_t *device = device_db_p_get_next_query( 0 );
 
     while( device != 0 ){
 
     	for( uint8_t i = 0; i < CATBUS_QUERY_LEN; i++ ){
 
-    		if( device->status.tags.tags[i] == hash ){
+    		if( device->tags.tags[i] == hash ){
 
     			return TRUE;
     		}
@@ -223,14 +223,14 @@ void device_db_v_sort_name( void ){
 	
 		while( ( cur > 0 ) && ( next > 0 ) ){
 
-			device_status_t *cur_device = list_vp_get_data( cur );
-			device_status_t *next_device = list_vp_get_data( next );
+			device_data_t *cur_device = list_vp_get_data( cur );
+			device_data_t *next_device = list_vp_get_data( next );
 
 			catbus_string_t name1 = { 0 };
-			catbus_i8_get_string_for_hash( cur_device->status.tags.tags[0], name1.str,  &cur_device->status.ip );
+			catbus_i8_get_string_for_hash( cur_device->tags.tags[0], name1.str,  &cur_device->ip );
 
 			catbus_string_t name2 = { 0 };
-			catbus_i8_get_string_for_hash( next_device->status.tags.tags[0], name2.str,  &next_device->status.ip );
+			catbus_i8_get_string_for_hash( next_device->tags.tags[0], name2.str,  &next_device->ip );
 
 			if( strcmp( name1.str, name2.str ) > 0 ){
 
@@ -314,20 +314,20 @@ void device_db_v_sort_name( void ){
 // 	return TRUE;
 // }
 
-device_status_t* device_db_p_get_next_query( catbus_query_t *query ){
+device_data_t* device_db_p_get_next_query( catbus_query_t *query ){
 
 	if( query == 0 ){
 
 		query = &current_query;
 	}
 
-	device_status_t *device = device_db_p_get_next();
+	device_data_t *device = device_db_p_get_next();
 
 	while( device != 0 ){
 
 		// trace_printf("query device %d.%d.%d.%d\n", device->status.ip.ip3, device->status.ip.ip2, device->status.ip.ip1, device->status.ip.ip0);
 
-		if( catbus_b_query_tags( query, &device->status.tags ) ){
+		if( catbus_b_query_tags( query, &device->tags ) ){
 
 			return device;
 		}
@@ -350,13 +350,13 @@ uint8_t device_db_u8_query_count( catbus_query_t *query ){
 
 	device_db_v_reset_iter();
 
-	device_status_t *device = device_db_p_get_next();
+	device_data_t *device = device_db_p_get_next();
 
 	while( device != 0 ){
 
 		// trace_printf("query device %d.%d.%d.%d\n", device->status.ip.ip3, device->status.ip.ip2, device->status.ip.ip1, device->status.ip.ip0);
 
-		if( catbus_b_query_tags( query, &device->status.tags ) ){
+		if( catbus_b_query_tags( query, &device->tags ) ){
 
 			count++;
 		}
@@ -368,7 +368,7 @@ uint8_t device_db_u8_query_count( catbus_query_t *query ){
 }
 
 
-device_status_t* device_db_p_get_ipaddr( ip_addr4_t ip ){
+device_data_t* device_db_p_get_ipaddr( ip_addr4_t ip ){
 
 	list_node_t ln = device_list.head;
 
@@ -376,9 +376,9 @@ device_status_t* device_db_p_get_ipaddr( ip_addr4_t ip ){
 
     	list_node_t next_ln = list_ln_next( ln );
 
-        device_status_t *device = list_vp_get_data( ln );
+        device_data_t *device = list_vp_get_data( ln );
 
-        if( ip_b_addr_compare( device->status.ip, ip ) ){
+        if( ip_b_addr_compare( device->ip, ip ) ){
 
         	return device;
         }
@@ -393,56 +393,53 @@ void device_db_v_init( void ){
 
 	list_v_init( &device_list );
 
-	// mqtt_client_i8_subscribe( PSTR("chromatron/status_binary"), 0, mqtt_on_publish_status_callback, 0 );	
-	// mqtt_client_i8_subscribe( PSTR("chromatron/batt_binary"), 0, mqtt_on_publish_batt_callback, 0 );	
-
     thread_t_create( device_db_thread,
                      PSTR("device_db"),
                      0,
                      0 );
 }
 
-void device_db_v_get_file_hash_list( catbus_file_hash_list_callback_t callback ){
+// void device_db_v_get_file_hash_list( catbus_file_hash_list_callback_t callback ){
 
-	device_db_v_reset_iter();
+// 	device_db_v_reset_iter();
 
-	const device_status_t *device = device_db_p_get_next_query( 0 );
+// 	const device_data_t *device = device_db_p_get_next_query( 0 );
 
-	while( device != 0 ){
+// 	while( device != 0 ){
 
-		catbus_v_get_file_hash_list( device->status.ip, callback );
+// 		catbus_v_get_file_hash_list( device->status.ip, callback );
 
-		device = device_db_p_get_next_query( 0 );
-	}
-}
+// 		device = device_db_p_get_next_query( 0 );
+// 	}
+// }
 
-void device_db_v_get_key( catbus_hash_t32 hash, catbus_get_key_callback_t callback ){
+// void device_db_v_get_key( catbus_hash_t32 hash, catbus_get_key_callback_t callback ){
 
-	device_db_v_reset_iter();
+// 	device_db_v_reset_iter();
 
-	const device_status_t *device = device_db_p_get_next_query( 0 );
+// 	const device_data_t *device = device_db_p_get_next_query( 0 );
 
-	while( device != 0 ){
+// 	while( device != 0 ){
 
-		catbus_v_get_key( device->status.ip, hash, callback );
+// 		catbus_v_get_key( device->status.ip, hash, callback );
 
-		device = device_db_p_get_next_query( 0 );
-	}
-}
+// 		device = device_db_p_get_next_query( 0 );
+// 	}
+// }
 
-void device_db_v_set_key( catbus_hash_t32 hash, catbus_type_t8 type, uint8_t *data, uint16_t data_len ){
+// void device_db_v_set_key( catbus_hash_t32 hash, catbus_type_t8 type, uint8_t *data, uint16_t data_len ){
 
-	device_db_v_reset_iter();
+// 	device_db_v_reset_iter();
 
-	const device_status_t *device = device_db_p_get_next_query( 0 );
+// 	const device_data_t *device = device_db_p_get_next_query( 0 );
 
-	while( device != 0 ){
+// 	while( device != 0 ){
 
-		catbus_v_set_key( device->status.ip, hash, type, data );
+// 		catbus_v_set_key( device->status.ip, hash, type, data );
 
-		device = device_db_p_get_next_query( 0 );
-	}
-}
+// 		device = device_db_p_get_next_query( 0 );
+// 	}
+// }
 
 
 
@@ -450,3 +447,5 @@ void device_db_v_process_announce( catbus_msg_announce_t *annouce ){
 
 	
 }
+
+
