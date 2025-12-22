@@ -881,7 +881,7 @@ PT_BEGIN( pt );
 
             catbus_msg_announce_t *msg = (catbus_msg_announce_t *)header;
 
-            device_db_v_process_announce( msg );
+            device_db_v_process_announce( msg, &raddr );
         }
         else if( header->msg_type == CATBUS_MSG_TYPE_DISCOVER ){
 
