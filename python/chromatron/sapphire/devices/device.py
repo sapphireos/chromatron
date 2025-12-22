@@ -767,6 +767,13 @@ class Device(object):
 
         return info
 
+    def get_device_db(self):
+        data = self.get_file("device_db")
+        info = sapphiredata.DeviceDBArray()
+        info.unpack(data)
+
+        return info
+
     def get_link_info(self):
         data = self.get_file("link_info")
         info = sapphiredata.Link2StateArray()
@@ -2075,6 +2082,36 @@ class Device(object):
             
         #     s += f'{self._client.lookup_hash(item.hash)[item.hash]:20}   {item.rate}\n'
 
+        return s
+
+    def cli_device_db(self, line):
+        try:
+            data = self.get_device_db()
+
+        except OSError:
+            return
+
+        if len(data) == 0:
+            return
+
+        s = '\nIP           Query                            Timeout\n'
+
+        for item in data:
+            query_s = ''
+            for q in list(item.query)[:2]:
+                try:
+                    v = self.lookup_hash(q, (str(item.ipaddr), CATBUS_MAIN_PORT))
+
+                    if v is None:
+                        continue
+
+                except KeyError:
+                    v = f'{q:x}'
+
+                query_s += f'{v} '
+
+            s += f'{item.ipaddr:12} {query_s:32} {item.timeout}\n'
+            
         return s
 
     # def cli_batt_recorder_info(self, line):

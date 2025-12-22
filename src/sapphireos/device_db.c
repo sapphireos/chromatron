@@ -18,7 +18,26 @@ KV_SECTION_META kv_meta_t devicedb_kv[] = {
 	{ CATBUS_TYPE_UINT16, 	0, 0, 				   &db_size,							0,  "devicedb_size" },
 };
 
+static uint32_t device_db_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &device_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &device_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
 
 PT_THREAD( device_db_thread( pt_t *pt, void *state ) )
 {
@@ -203,6 +222,8 @@ void device_db_v_init( void ){
 
 	list_v_init( &device_list );
 
+	fs_v_create_virtual( PSTR("device_db"), device_db_vfile );
+
     thread_t_create( device_db_thread,
                      PSTR("device_db"),
                      0,
@@ -246,6 +267,8 @@ void device_db_v_process_announce( const catbus_msg_announce_t *announce, const 
     } 
 
     list_v_insert_tail( &device_list, ln );
+
+    db_size = list_u8_count( &device_list );
 }
 
 
