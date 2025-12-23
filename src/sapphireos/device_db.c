@@ -222,6 +222,11 @@ void device_db_v_init( void ){
 
 	list_v_init( &device_list );
 
+	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+		return;
+	}
+
 	fs_v_create_virtual( PSTR("device_db"), device_db_vfile );
 
     thread_t_create( device_db_thread,
