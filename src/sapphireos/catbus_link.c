@@ -375,7 +375,7 @@ void link_v_init( void )
                  0,
                  0 );
 
-    // wifi_i8_igmp_join( ip_a_addr(255,255,255,255) );
+    // wifi_i8_igmp_join( ip_a_addr(LINK_MCAST_ADDR) );
 
 
     #ifdef TEST_MODE

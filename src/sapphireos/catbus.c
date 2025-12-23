@@ -715,6 +715,8 @@ PT_BEGIN( pt );
     static uint32_t last_lookup_check;
     last_lookup_check = tmr_u32_get_system_time_ms();
 
+    wifi_i8_igmp_join( ip_a_addr( CATBUS_ANNOUNCE_MCAST_ADDR ) );
+
     // create sockets
     sock          = sock_s_create( SOS_SOCK_DGRAM );
     announce_sock = sock_s_create( SOS_SOCK_DGRAM );
