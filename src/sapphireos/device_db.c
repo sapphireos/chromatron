@@ -238,6 +238,8 @@ void device_db_v_init( void ){
 
 void device_db_v_process_announce( const catbus_msg_announce_t *announce, const sock_addr_t *raddr ){
 
+	log_v_debug_P( PSTR("announce %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
+
 	list_node_t ln = device_list.head;
 
     while( ln >= 0 ){

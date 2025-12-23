@@ -866,14 +866,18 @@ PT_BEGIN( pt );
         // check which socket has data:
         bool is_announce_sock = false;
 
+        sock_addr_t raddr;
+        
         if( sock_i16_get_bytes_read( sock ) > 0 ){
 
             header = sock_vp_get_data( sock );    
+            sock_v_get_raddr( sock, &raddr );
         }
         else if( sock_i16_get_bytes_read( announce_sock ) > 0 ){
 
             is_announce_sock = true;
             header = sock_vp_get_data( announce_sock );    
+            sock_v_get_raddr( announce_sock, &raddr );
         }
         else{
 
@@ -896,9 +900,6 @@ PT_BEGIN( pt );
 
             goto end;
         }
-
-        sock_addr_t raddr;
-        sock_v_get_raddr( sock, &raddr );
 
         // uint32_t start = tmr_u32_get_system_time_us();
 
