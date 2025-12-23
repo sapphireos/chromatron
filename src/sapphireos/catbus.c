@@ -42,6 +42,7 @@
 static uint64_t origin_id;
 
 static socket_t sock;
+static socket_t announce_sock;
 static thread_t file_sessions[CATBUS_MAX_FILE_SESSIONS];
 
 static list_t name_lookup_list;
@@ -714,14 +715,18 @@ PT_BEGIN( pt );
     static uint32_t last_lookup_check;
     last_lookup_check = tmr_u32_get_system_time_ms();
 
-    // create socket
-    sock = sock_s_create( SOS_SOCK_DGRAM );
+    // create sockets
+    sock          = sock_s_create( SOS_SOCK_DGRAM );
+    announce_sock = sock_s_create( SOS_SOCK_DGRAM );
 
     ASSERT( sock >= 0 );
+    ASSERT( announce_sock >= 0 );
 
     sock_v_bind( sock, CATBUS_MAIN_PORT );
+    sock_v_bind( announce_sock, CATBUS_ANNOUNCE_PORT );
 
     sock_v_set_timeout( sock, 1 );
+    sock_v_set_timeout( announce_sock, 1 );
 
     // wait for device id
     cfg_i8_get( CFG_PARAM_DEVICE_ID, &origin_id );
@@ -746,11 +751,15 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && ( list_u8_count( &name_lookup_list ) == 0 ) );
+        THREAD_WAIT_WHILE( pt, 
+            ( sock_i8_recvfrom( sock ) < 0 ) && 
+            ( sock_i8_recvfrom( announce_sock ) < 0 ) && 
+            ( list_u8_count( &name_lookup_list ) == 0 ) );
 
         uint16_t error = CATBUS_STATUS_OK;
 
-        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+        if( ( sock_i16_get_bytes_read( sock ) <= 0 ) &&
+            ( sock_i16_get_bytes_read( announce_sock ) <= 0 ) ){
 
         #ifdef ENABLE_WIFI
             // only do the resolve if the server is not processing a message
@@ -850,7 +859,24 @@ PT_BEGIN( pt );
             goto end;
         }
 
-        catbus_header_t *header = sock_vp_get_data( sock );
+        catbus_header_t *header = 0;
+
+        // check which socket has data:
+        bool is_announce_sock = false;
+
+        if( sock_i16_get_bytes_read( sock ) > 0 ){
+
+            header = sock_vp_get_data( sock );    
+        }
+        else if( sock_i16_get_bytes_read( announce_sock ) > 0 ){
+
+            is_announce_sock = true;
+            header = sock_vp_get_data( announce_sock );    
+        }
+        else{
+
+            goto end;
+        }
 
         // verify message
         if( header->meow != CATBUS_MEOW ){
@@ -883,7 +909,14 @@ PT_BEGIN( pt );
 
             device_db_v_process_announce( msg, &raddr );
         }
-        else if( header->msg_type == CATBUS_MSG_TYPE_DISCOVER ){
+
+        // check if announce sock, if so, we only process announce
+        if( is_announce_sock ){
+
+            goto end;
+        }
+
+        if( header->msg_type == CATBUS_MSG_TYPE_DISCOVER ){
 
             catbus_msg_discover_t *msg = (catbus_msg_discover_t *)header;
 
