@@ -24,6 +24,7 @@
 
 #include "hx711.h"
 
+#ifdef ESP32
 
 static int32_t load_cell;
 static int32_t offset_cal;
@@ -182,3 +183,4 @@ void hx711_v_init( void ){
                      0 );
 }
 
+#endif
