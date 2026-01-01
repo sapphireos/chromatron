@@ -111,7 +111,6 @@ Followers periodically sync while tracking round trip time.
 #include "hash.h"
 #include "sntp.h"
 #include "util.h"
-#include "services.h"
 
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
@@ -244,40 +243,6 @@ uint32_t time_u32_get_network_aligned( uint32_t alignment ){
 
     return net_time + ( alignment - net_time % alignment );
 }
-
-// static bool is_leader( void ){
-
-//     return services_b_is_server( TIME_ELECTION_SERVICE, 0 );
-// }
-
-// static bool is_service_avilable( void ){
-
-//     return services_b_is_available( TIME_ELECTION_SERVICE, 0 );
-// }
-
-// static bool is_follower( void ){
-
-//     return !is_leader() && is_service_avilable();
-// }
-
-// static uint16_t get_priority( void ){
-
-//     // TODO
-//     // if doze mode works out, check for it here
-//     // and lower priority?
-
-//     #ifdef ESP32
-    
-//     if( kv_b_get_boolean( __KV__batt_enable ) ){
-
-//         return 0;
-//     }
-    
-//     return 10;
-//     #endif
-
-//     return 1;
-// }
 
 static uint8_t *decode_msg( uint8_t *msg ){
 

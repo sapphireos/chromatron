@@ -48,7 +48,6 @@
 #ifdef ENABLE_NETWORK
 #include "netmsg.h"
 #include "sockets.h"
-#include "services.h"
 #endif
 
 #include "flash25.h"
@@ -210,10 +209,6 @@ int8_t sapphire_i8_init( void ){
     wifi_v_init();
     #endif
 
-    #ifdef ENABLE_SERVICES
-    services_v_init();
-    #endif
-
 
     catbus_v_init();
 
@@ -228,10 +223,6 @@ int8_t sapphire_i8_init( void ){
     time_v_init();
     ntp_v_init();
     sntp_v_init();
-    #endif
-
-    #ifdef ENABLE_MSGFLOW
-    msgflow_v_init();
     #endif
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){

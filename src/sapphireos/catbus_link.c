@@ -31,7 +31,6 @@
 #include "catbus.h"
 #include "list.h"
 #include "hash.h"
-#include "services.h"
 #include "util.h"
 #include "config.h"
 #include "random.h"
