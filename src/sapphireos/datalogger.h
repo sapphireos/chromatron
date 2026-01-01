@@ -25,7 +25,6 @@
 #ifndef __DATALOGGER_H
 #define __DATALOGGER_H
 
-#include "msgflow.h"
 #include "catbus.h"
 #include "ntp.h"
 
