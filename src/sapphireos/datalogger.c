@@ -22,6 +22,8 @@
 // </license>
  */
 
+#if 0
+
 #include "config.h"
 #include "system.h"
 #include "memory.h"
@@ -33,7 +35,6 @@
 #include "keyvalue.h"
 #include "time_ntp.h"
 #include "datalogger.h"
-#include "mqtt_client.h"
 
 #ifdef ENABLE_CONTROLLER
 
@@ -214,10 +215,10 @@ static int8_t record_data( datalog_entry_t *entry, uint32_t timestamp ){
         return -3;
     }
 
-    if( !mqtt_b_connected() ){
+    // if( !mqtt_b_connected() ){
 
-        return -4;
-    }
+    //     return -4;
+    // }
 
     uint8_t *ptr = mem2_vp_get_ptr( datalog_buffer_handle );
 
@@ -307,10 +308,10 @@ static void flush( void ){
         return;
     }
 
-    if( !mqtt_b_connected() ){
+    // if( !mqtt_b_connected() ){
 
-        return;
-    }
+    //     return;
+    // }
 
     uint8_t buf[CATBUS_MAX_DATA];
 
@@ -334,7 +335,7 @@ static void flush( void ){
 
     buffer_offset = 0;
 
-    mqtt_client_i8_publish( PSTR("chromatron/datalogger"), buf, msg_size, 0, 0 );
+    // mqtt_client_i8_publish( PSTR("chromatron/datalogger"), buf, msg_size, 0, 0 );
 }
 
 
@@ -358,7 +359,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, !mqtt_b_connected() || ( datalog_handle < 0 ) );
+        // THREAD_WAIT_WHILE( pt, !mqtt_b_connected() || ( datalog_handle < 0 ) );
 
         if( sys_b_is_shutting_down() ){
 
@@ -369,93 +370,93 @@ PT_BEGIN( pt );
 
         thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
-        while( mqtt_b_connected() && ( datalog_handle > 0 ) ){
+        // while( mqtt_b_connected() && ( datalog_handle > 0 ) ){
 
-            if( sys_b_is_shutting_down() ){
+        //     if( sys_b_is_shutting_down() ){
 
-                THREAD_EXIT( pt );
-            }
+        //         THREAD_EXIT( pt );
+        //     }
 
-            ticks++;
+        //     ticks++;
 
-            if( ticks >= DATALOG_FLUSH_TICKS ){
+        //     if( ticks >= DATALOG_FLUSH_TICKS ){
 
-                ticks = 0;
+        //         ticks = 0;
 
-                flush();
-            }
+        //         flush();
+        //     }
 
-            uint32_t timestamp = tmr_u32_get_system_time_ms();
+        //     uint32_t timestamp = tmr_u32_get_system_time_ms();
 
-            uint16_t entries = mem2_u16_get_size( datalog_handle ) / sizeof(datalog_entry_t);
+        //     uint16_t entries = mem2_u16_get_size( datalog_handle ) / sizeof(datalog_entry_t);
 
-            datalog_entry_t *entry_ptr = (datalog_entry_t *)mem2_vp_get_ptr( datalog_handle );
+        //     datalog_entry_t *entry_ptr = (datalog_entry_t *)mem2_vp_get_ptr( datalog_handle );
 
-            while( entries > 0 ){
+        //     while( entries > 0 ){
 
-                entries--;
+        //         entries--;
                 
-                // check timeout
-                entry_ptr->ticks--;
-                if( entry_ptr->ticks > 0 ){
+        //         // check timeout
+        //         entry_ptr->ticks--;
+        //         if( entry_ptr->ticks > 0 ){
 
-                    goto done;
-                }
+        //             goto done;
+        //         }
 
-                // item is ready to record
+        //         // item is ready to record
 
-                if( buffer_offset == 0 ){
+        //         if( buffer_offset == 0 ){
 
-                    datalog_v4_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
+        //             datalog_v4_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
 
-                    // memset( buf_meta_ptr, 0, mem2_u16_get_size( datalog_buffer_handle ) );
+        //             // memset( buf_meta_ptr, 0, mem2_u16_get_size( datalog_buffer_handle ) );
 
-                    // get NTP time
-                    ntp_v_get_timestamp( &ntp_base, &systime_base );
+        //             // get NTP time
+        //             ntp_v_get_timestamp( &ntp_base, &systime_base );
 
-                    buf_meta_ptr->ntp_base = ntp_base;
-                    buf_meta_ptr->ip = cfg_ip_get_ipaddr();
+        //             buf_meta_ptr->ntp_base = ntp_base;
+        //             buf_meta_ptr->ip = cfg_ip_get_ipaddr();
 
-                    buffer_offset += sizeof(datalog_v4_meta_t);
-                }
+        //             buffer_offset += sizeof(datalog_v4_meta_t);
+        //         }
 
-                entry_ptr->ticks = entry_ptr->tick_rate;
+        //         entry_ptr->ticks = entry_ptr->tick_rate;
 
-                int8_t status = record_data( entry_ptr, timestamp );
+        //         int8_t status = record_data( entry_ptr, timestamp );
 
-                if( status > 0 ){
+        //         if( status > 0 ){
 
-                    // queue for transmission
-                    flush();
+        //             // queue for transmission
+        //             flush();
 
-                    if( buffer_offset == 0 ){
+        //             if( buffer_offset == 0 ){
 
-                        datalog_v4_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
+        //                 datalog_v4_meta_t *buf_meta_ptr = mem2_vp_get_ptr( datalog_buffer_handle );
 
-                        // memset( buf_meta_ptr, 0, mem2_u16_get_size( datalog_buffer_handle ) );
+        //                 // memset( buf_meta_ptr, 0, mem2_u16_get_size( datalog_buffer_handle ) );
 
-                        // get NTP time
-                        ntp_v_get_timestamp( &ntp_base, &systime_base );
+        //                 // get NTP time
+        //                 ntp_v_get_timestamp( &ntp_base, &systime_base );
 
-                        buf_meta_ptr->ntp_base = ntp_base;
+        //                 buf_meta_ptr->ntp_base = ntp_base;
 
-                        buffer_offset += sizeof(datalog_v4_meta_t);
-                    }
+        //                 buffer_offset += sizeof(datalog_v4_meta_t);
+        //             }
 
-                    record_data( entry_ptr, timestamp );
-                }
-                else if( status < 0 ){
+        //             record_data( entry_ptr, timestamp );
+        //         }
+        //         else if( status < 0 ){
 
-                    log_v_warn_P( PSTR("datalog failed: %d"), status );
-                }
+        //             log_v_warn_P( PSTR("datalog failed: %d"), status );
+        //         }
 
-            done:
-                entry_ptr++;
-            }
+        //     done:
+        //         entry_ptr++;
+        //     }
 
-            thread_v_set_alarm( thread_u32_get_alarm() + DATALOG_TICK_RATE );
-            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
-        }
+        //     thread_v_set_alarm( thread_u32_get_alarm() + DATALOG_TICK_RATE );
+        //     THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        // }
 
         log_v_debug_P( PSTR("Datalogger disconnected") );
     }
@@ -472,3 +473,6 @@ void datalogger_v_refresh_config( void ){
     refresh_config = TRUE;
     #endif
 }
+
+
+#endif

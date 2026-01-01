@@ -286,7 +286,7 @@ int8_t kvdb_i8_add(
 
     // refresh the datalogger config so it is aware 
     // of the new keys we've added.
-    datalogger_v_refresh_config();
+    // datalogger_v_refresh_config();
 
     return KVDB_STATUS_OK;
 }
