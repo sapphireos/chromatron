@@ -478,7 +478,7 @@ void controller_v_init( void ){
     list_v_init( &follower_list );	
 
     // create vfile
-    fs_v_create_virtual( PSTR("directory"), vfile );
+    // fs_v_create_virtual( PSTR("directory"), vfile );
 
     // create socket
     sock = sock_s_create( SOS_SOCK_DGRAM );
@@ -487,24 +487,24 @@ void controller_v_init( void ){
 
     sock_v_bind( sock, CONTROLLER_PORT );
 
-    thread_t_create( controller_server_thread,
-                     PSTR("controller_server"),
-                     0,
-                     0 );
+    // thread_t_create( controller_server_thread,
+    //                  PSTR("controller_server"),
+    //                  0,
+    //                  0 );
 
 
-    thread_t_create( controller_state_thread,
-                     PSTR("controller_state_machine"),
-                     0,
-                     0 );
+    // thread_t_create( controller_state_thread,
+    //                  PSTR("controller_state_machine"),
+    //                  0,
+    //                  0 );
 
-    thread_t_create( controller_timeout_thread,
-                     PSTR("controller_timeout"),
-                     0,
-                     0 );
+    // thread_t_create( controller_timeout_thread,
+    //                  PSTR("controller_timeout"),
+    //                  0,
+    //                  0 );
 
 
-   	link2_v_init();
+   	// link2_v_init();
 }
 
 // static bool is_candidate( void ){

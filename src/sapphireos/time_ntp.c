@@ -27,9 +27,6 @@
 #include "sockets.h"
 #include "timers.h"
 
-#ifdef ENABLE_CONTROLLER
-
-#include "controller.h"
 #include "config.h"
 #include "time_ntp.h"
 #include "sntp.h"
@@ -39,20 +36,27 @@
 
 /*
 
-Track long term sync delay and elapsed differences.
-Try to average to a long term average sync accuracy.
-
-It would be cool to see the difference in oscillator
-speeds between devices, which over a long enough
-averaging period, should be discernible.
-
+NTP notes:
 
 We really don't need NTP to be any better than 1 second or so.
 We have a high precision clock already for VM sync.
 
-What if we switch to a broadcast mode?
-Can broadcast several packets within a few 100 ms, receivers can 
-average them out.
+
+
+
+Check if no source:
+random delay
+start SNTP
+start broadcasting as master clock
+
+If receive better source:
+set to follower
+stop SNTP
+stop broadcasting clock
+
+If manual source:
+if source is better than current:
+    start broadcasting as master clock
 
 */
 
@@ -60,6 +64,7 @@ average them out.
 static socket_t sock;
 
 // master clock:
+static ip_addr4_t master_ip; 
 static uint8_t prev_source;
 static uint8_t clock_source;
 static ntp_ts_t master_ntp_time;
@@ -145,10 +150,13 @@ KV_SECTION_META kv_meta_t ntp_time_info_kv[] = {
 
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &ntp_syncs,                  0,                  "ntp_syncs" },
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &ntp_timeouts,               0,                  "ntp_timeouts" },
+
+    { CATBUS_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,                  0,                  "ntp_master_ip" },
 };
 
 
 PT_THREAD( ntp_clock_thread( pt_t *pt, void *state ) );
+PT_THREAD( ntp_sender_thread( pt_t *pt, void *state ) );
 PT_THREAD( ntp_server_thread( pt_t *pt, void *state ) );
 
 
@@ -170,6 +178,11 @@ void ntp_v_init( void ){
     sock = sock_s_create( SOS_SOCK_DGRAM );
 
     sock_v_bind( sock, NTP_SERVER_PORT );
+
+    thread_t_create( ntp_sender_thread,
+                    PSTR("ntp_sender"),
+                    0,
+                    0 );
 
     thread_t_create( ntp_server_thread,
                     PSTR("ntp_server"),
@@ -200,6 +213,7 @@ void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time ){
 
 void ntp_v_set_master_clock( 
     ntp_ts_t source_ntp, 
+    ip_addr4_t source_ip,
     uint8_t source ){
 
     // filter source
@@ -273,6 +287,13 @@ void ntp_v_set_master_clock(
     }
     
     last_sync_time = tmr_u32_get_system_time_ms();
+
+    if( ip_b_is_zeroes( source_ip ) ){
+
+        source_ip = cfg_ip_get_ipaddr();
+    }
+
+    master_ip = source_ip;
 }
 
 // this will compute the current NTP time from the current clock
@@ -343,26 +364,9 @@ bool ntp_b_is_sync( void ){
     return clock_source > NTP_SOURCE_NONE;
 }
 
-void ntp_v_transmit_source_to_controller( ntp_ts_t source_ntp, uint8_t source ){
+bool is_leader( void ){
 
-    ntp_msg_clock_t msg = {
-        .magic = NTP_PROTOCOL_MAGIC,
-        .version = NTP_PROTOCOL_VERSION,
-        .type = NTP_MSG_SOURCE,
-        .source = source,
-        .ntp_timestamp = source_ntp,
-    };
-
-    sock_addr_t raddr;
-    if( controller_i8_get_addr( &raddr ) < 0 ){
-
-        return;
-    }
-
-    // change to NTP port!
-    raddr.port = NTP_SERVER_PORT;
-
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
+    return FALSE;
 }
 
 void ntp_v_transmit( ntp_ts_t source_ntp, uint8_t source ){
@@ -372,6 +376,7 @@ void ntp_v_transmit( ntp_ts_t source_ntp, uint8_t source ){
         .version = NTP_PROTOCOL_VERSION,
         .type = NTP_MSG_CLOCK,
         .source = source,
+        .origin_timestamp = tmr_u64_get_system_time_us(),
         .ntp_timestamp = source_ntp,
     };
 
@@ -520,8 +525,8 @@ PT_BEGIN( pt );
             master_ntp_time = ntp_ts_from_u64( ntp_now_u64 );
 
 
-            // check if we are a controller:
-            if( controller_b_is_leader() ){
+            // check if we are a leader:
+            if( is_leader() ){
 
                 uint8_t broadcast_source = clock_source;
 
@@ -555,6 +560,28 @@ PT_END( pt );
 }
 
 
+PT_THREAD( ntp_sender_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    while( TRUE ){
+
+        THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() );
+
+        while( ntp_b_is_sync() && is_leader() ){
+            
+            
+            
+            
+            TMR_WAIT( pt, 1000 );    
+        }
+
+        TMR_WAIT( pt, 1000 );
+    }
+
+PT_END( pt );
+}
+
 PT_THREAD( ntp_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -566,8 +593,8 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
-        // check if controller
-        if( controller_b_is_leader() ){
+        // check if leader
+        if( is_leader() ){
 
             // check if we should enable SNTP
             if( clock_source <= NTP_SOURCE_SNTP ){
@@ -583,13 +610,15 @@ PT_BEGIN( pt );
         }
         else{
 
-            // not a controller, no SNTP!
+            // not a leader, no SNTP!
             sntp_v_stop();
         }
 
 
         // check for received data
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+            // timeout
 
             continue;
         }
@@ -611,7 +640,7 @@ PT_BEGIN( pt );
             continue;
         }
 
-        uint8_t *type = version + 1;
+        const uint8_t *type = version + 1;
 
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
@@ -624,33 +653,18 @@ PT_BEGIN( pt );
 
         if( *type == NTP_MSG_CLOCK ){
 
-            // check if controller.
-            // controller receives clock from either another source
-            // or from SNTP directly.  It does not receive the clock message!
-            if( controller_b_is_leader() ){
+            // check if leader, we are setting the clock direclty
+            if( is_leader() ){
 
                 continue;
             }
 
-            ntp_msg_clock_t *msg = (ntp_msg_clock_t *)magic;
+            const ntp_msg_clock_t *msg = (ntp_msg_clock_t *)magic;
 
-            ntp_v_set_master_clock( msg->ntp_timestamp, msg->source );
-        }
-        else if( *type == NTP_MSG_SOURCE ){
-
-            // check if controller.
-            // only the controller receives source!
-            if( !controller_b_is_leader() ){
-
-                continue;
-            }
-
-            ntp_msg_clock_t *msg = (ntp_msg_clock_t *)magic;
-
-            // receiving source from another node
+            // check better source
             if( msg->source >= clock_source ){
 
-                ntp_v_set_master_clock( msg->ntp_timestamp, msg->source );
+                ntp_v_set_master_clock( msg->ntp_timestamp, raddr.ipaddr, msg->source );
             }
         }
         else{
@@ -667,6 +681,3 @@ PT_END( pt );
 }
 
 
-
-
-#endif

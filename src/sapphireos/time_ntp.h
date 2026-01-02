@@ -28,11 +28,9 @@
 #ifdef ENABLE_TIME_SYNC
 
 #define NTP_PROTOCOL_MAGIC             0x50544e53 // 'SNTP' in ASCII
-#define NTP_PROTOCOL_VERSION           2
+#define NTP_PROTOCOL_VERSION           4
 
 #define NTP_SERVER_PORT                32038
-
-// #define NTP_ELECTION_SERVICE           __KV__ntpclock
 
 // #define NTP_SYNC_INTERVAL              600 // in seconds
 
@@ -90,9 +88,9 @@ typedef struct  __attribute__((packed)){
     uint8_t version;
     uint8_t type;
     uint8_t source;
+    uint64_t origin_timestamp;
     ntp_ts_t ntp_timestamp;
 } ntp_msg_clock_t;
-#define NTP_MSG_SOURCE                  3
 #define NTP_MSG_CLOCK                   4
 
 
@@ -104,6 +102,7 @@ void ntp_v_init( void );
 //     uint8_t source );
 void ntp_v_set_master_clock( 
     ntp_ts_t source_ntp, 
+    ip_addr4_t source_ip,
     uint8_t source );
 
 void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time );
@@ -112,7 +111,6 @@ ntp_ts_t ntp_t_now( void );
 ntp_ts_t ntp_t_local_now( void );
 bool ntp_b_is_sync( void );
 void ntp_v_transmit( ntp_ts_t source_ntp, uint8_t source );
-void ntp_v_transmit_source_to_controller( ntp_ts_t source_ntp, uint8_t source );
 
 #endif
 
