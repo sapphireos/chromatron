@@ -65,6 +65,7 @@ static socket_t sock;
 
 // master clock:
 static ip_addr4_t master_ip; 
+static uint64_t master_timestamp;
 static uint8_t prev_source;
 static uint8_t clock_source;
 static ntp_ts_t master_ntp_time;
@@ -72,8 +73,6 @@ uint64_t master_sys_time_ms; // system timestamp that correlates to NTP timestam
 static int16_t master_sync_delta;
 
 static uint32_t last_sync_time;
-
-// static ip_addr4_t master_ip;
 
 static uint32_t ntp_syncs;
 static uint32_t ntp_timeouts;
@@ -214,6 +213,7 @@ void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time ){
 void ntp_v_set_master_clock( 
     ntp_ts_t source_ntp, 
     ip_addr4_t source_ip,
+    uint64_t source_timestamp,
     uint8_t source ){
 
     // filter source
@@ -293,7 +293,9 @@ void ntp_v_set_master_clock(
         source_ip = cfg_ip_get_ipaddr();
     }
 
+    // set master
     master_ip = source_ip;
+    master_timestamp = source_timestamp;
 }
 
 // this will compute the current NTP time from the current clock
@@ -569,10 +571,10 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() );
 
         while( ntp_b_is_sync() && is_leader() ){
+
+
             
-            
-            
-            
+
             TMR_WAIT( pt, 1000 );    
         }
 
@@ -664,7 +666,7 @@ PT_BEGIN( pt );
             // check better source
             if( msg->source >= clock_source ){
 
-                ntp_v_set_master_clock( msg->ntp_timestamp, raddr.ipaddr, msg->source );
+                ntp_v_set_master_clock( msg->ntp_timestamp, raddr.ipaddr, msg->origin_timestamp, msg->source );
             }
         }
         else{

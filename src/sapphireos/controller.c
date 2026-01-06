@@ -171,26 +171,26 @@ PT_THREAD( controller_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( controller_timeout_thread( pt_t *pt, void *state ) );
 
 
-static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+// static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
+//     // the pos and len values are already bounds checked by the FS driver
+//     switch( op ){
 
-        case FS_VFILE_OP_READ:
-            len = list_u16_flatten( &follower_list, pos, ptr, len );
-            break;
+//         case FS_VFILE_OP_READ:
+//             len = list_u16_flatten( &follower_list, pos, ptr, len );
+//             break;
 
-        case FS_VFILE_OP_SIZE:
-            len = list_u16_size( &follower_list );
-            break;
+//         case FS_VFILE_OP_SIZE:
+//             len = list_u16_size( &follower_list );
+//             break;
 
-        default:
-            len = 0;
-            break;
-    }
+//         default:
+//             len = 0;
+//             break;
+//     }
 
-    return len;
-}
+//     return len;
+// }
 
 static PGM_P get_state_name( uint8_t state ){
 

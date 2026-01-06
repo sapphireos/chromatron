@@ -103,6 +103,7 @@ void ntp_v_init( void );
 void ntp_v_set_master_clock( 
     ntp_ts_t source_ntp, 
     ip_addr4_t source_ip,
+    uint64_t source_timestamp,
     uint8_t source );
 
 void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time );
