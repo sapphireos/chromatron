@@ -150,48 +150,48 @@ static int32_t link2_test_key;
 static int32_t link2_test_key2;
 
 
-static uint32_t link_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+// static uint32_t link_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
+//     // the pos and len values are already bounds checked by the FS driver
+//     switch( op ){
 
-        case FS_VFILE_OP_READ:
-            len = list_u16_flatten( &link_list, pos, ptr, len );
-            break;
+//         case FS_VFILE_OP_READ:
+//             len = list_u16_flatten( &link_list, pos, ptr, len );
+//             break;
 
-        case FS_VFILE_OP_SIZE:
-            len = list_u16_size( &link_list );
-            break;
+//         case FS_VFILE_OP_SIZE:
+//             len = list_u16_size( &link_list );
+//             break;
 
-        default:
-            len = 0;
-            break;
-    }
+//         default:
+//             len = 0;
+//             break;
+//     }
 
-    return len;
-}
+//     return len;
+// }
 
 
-static uint32_t binding_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+// static uint32_t binding_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-    // the pos and len values are already bounds checked by the FS driver
-    switch( op ){
+//     // the pos and len values are already bounds checked by the FS driver
+//     switch( op ){
 
-        case FS_VFILE_OP_READ:
-            len = list_u16_flatten( &binding_list, pos, ptr, len );
-            break;
+//         case FS_VFILE_OP_READ:
+//             len = list_u16_flatten( &binding_list, pos, ptr, len );
+//             break;
 
-        case FS_VFILE_OP_SIZE:
-            len = list_u16_size( &binding_list );
-            break;
+//         case FS_VFILE_OP_SIZE:
+//             len = list_u16_size( &binding_list );
+//             break;
 
-        default:
-            len = 0;
-            break;
-    }
+//         default:
+//             len = 0;
+//             break;
+//     }
 
-    return len;
-}
+//     return len;
+// }
 
 static uint8_t get_binding_count( void ){
 

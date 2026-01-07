@@ -444,7 +444,19 @@ PT_BEGIN( pt );
     
     while( TRUE ){
 
-        THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() );
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 + ( rnd_u16_get_int() >> 4 ) );
+        THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() && thread_b_alarm_set() );
+
+        if( !ntp_b_is_sync() ){
+
+            log_v_info_P( PSTR("Starting local clock") );
+
+            // start local clock
+            master_ip = cfg_ip_get_ipaddr();
+            master_timestamp = tmr_u64_get_system_time_us();
+
+            continue;
+        }
 
         prev_source = clock_source;
 
@@ -466,8 +478,14 @@ PT_BEGIN( pt );
 
                 // set source to internal
                 clock_source = NTP_SOURCE_INTERNAL;
-
+                master_ip = cfg_ip_get_ipaddr();
+                master_timestamp = tmr_u64_get_system_time_us();
                 log_v_info_P( PSTR("NTP master clock desync, changing source to internal.") );
+            }
+
+            if( clock_source == NTP_SOURCE_INTERNAL ){
+
+                last_sync_time = tmr_u32_get_system_time_ms();
             }
 
             // check if clock source changed
@@ -698,19 +716,9 @@ PT_BEGIN( pt );
 
         if( *type == NTP_MSG_CLOCK ){
 
-            // check if leader, we are setting the clock direclty
-            if( is_master() ){
-
-                continue;
-            }
-
             const ntp_msg_clock_t *msg = (ntp_msg_clock_t *)magic;
-
-            // check better source
-            if( msg->source >= clock_source ){
-
-                ntp_v_set_master_clock( msg->ntp_timestamp, raddr.ipaddr, msg->origin_timestamp, msg->source );
-            }
+            
+            ntp_v_set_master_clock( msg->ntp_timestamp, raddr.ipaddr, msg->origin_timestamp, msg->source );
         }
         else{
 
