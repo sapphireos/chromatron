@@ -150,12 +150,13 @@ KV_SECTION_META kv_meta_t ntp_time_info_kv[] = {
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &ntp_syncs,                  0,                  "ntp_syncs" },
     { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY, &ntp_timeouts,               0,                  "ntp_timeouts" },
 
+    { CATBUS_TYPE_UINT64,   0, KV_FLAGS_READ_ONLY, &master_timestamp,           0,                  "ntp_master_timestamp" },
     { CATBUS_TYPE_IPv4,     0, KV_FLAGS_READ_ONLY, &master_ip,                  0,                  "ntp_master_ip" },
 };
 
 
 PT_THREAD( ntp_clock_thread( pt_t *pt, void *state ) );
-PT_THREAD( ntp_sender_thread( pt_t *pt, void *state ) );
+// PT_THREAD( ntp_sender_thread( pt_t *pt, void *state ) );
 PT_THREAD( ntp_server_thread( pt_t *pt, void *state ) );
 
 
@@ -178,10 +179,10 @@ void ntp_v_init( void ){
 
     sock_v_bind( sock, NTP_SERVER_PORT );
 
-    thread_t_create( ntp_sender_thread,
-                    PSTR("ntp_sender"),
-                    0,
-                    0 );
+    // thread_t_create( ntp_sender_thread,
+    //                 PSTR("ntp_sender"),
+    //                 0,
+    //                 0 );
 
     thread_t_create( ntp_server_thread,
                     PSTR("ntp_server"),
@@ -198,9 +199,11 @@ static void reset_clock( void ){
 
     clock_source = NTP_SOURCE_NONE;
 
-    master_ntp_time = ntp_ts_from_u64( 0 );
-    master_sys_time_ms = 0;
-    master_sync_delta = 0;
+    master_ntp_time     = ntp_ts_from_u64( 0 );
+    master_sys_time_ms  = 0;
+    master_sync_delta   = 0;
+    master_ip           = ip_a_addr(0,0,0,0);
+    master_timestamp    = 0;
 }
 
 void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time ){
@@ -210,14 +213,56 @@ void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time ){
     *ntp_now = ntp_t_from_system_time( *system_time );   
 }
 
+// return true if given clock is better than current master
+bool compare_clock( ip_addr4_t source_ip, uint64_t source_timestamp, uint8_t source ){
+
+    // check if better source:
+    if( source > clock_source ){
+
+        return TRUE;
+    }
+
+    // check if worse source:
+    else if( source < clock_source ){
+
+        return FALSE; // cannot be a match
+    }
+
+    // sources match
+
+    // check if older timestamp
+    if( source_timestamp > master_timestamp ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+bool is_master( void ){
+    
+    if( !ntp_b_is_sync() ){
+
+        return FALSE;
+    }
+
+    if( ip_b_is_zeroes( master_ip ) ){
+
+        return FALSE;
+    }    
+
+    ip_addr4_t local_ip = cfg_ip_get_ipaddr();
+
+    return ip_b_addr_compare( local_ip, master_ip );
+}
+
 void ntp_v_set_master_clock( 
     ntp_ts_t source_ntp, 
     ip_addr4_t source_ip,
     uint64_t source_timestamp,
     uint8_t source ){
 
-    // filter source
-    if( source < clock_source ){
+    if( !compare_clock( source_ip, source_timestamp, source ) ){
 
         return;
     }
@@ -366,11 +411,6 @@ bool ntp_b_is_sync( void ){
     return clock_source > NTP_SOURCE_NONE;
 }
 
-bool is_leader( void ){
-
-    return FALSE;
-}
-
 void ntp_v_transmit( ntp_ts_t source_ntp, uint8_t source ){
 
     ntp_msg_clock_t msg = {
@@ -463,6 +503,9 @@ PT_BEGIN( pt );
             // update base system time:
             master_sys_time_ms += elapsed_ms;
 
+            // update master timestamp
+            master_timestamp += elapsed_ms * 1000;
+
             // check sync delta:
             // positive deltas mean our clock is ahead
             // negative deltas mean out clock is behind
@@ -528,7 +571,7 @@ PT_BEGIN( pt );
 
 
             // check if we are a leader:
-            if( is_leader() ){
+            if( is_master() ){
 
                 uint8_t broadcast_source = clock_source;
 
@@ -562,27 +605,27 @@ PT_END( pt );
 }
 
 
-PT_THREAD( ntp_sender_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+// PT_THREAD( ntp_sender_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
     
-    while( TRUE ){
+//     while( TRUE ){
 
-        THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() );
+//         THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() );
 
-        while( ntp_b_is_sync() && is_leader() ){
+//         while( ntp_b_is_sync() && is_master() ){
 
 
             
 
-            TMR_WAIT( pt, 1000 );    
-        }
+//             TMR_WAIT( pt, 1000 );    
+//         }
 
-        TMR_WAIT( pt, 1000 );
-    }
+//         TMR_WAIT( pt, 1000 );
+//     }
 
-PT_END( pt );
-}
+// PT_END( pt );
+// }
 
 PT_THREAD( ntp_server_thread( pt_t *pt, void *state ) )
 {
@@ -596,7 +639,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
         // check if leader
-        if( is_leader() ){
+        if( is_master() ){
 
             // check if we should enable SNTP
             if( clock_source <= NTP_SOURCE_SNTP ){
@@ -656,7 +699,7 @@ PT_BEGIN( pt );
         if( *type == NTP_MSG_CLOCK ){
 
             // check if leader, we are setting the clock direclty
-            if( is_leader() ){
+            if( is_master() ){
 
                 continue;
             }
