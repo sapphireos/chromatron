@@ -282,8 +282,8 @@ void link2_v_init( void ){
     list_v_init( &link_list );
     list_v_init( &binding_list );
 
-    fs_v_create_virtual( PSTR("link_info"), link_vfile );
-    fs_v_create_virtual( PSTR("link_binding_info"), binding_vfile );
+    // fs_v_create_virtual( PSTR("link_info"), link_vfile );
+    // fs_v_create_virtual( PSTR("link_binding_info"), binding_vfile );
 
     #ifdef ESP8266
     
@@ -329,20 +329,20 @@ void link2_v_init( void ){
 
     #endif
 
-    thread_t_create( link2_server_thread,
-                 PSTR("link2_server"),
-                 0,
-                 0 );
+    // thread_t_create( link2_server_thread,
+    //              PSTR("link2_server"),
+    //              0,
+    //              0 );
 
-    thread_t_create( link2_meta_thread,
-                 PSTR("link2_meta"),
-                 0,
-                 0 );
+    // thread_t_create( link2_meta_thread,
+    //              PSTR("link2_meta"),
+    //              0,
+    //              0 );
 
-    thread_t_create( link2_data_thread,
-                 PSTR("link2_data"),
-                 0,
-                 0 );
+    // thread_t_create( link2_data_thread,
+    //              PSTR("link2_data"),
+    //              0,
+    //              0 );
 
 }
 
