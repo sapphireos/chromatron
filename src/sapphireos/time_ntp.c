@@ -455,6 +455,9 @@ PT_BEGIN( pt );
             master_ip = cfg_ip_get_ipaddr();
             master_timestamp = tmr_u64_get_system_time_us();
 
+            // start SNTP
+            sntp_v_start();
+
             continue;
         }
 
@@ -471,6 +474,28 @@ PT_BEGIN( pt );
             thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
 
             THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && ( clock_source == prev_source ) );
+
+            // check if master clock
+            if( is_master() ){
+
+                // check if we should enable SNTP
+                if( clock_source <= NTP_SOURCE_SNTP ){
+
+                    // start SNTP
+                    sntp_v_start();
+                }
+                // check if we should disable SNTP
+                else if( clock_source > NTP_SOURCE_SNTP ){
+
+                    sntp_v_stop();
+                }
+            }
+            else{
+
+                // not a master clock, no SNTP!
+                sntp_v_stop();
+            }
+
 
             // check for master clock timeout
             // this is a slow process                            
@@ -655,28 +680,6 @@ PT_BEGIN( pt );
     while(1){
 
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
-
-        // check if leader
-        if( is_master() ){
-
-            // check if we should enable SNTP
-            if( clock_source <= NTP_SOURCE_SNTP ){
-
-                // start SNTP
-                sntp_v_start();
-            }
-            // check if we should disable SNTP
-            else if( clock_source > NTP_SOURCE_SNTP ){
-
-                sntp_v_stop();
-            }
-        }
-        else{
-
-            // not a leader, no SNTP!
-            sntp_v_stop();
-        }
-
 
         // check for received data
         if( sock_i16_get_bytes_read( sock ) <= 0 ){
