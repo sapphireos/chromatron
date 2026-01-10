@@ -172,8 +172,6 @@ void batt_v_init( void ){
 
     fuel_v_init();
 
-    pixelpower_v_init();
-
     if( kv_b_get_boolean( __KV__batt_enable_led_detect ) ){
 
         led_detect_v_init();
