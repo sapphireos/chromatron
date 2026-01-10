@@ -77,7 +77,6 @@
 
 #ifdef ENABLE_CONTROLLER
 #include "controller.h"
-#include "mqtt_client.h"
 #include "datalogger.h"
 #endif
 
@@ -218,7 +217,6 @@ int8_t sapphire_i8_init( void ){
 
     #ifdef ENABLE_CONTROLLER
     controller_v_init();
-    mqtt_client_v_init();
     datalog_v_init();
     #endif
 

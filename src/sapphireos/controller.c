@@ -26,7 +26,6 @@
 #include "config.h"
 
 #include "controller.h"
-#include "mqtt_broker.h"
 
 #include "link.h"
 #include "system.h"
@@ -1062,10 +1061,6 @@ PT_BEGIN( pt );
 
 			link_mgr_v_start();
 
-			#ifdef ENABLE_BROKER    
-	    	mqtt_broker_v_start();
-		    #endif
-
 			// broadcast announcement
 			send_announce();
 
@@ -1086,11 +1081,6 @@ PT_BEGIN( pt );
 				( controller_state == STATE_LEADER ) );
 
 		}
-
-		// no longer leader:
-		#ifdef ENABLE_BROKER    
-    	mqtt_broker_v_stop();
-	    #endif
 
 		link_mgr_v_stop();
 		TMR_WAIT( pt, 100 ); // give the manager time to stop
