@@ -31,7 +31,9 @@
 #define BATT_CUTOFF_VOLTAGE			3100
 #define BATT_EMERGENCY_VOLTAGE		3050
 
-#define BATT_RECHARGE_THRESHOLD		100
+#define BATT_RECHARGE_THRESHOLD		100 // mV below full charge setting
+
+#define BATT_CHARGE_DONE_CURRENT    100 // mA
 
 #define BATT_MIN_CHARGE_VBUS_VOLTS				3800
 
@@ -51,10 +53,11 @@ typedef struct __attribute__((packed)){
 void batt_v_init( void );
 bool batt_b_enabled( void );
 
+bool batt_b_has_charger2_board( void );
+
 uint16_t batt_u16_get_charge_voltage( void );
 uint16_t batt_u16_get_min_discharge_voltage( void );
 
-bool batt_b_is_mcp73831_enabled( void );
 void batt_v_enable_charge( void );
 void batt_v_disable_charge( void );
 int8_t batt_i8_get_batt_temp( void );

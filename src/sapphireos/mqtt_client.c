@@ -136,6 +136,8 @@ PT_THREAD( mqtt_client_server_thread( pt_t *pt, void *state ) );
 
 void mqtt_client_v_init( void ){
 
+	// return;
+
 	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
 		return;
@@ -143,10 +145,6 @@ void mqtt_client_v_init( void ){
 
     list_v_init( &sub_list );
     list_v_init( &transmit_list );
-
-
-return;
-
 
     // create socket
     sock = sock_s_create( SOS_SOCK_DGRAM );
@@ -324,24 +322,16 @@ static int8_t transmit_publish(
 	header->qos    		= qos;
 	header->flags       = 0;
 
-	// QOS 0 is fire and forget, send it now and don't bother queueing
-	if( qos == 0 ){
+	mqtt_transmit_t mqtt_t = {
+		h,
+		MQTT_PUB_ACK_TIMEOUT,
+	};
 
-		send_msg_to_broker_ptr( mem2_vp_get_ptr( h ), mem2_u16_get_size( h ) );
-	}
-	else{
+	list_node_t ln = list_ln_create_node( &mqtt_t, sizeof(mqtt_t) );
 
-		mqtt_transmit_t mqtt_t = {
-			h,
-			MQTT_PUB_ACK_TIMEOUT,
-		};
+	if( ln > 0 ){
 
-		list_node_t ln = list_ln_create_node( &mqtt_t, sizeof(mqtt_t) );
-
-		if( ln > 0 ){
-
-			list_v_insert_head( &transmit_list, ln );	
-		}
+		list_v_insert_head( &transmit_list, ln );	
 	}
 
 	mqtt_client_msgs_publish_sent++;

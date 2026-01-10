@@ -1,3 +1,4 @@
+/*
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -19,11 +20,36 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
+*/
 
-#ifndef _LIGHT_SENSOR_H_
-#define _LIGHT_SENSOR_H_
+#ifndef _BQ25895_AUX_H
+#define _BQ25895_AUX_H
 
-void light_sensor_v_init( void );
-uint32_t light_sensor_u32_read( void );
+#include "sapphire.h"
+
+#ifdef ENABLE_AUX_BATTERY
+
+void bq25895_aux_v_init( void );
+
+void bq25895_aux_v_reset( void );
+
+bool bq25895_aux_b_present( void );
+
+bool bq25895_aux_b_is_batt_fault( void );
+uint16_t bq25895_aux_u16_read_vbus( void );
+bool bq25895_aux_b_is_vbus_connected( void );
+uint16_t bq25895_aux_u16_get_charge_current( void );
+bool bq25895_aux_b_is_charge_complete( void );
+bool bq25895_aux_b_is_charging( void );
+
+uint8_t bq25895_aux_u8_get_faults( void );
+
+void bq25895_aux_v_set_vindpm( int16_t mv );
+void bq25895_aux_v_set_hiz( bool enable );
+
+void bq25895_aux_v_enable_charger( void );
+void bq25895_aux_v_disable_charger( void );
+
+#endif
 
 #endif

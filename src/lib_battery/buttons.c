@@ -30,7 +30,6 @@
 #include "flash_fs.h"
 #include "status_led.h"
 
-#include "solar.h"
 #include "charger2.h"
 #include "patch_board.h"
 #include "buttons.h"
@@ -156,14 +155,6 @@ void button_v_init( void ){
     else if( board == BOARD_TYPE_CHARGER_3_1 ){
 
         batt_ui_button = IO_PIN_21;
-    }
-    else if( board == BOARD_TYPE_2025 ){
-
-        batt_ui_button = IO_PIN_16_RX;
-
-        io_v_set_mode( C2025_BTN_BOARD_BTN_1, IO_MODE_INPUT_PULLUP );     
-        io_v_set_mode( C2025_BTN_BOARD_BTN_2, IO_MODE_INPUT_PULLUP );     
-        io_v_set_mode( C2025_BTN_BOARD_BTN_3, IO_MODE_INPUT_PULLUP );        
     }
     else if( board == BOARD_TYPE_ESP32_MINI_BUTTONS ){
         
@@ -351,7 +342,7 @@ static bool _button_b_read_button( uint8_t ch ){
     }
 
     #if defined(ESP8266) || defined(ESP32)
-    if( solar_b_has_charger2_board() ){
+    if( batt_b_has_charger2_board() ){
         
         if( ch == 0 ){
 
@@ -366,9 +357,7 @@ static bool _button_b_read_button( uint8_t ch ){
         //     return charger2_b_read_spare(); // spare has never been connected on actual hardware
         // }
     }
-    #endif
-
-    #if defined(ESP32)
+    #ifdef ENABLE_PATCH_BOARD
     else if( solar_b_has_patch_board() ){
 
         if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
@@ -380,27 +369,7 @@ static bool _button_b_read_button( uint8_t ch ){
         //     return patchboard_b_read_io2();
         // }
     }
-    else if( ffs_u8_read_board_type() == BOARD_TYPE_2025 ){
-
-        if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
-
-            return io_b_digital_read( batt_ui_button );
-        }
-        #if defined(ESP32)
-        else if( ch == 1 ){
-
-            return io_b_digital_read( C2025_BTN_BOARD_BTN_1 );
-        }
-        else if( ch == 2 ){
-
-            return io_b_digital_read( C2025_BTN_BOARD_BTN_2 );
-        }
-        else if( ch == 3 ){
-
-            return io_b_digital_read( C2025_BTN_BOARD_BTN_3 );
-        }
-        #endif
-    }
+    #endif
     else if( ffs_u8_read_board_type() == BOARD_TYPE_ESP32_MINI_BUTTONS ){
 
         if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
@@ -423,31 +392,6 @@ static bool _button_b_read_button( uint8_t ch ){
         #endif
     }
     #endif
-            
-    #if defined(ESP8266)
-    
-    else if(enable_extended){
-
-        if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
-
-            return io_b_digital_read( batt_ui_button );
-        }
-        else if( ch == 1 ){
-
-            return io_b_digital_read( CLASSIC_BTN_1 );
-        }
-        else if( ch == 2 ){
-
-            return io_b_digital_read( CLASSIC_BTN_2 );
-        }
-        else if( ch == 3 ){
-
-            return io_b_digital_read( CLASSIC_BTN_3 );
-        }
-    }
-
-    #endif
-
     else{
 
         if( ( ch == 0 ) && ( batt_ui_button >= 0 ) ){
@@ -657,34 +601,9 @@ PT_BEGIN( pt );
                         // set shutdown request
                         batt_request_shutdown = TRUE;
 
-
-                        sys_v_initiate_shutdown( 3 );
-
-                        THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
-
-
-                        log_v_debug_P( PSTR("Power off") );
-
-                        pixelpower_v_system_shutdown();
-
-                        _delay_ms( 50 );            
-
-                        batt_v_shutdown_power();
-                        // if on battery power, this should not return
-                        // as the power will be cut off.
-                        // if an external power source was plugged in during
-                        // the shutdown, then this will return.
-
-                        // we will delay here and wait
-                        // for the reboot thread to reboot the system.
-                        TMR_WAIT( pt, 10000 );
-
-                        log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
-
-                        // This is a corner case, the system somehow still has power.
-                        // We have already shut down most of the system by now though,
-                        // so the only way to get it back is to restart.
-                        sys_reboot();
+                        TMR_WAIT( pt, 120000 ); 
+                        // power should be off by now, but if not,
+                        // just carry on?    
                     }
                 }
                 else{
@@ -693,6 +612,29 @@ PT_BEGIN( pt );
 
                     wifi_v_switch_to_ap();
                 }
+            }
+
+            if( batt_request_shutdown ){
+
+                sys_v_initiate_shutdown( 3 );
+
+                THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
+
+                log_v_debug_P( PSTR("Power off") );
+
+                pixelpower_v_system_shutdown();
+
+                _delay_ms( 50 );            
+
+                batt_v_shutdown_power();
+                // if on battery power, this should not return
+                // as the power will be cut off.
+                // if an external power source was plugged in during
+                // the shutdown, then this will return.
+
+                // we will delay here and wait
+                // for the reboot thread to reboot the system.
+                TMR_WAIT( pt, 120000 ); 
             }
         }
     }

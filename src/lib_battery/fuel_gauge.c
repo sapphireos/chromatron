@@ -28,7 +28,6 @@
 #include "battery.h"
 #include "fuel_gauge.h"
 #include "energy.h"
-#include "solar.h"
 #include "util.h"
 
 /*
@@ -317,7 +316,7 @@ PT_BEGIN( pt );
         if( is_charging ){
 
             // leaving charge
-            if( !solar_b_is_charging() ){
+            if( !batt_b_is_charging() ){
 
                 is_charging = FALSE;
 
@@ -332,7 +331,7 @@ PT_BEGIN( pt );
         else{
 
             // switching into charge
-            if( solar_b_is_charging() ){
+            if( batt_b_is_charging() ){
 
                 is_charging = TRUE;
 

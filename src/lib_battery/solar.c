@@ -25,27 +25,64 @@
 
 /*
 
+Solar control rework:
 
-Need to improve charge validation in both solar and DC.  Automatically switch over
-from bad input, with delays and logging.  Battery charging is just not simple.
+Solar charging is now relatively independent from the main charger
+control.  The solar charger only connects to the batteries, it 
+does not power anything and its VBUS only connects to solar panels.
+
+The solar power system has a different architecture than the battery
+only systems for shutdown: it uses a double pole switch to physically
+disconnect the battery entirely (from all electronics) and also the 
+solar panels to prevent powering the aux charger into a disconnected
+battery pack (which is probably fine, but why worry about it).
+
+This means the traditional software shutdown feature is not available
+if the solar control is enabled.
+
+Finally, there is dark start.  If the chargers are in cut off,
+the aux charger will still try and power up off solar and charge
+the battery pack.  However, the main charger will stay in cut off
+until a voltage appears on its VBUS.
+
+The system in its current form doesn't really need to be able 
+to do a fully unattended dark start.  This is just an art project,
+not a remote telemetry installation.
+
+
+State machine design:
+
+OFF: Solar module is not enabled.  This is a "virtual" state.
+DISCHARGE: No charge sources are connected and the battery is discharging.
+CHARGE_DC: The DC charger is active.  The aux charger is stopped.
+CHARGE_SOLAR: The aux charger is charging (in solar mode).  The main charger is stopped.
+FULL_CHARGE: Battery pack is topped off and a charge source is plugged in.
+FAULT: Either charger has some kind of fault reported.  Charging is stopped.
+
+
+
+
 
 
 */
 
 #include "sapphire.h"
 
+#ifdef ENABLE_SOLAR
+    
+
 #include "solar.h"
 #include "mppt.h"
 #include "buttons.h"
 #include "thermal.h"
 #include "battery.h"
-#include "patch_board.h"
-#include "charger2.h"
+#include "bq25895.h"
 #include "pixel_power.h"
-#include "led_detect.h"
 #include "fuel_gauge.h"
 #include "energy.h"
 #include "light_sensor.h"
+
+#include "bq25895_aux.h"
 
 #include "hal_boards.h"
 
@@ -60,159 +97,71 @@ charger is reporting a fault.
 
 */
 
-
-// config parameters:
-static bool patch_board_installed;
-static bool charger2_board_installed;
-static bool enable_dc_charge = TRUE;
-static bool enable_solar_charge;
-static bool mppt_enabled;
+static bool enable_solar;
+// static bool mppt_enabled;
 
 static uint8_t solar_state;
-
 static catbus_string_t state_name;
 
 
 static uint16_t charge_timer;
-#define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
-#define STOPPED_TIME					( 30 * 60 ) // time to remain in stopped state
+// #define MAX_CHARGE_TIME		  			( 12 * 3600 )	// control loop runs at 1 hz
 #define DISCHARGE_HOLD_TIME				( 4 ) // time to remain in discharge before allowing a switch back to charge
 #define CHARGE_HOLD_TIME				( 4 )  // time to remain in charge before allowing a switch back to discharge or full
+#define SOLAR_HOLD_TIME					( 4 )  // time to remain in charge before allowing a switch back to discharge or full
 #define FAULT_HOLD_TIME					( 10 )  // minimum time to remain in fault state
 
 #define RECHARGE_THRESHOLD   ( batt_u16_get_charge_voltage() - BATT_RECHARGE_THRESHOLD )
 
-#ifdef ESP32
-static bool dc_detect;
-static uint8_t dc_detect_filter[SOLAR_DC_FILTER_DEPTH];
-static uint8_t dc_detect_filter_index;
 
 static uint16_t solar_vindpm = 5800;
 
-static uint16_t solar_volts;
-static uint16_t solar_volts_filter[SOLAR_VOLTS_FILTER_DEPTH];
-static uint8_t solar_volts_filter_index;
 
-static uint32_t charge_minimum_light = SOLAR_MIN_CHARGE_LIGHT_DEFAULT;
 
-#endif
+KV_SECTION_META kv_meta_t solar_enable_kv[] = {
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_PERSIST,    &enable_solar,               0,  "solar_enable" },
+};
+
 
 KV_SECTION_OPT kv_meta_t solar_control_opt_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 	&solar_state,				0,  "solar_control_state" },
 	{ CATBUS_TYPE_STRING32, 0, KV_FLAGS_READ_ONLY, 	&state_name,				0,  "solar_control_state_text" },
 
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&charger2_board_installed, 	0,  "solar_enable_charger2" },
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_dc_charge, 			0,  "solar_enable_dc_charge" },
-	
-	#ifdef ESP32
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&patch_board_installed, 	0,  "solar_enable_patch_board" },	
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST, 	&enable_solar_charge, 		0,  "solar_enable_solar_charge" },
-	
-	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_led_detect" },
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    0,                          0,  "solar_enable_thermal" },
-
-	{ CATBUS_TYPE_UINT32,   0, KV_FLAGS_PERSIST, 	&charge_minimum_light,  	0,  "solar_charge_minimum_light" },
+	// { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &mppt_enabled,              0,  "solar_enable_mppt" },
 
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&solar_vindpm,  			0,  "solar_vindpm" },
-
-	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY,  &dc_detect,                 0,  "solar_dc_detect" },
-	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &solar_volts,               0,  "solar_panel_volts" },
-
-	#endif
-
-	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY, 	&charge_timer,				0,  "solar_charge_timer" },
 };
 
 
 
-#ifdef ESP32
-PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) );
-PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) );
-#endif
-
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) );
-
-
-#include "bq25895.h"
+PT_THREAD( solar_cycle_thread( pt_t *pt, void *state ) );
 
 
 void solar_v_init( void ){
 
-	kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
+	thermal_v_init();
 
-	energy_v_init();
+	// mppt_v_init();
 
-	fuel_v_init();
+	if( enable_solar ){
 
-	if( kv_b_get_boolean( __KV__solar_enable_thermal ) ){
+		kv_v_add_db_info( solar_control_opt_kv, sizeof(solar_control_opt_kv) );
 
-		thermal_v_init();
-	}
+		light_sensor_v_init();
 
-	light_sensor_v_init();
-
-	// if( kv_b_get_boolean( __KV__solar_enable_led_detect ) ){
-
-	// 	led_detect_v_init();
-	// }
-
-	// pixelpower_v_init();
-
-	mppt_v_init();
-
-	if( patch_board_installed && charger2_board_installed ){
-
-		log_v_error_P( PSTR("Cannot enable patch board and charger2 on the same system") );
-
-		patch_board_installed = FALSE;
-		charger2_board_installed = FALSE;
-	}
-
-	if( patch_board_installed ){
-
-		enable_solar_charge = TRUE; // solar is always enabled with patch board, that's the point of having it
-		
-		patchboard_v_init();
-	}
-
-	if( charger2_board_installed ){
-		
-		charger2_v_init();
-	}
-
-
-	thread_t_create( solar_control_thread,
+		thread_t_create( solar_control_thread,
                      PSTR("solar_control"),
                      0,
                      0 );
-
-	#ifdef ESP32
-	thread_t_create( solar_sensor_thread,
-                     PSTR("solar_sensor"),
-                     0,
-                     0 );
-
-	if( enable_solar_charge ){
 
 		thread_t_create( solar_cycle_thread,
 	                     PSTR("solar_cycle"),
 	                     0,
 	                     0 );
 	}
-
-	#endif
 }
 
-bool solar_b_has_patch_board( void ){
-
-	return patch_board_installed;
-}
-
-bool solar_b_has_charger2_board( void ){
-
-	return charger2_board_installed;
-}
 
 uint8_t solar_u8_get_state( void ){
 
@@ -231,11 +180,7 @@ uint8_t solar_u8_get_state( void ){
 
 static PGM_P get_state_name( uint8_t state ){
 
-	if( state == SOLAR_MODE_STOPPED ){
-
-		return PSTR("stopped");
-	}
-	else if( state == SOLAR_MODE_DISCHARGE ){
+	if( state == SOLAR_MODE_DISCHARGE ){
 
 		return PSTR("discharge");
 	}
@@ -247,13 +192,13 @@ static PGM_P get_state_name( uint8_t state ){
 
 		return PSTR("charge_solar");
 	}
+	else if( state == SOLAR_MODE_LOW_SOLAR ){
+
+		return PSTR("low_solar");
+	}
 	else if( state == SOLAR_MODE_FULL_CHARGE ){
 
 		return PSTR("full_charge");
-	}
-	else if( state == SOLAR_MODE_SHUTDOWN ){
-
-		return PSTR("shutdown");
 	}
 	else if( state == SOLAR_MODE_FAULT ){
 
@@ -283,178 +228,33 @@ bool solar_b_is_charging( void ){
 }
 
 
-static void enable_charge( uint8_t target_state ){
-
-	batt_v_enable_charge();
-
-	/*
-	
-	Move the BQ25895 specific stuff to a lower layer!
-	After confirming it works!
-
-	*/
-	#ifdef ESP32
-	if( target_state == SOLAR_MODE_CHARGE_SOLAR ){
-
-		if( mppt_enabled ){
-
-			mppt_v_enable();	
-		}
-		else{
-
-			// debug!
-			bq25895_v_set_vindpm( solar_vindpm );
-		}
-	}
-	else if( target_state == SOLAR_MODE_CHARGE_DC ){
-	#else
-	if( target_state == SOLAR_MODE_CHARGE_DC ){
-	#endif
-
-		bq25895_v_set_vindpm( 0 );
-
-		// turn on ICO
-    	bq25895_v_set_reg_bits( BQ25895_REG_ICO, BQ25895_BIT_ICO_EN );   
-	}
-	else{
-
-		log_v_warn_P( PSTR("This is not a valid charge state!") );
-	}
-}
-
-static void disable_charge( void ){
-
-	mppt_v_disable();
-	
-	// BQ25895: we don't actually want to turn the charger off, 
-	// this messes with BATFET Q4 and there's not really any reason
-	// to do it.
-
-	// batt_v_disable_charge();	
-}
-
-static void enable_solar_vbus( void ){
-
-	if( patch_board_installed ){
-
-		patchboard_v_set_solar_en( TRUE );					
-	}	
-}
-
-static void disable_solar_vbus( void ){
-
-	if( patch_board_installed ){
-
-		patchboard_v_set_solar_en( FALSE );					
-	}	
-}
-
-static bool is_solar_enable_threshold( void ){
-
-	#ifdef ESP32
-	if( ( solar_volts >= SOLAR_MIN_CHARGE_VOLTS ) &&
-		( light_sensor_u32_read() >= charge_minimum_light ) ){
-
-		return TRUE;
-	}
-	#endif
-
-	return FALSE;
-}
-
-#ifdef ESP32
-PT_THREAD( solar_sensor_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
-
-	if( !patch_board_installed ){
-
-		THREAD_EXIT( pt );
-	}
-
-	while(1){
-
-		TMR_WAIT( pt, SOLAR_SENSOR_POLLING_RATE );
-
-		if( patch_board_installed ){
-
-			dc_detect_filter[dc_detect_filter_index] = patchboard_b_read_dc_detect();
-			dc_detect_filter_index++;
-
-			if( dc_detect_filter_index >= cnt_of_array(dc_detect_filter) ){
-
-				dc_detect_filter_index = 0;					
-			}
-
-			// dc detect needs the entire filter to read true
-
-			dc_detect = TRUE;
-
-			for( uint8_t i = 0; i < cnt_of_array(dc_detect_filter); i++ ){
-
-				if( dc_detect_filter[i] == FALSE ){
-
-					dc_detect = FALSE;
-
-					break;
-				}
-			}
-
-
-			solar_volts_filter[solar_volts_filter_index] = patchboard_u16_read_solar_volts();	
-			solar_volts_filter_index++;
-
-			if( solar_volts_filter_index >= cnt_of_array(solar_volts_filter) ){
-
-				solar_volts_filter_index = 0;	
-			}
-
-			uint32_t temp = 0;
-
-			for( uint8_t i = 0; i < cnt_of_array(solar_volts_filter); i++ ){
-
-				temp += solar_volts_filter[i];
-			}	
-
-			solar_volts = temp / cnt_of_array(solar_volts_filter);
-		}
-	}
-
-PT_END( pt );
-}
-#endif
+#define NEXT_STATE_VALID 10
 
 PT_THREAD( solar_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
 	static uint8_t seconds_counter;
-	seconds_counter = 10;
+	seconds_counter = 1;
+
+	static uint8_t log_timer;
+	log_timer = 0;
+
+	static uint8_t candidate_next_state;
+	candidate_next_state = solar_state;
+
+	static uint8_t next_state_validation_counter;
+	next_state_validation_counter = 0;
 
 	// wait if battery is not connected (this could also be a charge system fault)
 	THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() == 0 );
 
-	// check if above solar threshold
-	if( is_solar_enable_threshold() ){
-
-		// if so, start in discharge state, so it will then switch to solar charge
-		// and enable the panel connection.
-		// this is done before the full charge check, so that if it is fully charged,
-		// we will still be able to power off the panel instead of the battery.
-		solar_state = SOLAR_MODE_DISCHARGE;		
-	}
-	// check if fully charged:
-	else if( batt_u16_get_batt_volts() >= batt_u16_get_charge_voltage() ){
-
-		solar_state = SOLAR_MODE_FULL_CHARGE;
-	}
-	else{
-
-		solar_state = SOLAR_MODE_DISCHARGE;
-	}
-
+	solar_state = SOLAR_MODE_DISCHARGE;
 
 	apply_state_name();
+
+	bq25895_aux_v_enable_charger();
+	batt_v_enable_charge();
 
 
 	while(1){
@@ -471,57 +271,9 @@ PT_BEGIN( pt );
 		static uint8_t next_state;
 		next_state = solar_state;
 
-		if( solar_state == SOLAR_MODE_SHUTDOWN ){
+		// process fault handling:
 
-			sys_v_initiate_shutdown( 3 );
-
-			THREAD_WAIT_WHILE( pt, !sys_b_shutdown_complete() );
-
-			log_v_debug_P( PSTR("Power off") );
-
-			pixelpower_v_system_shutdown();
-
-			_delay_ms( 50 );			
-
-			batt_v_shutdown_power();
-			// if on battery power, this should not return
-			// as the power will be cut off.
-			// if an external power source was plugged in during
-			// the shutdown, then this will return.
-
-			// we will delay here and wait
-			// for the reboot thread to reboot the system.
-			TMR_WAIT( pt, 120000 ); 
-
-			log_v_debug_P( PSTR("Shutdown failed to complete, system is still powered") );
-		}
-		// check for cut off
-		// also wait for at least some time to allow charge sources to initialize
-		// before shutting down.  this helps get into charge mode from cutoff.
-		else if( ( batt_u16_get_batt_volts() < batt_u16_get_min_discharge_voltage() ) &&
-				 !batt_b_is_vbus_connected() &&
-				 tmr_u64_get_system_time_ms() > 20000 ){
-			
-			log_v_warn_P( PSTR("Battery at discharge cutoff") );
-				
-			next_state = SOLAR_MODE_SHUTDOWN;
-		}
-		else if( solar_state == SOLAR_MODE_STOPPED ){
-
-			if( seconds_counter == 0 ){
-
-				charge_timer++;	
-			}
-
-			// charge timer exceeded
-			if( charge_timer >= STOPPED_TIME ){
-
-				// signal charger control to stop
-
-				next_state = SOLAR_MODE_DISCHARGE;
-			}
-		}
-		else if( solar_state == SOLAR_MODE_FAULT ){
+		if( solar_state == SOLAR_MODE_FAULT ){
 
 			if( charge_timer < FAULT_HOLD_TIME ){
 
@@ -530,10 +282,49 @@ PT_BEGIN( pt );
 					charge_timer++;	
 				}
 			}
-			else if( !batt_b_is_batt_fault() ){
+			else if( !batt_b_is_batt_fault() &&
+				     !bq25895_aux_b_is_batt_fault() ){
 
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
+		}
+		// check if battery module is reporting a fault:
+		else if( batt_b_is_batt_fault() ||
+				 bq25895_aux_b_is_batt_fault() ){
+
+			if( batt_b_is_batt_fault() ){
+
+				log_v_warn_P( PSTR("Fault mode: main charger 0x%02x"), bq25895_u8_get_faults() );
+
+				next_state = SOLAR_MODE_FAULT;
+			}
+
+			if( bq25895_aux_b_is_batt_fault() ){
+
+				uint8_t faults = bq25895_aux_u8_get_faults();
+
+				// check if input fault - this is normal behavior in low light on the aux/solar
+				// charger.
+				if( ( faults & ~BQ25895_MASK_CHRG_FAULT ) == 0 ){
+
+					// input fault - this is ok
+				}
+				else{
+
+					// some other fault, not ok
+
+					log_v_warn_P( PSTR("Fault mode: aux charger: 0x%02x"), faults );
+					next_state = SOLAR_MODE_FAULT;
+				}
+			}
+		}
+
+		// process state machine
+
+		if( ( solar_state == SOLAR_MODE_FAULT ) || ( next_state == SOLAR_MODE_FAULT ) ){
+
+			// skip state machine if we are going in to fault mode.
+
 		}
 		else if( solar_state == SOLAR_MODE_DISCHARGE ){
 
@@ -548,121 +339,151 @@ PT_BEGIN( pt );
 					charge_timer++;	
 				}
 			}
+			// check if one of the chargers is connected
+			else if( batt_b_is_vbus_connected() ||
+					( batt_u16_get_charge_current() > 0 ) ){
 
-			// check for fault?
-			// go to fault state?
-			else if( batt_b_is_batt_fault() ){
-
-				next_state = SOLAR_MODE_FAULT;
+				next_state = SOLAR_MODE_CHARGE_DC;	
+				// log_v_debug_P( PSTR("SOLAR_MODE_CHARGE_DC: %d %d"), batt_b_is_vbus_connected(), batt_u16_get_charge_current() );
 			}
-			else{
+			else if( bq25895_aux_u16_get_charge_current() > 450 ){
 
-				// minimum discharge time reached
-				#ifdef ESP32
-				if( patch_board_installed ){
+				// starting out with a strong solar charge current
 
-					// patch board has a dedicated DC detect signal:
-					// also validate that VBUS sees it
-					// and no charger faults
-					if( dc_detect && batt_b_is_vbus_connected() ){
+				next_state = SOLAR_MODE_CHARGE_SOLAR;	
+			}
+			else if( bq25895_aux_b_is_vbus_connected() ){
 
-						next_state = SOLAR_MODE_CHARGE_DC;
-					}
-					// check solar enable threshold AND
-					// that there are no charger faults reported.
-					else if( is_solar_enable_threshold() ){
+				// if solar VBUS is connected, but 
+				// not enough charge current:
 
-						log_v_debug_P( PSTR("entering solar charge: %u mV %u lux"), solar_volts, light_sensor_u32_read() );
+				next_state = SOLAR_MODE_LOW_SOLAR;	
 
-						next_state = SOLAR_MODE_CHARGE_SOLAR;
-					}
-				}
-				else if( charger2_board_installed ){
-				#else
-				if( charger2_board_installed ){
-				#endif
-
-					// charger2 board is USB powered
-					if( batt_b_is_vbus_connected() ){
-
-						next_state = SOLAR_MODE_CHARGE_DC;
-					}
-				}
-				else{
-
-					// generic board
-					// no dedicated DC detection.
-					// we make an assumption based on configuration here.
-
-					if( batt_b_is_vbus_connected() ){
-
-						if( enable_solar_charge ){
-
-							// if solar is enabled, assume charging on solar power
-							next_state = SOLAR_MODE_CHARGE_SOLAR;
-						}
-						else if( enable_dc_charge ){
-
-							next_state = SOLAR_MODE_CHARGE_DC;	
-						}
-					}	
-				}
+				// log_v_debug_P( PSTR("SOLAR_MODE_LOW_SOLAR: %d %d"), bq25895_aux_b_is_vbus_connected(), bq25895_aux_u16_read_vbus() );
 			}
 		}
 		else if( solar_state == SOLAR_MODE_CHARGE_DC ){
 
-			if( !enable_dc_charge ){					
+			// make sure aux charger is disabled!
+			bq25895_aux_v_disable_charger();
 
-				log_v_error_P( PSTR("DC charge is not enabled!") );
-
-				next_state = SOLAR_MODE_DISCHARGE;
-			}
-			else if( charge_timer < CHARGE_HOLD_TIME ){
+			// make sure we hit the minimum charge time before changing states
+			if( charge_timer < CHARGE_HOLD_TIME ){
 
 				if( seconds_counter == 0 ){
 
 					charge_timer++;	
 				}
 			}
-			else if( batt_b_is_batt_fault() ){
-
-				next_state = SOLAR_MODE_FAULT;
-			}
-			// check if no longer charging:
+			// check if finished charging:
 			else if( batt_b_is_charge_complete() ){
 
 				next_state = SOLAR_MODE_FULL_CHARGE;
 			}
+			// or otherwise not charging:
 			else if( !batt_b_is_charging() ){
 
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
 		}
-		else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
+		else if( solar_state == SOLAR_MODE_LOW_SOLAR ){
 
-			if( !enable_solar_charge ){						
+			// make sure main charger is disabled!
+			batt_v_disable_charge();
 
+			bq25895_aux_v_set_vindpm( solar_vindpm );
+
+			if( log_timer == 0 ){
+
+				log_timer = 30;
+			
+				log_v_debug_P( PSTR("low solar: %d mA %d mV"), bq25895_aux_u16_get_charge_current(), batt_u16_get_batt_volts() );
+			}
+
+			// check if the DC charger has connected
+			if( batt_b_is_vbus_connected() ||
+			   ( batt_u16_get_charge_current() > 0 ) ){
+
+				next_state = SOLAR_MODE_CHARGE_DC;	
+			}
+			else if( charge_timer < SOLAR_HOLD_TIME ){
+
+				if( seconds_counter == 0 ){
+
+					charge_timer++;	
+				}
+			}
+			// check if solar VBUS is not present
+			else if( !bq25895_aux_b_is_vbus_connected() ){
+
+				// switch to discharge
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
-			// check if no longer charging:
-			else if( batt_b_is_batt_fault() ){
 
-				next_state = SOLAR_MODE_FAULT;
+			// check if charge current is too low
+			else if( bq25895_aux_u16_get_charge_current() < 200 ){
+
+				// we have VBUS, but almost no current
+				// stay in low solar state
 			}
-			else if( batt_b_is_charge_complete() ){
+			else{
+
+				// charge timer has expired and we have had
+				// a sustained charge for the duration
+				// switch states
+				next_state = SOLAR_MODE_CHARGE_SOLAR;
+			}
+		}
+		else if( solar_state == SOLAR_MODE_CHARGE_SOLAR ){
+
+			// make sure main charger is disabled!
+			batt_v_disable_charge();
+
+			bq25895_aux_v_set_vindpm( solar_vindpm );
+
+			if( log_timer == 0 ){
+				
+				log_timer = 30;
+
+				log_v_debug_P( PSTR("solar: %d mA %d mV"), bq25895_aux_u16_get_charge_current(), batt_u16_get_batt_volts() );
+			}
+
+			// make sure we hit the minimum charge time before changing states
+			if( charge_timer < CHARGE_HOLD_TIME ){
+
+				if( seconds_counter == 0 ){
+
+					charge_timer++;	
+				}
+			}
+			// check if finished charging:
+			else if( bq25895_aux_b_is_charge_complete() ){
 
 				next_state = SOLAR_MODE_FULL_CHARGE;
 			}
-			else if( !batt_b_is_charging() ){
+			// or otherwise not charging:
+			else if( !bq25895_aux_b_is_charging() ){
 
 				next_state = SOLAR_MODE_DISCHARGE;
 			}
 		}
 		else if( solar_state == SOLAR_MODE_FULL_CHARGE ){
 
-			// we do not leave full charge state until we start discharging,
-			// IE battery voltage drops below a threshold
+
+			// full charge condition:
+			// battery voltage is over the recharge threshold AND
+			// we have a VBUS power source on either charger
+
+
+			// battery voltage below threshold:
 			if( batt_u16_get_batt_volts() < RECHARGE_THRESHOLD ){
+
+				// switch to discharge state
+				next_state = SOLAR_MODE_DISCHARGE;
+			}
+			// neither VBUS source connected
+			else if( !batt_b_is_vbus_connected() &&
+					 !bq25895_aux_b_is_vbus_connected() ){
 
 				// switch to discharge state
 				next_state = SOLAR_MODE_DISCHARGE;
@@ -673,126 +494,89 @@ PT_BEGIN( pt );
 			ASSERT( FALSE );
 		}
 
+		if( seconds_counter == 0 ){
 
-		// check if a shutdown was requested
-		if( button_b_is_shutdown_requested() ){
+			if( log_timer > 0 ){
 
-			log_v_debug_P( PSTR("Shutdown request from button module") );
-
-			next_state = SOLAR_MODE_SHUTDOWN;
+				log_timer--;
+			}	
 		}
-		else if( is_charging() ){
-
-			if( seconds_counter == 0 ){
-
-				charge_timer++;	
-			}
-
-			// charge timer exceeded
-			if( charge_timer >= MAX_CHARGE_TIME ){
-
-				// signal charger control to stop
-				log_v_info_P( PSTR("Charge time limit reached") );
-
-				next_state = SOLAR_MODE_STOPPED;
-			}
-		}
-
-
 
 		// if state is changing:
 
 		if( next_state != solar_state ){
 
-			charge_timer = 0;
+			if( next_state_validation_counter == 0 ){
 
-			// set up any init conditions for entry to next state
-			if( next_state == SOLAR_MODE_SHUTDOWN ){
-
-				// don't change GFX state, just leave it
-				// on whatever it was set to when shutting down.
-				// if it was off, there is no reason to turn
-				// graphics back on for a few seconds.
-				// gfx_v_set_system_enable( TRUE );
+				candidate_next_state = next_state;
 			}
-			else if( next_state == SOLAR_MODE_STOPPED ){
 
-				charge_timer = STOPPED_TIME;
+			if( next_state == candidate_next_state ){
 
-				gfx_v_set_system_enable( TRUE );
+				next_state_validation_counter++;	
 			}
-			else if( next_state == SOLAR_MODE_DISCHARGE ){
+			else{
 
-				gfx_v_set_system_enable( TRUE );	
+				next_state_validation_counter = 0;
 			}
-			else if( next_state == SOLAR_MODE_FULL_CHARGE ){
 
-				gfx_v_set_system_enable( TRUE );	
-			}
-			else if( next_state == SOLAR_MODE_CHARGE_DC ){
+			if( next_state_validation_counter >= NEXT_STATE_VALID ){
 
-				// !!!
-				// on DC charge, might want to leave gfx enabled
-				// so FX patterns can display charge status.
-				// gfx_v_set_system_enable( FALSE );
+				charge_timer = 0;
 
-				if( pixelpower_b_power_control_enabled() ){
-					
-					gfx_v_set_system_enable( FALSE );		
+				if( next_state == SOLAR_MODE_FAULT ){
+
+					bq25895_aux_v_disable_charger();
+					batt_v_disable_charge();
 				}
-				else{		
-					
-					gfx_v_set_system_enable( TRUE );		
+				else if( next_state == SOLAR_MODE_DISCHARGE ){
+
+					bq25895_aux_v_enable_charger();
+					batt_v_enable_charge();
+
+					gfx_v_set_system_enable( TRUE );
 				}
+				else if( next_state == SOLAR_MODE_CHARGE_DC ){
 
-				enable_charge( next_state );
-			}
-			else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
+					gfx_v_set_system_enable( FALSE );
 
-				// disable graphics when on solar charging.
-				// can't really see them anyway!
-				gfx_v_set_system_enable( FALSE );
+					bq25895_aux_v_disable_charger();
+					batt_v_enable_charge();
+				}
+				else if( next_state == SOLAR_MODE_LOW_SOLAR ){
 
-				// wait until pixel power shuts off
-				THREAD_WAIT_WHILE( pt, pixelpower_b_pixels_enabled() );
+					gfx_v_set_system_enable( TRUE );
 
-				enable_charge( next_state );
+					batt_v_disable_charge();				
 
-				// starting solar charge
+					bq25895_aux_v_enable_charger();
+					bq25895_aux_v_set_vindpm( solar_vindpm );
+				}
+				else if( next_state == SOLAR_MODE_CHARGE_SOLAR ){
 
-				// enable the solar panel connection
-				enable_solar_vbus();
-			}
+					gfx_v_set_system_enable( FALSE );
 
+					batt_v_disable_charge();
 
-			// check if leaving solar charge mode
-			if( ( solar_state == SOLAR_MODE_CHARGE_SOLAR ) &&
-				( next_state != SOLAR_MODE_CHARGE_SOLAR ) ){
+					bq25895_aux_v_enable_charger();
+					bq25895_aux_v_set_vindpm( solar_vindpm );
+				}
+				else if( next_state == SOLAR_MODE_FULL_CHARGE ){
 
-				// check if something other than full charge:
-				if( next_state != SOLAR_MODE_FULL_CHARGE ){
-
-					// disable the solar panel connection.
-					disable_solar_vbus();
+					gfx_v_set_system_enable( TRUE );
 				}
 
-				TMR_WAIT( pt, 100 );
+				log_v_debug_P( PSTR("Changing states from %s to %s"), get_state_name( solar_state ), get_state_name( next_state ) );
 
-				disable_charge();
+				// switch states for next cycle
+				solar_state = next_state;
+				apply_state_name();
+
 			}
-			// check if leaving DC charge mode
-			else if( ( solar_state == SOLAR_MODE_CHARGE_DC ) &&
-					 ( next_state != SOLAR_MODE_CHARGE_DC ) ){
+		}
+		else{
 
-				disable_charge();	
-			}
-
-			log_v_debug_P( PSTR("Changing states from %s to %s"), get_state_name( solar_state ), get_state_name( next_state ) );
-
-
-			// switch states for next cycle
-			solar_state = next_state;
-			apply_state_name();
+			next_state_validation_counter = 0;
 		}
 	}
 
@@ -801,7 +585,7 @@ PT_END( pt );
 
 
 
-#ifdef ESP32
+
 static uint8_t solar_cycle;
 static catbus_string_t cycle_name;
 
@@ -891,8 +675,7 @@ PT_BEGIN( pt );
 
 
 	solar_cycle = SOLAR_CYCLE_UNKNOWN;
-	// candidate_next_cycle = SOLAR_CYCLE_UNKNOWN;
-
+	
 	TMR_WAIT( pt, 10000 );
 
 	while(1){
@@ -1014,5 +797,6 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
 
 #endif

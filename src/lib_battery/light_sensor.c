@@ -27,8 +27,7 @@
 
 #include "veml7700.h"
 
-#ifdef ESP32
-
+#ifdef ENABLE_SOLAR
 
 #define FILTER_RATIO 8
 
@@ -68,54 +67,97 @@ uint32_t light_sensor_u32_read_delta( void ){
 }
 
 
+#define FILTER_DEPTH 64
+static uint32_t samples[FILTER_DEPTH];
+static uint8_t sample_index;
+
+
 PT_THREAD( light_sensor_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );
 
 	static uint8_t counter;
+	static uint32_t last_delta_sample;
 	counter = 0;
 
-	// init filter
-	filtered_light = veml7700_u32_read_als();
+	TMR_WAIT( pt, 4000 ); // wait for sensor to warm up
 
-	
+	// init filter
+	uint32_t init_sample = veml7700_u32_read_als();
+
+	for( uint32_t i = 0; i < cnt_of_array(samples); i++ ){
+
+		samples[i] = init_sample;
+	}
+
+	last_delta_sample = init_sample;
+
 	while(1){
 
 		TMR_WAIT( pt, 4000 );
 
-		uint32_t light = veml7700_u32_read_als();
+		// add sample to circular buffer
+		samples[sample_index] = veml7700_u32_read_als();
+		sample_index++;
+		sample_index %= cnt_of_array(samples);
 
-		uint32_t temp = util_u32_ewma( light, filtered_light, FILTER_RATIO );
+		// compute moving average
+		uint64_t temp = 0;
+	
+		for( uint32_t i = 0; i < cnt_of_array(samples); i++ ){
 
+			temp += samples[i];
+		}
+
+		filtered_light = temp / cnt_of_array(samples);
+	
+		// update counter		
 		counter++;
 
 		if( counter >= 15 ){ // approx 1 minute at 4 second rate
 
 			counter = 0;
 
-			current_delta = temp - (int32_t)filtered_light;
-		}
+			// compute delta
+			current_delta = (int32_t)filtered_light - (int32_t)last_delta_sample;
 
-		filtered_light = temp;
+			last_delta_sample = filtered_light;
+		}
 	}
 
+
+
+
+
+
+	// static uint8_t counter;
+	// counter = 0;
+
+	// // init filter
+	// filtered_light = veml7700_u32_read_als();
+
+	
+	// while(1){
+
+	// 	TMR_WAIT( pt, 4000 );
+
+	// 	uint32_t light = veml7700_u32_read_als();
+
+	// 	uint32_t temp = util_u32_ewma( light, filtered_light, FILTER_RATIO );
+
+	// 	counter++;
+
+	// 	if( counter >= 15 ){ // approx 1 minute at 4 second rate
+
+	// 		counter = 0;
+
+	// 		current_delta = temp - (int32_t)filtered_light;
+	// 	}
+
+	// 	filtered_light = temp;
+	// }
+
 PT_END( pt );	
-}
-
-#else
-
-void light_sensor_v_init( void ){
-
-}
-
-uint32_t light_sensor_u32_read( void ){
-
-	return 0;
-}
-
-uint32_t light_sensor_u32_read_delta( void ){
-
-	return 0;
 }
 
 #endif
