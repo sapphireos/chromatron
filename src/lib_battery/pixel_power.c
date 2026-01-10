@@ -136,12 +136,8 @@ void pixelpower_v_init( void ){
 
         power_control_enabled = TRUE;
     }
+    
     #if defined(ESP32)
-    else if( ( ffs_u8_read_board_type() == BOARD_TYPE_ELITE ) ||
-             ( ffs_u8_read_board_type() == BOARD_TYPE_CHARGER_3_1 ) ){
-
-    #elif defined(ESP32)
-
     uint8_t board = ffs_u8_read_board_type();
 
     if( board == BOARD_TYPE_ELITE ){
@@ -164,9 +160,7 @@ void pixelpower_v_init( void ){
 
         return;
     }
-    #endif
     
-    #if defined(ESP32)
     disable_pixel_power_fet();
     #endif
 

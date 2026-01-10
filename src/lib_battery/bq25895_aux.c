@@ -379,18 +379,18 @@ static bool read_adc_aux( void ){
 
 
 
-static bool aux_adc_ready( void ){
+// static bool aux_adc_ready( void ){
 
-    bool temp = FALSE;
+//     bool temp = FALSE;
 
-    set_register_bank_aux();
+//     set_register_bank_aux();
     
-    temp = bq25895_b_adc_ready();
+//     temp = bq25895_b_adc_ready();
 
-    set_register_bank_main();
+//     set_register_bank_main();
     
-    return temp;
-}
+//     return temp;
+// }
 
 PT_THREAD( bq25895_aux_mon_thread( pt_t *pt, void *state ) )
 {
