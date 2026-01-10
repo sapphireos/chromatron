@@ -129,6 +129,9 @@ void pixelpower_v_init( void ){
     
     #if defined(ESP32)
     disable_pixel_power_fet();
+
+    uint8_t board = ffs_u8_read_board_type();
+
     #endif
 
     // check if hardware has power control:
@@ -138,9 +141,7 @@ void pixelpower_v_init( void ){
     }
     
     #if defined(ESP32)
-    uint8_t board = ffs_u8_read_board_type();
-
-    if( board == BOARD_TYPE_ELITE ){
+    else if( board == BOARD_TYPE_ELITE ){
 
         pixel_fet_gpio = ELITE_BOOST_IO;
     }
