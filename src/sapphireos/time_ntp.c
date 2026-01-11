@@ -262,9 +262,19 @@ void ntp_v_set_master_clock(
     uint64_t source_timestamp,
     uint8_t source ){
 
-    if( !compare_clock( source_ip, source_timestamp, source ) ){
+    if( ip_b_is_zeroes( source_ip ) ){
 
-        return;
+        source_ip = cfg_ip_get_ipaddr();
+    }
+
+    // check if this is the current local master
+    if( !ip_b_addr_compare( source_ip, master_ip ) ){
+
+        // NOT local master, check comparison!
+        if( !compare_clock( source_ip, source_timestamp, source ) ){
+
+            return;
+        }
     }
 
     uint64_t local_system_time_ms = tmr_u64_get_system_time_ms();
@@ -332,11 +342,6 @@ void ntp_v_set_master_clock(
     }
     
     last_sync_time = tmr_u32_get_system_time_ms();
-
-    if( ip_b_is_zeroes( source_ip ) ){
-
-        source_ip = cfg_ip_get_ipaddr();
-    }
 
     // set master
     master_ip = source_ip;
