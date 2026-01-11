@@ -600,10 +600,6 @@ PT_BEGIN( pt );
 
                         // set shutdown request
                         batt_request_shutdown = TRUE;
-
-                        TMR_WAIT( pt, 120000 ); 
-                        // power should be off by now, but if not,
-                        // just carry on?    
                     }
                 }
                 else{
