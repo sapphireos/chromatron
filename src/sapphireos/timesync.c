@@ -818,7 +818,7 @@ PT_THREAD( time_debug_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    #define PULSE_INTERVAL 100
+    #define PULSE_INTERVAL ( 100 / 2 )
 
     io_v_set_mode( IO_PIN_0_GPIO, IO_MODE_OUTPUT );
 
