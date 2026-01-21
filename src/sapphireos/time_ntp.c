@@ -429,7 +429,7 @@ void ntp_v_transmit( ntp_ts_t source_ntp, uint8_t source ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );  
 }
 
-bool ntp_b_clock_source_timed_out( void ){
+static bool ntp_b_clock_source_timed_out( void ){
 
     uint32_t delta_ms = tmr_u32_elapsed_time_ms( last_sync_time );
 

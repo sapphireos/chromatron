@@ -123,6 +123,8 @@ static uint32_t master_net_time;
 static bool is_sync;
 
 static ip_addr4_t master_ip;
+static uint8_t master_priority;
+static uint64_t master_uptime;
 
 
 
@@ -266,12 +268,68 @@ static uint8_t *decode_msg( uint8_t *msg ){
 
 static bool is_master( void ){
 
-    return FALSE;
+    if( ip_b_is_zeroes( master_ip ) ){
+
+        return FALSE;
+    }    
+
+    ip_addr4_t local_ip = cfg_ip_get_ipaddr();
+
+    return ip_b_addr_compare( local_ip, master_ip );
 }
 
 static bool is_follower( void ){
 
+    if( is_master() ){
+
+        return FALSE;
+    }
+
+    if( ip_b_is_zeroes( master_ip ) ){
+
+        return FALSE;
+    }    
+
+    return TRUE;
+}
+
+// return true if given clock is better than current master
+static bool compare_clock( ip_addr4_t source_ip, uint64_t source_uptime, uint16_t priority ){
+
+    // check if better priority:
+    if( priority > master_priority ){
+
+        return TRUE;
+    }
+
+    // check if worse priority:
+    if( priority < master_priority ){
+
+        return FALSE; // cannot be a match
+    }
+
+    // sources match
+
+    // check if older timestamp
+    if( source_uptime > master_uptime ){
+
+        return TRUE;
+    }
+
     return FALSE;
+}
+
+static uint16_t get_priority( void ){
+
+    #ifdef ESP8266
+    return 1;
+    #endif
+
+    #ifdef ESP32
+    return 2;
+    #endif
+
+    return 0;
 }
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
@@ -281,23 +339,103 @@ PT_BEGIN( pt );
     static uint16_t backoff;
     backoff = TIME_SYNC_RATE_BASE;
 
+    while(1){
 
-    
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+
+        // check for received data
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+            // timeout
+
+            continue;
+        }
+
+        uint32_t now = tmr_u32_get_system_time_ms();
+
+        uint8_t *data = sock_vp_get_data( sock );
+        uint8_t *type = decode_msg( data );
+
+        sock_addr_t raddr;
+        sock_v_get_raddr( sock, &raddr );
+
+        if( *type == TIME_MSG_CLOCK ){
+
+            time_msg_clock_t *msg = (time_msg_clock_t *)data;
+
+            if( compare_clock( raddr.ipaddr, msg->origin_uptime, msg->priority ) ){
+
+                // this is a better clock
+
+                log_v_info_P( PSTR("Setting net time to: %ld from %d.%d.%d.%d"),
+                    msg->net_time,
+                    raddr.ipaddr.ip3,
+                    raddr.ipaddr.ip2,
+                    raddr.ipaddr.ip1,
+                    raddr.ipaddr.ip0
+                );
+
+                sync_delta = 0;
+                master_net_time = tmr_u32_get_system_time_ms();
+                base_sys_time = master_net_time;   
+                master_priority = msg->priority;
+                master_uptime = msg->origin_uptime;        
+                master_ip = raddr.ipaddr;
+                is_sync = TRUE;
+            }
+        }
+
+
+        // if( is_master() ){
+
+        //     if( *type == TIME_MSG_REQUEST_SYNC ){
+
+        //         time_msg_request_sync_t *req = (time_msg_request_sync_t *)data;
+
+        //         time_msg_sync_t sync = {
+        //             TIME_PROTOCOL_MAGIC,
+        //             TIME_PROTOCOL_VERSION,
+        //             TIME_MSG_SYNC,
+        //             req->transmit_time,
+        //             time_u32_get_network_time_from_local( now )
+        //         };
+
+        //         sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), 0 );  
+        //     }
+        //     else if( *type == TIME_MSG_PING ){
+
+        //         time_msg_ping_response_t reply = {
+        //             TIME_PROTOCOL_MAGIC,
+        //             TIME_PROTOCOL_VERSION,
+        //             TIME_MSG_PING_RESPONSE,
+        //         };
+        
+        //         sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );  
+        //     }
+        // }
+        // else{
+
+        //     // follower
 
 
 
+        // }
 
-
-
-
-
-
+    }    
 
 
 
 
     // wait for network
     THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+
+
+    while( !is_master() && !is_follower() ){
+
+
+
+    }
+
 
     while( is_master() ){
 
@@ -544,23 +682,28 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
     // wait for sync
-    THREAD_WAIT_WHILE( pt, !is_sync);
+    thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 + ( rnd_u16_get_int() >> 5 ) );
+    THREAD_WAIT_WHILE( pt, !is_sync && thread_b_alarm_set() );
 
-    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+    // check if synced
+    if( !is_sync ){
+
+        // select self as master clock
+        sync_delta = 0;
+        master_net_time = tmr_u32_get_system_time_ms();
+        base_sys_time = master_net_time;            
+        master_priority = get_priority();
+        master_uptime = tmr_u64_get_system_time_us();
+        master_ip = cfg_ip_get_ipaddr();
+        is_sync = TRUE;
+
+        log_v_info_P( PSTR("Setting net time to: %ld from local"), master_net_time );
+    }
 
     while( 1 ){
 
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
-
-        // master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
-        sock_addr_t controller_raddr;
-        // if( controller_i8_get_addr( &controller_raddr ) < 0 ){
-
-        //     break;
-        // }
-
-        master_ip = controller_raddr.ipaddr;
 
         // get elapsed time
         uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_sys_time );
@@ -637,6 +780,28 @@ PT_BEGIN( pt );
 
         // update net time
         master_net_time += elapsed_ms;
+        master_uptime += elapsed_ms * 1000;
+
+        if( is_master() ){
+
+            // broadcast clock message
+
+            time_msg_clock_t clock_msg = {
+                TIME_PROTOCOL_MAGIC,
+                TIME_PROTOCOL_VERSION,
+                TIME_MSG_CLOCK,
+                tmr_u64_get_system_time_us(),
+                time_u32_get_network_time(),
+                get_priority(),
+            };
+
+            sock_addr_t raddr = {
+                .ipaddr = ip_a_addr(255,255,255,255),
+                .port = TIME_SERVER_PORT
+            };
+
+            sock_i16_sendto( sock, (uint8_t *)&clock_msg, sizeof(clock_msg), &raddr );  
+        }
     }
 
 PT_END( pt );

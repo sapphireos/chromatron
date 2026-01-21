@@ -32,7 +32,7 @@
 #define TIME_SERVER_PORT                32037
 
 #define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
-#define TIME_PROTOCOL_VERSION           8
+#define TIME_PROTOCOL_VERSION           9
 
 #define TIME_RTT_THRESHOLD              500
 
@@ -71,6 +71,15 @@ typedef struct __attribute__((packed)){
 } time_msg_sync_t;
 #define TIME_MSG_SYNC               4
 
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+    uint64_t origin_uptime;
+    uint32_t net_time;
+    uint16_t priority;
+} time_msg_clock_t;
+#define TIME_MSG_CLOCK               5
 
 void time_v_init( void );
 
