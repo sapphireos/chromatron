@@ -114,6 +114,7 @@ Followers periodically sync while tracking round trip time.
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
+PT_THREAD( time_debug_thread( pt_t *pt, void *state ) );
 
 static socket_t sock;
 
@@ -189,6 +190,11 @@ void time_v_init( void ){
 
     thread_t_create( time_clock_thread,
                     PSTR("time_clock"),
+                    0,
+                    0 );    
+
+    thread_t_create( time_debug_thread,
+                    PSTR("time_debug"),
                     0,
                     0 );    
 }
@@ -802,6 +808,34 @@ PT_BEGIN( pt );
 
             sock_i16_sendto( sock, (uint8_t *)&clock_msg, sizeof(clock_msg), &raddr );  
         }
+    }
+
+PT_END( pt );
+}
+
+
+PT_THREAD( time_debug_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    #define PULSE_INTERVAL 100
+
+    io_v_set_mode( IO_PIN_0_GPIO, IO_MODE_OUTPUT );
+
+    while( 1 ){
+
+        uint32_t net_time = time_u32_get_network_time();
+
+        if( ( ( net_time / PULSE_INTERVAL ) & 1 ) != 0 ){
+
+            TMR_WAIT( pt, PULSE_INTERVAL - ( net_time % PULSE_INTERVAL ) );
+
+            io_v_digital_write( IO_PIN_0_GPIO, 1 );
+            _delay_us( 100 );
+            io_v_digital_write( IO_PIN_0_GPIO, 0 );
+        }
+
+        THREAD_YIELD( pt );
     }
 
 PT_END( pt );
