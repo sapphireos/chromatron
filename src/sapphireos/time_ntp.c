@@ -214,7 +214,7 @@ void ntp_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time ){
 }
 
 // return true if given clock is better than current master
-bool compare_clock( ip_addr4_t source_ip, uint64_t source_timestamp, uint8_t source ){
+static bool compare_clock( ip_addr4_t source_ip, uint64_t source_timestamp, uint8_t source ){
 
     // check if better source:
     if( source > clock_source ){
@@ -239,7 +239,7 @@ bool compare_clock( ip_addr4_t source_ip, uint64_t source_timestamp, uint8_t sou
     return FALSE;
 }
 
-bool is_master( void ){
+static bool is_master( void ){
     
     if( !ntp_b_is_sync() ){
 

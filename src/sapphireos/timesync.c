@@ -102,7 +102,6 @@ Followers periodically sync while tracking round trip time.
 
 // #define NO_LOGGING
 #include "sapphire.h"
-#include "controller.h"
 
 #ifdef ENABLE_TIME_SYNC
 
@@ -265,6 +264,16 @@ static uint8_t *decode_msg( uint8_t *msg ){
     return type;
 }
 
+static bool is_master( void ){
+
+    return FALSE;
+}
+
+static bool is_follower( void ){
+
+    return FALSE;
+}
+
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -273,15 +282,9 @@ PT_BEGIN( pt );
     backoff = TIME_SYNC_RATE_BASE;
 
     // wait for network
-    THREAD_WAIT_WHILE( pt, !controller_b_is_connected() );
-    
-    // services_v_join_team( TIME_ELECTION_SERVICE, 0, get_priority(), sock_u16_get_lport( sock ) );
+    THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
-    // wait until we resolve the election
-    // THREAD_WAIT_WHILE( pt, !is_service_avilable() );
-
-
-    while( controller_b_is_leader() ){
+    while( is_master() ){
 
         if( !is_sync ){
 
@@ -292,9 +295,9 @@ PT_BEGIN( pt );
             is_sync = TRUE;
         }
 
-        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && controller_b_is_leader() );
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_master() );
 
-        if( !controller_b_is_leader() ){
+        if( !is_master() ){
 
             continue;
         }
@@ -344,7 +347,7 @@ PT_BEGIN( pt );
         }
     }
 
-    while( controller_b_is_follower() ){
+    while( is_follower() ){
 
         sock_v_flush( sock );
 
@@ -360,10 +363,10 @@ PT_BEGIN( pt );
 
         // sock_addr_t send_raddr = services_a_get( TIME_ELECTION_SERVICE, 0 );
         sock_addr_t send_raddr;
-        if( controller_i8_get_addr( &send_raddr ) < 0 ){
+        // if( controller_i8_get_addr( &send_raddr ) < 0 ){
 
-            break;
-        }
+        //     break;
+        // }
 
         // select server port
         send_raddr.port = TIME_SERVER_PORT;
@@ -375,10 +378,10 @@ PT_BEGIN( pt );
         sock_v_set_timeout( sock, 2 );
 
         // wait for reply or timeout
-        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && controller_b_is_follower() );
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
 
         // check if service changed
-        if( !controller_b_is_follower() ){
+        if( !is_follower() ){
 
             THREAD_RESTART( pt );
         }
@@ -413,10 +416,10 @@ PT_BEGIN( pt );
 
         // sock_addr_t send_raddr2 = services_a_get( TIME_ELECTION_SERVICE, 0 );
         sock_addr_t send_raddr2;
-        if( controller_i8_get_addr( &send_raddr2 ) < 0 ){
+        // if( controller_i8_get_addr( &send_raddr2 ) < 0 ){
 
-            break;
-        }
+        //     break;
+        // }
 
         // select server port
         send_raddr2.port = TIME_SERVER_PORT;
@@ -425,12 +428,12 @@ PT_BEGIN( pt );
         sock_i16_sendto( sock, (uint8_t *)&req, sizeof(req), &send_raddr2 );  
 
         // wait for reply or timeout
-        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && controller_b_is_follower() );
+        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
 
         uint32_t now = tmr_u32_get_system_time_ms();
 
         // check if service changed
-        if( !controller_b_is_follower() ){
+        if( !is_follower() ){
 
             THREAD_RESTART( pt );
         }
@@ -537,10 +540,10 @@ PT_BEGIN( pt );
 
         // master_ip = services_a_get_ip( TIME_ELECTION_SERVICE, 0 );
         sock_addr_t controller_raddr;
-        if( controller_i8_get_addr( &controller_raddr ) < 0 ){
+        // if( controller_i8_get_addr( &controller_raddr ) < 0 ){
 
-            break;
-        }
+        //     break;
+        // }
 
         master_ip = controller_raddr.ipaddr;
 
