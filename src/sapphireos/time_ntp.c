@@ -156,7 +156,6 @@ KV_SECTION_META kv_meta_t ntp_time_info_kv[] = {
 
 
 PT_THREAD( ntp_clock_thread( pt_t *pt, void *state ) );
-// PT_THREAD( ntp_sender_thread( pt_t *pt, void *state ) );
 PT_THREAD( ntp_server_thread( pt_t *pt, void *state ) );
 
 
@@ -178,11 +177,6 @@ void ntp_v_init( void ){
     sock = sock_s_create( SOS_SOCK_DGRAM );
 
     sock_v_bind( sock, NTP_SERVER_PORT );
-
-    // thread_t_create( ntp_sender_thread,
-    //                 PSTR("ntp_sender"),
-    //                 0,
-    //                 0 );
 
     thread_t_create( ntp_server_thread,
                     PSTR("ntp_server"),
@@ -652,28 +646,6 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-
-// PT_THREAD( ntp_sender_thread( pt_t *pt, void *state ) )
-// {
-// PT_BEGIN( pt );
-    
-//     while( TRUE ){
-
-//         THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() );
-
-//         while( ntp_b_is_sync() && is_master() ){
-
-
-            
-
-//             TMR_WAIT( pt, 1000 );    
-//         }
-
-//         TMR_WAIT( pt, 1000 );
-//     }
-
-// PT_END( pt );
-// }
 
 PT_THREAD( ntp_server_thread( pt_t *pt, void *state ) )
 {

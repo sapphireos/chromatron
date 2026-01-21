@@ -281,6 +281,21 @@ PT_BEGIN( pt );
     static uint16_t backoff;
     backoff = TIME_SYNC_RATE_BASE;
 
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
     // wait for network
     THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
