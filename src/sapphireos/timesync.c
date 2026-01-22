@@ -114,7 +114,12 @@ Followers periodically sync while tracking round trip time.
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
+
+#define DEBUG
+
+#ifdef DEBUG
 PT_THREAD( time_debug_thread( pt_t *pt, void *state ) );
+#endif
 
 static socket_t sock;
 
@@ -193,10 +198,12 @@ void time_v_init( void ){
                     0,
                     0 );    
 
+    #ifdef DEBUG
     thread_t_create( time_debug_thread,
                     PSTR("time_debug"),
                     0,
                     0 );    
+    #endif
 }
 
 bool time_b_is_sync( void ){
@@ -813,6 +820,8 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+#ifdef DEBUG
+
 #ifdef ESP8266
 #define DEBUG_IO IO_PIN_0_GPIO
 #endif
@@ -848,7 +857,7 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-
+#endif
 
 #endif
 
