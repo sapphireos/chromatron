@@ -813,14 +813,21 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+#ifdef ESP8266
+#define DEBUG_IO IO_PIN_0_GPIO
+#endif
+
+#ifdef ESP32
+#define DEBUG_IO IO_PIN_16_RX
+#endif
 
 PT_THREAD( time_debug_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
     #define PULSE_INTERVAL ( 100 / 2 )
-
-    io_v_set_mode( IO_PIN_0_GPIO, IO_MODE_OUTPUT );
+    
+    io_v_set_mode( DEBUG_IO, IO_MODE_OUTPUT );
 
     while( 1 ){
 
@@ -830,9 +837,9 @@ PT_BEGIN( pt );
 
             TMR_WAIT( pt, PULSE_INTERVAL - ( net_time % PULSE_INTERVAL ) );
 
-            io_v_digital_write( IO_PIN_0_GPIO, 1 );
+            io_v_digital_write( DEBUG_IO, 1 );
             _delay_us( 100 );
-            io_v_digital_write( IO_PIN_0_GPIO, 0 );
+            io_v_digital_write( DEBUG_IO, 0 );
         }
 
         THREAD_YIELD( pt );
