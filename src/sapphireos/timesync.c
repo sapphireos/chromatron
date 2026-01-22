@@ -117,6 +117,12 @@ Followers periodically sync while tracking round trip time.
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
+#define DEBUG
+
+#ifdef DEBUG
+PT_THREAD( time_debug_thread( pt_t *pt, void *state ) );
+#endif
+
 static socket_t sock;
 
 static int16_t sync_delta;
@@ -191,6 +197,13 @@ void time_v_init( void ){
                     PSTR("time_clock"),
                     0,
                     0 );    
+
+    #ifdef DEBUG
+    thread_t_create( time_debug_thread,
+                    PSTR("time_debug"),
+                    0,
+                    0 );    
+    #endif
 }
 
 bool time_b_is_sync( void ){
@@ -660,6 +673,44 @@ PT_END( pt );
 }
 
 
+#ifdef DEBUG
+
+#ifdef ESP8266
+#define DEBUG_IO IO_PIN_0_GPIO
+#endif
+
+#ifdef ESP32
+#define DEBUG_IO IO_PIN_16_RX
+#endif
+
+PT_THREAD( time_debug_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    #define PULSE_INTERVAL ( 100 / 2 )
+    
+    io_v_set_mode( DEBUG_IO, IO_MODE_OUTPUT );
+
+    while( 1 ){
+
+        uint32_t net_time = time_u32_get_network_time();
+
+        if( ( ( net_time / PULSE_INTERVAL ) & 1 ) != 0 ){
+
+            TMR_WAIT( pt, PULSE_INTERVAL - ( net_time % PULSE_INTERVAL ) );
+
+            io_v_digital_write( DEBUG_IO, 1 );
+            _delay_us( 100 );
+            io_v_digital_write( DEBUG_IO, 0 );
+        }
+
+        THREAD_YIELD( pt );
+    }
+
+PT_END( pt );
+}
+
+#endif
 
 #endif
 
