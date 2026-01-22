@@ -87,6 +87,7 @@ typedef struct __attribute__((packed)){
 #define FLASH_MFG_GIGADEVICE            0xC8
 #define FLASH_MFG_BOYA_BOHONG           0x68 // not sure who this is.  found on ESP32.
 #define FLASH_MFG_TENX                  0x5E // not sure who this is.  found on ESP32.
+#define FLASH_MFG_GENERIC_1             0x46 // not sure who this is.  found on ESP32.
 
 #define FLASH_DEV_ID1_ATMEL             0x47
 #define FLASH_DEV_ID1_SST25             0x25
