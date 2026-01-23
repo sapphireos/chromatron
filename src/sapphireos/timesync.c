@@ -324,7 +324,7 @@ static bool compare_clock( ip_addr4_t source_ip, uint64_t source_uptime, uint16_
     // sources match
 
     // check if older timestamp
-    if( source_uptime > master_uptime ){
+    if( source_uptime > ( master_uptime + 1000000 ) ){
 
         return TRUE;
     }
@@ -339,11 +339,17 @@ static uint16_t get_priority( void ){
     #endif
 
     #ifdef ESP32
-    return 2;
+    return 0;
+
+    // return 2;
     #endif
 
     return 0;
 }
+
+static uint64_t last_received;
+static uint64_t last_origin;
+
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
@@ -364,7 +370,7 @@ PT_BEGIN( pt );
             continue;
         }
 
-        uint32_t now = tmr_u32_get_system_time_ms();
+        uint64_t now = tmr_u64_get_system_time_us();
 
         uint8_t *data = sock_vp_get_data( sock );
         uint8_t *type = decode_msg( data );
@@ -375,6 +381,15 @@ PT_BEGIN( pt );
         if( *type == TIME_MSG_CLOCK ){
 
             time_msg_clock_t *msg = (time_msg_clock_t *)data;
+
+            int32_t receive_delta  = now - last_received;
+            int32_t transmit_delta = msg->origin_uptime - last_origin;
+
+            log_v_debug_P( PSTR("rx %d tx %d"), receive_delta, transmit_delta );
+
+            last_received = now;
+            last_origin = msg->origin_uptime;
+
 
             if( compare_clock( raddr.ipaddr, msg->origin_uptime, msg->priority ) ){
 
@@ -389,10 +404,10 @@ PT_BEGIN( pt );
                 );
 
                 sync_delta = 0;
-                master_net_time = tmr_u32_get_system_time_ms();
-                base_sys_time = master_net_time;   
+                master_net_time = msg->net_time;
+                base_sys_time = tmr_u32_get_system_time_ms();
                 master_priority = msg->priority;
-                master_uptime = msg->origin_uptime;        
+                master_uptime = msg->origin_uptime;
                 master_ip = raddr.ipaddr;
                 is_sync = TRUE;
             }
