@@ -349,6 +349,10 @@ static uint16_t get_priority( void ){
 
 static uint64_t last_received;
 static uint64_t last_origin;
+static int32_t last_rx_tx_delta;
+
+static uint64_t rx_samples[3];
+static uint64_t tx_samples[3];
 
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
@@ -382,35 +386,103 @@ PT_BEGIN( pt );
 
             time_msg_clock_t *msg = (time_msg_clock_t *)data;
 
-            int32_t receive_delta  = now - last_received;
-            int32_t transmit_delta = msg->origin_uptime - last_origin;
+            rx_samples[0] = rx_samples[1];
+            rx_samples[1] = rx_samples[2];
+            rx_samples[2] = now;
 
-            log_v_debug_P( PSTR("rx %d tx %d"), receive_delta, transmit_delta );
+            tx_samples[0] = tx_samples[1];
+            tx_samples[1] = tx_samples[2];
+            tx_samples[2] = msg->origin_uptime;
+            
+            int32_t rx_delta0 = rx_samples[1] - rx_samples[0];
+            int32_t rx_delta1 = rx_samples[2] - rx_samples[1];
 
-            last_received = now;
-            last_origin = msg->origin_uptime;
+            int32_t tx_delta0 = tx_samples[1] - tx_samples[0];
+            int32_t tx_delta1 = tx_samples[2] - tx_samples[1];
 
+            int32_t rx_tx_delta0 = rx_delta0 - tx_delta0;
+            int32_t rx_tx_delta1 = rx_delta1 - tx_delta1;
 
-            if( compare_clock( raddr.ipaddr, msg->origin_uptime, msg->priority ) ){
+            // add absolute value of both deltas - this is "quality" of the sample
+            uint32_t quality = abs(rx_tx_delta0) + abs(rx_tx_delta1);
 
-                // this is a better clock
+            uint32_t net_time = time_u32_get_network_time_from_local( now / 1000 );
+            int32_t net_delta = (int64_t)net_time - ( msg->origin_uptime / 1000 );
 
-                log_v_info_P( PSTR("Setting net time to: %ld from %d.%d.%d.%d"),
-                    msg->net_time,
-                    raddr.ipaddr.ip3,
-                    raddr.ipaddr.ip2,
-                    raddr.ipaddr.ip1,
-                    raddr.ipaddr.ip0
-                );
+            log_v_debug_P( PSTR("%8d %8d q: %8d net: %8d delta: %8d"), rx_tx_delta0, rx_tx_delta1, quality, net_time, net_delta );
 
-                sync_delta = 0;
-                master_net_time = msg->net_time;
-                base_sys_time = tmr_u32_get_system_time_ms();
-                master_priority = msg->priority;
-                master_uptime = msg->origin_uptime;
-                master_ip = raddr.ipaddr;
-                is_sync = TRUE;
+            // synchronize
+            if( quality < 1000 ){
+
+                if( !is_sync ){
+                 
+                    log_v_debug_P( PSTR("sync!") );
+
+                    base_sys_time = rx_samples[1] / 1000;
+                    master_net_time = tx_samples[1] / 1000;
+
+                    is_sync = TRUE;
+                }
+
+                sync_delta = net_delta;
             }
+            
+            // int32_t receive_delta  = now - last_received;
+            // int32_t transmit_delta = msg->origin_uptime - last_origin;
+
+            // // if positive, means receive took longer than transmit
+            // int32_t rx_tx_delta = receive_delta - transmit_delta;
+
+            // // int32_t compensated_rx_tx_delta = rx_tx_delta + last_rx_tx_delta;
+
+            // // log_v_debug_P( PSTR("rx %8d tx %8d delta %8d comp %8d"), receive_delta, transmit_delta, rx_tx_delta, compensated_rx_tx_delta );
+            // log_v_debug_P( PSTR("rx0: %8d rx1: %8d tx0: %8d tx1: %8d rxd %8d txd %8d delta %8d"), 
+            //     (int32_t)last_received, (int32_t)now, (int32_t)last_origin, (int32_t)msg->origin_uptime,
+            //     receive_delta, transmit_delta, rx_tx_delta );
+
+            // if(last_received == 0){
+
+            //     last_received = now; 
+            // }
+            // else{
+
+            //     last_received += 1000000;
+            // }
+
+            // if(last_origin == 0){
+
+            //     last_origin = msg->origin_uptime; 
+            // }
+            // else{
+
+            //     last_origin += 1000000;
+            // }
+
+            // last_received = now;
+            // last_origin = msg->origin_uptime;
+
+            // last_rx_tx_delta = rx_tx_delta;
+
+            // if( compare_clock( raddr.ipaddr, msg->origin_uptime, msg->priority ) ){
+
+            //     // this is a better clock
+
+            //     log_v_info_P( PSTR("Setting net time to: %ld from %d.%d.%d.%d"),
+            //         msg->net_time,
+            //         raddr.ipaddr.ip3,
+            //         raddr.ipaddr.ip2,
+            //         raddr.ipaddr.ip1,
+            //         raddr.ipaddr.ip0
+            //     );
+
+            //     sync_delta = 0;
+            //     master_net_time = msg->net_time;
+            //     base_sys_time = tmr_u32_get_system_time_ms();
+            //     master_priority = msg->priority;
+            //     master_uptime = msg->origin_uptime;
+            //     master_ip = raddr.ipaddr;
+            //     is_sync = TRUE;
+            // }
         }
 
 
@@ -454,251 +526,251 @@ PT_BEGIN( pt );
 
 
 
-    // wait for network
-    THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+    // // wait for network
+    // THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
 
-    while( !is_master() && !is_follower() ){
+    // while( !is_master() && !is_follower() ){
 
 
 
-    }
+    // }
 
 
-    while( is_master() ){
+    // while( is_master() ){
 
-        if( !is_sync ){
+    //     if( !is_sync ){
 
-            sync_delta = 0;
-            master_net_time = tmr_u32_get_system_time_ms();
-            base_sys_time = master_net_time;            
+    //         sync_delta = 0;
+    //         master_net_time = tmr_u32_get_system_time_ms();
+    //         base_sys_time = master_net_time;            
 
-            is_sync = TRUE;
-        }
+    //         is_sync = TRUE;
+    //     }
 
-        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_master() );
+    //     THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_master() );
 
-        if( !is_master() ){
+    //     if( !is_master() ){
 
-            continue;
-        }
+    //         continue;
+    //     }
 
-        // check if data received
-        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+    //     // check if data received
+    //     if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
-            continue;
-        }
+    //         continue;
+    //     }
 
-        uint32_t now = tmr_u32_get_system_time_ms();
+    //     uint32_t now = tmr_u32_get_system_time_ms();
 
-        uint8_t *data = sock_vp_get_data( sock );
-        uint8_t *type = decode_msg( data );
+    //     uint8_t *data = sock_vp_get_data( sock );
+    //     uint8_t *type = decode_msg( data );
 
-        if( type == 0 ){
+    //     if( type == 0 ){
 
-            continue;
-        }
+    //         continue;
+    //     }
 
-        sock_addr_t raddr;
-        sock_v_get_raddr( sock, &raddr );
+    //     sock_addr_t raddr;
+    //     sock_v_get_raddr( sock, &raddr );
 
-        if( *type == TIME_MSG_REQUEST_SYNC ){
+    //     if( *type == TIME_MSG_REQUEST_SYNC ){
 
-            time_msg_request_sync_t *req = (time_msg_request_sync_t *)data;
+    //         time_msg_request_sync_t *req = (time_msg_request_sync_t *)data;
 
-            time_msg_sync_t sync = {
-                TIME_PROTOCOL_MAGIC,
-                TIME_PROTOCOL_VERSION,
-                TIME_MSG_SYNC,
-                req->transmit_time,
-                time_u32_get_network_time_from_local( now )
-            };
+    //         time_msg_sync_t sync = {
+    //             TIME_PROTOCOL_MAGIC,
+    //             TIME_PROTOCOL_VERSION,
+    //             TIME_MSG_SYNC,
+    //             req->transmit_time,
+    //             time_u32_get_network_time_from_local( now )
+    //         };
 
-            sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), 0 );  
-        }
-        else if( *type == TIME_MSG_PING ){
+    //         sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), 0 );  
+    //     }
+    //     else if( *type == TIME_MSG_PING ){
 
-            time_msg_ping_response_t reply = {
-                TIME_PROTOCOL_MAGIC,
-                TIME_PROTOCOL_VERSION,
-                TIME_MSG_PING_RESPONSE,
-            };
+    //         time_msg_ping_response_t reply = {
+    //             TIME_PROTOCOL_MAGIC,
+    //             TIME_PROTOCOL_VERSION,
+    //             TIME_MSG_PING_RESPONSE,
+    //         };
     
-            sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );  
-        }
-    }
+    //         sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );  
+    //     }
+    // }
 
-    while( is_follower() ){
+    // while( is_follower() ){
 
-        sock_v_flush( sock );
+    //     sock_v_flush( sock );
 
-        // random delay to prevent overloading the server
-        TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 4 ) ); // 1 to 5 seconds        
+    //     // random delay to prevent overloading the server
+    //     TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 4 ) ); // 1 to 5 seconds        
 
-        // send ping to warm up ARP
-        time_msg_ping_t ping = {
-            TIME_PROTOCOL_MAGIC,
-            TIME_PROTOCOL_VERSION,
-            TIME_MSG_PING,
-        };
+    //     // send ping to warm up ARP
+    //     time_msg_ping_t ping = {
+    //         TIME_PROTOCOL_MAGIC,
+    //         TIME_PROTOCOL_VERSION,
+    //         TIME_MSG_PING,
+    //     };
 
-        // sock_addr_t send_raddr = services_a_get( TIME_ELECTION_SERVICE, 0 );
-        sock_addr_t send_raddr;
-        // if( controller_i8_get_addr( &send_raddr ) < 0 ){
+    //     // sock_addr_t send_raddr = services_a_get( TIME_ELECTION_SERVICE, 0 );
+    //     sock_addr_t send_raddr;
+    //     // if( controller_i8_get_addr( &send_raddr ) < 0 ){
 
-        //     break;
-        // }
+    //     //     break;
+    //     // }
 
-        // select server port
-        send_raddr.port = TIME_SERVER_PORT;
+    //     // select server port
+    //     send_raddr.port = TIME_SERVER_PORT;
 
-        sock_v_flush( sock );
+    //     sock_v_flush( sock );
         
-        sock_i16_sendto( sock, (uint8_t *)&ping, sizeof(ping), &send_raddr );  
+    //     sock_i16_sendto( sock, (uint8_t *)&ping, sizeof(ping), &send_raddr );  
 
-        sock_v_set_timeout( sock, 2 );
+    //     sock_v_set_timeout( sock, 2 );
 
-        // wait for reply or timeout
-        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
+    //     // wait for reply or timeout
+    //     THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
 
-        // check if service changed
-        if( !is_follower() ){
+    //     // check if service changed
+    //     if( !is_follower() ){
 
-            THREAD_RESTART( pt );
-        }
+    //         THREAD_RESTART( pt );
+    //     }
 
-        // check for timeout
-        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+    //     // check for timeout
+    //     if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
-            TMR_WAIT( pt, 10000 );
+    //         TMR_WAIT( pt, 10000 );
 
-            continue;
-        }   
+    //         continue;
+    //     }   
 
-        uint8_t *type = decode_msg( sock_vp_get_data( sock ) );
+    //     uint8_t *type = decode_msg( sock_vp_get_data( sock ) );
 
-        if( type == 0 ){
+    //     if( type == 0 ){
 
-            continue;
-        }
+    //         continue;
+    //     }
 
-        if( *type != TIME_MSG_PING_RESPONSE ){
+    //     if( *type != TIME_MSG_PING_RESPONSE ){
 
-            continue;
-        }
+    //         continue;
+    //     }
 
-        // send sync request
-        time_msg_request_sync_t req = {
-            TIME_PROTOCOL_MAGIC,
-            TIME_PROTOCOL_VERSION,
-            TIME_MSG_REQUEST_SYNC,
-            tmr_u32_get_system_time_ms()   
-        };
+    //     // send sync request
+    //     time_msg_request_sync_t req = {
+    //         TIME_PROTOCOL_MAGIC,
+    //         TIME_PROTOCOL_VERSION,
+    //         TIME_MSG_REQUEST_SYNC,
+    //         tmr_u32_get_system_time_ms()   
+    //     };
 
-        // sock_addr_t send_raddr2 = services_a_get( TIME_ELECTION_SERVICE, 0 );
-        sock_addr_t send_raddr2;
-        // if( controller_i8_get_addr( &send_raddr2 ) < 0 ){
+    //     // sock_addr_t send_raddr2 = services_a_get( TIME_ELECTION_SERVICE, 0 );
+    //     sock_addr_t send_raddr2;
+    //     // if( controller_i8_get_addr( &send_raddr2 ) < 0 ){
 
-        //     break;
-        // }
+    //     //     break;
+    //     // }
 
-        // select server port
-        send_raddr2.port = TIME_SERVER_PORT;
+    //     // select server port
+    //     send_raddr2.port = TIME_SERVER_PORT;
 
         
-        sock_i16_sendto( sock, (uint8_t *)&req, sizeof(req), &send_raddr2 );  
+    //     sock_i16_sendto( sock, (uint8_t *)&req, sizeof(req), &send_raddr2 );  
 
-        // wait for reply or timeout
-        THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
+    //     // wait for reply or timeout
+    //     THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
 
-        uint32_t now = tmr_u32_get_system_time_ms();
+    //     uint32_t now = tmr_u32_get_system_time_ms();
 
-        // check if service changed
-        if( !is_follower() ){
+    //     // check if service changed
+    //     if( !is_follower() ){
 
-            THREAD_RESTART( pt );
-        }
+    //         THREAD_RESTART( pt );
+    //     }
 
-        // check for timeout
-        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+    //     // check for timeout
+    //     if( sock_i16_get_bytes_read( sock ) <= 0 ){
 
-            TMR_WAIT( pt, 10000 );
+    //         TMR_WAIT( pt, 10000 );
 
-            continue;
-        }   
+    //         continue;
+    //     }   
 
-        uint8_t *data = sock_vp_get_data( sock );
-        uint8_t *type2 = decode_msg( data );
+    //     uint8_t *data = sock_vp_get_data( sock );
+    //     uint8_t *type2 = decode_msg( data );
 
-        if( type2 == 0 ){
+    //     if( type2 == 0 ){
 
-            continue;
-        }
+    //         continue;
+    //     }
 
-        if( *type2 != TIME_MSG_SYNC ){
+    //     if( *type2 != TIME_MSG_SYNC ){
 
-            continue;
-        }        
+    //         continue;
+    //     }        
 
-        time_msg_sync_t *sync = ( time_msg_sync_t * )data;
+    //     time_msg_sync_t *sync = ( time_msg_sync_t * )data;
 
-        // compute elasped time
-        uint32_t elapsed_ms = tmr_u32_elapsed_times( sync->origin_time, now );
+    //     // compute elasped time
+    //     uint32_t elapsed_ms = tmr_u32_elapsed_times( sync->origin_time, now );
 
-        // check for obviously bad RTTs
-        if( elapsed_ms > TIME_RTT_THRESHOLD ){
+    //     // check for obviously bad RTTs
+    //     if( elapsed_ms > TIME_RTT_THRESHOLD ){
 
-            log_v_debug_P( PSTR("bad RTT: %u origin: %u now: %u"), elapsed_ms, sync->origin_time, now );
+    //         log_v_debug_P( PSTR("bad RTT: %u origin: %u now: %u"), elapsed_ms, sync->origin_time, now );
 
-            TMR_WAIT( pt, 10000 );
+    //         TMR_WAIT( pt, 10000 );
 
-            continue;
-        }
+    //         continue;
+    //     }
 
-        // assuming link is symmetrical, compute offset
-        uint32_t clock_offset = elapsed_ms / 2;
+    //     // assuming link is symmetrical, compute offset
+    //     uint32_t clock_offset = elapsed_ms / 2;
 
-        // adjust source timestamp for offset
-        sync->net_time += clock_offset;
+    //     // adjust source timestamp for offset
+    //     sync->net_time += clock_offset;
         
-        if( is_sync ){
+    //     if( is_sync ){
 
-            uint32_t net_time = time_u32_get_network_time_from_local( now );
+    //         uint32_t net_time = time_u32_get_network_time_from_local( now );
 
-            // compute sync delta
-            sync_delta = (int64_t)net_time - (int64_t)sync->net_time;
+    //         // compute sync delta
+    //         sync_delta = (int64_t)net_time - (int64_t)sync->net_time;
 
-            // log_v_info_P( PSTR("sync delta: %d"), sync_delta );
-        }
+    //         // log_v_info_P( PSTR("sync delta: %d"), sync_delta );
+    //     }
 
-        // if not synced or sync is too far off, we can immediately jolt the clock into position
-        if( !is_sync || ( abs16( sync_delta ) > 200 ) ){
+    //     // if not synced or sync is too far off, we can immediately jolt the clock into position
+    //     if( !is_sync || ( abs16( sync_delta ) > 200 ) ){
 
-            master_net_time = sync->net_time;
-            base_sys_time = now;
+    //         master_net_time = sync->net_time;
+    //         base_sys_time = now;
 
-            is_sync = TRUE;
+    //         is_sync = TRUE;
 
-            log_v_info_P( PSTR("Net time hard sync delta: %d"), sync_delta );
+    //         log_v_info_P( PSTR("Net time hard sync delta: %d"), sync_delta );
 
-            sync_delta = 0;
+    //         sync_delta = 0;
 
-            // reset backoff
-            backoff = TIME_SYNC_RATE_BASE;
-        }
+    //         // reset backoff
+    //         backoff = TIME_SYNC_RATE_BASE;
+    //     }
 
 
-        // change to backoff after we verify everything works
-        TMR_WAIT( pt, (uint32_t)backoff * 1000 );
+    //     // change to backoff after we verify everything works
+    //     TMR_WAIT( pt, (uint32_t)backoff * 1000 );
 
-        // increment backoff
-        if( backoff < TIME_SYNC_RATE_MAX ){
+    //     // increment backoff
+    //     if( backoff < TIME_SYNC_RATE_MAX ){
 
-            backoff *= 2;
-        }
-    }
+    //         backoff *= 2;
+    //     }
+    // }
 
-    THREAD_RESTART( pt );
+    // THREAD_RESTART( pt );
 
 
 PT_END( pt );
@@ -713,8 +785,9 @@ PT_BEGIN( pt );
     thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 + ( rnd_u16_get_int() >> 5 ) );
     THREAD_WAIT_WHILE( pt, !is_sync && thread_b_alarm_set() );
 
-    // check if synced
-    if( !is_sync ){
+    // // check if synced
+    // if( !is_sync ){
+    if(cfg_u64_get_device_id() == 154851823073836){ // 10.0.0.114
 
         // select self as master clock
         sync_delta = 0;
