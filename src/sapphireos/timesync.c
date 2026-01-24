@@ -418,8 +418,8 @@ PT_BEGIN( pt );
                  
                     log_v_debug_P( PSTR("sync!") );
 
-                    base_sys_time = rx_samples[1];
-                    master_net_time = tx_samples[1];
+                    base_sys_time = rx_samples[1] / 1000;
+                    master_net_time = tx_samples[1] / 1000;
 
                     is_sync = TRUE;
                 }
