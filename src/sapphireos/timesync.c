@@ -347,13 +347,15 @@ static uint16_t get_priority( void ){
     return 0;
 }
 
-static uint64_t last_received;
-static uint64_t last_origin;
-static int32_t last_rx_tx_delta;
+// static uint64_t last_received;
+// static uint64_t last_origin;
+// static int32_t last_rx_tx_delta;
 
 static uint64_t rx_samples[3];
 static uint64_t tx_samples[3];
 
+#define MAX_WINDOW 10000
+static uint16_t window = MAX_WINDOW;
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
@@ -412,10 +414,17 @@ PT_BEGIN( pt );
             // int32_t quality_delta_ratio = quality / net_delta;
 
             // log_v_debug_P( PSTR("%8d %8d q: %8d net: %8d delta: %8d ratio: %8d"), rx_tx_delta0, rx_tx_delta1, quality, net_time, net_delta, quality_delta_ratio );
-            log_v_debug_P( PSTR("%8d %8d q: %8d net: %8d delta: %8d"), rx_tx_delta0, rx_tx_delta1, quality, net_time, net_delta );
+            log_v_debug_P( PSTR("%8d %8d q: %8d net: %8d delta: %8d window: %5d"), rx_tx_delta0, rx_tx_delta1, quality, net_time, net_delta, window );
 
             // synchronize
-            if( quality < 2000 ){
+            if( quality <= ( window * 1.5 ) ){
+
+                window = quality;
+
+                if( window < 1000 ){
+
+                    window = 1000;
+                }
 
                 if( !is_sync ){
                  
@@ -791,6 +800,8 @@ PT_BEGIN( pt );
     thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 + ( rnd_u16_get_int() >> 5 ) );
     THREAD_WAIT_WHILE( pt, !is_sync && thread_b_alarm_set() );
 
+    THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+
     // // check if synced
     // if( !is_sync ){
     if(cfg_u64_get_device_id() == 154851823073836){ // 10.0.0.114
@@ -911,6 +922,11 @@ PT_BEGIN( pt );
 
             sock_i16_sendto( sock, (uint8_t *)&clock_msg, sizeof(clock_msg), &raddr );  
         }
+
+        if( window < MAX_WINDOW ){
+
+            window += 1;
+        }
     }
 
 PT_END( pt );
@@ -933,6 +949,7 @@ PT_BEGIN( pt );
     #define PULSE_INTERVAL ( 100 / 2 )
     
     io_v_set_mode( DEBUG_IO, IO_MODE_OUTPUT );
+    io_v_digital_write( DEBUG_IO, 0 );
 
     while( 1 ){
 
