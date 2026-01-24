@@ -409,10 +409,13 @@ PT_BEGIN( pt );
             uint32_t net_time = time_u32_get_network_time_from_local( now / 1000 );
             int32_t net_delta = (int64_t)net_time - ( msg->origin_uptime / 1000 );
 
+            // int32_t quality_delta_ratio = quality / net_delta;
+
+            // log_v_debug_P( PSTR("%8d %8d q: %8d net: %8d delta: %8d ratio: %8d"), rx_tx_delta0, rx_tx_delta1, quality, net_time, net_delta, quality_delta_ratio );
             log_v_debug_P( PSTR("%8d %8d q: %8d net: %8d delta: %8d"), rx_tx_delta0, rx_tx_delta1, quality, net_time, net_delta );
 
             // synchronize
-            if( quality < 1000 ){
+            if( quality < 2000 ){
 
                 if( !is_sync ){
                  
