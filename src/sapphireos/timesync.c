@@ -418,13 +418,16 @@ PT_BEGIN( pt );
                  
                     log_v_debug_P( PSTR("sync!") );
 
-                    base_sys_time = rx_samples[1] / 1000;
-                    master_net_time = tx_samples[1] / 1000;
+                    base_sys_time = rx_samples[1];
+                    master_net_time = tx_samples[1];
 
                     is_sync = TRUE;
                 }
 
-                sync_delta = net_delta;
+                log_v_debug_P( PSTR("resync") );
+
+                // sync_delta = util_i16_ewma( (int16_t)net_delta, sync_delta, 64 );
+                sync_delta = (int16_t)net_delta;
             }
             
             // int32_t receive_delta  = now - last_received;
@@ -808,9 +811,11 @@ PT_BEGIN( pt );
 
         // get elapsed time
         uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_sys_time );
+        // uint32_t elapsed_us = tmr_u64_elapsed_time_us( base_sys_time );
 
         // update base time
         base_sys_time += elapsed_ms;            
+        // base_sys_time += elapsed_us;            
         
 
         // check sync delta:
