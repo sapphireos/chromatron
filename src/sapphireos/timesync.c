@@ -843,7 +843,11 @@ PT_BEGIN( pt );
             // local clock is ahead
             // we need to slow down a bit
 
-            if( sync_delta > 500 ){
+            if( sync_delta > 1000 ){
+
+                clock_adjust = 50;
+            }
+            else if( sync_delta > 500 ){
 
                 clock_adjust = 10;
             }
@@ -865,7 +869,11 @@ PT_BEGIN( pt );
             // local clock is behind
             // we need to speed up a bit
 
-            if( sync_delta < -500 ){
+            if( sync_delta < -1000 ){
+
+                clock_adjust = -50;
+            }
+            else if( sync_delta < -500 ){
 
                 clock_adjust = -10;
             }
