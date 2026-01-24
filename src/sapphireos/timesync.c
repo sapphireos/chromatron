@@ -112,6 +112,9 @@ Followers periodically sync while tracking round trip time.
 #include "util.h"
 
 
+#include "hal_arp.h"
+
+
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
@@ -377,6 +380,7 @@ PT_BEGIN( pt );
         }
 
         uint64_t now = tmr_u64_get_system_time_us();
+        uint32_t now_ms = now / 1000;
 
         uint8_t *data = sock_vp_get_data( sock );
         uint8_t *type = decode_msg( data );
@@ -408,13 +412,13 @@ PT_BEGIN( pt );
             // add absolute value of both deltas - this is "quality" of the sample
             uint32_t quality = abs(rx_tx_delta0) + abs(rx_tx_delta1);
 
-            uint32_t net_time = time_u32_get_network_time_from_local( now / 1000 );
+            uint32_t net_time = time_u32_get_network_time_from_local( now_ms );
             int32_t net_delta = (int64_t)net_time - ( msg->origin_uptime / 1000 );
 
             // int32_t quality_delta_ratio = quality / net_delta;
 
             // log_v_debug_P( PSTR("%8d %8d q: %8d net: %8d delta: %8d ratio: %8d"), rx_tx_delta0, rx_tx_delta1, quality, net_time, net_delta, quality_delta_ratio );
-            log_v_debug_P( PSTR("%8d %8d q: %8d net: %8d delta: %8d window: %5d"), rx_tx_delta0, rx_tx_delta1, quality, net_time, net_delta, window );
+            // log_v_debug_P( PSTR("%8d %8d q: %8d net: %8d delta: %8d window: %5d"), rx_tx_delta0, rx_tx_delta1, quality, net_time, net_delta, window );
 
             // synchronize
             if( quality <= ( window * 1.5 ) ){
@@ -428,113 +432,84 @@ PT_BEGIN( pt );
 
                 if( !is_sync ){
                  
-                    log_v_debug_P( PSTR("sync!") );
+                    // log_v_debug_P( PSTR("sync!") );
+                    log_v_debug_P( PSTR("clock master found") );
 
-                    base_sys_time = rx_samples[1] / 1000;
-                    master_net_time = tx_samples[1] / 1000;
+                    // base_sys_time = rx_samples[1] / 1000;
+                    // master_net_time = tx_samples[1] / 1000;
 
-                    is_sync = TRUE;
+                    // is_sync = TRUE;
+
+                    master_ip = raddr.ipaddr;
                 }
 
-                log_v_debug_P( PSTR("resync") );
-
-                // sync_delta = util_i16_ewma( (int16_t)net_delta, sync_delta, 64 );
-                sync_delta = (int16_t)net_delta;
+                // log_v_debug_P( PSTR("resync") );
+                // sync_delta = (int16_t)net_delta;
             }
-            
-            // int32_t receive_delta  = now - last_received;
-            // int32_t transmit_delta = msg->origin_uptime - last_origin;
-
-            // // if positive, means receive took longer than transmit
-            // int32_t rx_tx_delta = receive_delta - transmit_delta;
-
-            // // int32_t compensated_rx_tx_delta = rx_tx_delta + last_rx_tx_delta;
-
-            // // log_v_debug_P( PSTR("rx %8d tx %8d delta %8d comp %8d"), receive_delta, transmit_delta, rx_tx_delta, compensated_rx_tx_delta );
-            // log_v_debug_P( PSTR("rx0: %8d rx1: %8d tx0: %8d tx1: %8d rxd %8d txd %8d delta %8d"), 
-            //     (int32_t)last_received, (int32_t)now, (int32_t)last_origin, (int32_t)msg->origin_uptime,
-            //     receive_delta, transmit_delta, rx_tx_delta );
-
-            // if(last_received == 0){
-
-            //     last_received = now; 
-            // }
-            // else{
-
-            //     last_received += 1000000;
-            // }
-
-            // if(last_origin == 0){
-
-            //     last_origin = msg->origin_uptime; 
-            // }
-            // else{
-
-            //     last_origin += 1000000;
-            // }
-
-            // last_received = now;
-            // last_origin = msg->origin_uptime;
-
-            // last_rx_tx_delta = rx_tx_delta;
-
-            // if( compare_clock( raddr.ipaddr, msg->origin_uptime, msg->priority ) ){
-
-            //     // this is a better clock
-
-            //     log_v_info_P( PSTR("Setting net time to: %ld from %d.%d.%d.%d"),
-            //         msg->net_time,
-            //         raddr.ipaddr.ip3,
-            //         raddr.ipaddr.ip2,
-            //         raddr.ipaddr.ip1,
-            //         raddr.ipaddr.ip0
-            //     );
-
-            //     sync_delta = 0;
-            //     master_net_time = msg->net_time;
-            //     base_sys_time = tmr_u32_get_system_time_ms();
-            //     master_priority = msg->priority;
-            //     master_uptime = msg->origin_uptime;
-            //     master_ip = raddr.ipaddr;
-            //     is_sync = TRUE;
-            // }
         }
+        else if( *type == TIME_MSG_REQUEST_SYNC ){
 
+            time_msg_request_sync_t *req = (time_msg_request_sync_t *)data;
 
-        // if( is_master() ){
+            time_msg_sync_t sync = {
+                TIME_PROTOCOL_MAGIC,
+                TIME_PROTOCOL_VERSION,
+                TIME_MSG_SYNC,
+                req->transmit_time,
+                time_u32_get_network_time_from_local( now_ms )
+            };
 
-        //     if( *type == TIME_MSG_REQUEST_SYNC ){
+            sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), 0 );
+        }
+        else if( *type == TIME_MSG_SYNC ){
 
-        //         time_msg_request_sync_t *req = (time_msg_request_sync_t *)data;
+            time_msg_sync_t *sync = ( time_msg_sync_t * )data;
 
-        //         time_msg_sync_t sync = {
-        //             TIME_PROTOCOL_MAGIC,
-        //             TIME_PROTOCOL_VERSION,
-        //             TIME_MSG_SYNC,
-        //             req->transmit_time,
-        //             time_u32_get_network_time_from_local( now )
-        //         };
+            // compute elasped time
+            uint32_t elapsed_ms = tmr_u32_elapsed_times( sync->origin_time, now_ms );
 
-        //         sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), 0 );  
-        //     }
-        //     else if( *type == TIME_MSG_PING ){
+            // check for obviously bad RTTs
+            if( elapsed_ms > TIME_RTT_THRESHOLD ){
 
-        //         time_msg_ping_response_t reply = {
-        //             TIME_PROTOCOL_MAGIC,
-        //             TIME_PROTOCOL_VERSION,
-        //             TIME_MSG_PING_RESPONSE,
-        //         };
-        
-        //         sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );  
-        //     }
-        // }
-        // else{
+                log_v_debug_P( PSTR("bad RTT: %u origin: %u now: %u"), elapsed_ms, sync->origin_time, now );
 
-        //     // follower
+                // TMR_WAIT( pt, 10000 );
 
+                continue;
+            }
 
+            // assuming link is symmetrical, compute offset
+            uint32_t clock_offset = elapsed_ms / 2;
 
-        // }
+            // adjust source timestamp for offset
+            sync->net_time += clock_offset;
+            
+            if( is_sync ){
+
+                uint32_t net_time = time_u32_get_network_time_from_local( now_ms );
+
+                // compute sync delta
+                sync_delta = (int64_t)net_time - (int64_t)sync->net_time;
+
+                log_v_info_P( PSTR("sync delta: %d"), sync_delta );
+            }
+
+            // if not synced or sync is too far off, we can immediately jolt the clock into position
+            if( !is_sync || ( abs16( sync_delta ) > 200 ) ){
+
+                master_net_time = sync->net_time;
+                base_sys_time = now_ms;
+
+                is_sync = TRUE;
+
+                log_v_info_P( PSTR("Net time hard sync delta: %d"), sync_delta );
+
+                sync_delta = 0;
+
+                // reset backoff
+                // backoff = TIME_SYNC_RATE_BASE;
+            }
+        }
 
     }    
 
@@ -929,6 +904,28 @@ PT_BEGIN( pt );
             };
 
             sock_i16_sendto( sock, (uint8_t *)&clock_msg, sizeof(clock_msg), &raddr );  
+        }
+        else if( !ip_b_is_zeroes( master_ip ) ){
+
+            if( !hal_arp_b_find( master_ip ) ){
+
+                log_v_debug_P( PSTR("arp not found") );
+            }
+
+            // send sync request
+            time_msg_request_sync_t req = {
+                TIME_PROTOCOL_MAGIC,
+                TIME_PROTOCOL_VERSION,
+                TIME_MSG_REQUEST_SYNC,
+                tmr_u32_get_system_time_ms()
+            };
+
+            sock_addr_t raddr = {
+                .ipaddr = master_ip,
+                .port = TIME_SERVER_PORT,
+            };
+
+            sock_i16_sendto( sock, (uint8_t *)&req, sizeof(req), &raddr );  
         }
 
         if( window < MAX_WINDOW ){
