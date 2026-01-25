@@ -274,7 +274,7 @@ PT_BEGIN( pt );
 	            	link_state->transmit_timer = 0;
 	            }
 
-	            // lookup database
+	            // deref database
 	         	link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( link_state->database_h );
 
 	         	// detect changes:
@@ -286,6 +286,7 @@ PT_BEGIN( pt );
             	if( changed ){
 
             		// force timer so we transmit now
+            		link_state->timeout 	   = 1;
 					link_state->transmit_timer = 0;
             	}
 
@@ -296,8 +297,18 @@ PT_BEGIN( pt );
             	else{
             		
             		// tx timer expired!
-            		link_state->transmit_timer = 1; // reset timer
+            		link_state->transmit_timer = link_state->timeout; // reset timer
 					
+					// bump timeout up towards max
+					if( link_state->timeout < 128){
+
+						link_state->timeout *= 2;
+					}
+					else if( link_state->timeout > 128 ){
+
+						link_state->timeout = 128;
+					}
+
             		// create message
 					link4_msg_send_t msg = {
 						.header.magic 		= LINK4_MAGIC,
