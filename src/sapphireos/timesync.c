@@ -134,9 +134,11 @@ static bool is_sync;
 static ip_addr4_t master_ip;
 static uint8_t master_priority;
 static uint32_t master_sequence;
+static uint8_t master_timeout;
 
 static uint8_t sync_timer;
 static uint8_t sync_interval;
+
 
 
 static int8_t net_time_kv_handler(
@@ -359,9 +361,8 @@ static uint16_t get_priority( void ){
     #endif
 
     #ifdef ESP32
-    return 0;
-
-    // return 2;
+    // return 0;
+    return 2;
     #endif
 
     return 0;
@@ -407,6 +408,7 @@ PT_BEGIN( pt );
                 master_priority     = msg->priority;
                 master_sequence     = msg->sequence;
                 master_ip           = raddr.ipaddr;
+                master_timeout      = TIME_SYNC_MASTER_TIMEOUT;
 
                 sync_timer          = 1;
                 sync_interval       = 1;                
@@ -455,6 +457,8 @@ PT_BEGIN( pt );
                 continue;
             }
 
+            master_timeout      = TIME_SYNC_MASTER_TIMEOUT;
+
             // assuming link is symmetrical, compute offset
             uint32_t clock_offset = elapsed_ms / 2;
 
@@ -498,29 +502,34 @@ PT_THREAD( time_clock_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    // wait for sync
-    thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 + ( rnd_u16_get_int() >> 5 ) );
-    THREAD_WAIT_WHILE( pt, !is_sync && thread_b_alarm_set() );
-
     THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
-    // // check if synced
-    if( !is_sync ){
-    // if(cfg_u64_get_device_id() == 154851823073836){ // 10.0.0.114
-
-        // select self as master clock
-        sync_delta = 0;
-        master_sequence = 0;
-        master_net_time = tmr_u32_get_system_time_ms();
-        base_sys_time = master_net_time;            
-        master_priority = get_priority();
-        master_ip = cfg_ip_get_ipaddr();
-        is_sync = TRUE;
-
-        log_v_info_P( PSTR("Setting net time to: %ld from local"), master_net_time );
-    }
-
     while( 1 ){
+
+        // check if synced
+        if( !is_sync ){
+
+            // wait for sync
+            thread_v_set_alarm( tmr_u32_get_system_time_ms() + 2000 + ( rnd_u16_get_int() >> 5 ) );
+            THREAD_WAIT_WHILE( pt, !is_sync && thread_b_alarm_set() );
+            
+            if( is_sync ){
+
+                // got a sync, restart thread
+                THREAD_RESTART( pt );
+            }
+
+            // select self as master clock
+            sync_delta          = 0;
+            master_sequence     = 0;
+            master_net_time     = tmr_u32_get_system_time_ms();
+            base_sys_time       = master_net_time;            
+            master_priority     = get_priority();
+            master_ip           = cfg_ip_get_ipaddr();
+            is_sync             = TRUE;
+
+            log_v_info_P( PSTR("Setting net time to: %ld from local"), master_net_time );
+        }
 
         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
@@ -609,6 +618,7 @@ PT_BEGIN( pt );
         master_net_time += elapsed_ms;
         master_sequence++;
 
+
         if( is_master() ){
 
             // broadcast clock message
@@ -630,6 +640,18 @@ PT_BEGIN( pt );
         }
         // follower with master clock available:
         else if( is_follower() ){
+
+            master_timeout--;
+
+            if( master_timeout == 0 ){
+
+                log_v_debug_P( PSTR("master timeout") );
+
+                master_ip   = ip_a_addr(0,0,0,0);
+                is_sync     = FALSE;
+
+                continue;
+            }
 
             sync_timer++;
 
