@@ -15,7 +15,8 @@
 
 #define LINK4_MAX_LINKS						16
 
-#define LINK4_DATA_TIMEOUT 					10
+#define LINK4_LINK_TIMEOUT 					100
+#define LINK4_DATA_TIMEOUT 					100
 
 typedef list_node_t link4_handle_t;
 

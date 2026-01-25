@@ -194,6 +194,21 @@ link4_handle_t link4_l_create(
     return link4_l_create2( &link );
 }
 
+static void delete_link( link4_handle_t link ){
+
+    link4_state_t *state = list_vp_get_data( link );
+
+    if( state->database_h > 0 ){
+
+    	mem2_v_free( state->database_h );
+    }
+
+    list_v_remove( &link_list, link );
+    list_v_release_node( link );
+}
+
+
+
 static uint8_t database_count( mem_handle_t database_h ){
 
 	return mem2_u16_get_size( database_h ) / sizeof(link4_data_t);
@@ -312,8 +327,18 @@ PT_BEGIN( pt );
 				}
             }
             else if( link->mode == LINK4_MODE_REMOTE_RECV ){
-            	
-            	
+
+            	if( link_state->timeout > 0 ){
+
+            		link_state->timeout--;
+            	}
+
+            	if( link_state->timeout == 0 ){
+
+            		log_v_info_P( PSTR("Remote receive link timed out") );
+
+            		delete_link( ln );
+            	}
             }
 
 next:
@@ -499,6 +524,10 @@ PT_BEGIN( pt );
         	ASSERT( lh > 0 );
 
         	link4_state_t *link_state = (link4_state_t *)list_vp_get_data( lh );
+
+        	// update timeout
+        	link_state->timeout = LINK4_LINK_TIMEOUT;
+
         	link4_data_t *database = 0;
 
         	// check for database
