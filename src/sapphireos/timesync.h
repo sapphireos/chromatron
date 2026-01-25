@@ -38,7 +38,7 @@
 
 // #define TIME_SYNC_RATE_BASE             1  // in seconds
 #define TIME_SYNC_RATE_MAX              32 // in seconds
-#define TIME_SYNC_MASTER_TIMEOUT        32
+#define TIME_SYNC_MASTER_TIMEOUT        128
 
 
 typedef struct __attribute__((packed)){
