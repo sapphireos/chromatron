@@ -44,20 +44,6 @@ typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
-} time_msg_ping_t;
-#define TIME_MSG_PING               1
-
-typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-} time_msg_ping_response_t;
-#define TIME_MSG_PING_RESPONSE      2
-
-typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
     uint32_t transmit_time;
 } time_msg_request_sync_t;
 #define TIME_MSG_REQUEST_SYNC       3
@@ -75,8 +61,7 @@ typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
     uint8_t type;
-    uint64_t origin_uptime;
-    uint32_t net_time;
+    uint32_t sequence;
     uint16_t priority;
 } time_msg_clock_t;
 #define TIME_MSG_CLOCK               5

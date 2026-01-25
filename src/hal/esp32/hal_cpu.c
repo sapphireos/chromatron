@@ -238,6 +238,8 @@ void cpu_v_remap_isrs( void ){
 
 void cpu_v_sleep( void ){
 
+    return;
+
     // only yield the RTOS task (so auto light sleep can operate)
     // if we are not in safe mode.
 

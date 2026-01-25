@@ -133,7 +133,7 @@ static bool is_sync;
 
 static ip_addr4_t master_ip;
 static uint8_t master_priority;
-static uint64_t master_uptime;
+static uint32_t master_sequence;
 
 
 
@@ -310,7 +310,15 @@ static bool is_follower( void ){
 }
 
 // return true if given clock is better than current master
-static bool compare_clock( ip_addr4_t source_ip, uint64_t source_uptime, uint16_t priority ){
+static bool compare_clock( ip_addr4_t source_ip, uint32_t source_sequence, uint16_t priority ){
+
+    if( ip_b_is_zeroes( master_ip ) ){
+
+        // no master
+        // anything will do
+
+        return TRUE;
+    }
 
     // check if better priority:
     if( priority > master_priority ){
@@ -327,9 +335,16 @@ static bool compare_clock( ip_addr4_t source_ip, uint64_t source_uptime, uint16_
     // sources match
 
     // check if older timestamp
-    if( source_uptime > ( master_uptime + 1000000 ) ){
+    if( source_sequence > master_sequence ){
 
         return TRUE;
+    }
+    else if( source_sequence == master_sequence ){
+
+        if( ip_u32_to_int( source_ip ) > ip_u32_to_int( master_ip ) ){
+
+            return TRUE;
+        }
     }
 
     return FALSE;
@@ -350,15 +365,6 @@ static uint16_t get_priority( void ){
     return 0;
 }
 
-// static uint64_t last_received;
-// static uint64_t last_origin;
-// static int32_t last_rx_tx_delta;
-
-static uint64_t rx_samples[3];
-static uint64_t tx_samples[3];
-
-#define MAX_WINDOW 10000
-static uint16_t window = MAX_WINDOW;
 
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
@@ -379,8 +385,7 @@ PT_BEGIN( pt );
             continue;
         }
 
-        uint64_t now = tmr_u64_get_system_time_us();
-        uint32_t now_ms = now / 1000;
+        uint32_t now = tmr_u32_get_system_time_ms();
 
         uint8_t *data = sock_vp_get_data( sock );
         uint8_t *type = decode_msg( data );
@@ -392,62 +397,34 @@ PT_BEGIN( pt );
 
             time_msg_clock_t *msg = (time_msg_clock_t *)data;
 
-            rx_samples[0] = rx_samples[1];
-            rx_samples[1] = rx_samples[2];
-            rx_samples[2] = now;
+            // check if we are already following this clock
+            if( ip_b_addr_compare( raddr.ipaddr, master_ip ) ){
 
-            tx_samples[0] = tx_samples[1];
-            tx_samples[1] = tx_samples[2];
-            tx_samples[2] = msg->origin_uptime;
-            
-            int32_t rx_delta0 = rx_samples[1] - rx_samples[0];
-            int32_t rx_delta1 = rx_samples[2] - rx_samples[1];
+                // update timeout?
 
-            int32_t tx_delta0 = tx_samples[1] - tx_samples[0];
-            int32_t tx_delta1 = tx_samples[2] - tx_samples[1];
+            }
+            else if( compare_clock( raddr.ipaddr, msg->sequence, msg->priority ) ){
 
-            int32_t rx_tx_delta0 = rx_delta0 - tx_delta0;
-            int32_t rx_tx_delta1 = rx_delta1 - tx_delta1;
+                master_priority     = msg->priority;
+                master_sequence     = msg->sequence;
+                master_ip           = raddr.ipaddr;
 
-            // add absolute value of both deltas - this is "quality" of the sample
-            uint32_t quality = abs(rx_tx_delta0) + abs(rx_tx_delta1);
-
-            uint32_t net_time = time_u32_get_network_time_from_local( now_ms );
-            int32_t net_delta = (int64_t)net_time - ( msg->origin_uptime / 1000 );
-
-            // int32_t quality_delta_ratio = quality / net_delta;
-
-            // log_v_debug_P( PSTR("%8d %8d q: %8d net: %8d delta: %8d ratio: %8d"), rx_tx_delta0, rx_tx_delta1, quality, net_time, net_delta, quality_delta_ratio );
-            // log_v_debug_P( PSTR("%8d %8d q: %8d net: %8d delta: %8d window: %5d"), rx_tx_delta0, rx_tx_delta1, quality, net_time, net_delta, window );
-
-            // synchronize
-            if( quality <= ( window * 1.5 ) ){
-
-                window = quality;
-
-                if( window < 1000 ){
-
-                    window = 1000;
-                }
-
-                if( !is_sync ){
-                 
-                    // log_v_debug_P( PSTR("sync!") );
-                    log_v_debug_P( PSTR("clock master found") );
-
-                    // base_sys_time = rx_samples[1] / 1000;
-                    // master_net_time = tx_samples[1] / 1000;
-
-                    // is_sync = TRUE;
-
-                    master_ip = raddr.ipaddr;
-                }
-
-                // log_v_debug_P( PSTR("resync") );
-                // sync_delta = (int16_t)net_delta;
+                log_v_info_P( PSTR("Setting net time to: %ld from %d.%d.%d.%d"), 
+                    master_net_time,
+                    master_ip.ip3,
+                    master_ip.ip2,
+                    master_ip.ip1,
+                    master_ip.ip0
+                );
             }
         }
         else if( *type == TIME_MSG_REQUEST_SYNC ){
+
+            // only respond if master
+            if( !is_master() ){
+
+                continue;
+            }
 
             time_msg_request_sync_t *req = (time_msg_request_sync_t *)data;
 
@@ -456,7 +433,7 @@ PT_BEGIN( pt );
                 TIME_PROTOCOL_VERSION,
                 TIME_MSG_SYNC,
                 req->transmit_time,
-                time_u32_get_network_time_from_local( now_ms )
+                time_u32_get_network_time_from_local( now )
             };
 
             sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), 0 );
@@ -466,14 +443,12 @@ PT_BEGIN( pt );
             time_msg_sync_t *sync = ( time_msg_sync_t * )data;
 
             // compute elasped time
-            uint32_t elapsed_ms = tmr_u32_elapsed_times( sync->origin_time, now_ms );
+            uint32_t elapsed_ms = tmr_u32_elapsed_times( sync->origin_time, now );
 
             // check for obviously bad RTTs
             if( elapsed_ms > TIME_RTT_THRESHOLD ){
 
                 log_v_debug_P( PSTR("bad RTT: %u origin: %u now: %u"), elapsed_ms, sync->origin_time, now );
-
-                // TMR_WAIT( pt, 10000 );
 
                 continue;
             }
@@ -486,28 +461,25 @@ PT_BEGIN( pt );
             
             if( is_sync ){
 
-                uint32_t net_time = time_u32_get_network_time_from_local( now_ms );
+                uint32_t net_time = time_u32_get_network_time_from_local( now );
 
                 // compute sync delta
                 sync_delta = (int64_t)net_time - (int64_t)sync->net_time;
 
-                log_v_info_P( PSTR("sync delta: %d"), sync_delta );
+                log_v_info_P( PSTR("sync delta: %5d rtt: %4d"), sync_delta, elapsed_ms );
             }
 
             // if not synced or sync is too far off, we can immediately jolt the clock into position
             if( !is_sync || ( abs16( sync_delta ) > 200 ) ){
 
                 master_net_time = sync->net_time;
-                base_sys_time = now_ms;
+                base_sys_time = now;
 
                 is_sync = TRUE;
 
                 log_v_info_P( PSTR("Net time hard sync delta: %d"), sync_delta );
 
                 sync_delta = 0;
-
-                // reset backoff
-                // backoff = TIME_SYNC_RATE_BASE;
             }
         }
 
@@ -778,15 +750,15 @@ PT_BEGIN( pt );
     THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
     // // check if synced
-    // if( !is_sync ){
-    if(cfg_u64_get_device_id() == 154851823073836){ // 10.0.0.114
+    if( !is_sync ){
+    // if(cfg_u64_get_device_id() == 154851823073836){ // 10.0.0.114
 
         // select self as master clock
         sync_delta = 0;
+        master_sequence = 0;
         master_net_time = tmr_u32_get_system_time_ms();
         base_sys_time = master_net_time;            
         master_priority = get_priority();
-        master_uptime = tmr_u64_get_system_time_us();
         master_ip = cfg_ip_get_ipaddr();
         is_sync = TRUE;
 
@@ -800,12 +772,9 @@ PT_BEGIN( pt );
 
         // get elapsed time
         uint32_t elapsed_ms = tmr_u32_elapsed_time_ms( base_sys_time );
-        // uint32_t elapsed_us = tmr_u64_elapsed_time_us( base_sys_time );
-
-        // update base time
-        base_sys_time += elapsed_ms;            
-        // base_sys_time += elapsed_us;            
         
+        // update base time
+        base_sys_time += elapsed_ms;                            
 
         // check sync delta:
         // positive deltas mean our clock is ahead
@@ -883,7 +852,7 @@ PT_BEGIN( pt );
 
         // update net time
         master_net_time += elapsed_ms;
-        master_uptime += elapsed_ms * 1000;
+        master_sequence++;
 
         if( is_master() ){
 
@@ -893,8 +862,7 @@ PT_BEGIN( pt );
                 TIME_PROTOCOL_MAGIC,
                 TIME_PROTOCOL_VERSION,
                 TIME_MSG_CLOCK,
-                tmr_u64_get_system_time_us(),
-                time_u32_get_network_time(),
+                master_sequence,
                 get_priority(),
             };
 
@@ -905,12 +873,8 @@ PT_BEGIN( pt );
 
             sock_i16_sendto( sock, (uint8_t *)&clock_msg, sizeof(clock_msg), &raddr );  
         }
-        else if( !ip_b_is_zeroes( master_ip ) ){
-
-            if( !hal_arp_b_find( master_ip ) ){
-
-                log_v_debug_P( PSTR("arp not found") );
-            }
+        // follower with master clock available:
+        else if( is_follower() ){
 
             // send sync request
             time_msg_request_sync_t req = {
@@ -926,11 +890,6 @@ PT_BEGIN( pt );
             };
 
             sock_i16_sendto( sock, (uint8_t *)&req, sizeof(req), &raddr );  
-        }
-
-        if( window < MAX_WINDOW ){
-
-            window += 1;
         }
     }
 
