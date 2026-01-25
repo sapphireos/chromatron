@@ -2,18 +2,20 @@
 #define __LINK4_H__
 
 
-#define LINK4_PORT                           44634
+#define LINK4_PORT                          44634
 
-#define LINK4_VERSION                        4
-#define LINK4_MAGIC                          0x4b4e494c // 'LINK'
+#define LINK4_VERSION                       4
+#define LINK4_MAGIC                         0x4b4e494c // 'LINK'
 
-#define LINK4_MIN_TICK_RATE                  50
-#define LINK4_MAX_TICK_RATE                  2000
+#define LINK4_MIN_TICK_RATE                 50
+#define LINK4_MAX_TICK_RATE                 2000
 
-#define LINK4_RETRANSMIT_RATE                2000
-#define LINK4_RETRANSMIT_RATE_FAST           100
+#define LINK4_RETRANSMIT_RATE               2000
+#define LINK4_RETRANSMIT_RATE_FAST          100
 
-#define LINK4_MAX_LINKS						 16
+#define LINK4_MAX_LINKS						16
+
+#define LINK4_DATA_TIMEOUT 					10
 
 typedef list_node_t link4_handle_t;
 
