@@ -294,16 +294,16 @@ int8_t ffs_block_i8_verify_free_space( void ){
     #ifdef FLASH_FS_TIMING
     block_t block = free_scan_list;
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        scan_count = 65535; // scans all blocks
-    }
-    else{
+    //     scan_count = 65535; // scans all blocks
+    // }
+    // else{
 
         scan_count = 8; // number of blocks to scan
 
         thread_t_create( free_scan_thread, PSTR("free_scan"), 0, 0 );
-    }
+    // }
     
     #else
     block_t block = free_list;
