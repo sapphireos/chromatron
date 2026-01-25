@@ -339,6 +339,63 @@ PT_BEGIN( pt );
 
             		delete_link( ln );
             	}
+            	// not timed out, check database
+            	else if( link_state->database_h > 0 ){
+
+            		link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( link_state->database_h );
+
+            		for( int i = 0; i < database_count( link_state->database_h ); i++ ){
+
+            			if( database->timeout > 0 ){
+
+            				database->timeout--;
+            			}
+
+            			if( database->timeout == 0 ){
+
+            				log_v_info_P( PSTR("Data timed out") );
+
+            				uint16_t old_database_size = mem2_u16_get_size( link_state->database_h );
+            				uint16_t new_database_size = old_database_size - sizeof(link4_data_t);
+
+            				if( new_database_size == 0 ){
+
+            					// easy path, just release db
+            					mem2_v_free( link_state->database_h );
+            					link_state->database_h = -1;
+            				}
+            				else{
+
+	            				mem_handle_t new_database_h = mem2_h_alloc( new_database_size );
+
+	            				if( new_database_h <= 0 ){
+
+				        			log_v_error_P( PSTR("alloc fail") );
+
+				                	goto next;
+				        		}
+
+								link4_data_t *new_database = (link4_data_t *)mem2_vp_get_ptr( new_database_h );
+
+								// copy old data items into new db, skipping this current item we are deleting
+				        		for( int j = 0; j < database_count( link_state->database_h ); j++ ){
+
+				        			if( j == i ){
+
+				        				continue;
+				        			}
+
+				        			*new_database = database[j];
+				        			new_database++;
+				        		}
+
+				        		// release old db, set new on
+				        		mem2_v_free( link_state->database_h );
+				        		link_state->database_h = new_database_h;
+				        	}
+            			}
+            		}
+            	}
             }
 
 next:
