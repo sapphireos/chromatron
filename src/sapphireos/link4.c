@@ -311,6 +311,10 @@ PT_BEGIN( pt );
 					}
 				}
             }
+            else if( link->mode == LINK4_MODE_REMOTE_RECV ){
+            	
+            	
+            }
 
 next:
             ln = next_ln;
@@ -469,8 +473,6 @@ PT_BEGIN( pt );
 
         if( header->msg_type == LINK4_MSG_TYPE_SEND ){
 
-        	// log_v_debug_P( PSTR("msg") );
-
         	link4_msg_send_t *msg = (link4_msg_send_t *)header;
 
         	// check for matching remote receive link
@@ -490,11 +492,11 @@ PT_BEGIN( pt );
 
         			continue;
         		}
+
+        		log_v_info_P( PSTR("Created remote receive link") );
         	}
 
         	ASSERT( lh > 0 );
-
-        	// log_v_debug_P( PSTR("1") );
 
         	link4_state_t *link_state = (link4_state_t *)list_vp_get_data( lh );
         	link4_data_t *database = 0;
@@ -519,24 +521,11 @@ PT_BEGIN( pt );
             	database->ip    = raddr.ipaddr;
         	}
 
-        	// log_v_debug_P( PSTR("2") );
-
         	// search for matching node in database
         	database = (link4_data_t *)mem2_vp_get_ptr( link_state->database_h );
 
         	bool match = FALSE;
         	for( int i = 0; i < database_count( link_state->database_h ); i++ ){
-
-        		// log_v_debug_P( PSTR("%d.%d.%d.%d %d.%d.%d.%d"),
-        		// 	database->ip.ip3,
-        		// 	database->ip.ip2,
-        		// 	database->ip.ip1,
-        		// 	database->ip.ip0,
-        		// 	raddr.ipaddr.ip3,
-        		// 	raddr.ipaddr.ip2,
-        		// 	raddr.ipaddr.ip1,
-        		// 	raddr.ipaddr.ip0
-        		// );
 
         		if( ip_b_addr_compare( database->ip, raddr.ipaddr ) ){
 
@@ -547,8 +536,6 @@ PT_BEGIN( pt );
 
         		database++;
         	}
-
-        	// log_v_debug_P( PSTR("3") );
 
         	if( !match ){
 
@@ -579,11 +566,7 @@ PT_BEGIN( pt );
 
         		// get new pointer
         		database = (link4_data_t *)mem2_vp_get_ptr( new_database_h ) + old_database_size;
-
-        		// log_v_debug_P( PSTR("4") );
         	}
-
-        	// log_v_debug_P( PSTR("5") );
 
         	// now we have a pointer to this data item
         	// make sure IP is tracked
@@ -614,8 +597,6 @@ PT_BEGIN( pt );
          			// error path
          		}
          	}
-
-         	// log_v_debug_P( PSTR("done") );
         }
     }
 
