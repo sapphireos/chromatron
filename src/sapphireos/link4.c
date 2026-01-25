@@ -24,6 +24,38 @@ static socket_t sock;
 static list_t link_list;
 
 
+static int32_t link4_test_key;
+static int32_t link4_test_key2;
+
+static int8_t _kv_i8_link_client_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len ){
+    
+    if( op == KV_OP_GET ){
+
+        if( hash == __KV__link4_count ){
+
+        	uint8_t *ptr = (uint8_t *)data;
+        	*ptr = list_u8_count( &link_list );
+        }
+        
+        return 0;
+    }
+
+    return -1;
+}
+
+
+KV_SECTION_META kv_meta_t link4_kv[] = {
+    { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  0, _kv_i8_link_client_handler,   "link4_count" },
+
+    { CATBUS_TYPE_INT32,   0, 0,                   &link4_test_key,             0,  "link4_test_key" },
+    { CATBUS_TYPE_INT32,   0, 0,                   &link4_test_key2,            0,  "link4_test_key2" },
+};
+
+
 PT_THREAD( link_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) );
 
@@ -31,6 +63,11 @@ PT_THREAD( link_processor_thread( pt_t *pt, void *state ) );
 void link4_v_init( void ){
 
 	list_v_init( &link_list );
+
+	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+		return;
+	}
 	
 	thread_t_create( link_server_thread,
                  PSTR("link_server"),
@@ -41,6 +78,19 @@ void link4_v_init( void ){
                  PSTR("link_processor"),
                  0,
                  0 );
+
+   	catbus_query_t query = {0};
+   	query.tags[0] = __KV__link4_test;
+
+   	link4_l_create(
+   		LINK4_MODE_SEND,
+   		__KV__link4_test_key,
+   		__KV__link4_test_key2,
+   		&query,
+   		__KV__link4_tag,
+   		100,
+   		LINK4_AGG_LAST
+   	);
 }
 
 bool link4_b_compare( const link4_t *link1, const link4_t *link2 ){
@@ -54,9 +104,9 @@ link4_handle_t link4_l_lookup( link4_t *link ){
 
     while( ln >= 0 ){
 
-        link4_t *state = list_vp_get_data( ln );
+        link4_state_t *state = list_vp_get_data( ln );
 
-        if( link4_b_compare( link, state ) ){
+        if( link4_b_compare( link, &state->link ) ){
 
             return ln;
         }
@@ -82,17 +132,17 @@ link4_handle_t link4_l_create(
         return -1;
     }
 
-    link4_t link = {
-        .mode               = mode,
-        .source_key         = source_key,
-        .dest_key           = dest_key,
-        .query              = *query,
-        .tag                = tag,
-        .rate               = rate,
-        .aggregation        = aggregation,
+    link4_state_t state = {
+        .link.mode               = mode,
+        .link.source_key         = source_key,
+        .link.dest_key           = dest_key,
+        .link.query              = *query,
+        .link.tag                = tag,
+        .link.rate               = rate,
+        .link.aggregation        = aggregation,
     };
 
-    link4_handle_t lh = link4_l_lookup( &link );
+    link4_handle_t lh = link4_l_lookup( &state.link );
 
     if( lh > 0 ){
 
@@ -106,16 +156,20 @@ link4_handle_t link4_l_create(
         return -1;
     }
 
-    if( link.rate < LINK4_RATE_MIN ){
+    if( state.link.rate < LINK4_RATE_MIN ){
 
-        link.rate = LINK4_RATE_MIN;
+        state.link.rate = LINK4_RATE_MIN;
     }
-    else if( link.rate > LINK4_RATE_MAX ){
+    else if( state.link.rate > LINK4_RATE_MAX ){
 
-        link.rate = LINK4_RATE_MAX;
+        state.link.rate = LINK4_RATE_MAX;
     }
 
-	list_node_t ln = list_ln_create_node2( &link, sizeof(link4_t), MEM_TYPE_LINK4 );
+    // sort tags from highest to lowest so that all valid combinations
+    // of the query will compare properly
+    util_v_bubble_sort_reversed_u32( state.link.query.tags, cnt_of_array(state.link.query.tags) );
+
+	list_node_t ln = list_ln_create_node2( &state, sizeof(link4_state_t), MEM_TYPE_LINK4 );
 
     if( ln < 0 ){
 
@@ -136,6 +190,21 @@ PT_BEGIN( pt );
 
 		TMR_WAIT( pt, LINK4_RATE_MIN );
 
+		list_node_t ln = link_list.head;
+
+        while( ln >= 0 ){
+
+            list_node_t next_ln = list_ln_next( ln );
+
+            link4_state_t *state = list_vp_get_data( ln );
+
+            if( state->link.mode == LINK4_MODE_SEND ){
+            	
+            	
+            }
+
+            ln = next_ln;
+        }   
 
 	}
 

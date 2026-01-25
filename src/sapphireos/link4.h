@@ -27,6 +27,8 @@ typedef uint8_t link4_aggregation_t8;
 typedef uint8_t link4_mode_t8;
 #define LINK4_MODE_SEND						0
 #define LINK4_MODE_RECV						1
+#define LINK4_MODE_REMOTE_SEND				2
+#define LINK4_MODE_REMOTE_RECV				3
 
 typedef uint16_t link4_rate_t16;
 #define LINK4_RATE_MIN                      50
@@ -34,10 +36,10 @@ typedef uint16_t link4_rate_t16;
 #define LINK4_RATE_MAX                      30000
 
 typedef uint8_t link4_opcode_t8;
-#define LINK4_MODE_LOCAL_SEND				0
-#define LINK4_MODE_LOCAL_RECV				1
-#define LINK4_MODE_REMOTE_SEND				2
-#define LINK4_MODE_REMOTE_RECV				3
+#define LINK4_OPCODE_LOCAL_SEND				0
+#define LINK4_OPCODE_LOCAL_RECV				1
+#define LINK4_OPCODE_REMOTE_SEND			2
+#define LINK4_OPCODE_REMOTE_RECV			3
 
 typedef struct __attribute__((packed)){
     link4_mode_t8 mode;
@@ -47,9 +49,13 @@ typedef struct __attribute__((packed)){
     catbus_hash_t32 dest_key;
     catbus_hash_t32 tag;
     catbus_query_t query;
+} link4_t;
+
+typedef struct __attribute__((packed)){
+    link4_t link;
     uint16_t timeout;
     mem_handle_t database_h;
-} link4_t; // 52 bytes
+} link4_state_t;
 
 typedef struct __attribute__((packed)){
     int32_t value;
@@ -67,6 +73,13 @@ typedef struct __attribute__((packed)){
 
 
 void link4_v_init( void );
-
+link4_handle_t link4_l_create( 
+    link4_mode_t8 mode, 
+    catbus_hash_t32 source_key, 
+    catbus_hash_t32 dest_key, 
+    catbus_query_t *query,
+    catbus_hash_t32 tag,
+    link4_rate_t16 rate,
+    link4_aggregation_t8 aggregation );
 
 #endif
