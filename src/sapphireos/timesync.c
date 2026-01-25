@@ -135,6 +135,8 @@ static ip_addr4_t master_ip;
 static uint8_t master_priority;
 static uint32_t master_sequence;
 
+static uint8_t sync_timer;
+static uint8_t sync_interval;
 
 
 static int8_t net_time_kv_handler(
@@ -370,9 +372,6 @@ PT_THREAD( time_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    static uint16_t backoff;
-    backoff = TIME_SYNC_RATE_BASE;
-
     while(1){
 
         THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
@@ -408,6 +407,9 @@ PT_BEGIN( pt );
                 master_priority     = msg->priority;
                 master_sequence     = msg->sequence;
                 master_ip           = raddr.ipaddr;
+
+                sync_timer          = 1;
+                sync_interval       = 1;                
 
                 log_v_info_P( PSTR("Setting net time to: %ld from %d.%d.%d.%d"), 
                     master_net_time,
@@ -479,261 +481,14 @@ PT_BEGIN( pt );
 
                 log_v_info_P( PSTR("Net time hard sync delta: %d"), sync_delta );
 
+                sync_timer          = 1;
+                sync_interval       = 1;                
+
                 sync_delta = 0;
             }
         }
 
     }    
-
-
-
-
-    // // wait for network
-    // THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
-
-
-    // while( !is_master() && !is_follower() ){
-
-
-
-    // }
-
-
-    // while( is_master() ){
-
-    //     if( !is_sync ){
-
-    //         sync_delta = 0;
-    //         master_net_time = tmr_u32_get_system_time_ms();
-    //         base_sys_time = master_net_time;            
-
-    //         is_sync = TRUE;
-    //     }
-
-    //     THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_master() );
-
-    //     if( !is_master() ){
-
-    //         continue;
-    //     }
-
-    //     // check if data received
-    //     if( sock_i16_get_bytes_read( sock ) <= 0 ){
-
-    //         continue;
-    //     }
-
-    //     uint32_t now = tmr_u32_get_system_time_ms();
-
-    //     uint8_t *data = sock_vp_get_data( sock );
-    //     uint8_t *type = decode_msg( data );
-
-    //     if( type == 0 ){
-
-    //         continue;
-    //     }
-
-    //     sock_addr_t raddr;
-    //     sock_v_get_raddr( sock, &raddr );
-
-    //     if( *type == TIME_MSG_REQUEST_SYNC ){
-
-    //         time_msg_request_sync_t *req = (time_msg_request_sync_t *)data;
-
-    //         time_msg_sync_t sync = {
-    //             TIME_PROTOCOL_MAGIC,
-    //             TIME_PROTOCOL_VERSION,
-    //             TIME_MSG_SYNC,
-    //             req->transmit_time,
-    //             time_u32_get_network_time_from_local( now )
-    //         };
-
-    //         sock_i16_sendto( sock, (uint8_t *)&sync, sizeof(sync), 0 );  
-    //     }
-    //     else if( *type == TIME_MSG_PING ){
-
-    //         time_msg_ping_response_t reply = {
-    //             TIME_PROTOCOL_MAGIC,
-    //             TIME_PROTOCOL_VERSION,
-    //             TIME_MSG_PING_RESPONSE,
-    //         };
-    
-    //         sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );  
-    //     }
-    // }
-
-    // while( is_follower() ){
-
-    //     sock_v_flush( sock );
-
-    //     // random delay to prevent overloading the server
-    //     TMR_WAIT( pt, 1000 + ( rnd_u16_get_int() >> 4 ) ); // 1 to 5 seconds        
-
-    //     // send ping to warm up ARP
-    //     time_msg_ping_t ping = {
-    //         TIME_PROTOCOL_MAGIC,
-    //         TIME_PROTOCOL_VERSION,
-    //         TIME_MSG_PING,
-    //     };
-
-    //     // sock_addr_t send_raddr = services_a_get( TIME_ELECTION_SERVICE, 0 );
-    //     sock_addr_t send_raddr;
-    //     // if( controller_i8_get_addr( &send_raddr ) < 0 ){
-
-    //     //     break;
-    //     // }
-
-    //     // select server port
-    //     send_raddr.port = TIME_SERVER_PORT;
-
-    //     sock_v_flush( sock );
-        
-    //     sock_i16_sendto( sock, (uint8_t *)&ping, sizeof(ping), &send_raddr );  
-
-    //     sock_v_set_timeout( sock, 2 );
-
-    //     // wait for reply or timeout
-    //     THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
-
-    //     // check if service changed
-    //     if( !is_follower() ){
-
-    //         THREAD_RESTART( pt );
-    //     }
-
-    //     // check for timeout
-    //     if( sock_i16_get_bytes_read( sock ) <= 0 ){
-
-    //         TMR_WAIT( pt, 10000 );
-
-    //         continue;
-    //     }   
-
-    //     uint8_t *type = decode_msg( sock_vp_get_data( sock ) );
-
-    //     if( type == 0 ){
-
-    //         continue;
-    //     }
-
-    //     if( *type != TIME_MSG_PING_RESPONSE ){
-
-    //         continue;
-    //     }
-
-    //     // send sync request
-    //     time_msg_request_sync_t req = {
-    //         TIME_PROTOCOL_MAGIC,
-    //         TIME_PROTOCOL_VERSION,
-    //         TIME_MSG_REQUEST_SYNC,
-    //         tmr_u32_get_system_time_ms()   
-    //     };
-
-    //     // sock_addr_t send_raddr2 = services_a_get( TIME_ELECTION_SERVICE, 0 );
-    //     sock_addr_t send_raddr2;
-    //     // if( controller_i8_get_addr( &send_raddr2 ) < 0 ){
-
-    //     //     break;
-    //     // }
-
-    //     // select server port
-    //     send_raddr2.port = TIME_SERVER_PORT;
-
-        
-    //     sock_i16_sendto( sock, (uint8_t *)&req, sizeof(req), &send_raddr2 );  
-
-    //     // wait for reply or timeout
-    //     THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( sock ) < 0 ) && is_follower() );
-
-    //     uint32_t now = tmr_u32_get_system_time_ms();
-
-    //     // check if service changed
-    //     if( !is_follower() ){
-
-    //         THREAD_RESTART( pt );
-    //     }
-
-    //     // check for timeout
-    //     if( sock_i16_get_bytes_read( sock ) <= 0 ){
-
-    //         TMR_WAIT( pt, 10000 );
-
-    //         continue;
-    //     }   
-
-    //     uint8_t *data = sock_vp_get_data( sock );
-    //     uint8_t *type2 = decode_msg( data );
-
-    //     if( type2 == 0 ){
-
-    //         continue;
-    //     }
-
-    //     if( *type2 != TIME_MSG_SYNC ){
-
-    //         continue;
-    //     }        
-
-    //     time_msg_sync_t *sync = ( time_msg_sync_t * )data;
-
-    //     // compute elasped time
-    //     uint32_t elapsed_ms = tmr_u32_elapsed_times( sync->origin_time, now );
-
-    //     // check for obviously bad RTTs
-    //     if( elapsed_ms > TIME_RTT_THRESHOLD ){
-
-    //         log_v_debug_P( PSTR("bad RTT: %u origin: %u now: %u"), elapsed_ms, sync->origin_time, now );
-
-    //         TMR_WAIT( pt, 10000 );
-
-    //         continue;
-    //     }
-
-    //     // assuming link is symmetrical, compute offset
-    //     uint32_t clock_offset = elapsed_ms / 2;
-
-    //     // adjust source timestamp for offset
-    //     sync->net_time += clock_offset;
-        
-    //     if( is_sync ){
-
-    //         uint32_t net_time = time_u32_get_network_time_from_local( now );
-
-    //         // compute sync delta
-    //         sync_delta = (int64_t)net_time - (int64_t)sync->net_time;
-
-    //         // log_v_info_P( PSTR("sync delta: %d"), sync_delta );
-    //     }
-
-    //     // if not synced or sync is too far off, we can immediately jolt the clock into position
-    //     if( !is_sync || ( abs16( sync_delta ) > 200 ) ){
-
-    //         master_net_time = sync->net_time;
-    //         base_sys_time = now;
-
-    //         is_sync = TRUE;
-
-    //         log_v_info_P( PSTR("Net time hard sync delta: %d"), sync_delta );
-
-    //         sync_delta = 0;
-
-    //         // reset backoff
-    //         backoff = TIME_SYNC_RATE_BASE;
-    //     }
-
-
-    //     // change to backoff after we verify everything works
-    //     TMR_WAIT( pt, (uint32_t)backoff * 1000 );
-
-    //     // increment backoff
-    //     if( backoff < TIME_SYNC_RATE_MAX ){
-
-    //         backoff *= 2;
-    //     }
-    // }
-
-    // THREAD_RESTART( pt );
-
 
 PT_END( pt );
 }
@@ -876,20 +631,37 @@ PT_BEGIN( pt );
         // follower with master clock available:
         else if( is_follower() ){
 
-            // send sync request
-            time_msg_request_sync_t req = {
-                TIME_PROTOCOL_MAGIC,
-                TIME_PROTOCOL_VERSION,
-                TIME_MSG_REQUEST_SYNC,
-                tmr_u32_get_system_time_ms()
-            };
+            sync_timer++;
 
-            sock_addr_t raddr = {
-                .ipaddr = master_ip,
-                .port = TIME_SERVER_PORT,
-            };
+            if( sync_timer >= sync_interval ){
 
-            sock_i16_sendto( sock, (uint8_t *)&req, sizeof(req), &raddr );  
+                sync_timer = 0;
+
+                if( sync_interval < TIME_SYNC_RATE_MAX ){
+
+                    sync_interval *= 2;
+
+                    if( sync_interval > TIME_SYNC_RATE_MAX ){
+
+                        sync_interval = TIME_SYNC_RATE_MAX;
+                    } 
+                }
+                
+                // send sync request
+                time_msg_request_sync_t req = {
+                    TIME_PROTOCOL_MAGIC,
+                    TIME_PROTOCOL_VERSION,
+                    TIME_MSG_REQUEST_SYNC,
+                    tmr_u32_get_system_time_ms()
+                };
+
+                sock_addr_t raddr = {
+                    .ipaddr = master_ip,
+                    .port = TIME_SERVER_PORT,
+                };
+
+                sock_i16_sendto( sock, (uint8_t *)&req, sizeof(req), &raddr );  
+            }
         }
     }
 

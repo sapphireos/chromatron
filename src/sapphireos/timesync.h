@@ -36,8 +36,8 @@
 
 #define TIME_RTT_THRESHOLD              500
 
-#define TIME_SYNC_RATE_BASE             16 // in seconds
-#define TIME_SYNC_RATE_MAX              256 // in seconds
+// #define TIME_SYNC_RATE_BASE             1  // in seconds
+#define TIME_SYNC_RATE_MAX              32 // in seconds
 
 
 typedef struct __attribute__((packed)){
