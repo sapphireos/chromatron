@@ -79,18 +79,21 @@ void link4_v_init( void ){
                  0,
                  0 );
 
-   	catbus_query_t query = {0};
-   	query.tags[0] = __KV__link4_test;
+   	if( cfg_u64_get_device_id() == 154851823073836 ){
 
-   	link4_l_create(
-   		LINK4_MODE_SEND,
-   		__KV__link4_test_key,
-   		__KV__link4_test_key2,
-   		&query,
-   		__KV__link4_tag,
-   		100,
-   		LINK4_AGG_LAST
-   	);
+	   	catbus_query_t query = {0};
+	   	query.tags[0] = __KV__link4_rx;
+
+	   	link4_l_create(
+	   		LINK4_MODE_SEND,
+	   		__KV__link4_test_key,
+	   		__KV__link4_test_key2,
+	   		&query,
+	   		__KV__link4_tag,
+	   		100,
+	   		LINK4_AGG_LAST
+	   	);
+   }
 }
 
 bool link4_b_compare( const link4_t *link1, const link4_t *link2 ){
