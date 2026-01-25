@@ -196,8 +196,8 @@ PT_BEGIN( pt );
 
             list_node_t next_ln = list_ln_next( ln );
 
-            link4_state_t *state = list_vp_get_data( ln );
-            link4_t *link = &state->link;
+            link4_state_t *link_state = list_vp_get_data( ln );
+            link4_t *link = &link_state->link;
 
             if( link->mode == LINK4_MODE_SEND ){
 
@@ -220,25 +220,25 @@ PT_BEGIN( pt );
 	            }
 
 	            // check if data is installed in link:
-	            if( state->database_h <= 0 ){
+	            if( link_state->database_h <= 0 ){
 
 	            	// create database
-	            	state->database_h = mem2_h_alloc( sizeof(link4_data_t) );
+	            	link_state->database_h = mem2_h_alloc( sizeof(link4_data_t) );
 
-	            	if( state->database_h < 0 ){
+	            	if( link_state->database_h < 0 ){
 	            		
 	            		log_v_error_P( PSTR("alloc fail") );
 
 	                	goto next;
 	            	}
 
-	            	memset( mem2_vp_get_ptr( state->database_h ), 0, sizeof(link4_data_t) );
+	            	memset( mem2_vp_get_ptr( link_state->database_h ), 0, sizeof(link4_data_t) );
 
-	            	state->transmit_timer = 0;
+	            	link_state->transmit_timer = 0;
 	            }
 
 	            // lookup database
-	         	link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( state->database_h );
+	         	link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( link_state->database_h );
 
 	         	// detect changes:
             	bool changed = data != database->value;
@@ -249,17 +249,17 @@ PT_BEGIN( pt );
             	if( changed ){
 
             		// force timer so we transmit now
-					state->transmit_timer = 0;
+					link_state->transmit_timer = 0;
             	}
 
-            	if( state->transmit_timer > 0 ){
+            	if( link_state->transmit_timer > 0 ){
 
-            		state->transmit_timer--;
+            		link_state->transmit_timer--;
             	}
             	else{
             		
             		// tx timer expired!
-            		state->transmit_timer = 1; // reset timer
+            		link_state->transmit_timer = 1; // reset timer
 					
             		// create message
 					link4_msg_send_t msg = {
@@ -283,7 +283,7 @@ PT_BEGIN( pt );
 						};
 
 						sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
-							
+
             			device = device_db_p_get_next();
 					}
 				}
