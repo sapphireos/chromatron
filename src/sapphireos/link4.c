@@ -118,28 +118,10 @@ link4_handle_t link4_l_lookup( link4_t *link ){
 }
 
 
-link4_handle_t link4_l_create( 
-    link4_mode_t8 mode, 
-    catbus_hash_t32 source_key, 
-    catbus_hash_t32 dest_key, 
-    catbus_query_t *query,
-    catbus_hash_t32 tag,
-    link4_rate_t16 rate,
-    link4_aggregation_t8 aggregation ){ 
+link4_handle_t link4_l_create2( link4_t *link ){
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-        return -1;
-    }
-
-    link4_state_t state = {
-        .link.mode               = mode,
-        .link.source_key         = source_key,
-        .link.dest_key           = dest_key,
-        .link.query              = *query,
-        .link.tag                = tag,
-        .link.rate               = rate,
-        .link.aggregation        = aggregation,
+	link4_state_t state = {
+        .link = *link,
     };
 
     link4_handle_t lh = link4_l_lookup( &state.link );
@@ -181,6 +163,43 @@ link4_handle_t link4_l_create(
     return ln;
 }
 
+
+link4_handle_t link4_l_create( 
+    link4_mode_t8 mode, 
+    catbus_hash_t32 source_key, 
+    catbus_hash_t32 dest_key, 
+    catbus_query_t *query,
+    catbus_hash_t32 tag,
+    link4_rate_t16 rate,
+    link4_aggregation_t8 aggregation ){ 
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return -1;
+    }
+
+    link4_t link = {
+    	.mode               = mode,
+        .source_key         = source_key,
+        .dest_key           = dest_key,
+        .query              = *query,
+        .tag                = tag,
+        .rate               = rate,
+        .aggregation        = aggregation,
+    };
+
+    return link4_l_create2( &link );
+}
+
+static uint8_t database_count( mem_handle_t database_h ){
+
+	return mem2_u16_get_size( database_h ) / sizeof(link4_data_t);
+}
+
+static int32_t aggregate( mem_handle_t database_h, link4_aggregation_t8 agg ){
+
+	return 0;
+}
 
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
 {
@@ -266,6 +285,7 @@ PT_BEGIN( pt );
 						.header.magic 		= LINK4_MAGIC,
 						.header.msg_type 	= LINK4_MSG_TYPE_SEND,
 						.header.version     = LINK4_VERSION,
+						.link 				= *link,
 						.value 				= database->value,
 					};
 
@@ -444,8 +464,121 @@ PT_BEGIN( pt );
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
+        if( header->msg_type == LINK4_MSG_TYPE_SEND ){
 
+        	link4_msg_send_t *msg = (link4_msg_send_t *)header;
 
+        	// check for matching remote receive link
+        	msg->link.mode = LINK4_MODE_REMOTE_RECV;
+
+        	// check for corresponding link
+        	link4_handle_t lh = link4_l_lookup( &msg->link );
+
+        	if( lh <= 0 ){
+
+        		// need to create remote receive link
+        		lh = link4_l_create2( &msg->link );
+
+        		if( lh <= 0 ){
+
+        			log_v_error_P( PSTR("alloc failed") );
+
+        			continue;
+        		}
+        	}
+
+        	ASSERT( lh > 0 );
+
+        	link4_state_t *link_state = (link4_state_t *)list_vp_get_data( lh );
+
+        	// check for database
+        	if( link_state->database_h <= 0 ){
+
+        		// create database
+	            link_state->database_h = mem2_h_alloc( sizeof(link4_data_t) );
+
+	            if( link_state->database_h < 0 ){
+	            		
+            		log_v_error_P( PSTR("alloc fail") );
+
+                	continue;
+            	}
+
+            	memset( mem2_vp_get_ptr( link_state->database_h ), 0, sizeof(link4_data_t) );
+        	}
+
+        	// search for matching node in database
+        	link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( link_state->database_h );
+
+        	bool match = FALSE;
+        	for( int i = 0; i < database_count( link_state->database_h ); i++ ){
+
+        		if( ip_b_addr_compare( database->ip, raddr.ipaddr ) ){
+
+        			match = TRUE;
+
+        			break;
+        		}
+        	}
+
+        	if( !match ){
+
+        		uint16_t database_size = mem2_u16_get_size( link_state->database_h );
+
+        		// no match, create item
+        		mem_handle_t new_database_h = mem2_h_alloc( sizeof(link4_data_t) + database_size );
+
+        		if( new_database_h <= 0 ){
+
+        			log_v_error_P( PSTR("alloc fail") );
+
+                	continue;
+        		}
+
+        		// copy old data
+        		memcpy( 
+        			mem2_vp_get_ptr( new_database_h ), 
+        			mem2_vp_get_ptr( link_state->database_h ), 
+        			database_size 
+        		);
+
+        		// free old handle
+        		mem2_v_free( link_state->database_h );
+
+        		// assign handle
+        		link_state->database_h = new_database_h;
+
+        		// get new pointer
+        		database = (link4_data_t *)mem2_vp_get_ptr( new_database_h ) + database_size;
+        	}
+
+        	// now we have a pointer to this data item
+
+        	// detect changes:
+            bool changed = msg->value != database->value;
+
+         	if( changed ){
+
+         		// assign value
+         		database->value = msg->value;
+
+         		int32_t computed_value;
+         		if( link_state->link.aggregation == LINK4_AGG_LAST ){
+
+         			computed_value = msg->value;
+         		}
+         		else{
+
+         			computed_value = aggregate( link_state->database_h, link_state->link.aggregation );	
+         		}
+
+         		// set value in DB
+         		if( catbus_i8_set_i64( link_state->link.dest_key, (int64_t)computed_value ) < 0 ){
+
+         			// error path
+         		}
+         	}
+        }
     }
 
 //         if( header->msg_type == LINK_MSG_TYPE_CONSUMER_QUERY ){
