@@ -197,12 +197,99 @@ PT_BEGIN( pt );
             list_node_t next_ln = list_ln_next( ln );
 
             link4_state_t *state = list_vp_get_data( ln );
+            link4_t *link = &state->link;
 
-            if( state->link.mode == LINK4_MODE_SEND ){
-            	
-            	
+            if( link->mode == LINK4_MODE_SEND ){
+
+            	// lookup local data
+            	catbus_meta_t meta;
+            	if( kv_i8_get_catbus_meta( link->source_key, &meta ) < 0 ){
+        		
+        			// not found!
+
+		            goto next;
+		        }
+
+		        int64_t data = 0;
+
+	            if( catbus_i8_get_i64( link->source_key, &data ) != 0 ){
+
+	                log_v_error_P( PSTR("data not found!") );
+
+	                goto next;
+	            }
+
+	            // check if data is installed in link:
+	            if( state->database_h <= 0 ){
+
+	            	// create database
+	            	state->database_h = mem2_h_alloc( sizeof(link4_data_t) );
+
+	            	if( state->database_h < 0 ){
+	            		
+	            		log_v_error_P( PSTR("alloc fail") );
+
+	                	goto next;
+	            	}
+
+	            	memset( mem2_vp_get_ptr( state->database_h ), 0, sizeof(link4_data_t) );
+
+	            	state->transmit_timer = 0;
+	            }
+
+	            // lookup database
+	         	link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( state->database_h );
+
+	         	// detect changes:
+            	bool changed = data != database->value;
+
+            	// update database
+            	database->value = data;
+
+            	if( changed ){
+
+            		// force timer so we transmit now
+					state->transmit_timer = 0;
+            	}
+
+            	if( state->transmit_timer > 0 ){
+
+            		state->transmit_timer--;
+            	}
+            	else{
+            		
+            		// tx timer expired!
+            		state->transmit_timer = 1; // reset timer
+					
+            		// create message
+					link4_msg_send_t msg = {
+						.header.magic 		= LINK4_MAGIC,
+						.header.msg_type 	= LINK4_MSG_TYPE_SEND,
+						.header.version     = LINK4_VERSION,
+						.value 				= database->value,
+					};
+
+            		// transmit to target nodes:
+					device_db_v_reset_iter();
+					device_db_v_set_query( &link->query );
+
+					const device_data_t *device = device_db_p_get_next();
+
+					while( device != 0 ){
+
+						sock_addr_t raddr = {
+							.ipaddr = device->ip,
+							.port = LINK4_PORT,
+						};
+
+						sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+							
+            			device = device_db_p_get_next();
+					}
+				}
             }
 
+next:
             ln = next_ln;
         }   
 

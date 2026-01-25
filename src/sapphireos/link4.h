@@ -4,7 +4,7 @@
 
 #define LINK4_PORT                           44634
 
-#define LINK4_VERSION                        1
+#define LINK4_VERSION                        4
 #define LINK4_MAGIC                          0x4b4e494c // 'LINK'
 
 #define LINK4_MIN_TICK_RATE                  50
@@ -54,6 +54,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     link4_t link;
     uint16_t timeout;
+    uint16_t transmit_timer;
     mem_handle_t database_h;
 } link4_state_t;
 
@@ -67,10 +68,13 @@ typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t msg_type;
     uint8_t version;
-    uint8_t flags;
-    uint8_t reserved;
 } link4_msg_header_t;
 
+typedef struct __attribute__((packed)){
+    link4_msg_header_t header;
+    int32_t value;
+} link4_msg_send_t;
+#define LINK4_MSG_TYPE_SEND        		1
 
 void link4_v_init( void );
 link4_handle_t link4_l_create( 
