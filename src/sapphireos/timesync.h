@@ -37,7 +37,7 @@
 #define TIME_RTT_THRESHOLD              500
 
 // #define TIME_SYNC_RATE_BASE             1  // in seconds
-#define TIME_SYNC_RATE_MAX              32 // in seconds
+#define TIME_SYNC_RATE_MAX              16 // in seconds
 #define TIME_SYNC_MASTER_TIMEOUT        128
 
 
@@ -64,6 +64,7 @@ typedef struct __attribute__((packed)){
     uint8_t type;
     uint32_t sequence;
     uint16_t priority;
+    uint32_t net_time;
 } time_msg_clock_t;
 #define TIME_MSG_CLOCK               5
 

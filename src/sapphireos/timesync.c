@@ -413,6 +413,10 @@ PT_BEGIN( pt );
                 sync_timer          = 1;
                 sync_interval       = 1;                
 
+                master_net_time     = msg->net_time;
+                base_sys_time       = now;
+                is_sync             = TRUE;
+
                 log_v_info_P( PSTR("Setting net time to: %ld from %d.%d.%d.%d"), 
                     master_net_time,
                     master_ip.ip3,
@@ -629,6 +633,7 @@ PT_BEGIN( pt );
                 TIME_MSG_CLOCK,
                 master_sequence,
                 get_priority(),
+                time_u32_get_network_time(),
             };
 
             sock_addr_t raddr = {

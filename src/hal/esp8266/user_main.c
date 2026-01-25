@@ -47,7 +47,7 @@ void timer_func(void* arg) {
     system_os_post(LOOP_PRIO, 0, 0 );
 }
 
-#define MAX_SLEEP_PERIOD 10
+#define MAX_SLEEP_PERIOD 5
 
 //Main code function
 static void ICACHE_FLASH_ATTR loop(os_event_t *events) {

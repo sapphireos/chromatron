@@ -233,12 +233,10 @@ void cpu_v_remap_isrs( void ){
 
 }
 
-#define SLEEP_THRESHOLD 4
-#define MAX_SLEEP_PERIOD 20
+#define SLEEP_THRESHOLD 2
+#define MAX_SLEEP_PERIOD 5
 
 void cpu_v_sleep( void ){
-
-    return;
 
     // only yield the RTOS task (so auto light sleep can operate)
     // if we are not in safe mode.
