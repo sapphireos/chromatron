@@ -538,23 +538,23 @@ int8_t vm_lib_i8_libcall_built_in(
 
         #endif
 
-        case __KV__linked:
-            if( param_len != 1 ){
+        // case __KV__linked:
+        //     if( param_len != 1 ){
 
-                break;
-            }
+        //         break;
+        //     }
 
-            // param0 is a string
-            ref.n = params[0];
+        //     // param0 is a string
+        //     ref.n = params[0];
 
-            // dereference to pool:
-            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+        //     // dereference to pool:
+        //     ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
 
-            str = (char *)ptr;
+        //     str = (char *)ptr;
 
-            *result = link_b_is_linked( hash_u32_string( str ) );
+        //     *result = link_b_is_linked( hash_u32_string( str ) );
 
-            break;
+        //     break;
 
         case __KV__clear:
             gfx_v_clear();

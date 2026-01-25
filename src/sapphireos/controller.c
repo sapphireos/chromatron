@@ -504,7 +504,7 @@ void controller_v_init( void ){
     //                  0 );
 
 
-   	link2_v_init();
+   	// link2_v_init();
 }
 
 // static bool is_candidate( void ){

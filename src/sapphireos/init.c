@@ -79,6 +79,8 @@
 #include "datalogger.h"
 #endif
 
+#include "link4.h"
+
 #include "device_db.h"
 
 #include "init.h"
@@ -218,6 +220,7 @@ int8_t sapphire_i8_init( void ){
     #endif
 
     device_db_v_init();
+    link4_v_init();
 
     #ifdef ENABLE_TIME_SYNC
     time_v_init();

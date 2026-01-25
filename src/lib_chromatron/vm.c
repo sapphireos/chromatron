@@ -262,9 +262,9 @@ static void reset_published_data( uint8_t vm_id ){
 
     kvdb_v_clear_tag( 0, 1 << vm_id );
 
-    #ifdef ENABLE_CONTROLLER
-    link2_v_delete_by_tag( 1 << vm_id );
-    #endif
+    // #ifdef ENABLE_CONTROLLER
+    // link2_v_delete_by_tag( 1 << vm_id );
+    // #endif
 
     // #ifdef ENABLE_CATBUS_LINK
     // link_v_delete_by_tag( 1 << vm_id );

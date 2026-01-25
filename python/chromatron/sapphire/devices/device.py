@@ -1117,6 +1117,7 @@ class Device(object):
             38: "link2_data_cache",
             39: "link2_meta",
             40: "devicedb",
+            41: "link4",
         }
 
         total_size = 0

@@ -34,7 +34,7 @@
 #include "threading.h"
 #include "timers.h"
 
-#ifdef ENABLE_CONTROLLER
+#if 0
 
 static socket_t sock;
 static list_t link_list;

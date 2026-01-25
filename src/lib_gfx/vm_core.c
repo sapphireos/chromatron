@@ -1179,20 +1179,20 @@ opcode_stdb:
 
      // check sync status
     // if a sync follower, skip the db set
-    if( ( !link_b_is_synced( hash ) ) ||
-        ( link_b_is_synced_leader( hash ) ) ){
+    // if( ( !link_b_is_synced( hash ) ) ||
+    //     ( link_b_is_synced_leader( hash ) ) ){
 
-        if( catbus_i8_array_set( 
-            hash, 
-            opcode_1i2rs->imm1, 
-            0, 
-            1, 
-            ptr_void, 
-            len ) < 0 ){
+    //     if( catbus_i8_array_set( 
+    //         hash, 
+    //         opcode_1i2rs->imm1, 
+    //         0, 
+    //         1, 
+    //         ptr_void, 
+    //         len ) < 0 ){
 
 
-        }
-    }
+    //     }
+    // }
 
     #else
     // if( kvdb_i8_array_get( registers[opcode_1i2rs->op2], opcode_1i2rs->op1, 0, &registers[opcode_1i2rs->dest], sizeof(registers[opcode_1is2r->dest]registers[opcode_1is2r->dest]) ) < 0 ){
@@ -1214,19 +1214,19 @@ opcode_stdbi:
 
     // check sync status
     // if a sync follower, skip the db set
-    if( ( !link_b_is_synced( hash ) ) ||
-        ( link_b_is_synced_leader( hash ) ) ){
+    // if( ( !link_b_is_synced( hash ) ) ||
+    //     ( link_b_is_synced_leader( hash ) ) ){
 
-        if( catbus_i8_array_set( 
-            hash, 
-            opcode_1i3r->imm1, 
-            registers[opcode_1i3r->reg3], 
-            1, 
-            &registers[opcode_1i3r->reg2], 
-            sizeof(registers[opcode_1i3r->reg2]) ) < 0 ){
+    //     if( catbus_i8_array_set( 
+    //         hash, 
+    //         opcode_1i3r->imm1, 
+    //         registers[opcode_1i3r->reg3], 
+    //         1, 
+    //         &registers[opcode_1i3r->reg2], 
+    //         sizeof(registers[opcode_1i3r->reg2]) ) < 0 ){
 
-        }
-    }
+    //     }
+    // }
     #else
     
     #endif
@@ -2900,18 +2900,18 @@ int8_t vm_i8_run(
     while( count > 0 ){
 
         // check sync status
-        if( link_b_is_synced( publish->hash) ){
+        // if( link_b_is_synced( publish->hash) ){
 
-            // if sync follower, set in database
-            if( link_b_is_synced_follower( publish->hash ) ){
+        //     // if sync follower, set in database
+        //     if( link_b_is_synced_follower( publish->hash ) ){
 
-                kvdb_i8_get( publish->hash, publish->type, &global_data[publish->addr], sizeof(global_data[publish->addr]) );
-            }
-        }
-        else{
+        //         kvdb_i8_get( publish->hash, publish->type, &global_data[publish->addr], sizeof(global_data[publish->addr]) );
+        //     }
+        // }
+        // else{
 
-            kvdb_i8_get( publish->hash, publish->type, &global_data[publish->addr], sizeof(global_data[publish->addr]) );
-        }            
+        //     kvdb_i8_get( publish->hash, publish->type, &global_data[publish->addr], sizeof(global_data[publish->addr]) );
+        // }            
 
         publish++;
         count--;
@@ -2966,19 +2966,19 @@ int8_t vm_i8_run(
         int8_t kv_status = KVDB_STATUS_OK;
 
         // check sync status
-        if( link_b_is_synced( publish->hash) ){
+        // if( link_b_is_synced( publish->hash) ){
 
-            // if sync leader, set in database
-            if( link_b_is_synced_leader( publish->hash ) ){
+        //     // if sync leader, set in database
+        //     if( link_b_is_synced_leader( publish->hash ) ){
 
-                kv_status = kvdb_i8_set( publish->hash, publish->type, ptr, len );
-            }
-        }
-        // normal publish
-        else{
+        //         kv_status = kvdb_i8_set( publish->hash, publish->type, ptr, len );
+        //     }
+        // }
+        // // normal publish
+        // else{
 
-            kv_status = kvdb_i8_set( publish->hash, publish->type, ptr, len );
-        }
+        //     kv_status = kvdb_i8_set( publish->hash, publish->type, ptr, len );
+        // }
         
         if( kv_status != KVDB_STATUS_OK ){
 
@@ -3500,31 +3500,31 @@ int8_t vm_i8_load_program(
                 goto error;
             }   
 
-            #ifdef ENABLE_CONTROLLER
-            link_t *link = (link_t *)obj_ptr;
+            // #ifdef ENABLE_CONTROLLER
+            // link_t *link = (link_t *)obj_ptr;
 
-            link2_handle_t link_h = 
-                link2_l_create( 
-                    link->mode,
-                    link->source_key,
-                    link->dest_key,
-                    &link->query,
-                    // link->tag,
-                    1 << vm_id,
-                    link->rate,
-                    link->aggregation,
-                    LINK_FILTER_OFF );   
+            // link2_handle_t link_h = 
+            //     link2_l_create( 
+            //         link->mode,
+            //         link->source_key,
+            //         link->dest_key,
+            //         &link->query,
+            //         // link->tag,
+            //         1 << vm_id,
+            //         link->rate,
+            //         link->aggregation,
+            //         LINK_FILTER_OFF );   
 
-            if( link_h <= 0 ){
+            // if( link_h <= 0 ){
 
-                status = VM_STATUS_LOAD_ALLOC_FAIL;
-                goto error;
-            }
+            //     status = VM_STATUS_LOAD_ALLOC_FAIL;
+            //     goto error;
+            // }
 
-            // record link handle
-            state->links[i] = link_h;
+            // // record link handle
+            // state->links[i] = link_h;
 
-            #endif         
+            // #endif         
 
             obj_ptr += sizeof(link_t);
         }
