@@ -445,6 +445,20 @@ PT_BEGIN( pt );
             			}
             		}
             	}
+                else if( link->mode == LINK4_MODE_REMOTE_SEND ){
+
+                    if( link_state->timeout > 0 ){
+
+                        link_state->timeout--;
+                    }
+
+                    if( link_state->timeout == 0 ){
+
+                        log_v_info_P( PSTR("Remote send link timed out") );
+
+                        delete_link( ln );
+                    }
+                }
             }
 
 next:
