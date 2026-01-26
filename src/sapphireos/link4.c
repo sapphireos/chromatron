@@ -79,7 +79,8 @@ void link4_v_init( void ){
                  0,
                  0 );
 
-   	if( cfg_u64_get_device_id() == 154851823073836 ){
+   	if( ( cfg_u64_get_device_id() == 154851823073836 ) ||
+   		( cfg_u64_get_device_id() == 109982513431848 ) ){
 
 	   	catbus_query_t query = {0};
 	   	query.tags[0] = __KV__link4_rx;
@@ -336,6 +337,43 @@ PT_BEGIN( pt );
             			device = device_db_p_get_next();
 					}
 				}
+            }
+            else if( link->mode == LINK4_MODE_RECV ){
+
+                if( link_state->transmit_timer > 0 ){
+
+                    link_state->transmit_timer--;
+                }
+                else{
+
+                    link_state->transmit_timer = 100;
+
+                    // create message
+                    link4_msg_recv_t msg = {
+                        .header.magic       = LINK4_MAGIC,
+                        .header.msg_type    = LINK4_MSG_TYPE_RECV,
+                        .header.version     = LINK4_VERSION,
+                        .link               = *link,
+                    };
+
+                    // transmit to target nodes:
+                    device_db_v_reset_iter();
+                    device_db_v_set_query( &link->query );
+
+                    const device_data_t *device = device_db_p_get_next();
+
+                    while( device != 0 ){
+
+                        sock_addr_t raddr = {
+                            .ipaddr = device->ip,
+                            .port = LINK4_PORT,
+                        };
+
+                        sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+
+                        device = device_db_p_get_next();
+                    }
+                }
             }
             else if( link->mode == LINK4_MODE_REMOTE_RECV ){
 
@@ -694,6 +732,40 @@ PT_BEGIN( pt );
          			// error path
          		}
          	}
+        }
+        else if( header->msg_type == LINK4_MSG_TYPE_RECV ){
+
+            link4_msg_recv_t *msg = (link4_msg_recv_t *)header;
+
+            // check for matching remote send link
+            msg->link.mode = LINK4_MODE_REMOTE_SEND;
+
+            // check for corresponding link
+            link4_handle_t lh = link4_l_lookup( &msg->link );
+
+            if( lh <= 0 ){
+
+                // need to create remote receive link
+                lh = link4_l_create2( &msg->link );
+
+                if( lh <= 0 ){
+
+                    log_v_error_P( PSTR("alloc failed") );
+
+                    continue;
+                }
+
+                log_v_info_P( PSTR("Created remote send link") );
+            }
+
+            ASSERT( lh > 0 );
+
+            link4_state_t *link_state = (link4_state_t *)list_vp_get_data( lh );
+
+            // update timeout
+            link_state->timeout = LINK4_LINK_TIMEOUT;
+
+            
         }
     }
 

@@ -74,6 +74,12 @@ typedef struct __attribute__((packed)){
 } link4_msg_send_t;
 #define LINK4_MSG_TYPE_SEND        		1
 
+typedef struct __attribute__((packed)){
+    link4_msg_header_t header;
+    link4_t link;
+} link4_msg_recv_t;
+#define LINK4_MSG_TYPE_RECV        		2
+
 void link4_v_init( void );
 link4_handle_t link4_l_create( 
     link4_mode_t8 mode, 
