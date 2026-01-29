@@ -28,6 +28,7 @@
 #include "pixel.h"
 #include "graphics.h"
 #include "vm.h"
+#include "vm4.h"
 #include "energy.h"
 #include "battery.h"
 #include "flash_fs.h"
@@ -57,6 +58,7 @@ void app_v_init( void ){
     gfx_v_init();
 
     vm_v_init();
+    vm4_v_init();
 
     #ifdef ESP32
 
