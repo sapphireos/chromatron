@@ -199,7 +199,7 @@ PT_BEGIN( pt );
 
     while( 1 ){
 
-        thread_v_set_alarm( thread_u32_get_alarm() + 200 );
+        thread_v_set_alarm( thread_u32_get_alarm() + 20 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         int status = vm_run_tick( &state->vm, tmr_u64_get_system_time_ms() );
