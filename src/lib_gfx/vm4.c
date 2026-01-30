@@ -163,20 +163,36 @@ PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) )
 PT_BEGIN( pt );
         
     // run top level VM script:
-    int status = vm_run_instructions(&state->vm, -1);
+    {
+        int status = vm_run_instructions(&state->vm, -1);
 
-    if( status < 0 ){
+        if( status < 0 ){
 
-        log_v_error_P( PSTR("VM init failed: %d"), status );
-        goto end;
+            log_v_error_P( PSTR("VM init failed: %d"), status );
+            goto end;
+        }
+    }
+
+    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+
+    while( 1 ){
+
+        thread_v_set_alarm( thread_u32_get_alarm() + 20 );
+        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+        int status = vm_run_tick( &state->vm, tmr_u64_get_system_time_ms() );
+
+        if( status < 0 ){
+
+            log_v_error_P( PSTR("VM error: %d"), status );
+            goto end;
+        }
     }
 
 
 
-
 end:
-    {}
-    
+    vm_deinit( &state->vm );
     
 PT_END( pt );
 }
