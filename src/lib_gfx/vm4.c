@@ -137,20 +137,24 @@ void vm4_v_init( void ){
         return;
     }
 
-    // vm4_thread_state_t *thread_state = thread_vp_get_data( t );
+    vm4_thread_state_t *thread_state = thread_vp_get_data( t );
 
-    // thread_state->vm_id = vm_id;
+    thread_state->vm_id = vm_id;
 
-    // memset( &thread_state->vm, 0, sizeof(thread_state->vm) );
+    memset( &thread_state->vm, 0, sizeof(thread_state->vm) );
 
-    // int status = vm_deserialize(&thread_state->vm, PSTR("vm.f4b") );
-    // log_v_info_P( PSTR("load status %d"), status );
+    int status = vm_deserialize(&thread_state->vm, PSTR("vm.f4b") );
+    log_v_info_P( PSTR("load status %d"), status );
 
-    // if( status < 0 ){
+    if( status < 0 ){
 
         thread_v_kill( t );
-    // }
+    }
 
+
+
+
+    // // wdg_v_reset();
 
     // vm_t vm = {0};
 
@@ -195,7 +199,7 @@ PT_BEGIN( pt );
 
     while( 1 ){
 
-        thread_v_set_alarm( thread_u32_get_alarm() + 20 );
+        thread_v_set_alarm( thread_u32_get_alarm() + 200 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
         int status = vm_run_tick( &state->vm, tmr_u64_get_system_time_ms() );
@@ -211,6 +215,8 @@ PT_BEGIN( pt );
 
             goto end;
         }
+
+        THREAD_YIELD( pt );
     }
 
 
