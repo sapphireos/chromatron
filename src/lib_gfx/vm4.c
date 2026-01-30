@@ -215,6 +215,8 @@ PT_BEGIN( pt );
             vm_run_time[0] = elapsed_us;
         }
 
+        vm_max_cycles[0] = state->vm.cycle_count;
+
         THREAD_YIELD( pt );
     }
 
