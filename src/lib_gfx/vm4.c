@@ -187,6 +187,12 @@ PT_BEGIN( pt );
             log_v_error_P( PSTR("VM error: %d"), status );
             goto end;
         }
+        else if( status == VM_STATUS_NO_COROUTINE ){
+
+            log_v_info_P( PSTR("VM finished") );
+
+            goto end;
+        }
     }
 
 
