@@ -96,9 +96,12 @@ void vm4_v_init( void ){
 
     log_v_info_P( PSTR("status %d"), status );
 
-    status = vm_run_instructions(&vm, -1);
+    if(status == 0){
 
-    log_v_info_P( PSTR("vm status %d"), status );
+        status = vm_run_instructions(&vm, -1);
+
+        log_v_info_P( PSTR("vm status %d"), status );
+    }
 }
 
 void vm4_v_reset( uint8_t vm_id ){

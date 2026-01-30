@@ -1126,7 +1126,7 @@ uint16_t gfx_u16_get_v_fade_1d( uint16_t index ){
 }
 
 
-static uint16_t* _gfx_u16p_get_array_ptr( uint8_t attr ){
+uint16_t* _gfx_u16p_get_array_ptr( uint8_t attr ){
 
     uint16_t *ptr = target_val;
 
