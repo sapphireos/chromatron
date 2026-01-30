@@ -164,6 +164,8 @@ PT_BEGIN( pt );
         
     // run top level VM script:
     {
+        log_v_info_P( PSTR("VM start") );
+
         int status = vm_run_instructions(&state->vm, -1);
 
         if( status < 0 ){

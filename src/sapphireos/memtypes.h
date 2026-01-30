@@ -66,6 +66,7 @@ typedef uint8_t mem_type_t8;
 #define MEM_TYPE_DEVICEDB   		40
 #define MEM_TYPE_LINK4  	 		41
 #define MEM_TYPE_VM_ARRAY  	 		42
+#define MEM_TYPE_VM_COROUTINE 		43
 
 #endif
 
