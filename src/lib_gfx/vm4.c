@@ -95,6 +95,10 @@ void vm4_v_init( void ){
     int status = vm_deserialize(&vm, PSTR("vm.f4b") );
 
     log_v_info_P( PSTR("status %d"), status );
+
+    status = vm_run_instructions(&vm, -1);
+
+    log_v_info_P( PSTR("vm status %d"), status );
 }
 
 void vm4_v_reset( uint8_t vm_id ){
