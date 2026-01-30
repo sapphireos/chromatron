@@ -84,24 +84,70 @@ KV_SECTION_META kv_meta_t vm4_info_kv[] = {
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm4_peak_cycles" },
 };
 
+static const char* vm_names[VM_MAX_VMS] = {
+    "vm4_0",
+
+    #if VM_MAX_VMS >= 2
+    "vm4_1",
+    #endif
+
+    #if VM_MAX_VMS >= 3
+    "vm4_2",
+    #endif
+
+    #if VM_MAX_VMS >= 4
+    "vm4_3",
+    #endif
+};
+
+typedef struct{
+    uint8_t vm_id;
+    mem_handle_t handle;
+    vm_t vm;
+    // char program_fname[FFS_FILENAME_LEN];
+    
+    // int8_t vm_return;
+    // uint32_t last_run;
+    // int32_t delay_adjust;
+    // int32_t vm_delay;
+    // vm_state_t vm_state;
+} vm4_thread_state_t;
+
+PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) );
+
+
 void vm4_v_init( void ){
 
     log_v_info_P( PSTR("FX4 init") );
 
     log_v_info_P( PSTR("%d"), sizeof(vm_t) );
 
-    vm_t vm = {0};
+    vm4_thread_state_t thread_state = {0};
+    uint8_t vm_id = 0;
 
-    int status = vm_deserialize(&vm, PSTR("vm.f4b") );
+    int status = vm_deserialize(&thread_state.vm, PSTR("vm.f4b") );
 
     log_v_info_P( PSTR("status %d"), status );
 
-    if(status == 0){
+    thread_t t = thread_t_create( THREAD_CAST(vm4_thread),
+                                              vm_names[vm_id],
+                                              &thread_state,
+                                              sizeof(thread_state) );
 
-        status = vm_run_instructions(&vm, -1);
 
-        log_v_info_P( PSTR("vm status %d"), status );
-    }
+
+    // vm_t vm = {0};
+
+    // int status = vm_deserialize(&vm, PSTR("vm.f4b") );
+
+    // log_v_info_P( PSTR("status %d"), status );
+
+    // if(status == 0){
+
+    //     status = vm_run_instructions(&vm, -1);
+
+    //     log_v_info_P( PSTR("vm status %d"), status );
+    // }
 }
 
 void vm4_v_reset( uint8_t vm_id ){
@@ -109,4 +155,28 @@ void vm4_v_reset( uint8_t vm_id ){
     ASSERT( vm_id < VM_MAX_VMS );
 
     // reset_vm( vm_id );
+}
+
+
+PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) )
+{
+PT_BEGIN( pt );
+        
+    // run top level VM script:
+    int status = vm_run_instructions(&state->vm, -1);
+
+    if( status < 0 ){
+
+        log_v_error_P( PSTR("VM init failed: %d"), status );
+        goto end;
+    }
+
+
+
+
+end:
+    {}
+    
+    
+PT_END( pt );
 }
