@@ -123,6 +123,11 @@ void vm4_v_init( void ){
 
     log_v_info_P( PSTR("%d"), sizeof(vm_t) );
 
+    if(vm_run[0] == FALSE){
+
+        return;
+    }
+
 
     uint8_t vm_id = 0;
     thread_t t = thread_t_create( THREAD_CAST(vm4_thread),
@@ -150,24 +155,6 @@ void vm4_v_init( void ){
 
         thread_v_kill( t );
     }
-
-
-
-
-    // // wdg_v_reset();
-
-    // vm_t vm = {0};
-
-    // int status = vm_deserialize(&vm, PSTR("vm.f4b") );
-
-    // log_v_info_P( PSTR("status %d"), status );
-
-    // if(status == 0){
-
-    //     status = vm_run_instructions(&vm, -1);
-
-    //     log_v_info_P( PSTR("vm status %d"), status );
-    // }
 }
 
 void vm4_v_reset( uint8_t vm_id ){
