@@ -31,7 +31,7 @@ static bool vm_run[VM_MAX_VMS];
 static int8_t vm_status[VM_MAX_VMS];
 static uint16_t vm_run_time[VM_MAX_VMS];
 static uint16_t vm_max_cycles[VM_MAX_VMS];
-
+static uint16_t vm_ready_time;
 
 static int8_t _vm4_prog_kv_handler(
     kv_op_t8 op,
@@ -82,6 +82,7 @@ KV_SECTION_META kv_meta_t vm4_info_kv[] = {
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[0],         0,                  "vm4_status" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[0],       0,                  "vm4_run_time" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm4_peak_cycles" },
+    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_ready_time,     0,                  "vm4_ready_time" },
 };
 
 static const char* vm_names[VM_MAX_VMS] = {
@@ -143,7 +144,6 @@ void vm4_v_init( void ){
     }
 
     vm4_thread_state_t *thread_state = thread_vp_get_data( t );
-
     thread_state->vm_id = vm_id;
 
     memset( &thread_state->vm, 0, sizeof(thread_state->vm) );
@@ -189,7 +189,11 @@ PT_BEGIN( pt );
         thread_v_set_alarm( thread_u32_get_alarm() + 20 );
         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
 
+        uint32_t start_time = tmr_u32_get_system_time_us();
+
         int status = vm_run_tick( &state->vm, tmr_u64_get_system_time_ms() );
+
+        uint32_t elapsed_us = tmr_u32_elapsed_time_us( start_time );
 
         if( status < 0 ){
 
@@ -201,6 +205,14 @@ PT_BEGIN( pt );
             log_v_info_P( PSTR("VM finished") );
 
             goto end;
+        }
+        else if( status == VM_STATUS_NO_READY_COROUTINE ){
+
+            vm_ready_time = elapsed_us;
+        }
+        else{
+
+            vm_run_time[0] = elapsed_us;
         }
 
         THREAD_YIELD( pt );
