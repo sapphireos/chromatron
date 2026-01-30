@@ -1118,6 +1118,7 @@ class Device(object):
             39: "link2_meta",
             40: "devicedb",
             41: "link4",
+            42: "vm_array",
         }
 
         total_size = 0

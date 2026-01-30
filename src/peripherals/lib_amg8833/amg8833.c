@@ -145,7 +145,7 @@ void amg8833_v_init( void ){
 
         if( amg8833_u8_reg_read( AMG8833_REG_INTHL ) != 0x43 ){
 
-            log_v_debug_P( PSTR("AMG8833 not found") );
+            // log_v_debug_P( PSTR("AMG8833 not found") );
 
             return;
         }

@@ -3755,19 +3755,19 @@ int8_t vm_i8_load_program(
 
 error:
     
-    if( f > 0 ){
+    if(f > 0){
 
-        fs_f_close( f );
+        fs_f_close(f);
 
         f = -1;
     }
 
-    if( *handle > 0 ){
+    // if( *handle > 0 ){
 
-        mem2_v_free( *handle );
+    //     mem2_v_free( *handle );
 
-        *handle = -1;
-    }
+    //     *handle = -1;
+    // }
     
     return status;
 }

@@ -23,6 +23,8 @@
 #include "sapphire.h"
 #include "vm4.h"
 
+#include "bytecode.h"
+
 static bool vm_reset[VM_MAX_VMS];
 static bool vm_run[VM_MAX_VMS];
 
@@ -84,7 +86,15 @@ KV_SECTION_META kv_meta_t vm4_info_kv[] = {
 
 void vm4_v_init( void ){
 
+    log_v_info_P( PSTR("FX4 init") );
 
+    log_v_info_P( PSTR("%d"), sizeof(vm_t) );
+
+    vm_t vm = {0};
+
+    int status = vm_deserialize(&vm, PSTR("vm.f4b") );
+
+    log_v_info_P( PSTR("status %d"), status );
 }
 
 void vm4_v_reset( uint8_t vm_id ){
