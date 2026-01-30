@@ -100,10 +100,11 @@ static const char* vm_names[VM_MAX_VMS] = {
     #endif
 };
 
-typedef struct{
-    uint8_t vm_id;
-    mem_handle_t handle;
+typedef struct __attribute__((packed)){
     vm_t vm;
+    uint8_t vm_id;
+
+    // mem_handle_t handle;
     // char program_fname[FFS_FILENAME_LEN];
     
     // int8_t vm_return;
@@ -122,18 +123,33 @@ void vm4_v_init( void ){
 
     log_v_info_P( PSTR("%d"), sizeof(vm_t) );
 
-    vm4_thread_state_t thread_state = {0};
+
     uint8_t vm_id = 0;
-
-    int status = vm_deserialize(&thread_state.vm, PSTR("vm.f4b") );
-
-    log_v_info_P( PSTR("status %d"), status );
-
     thread_t t = thread_t_create( THREAD_CAST(vm4_thread),
                                               vm_names[vm_id],
-                                              &thread_state,
-                                              sizeof(thread_state) );
+                                              0,
+                                              sizeof(vm4_thread_state_t) );
 
+    if( t < 0 ){
+
+        log_v_error_P( PSTR("failed to create thread") );
+
+        return;
+    }
+
+    // vm4_thread_state_t *thread_state = thread_vp_get_data( t );
+
+    // thread_state->vm_id = vm_id;
+
+    // memset( &thread_state->vm, 0, sizeof(thread_state->vm) );
+
+    // int status = vm_deserialize(&thread_state->vm, PSTR("vm.f4b") );
+    // log_v_info_P( PSTR("load status %d"), status );
+
+    // if( status < 0 ){
+
+        thread_v_kill( t );
+    // }
 
 
     // vm_t vm = {0};
