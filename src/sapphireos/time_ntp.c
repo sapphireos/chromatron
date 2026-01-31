@@ -446,7 +446,7 @@ PT_BEGIN( pt );
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + 4000 + ( rnd_u16_get_int() >> 4 ) );
         THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() && thread_b_alarm_set() );
 
-        if( !ntp_b_is_sync() ){
+        if( !ntp_b_is_sync() && ( sntp_u8_get_status() == SNTP_STATUS_DISABLED ) ){
 
             log_v_info_P( PSTR("Starting local clock") );
 
