@@ -114,6 +114,11 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 					// if this was a safe mode command, a timeout is expected.
 					while(1); // just spin until the coproc resets.
 				}
+				else if( current_opcode == OPCODE_REBOOT ){
+
+					// if this was a reboot command, a timeout is expected.
+					while(1); // just spin until the coproc resets.
+				}
 
 				ASSERT( FALSE );
 			}
