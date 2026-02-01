@@ -77,6 +77,8 @@ static int8_t _vm4_prog_kv_handler(
     return 0;
 }
 
+static uint16_t run_ticks;
+
 KV_SECTION_META kv_meta_t vm4_info_kv[] = {
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[0],          0,                  "vm4_reset" },
     { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[0],            0,                  "vm4_run" },
@@ -85,6 +87,8 @@ KV_SECTION_META kv_meta_t vm4_info_kv[] = {
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[0],       0,                  "vm4_run_time" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm4_peak_cycles" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_ready_time,     0,                  "vm4_ready_time" },
+
+    { CATBUS_TYPE_UINT16,   0, 0,  &run_ticks,     0,                  "vm4_run_ticks" },
 };
 
 static const char* vm_names[VM_MAX_VMS] = {
@@ -189,11 +193,12 @@ PT_BEGIN( pt );
 
         goto end;
     }
-    
+
+restart:    
     // run top level VM script:    
     log_v_info_P( PSTR("VM start") );
 
-    int status = vm_run_instructions(&state->vm, -1);
+    status = vm_run_instructions(&state->vm, -1);
 
     if( status < 0 ){
 
@@ -220,12 +225,18 @@ PT_BEGIN( pt );
 
             log_v_info_P( PSTR("VM reset") );
 
-            THREAD_RESTART( pt );
+            goto restart;
         }
 
         uint32_t start_time = tmr_u32_get_system_time_us();
 
-        int status = vm_run_tick( &state->vm, tmr_u64_get_system_time_ms() );
+        int status = 0;
+        if(run_ticks > 0){
+
+             status = vm_run_tick( &state->vm, tmr_u64_get_system_time_ms() );
+
+            run_ticks--;
+        }
 
         uint32_t elapsed_us = tmr_u32_elapsed_time_us( start_time );
 
