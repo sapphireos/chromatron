@@ -553,7 +553,7 @@ void netmsg_v_receive( netmsg_t netmsg ){
                 }
                 else{
 
-                    log_v_info_P( PSTR("netmsg rx q full") );
+                    log_v_info_P( PSTR("netmsg rx q full: local port: %u"), state->laddr.port );
 
                     goto clean_up;
                 }

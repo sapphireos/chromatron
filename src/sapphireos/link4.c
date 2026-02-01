@@ -586,6 +586,8 @@ PT_BEGIN( pt );
         // check if shutting down
         if( sys_b_is_shutting_down() ){
 
+            sock_v_release( sock );
+
             THREAD_EXIT( pt );
         }
 
