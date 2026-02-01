@@ -547,8 +547,6 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     #ifdef ENABLE_CHANNEL_MASK
     { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &channel_mask,                0,                   "gfx_channel_mask" },
     #endif
-
-    { CATBUS_TYPE_UINT16,       0, KV_FLAGS_READ_ONLY, target_val,            0,                   "gfx_target_val" },
 };
 
 
