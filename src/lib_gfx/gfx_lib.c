@@ -1151,15 +1151,15 @@ uint16_t* _gfx_u16p_get_array_ptr( uint8_t attr ){
     }
     else if( attr == PIX_ARRAY_ATTR_HUE_STEP ){
 
-        ptr = hue_step;
+        ptr = (uint16_t *)hue_step;
     }
     else if( attr == PIX_ARRAY_ATTR_SAT_STEP ){
 
-        ptr = sat_step;
+        ptr = (uint16_t *)sat_step;
     }
     else if( attr == PIX_ARRAY_ATTR_VAL_STEP ){
 
-        ptr = val_step;
+        ptr = (uint16_t *)val_step;
     }
 
     return ptr;
