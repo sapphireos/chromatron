@@ -1127,7 +1127,6 @@ uint16_t gfx_u16_get_v_fade_1d( uint16_t index ){
     return v_fade[index];
 }
 
-
 uint16_t* _gfx_u16p_get_array_ptr( uint8_t attr ){
 
     uint16_t *ptr = target_val;
@@ -1151,6 +1150,18 @@ uint16_t* _gfx_u16p_get_array_ptr( uint8_t attr ){
     else if( attr == PIX_ARRAY_ATTR_V_FADE ){
 
         ptr = v_fade;
+    }
+    else if( attr == PIX_ARRAY_ATTR_HUE_STEP ){
+
+        ptr = hue_step;
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT_STEP ){
+
+        ptr = sat_step;
+    }
+    else if( attr == PIX_ARRAY_ATTR_VAL_STEP ){
+
+        ptr = val_step;
     }
 
     return ptr;

@@ -42,6 +42,9 @@
 #define PIX_ARRAY_ATTR_VAL        3
 #define PIX_ARRAY_ATTR_HS_FADE    4
 #define PIX_ARRAY_ATTR_V_FADE     5
+#define PIX_ARRAY_ATTR_HUE_STEP   6
+#define PIX_ARRAY_ATTR_SAT_STEP   7
+#define PIX_ARRAY_ATTR_VAL_STEP   8
 
 #define PIX_OP_ADD                1
 #define PIX_OP_SUB                2
