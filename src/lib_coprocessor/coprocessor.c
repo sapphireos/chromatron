@@ -107,8 +107,6 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 
 			if( usart_u8_bytes_available( UART_CHANNEL ) == 0 ){
 
-				log_v_debug_P( PSTR("coproc receive timeout: %d opcode: 0x%02x"), receive_timeout, current_opcode );
-
 				if( current_opcode == OPCODE_SAFE_MODE ){
 
 					// if this was a safe mode command, a timeout is expected.
@@ -119,6 +117,8 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 					// if this was a reboot command, a timeout is expected.
 					while(1); // just spin until the coproc resets.
 				}
+
+				log_v_debug_P( PSTR("coproc receive timeout: %d opcode: 0x%02x"), receive_timeout, current_opcode );
 
 				ASSERT( FALSE );
 			}
