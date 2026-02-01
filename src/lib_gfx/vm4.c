@@ -189,19 +189,18 @@ PT_BEGIN( pt );
 
         goto end;
     }
-        
-    // run top level VM script:
-    {
-        log_v_info_P( PSTR("VM start") );
+    
+    // run top level VM script:    
+    log_v_info_P( PSTR("VM start") );
 
-        int status = vm_run_instructions(&state->vm, -1);
+    int status = vm_run_instructions(&state->vm, -1);
 
-        if( status < 0 ){
+    if( status < 0 ){
 
-            log_v_error_P( PSTR("VM init failed: %d"), status );
-            goto end;
-        }
+        log_v_error_P( PSTR("VM init failed: %d"), status );
+        goto end;
     }
+
 
     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
@@ -271,6 +270,8 @@ end:
     vm_run_time[state->vm_id]   = 0;
     vm_max_cycles[state->vm_id] = 0;
 
+    vm_threads[state->vm_id]    = -1;
+
     log_v_info_P( PSTR("VM stop") );
     
 PT_END( pt );
@@ -320,7 +321,7 @@ static int8_t start_vm( uint8_t vm_id ){
     thread_state->vm_id = vm_id;
 
     memset( &thread_state->vm, 0, sizeof(thread_state->vm) );
-    
+
 
     vm_status[vm_id] = VM_STATUS_OK;   
 
