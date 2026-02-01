@@ -460,6 +460,11 @@ PT_BEGIN( pt );
             continue;
         }
 
+        if( !ntp_b_is_sync() ){
+
+            continue;
+        }
+
         prev_source = clock_source;
 
         char time_str[ISO8601_STRING_MIN_LEN_MS];
