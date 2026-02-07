@@ -2323,7 +2323,7 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         // if y is not given, we need to figure out which row we're in
         if( y == 65535 ){
 
-            uint16_t row = x / pix_arrays[obj].size_x;
+            uint16_t row = ( x % pix_arrays[obj].count ) / pix_arrays[obj].size_x;
             
             if( row & 1 ){
 
@@ -2350,7 +2350,7 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         // if y is not given, we need to figure out which row we're in
         if( y == 65535 ){
 
-            uint16_t row = x / pix_arrays[obj].size_x;
+            uint16_t row = ( x % pix_arrays[obj].count ) / pix_arrays[obj].size_x;
             uint16_t temp_x = x % pix_arrays[obj].size_x;
 
             // flip x around

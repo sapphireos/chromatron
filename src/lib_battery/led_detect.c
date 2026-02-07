@@ -40,10 +40,20 @@ static uint8_t current_profile;
 static uint8_t force_profile;
 static bool detection_enabled;
 
+static uint16_t led_connections;
+static uint16_t led_disconnections;
+static uint32_t led_reads;
+static uint32_t led_misreads;
+
 KV_SECTION_OPT kv_meta_t led_detect_opt_kv[] = {    
     { CATBUS_TYPE_BOOL,    0, KV_FLAGS_READ_ONLY,  &led_detected,               0,  "led_detected" },
     { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &led_id,                     0,  "led_id"},
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_READ_ONLY,  &current_profile,            0,  "led_profile"},
+
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &led_connections,            0,  "led_connections"},
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &led_disconnections,         0,  "led_disconnections"},
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &led_reads,                  0,  "led_detect_reads"},
+    { CATBUS_TYPE_UINT32,  0, KV_FLAGS_READ_ONLY,  &led_misreads,               0,  "led_detect_misreads"},
 
     { CATBUS_TYPE_UINT8,   0, KV_FLAGS_PERSIST,    &force_profile,              0,  "led_force_profile" },
 };
@@ -105,6 +115,15 @@ static const led_profile_t led_profiles[] = {
         2, // rgb order
         {""}, // vm prog
     },
+    {
+        LED_UNIT_TYPE_SPIRE,
+        PIX_MODE_WS2811, // led type
+        216, // pix count
+        72, // pix size x
+        3, // pix size y
+        2, // rgb order
+        {""}, // vm prog
+    },
 };
 
 // known units
@@ -144,6 +163,42 @@ static const led_unit_t led_units[] = {
     {
         1145957452,
         LED_UNIT_TYPE_BATT_CHECK,
+    },
+    {
+        1145534905,
+        LED_UNIT_TYPE_STRAND50,
+    },
+    {
+        1145800754,
+        LED_UNIT_TYPE_STRAND50,
+    },
+    {
+        1145796081,
+        LED_UNIT_TYPE_STRAND50,
+    },
+    {
+        1327306781,
+        LED_UNIT_TYPE_SPIRE,
+    },
+    {
+        1327170325,
+        LED_UNIT_TYPE_SPIRE,
+    },
+    {
+        1327155805,
+        LED_UNIT_TYPE_SPIRE,
+    },
+    {
+        1327168772,
+        LED_UNIT_TYPE_SPIRE,
+    },
+    {
+        1327306632,
+        LED_UNIT_TYPE_SPIRE,
+    },
+    {
+        1327170323,
+        LED_UNIT_TYPE_SPIRE,
     },
 };
 
@@ -252,7 +307,7 @@ void led_detect_v_run_detect( void ){
         return;
     }
 
-    if( tmr_u32_elapsed_time_ms( timer ) < 2000 ){
+    if( tmr_u32_elapsed_time_ms( timer ) < 500 ){
 
         return;
     }
@@ -279,7 +334,9 @@ void led_detect_v_run_detect( void ){
     uint64_t id = 0;
     uint8_t family = 0;
 
-    if( device_present ){        
+    if( device_present ){     
+
+        led_reads++;   
 
         bool rom_valid = FALSE;
 
@@ -291,7 +348,9 @@ void led_detect_v_run_detect( void ){
         }
         else{
 
-            log_v_warn_P( PSTR("Presence detect, but ROM invalid") );
+            led_misreads++;   
+
+            // log_v_warn_P( PSTR("Presence detect, but ROM invalid") );
         }
     }
 
@@ -331,6 +390,8 @@ void led_detect_v_run_detect( void ){
 
             log_v_warn_P( PSTR("No profile found!") );
         }
+
+        led_connections++;
     }
 
     if( detected ){
@@ -342,6 +403,8 @@ void led_detect_v_run_detect( void ){
         // detection miss, probably actually unplugged
         led_id = 0;
         led_detected = FALSE;
+
+        led_disconnections++;
 
         log_v_info_P( PSTR("LED disconnected") );
     }

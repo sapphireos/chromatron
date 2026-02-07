@@ -302,18 +302,18 @@ PT_BEGIN( pt );
         msg.sample = sample;
         sample++;
 
-        catbus_i8_get( __KV__sys_time,              CATBUS_TYPE_UINT32, &msg.sys_time );
+        catbus_i8_get( __KV__sys_time,                  CATBUS_TYPE_UINT32, &msg.sys_time );
 
-        catbus_i8_get( __KV__batt_vbus_volts,       CATBUS_TYPE_UINT16, &msg.vbus_volts );
-        catbus_i8_get( __KV__batt_volts,            CATBUS_TYPE_UINT16, &msg.batt_volts );
-        catbus_i8_get( __KV__batt_charge_current,   CATBUS_TYPE_UINT16, &msg.charge_current );
-        catbus_i8_get( __KV__veml7700_filtered_als, CATBUS_TYPE_UINT32, &msg.als );
-        catbus_i8_get( __KV__batt_temp,             CATBUS_TYPE_INT8,   &msg.batt_temp );
-        catbus_i8_get( __KV__batt_case_temp,        CATBUS_TYPE_INT8,   &msg.case_temp );
-        catbus_i8_get( __KV__batt_ambient_temp,     CATBUS_TYPE_INT8,   &msg.ambient_temp );
-        catbus_i8_get( __KV__batt_fault,            CATBUS_TYPE_UINT8,  &msg.batt_fault );
+        catbus_i8_get( __KV__batt_aux_vbus_volts,       CATBUS_TYPE_UINT16, &msg.vbus_volts );
+        catbus_i8_get( __KV__batt_volts,                CATBUS_TYPE_UINT16, &msg.batt_volts );
+        catbus_i8_get( __KV__batt_aux_charge_current,   CATBUS_TYPE_UINT16, &msg.charge_current );
+        catbus_i8_get( __KV__veml7700_filtered_als,     CATBUS_TYPE_UINT32, &msg.als );
+        catbus_i8_get( __KV__batt_temp,                 CATBUS_TYPE_INT8,   &msg.batt_temp );
+        catbus_i8_get( __KV__batt_case_temp,            CATBUS_TYPE_INT8,   &msg.case_temp );
+        catbus_i8_get( __KV__batt_ambient_temp,         CATBUS_TYPE_INT8,   &msg.ambient_temp );
+        catbus_i8_get( __KV__batt_aux_fault,            CATBUS_TYPE_UINT8,  &msg.batt_fault );
 
-        catbus_i8_get( __KV__pixel_power,           CATBUS_TYPE_UINT16, &msg.pixel_power );
+        catbus_i8_get( __KV__pixel_power,               CATBUS_TYPE_UINT16, &msg.pixel_power );
 
         uint8_t vm_status = 0;
 

@@ -23,7 +23,6 @@
 #ifndef _LIGHT_SENSOR_H_
 #define _LIGHT_SENSOR_H_
 
-
 void light_sensor_v_init( void );
 uint32_t light_sensor_u32_read( void );
 

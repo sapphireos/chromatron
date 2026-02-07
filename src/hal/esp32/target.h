@@ -41,13 +41,15 @@
 // #define ENABLE_MSGFLOW
 // #define ENABLE_SERVICES
 #define ENABLE_BATTERY
+#define ENABLE_AUX_BATTERY
+#define ENABLE_SOLAR
 #define ENABLE_LED_DETECT
 #define ENABLE_CONTROLLER
 #define ENABLE_BROKER
 
 // DEBUG!
 // Turn this off for normal operation!
-#define ENABLE_TRACE
+// #define ENABLE_TRACE
 
 
 // wifi
