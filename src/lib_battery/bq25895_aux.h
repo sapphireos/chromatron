@@ -19,31 +19,17 @@
 //     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // </license>
-<<<<<<<< HEAD:src/peripherals/lib_hx711/hx711.h
-
-#ifndef _HX711_H_
-#define _HX711_H_
-========
-*/
 
 #ifndef _BQ25895_AUX_H
 #define _BQ25895_AUX_H
 
 #include "sapphire.h"
->>>>>>>> controller:src/lib_battery/bq25895_aux.h
 
 #ifdef ENABLE_AUX_BATTERY
 
-<<<<<<<< HEAD:src/peripherals/lib_hx711/hx711.h
-
-void hx711_v_set_io( uint8_t pd_clk, uint8_t dout );
-
-void hx711_v_init( void );
-========
 void bq25895_aux_v_init( void );
 
 void bq25895_aux_v_reset( void );
->>>>>>>> controller:src/lib_battery/bq25895_aux.h
 
 bool bq25895_aux_b_present( void );
 
@@ -61,10 +47,6 @@ void bq25895_aux_v_set_hiz( bool enable );
 
 void bq25895_aux_v_enable_charger( void );
 void bq25895_aux_v_disable_charger( void );
+#endif
 
 #endif
-<<<<<<<< HEAD:src/peripherals/lib_hx711/hx711.h
-========
-
-#endif
->>>>>>>> controller:src/lib_battery/bq25895_aux.h

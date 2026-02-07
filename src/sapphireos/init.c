@@ -70,10 +70,6 @@
 #include "time_ntp.h"
 #endif
 
-#ifdef ENABLE_MSGFLOW
-#include "msgflow.h"
-#endif
-
 #ifdef ENABLE_CONTROLLER
 #include "controller.h"
 #include "datalogger.h"
