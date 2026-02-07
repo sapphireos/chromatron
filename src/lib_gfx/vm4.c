@@ -24,6 +24,7 @@
 #include "vm4.h"
 
 #include "bytecode.h"
+#include "pixelarray.h"
 
 static bool vm_reset[VM_MAX_VMS];
 static bool vm_run[VM_MAX_VMS];
@@ -134,44 +135,12 @@ void vm4_v_init( void ){
         vm_status[i] = VM_STATUS_NOT_RUNNING;
     }
 
+    pixelarray_init();
+
     thread_t_create( vm4_loader,
                      PSTR("vm4_loader"),
                      0,
                      0 );
-
-    // log_v_info_P( PSTR("%d"), sizeof(vm_t) );
-
-    // if(vm_run[0] == FALSE){
-
-    //     return;
-    // }
-
-
-    // uint8_t vm_id = 0;
-    // thread_t t = thread_t_create( THREAD_CAST(vm4_thread),
-    //                                           vm_names[vm_id],
-    //                                           0,
-    //                                           sizeof(vm4_thread_state_t) );
-
-    // if( t < 0 ){
-
-    //     log_v_error_P( PSTR("failed to create thread") );
-
-    //     return;
-    // }
-
-    // vm4_thread_state_t *thread_state = thread_vp_get_data( t );
-    // thread_state->vm_id = vm_id;
-
-    // memset( &thread_state->vm, 0, sizeof(thread_state->vm) );
-
-    // int status = vm_deserialize(&thread_state->vm, PSTR("vm.f4b") );
-    // log_v_info_P( PSTR("load status %d"), status );
-
-    // if( status < 0 ){
-
-    //     thread_v_kill( t );
-    // }
 }
 
 void vm4_v_reset( uint8_t vm_id ){
