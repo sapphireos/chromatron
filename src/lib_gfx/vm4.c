@@ -223,7 +223,10 @@ restart:
             vm_run_time[0] = elapsed_us;
         }
 
-        vm_max_cycles[0] = state->vm.cycle_count;
+        if( state->vm.cycle_count > vm_max_cycles[0] ){
+
+            vm_max_cycles[0] = state->vm.cycle_count;
+        }
 
         THREAD_YIELD( pt );
     }
