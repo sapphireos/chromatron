@@ -78,8 +78,8 @@ void sapphire_main()
     // set run time logging
     #ifdef ENABLE_TRACE
     // esp_log_level_set("*", ESP_LOG_INFO);
-    esp_log_level_set("*", ESP_LOG_VERBOSE);
     // esp_log_level_set("*", ESP_LOG_DEBUG);
+    esp_log_level_set("*", ESP_LOG_VERBOSE); // most outpu
     #endif
 
     esp_log_level_set("gpio", ESP_LOG_NONE);

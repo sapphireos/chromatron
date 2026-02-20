@@ -40,6 +40,7 @@
 #include "ssd1306.h"
 #include "amg8833.h"
 #include "telemetry.h"
+#include "lcd.h"
 #endif
 
 #include "mpu9250.h"
@@ -64,12 +65,24 @@ void app_v_init( void ){
 
     pwm_v_init();
 
+    log_v_debug_P(PSTR("I2C:"));
     veml7700_v_init();
     ssd1306_v_init();
     hx711_v_init();
     amg8833_v_init();
 
     telemetry_v_init();
+
+    // log_v_debug_P( PSTR("lcd_v_init") );
+    // lcd_v_init( 20, 4 );
+    // log_v_debug_P( PSTR("lcd_v_clear") );
+    // lcd_v_clear();       
+    // log_v_debug_P( PSTR("lcd_v_print") );
+    // lcd_v_printf_P( 0, 0, PSTR("JEREMY ROCKS        ") );
+    // log_v_debug_P( PSTR("lcd done") );
+    
+    // pca9685_v_init( PCA9685_I2C_ADDR_0 );
+    // pca9685_v_set_freq( 4 );
 
     #endif
 
@@ -82,5 +95,7 @@ void app_v_init( void ){
     mpu9250_v_init();
 
     pixelpower_v_init();
+
+    log_v_debug_P(PSTR("init done"));
 }
 
