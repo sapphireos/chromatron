@@ -153,6 +153,7 @@ void pixelpower_v_init( void ){
 
         pixel_fet_gpio = ELITE_BOOST_IO;
     }
+    #endif
     else{
 
         pixels_enabled = TRUE;
@@ -161,7 +162,8 @@ void pixelpower_v_init( void ){
 
         return;
     }
-    
+
+    #if defined(ESP32)
     disable_pixel_power_fet();
     #endif
 
