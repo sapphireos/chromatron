@@ -65,9 +65,10 @@ void app_v_init( void ){
     pwm_v_init();
 
     veml7700_v_init();
+    amg8833_v_init();
+
     ssd1306_v_init();
     hx711_v_init();
-    amg8833_v_init();
 
     telemetry_v_init();
 

@@ -62,7 +62,7 @@ void i2c_v_init( i2c_baud_t8 baud ){
     conf.sda_pullup_en      = GPIO_PULLUP_ENABLE;
     conf.scl_io_num         = gpio_scl;
     conf.scl_pullup_en      = GPIO_PULLUP_ENABLE;
-    conf.master.clk_speed = 100000;        
+    conf.master.clk_speed   = 100000;        
     
     i2c_v_set_baud( baud ); // must set baud first to avoid a div /0 error!
     i2c_v_set_pins( IO_PIN_22_SCL, IO_PIN_23_SDA );
