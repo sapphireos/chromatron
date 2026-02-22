@@ -1471,7 +1471,9 @@ esp_err_t i2c_master_cmd_begin(i2c_port_t i2c_num, i2c_cmd_handle_t cmd_handle, 
             wait_time = I2C_CMD_ALIVE_INTERVAL_TICK;
         } else {
             wait_time = ticks_to_wait - (wait_time - ticks_start);
-            if (wait_time < I2C_CMD_ALIVE_INTERVAL_TICK) {
+            // JGB: Fixed incorrect logic in this timeout (replace < with >)
+            // See: https://github.com/espressif/esp-idf/issues/4999
+            if (wait_time > I2C_CMD_ALIVE_INTERVAL_TICK) {
                 wait_time = I2C_CMD_ALIVE_INTERVAL_TICK;
             }
         }

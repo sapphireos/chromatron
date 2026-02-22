@@ -67,9 +67,10 @@ void app_v_init( void ){
 
     log_v_debug_P(PSTR("I2C:"));
     veml7700_v_init();
+    amg8833_v_init();
+
     ssd1306_v_init();
     hx711_v_init();
-    amg8833_v_init();
 
     telemetry_v_init();
 
