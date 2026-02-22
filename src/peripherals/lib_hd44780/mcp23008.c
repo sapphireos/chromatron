@@ -35,6 +35,8 @@ static uint8_t gpio_output_state;
 
 void mcp23008_v_init( void ){
 
+    i2c_v_init( I2C_BAUD_400K );
+
     for( uint8_t i = 0; i < MCP23008_N_PINS; i++ ){
         
         mcp23008_v_set_mode( i, IO_MODE_INPUT );
