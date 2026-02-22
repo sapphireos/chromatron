@@ -41,6 +41,7 @@
 #include "amg8833.h"
 #include "telemetry.h"
 #include "lcd.h"
+#include "pca9685.h"
 #endif
 
 #include "mpu9250.h"
@@ -74,16 +75,16 @@ void app_v_init( void ){
 
     telemetry_v_init();
 
-    // log_v_debug_P( PSTR("lcd_v_init") );
-    // lcd_v_init( 20, 4 );
-    // log_v_debug_P( PSTR("lcd_v_clear") );
-    // lcd_v_clear();       
-    // log_v_debug_P( PSTR("lcd_v_print") );
-    // lcd_v_printf_P( 0, 0, PSTR("JEREMY ROCKS        ") );
-    // log_v_debug_P( PSTR("lcd done") );
+    log_v_debug_P( PSTR("lcd_v_init") );
+    lcd_v_init( 20, 4 );
+    log_v_debug_P( PSTR("lcd_v_clear") );
+    lcd_v_clear();       
+    log_v_debug_P( PSTR("lcd_v_print") );
+    lcd_v_printf_P( 0, 0, PSTR("JEREMY ROCKS        ") );
+    log_v_debug_P( PSTR("lcd done") );
     
-    // pca9685_v_init( PCA9685_I2C_ADDR_0 );
-    // pca9685_v_set_freq( 4 );
+    pca9685_v_init( PCA9685_I2C_ADDR_0 );
+    pca9685_v_set_freq( 4 );
 
     #endif
 
