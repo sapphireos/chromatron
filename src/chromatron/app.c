@@ -66,7 +66,6 @@ void app_v_init( void ){
 
     pwm_v_init();
 
-    log_v_debug_P(PSTR("I2C:"));
     veml7700_v_init();
     amg8833_v_init();
 
@@ -75,16 +74,30 @@ void app_v_init( void ){
 
     telemetry_v_init();
 
-    log_v_debug_P( PSTR("lcd_v_init") );
+
     lcd_v_init( 20, 4 );
-    log_v_debug_P( PSTR("lcd_v_clear") );
     lcd_v_clear();       
-    log_v_debug_P( PSTR("lcd_v_print") );
     lcd_v_printf_P( 0, 0, PSTR("JEREMY ROCKS        ") );
-    log_v_debug_P( PSTR("lcd done") );
     
     pca9685_v_init( PCA9685_I2C_ADDR_0 );
     pca9685_v_set_freq( 4 );
+
+    // all off
+    // pca9685_v_set( 0, 4095 );
+    // pca9685_v_set( 2, 4095 );
+    // pca9685_v_set( 4, 4095 );
+
+    // pca9685_v_set( 0, 0 ); // full on red
+    // pca9685_v_set( 2, 4095 );
+    // pca9685_v_set( 4, 4095 );
+
+    // pca9685_v_set( 0, 4095 ); 
+    // pca9685_v_set( 2, 0 ); // full on green
+    // pca9685_v_set( 4, 4095 );
+
+    pca9685_v_set( 0, 4095 ); 
+    pca9685_v_set( 2, 4095 ); 
+    pca9685_v_set( 4, 0 ); // full on blue
 
     #endif
 
@@ -97,7 +110,5 @@ void app_v_init( void ){
     mpu9250_v_init();
 
     pixelpower_v_init();
-
-    log_v_debug_P(PSTR("init done"));
 }
 
