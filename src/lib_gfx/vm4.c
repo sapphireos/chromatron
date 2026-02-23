@@ -25,6 +25,7 @@
 
 #include "bytecode.h"
 #include "pixelarray.h"
+#include "cron.h"
 
 static bool vm_reset[VM_MAX_VMS];
 static bool vm_run[VM_MAX_VMS];
@@ -135,6 +136,7 @@ void vm4_v_init( void ){
         vm_status[i] = VM_STATUS_NOT_RUNNING;
     }
 
+    cron_v_init();
     pixelarray_init();
 
     thread_t_create( vm4_loader,
