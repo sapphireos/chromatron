@@ -22,6 +22,8 @@
 
 #include "sapphire.h"
 
+#ifdef ESP32
+
 #include "pca9685.h"
 
 static uint8_t i2c_addr;
@@ -211,3 +213,5 @@ PT_BEGIN( pt );
     
 PT_END( pt );
 }
+
+#endif

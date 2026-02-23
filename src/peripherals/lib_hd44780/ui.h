@@ -21,34 +21,11 @@
 // 
 // </license>
  */
-#ifndef _LCD_H
-#define _LCD_H
-
-#include "sapphire.h"
-
-#define LCD_ENABLE_PIN      2
-#define LCD_RS_PIN          1
-#define LCD_DATA_PIN_D4     3
-#define LCD_DATA_PIN_D5     4
-#define LCD_DATA_PIN_D6     5
-#define LCD_DATA_PIN_D7     6
-// #define LCD_BACKLIGHT_PIN   7
+#ifndef _UI_H
+#define _UI_H
 
 
-/*#if (LCD_SIZE_Y > 2 )    
-    #define LCD_ENABLE_2_PRESENT
-#endif
+void ui_v_init( void );
 
-#ifdef LCD_ENABLE_2_PRESENT
-    #define LCD_ENABLE_2_GPIO IO_PIN_3_RXD
-#endif*/
-
-void lcd_v_init( uint8_t size_x, uint8_t size_y );
-
-void lcd_v_clear( void );
-void lcd_v_write( char *s, uint8_t x, uint8_t y );
-void lcd_v_write_P( PGM_P s, uint8_t x, uint8_t y );
-void lcd_v_cursor( uint8_t x, uint8_t y );
-void lcd_v_printf_P( uint8_t x, uint8_t y, PGM_P format, ... );
 
 #endif

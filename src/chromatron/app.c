@@ -40,6 +40,7 @@
 #include "ssd1306.h"
 #include "amg8833.h"
 #include "telemetry.h"
+#include "ui.h"
 #include "lcd.h"
 #include "pca9685.h"
 #endif
@@ -74,30 +75,7 @@ void app_v_init( void ){
 
     telemetry_v_init();
 
-
-    lcd_v_init( 20, 4 );
-    lcd_v_clear();       
-    lcd_v_printf_P( 0, 0, PSTR("JEREMY ROCKS        ") );
-    
-    pca9685_v_init( PCA9685_I2C_ADDR_0 );
-    pca9685_v_set_freq( 4 );
-
-    // all off
-    // pca9685_v_set( 0, 4095 );
-    // pca9685_v_set( 2, 4095 );
-    // pca9685_v_set( 4, 4095 );
-
-    // pca9685_v_set( 0, 0 ); // full on red
-    // pca9685_v_set( 2, 4095 );
-    // pca9685_v_set( 4, 4095 );
-
-    // pca9685_v_set( 0, 4095 ); 
-    // pca9685_v_set( 2, 0 ); // full on green
-    // pca9685_v_set( 4, 4095 );
-
-    pca9685_v_set( 0, 4095 ); 
-    pca9685_v_set( 2, 4095 ); 
-    pca9685_v_set( 4, 0 ); // full on blue
+    ui_v_init();
 
     #endif
 

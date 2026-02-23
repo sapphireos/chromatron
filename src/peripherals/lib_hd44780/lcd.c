@@ -65,27 +65,27 @@ static void mcp23008_v_set( uint8_t pin ){
 
 static void Port4BitWrite( uint8_t data, uint8_t en ){
 
-    mcp23008_v_clear_mask( ( 1 << LCD_DATA_PIN_0 ) |
-                           ( 1 << LCD_DATA_PIN_1 ) |
-                           ( 1 << LCD_DATA_PIN_2 ) |
-                           ( 1 << LCD_DATA_PIN_3 ) );
+    mcp23008_v_clear_mask( ( 1 << LCD_DATA_PIN_D4 ) |
+                           ( 1 << LCD_DATA_PIN_D5 ) |
+                           ( 1 << LCD_DATA_PIN_D6 ) |
+                           ( 1 << LCD_DATA_PIN_D7 ) );
 
     uint8_t mask = 0;
 
     if( data & 0x01 ){
-        mask |= ( 1 << LCD_DATA_PIN_0 );
+        mask |= ( 1 << LCD_DATA_PIN_D4 );
     }
 
     if( data & 0x02 ){
-        mask |= ( 1 << LCD_DATA_PIN_1 );
+        mask |= ( 1 << LCD_DATA_PIN_D5 );
     }
 
     if( data & 0x04 ){
-        mask |= ( 1 << LCD_DATA_PIN_2 );
+        mask |= ( 1 << LCD_DATA_PIN_D6 );
     }
 
     if( data & 0x08 ){
-        mask |= ( 1 << LCD_DATA_PIN_3 );
+        mask |= ( 1 << LCD_DATA_PIN_D7 );
     }   
 
     mcp23008_v_set_mask( mask );
@@ -120,11 +120,11 @@ void lcd_v_init( uint8_t size_x, uint8_t size_y ){
     // initialize IO
     mcp23008_v_set_mode( LCD_ENABLE_PIN, IO_MODE_OUTPUT );
     mcp23008_v_set_mode( LCD_RS_PIN, IO_MODE_OUTPUT );
-    mcp23008_v_set_mode( LCD_DATA_PIN_0, IO_MODE_OUTPUT );
-    mcp23008_v_set_mode( LCD_DATA_PIN_1, IO_MODE_OUTPUT );
-    mcp23008_v_set_mode( LCD_DATA_PIN_2, IO_MODE_OUTPUT );
-    mcp23008_v_set_mode( LCD_DATA_PIN_3, IO_MODE_OUTPUT );
-    mcp23008_v_set_mode( LCD_BACKLIGHT_PIN, IO_MODE_OUTPUT );
+    mcp23008_v_set_mode( LCD_DATA_PIN_D4, IO_MODE_OUTPUT );
+    mcp23008_v_set_mode( LCD_DATA_PIN_D5, IO_MODE_OUTPUT );
+    mcp23008_v_set_mode( LCD_DATA_PIN_D6, IO_MODE_OUTPUT );
+    mcp23008_v_set_mode( LCD_DATA_PIN_D7, IO_MODE_OUTPUT );
+    // mcp23008_v_set_mode( LCD_BACKLIGHT_PIN, IO_MODE_OUTPUT );
 
     // #ifdef LCD_ENABLE_2_PRESENT
     // // init enable 2
@@ -212,7 +212,7 @@ void lcd_v_init( uint8_t size_x, uint8_t size_y ){
 	// initialization complete
 
 
-    lcd_v_set_backlight( TRUE );
+    // lcd_v_set_backlight( TRUE );
 
     lcd_v_clear();
 }
@@ -325,10 +325,5 @@ void lcd_v_printf_P( uint8_t x, uint8_t y, PGM_P format, ... ){
     lcd_v_write( buf, x, y );
 }
 
-
-void lcd_v_set_backlight( bool on ){
-
-    mcp23008_v_digital_write( LCD_BACKLIGHT_PIN, on );
-}
 
 #endif
