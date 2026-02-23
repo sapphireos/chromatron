@@ -7,6 +7,27 @@
 
 #ifdef ESP32
 
+int8_t _lcd_i8_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len ){
+
+    if( op == KV_OP_SET ){
+
+        if( hash == __KV__ui_line0 ){
+
+        	lcd_v_write_P( (char *)data, 0, 0 );
+        }
+    }
+
+    return 0;
+}
+
+KV_SECTION_META kv_meta_t lcd_ui_kv[] = {
+    { CATBUS_TYPE_STRING32, 0, 0, 0, _lcd_i8_kv_handler, "ui_line0" },
+};
+
 void set_backlight( uint16_t r, uint16_t g, uint16_t b, uint16_t fade );
 
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );

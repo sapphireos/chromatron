@@ -41,8 +41,6 @@
 #include "amg8833.h"
 #include "telemetry.h"
 #include "ui.h"
-#include "lcd.h"
-#include "pca9685.h"
 #endif
 
 #include "mpu9250.h"
