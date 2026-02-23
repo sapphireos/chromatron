@@ -7,6 +7,8 @@
 
 #ifdef ESP32
 
+void set_backlight( uint16_t r, uint16_t g, uint16_t b, uint16_t fade );
+
 PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
 
@@ -14,11 +16,15 @@ void ui_v_init( void ){
 
 	lcd_v_init( 20, 4 );
     lcd_v_clear();       
-    lcd_v_printf_P( 0, 0, PSTR("JEREMY ROCKS        ") );
-    
+   	
+   	lcd_v_printf_P( 0, 0, PSTR("SapphireOS") );
+   	lcd_v_printf_P( 0, 1, PSTR("UI init...") );
+
     pca9685_v_init( PCA9685_I2C_ADDR_0 );
     pca9685_v_set_freq( 4 );
 
+    set_backlight( PCA9685_MAX_PWM, PCA9685_MAX_PWM, PCA9685_MAX_PWM, 1000 );
+	
     // all off
     // pca9685_v_set( 0, 4095 );
     // pca9685_v_set( 2, 4095 );
@@ -32,9 +38,9 @@ void ui_v_init( void ){
     // pca9685_v_set( 2, 0 ); // full on green
     // pca9685_v_set( 4, 4095 );
 
-    pca9685_v_set( 0, 4095 ); 
-    pca9685_v_set( 2, 4095 ); 
-    pca9685_v_set( 4, 0 ); // full on blue
+    // pca9685_v_set( 0, 4095 ); 
+    // pca9685_v_set( 2, 4095 ); 
+    // pca9685_v_set( 4, 0 ); // full on blue
 
     thread_t_create( ui_thread,
                  PSTR("ui"),
@@ -44,11 +50,40 @@ void ui_v_init( void ){
 }
 
 
+void set_backlight( uint16_t r, uint16_t g, uint16_t b, uint16_t fade ){
+
+	if( r > PCA9685_MAX_PWM ){
+
+		r = PCA9685_MAX_PWM;
+	}
+
+	if( g > PCA9685_MAX_PWM ){
+
+		g = PCA9685_MAX_PWM;
+	}
+
+	if( b > PCA9685_MAX_PWM ){
+
+		b = PCA9685_MAX_PWM;
+	}
+
+	pca9685_v_fade( 0, r, fade );
+	pca9685_v_fade( 1, r, fade );
+
+	pca9685_v_fade( 2, g, fade );
+	pca9685_v_fade( 3, g, fade );
+
+	pca9685_v_fade( 4, b, fade );
+	pca9685_v_fade( 5, b, fade );
+}
+
 
 PT_THREAD( ui_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
+
+	TMR_WAIT( pt, 1000 );
+
     while(1){
 
         TMR_WAIT( pt, 100 );
