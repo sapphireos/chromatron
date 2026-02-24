@@ -17,8 +17,12 @@ int8_t _lcd_i8_kv_handler(
 
         if( hash == __KV__ui_line0 ){
 
-        	lcd_v_write_P( (char *)data, 0, 0 );
+        		lcd_v_write_P( (char *)data, 0, 0 );
         }
+    }
+    else if( op == KV_OP_GET ){
+
+    	memset( data, 0, len );
     }
 
     return 0;
