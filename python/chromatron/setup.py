@@ -70,7 +70,7 @@ setup(
         "colorlog==4.1.0",
         "colored-traceback==0.3.0",
         "python-logging-loki==0.3.1",
-        "prometheus-client==0.8.0",
+        # "prometheus-client==0.8.0",
         "paho-mqtt==2.1.0",
         "ifaddr==0.1.6",
         "filelock==3.13.1",

@@ -34,6 +34,51 @@
 
 #include "cron.h"
 
+#if 0
+
+Cron
+
+minutes - hours - day of month - month - day of week
+
+* - all possible values for field
+, - list separator (not implemented)
+- - range separator (not implemented)
+/ - specify step for ranges
+
+Every Minute
+    * * * * *
+Every Five Minutes
+    */5 * * * *
+Every 10 Minutes
+    */10 * * * *
+Every 15 Minutes
+    */15 * * * *
+Every 30 Minutes
+    */30 * * * *
+Every Hour
+    0 * * * *
+Every Two Hours
+    0 */2 * * *
+Every Six Hours
+    0 */6 * * *
+Every 12 Hours
+    0 */12 * * *
+Every day at Midnight
+    0 0 * * *
+At the Start of Every Month
+    0 0 1 * *
+On January 1st at Midnight
+    0 0 1 1 *
+
+Midnight, on sundays
+    0 0 * * sunday
+
+every hour, on sundays
+    0 * * * sunday
+
+
+#endif
+
 
 PT_THREAD( cron4_thread( pt_t *pt, void *state ) );
 
@@ -52,7 +97,7 @@ void cron_v_init( void ){
     #endif
 }
 
-
+// void cron_v_add_job( catbus_hash_t32 )
 
 
 PT_THREAD( cron4_thread( pt_t *pt, void *state ) )
