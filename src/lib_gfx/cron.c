@@ -85,16 +85,115 @@ PT_THREAD( cron4_thread( pt_t *pt, void *state ) );
 
 void cron_v_init( void ){
 
-    #ifdef ENABLE_TIME_SYNC
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
+        return;
+    }
+    
     // list_v_init( &cron_list );
 
     thread_t_create( cron4_thread,
              PSTR("cron"),
              0,
              0 );
+}
 
-    #endif
+static bool is_whitespace( char s ){
+
+    if( ( s == ' ' ) || ( s == '\0' ) ){
+    
+        return true;
+    }
+
+    return false;
+}
+
+static bool is_digit( char s ){
+
+    if( ( s >= '0' ) && ( s <= '9' ) ){
+
+        return true;
+    }
+
+    return false;
+}
+
+static uint8_t to_digit( char s ){
+
+    if( ( s < '0' ) || ( s > '9' ) ){
+
+        return 0;
+    }
+
+    return (uint8_t)( s - '0' );
+}
+
+static bool is_wildcard( char s ){
+
+    return s == '*';
+}
+
+static char* strip_whitespace( char* s ){
+
+    while( is_whitespace( *s ) ){
+
+        s++;
+    }
+
+    return s;
+}
+
+static char* parse_number( char* s, int8_t *n ){
+
+    *n = 0;
+
+    if( is_wildcard( *s ) ){
+
+        *n = -1;
+
+        s++;
+
+        return s;
+    }
+
+    while( is_digit( *s ) ){
+
+        uint8_t digit = to_digit( *s );
+
+        *n *= 10;
+        *n += digit;
+
+        s++;
+    }
+
+    return s;
+}
+
+int8_t cron_i8_parse( char* s, cron_job_t *job ){
+
+    s = strip_whitespace( s );
+    s = parse_number( s, &job->minutes );
+
+    s = strip_whitespace( s );
+    s = parse_number( s, &job->hours );
+
+    s = strip_whitespace( s );
+    s = parse_number( s, &job->day_of_month );
+
+    s = strip_whitespace( s );
+    s = parse_number( s, &job->month );
+
+    s = strip_whitespace( s );
+    s = parse_number( s, &job->day_of_week );
+
+    log_v_debug_P( PSTR("%d %d %d %d %d"), 
+        job->minutes,
+        job->hours,
+        job->day_of_month,
+        job->month,
+        job->day_of_week );
+
+    return 0;
 }
 
 // void cron_v_add_job( catbus_hash_t32 )
@@ -103,7 +202,12 @@ void cron_v_init( void ){
 PT_THREAD( cron4_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+    cron_job_t job = {0};
+    cron_i8_parse("* 1 2 03 12", &job );
     
+
+
     // while(1){
 
     //     // prevent runaway thread

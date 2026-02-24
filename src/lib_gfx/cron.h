@@ -23,8 +23,21 @@
 #ifndef _CRON_H_
 #define _CRON_H_
 
+#include "datetime.h"
+
+typedef struct{
+	int8_t minutes;
+	int8_t hours;
+	int8_t day_of_month;
+	int8_t month;
+	int8_t day_of_week;
+
+	uint8_t tag;
+} cron_job_t;
 
 void cron_v_init( void );
+
+int8_t cron_i8_parse( char* s, cron_job_t *job );
 
 // #include "vm_core.h"
 

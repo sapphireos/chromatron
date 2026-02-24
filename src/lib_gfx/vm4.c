@@ -129,6 +129,11 @@ PT_THREAD( vm4_loader( pt_t *pt, void *state ) );
 
 void vm4_v_init( void ){
 
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
     log_v_info_P( PSTR("FX4 init") );
 
     for( uint8_t i = 0; i < cnt_of_array(vm_status); i++ ){
