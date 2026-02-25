@@ -89,7 +89,7 @@ void cron_v_init( void ){
 
         return;
     }
-    
+
     // list_v_init( &cron_list );
 
     thread_t_create( cron4_thread,
@@ -199,13 +199,68 @@ int8_t cron_i8_parse( char* s, cron_job_t *job ){
 // void cron_v_add_job( catbus_hash_t32 )
 
 
+static bool job_ready( datetime_t *now, cron_job_t *job ){
+
+    // if( ( job->cron.minutes >= 0 ) && ( job->cron.minutes != now->minutes ) ){
+
+    //     return FALSE;
+    // }
+
+    // if( ( job->cron.hours >= 0 ) && ( job->cron.hours != now->hours ) ){
+
+    //     return FALSE;
+    // }
+
+    // if( ( job->cron.day_of_month >= 0 ) && ( job->cron.day_of_month != now->day ) ){
+
+    //     return FALSE;
+    // }
+
+    // if( ( job->cron.day_of_week >= 0 ) && ( job->cron.day_of_week != now->weekday ) ){
+
+    //     return FALSE;
+    // }
+
+    // if( ( job->cron.month >= 0 ) && ( job->cron.month != now->month ) ){
+
+    //     return FALSE;
+    // }
+
+    return TRUE;
+}
+
 PT_THREAD( cron4_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    cron_job_t job = {0};
-    cron_i8_parse("* 1 2 03 12", &job );
+    // cron_job_t job = {0};
+    // cron_i8_parse("* 1 2 03 12", &job );
+
+    // cron_i8_parse("* 1 2 03 12", &job );
     
+    while(1){
+
+        TMR_WAIT( pt, 1000 );
+
+        if( !ntp_b_is_sync() ){
+
+            continue;
+        }
+
+        ntp_ts_t ntp_local_now = ntp_t_local_now();
+        datetime_t cron_now;
+        datetime_v_seconds_to_datetime( ntp_local_now.seconds, &cron_now );
+
+        log_v_debug_P( PSTR("%02d:%02d:%02d %d %d %d %d"),
+            cron_now.hours,
+            cron_now.minutes,
+            cron_now.seconds,
+            cron_now.day,
+            cron_now.weekday,
+            cron_now.month,
+            cron_now.year );
+    }
+
 
 
     // while(1){
