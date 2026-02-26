@@ -335,6 +335,14 @@ PT_BEGIN( pt );
 
                 datetime_v_increment_seconds( &cron_now );
 
+                delta--;
+
+                // check if top of the minute
+                if( cron_now.seconds != 0 ){
+
+                    continue;
+                }
+
                 // run through job list
                 list_node_t ln = cron_list.head;
                 list_node_t next_ln;
@@ -370,8 +378,6 @@ PT_BEGIN( pt );
 
                     ln = next_ln;
                 }   
-
-                delta--;
             }
 
             // update cron clock
