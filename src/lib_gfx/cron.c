@@ -79,11 +79,18 @@ every hour, on sundays
 
 #endif
 
+static list_t cron_list;
+
+static datetime_t cron_now;
+static uint32_t cron_seconds;
+
 
 PT_THREAD( cron4_thread( pt_t *pt, void *state ) );
 
 
 void cron_v_init( void ){
+
+    list_v_init( &cron_list );
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -196,35 +203,51 @@ int8_t cron_i8_parse( char* s, cron_job_t *job ){
     return 0;
 }
 
-// void cron_v_add_job( catbus_hash_t32 )
+void cron_v_add_job( char *s, uint8_t tag ){
+
+    cron_job_t job = {0};
+
+    cron_i8_parse( s, &job );
+
+    job.tag = tag;
+
+    list_node_t ln = list_ln_create_node2( &job, sizeof(job), MEM_TYPE_CRON_JOB );
+
+    if( ln < 0 ){
+
+        return;
+    }
+
+    list_v_insert_tail( &cron_list, ln );
+}
 
 
 static bool job_ready( datetime_t *now, cron_job_t *job ){
 
-    // if( ( job->cron.minutes >= 0 ) && ( job->cron.minutes != now->minutes ) ){
+    if( ( job->minutes >= 0 ) && ( job->minutes != now->minutes ) ){
 
-    //     return FALSE;
-    // }
+        return FALSE;
+    }
 
-    // if( ( job->cron.hours >= 0 ) && ( job->cron.hours != now->hours ) ){
+    if( ( job->hours >= 0 ) && ( job->hours != now->hours ) ){
 
-    //     return FALSE;
-    // }
+        return FALSE;
+    }
 
-    // if( ( job->cron.day_of_month >= 0 ) && ( job->cron.day_of_month != now->day ) ){
+    if( ( job->day_of_month >= 0 ) && ( job->day_of_month != now->day ) ){
 
-    //     return FALSE;
-    // }
+        return FALSE;
+    }
 
-    // if( ( job->cron.day_of_week >= 0 ) && ( job->cron.day_of_week != now->weekday ) ){
+    if( ( job->day_of_week >= 0 ) && ( job->day_of_week != now->weekday ) ){
 
-    //     return FALSE;
-    // }
+        return FALSE;
+    }
 
-    // if( ( job->cron.month >= 0 ) && ( job->cron.month != now->month ) ){
+    if( ( job->month >= 0 ) && ( job->month != now->month ) ){
 
-    //     return FALSE;
-    // }
+        return FALSE;
+    }
 
     return TRUE;
 }
@@ -238,106 +261,123 @@ PT_BEGIN( pt );
 
     // cron_i8_parse("* 1 2 03 12", &job );
     
-    while(1){
-
-        TMR_WAIT( pt, 1000 );
-
-        if( !ntp_b_is_sync() ){
-
-            continue;
-        }
-
-        ntp_ts_t ntp_local_now = ntp_t_local_now();
-        datetime_t cron_now;
-        datetime_v_seconds_to_datetime( ntp_local_now.seconds, &cron_now );
-
-        log_v_debug_P( PSTR("%02d:%02d:%02d %d %d %d %d"),
-            cron_now.hours,
-            cron_now.minutes,
-            cron_now.seconds,
-            cron_now.day,
-            cron_now.weekday,
-            cron_now.month,
-            cron_now.year );
-    }
-
-
-
     // while(1){
 
-    //     // prevent runaway thread
-    //     THREAD_YIELD( pt );
+    //     TMR_WAIT( pt, 1000 );
 
-    //     // wait for sync and for cron jobs to be loaded
-    //     THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() || list_b_is_empty( &cron_list ) );
+    //     if( !ntp_b_is_sync() ){
 
-    //     // initialize cron clock
-    //     ntp_ts_t ntp_local_now = ntp_t_local_now();
-    //     datetime_v_seconds_to_datetime( ntp_local_now.seconds, &cron_now );
-    //     cron_seconds = ntp_local_now.seconds;
-
-    //     // init alarm
-    //     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
-
-    //     while( ntp_b_is_sync() && !list_b_is_empty( &cron_list ) ){
-
-    //         thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
-    //         THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
-
-    //         // update clock
-    //         ntp_ts_t ntp_local_now = ntp_t_local_now();
-
-    //         int32_t delta = (int64_t)ntp_local_now.seconds - (int64_t)cron_seconds;
-
-    //         // log_v_debug_P( PSTR("Cron delta: %d"), delta );
-
-    //         if( abs32( delta ) > 10 ){
-
-    //             // our clock is pretty far off for some reason.
-    //             // restart cron.
-
-    //             log_v_debug_P( PSTR("Cron resynchronizing clock") );
-
-    //             THREAD_RESTART( pt );
-    //         }   
-
-    //         // step through seconds while local clock is ahead of cron's clock
-    //         while( delta > 0 ){
-
-    //             datetime_v_increment_seconds( &cron_now );
-
-    //             // run through job list
-    //             list_node_t ln = cron_list.head;
-    //             list_node_t next_ln;
-
-    //             while( ln > 0 ){
-
-    //                 next_ln = list_ln_next( ln );
-
-    //                 cron_job_t *entry = list_vp_get_data( ln );
-
-    //                 if( job_ready( &cron_now, entry ) ){
-
-    //                     int8_t status = vm_cron_i8_run_func( entry->vm_id, entry->cron.func_addr );                   
-
-    //                     if( status != VM_STATUS_OK ){
-
-    //                         log_v_warn_P( PSTR("cron job failed") );
-    //                     }
-                       
-    //                     // log_v_debug_P( PSTR("Running cron job: %u for vm: %d status: %d"), entry->cron.func_addr, entry->vm_id, status );
-    //                 }
-
-    //                 ln = next_ln;
-    //             }   
-
-    //             delta--;
-    //         }
-
-    //         // update cron clock
-    //         cron_seconds = ntp_local_now.seconds;
+    //         continue;
     //     }
+
+    //     ntp_ts_t ntp_local_now = ntp_t_local_now();
+    //     datetime_t cron_now;
+    //     datetime_v_seconds_to_datetime( ntp_local_now.seconds, &cron_now );
+
+    //     // log_v_debug_P( PSTR("%02d:%02d:%02d %d %d %d %d"),
+    //     //     cron_now.hours,
+    //     //     cron_now.minutes,
+    //     //     cron_now.seconds,
+    //     //     cron_now.day,
+    //     //     cron_now.weekday,
+    //     //     cron_now.month,
+    //     //     cron_now.year );
+
+
+
+
     // }
+    
+
+    cron_v_add_job( "* * * * *", 0 );
+
+
+    while(1){
+
+        // prevent runaway thread
+        THREAD_YIELD( pt );
+
+        // wait for sync and for cron jobs to be loaded
+        THREAD_WAIT_WHILE( pt, !ntp_b_is_sync() || list_b_is_empty( &cron_list ) );
+
+        // initialize cron clock
+        ntp_ts_t ntp_local_now = ntp_t_local_now();
+        datetime_v_seconds_to_datetime( ntp_local_now.seconds, &cron_now );
+        cron_seconds = ntp_local_now.seconds;
+
+        // init alarm
+        thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+
+        while( ntp_b_is_sync() && !list_b_is_empty( &cron_list ) ){
+
+            thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
+            THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+
+            // update clock
+            ntp_local_now = ntp_t_local_now();
+
+            int32_t delta = (int64_t)ntp_local_now.seconds - (int64_t)cron_seconds;
+
+            // log_v_debug_P( PSTR("Cron delta: %d"), delta );
+
+            if( abs32( delta ) > 10 ){
+
+                // our clock is pretty far off for some reason.
+                // restart cron.
+
+                log_v_debug_P( PSTR("Cron resynchronizing clock") );
+
+                THREAD_RESTART( pt );
+            }   
+
+            // step through seconds while local clock is ahead of cron's clock
+            while( delta > 0 ){
+
+                datetime_v_increment_seconds( &cron_now );
+
+                // run through job list
+                list_node_t ln = cron_list.head;
+                list_node_t next_ln;
+
+                while( ln > 0 ){
+
+                    next_ln = list_ln_next( ln );
+
+                    cron_job_t *job = list_vp_get_data( ln );
+
+                    if( job_ready( &cron_now, job ) ){
+
+                        if( !job->triggered ){
+
+                            job->triggered = TRUE;
+
+
+                            // int8_t status = vm_cron_i8_run_func( job->vm_id, job->cron.func_addr );                   
+
+                            // if( status != VM_STATUS_OK ){
+
+                            //     log_v_warn_P( PSTR("cron job failed") );
+                            // }
+                           
+                            // log_v_debug_P( PSTR("Running cron job: %u for vm: %d status: %d"), entry->cron.func_addr, entry->vm_id, status );
+                            log_v_debug_P( PSTR("Running cron job") );
+                        }
+                    }
+                    else{
+
+                        job->triggered = FALSE;
+                    }
+
+                    ln = next_ln;
+                }   
+
+                delta--;
+            }
+
+            // update cron clock
+            cron_seconds = ntp_local_now.seconds;
+        }
+    }
 
 PT_END( pt );
 }
