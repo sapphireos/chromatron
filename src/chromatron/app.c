@@ -40,6 +40,7 @@
 #include "ssd1306.h"
 #include "amg8833.h"
 #include "telemetry.h"
+#include "ui.h"
 #endif
 
 #include "mpu9250.h"
@@ -71,6 +72,8 @@ void app_v_init( void ){
     hx711_v_init();
 
     telemetry_v_init();
+
+    ui_v_init();
 
     #endif
 

@@ -29,6 +29,7 @@
                   "lib_mpu9250",
                   "lib_amg8833",
                   "lib_hd44780",
+                  "lib_pca9685",
                   "lib_rfm95w"],
 
     "_comment": "The following options are only used for libraries:",
