@@ -203,13 +203,14 @@ int8_t cron_i8_parse( char* s, cron_job_t *job ){
     return 0;
 }
 
-void cron_v_add_job( char *s, uint8_t tag ){
+void cron_v_add_job( char *s, uint16_t func_addr, uint8_t vm_id ){
 
     cron_job_t job = {0};
 
     cron_i8_parse( s, &job );
 
-    job.tag = tag;
+    job.func_addr   = func_addr;
+    job.vm_id       = vm_id;
 
     list_node_t ln = list_ln_create_node2( &job, sizeof(job), MEM_TYPE_CRON_JOB );
 
@@ -289,7 +290,8 @@ PT_BEGIN( pt );
     // }
     
 
-    cron_v_add_job( "* * * * *", 0 );
+    cron_v_add_job( "* * * * *", 123, 0 );
+    cron_v_add_job( "0 * * * *", 456, 0 );
 
 
     while(1){
@@ -355,9 +357,9 @@ PT_BEGIN( pt );
 
                     if( job_ready( &cron_now, job ) ){
 
-                        if( !job->triggered ){
+                        // if( !job->triggered ){
 
-                            job->triggered = TRUE;
+                        //     job->triggered = TRUE;
 
 
                             // int8_t status = vm_cron_i8_run_func( job->vm_id, job->cron.func_addr );                   
@@ -368,13 +370,13 @@ PT_BEGIN( pt );
                             // }
                            
                             // log_v_debug_P( PSTR("Running cron job: %u for vm: %d status: %d"), entry->cron.func_addr, entry->vm_id, status );
-                            log_v_debug_P( PSTR("Running cron job") );
-                        }
+                            log_v_debug_P( PSTR("Running cron job: %u"), job->func_addr );
+                        // }
                     }
-                    else{
+                    // else{
 
-                        job->triggered = FALSE;
-                    }
+                    //     job->triggered = FALSE;
+                    // }
 
                     ln = next_ln;
                 }   

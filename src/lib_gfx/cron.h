@@ -32,15 +32,14 @@ typedef struct{
 	int8_t month;
 	int8_t day_of_week;
 
-	bool triggered;
 	uint16_t func_addr;
-	uint8_t tag;
+	uint8_t vm_id;
 } cron_job_t;
 
 void cron_v_init( void );
 
 int8_t cron_i8_parse( char* s, cron_job_t *job );
-void cron_v_add_job( char *s, uint8_t tag );
+void cron_v_add_job( char *s, uint16_t func_addr, uint8_t vm_id );
 
 // #include "vm_core.h"
 
