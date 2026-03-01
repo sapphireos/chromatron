@@ -97,8 +97,6 @@ void cron_v_init( void ){
         return;
     }
 
-    // list_v_init( &cron_list );
-
     thread_t_create( cron4_thread,
              PSTR("cron"),
              0,
@@ -290,8 +288,8 @@ PT_BEGIN( pt );
     // }
     
 
-    cron_v_add_job( "* * * * *", 123, 0 );
-    cron_v_add_job( "0 * * * *", 456, 0 );
+    // cron_v_add_job( "* * * * *", 123, 0 );
+    // cron_v_add_job( "0 * * * *", 456, 0 );
 
 
     while(1){
