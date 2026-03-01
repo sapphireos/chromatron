@@ -25,14 +25,14 @@
 
 #include <stdint.h>
 #include "catbus_common.h"
-#include "catbus_link.h"
+// #include "catbus_link.h"
 #include "datetime_struct.h"
 #include "target.h"
 #include "keyvalue.h"
 
-#ifdef ENABLE_CONTROLLER
-#include "link.h"
-#endif
+// #ifdef ENABLE_CONTROLLER
+// #include "link.h"
+// #endif
 
 // #define VM_DEBUG
 
@@ -128,15 +128,15 @@ typedef struct __attribute__((packed)){
     uint16_t padding;
 } function_info_t;
 
-typedef struct __attribute__((packed)){
-    link_mode_t8 mode;
-    link_aggregation_t8 aggregation;
-    link_rate_t16 rate;
-    catbus_hash_t32 source_key;
-    catbus_hash_t32 dest_key;
-    catbus_hash_t32 tag;
-    catbus_query_t query;
-} link_t;
+// typedef struct __attribute__((packed)){
+//     link_mode_t8 mode;
+//     link_aggregation_t8 aggregation;
+//     link_rate_t16 rate;
+//     catbus_hash_t32 source_key;
+//     catbus_hash_t32 dest_key;
+//     catbus_hash_t32 tag;
+//     catbus_query_t query;
+// } link_t;
 
 typedef struct __attribute__((packed)){
     uint16_t func_addr;
@@ -324,9 +324,9 @@ typedef struct __attribute__((packed, aligned(4))){ // MUST be 32 bit aligned!
     uint16_t link_count;
     uint16_t link_start;
 
-    #ifdef ENABLE_CONTROLLER
-    link2_handle_t links[VM_MAX_LINKS];
-    #endif
+    // #ifdef ENABLE_CONTROLLER
+    // link2_handle_t links[VM_MAX_LINKS];
+    // #endif
 
     uint16_t db_count;
     uint16_t db_start;

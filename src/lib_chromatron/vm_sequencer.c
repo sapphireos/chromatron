@@ -20,6 +20,7 @@
 // 
 // </license>
 
+#if 0
 
 #include "sapphire.h"
 
@@ -559,3 +560,4 @@ bool vm_seq_b_running( void ){
 
 	return seq_running;	
 }
+#endif

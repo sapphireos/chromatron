@@ -2,7 +2,6 @@
 
 #include "sapphire.h"
 
-#include "controller.h"
 #include "device_db.h"
 
 

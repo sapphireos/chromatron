@@ -70,11 +70,7 @@
 #include "time_ntp.h"
 #endif
 
-#ifdef ENABLE_CONTROLLER
-#include "controller.h"
 #include "datalogger.h"
-#endif
-
 #include "link4.h"
 
 #include "device_db.h"
@@ -210,11 +206,8 @@ int8_t sapphire_i8_init( void ){
 
     catbus_v_init();
 
-    #ifdef ENABLE_CONTROLLER
-    controller_v_init();
     // datalog_v_init();
-    #endif
-
+    
     device_db_v_init();
     link4_v_init();
 

@@ -41,9 +41,9 @@
 #include "vm_cron.h"
 #include "vm_sequencer.h"
 
-#ifdef ENABLE_CONTROLLER
-#include "link.h"
-#endif
+// #ifdef ENABLE_CONTROLLER
+// #include "link.h"
+// #endif
 
 #ifdef ENABLE_GFX
 
@@ -553,18 +553,18 @@ PT_BEGIN( pt );
 
         state->delay_adjust = 0;
         
-        #ifdef ENABLE_TIME_SYNC
-        if( state->vm_id == 0 ){
+        // #ifdef ENABLE_TIME_SYNC
+        // if( state->vm_id == 0 ){
 
-            // check if syncing VM and hold if so
-            if( vm_sync_b_in_progress() ){
+        //     // check if syncing VM and hold if so
+        //     if( vm_sync_b_in_progress() ){
 
-                THREAD_WAIT_WHILE( pt, vm_sync_b_in_progress() );
-                // our synced frame is already behind, so instead of computing a delay,
-                // we will run immediately.
-            }
-        }
-        #endif
+        //         THREAD_WAIT_WHILE( pt, vm_sync_b_in_progress() );
+        //         // our synced frame is already behind, so instead of computing a delay,
+        //         // we will run immediately.
+        //     }
+        // }
+        // #endif
 
         uint64_t next_tick = vm_u64_get_next_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state );
         state->vm_delay = (int64_t)next_tick - (int64_t)state->vm_state.tick;
@@ -594,55 +594,55 @@ PT_BEGIN( pt );
         }        
         // VM sync stuff, only for VM 0
         else if( state->vm_id == 0 ){
-            #ifdef ENABLE_TIME_SYNC
-            // check if vm is a synced follower
-            if( vm_sync_b_is_follower() && vm_sync_b_is_synced() ){
+            // #ifdef ENABLE_TIME_SYNC
+            // // check if vm is a synced follower
+            // if( vm_sync_b_is_follower() && vm_sync_b_is_synced() ){
 
-                uint32_t net_time = time_u32_get_network_time();
-                int32_t elapsed = (int64_t)net_time - (int64_t)vm0_sync_ts;
-                uint64_t current_vm_net_tick = vm0_sync_ticks + elapsed;
-                int32_t sync_delta = state->vm_state.tick - current_vm_net_tick;
+            //     uint32_t net_time = time_u32_get_network_time();
+            //     int32_t elapsed = (int64_t)net_time - (int64_t)vm0_sync_ts;
+            //     uint64_t current_vm_net_tick = vm0_sync_ticks + elapsed;
+            //     int32_t sync_delta = state->vm_state.tick - current_vm_net_tick;
 
-                state->delay_adjust = 0;
+            //     state->delay_adjust = 0;
 
 
-                if( ( sync_delta > 4000 ) || ( sync_delta < -4000 ) ){
+            //     if( ( sync_delta > 4000 ) || ( sync_delta < -4000 ) ){
 
-                    log_v_debug_P( PSTR("lost sync: %d resetting %u %d %u %u %u"), sync_delta, net_time, elapsed, (uint32_t)current_vm_net_tick, vm0_sync_ts, vm0_sync_ticks );        
+            //         log_v_debug_P( PSTR("lost sync: %d resetting %u %d %u %u %u"), sync_delta, net_time, elapsed, (uint32_t)current_vm_net_tick, vm0_sync_ts, vm0_sync_ticks );        
 
-                    vm_sync_v_reset();
-                }
-                else if( sync_delta > 100 ){
+            //         vm_sync_v_reset();
+            //     }
+            //     else if( sync_delta > 100 ){
 
-                    state->delay_adjust = -100;
-                }
-                else if( sync_delta > 10 ){
+            //         state->delay_adjust = -100;
+            //     }
+            //     else if( sync_delta > 10 ){
 
-                    state->delay_adjust = -10;
-                }
-                else if( sync_delta > 1 ){
+            //         state->delay_adjust = -10;
+            //     }
+            //     else if( sync_delta > 1 ){
 
-                    state->delay_adjust = -1;
-                }
-                else if( sync_delta < -100 ){
+            //         state->delay_adjust = -1;
+            //     }
+            //     else if( sync_delta < -100 ){
 
-                    state->delay_adjust = 100;
-                }
-                else if( sync_delta < -10 ){
+            //         state->delay_adjust = 100;
+            //     }
+            //     else if( sync_delta < -10 ){
 
-                    state->delay_adjust = 10;
-                }
-                else if( sync_delta < -1 ){
+            //         state->delay_adjust = 10;
+            //     }
+            //     else if( sync_delta < -1 ){
 
-                    state->delay_adjust = 1;
-                }
+            //         state->delay_adjust = 1;
+            //     }
 
-                if( state->delay_adjust != 0 ){
+            //     if( state->delay_adjust != 0 ){
 
-                    // log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
-                }
-            }
-            #endif
+            //         // log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
+            //     }
+            // }
+            // #endif
         }
 
         if( state->vm_id == 0 ){
@@ -670,16 +670,16 @@ PT_BEGIN( pt );
             goto exit;
         }
 
-        #ifdef ENABLE_TIME_SYNC
-        // check if syncing
-        if( ( state->vm_id == 0 ) && vm_sync_b_in_progress() ){
+        // #ifdef ENABLE_TIME_SYNC
+        // // check if syncing
+        // if( ( state->vm_id == 0 ) && vm_sync_b_in_progress() ){
 
-            // go back to top of loop so we wait for the sync
-            // if we ran now we could corrupt the VM data.
+        //     // go back to top of loop so we wait for the sync
+        //     // if we ran now we could corrupt the VM data.
 
-            continue;
-        }
-        #endif
+        //     continue;
+        // }
+        // #endif
 
         if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
 
@@ -698,15 +698,15 @@ PT_BEGIN( pt );
         // run VM
         state->vm_return = vm_i8_run_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, delay );
 
-        #ifdef ENABLE_TIME_SYNC
-        if( ( state->vm_id == 0 ) && ( vm_sync_b_is_leader() ) ){
+        // #ifdef ENABLE_TIME_SYNC
+        // if( ( state->vm_id == 0 ) && ( vm_sync_b_is_leader() ) ){
 
-            // record network timestamp and current VM tick
-            vm0_sync_ts = time_u32_get_network_time();
-            vm0_sync_ticks = state->vm_state.tick;   
-        }
+        //     // record network timestamp and current VM tick
+        //     vm0_sync_ts = time_u32_get_network_time();
+        //     vm0_sync_ticks = state->vm_state.tick;   
+        // }
 
-        #endif
+        // #endif
         
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
@@ -1096,8 +1096,8 @@ void vm_v_init( void ){
                      0,
                      0 );
 
-    vm_cron_v_init();
-    vm_seq_v_init();
+    // vm_cron_v_init();
+    // vm_seq_v_init();
     scenes_v_init();
 
     #ifdef VM_DEBUG

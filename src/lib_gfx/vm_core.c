@@ -46,9 +46,9 @@
 #endif
 #endif
 
-#ifdef ENABLE_CONTROLLER
-#include "link.h"
-#endif
+// #ifdef ENABLE_CONTROLLER
+// #include "link.h"
+// #endif
 
 #if defined(ESP8266) && defined(VM_OPTIMIZED_DECODE)
 #error "VM_OPTIMIZED_DECODE does not work on ESP8266!"
@@ -3371,9 +3371,9 @@ int8_t vm_i8_load_program(
     state->publish_start = obj_start;
     obj_start += header.publish_len;
 
-    state->link_count = header.link_len / sizeof(link_t);
-    state->link_start = obj_start;
-    obj_start += header.link_len;
+    // state->link_count = header.link_len / sizeof(link_t);
+    // state->link_start = obj_start;
+    // obj_start += header.link_len;
 
     state->db_count = header.db_len / sizeof(catbus_meta_t);
     state->db_start = obj_start;
@@ -3490,45 +3490,45 @@ int8_t vm_i8_load_program(
     // ******************
     // load links:
     // ******************
-    if( header.link_len > 0 ){
+    // if( header.link_len > 0 ){
 
-        for( uint16_t i = 0; i < state->link_count; i++ ){
+    //     for( uint16_t i = 0; i < state->link_count; i++ ){
 
-            if( fs_i16_read( f, (uint8_t *)obj_ptr, sizeof(link_t) ) != sizeof(link_t) ){
+    //         if( fs_i16_read( f, (uint8_t *)obj_ptr, sizeof(link_t) ) != sizeof(link_t) ){
 
-                status = VM_STATUS_ERR_BAD_FILE_READ;
-                goto error;
-            }   
+    //             status = VM_STATUS_ERR_BAD_FILE_READ;
+    //             goto error;
+    //         }   
 
-            // #ifdef ENABLE_CONTROLLER
-            // link_t *link = (link_t *)obj_ptr;
+    //         // #ifdef ENABLE_CONTROLLER
+    //         // link_t *link = (link_t *)obj_ptr;
 
-            // link2_handle_t link_h = 
-            //     link2_l_create( 
-            //         link->mode,
-            //         link->source_key,
-            //         link->dest_key,
-            //         &link->query,
-            //         // link->tag,
-            //         1 << vm_id,
-            //         link->rate,
-            //         link->aggregation,
-            //         LINK_FILTER_OFF );   
+    //         // link2_handle_t link_h = 
+    //         //     link2_l_create( 
+    //         //         link->mode,
+    //         //         link->source_key,
+    //         //         link->dest_key,
+    //         //         &link->query,
+    //         //         // link->tag,
+    //         //         1 << vm_id,
+    //         //         link->rate,
+    //         //         link->aggregation,
+    //         //         LINK_FILTER_OFF );   
 
-            // if( link_h <= 0 ){
+    //         // if( link_h <= 0 ){
 
-            //     status = VM_STATUS_LOAD_ALLOC_FAIL;
-            //     goto error;
-            // }
+    //         //     status = VM_STATUS_LOAD_ALLOC_FAIL;
+    //         //     goto error;
+    //         // }
 
-            // // record link handle
-            // state->links[i] = link_h;
+    //         // // record link handle
+    //         // state->links[i] = link_h;
 
-            // #endif         
+    //         // #endif         
 
-            obj_ptr += sizeof(link_t);
-        }
-    }
+    //         obj_ptr += sizeof(link_t);
+    //     }
+    // }
 
     // ******************
     // load DB:

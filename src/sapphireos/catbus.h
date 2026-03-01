@@ -27,7 +27,6 @@
 
 #include "catbus_common.h"
 #include "catbus_types.h"
-#include "catbus_link.h"
 #include "ntp.h"
 #include "list.h"
 #include "udp.h"
