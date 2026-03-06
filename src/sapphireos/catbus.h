@@ -119,7 +119,6 @@ typedef struct __attribute__((packed)){
 // DATABASE
 
 #define CATBUS_MAX_HASH_LOOKUPS                 16
-#define CATBUS_MAX_KEY_ITEM_COUNT               32
 #define CATBUS_MAX_KEY_META                     64
 
 typedef struct __attribute__((packed)){
