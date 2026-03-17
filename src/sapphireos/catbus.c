@@ -1701,72 +1701,72 @@ PT_BEGIN( pt );
             // send reply
             sock_i16_sendto_m( sock, h, 0 );
         }
-        else if( header->msg_type == CATBUS_MSG_TYPE_GET_FILE_HASH_LIST ){
+        // else if( header->msg_type == CATBUS_MSG_TYPE_GET_FILE_HASH_LIST ){
 
-            // catbus_msg_file_list_t *msg = (catbus_msg_file_list_t *)header;
+        //     // catbus_msg_file_list_t *msg = (catbus_msg_file_list_t *)header;
 
-            int16_t file_count = fs_u32_get_file_count();
-            // int16_t index = msg->index;
-            int16_t item_count = CATBUS_MAX_FILE_HASH_ENTRIES;
+        //     int16_t file_count = fs_u32_get_file_count();
+        //     // int16_t index = msg->index;
+        //     int16_t item_count = CATBUS_MAX_FILE_HASH_ENTRIES;
             
-            uint16_t reply_len = sizeof(catbus_msg_file_hash_list_t) + ( ( item_count - 1 ) * sizeof(catbus_file_hash_t) );
+        //     uint16_t reply_len = sizeof(catbus_msg_file_hash_list_t) + ( ( item_count - 1 ) * sizeof(catbus_file_hash_t) );
 
-            mem_handle_t h = mem2_h_alloc( reply_len );
+        //     mem_handle_t h = mem2_h_alloc( reply_len );
 
-            if( h < 0 ){
+        //     if( h < 0 ){
 
-                error = CATBUS_ERROR_ALLOC_FAIL;
-                goto end;
-            }
+        //         error = CATBUS_ERROR_ALLOC_FAIL;
+        //         goto end;
+        //     }
 
-            catbus_msg_file_hash_list_t *reply = mem2_vp_get_ptr( h );
+        //     catbus_msg_file_hash_list_t *reply = mem2_vp_get_ptr( h );
 
-            memset( reply, 0, reply_len );
+        //     memset( reply, 0, reply_len );
 
-            _catbus_v_msg_init( &reply->header, CATBUS_MSG_TYPE_FILE_HASH_LIST, header->transaction_id );
+        //     _catbus_v_msg_init( &reply->header, CATBUS_MSG_TYPE_FILE_HASH_LIST, header->transaction_id );
 
-            reply->file_count       = file_count;
-            catbus_file_hash_t *item = &reply->first_hash;
+        //     reply->file_count       = file_count;
+        //     catbus_file_hash_t *item = &reply->first_hash;
 
-            for( uint8_t i = 0; i < item_count; i++ ){
+        //     for( uint8_t i = 0; i < item_count; i++ ){
 
-                item[i].size = -1;
-            }
+        //         item[i].size = -1;
+        //     }
 
-            uint8_t index = 0;
+        //     uint8_t index = 0;
 
-            while( ( item_count > 0 ) && ( index < FS_MAX_FILES ) ){
+        //     while( ( item_count > 0 ) && ( index < FS_MAX_FILES ) ){
                 
-                item->size = fs_i32_get_size_id( index );  
+        //         item->size = fs_i32_get_size_id( index );  
 
-                if( item->size >= 0 ){
+        //         if( item->size >= 0 ){
 
-                    // if( FS_FILE_IS_VIRTUAL( index ) ){
+        //             // if( FS_FILE_IS_VIRTUAL( index ) ){
 
-                    //     item->flags = FS_INFO_FLAGS_VIRTUAL;
-                    // }
+        //             //     item->flags = FS_INFO_FLAGS_VIRTUAL;
+        //             // }
 
-                    char filename[FS_MAX_FILE_NAME_LEN];
-                    fs_i8_get_filename_id( index, filename, sizeof(filename) );
+        //             char filename[FS_MAX_FILE_NAME_LEN];
+        //             fs_i8_get_filename_id( index, filename, sizeof(filename) );
 
-                    kvdb_v_set_name( filename );
+        //             kvdb_v_set_name( filename );
 
-                    item->hash = hash_u32_string( filename );
+        //             item->hash = hash_u32_string( filename );
 
-                    item++;
-                    item_count--;
-                }
+        //             item++;
+        //             item_count--;
+        //         }
 
-                index++;
-            }
+        //         index++;
+        //     }
 
-            // send next index to client, because some indexes will be empty and 
-            // we skip those.
-            // reply->next_index = index;
+        //     // send next index to client, because some indexes will be empty and 
+        //     // we skip those.
+        //     // reply->next_index = index;
 
-            // send reply
-            sock_i16_sendto_m( sock, h, 0 );
-        }
+        //     // send reply
+        //     sock_i16_sendto_m( sock, h, 0 );
+        // }
         else if( header->msg_type == CATBUS_MSG_TYPE_ERROR ){
 
             // catbus_msg_error_t *msg = (catbus_msg_error_t *)header;
