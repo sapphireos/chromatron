@@ -38,7 +38,7 @@ static int16_t gyro_x;
 static int16_t gyro_y;
 static int16_t gyro_z;
 
-KV_SECTION_META kv_meta_t mpu9250_info_kv[] = {
+KV_SECTION_OPT kv_meta_t mpu9250_info_kv[] = {
     { CATBUS_TYPE_INT16,   0, KV_FLAGS_READ_ONLY,  &accel_x,             0,   "accel_x" },
     { CATBUS_TYPE_INT16,   0, KV_FLAGS_READ_ONLY,  &accel_y,             0,   "accel_y" },
     { CATBUS_TYPE_INT16,   0, KV_FLAGS_READ_ONLY,  &accel_z,             0,   "accel_z" },
@@ -104,6 +104,8 @@ void mpu9250_v_init( void ){
     		return;
     	}
     }
+
+    kv_v_add_db_info( mpu9250_info_kv, sizeof(mpu9250_info_kv) );
     
     log_v_debug_P( PSTR("MPU9250 found at 0x%02x"), i2c_addr );
 
