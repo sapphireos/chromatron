@@ -77,7 +77,7 @@ static uint8_t detection_max_pixel;
 #define PIXEL_FILTER_RATIO 128
 
 
-KV_SECTION_META kv_meta_t amg_info_kv[] = {
+KV_SECTION_OPT kv_meta_t amg_info_kv[] = {
     { CATBUS_TYPE_INT16,  0,                          KV_FLAGS_READ_ONLY,  &therm,             0,   "amg_temp" },
 
     { CATBUS_TYPE_INT16,  0,                          KV_FLAGS_READ_ONLY,  &detection_max,     0,   "amg_detection_max" },
@@ -152,6 +152,8 @@ void amg8833_v_init( void ){
     }
 
     log_v_debug_P( PSTR("AMG8833 detected") );
+
+    kv_v_add_db_info( amg_info_kv, sizeof(amg_info_kv) );
 
     amg8833_v_reg_write( AMG8833_REG_INTHL, 0 );
 

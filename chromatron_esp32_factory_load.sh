@@ -3,7 +3,7 @@
 pushd src/bootloaders/loader_esp32
 ./load_esp32_bootloader.sh
 popd
-sapphiremake -p chromatron --load_esp32
+# sapphiremake -p chromatron --load_esp32
 
 # echo "wait for boot..."
 # sleep 20
