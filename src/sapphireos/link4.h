@@ -10,8 +10,8 @@
 #define LINK4_MIN_TICK_RATE                 50
 #define LINK4_MAX_TICK_RATE                 2000
 
-#define LINK4_RETRANSMIT_RATE               2000
-#define LINK4_RETRANSMIT_RATE_FAST          100
+#define LINK4_PROCESS_RATE                  100
+#define LINK4_RETRANSMIT_MAX                64
 
 #define LINK4_MAX_LINKS						16
 
@@ -34,7 +34,7 @@ typedef uint8_t link4_mode_t8;
 #define LINK4_MODE_REMOTE_SEND				3
 
 typedef uint16_t link4_rate_t16;
-#define LINK4_RATE_MIN                      50
+#define LINK4_RATE_MIN                      100
 #define LINK4_RATE_1000ms                   1000
 #define LINK4_RATE_MAX                      30000
 

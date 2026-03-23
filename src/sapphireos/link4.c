@@ -226,7 +226,7 @@ PT_BEGIN( pt );
 
 	while(1){
 
-		TMR_WAIT( pt, LINK4_RATE_MIN );
+		TMR_WAIT( pt, LINK4_PROCESS_RATE );
 
 		list_node_t ln = link_list.head;
 
@@ -238,6 +238,8 @@ PT_BEGIN( pt );
             link4_t *link = &link_state->link;
 
             if( link->mode == LINK4_MODE_SEND ){
+
+                link4_test_key++;
 
             	// lookup local data
             	catbus_meta_t meta;
@@ -302,19 +304,19 @@ PT_BEGIN( pt );
                         link_state->timeout = 1;
                     }
 
-                    log_v_debug_P( PSTR("%d %d"), link_state->timeout, link_state->transmit_timer );
+                    // log_v_debug_P( PSTR("%d %d"), link_state->timeout, link_state->transmit_timer );
             		
             		// tx timer expired!
             		link_state->transmit_timer = link_state->timeout; // reset timer
 					
 					// bump timeout up towards max
-					if( link_state->timeout < 128){
+					if( link_state->timeout < LINK4_RETRANSMIT_MAX){
 
 						link_state->timeout *= 2;
 					}
-					else if( link_state->timeout > 128 ){
+					else if( link_state->timeout > LINK4_RETRANSMIT_MAX ){
 
-						link_state->timeout = 128;
+						link_state->timeout = LINK4_RETRANSMIT_MAX;
 					}
 
             		// create message
