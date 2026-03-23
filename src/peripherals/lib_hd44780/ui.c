@@ -28,8 +28,12 @@ int8_t _lcd_i8_kv_handler(
     return 0;
 }
 
-KV_SECTION_META kv_meta_t lcd_ui_kv[] = {
-    { CATBUS_TYPE_STRING32, 0, 0, 0, _lcd_i8_kv_handler, "ui_line0" },
+KV_SECTION_META kv_meta_t lcd_ui_enable_kv[] = {
+    { CATBUS_TYPE_BOOL, 0, KV_FLAGS_PERSIST, 0, 0, "lcd_enable" },
+};
+
+KV_SECTION_OPT kv_meta_t lcd_ui_kv[] = {
+    { CATBUS_TYPE_STRING32, 0, 0, 0, _lcd_i8_kv_handler, "lcd_line0" },
 };
 
 void set_backlight( uint16_t r, uint16_t g, uint16_t b, uint16_t fade );
@@ -38,6 +42,13 @@ PT_THREAD( ui_thread( pt_t *pt, void *state ) );
 
 
 void ui_v_init( void ){
+
+    if( !kv_b_get_boolean( __KV__lcd_enable ) ){
+
+        return;
+    }
+
+    kv_v_add_db_info( lcd_ui_kv, sizeof(lcd_ui_kv) );
 
 	lcd_v_init( 20, 4 );
     lcd_v_clear();       
