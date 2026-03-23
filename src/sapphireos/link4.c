@@ -323,7 +323,7 @@ PT_BEGIN( pt );
 					device_db_v_reset_iter();
 					device_db_v_set_query( &link->query );
 
-					const device_data_t *device = device_db_p_get_next();
+					const device_data_t *device = device_db_p_get_next_query( 0 );
 
 					while( device != 0 ){
 
@@ -334,7 +334,7 @@ PT_BEGIN( pt );
 
 						sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
-            			device = device_db_p_get_next();
+            			device = device_db_p_get_next_query( 0 );
 					}
 				}
             }
@@ -622,6 +622,18 @@ PT_BEGIN( pt );
 
         	link4_msg_send_t *msg = (link4_msg_send_t *)header;
 
+            // check if our query matches:
+            if( !catbus_b_query_self( &msg->link.query ) ){
+
+                log_v_debug_P( PSTR("Received send link from: %d.%d.%d.%d with unmatched query!"),
+                              raddr.ipaddr.ip3,
+                              raddr.ipaddr.ip2,
+                              raddr.ipaddr.ip1,
+                              raddr.ipaddr.ip0 );
+                
+                continue;
+            }
+
         	// check for matching remote receive link
         	msg->link.mode = LINK4_MODE_REMOTE_RECV;
 
@@ -640,7 +652,11 @@ PT_BEGIN( pt );
         			continue;
         		}
 
-        		log_v_info_P( PSTR("Created remote receive link") );
+        		log_v_info_P( PSTR("Created remote receive link from: %d.%d.%d.%d"),
+                              raddr.ipaddr.ip3,
+                              raddr.ipaddr.ip2,
+                              raddr.ipaddr.ip1,
+                              raddr.ipaddr.ip0 );
         	}
 
         	ASSERT( lh > 0 );
