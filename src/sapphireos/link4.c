@@ -261,7 +261,7 @@ PT_BEGIN( pt );
 	            if( link_state->database_h <= 0 ){
 
 	            	// create database
-	            	link_state->database_h = mem2_h_alloc( sizeof(link4_data_t) );
+	            	link_state->database_h = mem2_h_alloc2( sizeof(link4_data_t), MEM_TYPE_LINK4_DB );
 
 	            	if( link_state->database_h < 0 ){
 	            		
