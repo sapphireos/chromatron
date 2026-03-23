@@ -27,6 +27,9 @@ static list_t link_list;
 static int32_t link4_test_key;
 static int32_t link4_test_key2;
 
+static uint32_t link4_msgs_sent;
+static uint32_t link4_msgs_recv;
+
 static int8_t _kv_i8_link_client_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -53,6 +56,9 @@ KV_SECTION_META kv_meta_t link4_kv[] = {
 
     { CATBUS_TYPE_INT32,   0, 0,                   &link4_test_key,             0,  "link4_test_key" },
     { CATBUS_TYPE_INT32,   0, 0,                   &link4_test_key2,            0,  "link4_test_key2" },
+
+    { CATBUS_TYPE_UINT32,  0, 0,                   &link4_msgs_sent,            0,  "link4_msgs_sent" },
+    { CATBUS_TYPE_UINT32,  0, 0,                   &link4_msgs_recv,            0,  "link4_msgs_recv" },
 };
 
 
@@ -341,7 +347,14 @@ PT_BEGIN( pt );
 							.port = LINK4_PORT,
 						};
 
-						sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+						if( sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr ) < 0 ){
+
+                            log_v_error_P( PSTR("socket send failed") );
+
+                            break;
+                        }
+
+                        link4_msgs_sent++;
 
             			device = device_db_p_get_next_query( 0 );
 					}
@@ -550,6 +563,8 @@ PT_BEGIN( pt );
                 
                 continue;
             }
+
+            link4_msgs_recv++;
 
         	// check for matching remote receive link
         	msg->link.mode = LINK4_MODE_REMOTE_RECV;
