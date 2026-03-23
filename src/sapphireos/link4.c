@@ -296,6 +296,13 @@ PT_BEGIN( pt );
             		link_state->transmit_timer--;
             	}
             	else{
+
+                    if( link_state->timeout == 0 ){
+
+                        link_state->timeout = 1;
+                    }
+
+                    log_v_debug_P( PSTR("%d %d"), link_state->timeout, link_state->transmit_timer );
             		
             		// tx timer expired!
             		link_state->transmit_timer = link_state->timeout; // reset timer
@@ -338,43 +345,43 @@ PT_BEGIN( pt );
 					}
 				}
             }
-            else if( link->mode == LINK4_MODE_RECV ){
+            // else if( link->mode == LINK4_MODE_RECV ){
 
-                if( link_state->transmit_timer > 0 ){
+            //     if( link_state->transmit_timer > 0 ){
 
-                    link_state->transmit_timer--;
-                }
-                else{
+            //         link_state->transmit_timer--;
+            //     }
+            //     else{
 
-                    link_state->transmit_timer = 100;
+            //         link_state->transmit_timer = 100;
 
-                    // create message
-                    link4_msg_recv_t msg = {
-                        .header.magic       = LINK4_MAGIC,
-                        .header.msg_type    = LINK4_MSG_TYPE_RECV,
-                        .header.version     = LINK4_VERSION,
-                        .link               = *link,
-                    };
+            //         // create message
+            //         link4_msg_recv_t msg = {
+            //             .header.magic       = LINK4_MAGIC,
+            //             .header.msg_type    = LINK4_MSG_TYPE_RECV,
+            //             .header.version     = LINK4_VERSION,
+            //             .link               = *link,
+            //         };
 
-                    // transmit to target nodes:
-                    device_db_v_reset_iter();
-                    device_db_v_set_query( &link->query );
+            //         // transmit to target nodes:
+            //         device_db_v_reset_iter();
+            //         device_db_v_set_query( &link->query );
 
-                    const device_data_t *device = device_db_p_get_next();
+            //         const device_data_t *device = device_db_p_get_next();
 
-                    while( device != 0 ){
+            //         while( device != 0 ){
 
-                        sock_addr_t raddr = {
-                            .ipaddr = device->ip,
-                            .port = LINK4_PORT,
-                        };
+            //             sock_addr_t raddr = {
+            //                 .ipaddr = device->ip,
+            //                 .port = LINK4_PORT,
+            //             };
 
-                        sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+            //             sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 
-                        device = device_db_p_get_next();
-                    }
-                }
-            }
+            //             device = device_db_p_get_next();
+            //         }
+            //     }
+            // }
             else if( link->mode == LINK4_MODE_REMOTE_RECV ){
 
             	if( link_state->timeout > 0 ){
@@ -445,20 +452,20 @@ PT_BEGIN( pt );
             			}
             		}
             	}
-                else if( link->mode == LINK4_MODE_REMOTE_SEND ){
+                // else if( link->mode == LINK4_MODE_REMOTE_SEND ){
 
-                    if( link_state->timeout > 0 ){
+                //     if( link_state->timeout > 0 ){
 
-                        link_state->timeout--;
-                    }
+                //         link_state->timeout--;
+                //     }
 
-                    if( link_state->timeout == 0 ){
+                //     if( link_state->timeout == 0 ){
 
-                        log_v_info_P( PSTR("Remote send link timed out") );
+                //         log_v_info_P( PSTR("Remote send link timed out") );
 
-                        delete_link( ln );
-                    }
-                }
+                //         delete_link( ln );
+                //     }
+                // }
             }
 
 next:
@@ -466,98 +473,6 @@ next:
         }   
 
 	}
-
-    // load_links_from_file();
-
-    // if(stats_handle > 0){
-
-    //     mem2_v_free( stats_handle );
-    // }
-
-    // THREAD_WAIT_WHILE( pt, ( link_u8_count() == 0 ) &&
-    //                        ( producer_count() == 0 ) );
-
-    // if( stats_handle <= 0 ){
-
-    //     // allocate memory for stats
-    //     stats_handle = mem2_h_alloc( sizeof(link_stats_t) * LINK_MAX_STATS );
-
-    //     if( stats_handle <= 0 ){
-
-    //         // uh, bummer?
-    //     }
-    // }
-    
-    // // init alarm
-    // thread_v_set_alarm( tmr_u32_get_system_time_ms() );
-
-    // while(1){
-
-    //     if( link_process_tick_rate < LINK_MIN_TICK_RATE ){
-
-    //         link_process_tick_rate = LINK_MIN_TICK_RATE;
-    //     }
-    //     else if( link_process_tick_rate > LINK_MAX_TICK_RATE ){
-
-    //         link_process_tick_rate = LINK_MAX_TICK_RATE;
-    //     }
-
-    //     uint32_t prev_alarm = thread_u32_get_alarm();
-
-    //     thread_v_set_alarm( prev_alarm + link_process_tick_rate );
-    //     THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && !sys_b_is_shutting_down() );
-
-    //     // check if shutting down
-    //     if( sys_b_is_shutting_down() ){
-
-    //         transmit_shutdown();
-    //         TMR_WAIT( pt, 100 );
-    //         transmit_shutdown();
-    //         TMR_WAIT( pt, 100 );
-    //         transmit_shutdown();
-
-    //         THREAD_EXIT( pt );
-    //     }
-
-    //     uint32_t elapsed_time = link_process_tick_rate;
-
-    //     // reset process tick rate.
-    //     // existing links and producers will update to the max rate
-    //     // needed.  this is here to reduce the rate if a link or producer
-    //     // is removed.
-    //     link_process_tick_rate = LINK_MIN_TICK_RATE;
-
-    //     // update timeouts
-    //     process_consumer_timeouts( elapsed_time );
-    //     process_producer_timeouts( elapsed_time );
-    //     process_remote_timeouts( elapsed_time );
-    //     process_stats_timeouts( elapsed_time );
-        
-    //     list_node_t ln;
-
-    //     // process producers
-    //     ln = producer_list.head;
-
-    //     while( ln >= 0 ){
-
-    //         producer_state_t *producer = list_vp_get_data( ln );
-            
-    //         process_producer( producer, elapsed_time );
-            
-    //         ln = list_ln_next( ln );
-    //     }
-
-    //     // process links
-    //     ln = link_list.head;
-
-    //     while( ln >= 0 ){
-
-    //         process_link( ln, elapsed_time );
-
-    //         ln = list_ln_next( ln );
-    //     }
-
-    // }
 
 PT_END( pt );
 }
@@ -765,384 +680,39 @@ PT_BEGIN( pt );
          		}
          	}
         }
-        else if( header->msg_type == LINK4_MSG_TYPE_RECV ){
+        // else if( header->msg_type == LINK4_MSG_TYPE_RECV ){
 
-            link4_msg_recv_t *msg = (link4_msg_recv_t *)header;
+        //     link4_msg_recv_t *msg = (link4_msg_recv_t *)header;
 
-            // check for matching remote send link
-            msg->link.mode = LINK4_MODE_REMOTE_SEND;
+        //     // check for matching remote send link
+        //     msg->link.mode = LINK4_MODE_REMOTE_SEND;
 
-            // check for corresponding link
-            link4_handle_t lh = link4_l_lookup( &msg->link );
+        //     // check for corresponding link
+        //     link4_handle_t lh = link4_l_lookup( &msg->link );
 
-            if( lh <= 0 ){
+        //     if( lh <= 0 ){
 
-                // need to create remote receive link
-                lh = link4_l_create2( &msg->link );
+        //         // need to create remote receive link
+        //         lh = link4_l_create2( &msg->link );
 
-                if( lh <= 0 ){
+        //         if( lh <= 0 ){
 
-                    log_v_error_P( PSTR("alloc failed") );
+        //             log_v_error_P( PSTR("alloc failed") );
 
-                    continue;
-                }
+        //             continue;
+        //         }
 
-                log_v_info_P( PSTR("Created remote send link") );
-            }
+        //         log_v_info_P( PSTR("Created remote send link") );
+        //     }
 
-            ASSERT( lh > 0 );
+        //     ASSERT( lh > 0 );
 
-            link4_state_t *link_state = (link4_state_t *)list_vp_get_data( lh );
+        //     link4_state_t *link_state = (link4_state_t *)list_vp_get_data( lh );
 
-            // update timeout
-            link_state->timeout = LINK4_LINK_TIMEOUT;
-
-            
-        }
+        //     // update timeout
+        //     link_state->timeout = LINK4_LINK_TIMEOUT;
+        // }
     }
-
-//         if( header->msg_type == LINK_MSG_TYPE_CONSUMER_QUERY ){
-
-//             // trace_printf("LINK: RX consumer query\n");
-
-//             link_msg_consumer_query_t *msg = (link_msg_consumer_query_t *)header;
-
-//             if( msg->mode == LINK_MODE_SEND ){
-
-//                 // check if we have this link, if so, we are part of the send group,
-//                 // not the consumer group, even if we would otherwise match the query.
-//                 // this is a bit of a corner case, but it handles the scenario where
-//                 // a send producer also matches as a consumer and is receiving data
-//                 // it is trying to send.
-//                 if( link_l_lookup_by_hash( msg->hash ) > 0 ){
-
-//                     goto end;
-//                 }
-
-//                 // check query
-//                 if( !catbus_b_query_self( &msg->query ) ){
-
-//                     goto end;
-//                 }
-//             }
-//             else if( msg->mode == LINK_MODE_RECV ){
-
-//                 // consumers on a receive link should
-//                 // have the link itself, so we should
-//                 // not be receiving this message at all (receive leaders shouldn't be sending it).
-//                 // the sender is probably confused.
-//                 log_v_error_P( PSTR("receive links should not be sending consumer query") );
-                
-//                 goto end;
-//             }
-
-//             #ifdef TEST_MODE
-//             if( test_link_mode == 0 ){
-
-//                 if( ( msg->key == __KV__link_test_key ) ||
-//                     ( msg->key == __KV__link_test_key2 ) ){
-
-//                     goto end;
-//                 }
-
-//             }
-//             #endif
-
-//             // check key
-//             if( kv_i16_search_hash( msg->key ) < 0 ){
-
-//                 goto end;
-//             }
-
-//             // we are a consumer for this link
-            
-//             // transmit response
-//             transmit_consumer_match( msg->hash, &raddr );
-//         }
-//         else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_QUERY ){
-
-//             // trace_printf("LINK: RX producer query\n");
-
-//             link_msg_producer_query_t *msg = (link_msg_producer_query_t *)header;
-
-//             // check query
-//             if( !catbus_b_query_self( &msg->query ) ){
-
-//                 goto end;
-//             }
-
-//             // check key
-//             if( kv_i16_search_hash( msg->key ) < 0 ){
-
-//                 goto end;
-//             }
-
-//              #ifdef TEST_MODE
-//             if( test_link_mode == 0 ){
-
-//                 if( ( msg->key == __KV__link_test_key ) ||
-//                     ( msg->key == __KV__link_test_key2 ) ){
-
-//                     goto end;
-//                 }
-
-//             }
-//             #endif
-
-//             // we are a producer for this link
-
-//             update_producer_from_query( msg, &raddr );
-
-//             // log_v_debug_P("LINK: %s() producer match\n", __FUNCTION__);
-//             // trace_printf("LINK: %s() producer match\n", __FUNCTION__);
-//         }
-//         else if( header->msg_type == LINK_MSG_TYPE_CONSUMER_MATCH ){
-
-//             // trace_printf("LINK: RX consumer match\n");
-
-//             link_msg_consumer_match_t *msg = (link_msg_consumer_match_t *)header;
-
-//             // received a match
-//             update_consumer( msg->hash, &raddr );
-//         }
-//         else if( header->msg_type == LINK_MSG_TYPE_CONSUMER_DATA ){
-
-//             // trace_printf("LINK: RX consumer DATA\n");
-
-//             link_msg_data_t *msg = (link_msg_data_t *)header;
-
-//             catbus_meta_t meta;
-
-//             if( kv_i8_get_catbus_meta( msg->hash, &meta ) < 0 ){
-
-//                 log_v_error_P( PSTR("rx hash 0x%08x not found!"), msg->hash );
-
-//                 goto end;
-//             }
-
-//             // if( memcmp( &meta, &msg->data.meta, sizeof(meta) ) != 0 ){
-
-//             //     log_v_error_P( PSTR("rx meta does not match!") );
-
-//             //     goto end;
-//             // }
-
-//             // verify data lengths
-//             uint16_t msg_data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(link_msg_data_t) - 1 );
-//             uint16_t array_len = meta.count + 1;
-//             // uint16_t type_len = type_u16_size( meta.type );
-//             // uint16_t data_len = array_len * type_len;
-
-//             // if( data_len != msg_data_len ){
-
-//             //     log_v_error_P( PSTR("rx len does not match!") );
-
-//             //     goto end;
-//             // }
-
-//             if( catbus_i8_array_set( msg->hash, msg->data.meta.type, 0, array_len, &msg->data.data, msg_data_len ) < 0 ){
-
-//                 log_v_error_P( PSTR("data fail: 0c%08x"), msg->hash );
-
-//                 goto end;
-//             }
-
-//             update_stats_received_key( msg->hash );
-//         }
-//         else if( header->msg_type == LINK_MSG_TYPE_PRODUCER_DATA ){
-
-//             // trace_printf("LINK: RX producer DATA\n");
-
-//             link_msg_data_t *msg = (link_msg_data_t *)header;
-
-//             // get link
-//             link_handle_t link = link_l_lookup_by_hash( msg->hash );
-
-//             if( link < 0 ){
-
-//                 log_v_error_P( PSTR("link not found!") );
-
-//                 goto end;
-//             }
-
-//             // are we leader?
-//             if( !is_link_leader( link ) ){
-
-//                 log_v_error_P( PSTR("not a leader!") );
-
-//                 goto end;
-//             }
-
-//             link_state_t *link_state = link_ls_get_data( link );
-
-//             // get meta data from database
-//             catbus_meta_t meta;
-//             if( kv_i8_get_catbus_meta( link_state->dest_key, &meta ) < 0 ){
-
-//                 log_v_error_P( PSTR("dest key not found!") );
-
-//                 goto end;
-//             }
-
-//             // check keys.  the producer should be sending us the 
-//             // source key (they don't know the destination key)
-//             if( msg->data.meta.hash != link_state->source_key ){
-
-//                 log_v_error_P( PSTR("producer sent wrong source key!") );
-
-//                 goto end;
-//             }
-
-//             // now change the key in the msg meta data to the 
-//             // dest key, which is what we're using from here on out
-//             msg->data.meta.hash = link_state->dest_key;
-
-//             // compare meta data, all producers need to match the leader
-//             // if( memcmp( &meta, &msg->data.meta, sizeof(meta) ) != 0 ){
-
-//             //     log_v_error_P( PSTR("meta data mismatch!") );
-
-//             //     goto end;
-//             // }
-
-//             // verify data lengths
-//             uint16_t msg_data_len = sock_i16_get_bytes_read( sock ) - ( sizeof(link_msg_data_t) - 1 );
-//             // uint16_t array_len = meta.count + 1;
-//             // uint16_t type_len = type_u16_size( meta.type );
-//             // uint16_t data_len = array_len * type_len;
-
-//             // if( data_len != msg_data_len ){
-
-//             //     log_v_error_P( PSTR("rx len does not match!") );
-
-//             //     goto end;
-//             // }
-
-//             // update remote data and timeout
-//             // update_remote( &raddr, link, &msg->data.data, data_len );
-//             update_remote( &raddr, link, &msg->data, msg_data_len );
-//         }
-//         else if( header->msg_type == LINK_MSG_TYPE_ADD ){
-
-//             link_msg_add_t *msg = (link_msg_add_t *)header;
-
-//             link_handle_t link = link_l_create(
-//                 msg->mode,
-//                 msg->source_key,
-//                 msg->dest_key,
-//                 &msg->query,
-//                 msg->tag,
-//                 msg->rate,
-//                 msg->aggregation,
-//                 msg->filter );
-
-//             link_msg_confirm_t reply;
-
-//             if( link > 0 ){
-
-//                 save_link_to_file( link );
-//                 reply.status = 0;
-//             }
-//             else{
-
-//                 reply.status = -1;
-//             }
-            
-//             init_header( &reply.header, LINK_MSG_TYPE_CONFIRM );
-
-//             sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );
-//         }
-//         else if( header->msg_type == LINK_MSG_TYPE_DELETE ){
-
-//             link_msg_delete_t *msg = (link_msg_delete_t *)header;
-
-//             if( msg->tag != 0 ){
-                
-//                 link_v_delete_by_tag( msg->tag );
-//             }
-//             else{
-
-//                 link_v_delete_by_hash( msg->hash );
-//             }
-
-//             link_msg_confirm_t reply;
-//             init_header( &reply.header, LINK_MSG_TYPE_CONFIRM );
-//             reply.status = 0;
-
-//             sock_i16_sendto( sock, (uint8_t *)&reply, sizeof(reply), 0 );
-//         }
-//         else if( header->msg_type == LINK_MSG_TYPE_SHUTDOWN ){
-
-//             list_node_t ln = producer_list.head;
-
-//             while( ln >= 0 ){
-
-//                 list_node_t next_ln = list_ln_next( ln );
-
-//                 producer_state_t *producer = list_vp_get_data( ln );
-
-//                 if( sock_b_addr_compare( &raddr, &producer->leader_addr ) ){
-
-//                     // remove producer
-//                     list_v_remove( &producer_list, ln );
-//                     list_v_release_node( ln );
-
-//                     trace_printf("LINK: producer leader shutdown\n");
-//                 }
-
-//                 ln = next_ln;
-//             }   
-
-
-//             ln = remote_list.head;
-
-//             while( ln >= 0 ){
-
-//                 list_node_t next_ln = list_ln_next( ln );
-
-//                 remote_state_t *remote = list_vp_get_data( ln );
-
-//                 if( sock_b_addr_compare( &raddr, &remote->addr ) ){
-
-//                     // remove remote
-//                     list_v_remove( &remote_list, ln );
-//                     list_v_release_node( ln );
-
-//                     trace_printf("LINK: remote shutdown\n");
-//                 }
-
-//                 ln = next_ln;
-//             }
-
-
-//             ln = consumer_list.head;
-
-//             while( ln >= 0 ){
-
-//                 list_node_t next_ln = list_ln_next( ln );
-
-//                 consumer_state_t *consumer = list_vp_get_data( ln );
-
-//                 // if timeout expires, or we are not link leader
-//                 if( sock_b_addr_compare( &raddr, &consumer->addr ) ){
-
-//                     // remove consumer
-//                     list_v_remove( &consumer_list, ln );
-//                     list_v_release_node( ln );
-
-//                     trace_printf("LINK: consumer shutdown\n");
-//                 }
-
-//                 ln = next_ln;
-//             }
-
-//         }
-
-
-// end:
-    
-//         THREAD_YIELD( pt );
-//     }
 
 PT_END( pt );
 }
