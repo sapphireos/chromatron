@@ -158,6 +158,26 @@ void vm4_v_reset( uint8_t vm_id ){
 }
 
 
+void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_t8 type, uint8_t flags, uint8_t vm_id ){
+
+    // if( vm_id == 0 ){
+
+    //     if( index < cnt_of_array(vm_published_hash) ){
+
+    //         vm_published_hash[index] = hash;
+    //     }
+    // }
+
+    kvdb_i8_add( hash, type, 1, 0, 0 );
+    kvdb_v_set_tag( hash, ( 1 << vm_id ) );
+
+    if( flags & KV_FLAGS_PERSIST ){
+
+        kvdb_i8_set_persist( hash, TRUE );
+    }
+}
+
+
 PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
@@ -241,6 +261,8 @@ restart:
 
 end:
     vm_deinit( &state->vm );
+
+    kvdb_v_clear_tag( 0, 1 << state->vm_id );
 
     // retain halt status, otherwise reset
     if( vm_status[state->vm_id] != VM_STATUS_HALT ){
