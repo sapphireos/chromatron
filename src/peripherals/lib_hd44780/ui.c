@@ -50,17 +50,27 @@ void ui_v_init( void ){
 
     kv_v_add_db_info( lcd_ui_kv, sizeof(lcd_ui_kv) );
 
-	lcd_v_init( 20, 4 );
+	// lcd_v_init( 20, 4 );
+    lcd_v_init( 40, 4 );
     lcd_v_clear();       
    	
    	lcd_v_printf_P( 0, 0, PSTR("SapphireOS") );
    	lcd_v_printf_P( 0, 1, PSTR("UI init...") );
+    lcd_v_printf_P( 0, 2, PSTR("Line 2") );
+    lcd_v_printf_P( 21, 2, PSTR("Pos 21") );
+    lcd_v_printf_P( 0, 3, PSTR("Line 3") );
 
     pca9685_v_init( PCA9685_I2C_ADDR_0 );
     pca9685_v_set_freq( 4 );
 
-    set_backlight( PCA9685_MAX_PWM, PCA9685_MAX_PWM, PCA9685_MAX_PWM, 1000 );
-	
+    // set_backlight( PCA9685_MAX_PWM, PCA9685_MAX_PWM, PCA9685_MAX_PWM, 1000 );
+	set_backlight( 0, 0, 0, 1000 );
+
+    // pca9685_v_set( 0, 0 );
+    // pca9685_v_set( 2, 0 );
+    // pca9685_v_set( 4, 0 );
+
+
     // all off
     // pca9685_v_set( 0, 4095 );
     // pca9685_v_set( 2, 4095 );

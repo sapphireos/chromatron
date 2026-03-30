@@ -46,10 +46,9 @@ static uint8_t lcd_size_y;
 	mcp23008_v_digital_write( LCD_ENABLE_PIN, FALSE )
 
 // #ifdef LCD_ENABLE_2_PRESENT
-// #define StrobeE2() 
-//     io_v_digital_write( LCD_ENABLE_2_GPIO, TRUE ); 
-//     _delay_us( 10 ); 
-//     io_v_digital_write( LCD_ENABLE_2_GPIO, FALSE )
+#define StrobeE2() \
+    mcp23008_v_digital_write( LCD_ENABLE2_PIN, TRUE ); \
+    mcp23008_v_digital_write( LCD_ENABLE2_PIN, FALSE )
 // #endif
 
 
@@ -95,10 +94,10 @@ static void Port4BitWrite( uint8_t data, uint8_t en ){
         StrobeE();
     }
     // #ifdef LCD_ENABLE_2_PRESENT
-    // else{
+    else{
 
-    //     StrobeE2();
-    // }
+        StrobeE2();
+    }
     // #endif
 }
 
@@ -108,6 +107,11 @@ static void Port8BitWrite( uint8_t data, uint8_t en ){
     // _delay_us( 10 );
 	Port4BitWrite( data & 0xff, en );
     // _delay_us( 10 );
+}
+
+static bool is_enable2( void ){
+
+    return lcd_size_x > 20;
 }
 
 void lcd_v_init( uint8_t size_x, uint8_t size_y ){
@@ -124,6 +128,12 @@ void lcd_v_init( uint8_t size_x, uint8_t size_y ){
     mcp23008_v_set_mode( LCD_DATA_PIN_D5, IO_MODE_OUTPUT );
     mcp23008_v_set_mode( LCD_DATA_PIN_D6, IO_MODE_OUTPUT );
     mcp23008_v_set_mode( LCD_DATA_PIN_D7, IO_MODE_OUTPUT );
+
+    if( is_enable2() ){
+
+        mcp23008_v_set_mode( LCD_ENABLE2_PIN, IO_MODE_OUTPUT );
+    }
+
     // mcp23008_v_set_mode( LCD_BACKLIGHT_PIN, IO_MODE_OUTPUT );
 
     // #ifdef LCD_ENABLE_2_PRESENT
@@ -173,40 +183,42 @@ void lcd_v_init( uint8_t size_x, uint8_t size_y ){
 	Port8BitWrite( 0x02, 0 ); // cursor home
 
     // #ifdef LCD_ENABLE_2_PRESENT
+    if( is_enable2() ){
 
-    // // write 0x03
-    // Port4BitWrite( 0x03, 1 );
+        // write 0x03
+        Port4BitWrite( 0x03, 1 );
 
-    // _delay_ms( 5 );
-    // StrobeE2();
-    // _delay_ms( 5 );
-    // StrobeE2();
-    // _delay_ms( 5 );
+        _delay_ms( 5 );
+        StrobeE2();
+        _delay_ms( 5 );
+        StrobeE2();
+        _delay_ms( 5 );
 
-    // // write 0x02
-    // Port4BitWrite( 0x02, 1 );
+        // write 0x02
+        Port4BitWrite( 0x02, 1 );
 
-    // _delay_ms( 1 );
-    // Port8BitWrite( 0x28, 1 ); // function set
+        _delay_ms( 1 );
+        Port8BitWrite( 0x28, 1 ); // function set
 
-    // _delay_ms( 1 );
-    // Port8BitWrite( 0x08, 1 ); // display off
+        _delay_ms( 1 );
+        Port8BitWrite( 0x08, 1 ); // display off
 
-    // _delay_ms( 1 );
-    // Port8BitWrite( 0x01, 1 );
+        _delay_ms( 1 );
+        Port8BitWrite( 0x01, 1 );
 
-    // _delay_ms( 3 );
+        _delay_ms( 3 );
 
-    // _delay_ms( 1 );
-    // Port8BitWrite( 0x06, 1 ); // entry mode
+        _delay_ms( 1 );
+        Port8BitWrite( 0x06, 1 ); // entry mode
 
-    // _delay_ms( 1 );
-    // Port8BitWrite( 0x0C, 1 ); // display on, cursor off, blink off
-    // // Port8BitWrite( 0x0F, 1 ); // display on, cursor on, blink on
+        _delay_ms( 1 );
+        Port8BitWrite( 0x0C, 1 ); // display on, cursor off, blink off
+        // Port8BitWrite( 0x0F, 1 ); // display on, cursor on, blink on
 
-    // _delay_ms( 1 );
-    // Port8BitWrite( 0x02, 1 ); // cursor home
-    // #endif
+        _delay_ms( 1 );
+        Port8BitWrite( 0x02, 1 ); // cursor home
+        // #endif
+    }
 
     _delay_ms( 3 );
 	// initialization complete
@@ -224,8 +236,11 @@ void lcd_v_clear( void ){
 
     Port8BitWrite( 0x01, 0 );
 
-    // #ifdef LCD_ENABLE_2_PRESENT
-    // Port8BitWrite( 0x01, 1 );
+    // #`ifdef LCD_ENABLE_2_PRESENT
+    if( is_enable2() ){
+        
+        Port8BitWrite( 0x01, 1 );
+    }
     // #endif
 
     // this command takes 1.64ms

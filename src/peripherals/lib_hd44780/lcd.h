@@ -26,13 +26,15 @@
 
 #include "sapphire.h"
 
-#define LCD_ENABLE_PIN      2
 #define LCD_RS_PIN          1
-#define LCD_DATA_PIN_D4     3
-#define LCD_DATA_PIN_D5     4
-#define LCD_DATA_PIN_D6     5
-#define LCD_DATA_PIN_D7     6
-// #define LCD_BACKLIGHT_PIN   7
+#define LCD_ENABLE_PIN      2
+#define LCD_ENABLE2_PIN     3
+#define LCD_DATA_PIN_D4     4
+#define LCD_DATA_PIN_D5     5
+#define LCD_DATA_PIN_D6     6
+#define LCD_DATA_PIN_D7     7
+
+// strap RW pin to ground for write only
 
 
 /*#if (LCD_SIZE_Y > 2 )    
