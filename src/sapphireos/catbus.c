@@ -446,7 +446,7 @@ int8_t _catbus_i8_internal_set(
     uint16_t array_len = meta.array_len + 1;
 
     // wrap index
-    if( index > array_len ){
+    if( index >= array_len ){
 
         index %= array_len;
     }
@@ -551,7 +551,7 @@ int8_t catbus_i8_array_get(
     uint16_t array_len = meta.array_len + 1;
 
     // wrap index
-    if( index > array_len ){
+    if( index >= array_len ){
 
         index %= array_len;
     }
