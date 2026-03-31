@@ -1843,7 +1843,7 @@ PT_BEGIN( pt );
     
     while(1){
 
-        TMR_WAIT( pt, ( CATBUS_ANNOUNCE_INTERVAL * 1000 ) + ( rnd_u16_get_int() >> 6 ) ); // add up to 1023 ms randomly
+        TMR_WAIT( pt, ( CATBUS_ANNOUNCE_INTERVAL * 1000 ) + ( rnd_u16_get_int() >> 5 ) ); // add up to 2047 ms randomly
 
         // are we shutting down?
         if( sys_b_is_shutting_down() ){
