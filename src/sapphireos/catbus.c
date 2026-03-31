@@ -1857,6 +1857,8 @@ PT_BEGIN( pt );
         _catbus_v_broadcast_announce();
         TMR_WAIT( pt, 100 );
         _catbus_v_broadcast_announce();
+        TMR_WAIT( pt, 100 );
+        _catbus_v_broadcast_announce();
     }
 
 PT_END( pt );
