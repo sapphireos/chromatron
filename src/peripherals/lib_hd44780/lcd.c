@@ -28,6 +28,9 @@
 
 // in 4x40 mode, requires a GPIO pin for the second enable line.
 
+
+// https://web.alfredstate.edu/faculty/weimandn/lcd/lcd_addressing/lcd_addressing_index.html
+
 #include <stdarg.h>
 
 #include "sapphire.h"
@@ -267,16 +270,22 @@ void lcd_v_write( char *s, uint8_t x, uint8_t y ){
     for( uint8_t i = 0; i < len; i++ ){
 
         // #ifdef LCD_ENABLE_2_PRESENT
-        // if( y < 2 ){
-            
-        //     Port8BitWrite( s[i], 0 );
-        // }
-        // else{
+        if( is_enable2() ){
 
-        //     Port8BitWrite( s[i], 1 );   
-        // }
+            if( y < 2 ){
+                
+                Port8BitWrite( s[i], 0 );
+            }
+            else{
+
+                Port8BitWrite( s[i], 1 );   
+            }
         // #else
-        Port8BitWrite( s[i], 0 );
+        }
+        else{
+
+            Port8BitWrite( s[i], 0 );
+        }
         // #endif
     }
 }
@@ -304,11 +313,27 @@ void lcd_v_cursor( uint8_t x, uint8_t y ){
     }
     else if( y == 2 ){
 
-        Port8BitWrite( 0x80 + 0x14 + x, 0 );
+        if( is_enable2() ){
+
+            // Port8BitWrite( 0x80 + 0x14 + x, 1 );
+            Port8BitWrite( 0x80 + 0 + x, 1 );
+        }
+        else{
+
+            Port8BitWrite( 0x80 + 0x14 + x, 0 );
+        }
     }
     else if( y == 3 ){
 
-        Port8BitWrite( 0x80 + 0x54 + x, 0 );
+        if( is_enable2() ){
+
+            // Port8BitWrite( 0x80 + 0x54 + x, 1 );
+            Port8BitWrite( 0x80 + 0x40 + x, 1 );
+        }
+        else{
+
+            Port8BitWrite( 0x80 + 0x54 + x, 0 );
+        }
     }
 
     // #ifdef LCD_ENABLE_2_PRESENT

@@ -57,7 +57,7 @@ void ui_v_init( void ){
    	lcd_v_printf_P( 0, 0, PSTR("SapphireOS") );
    	lcd_v_printf_P( 0, 1, PSTR("UI init...") );
     lcd_v_printf_P( 0, 2, PSTR("Line 2") );
-    lcd_v_printf_P( 21, 2, PSTR("Pos 21") );
+    lcd_v_printf_P( 20, 2, PSTR("Pos 20") );
     lcd_v_printf_P( 0, 3, PSTR("Line 3") );
 
     pca9685_v_init( PCA9685_I2C_ADDR_0 );
