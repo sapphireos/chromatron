@@ -252,6 +252,7 @@ PT_BEGIN( pt );
             	if( kv_i8_get_catbus_meta( link->source_key, &meta ) < 0 ){
         		
         			// not found!
+                    log_v_error_P( PSTR("meta not found!") );
 
 		            goto next;
 		        }
@@ -339,6 +340,11 @@ PT_BEGIN( pt );
 					device_db_v_set_query( &link->query );
 
 					const device_data_t *device = device_db_p_get_next_query( 0 );
+
+                    // if( device == 0 ){
+
+                    //     log_v_error_P( PSTR("device not found!") );
+                    // }
 
 					while( device != 0 ){
 
