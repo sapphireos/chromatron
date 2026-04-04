@@ -30,6 +30,7 @@
 
 
 // https://web.alfredstate.edu/faculty/weimandn/lcd/lcd_addressing/lcd_addressing_index.html
+// https://www.8051projects.net/lcd-interfacing/lcd-custom-character.php
 
 #include <stdarg.h>
 
@@ -365,5 +366,64 @@ void lcd_v_printf_P( uint8_t x, uint8_t y, PGM_P format, ... ){
     lcd_v_write( buf, x, y );
 }
 
+void lcd_v_set_cgram( uint8_t index, uint8_t values[8] ){
+
+    mcp23008_v_clear( LCD_RS_PIN );
+
+    Port8BitWrite( 0x40 + index * 8, 0 );
+
+    if( is_enable2() ){
+
+        Port8BitWrite( 0x40 + index * 8, 1 );
+    }
+
+    mcp23008_v_set( LCD_RS_PIN );
+
+    Port8BitWrite( values[0], 0 );
+    Port8BitWrite( values[1], 0 );
+    Port8BitWrite( values[2], 0 );
+    Port8BitWrite( values[3], 0 );
+    Port8BitWrite( values[4], 0 );
+    Port8BitWrite( values[5], 0 );
+    Port8BitWrite( values[6], 0 );
+    Port8BitWrite( values[7], 0 );
+
+    if( is_enable2() ){
+
+        Port8BitWrite( values[0], 1 );
+        Port8BitWrite( values[1], 1 );
+        Port8BitWrite( values[2], 1 );
+        Port8BitWrite( values[3], 1 );
+        Port8BitWrite( values[4], 1 );
+        Port8BitWrite( values[5], 1 );
+        Port8BitWrite( values[6], 1 );
+        Port8BitWrite( values[7], 1 );
+    }
+}
+
+void lcd_v_write_char( uint8_t c, uint8_t x, uint8_t y ){
+
+    lcd_v_cursor( x, y );
+
+    mcp23008_v_set( LCD_RS_PIN );
+
+    if( is_enable2() ){
+
+        if( y < 2 ){
+            
+            Port8BitWrite( c, 0 );
+        }
+        else{
+
+            Port8BitWrite( c, 1 );   
+        }
+    // #else
+    }
+    else{
+
+        Port8BitWrite( c, 0 );
+    }
+    // #endif
+}
 
 #endif

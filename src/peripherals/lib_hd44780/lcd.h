@@ -52,5 +52,7 @@ void lcd_v_write( char *s, uint8_t x, uint8_t y );
 void lcd_v_write_P( PGM_P s, uint8_t x, uint8_t y );
 void lcd_v_cursor( uint8_t x, uint8_t y );
 void lcd_v_printf_P( uint8_t x, uint8_t y, PGM_P format, ... );
+void lcd_v_set_cgram( uint8_t index, uint8_t values[8] );
+void lcd_v_write_char( uint8_t c, uint8_t x, uint8_t y );
 
 #endif

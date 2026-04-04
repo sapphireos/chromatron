@@ -60,6 +60,22 @@ void ui_v_init( void ){
     lcd_v_printf_P( 20, 2, PSTR("Pos 20") );
     lcd_v_printf_P( 0, 3, PSTR("Line 3") );
 
+    uint8_t values[8] = {
+        0b00011001,
+        0b00000010,
+        0b00000100,
+        0b00001000,
+        0b00010000,
+        0b00010000,
+        0b00000111,
+        0b00011111,
+    };
+
+    lcd_v_set_cgram( 0, values );
+
+    lcd_v_write_char( 0, 20, 3 );
+
+
     pca9685_v_init( PCA9685_I2C_ADDR_0 );
     pca9685_v_set_freq( 4 );
 
