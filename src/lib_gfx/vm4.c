@@ -243,6 +243,33 @@ restart:
             goto restart;
         }
 
+        if( state->published_vars[0].hash != 0 ){
+
+            int32_t *ptr = 0;
+
+            if( state->published_vars[0].count == 1 ){
+
+                ptr = vm_get_global( &state->vm, state->published_vars[0].index );
+            }
+            else if( state->published_vars[0].count > 1 ){
+
+                ptr = vm_get_array( &state->vm, state->published_vars[0].index );
+            }
+
+            int8_t kv_status = catbus_i8_array_get( 
+                                state->published_vars[0].hash,
+                                CATBUS_TYPE_INT32,
+                                0,
+                                state->published_vars[0].count,
+                                ptr );
+
+            if( kv_status < 0 ){
+
+                log_v_error_P( PSTR("KV error: %d"), kv_status );
+            }
+
+        }
+
         uint32_t start_time = tmr_u32_get_system_time_us();
 
         status = vm_run_tick( &state->vm, thread_u32_get_alarm() );
