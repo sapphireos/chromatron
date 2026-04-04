@@ -110,8 +110,16 @@ static const char* vm_names[VM_MAX_VMS] = {
 };
 
 typedef struct __attribute__((packed)){
+    uint32_t hash;
+    uint16_t index;
+    uint16_t count;
+} published_var_t;
+
+typedef struct __attribute__((packed)){
     vm_t vm;
     uint8_t vm_id;
+
+    published_var_t published_vars[8];
 
     // mem_handle_t handle;
     // char program_fname[FFS_FILENAME_LEN];
@@ -158,7 +166,7 @@ void vm4_v_reset( uint8_t vm_id ){
 }
 
 
-void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_t8 type, uint8_t flags, uint8_t vm_id ){
+void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_t8 type, uint16_t count, uint8_t flags, uint8_t vm_id ){
 
     // if( vm_id == 0 ){
 
@@ -168,7 +176,18 @@ void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_
     //     }
     // }
 
-    kvdb_i8_add( hash, type, 1, 0, 0 );
+    vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[vm_id] );
+
+    thread_state->published_vars[0].hash    = hash;
+    thread_state->published_vars[0].index   = index;
+    thread_state->published_vars[0].count   = count;
+
+    if( ( count == 0 ) || ( count > 256 ) ){
+
+        log_v_error_P( PSTR("invalid array count") );
+    }
+
+    kvdb_i8_add( hash, type, count, 0, 0 );
     kvdb_v_set_tag( hash, ( 1 << vm_id ) );
 
     if( flags & KV_FLAGS_PERSIST ){
@@ -253,6 +272,34 @@ restart:
         if( state->vm.cycle_count > vm_max_cycles[0] ){
 
             vm_max_cycles[0] = state->vm.cycle_count;
+        }
+
+        if( state->published_vars[0].hash != 0 ){
+
+            int32_t *ptr = 0;
+
+            if( state->published_vars[0].count == 1 ){
+
+                ptr = vm_get_global( &state->vm, state->published_vars[0].index );
+            }
+            else if( state->published_vars[0].count > 1 ){
+
+                ptr = vm_get_array( &state->vm, state->published_vars[0].index );
+            }
+
+            int8_t kv_status = catbus_i8_array_set( 
+                                state->published_vars[0].hash,
+                                CATBUS_TYPE_INT32,
+                                0,
+                                state->published_vars[0].count,
+                                ptr,
+                                sizeof(int32_t) * state->published_vars[0].count );
+
+            if( kv_status < 0 ){
+
+                log_v_error_P( PSTR("KV error: %d"), kv_status );
+            }
+
         }
 
         THREAD_YIELD( pt );
