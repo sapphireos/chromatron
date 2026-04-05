@@ -47,6 +47,7 @@ void mcp23008_v_init( void );
 void mcp23008_v_set_mode( uint8_t pin, io_mode_t8 mode );
 void mcp23008_v_set_mask( uint8_t mask );
 void mcp23008_v_clear_mask( uint8_t mask );
+void mcp23008_v_write_mask( uint8_t mask, uint8_t state );
 void mcp23008_v_digital_write( uint8_t pin, bool state );
 bool mcp23008_b_digital_read( uint8_t pin );
 void mcp23008_v_reg_write( uint8_t addr, uint8_t data );

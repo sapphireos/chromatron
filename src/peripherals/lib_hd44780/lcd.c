@@ -68,10 +68,10 @@ static void mcp23008_v_set( uint8_t pin ){
 
 static void Port4BitWrite( uint8_t data, uint8_t en ){
 
-    mcp23008_v_clear_mask( ( 1 << LCD_DATA_PIN_D4 ) |
-                           ( 1 << LCD_DATA_PIN_D5 ) |
-                           ( 1 << LCD_DATA_PIN_D6 ) |
-                           ( 1 << LCD_DATA_PIN_D7 ) );
+    // mcp23008_v_clear_mask( ( 1 << LCD_DATA_PIN_D4 ) |
+    //                        ( 1 << LCD_DATA_PIN_D5 ) |
+    //                        ( 1 << LCD_DATA_PIN_D6 ) |
+    //                        ( 1 << LCD_DATA_PIN_D7 ) );
 
     uint8_t mask = 0;
 
@@ -91,7 +91,8 @@ static void Port4BitWrite( uint8_t data, uint8_t en ){
         mask |= ( 1 << LCD_DATA_PIN_D7 );
     }   
 
-    mcp23008_v_set_mask( mask );
+    // mcp23008_v_set_mask( mask );
+    mcp23008_v_write_mask( 0xF0, mask );
 
     if( en == 0 ){
 

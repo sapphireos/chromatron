@@ -96,6 +96,14 @@ void mcp23008_v_clear_mask( uint8_t mask ){
     mcp23008_v_reg_write( MCP23008_REG_GPIO, gpio_output_state );
 }
 
+void mcp23008_v_write_mask( uint8_t mask, uint8_t state ){
+
+    gpio_output_state &= ~mask;
+    gpio_output_state |= state;
+
+    mcp23008_v_reg_write( MCP23008_REG_GPIO, gpio_output_state );
+}
+
 void mcp23008_v_digital_write( uint8_t pin, bool state ){
 
     if( pin >= MCP23008_N_PINS ){
