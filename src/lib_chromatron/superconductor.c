@@ -22,6 +22,37 @@
 // </license>
  */
 
+/*
+
+Protocol notes:
+
+Designed for high speed, low latency array streaming into the FX VM.
+
+Server is sending u16 data, 256 items per data set.
+
+This side implements the client.
+
+The server is discovered via devicedb query for "superconductor".
+
+FX4 programs can request superconductor linkage:
+
+fixed16 my_array[16];
+superconductor_request("audio_data", my_array);
+
+Links "audio_data" stream into FX4 variable array my_array.
+Data type is converted automatically on the client side.
+
+The VM runtime will preload superconductor data into the
+target array, automatically matching the array length.
+
+Optional decimation feature: resize incoming array to smaller array.
+Offer average decimation (integer reduction to nearest array fit)
+Bonus feature would be LTTB decimation to match target array.
+
+
+*/
+
+
 
 #include "sapphire.h"
 
