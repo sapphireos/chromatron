@@ -95,7 +95,7 @@ Bonus feature would be LTTB decimation to match target array.
 // };
 
 
-// static socket_t sock;
+static socket_t sock;
 // static uint32_t timer;
 
 
@@ -134,7 +134,39 @@ PT_THREAD( superconductor_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    // create socket
+    sock = sock_s_create( SOS_SOCK_DGRAM );
+
+    if( sock < 0 ){
+
+        log_v_critical_P( PSTR("socket fail") );
+
+        THREAD_EXIT( pt );      
+    }
+
+    sock_v_bind( sock, SC_PORT );
+    // sock_v_set_timeout( sock, 1 );
+
+    while( 1 ){
+
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+            continue;
+        }
+
+        const sc_msg_hdr_t *header = sock_vp_get_data( sock );
+
+        if( header->magic != SC_MAGIC ){
+
+            continue;
+        }
+        
+        log_v_debug_P( PSTR("received superconductor") );
+    }
     
+
 
 
 //     THREAD_WAIT_WHILE( pt, !sc_enabled() );
@@ -244,11 +276,21 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-void sc_v_init( void ){
+void sc_v_start( void ){
 
 	thread_t_create( superconductor_thread,
                 PSTR("superconductor"),
                 0,
                 0 );
+}
+
+void sc_v_stop( void ){
+
+	
+}
+
+void sc_v_init( void ){
+
+    sc_v_start();	
 }
 

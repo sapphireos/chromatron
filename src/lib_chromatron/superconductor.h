@@ -28,6 +28,7 @@
 
 
 #define SC_MAGIC			0x31324353
+#define SC_PORT 			31117
 
 // #define SC_SYNC_INTERVAL	1000
 
