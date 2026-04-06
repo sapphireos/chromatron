@@ -86,13 +86,16 @@ Bonus feature would be LTTB decimation to match target array.
 //     return 0;
 // }
 
+#define MAX_BANDS 256
+static uint16_t audio_data[MAX_BANDS];
 
-// KV_SECTION_OPT kv_meta_t superconductor_info_kv[] = {
+KV_SECTION_META kv_meta_t superconductor_info_kv[] = {
+    { CATBUS_TYPE_UINT16,     MAX_BANDS - 1,       KV_FLAGS_READ_ONLY,  audio_data,                0,  "superconductor_data" },
 //     { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[0],    _sc_kv_handler,  "sc_bank0" },
 //     { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[1],    _sc_kv_handler,  "sc_bank1" },
 //     { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[2],    _sc_kv_handler,  "sc_bank2" },
 //     { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[3],    _sc_kv_handler,  "sc_bank3" },
-// };
+};
 
 
 static socket_t sock;
@@ -162,8 +165,12 @@ PT_BEGIN( pt );
 
             continue;
         }
-        
-        log_v_debug_P( PSTR("received superconductor") );
+            
+        // log_v_debug_P( PSTR("received superconductor") );
+
+        uint16_t *msg_data = (uint16_t *)( header + 1 );
+
+        memcpy(audio_data, msg_data, sizeof(audio_data));
     }
     
 
