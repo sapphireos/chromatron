@@ -37,6 +37,12 @@ static uint16_t vm_ready_time;
 
 static thread_t vm_threads[VM4_MAX_VMS];
 
+static bool is_vm_running( uint8_t vm_id ){
+
+    return ( vm_status[vm_id] >= VM4_STATUS_OK ) && ( vm_status[vm_id] != VM4_STATUS_HALT );
+}
+
+
 static int8_t _vm4_prog_kv_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -57,18 +63,16 @@ static int8_t _vm4_prog_kv_handler(
 
             vm4_v_reset( 1 );
         }
-        #endif
-        #if VM4_MAX_VMS >= 3
+        #elif VM4_MAX_VMS >= 3
         else if( hash == __KV__vm_prog_2 ){
 
             vm4_v_reset( 2 );
         }
-        #if VM4_MAX_VMS >= 4
+        #elif VM4_MAX_VMS >= 4
         else if( hash == __KV__vm_prog_3 ){
 
             vm4_v_reset( 3 );
         }
-        #endif
         #endif
     }
     else{
@@ -98,13 +102,9 @@ static const char* vm_names[VM4_MAX_VMS] = {
 
     #if VM4_MAX_VMS >= 2
     "vm4_1",
-    #endif
-
-    #if VM4_MAX_VMS >= 3
+    #elif VM4_MAX_VMS >= 3
     "vm4_2",
-    #endif
-
-    #if VM4_MAX_VMS >= 4
+    #elif VM4_MAX_VMS >= 4
     "vm4_3",
     #endif
 };
@@ -135,6 +135,7 @@ typedef struct __attribute__((packed)){
 PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) );
 PT_THREAD( vm4_loader( pt_t *pt, void *state ) );
 
+
 void vm4_v_init( void ){
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -162,9 +163,11 @@ void vm4_v_reset( uint8_t vm_id ){
 
     ASSERT( vm_id < VM4_MAX_VMS );
 
-    // reset_vm( vm_id );
-}
+    if( is_vm_running( vm_id ) ){
 
+        vm_reset[vm_id] = TRUE;    
+    }
+}
 
 void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_t8 type, uint16_t count, uint8_t flags, uint8_t vm_id ){
 
@@ -213,6 +216,8 @@ restart:
     // run top level VM script:    
     log_v_info_P( PSTR("VM start") );
 
+    vm_reset[state->vm_id] = FALSE;
+
     status = vm_run_instructions(&state->vm, -1);
 
     if( status < 0 ){
@@ -226,23 +231,26 @@ restart:
 
     while( 1 ){
 
-        thread_v_set_alarm( thread_u32_get_alarm() + 20 );
-        THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
+        THREAD_WAIT_WHILE( pt, 
+            thread_b_alarm_set() && 
+            vm_run[state->vm_id] &&
+            !vm_reset[state->vm_id] );
 
         // check if running
         if( !vm_run[state->vm_id] ){
 
-            break;
+            goto end;
         }
-
         // check if resetting
-        if( vm_reset[state->vm_id] ){
+        else if( vm_reset[state->vm_id] ){
 
-            log_v_info_P( PSTR("VM reset") );
+            // log_v_info_P( PSTR("VM reset") );
 
             goto restart;
         }
 
+        // load published vars
         if( state->published_vars[0].hash != 0 ){
 
             int32_t *ptr = 0;
@@ -357,11 +365,6 @@ end:
 PT_END( pt );
 }
 
-static bool is_vm_running( uint8_t vm_id ){
-
-    return ( vm_status[vm_id] >= VM4_STATUS_OK ) && ( vm_status[vm_id] != VM4_STATUS_HALT );
-}
-
 static int8_t start_vm( uint8_t vm_id ){
 
     if( vm_threads[vm_id] > 0 ){
@@ -408,48 +411,25 @@ static int8_t start_vm( uint8_t vm_id ){
     return 0;
 }
 
-// static void stop_vm( uint8_t vm_id ){
+static bool vm_loader_wait( void ){
 
-//     vm_run[vm_id] = FALSE;
-//     vm_reset[vm_id] = FALSE;
+    for( uint8_t i = 0; i < VM4_MAX_VMS; i++ ){
 
-//     vm_run_time[vm_id]      = 0;
-//     vm_max_cycles[vm_id]    = 0;
-// }
+        if( is_vm_running( i ) ){
 
-static void reset_vm( uint8_t vm_id ){
+            // VM is already running
+            continue;
+        }
 
-    vm_status[vm_id] = VM4_STATUS_NOT_RUNNING;
+        // if check VM should start
+        if( vm_run[i] ){
 
-    // verify thread exists
-    if( vm_threads[vm_id] > 0 ){
+            return FALSE; // stop waiting
+        }
+    }
 
-        // thread_v_restart( vm_threads[vm_id] );
-
-        stop_vm( vm_id );
-
-        vm_run[vm_id] = TRUE;
-        start_vm( vm_id );
-    }   
+    return TRUE; // continue waiting
 }
-
-
-// static bool vm_loader_wait( void ){
-
-//     for( uint8_t i = 0; i < VM4_MAX_VMS; i++ ){
-
-//         if( ( ( !vm_run[i]  && !is_vm_running( i ) )  ||
-//                 ( vm_run[i]   && is_vm_running( i ) ) )    &&
-//               ( !vm_reset[i] ) ){
-//         }
-//         else{
-
-//             return FALSE;
-//         }
-//     }
-
-//     return TRUE;
-// }
 
 
 PT_THREAD( vm4_loader( pt_t *pt, void *state ) )
@@ -465,8 +445,7 @@ PT_BEGIN( pt );
 
     while(1){
 
-        // THREAD_WAIT_WHILE( pt, vm_loader_wait() );
-        TMR_WAIT( pt, 100 );
+        THREAD_WAIT_WHILE( pt, vm_loader_wait() );
 
         // check what we're doing, and to what VM    
         for( uint8_t i = 0; i < VM4_MAX_VMS; i++ ){
@@ -490,14 +469,6 @@ PT_BEGIN( pt );
                 }
             }
 
-            // Are we resetting a VM?
-            if( vm_reset[i] ){
-
-            //     trace_printf( PSTR("Resetting VM: %d\r\n"), i );
-
-                reset_vm( i );
-            }
-
             // Did VM that was not running just get told to start?
             // This will also occur if we've triggered a reset
             if( vm_run[i] && !is_vm_running( i ) && ( vm_threads[i] <= 0 ) ){
@@ -512,20 +483,7 @@ PT_BEGIN( pt );
                     sys_v_reboot_delay( SYS_MODE_SAFE );
                 }
             }
-            // // Did VM that was running just get told to stop?
-            // else if( !vm_run[i] && is_vm_running( i ) ){
-
-            //     trace_printf( PSTR("Stopping VM: %d\r\n"), i );
-                
-            //     stop_vm( i );
-            // }
-            
-            // always reset the reset
-            vm_reset[i] = FALSE;
         }
-
-        // TMR_WAIT( pt, 100 );
-        THREAD_YIELD( pt );
     }
 
 PT_END( pt );
