@@ -171,24 +171,37 @@ void vm4_v_reset( uint8_t vm_id ){
 
 void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_t8 type, uint16_t count, uint8_t flags, uint8_t vm_id ){
 
-    // if( vm_id == 0 ){
-
-    //     if( index < cnt_of_array(vm_published_hash) ){
-
-    //         vm_published_hash[index] = hash;
-    //     }
-    // }
-
-    vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[vm_id] );
-
-    thread_state->published_vars[0].hash    = hash;
-    thread_state->published_vars[0].index   = index;
-    thread_state->published_vars[0].count   = count;
-
     if( ( count == 0 ) || ( count > 256 ) ){
 
         log_v_error_P( PSTR("invalid array count") );
+
+        return;
     }
+
+    vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[vm_id] );
+
+    // search for open slot
+    int8_t slot = -1;
+    for( uint8_t i = 0; i < cnt_of_array(thread_state->published_vars); i++ ){
+
+        if( thread_state->published_vars[i].hash == 0 ){
+
+            slot = i;
+
+            break;
+        }
+    }
+
+    if( slot < 0 ){
+
+        log_v_error_P( PSTR("No slots") );
+
+        return;
+    }
+
+    thread_state->published_vars[slot].hash    = hash;
+    thread_state->published_vars[slot].index   = index;
+    thread_state->published_vars[slot].count   = count;
 
     kvdb_i8_add( hash, type, count, 0, 0 );
     kvdb_v_set_tag( hash, ( 1 << vm_id ) );
@@ -251,31 +264,37 @@ restart:
         }
 
         // load published vars
-        if( state->published_vars[0].hash != 0 ){
+        for( uint8_t i = 0; i < cnt_of_array(state->published_vars); i++ ){
+
+            if( state->published_vars[i].hash == 0 ){
+
+                continue;
+            }
 
             int32_t *ptr = 0;
 
-            if( state->published_vars[0].count == 1 ){
+            ASSERT( state->published_vars[i].count != 0 );
 
-                ptr = vm_get_global( &state->vm, state->published_vars[0].index );
+            if( state->published_vars[i].count == 1 ){
+
+                ptr = vm_get_global( &state->vm, state->published_vars[i].index );
             }
-            else if( state->published_vars[0].count > 1 ){
+            else{ // > 1
 
-                ptr = vm_get_array( &state->vm, state->published_vars[0].index );
+                ptr = vm_get_array( &state->vm, state->published_vars[i].index );
             }
 
             int8_t kv_status = catbus_i8_array_get( 
-                                state->published_vars[0].hash,
+                                state->published_vars[i].hash,
                                 CATBUS_TYPE_INT32,
                                 0,
-                                state->published_vars[0].count,
+                                state->published_vars[i].count,
                                 ptr );
 
             if( kv_status < 0 ){
 
                 log_v_error_P( PSTR("KV error: %d"), kv_status );
             }
-
         }
 
         uint32_t start_time = tmr_u32_get_system_time_us();
@@ -301,40 +320,46 @@ restart:
         }
         else{
 
-            vm_run_time[0] = elapsed_us;
+            vm_run_time[state->vm_id] = elapsed_us;
         }
 
-        if( state->vm.cycle_count > vm_max_cycles[0] ){
+        if( state->vm.cycle_count > vm_max_cycles[state->vm_id] ){
 
-            vm_max_cycles[0] = state->vm.cycle_count;
+            vm_max_cycles[state->vm_id] = state->vm.cycle_count;
         }
 
-        if( state->published_vars[0].hash != 0 ){
+        for( uint8_t i = 0; i < cnt_of_array(state->published_vars); i++ ){
+
+            if( state->published_vars[i].hash == 0 ){
+
+                continue;
+            }
+
+            ASSERT( state->published_vars[i].count != 0 );
 
             int32_t *ptr = 0;
 
-            if( state->published_vars[0].count == 1 ){
+            if( state->published_vars[i].count == 1 ){
 
-                ptr = vm_get_global( &state->vm, state->published_vars[0].index );
+                ptr = vm_get_global( &state->vm, state->published_vars[i].index );
             }
-            else if( state->published_vars[0].count > 1 ){
+            else{ // > 1
 
-                ptr = vm_get_array( &state->vm, state->published_vars[0].index );
+                ptr = vm_get_array( &state->vm, state->published_vars[i].index );
             }
 
             int8_t kv_status = catbus_i8_array_set( 
-                                state->published_vars[0].hash,
+                                state->published_vars[i].hash,
                                 CATBUS_TYPE_INT32,
                                 0,
-                                state->published_vars[0].count,
+                                state->published_vars[i].count,
                                 ptr,
-                                sizeof(int32_t) * state->published_vars[0].count );
+                                sizeof(int32_t) * state->published_vars[i].count );
 
             if( kv_status < 0 ){
 
                 log_v_error_P( PSTR("KV error: %d"), kv_status );
             }
-
         }
 
         THREAD_YIELD( pt );
@@ -474,6 +499,8 @@ PT_BEGIN( pt );
             if( vm_run[i] && !is_vm_running( i ) && ( vm_threads[i] <= 0 ) ){
 
                 if( start_vm( i ) < 0 ){
+
+                    log_v_error_P( PSTR("Thread fail") );
 
                     // this means a thread creation failed.
 
