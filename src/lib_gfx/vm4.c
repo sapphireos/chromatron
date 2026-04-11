@@ -62,12 +62,14 @@ static int8_t _vm4_prog_kv_handler(
 
             vm4_v_reset( 1 );
         }
-        #elif VM4_MAX_VMS >= 3
+        #endif
+        #if VM4_MAX_VMS >= 3
         else if( hash == __KV__vm_prog_2 ){
 
             vm4_v_reset( 2 );
         }
-        #elif VM4_MAX_VMS >= 4
+        #endif
+        #if VM4_MAX_VMS >= 4
         else if( hash == __KV__vm_prog_3 ){
 
             vm4_v_reset( 3 );
@@ -97,23 +99,24 @@ KV_SECTION_META kv_meta_t vm4_info_kv[] = {
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[1],         0,                   "vm4_status_2" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[1],       0,                   "vm4_run_time_2" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[1],     0,                   "vm4_peak_cycles_2" },
+    #endif
 
-    #elif VM4_MAX_VMS >= 3
+    #if VM4_MAX_VMS >= 3
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[2],          0,                   "vm4_reset_3" },
     { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[2],            0,                   "vm4_run_3" },
     { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     _vm4_prog_kv_handler,"vm4_prog_3" },
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[2],         0,                   "vm4_status_3" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[2],       0,                   "vm4_run_time_3" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[2],     0,                   "vm4_peak_cycles_3" },
+    #endif
 
-    #elif VM4_MAX_VMS >= 4
+    #if VM4_MAX_VMS >= 4
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[3],          0,                   "vm4_reset_4" },
     { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[3],            0,                   "vm4_run_4" },
     { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     _vm4_prog_kv_handler,"vm4_prog_4" },
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[3],         0,                   "vm4_status_4" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[3],       0,                   "vm4_run_time_4" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[3],     0,                   "vm4_peak_cycles_4" },
-
     #endif
 };
 
@@ -122,9 +125,11 @@ static const char* vm_names[VM4_MAX_VMS] = {
 
     #if VM4_MAX_VMS >= 2
     "vm4_1",
-    #elif VM4_MAX_VMS >= 3
+    #endif
+    #if VM4_MAX_VMS >= 3
     "vm4_2",
-    #elif VM4_MAX_VMS >= 4
+    #endif
+    #if VM4_MAX_VMS >= 4
     "vm4_3",
     #endif
 };
@@ -154,6 +159,36 @@ typedef struct __attribute__((packed)){
 
 PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) );
 PT_THREAD( vm4_loader( pt_t *pt, void *state ) );
+
+static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
+
+    catbus_hash_t32 hash;
+
+    if( vm_id == 0 ){
+
+        hash = __KV__vm4_prog;
+    }
+    else if( vm_id == 1 ){
+
+        hash = __KV__vm4_prog_1;
+    }
+    else if( vm_id == 2 ){
+
+        hash = __KV__vm4_prog_2;
+    }
+    else if( vm_id == 3 ){
+
+        hash = __KV__vm4_prog_3;
+    }
+    else{
+
+        hash = 0;
+
+        ASSERT( FALSE );
+    }    
+
+    return kv_i8_get( hash, name, FFS_FILENAME_LEN );
+}
 
 
 void vm4_v_init( void ){
@@ -237,10 +272,16 @@ PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
 
+    char fname[FFS_FILENAME_LEN] = {0};
+
+    get_program_fname( state->vm_id, fname );
+
     // load VM
-    int status = vm_deserialize( &state->vm, PSTR("vm.f4b") );
+    int status = vm_deserialize( &state->vm, fname );
 
     if( status < 0 ){
+
+        log_v_error_P( PSTR("VM load failed: %d"), status );
 
         goto end;
     }
@@ -272,6 +313,8 @@ restart:
 
         // check if running
         if( !vm_run[state->vm_id] ){
+
+            log_v_info_P( PSTR("VM stop requested") );
 
             goto end;
         }
