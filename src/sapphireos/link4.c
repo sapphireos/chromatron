@@ -223,7 +223,59 @@ static uint8_t database_count( mem_handle_t database_h ){
 
 static int32_t aggregate( mem_handle_t database_h, link4_aggregation_t8 agg ){
 
-	return 0;
+    link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( database_h );
+
+    uint8_t count = database_count( database_h );
+
+    if( count == 0 ){
+
+        return 0;
+    }
+
+    int32_t value = 0;
+
+    if( agg == LINK4_AGG_MIN ){
+
+        value = database[0].value;
+
+        for( uint8_t i = 1; i < count; i++ ){
+
+            if( database[i].value < value ){
+
+                value = database[i].value;
+            }
+        }    
+    }
+    else if( agg == LINK4_AGG_MAX ){
+
+        value = database[0].value;
+
+        for( uint8_t i = 1; i < count; i++ ){
+
+            if( database[i].value > value ){
+
+                value = database[i].value;
+            }
+        }    
+    }
+    else if( agg == LINK4_AGG_SUM ){
+
+        for( uint8_t i = 0; i < count; i++ ){
+
+            value += database[i].value;
+        }    
+    }
+    else if( agg == LINK4_AGG_AVG ){
+
+        for( uint8_t i = 0; i < count; i++ ){
+
+            value += database[i].value;
+        }
+
+        value /= count;
+    }
+
+	return value;
 }
 
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) )
