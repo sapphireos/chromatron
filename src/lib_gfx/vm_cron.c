@@ -333,10 +333,10 @@ void vm_cron_v_init( void ){
 
     list_v_init( &cron_list );
 
-    thread_t_create( cron_thread,
-             PSTR("cron"),
-             0,
-             0 );
+    // thread_t_create( cron_thread,
+    //          PSTR("cron"),
+    //          0,
+    //          0 );
 
     #endif
 }

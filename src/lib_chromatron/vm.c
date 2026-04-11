@@ -1096,7 +1096,7 @@ void vm_v_init( void ){
                      0,
                      0 );
 
-    // vm_cron_v_init();
+    vm_cron_v_init();
     // vm_seq_v_init();
     scenes_v_init();
 
