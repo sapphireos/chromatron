@@ -272,6 +272,8 @@ PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
 
+    memset( &state->vm, 0, sizeof(state->vm) );
+
     char fname[FFS_FILENAME_LEN] = {0};
 
     get_program_fname( state->vm_id, fname );
@@ -323,7 +325,7 @@ PT_BEGIN( pt );
 
             log_v_info_P( PSTR("VM reset") );
 
-            THREAD_RESTART( pt );
+            goto end;
         }
 
         // load published vars
@@ -437,13 +439,20 @@ end:
     if( vm_status[state->vm_id] != VM4_STATUS_HALT ){
 
         vm_status[state->vm_id] = VM4_STATUS_NOT_RUNNING;    
-    }
-
-    vm_run[state->vm_id]        = FALSE;
-    vm_reset[state->vm_id]      = FALSE;
+    }    
 
     vm_run_time[state->vm_id]   = 0;
     vm_max_cycles[state->vm_id] = 0;
+
+    if( vm_reset[state->vm_id] && vm_run[state->vm_id] ){
+
+        vm_reset[state->vm_id] = FALSE;
+
+        THREAD_RESTART( pt );
+    }
+
+    vm_reset[state->vm_id]      = FALSE;
+    vm_run[state->vm_id]        = FALSE;
 
     vm_threads[state->vm_id]    = -1;
 

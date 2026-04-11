@@ -91,6 +91,10 @@ uint16_t gfx_u16_get_physical_pix_count( void );
 uint16_t gfx_u16_get_pix_driver_count( uint8_t output );
 uint16_t gfx_u16_get_pix_driver_offset( uint8_t output );
 
+bool gfx_b_get_transpose( void );
+bool gfx_b_get_interleave_x( void );
+bool gfx_b_get_invert_x( void );
+
 void gfx_v_set_hue_1d( uint16_t a, uint16_t index );
 uint16_t gfx_u16_get_hue_1d( uint16_t index );
 void gfx_v_set_sat_1d( uint16_t a, uint16_t index );

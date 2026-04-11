@@ -990,6 +990,20 @@ uint16_t gfx_u16_get_pix_driver_offset( uint8_t output ){
     return offset;
 }
 
+bool gfx_b_get_transpose( void ){
+
+    return gfx_transpose;
+}
+
+bool gfx_b_get_interleave_x( void ){
+
+    return gfx_interleave_x;
+}
+
+bool gfx_b_get_invert_x( void ){
+
+    return gfx_invert_x;
+}
 
 static inline void _gfx_v_set_hue_1d( uint16_t h, uint16_t index ){
 
