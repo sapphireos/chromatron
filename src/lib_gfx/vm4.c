@@ -489,10 +489,9 @@ static int8_t start_vm( uint8_t vm_id ){
 
     // init VM thread data
     vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[vm_id] );
+    memset( thread_state, 0, sizeof(vm4_thread_state_t) );
+
     thread_state->vm_id = vm_id;
-
-    memset( &thread_state->vm, 0, sizeof(thread_state->vm) );
-
 
     vm_status[vm_id] = VM4_STATUS_OK;   
 
