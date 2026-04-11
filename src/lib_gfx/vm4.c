@@ -300,6 +300,7 @@ restart:
         goto end;
     }
 
+    log_v_debug_P( PSTR("VM init OK") );
 
     thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
@@ -321,7 +322,7 @@ restart:
         // check if resetting
         else if( vm_reset[state->vm_id] ){
 
-            // log_v_info_P( PSTR("VM reset") );
+            log_v_info_P( PSTR("VM reset") );
 
             goto restart;
         }
