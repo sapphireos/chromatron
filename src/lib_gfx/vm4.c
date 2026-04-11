@@ -271,8 +271,12 @@ void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_
 PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
+    
+    vm_reset[state->vm_id] = FALSE;
+    vm_status[state->vm_id] = VM4_STATUS_OK;
 
     memset( &state->vm, 0, sizeof(state->vm) );
+    memset( &state->published_vars, 0, sizeof(state->published_vars) );
 
     char fname[FFS_FILENAME_LEN] = {0};
 
@@ -289,10 +293,6 @@ PT_BEGIN( pt );
     }
  
     // run top level VM script:    
-    log_v_info_P( PSTR("VM start") );
-
-    vm_reset[state->vm_id] = FALSE;
-
     status = vm_run_instructions(&state->vm, -1);
 
     if( status < 0 ){
@@ -435,12 +435,6 @@ end:
 
     kvdb_v_clear_tag( 0, 1 << state->vm_id );
 
-    // retain halt status, otherwise reset
-    if( vm_status[state->vm_id] != VM4_STATUS_HALT ){
-
-        vm_status[state->vm_id] = VM4_STATUS_NOT_RUNNING;    
-    }    
-
     vm_run_time[state->vm_id]   = 0;
     vm_max_cycles[state->vm_id] = 0;
 
@@ -450,6 +444,12 @@ end:
 
         THREAD_RESTART( pt );
     }
+
+    // retain halt status, otherwise reset
+    if( vm_status[state->vm_id] != VM4_STATUS_HALT ){
+
+        vm_status[state->vm_id] = VM4_STATUS_NOT_RUNNING;    
+    }    
 
     vm_reset[state->vm_id]      = FALSE;
     vm_run[state->vm_id]        = FALSE;
