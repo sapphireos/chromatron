@@ -285,8 +285,7 @@ PT_BEGIN( pt );
 
         goto end;
     }
-
-restart:    
+ 
     // run top level VM script:    
     log_v_info_P( PSTR("VM start") );
 
@@ -324,7 +323,7 @@ restart:
 
             log_v_info_P( PSTR("VM reset") );
 
-            goto restart;
+            THREAD_RESTART( pt );
         }
 
         // load published vars
