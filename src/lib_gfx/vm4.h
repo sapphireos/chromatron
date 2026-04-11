@@ -1,6 +1,7 @@
 #ifndef _VM4_H_
 #define _VM4_H_
 
+#define VM4_MAX_VMS		4
 
 void vm4_v_init( void );
 

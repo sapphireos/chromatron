@@ -27,15 +27,15 @@
 #include "pixelarray.h"
 #include "cron.h"
 
-static bool vm_reset[VM_MAX_VMS];
-static bool vm_run[VM_MAX_VMS];
+static bool vm_reset[VM4_MAX_VMS];
+static bool vm_run[VM4_MAX_VMS];
 
-static int8_t vm_status[VM_MAX_VMS];
-static uint16_t vm_run_time[VM_MAX_VMS];
-static uint16_t vm_max_cycles[VM_MAX_VMS];
+static int8_t vm_status[VM4_MAX_VMS];
+static uint16_t vm_run_time[VM4_MAX_VMS];
+static uint16_t vm_max_cycles[VM4_MAX_VMS];
 static uint16_t vm_ready_time;
 
-static thread_t vm_threads[VM_MAX_VMS];
+static thread_t vm_threads[VM4_MAX_VMS];
 
 static int8_t _vm4_prog_kv_handler(
     kv_op_t8 op,
@@ -52,18 +52,18 @@ static int8_t _vm4_prog_kv_handler(
 
             vm4_v_reset( 0 );
         }
-        #if VM_MAX_VMS >= 2
+        #if VM4_MAX_VMS >= 2
         else if( hash == __KV__vm_prog_1 ){
 
             vm4_v_reset( 1 );
         }
         #endif
-        #if VM_MAX_VMS >= 3
+        #if VM4_MAX_VMS >= 3
         else if( hash == __KV__vm_prog_2 ){
 
             vm4_v_reset( 2 );
         }
-        #if VM_MAX_VMS >= 4
+        #if VM4_MAX_VMS >= 4
         else if( hash == __KV__vm_prog_3 ){
 
             vm4_v_reset( 3 );
@@ -82,29 +82,29 @@ static int8_t _vm4_prog_kv_handler(
 static uint16_t run_ticks;
 
 KV_SECTION_META kv_meta_t vm4_info_kv[] = {
-    { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[0],          0,                  "vm4_reset" },
-    { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[0],            0,                  "vm4_run" },
+    { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[0],          0,                   "vm4_reset" },
+    { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[0],            0,                   "vm4_run" },
     { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     _vm4_prog_kv_handler,"vm4_prog" },
-    { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[0],         0,                  "vm4_status" },
-    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[0],       0,                  "vm4_run_time" },
-    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm4_peak_cycles" },
-    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_ready_time,     0,                  "vm4_ready_time" },
+    { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[0],         0,                   "vm4_status" },
+    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[0],       0,                   "vm4_run_time" },
+    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                   "vm4_peak_cycles" },
+    { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_ready_time,        0,                   "vm4_ready_time" },
 
-    { CATBUS_TYPE_UINT16,   0, 0,  &run_ticks,     0,                  "vm4_run_ticks" },
+    { CATBUS_TYPE_UINT16,   0, 0,                   &run_ticks,            0,                   "vm4_run_ticks" },
 };
 
-static const char* vm_names[VM_MAX_VMS] = {
+static const char* vm_names[VM4_MAX_VMS] = {
     "vm4_0",
 
-    #if VM_MAX_VMS >= 2
+    #if VM4_MAX_VMS >= 2
     "vm4_1",
     #endif
 
-    #if VM_MAX_VMS >= 3
+    #if VM4_MAX_VMS >= 3
     "vm4_2",
     #endif
 
-    #if VM_MAX_VMS >= 4
+    #if VM4_MAX_VMS >= 4
     "vm4_3",
     #endif
 };
@@ -146,7 +146,7 @@ void vm4_v_init( void ){
 
     for( uint8_t i = 0; i < cnt_of_array(vm_status); i++ ){
 
-        vm_status[i] = VM_STATUS_NOT_RUNNING;
+        vm_status[i] = VM4_STATUS_NOT_RUNNING;
     }
 
     cron_v_init();
@@ -160,7 +160,7 @@ void vm4_v_init( void ){
 
 void vm4_v_reset( uint8_t vm_id ){
 
-    ASSERT( vm_id < VM_MAX_VMS );
+    ASSERT( vm_id < VM4_MAX_VMS );
 
     // reset_vm( vm_id );
 }
@@ -281,13 +281,13 @@ restart:
             log_v_error_P( PSTR("VM error: %d"), status );
             goto end;
         }
-        else if( status == VM_STATUS_NO_COROUTINE ){
+        else if( status == VM4_STATUS_NO_COROUTINE ){
 
             log_v_info_P( PSTR("VM finished") );
 
             goto end;
         }
-        else if( status == VM_STATUS_NO_READY_COROUTINE ){
+        else if( status == VM4_STATUS_NO_READY_COROUTINE ){
 
             vm_ready_time = elapsed_us;
         }
@@ -339,9 +339,9 @@ end:
     kvdb_v_clear_tag( 0, 1 << state->vm_id );
 
     // retain halt status, otherwise reset
-    if( vm_status[state->vm_id] != VM_STATUS_HALT ){
+    if( vm_status[state->vm_id] != VM4_STATUS_HALT ){
 
-        vm_status[state->vm_id] = VM_STATUS_NOT_RUNNING;    
+        vm_status[state->vm_id] = VM4_STATUS_NOT_RUNNING;    
     }
 
     vm_run[state->vm_id]        = FALSE;
@@ -359,7 +359,7 @@ PT_END( pt );
 
 static bool is_vm_running( uint8_t vm_id ){
 
-    return ( vm_status[vm_id] >= VM_STATUS_OK ) && ( vm_status[vm_id] != VM_STATUS_HALT );
+    return ( vm_status[vm_id] >= VM4_STATUS_OK ) && ( vm_status[vm_id] != VM4_STATUS_HALT );
 }
 
 static int8_t start_vm( uint8_t vm_id ){
@@ -403,7 +403,7 @@ static int8_t start_vm( uint8_t vm_id ){
     memset( &thread_state->vm, 0, sizeof(thread_state->vm) );
 
 
-    vm_status[vm_id] = VM_STATUS_OK;   
+    vm_status[vm_id] = VM4_STATUS_OK;   
 
     return 0;
 }
@@ -417,26 +417,26 @@ static int8_t start_vm( uint8_t vm_id ){
 //     vm_max_cycles[vm_id]    = 0;
 // }
 
-// static void reset_vm( uint8_t vm_id ){
+static void reset_vm( uint8_t vm_id ){
 
-//     vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
+    vm_status[vm_id] = VM4_STATUS_NOT_RUNNING;
 
-//     // verify thread exists
-//     if( vm_threads[vm_id] > 0 ){
+    // verify thread exists
+    if( vm_threads[vm_id] > 0 ){
 
-//         // thread_v_restart( vm_threads[vm_id] );
+        // thread_v_restart( vm_threads[vm_id] );
 
-//         stop_vm( vm_id );
+        stop_vm( vm_id );
 
-//         vm_run[vm_id] = TRUE;
-//         start_vm( vm_id );
-//     }   
-// }
+        vm_run[vm_id] = TRUE;
+        start_vm( vm_id );
+    }   
+}
 
 
 // static bool vm_loader_wait( void ){
 
-//     for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
+//     for( uint8_t i = 0; i < VM4_MAX_VMS; i++ ){
 
 //         if( ( ( !vm_run[i]  && !is_vm_running( i ) )  ||
 //                 ( vm_run[i]   && is_vm_running( i ) ) )    &&
@@ -469,16 +469,16 @@ PT_BEGIN( pt );
         TMR_WAIT( pt, 100 );
 
         // check what we're doing, and to what VM    
-        for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
+        for( uint8_t i = 0; i < VM4_MAX_VMS; i++ ){
 
             // Was there an error and the VM is running
             if( ( vm_run[i] ) &&
-                ( vm_status[i] != VM_STATUS_NOT_RUNNING ) &&
+                ( vm_status[i] != VM4_STATUS_NOT_RUNNING ) &&
                 ( vm_status[i] != 0 ) ){
 
                 vm_run[i] = FALSE;
 
-                if( vm_status[i] == VM_STATUS_HALT ){
+                if( vm_status[i] == VM4_STATUS_HALT ){
 
                     // this isn't actually an error, it is the VM
                     // signalling the script has requested a stop.
@@ -491,12 +491,12 @@ PT_BEGIN( pt );
             }
 
             // Are we resetting a VM?
-            // if( vm_reset[i] ){
+            if( vm_reset[i] ){
 
             //     trace_printf( PSTR("Resetting VM: %d\r\n"), i );
 
-            //     reset_vm( i );
-            // }
+                reset_vm( i );
+            }
 
             // Did VM that was not running just get told to start?
             // This will also occur if we've triggered a reset
