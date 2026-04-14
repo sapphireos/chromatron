@@ -25,6 +25,7 @@
 
 #include "bytecode.h"
 #include "pixelarray.h"
+#include "sequencer.h"
 #include "cron.h"
 
 static bool vm_reset[VM4_MAX_VMS];
@@ -207,6 +208,8 @@ void vm4_v_init( void ){
 
     cron_v_init();
     pixelarray_init();
+
+    seq_v_init();
 
     thread_t_create( vm4_loader,
                      PSTR("vm4_loader"),
