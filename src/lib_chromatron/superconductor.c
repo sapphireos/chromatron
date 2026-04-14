@@ -57,7 +57,7 @@ Bonus feature would be LTTB decimation to match target array.
 #include "sapphire.h"
 
 #include "superconductor.h"
-
+#include "gfx_lib.h"
 
 // static catbus_string_t banks[SC_MAX_BANKS];
 
@@ -89,8 +89,15 @@ Bonus feature would be LTTB decimation to match target array.
 #define MAX_BANDS 256
 static uint16_t audio_data[MAX_BANDS];
 
+static uint16_t dec_offset;
+static uint16_t dec_count;
+
 KV_SECTION_META kv_meta_t superconductor_info_kv[] = {
-    { CATBUS_TYPE_UINT16,     MAX_BANDS - 1,       KV_FLAGS_READ_ONLY,  audio_data,                0,  "superconductor_data" },
+    { CATBUS_TYPE_UINT16,     MAX_BANDS - 1, KV_FLAGS_READ_ONLY,  audio_data,     0,  "superconductor_data" },
+
+    { CATBUS_TYPE_UINT16,     0,             0,                   &dec_offset,    0,  "superconductor_dec_offset"},
+    { CATBUS_TYPE_UINT16,     0,             0,                   &dec_count,     0,  "superconductor_dec_count"},
+
 //     { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[0],    _sc_kv_handler,  "sc_bank0" },
 //     { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[1],    _sc_kv_handler,  "sc_bank1" },
 //     { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[2],    _sc_kv_handler,  "sc_bank2" },
@@ -133,6 +140,49 @@ static socket_t sock;
 //     return FALSE;
 // }
 
+
+void decimate( const uint16_t input_array[MAX_BANDS], uint16_t output_array[MAX_BANDS], uint16_t offset, uint16_t count ){
+
+    if( count == 0 ){
+
+        count = gfx_u16_get_pix_count();
+    }
+
+    uint16_t factor = MAX_BANDS / count;
+
+    if( factor == 0 ){
+
+        // override to factor of 1
+        factor = 1;
+    }
+
+    if( offset >= MAX_BANDS ){
+
+        return;
+    }
+
+    // check bands
+    if( ( offset + count ) >= MAX_BANDS ){
+
+        count = MAX_BANDS - offset - 1;
+    }
+
+    for( uint16_t i = 0; i < count; i += factor ){
+
+        uint32_t accum = 0;
+
+        for( uint16_t j = 0; j < factor; j++ ){
+
+            accum += input_array[offset + i + j];
+        }
+
+        accum /= factor;
+
+        output_array[i] = accum;
+    }
+}
+
+
 PT_THREAD( superconductor_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -170,7 +220,9 @@ PT_BEGIN( pt );
 
         uint16_t *msg_data = (uint16_t *)( header + 1 );
 
-        memcpy(audio_data, msg_data, sizeof(audio_data));
+        decimate( msg_data, audio_data, dec_offset, dec_count );
+
+        // memcpy(audio_data, msg_data, sizeof(audio_data));
     }
     
 
