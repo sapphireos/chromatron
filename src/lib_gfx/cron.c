@@ -77,6 +77,14 @@ every hour, on sundays
     0 * * * sunday
 
 
+
+Noon every day
+    0 12 * * *
+
+17:30 every day
+    30 17 * * *
+
+
 #endif
 
 static list_t cron_list;
