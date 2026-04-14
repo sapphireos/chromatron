@@ -21,7 +21,7 @@
 // </license>
 #include "sapphire.h"
 
-#include "vm.h"
+#include "vm4.h"
 // #include "vm_sync.h"
 
 #include "sequencer.h"
@@ -247,7 +247,7 @@ static int8_t _run_program( char progname[FFS_FILENAME_LEN] ){
 
 	prev_step = seq_current_step;
 
-	vm_v_run_prog( progname, 0 ); // run new program on slot 0
+	vm4_v_run_prog( progname, 0 ); // run new program on slot 0
 
 	return 0;
 }
@@ -387,7 +387,7 @@ PT_BEGIN( pt );
 
 			TMR_WAIT( pt, 100 );
 
-			THREAD_WAIT_WHILE( pt, vm_b_is_vm_running( 0 ) && !sys_b_is_shutting_down() );
+			THREAD_WAIT_WHILE( pt, vm4_b_is_vm_running( 0 ) && !sys_b_is_shutting_down() );
 
 			vm_sync_v_unhold();
 
@@ -540,7 +540,7 @@ PT_BEGIN( pt );
 
 			vm_sync_v_hold();
 
-			THREAD_WAIT_WHILE( pt, vm_b_is_vm_running( 0 ) );
+			THREAD_WAIT_WHILE( pt, vm4_b_is_vm_running( 0 ) );
 
 			vm_sync_v_unhold();
 		} 

@@ -588,3 +588,14 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+
+void vm4_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t slot ){
+
+
+}
+
+bool vm4_b_is_vm_running( uint8_t i ){
+
+    return FALSE;
+}
