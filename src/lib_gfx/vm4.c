@@ -590,12 +590,50 @@ PT_END( pt );
 }
 
 
-void vm4_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t slot ){
+void vm4_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){
 
+    catbus_hash_t32 hash;
 
+    if( vm_id == 0 ){
+
+        hash = __KV__vm4_prog;
+    }
+    else if( vm_id == 1 ){
+
+        hash = __KV__vm4_prog_1;
+    }
+    else if( vm_id == 2 ){
+
+        hash = __KV__vm4_prog_2;
+    }
+    else if( vm_id == 3 ){
+
+        hash = __KV__vm4_prog_3;
+    }
+    else{
+
+        hash = 0;
+
+        ASSERT( FALSE );
+    }    
+
+    // set full string in KV, with 0 padding
+    char prog[FFS_FILENAME_LEN];
+    memset( prog, 0, sizeof(prog) );
+    strncpy( prog, name, sizeof(prog) );
+
+    // set run
+    vm_run[vm_id] = TRUE;
+    // set reset, see below
+    vm_reset[vm_id] = TRUE;    
+
+    // this should also set reset via the kv handler,
+    // but we will explicitly set it above with run
+    // just be to clear this is what is happening.
+    kv_i8_set( hash, prog, FFS_FILENAME_LEN );
 }
 
-bool vm4_b_is_vm_running( uint8_t i ){
+bool vm4_b_is_vm_running( uint8_t vm_id ){
 
-    return FALSE;
+    return is_vm_running( vm_id );
 }

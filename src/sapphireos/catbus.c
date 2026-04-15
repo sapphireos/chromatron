@@ -915,12 +915,12 @@ PT_BEGIN( pt );
         // log_v_debug_P( PSTR("%d"), header->msg_type );
 
         // DISCOVERY MESSAGES
-        if( header->msg_type == CATBUS_MSG_TYPE_ANNOUNCE ){
+        // if( header->msg_type == CATBUS_MSG_TYPE_ANNOUNCE ){
 
-            catbus_msg_announce_t *msg = (catbus_msg_announce_t *)header;
+            // catbus_msg_announce_t *msg = (catbus_msg_announce_t *)header;
 
             // device_db_v_process_announce( msg, &raddr );
-        }
+        // }
 
         // check if announce sock, if so, we only process announce
         if( is_announce_sock ){
