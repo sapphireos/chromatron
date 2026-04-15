@@ -12,10 +12,14 @@ static list_node_t device_ln;
 
 static catbus_query_t current_query;
 
+static socket_t sock;
+
 KV_SECTION_META kv_meta_t devicedb_kv[] = {
 
 	{ CATBUS_TYPE_UINT16, 	0, 0, 				   &db_size,							0,  "devicedb_size" },
 };
+
+PT_THREAD( device_server_thread( pt_t *pt, void *state ) );
 
 static uint32_t device_db_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
@@ -228,10 +232,25 @@ void device_db_v_init( void ){
 
 	fs_v_create_virtual( PSTR("device_db"), device_db_vfile );
 
+	// create socket
+    sock = sock_s_create( SOS_SOCK_DGRAM );
+    // yeah... we're fucked if an alloc fails here
+    if( sock < 0 ){
+
+    	log_v_critical_P( PSTR("super bad if this gets logged") );
+
+    	return;
+    }
+
     thread_t_create( device_db_thread,
                      PSTR("device_db"),
                      0,
                      0 );
+
+   	thread_t_create( device_server_thread,
+                PSTR("device_server"),
+                0,
+                0 );
 }
 
 
@@ -278,3 +297,28 @@ void device_db_v_process_announce( const catbus_msg_announce_t *announce, const 
 }
 
 
+
+
+
+PT_THREAD( device_server_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+	
+	sock_v_bind( sock, DEVICE_DB_PORT );
+
+	while(1){
+
+		THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+
+        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+
+            continue;
+        }
+
+        
+       
+
+	}
+
+PT_END( pt );
+}

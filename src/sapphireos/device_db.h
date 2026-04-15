@@ -6,6 +6,7 @@
 
 #define DEVICE_DB_TIMEOUT 120
 
+#define DEVICE_DB_PORT    44638
 
 typedef struct __attribute__((packed)){
 	catbus_query_t tags;
