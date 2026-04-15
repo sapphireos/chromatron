@@ -34,7 +34,7 @@
 // #define NO_LOGGING
 #include "logging.h"
 
-#include "device_db.h"
+// #include "device_db.h"
 
 
 #ifdef ENABLE_NETWORK
@@ -919,7 +919,7 @@ PT_BEGIN( pt );
 
             catbus_msg_announce_t *msg = (catbus_msg_announce_t *)header;
 
-            device_db_v_process_announce( msg, &raddr );
+            // device_db_v_process_announce( msg, &raddr );
         }
 
         // check if announce sock, if so, we only process announce

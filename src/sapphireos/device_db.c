@@ -19,6 +19,10 @@ KV_SECTION_META kv_meta_t devicedb_kv[] = {
 	{ CATBUS_TYPE_UINT16, 	0, 0, 				   &db_size,							0,  "devicedb_size" },
 };
 
+
+
+static void send_device_msg( void );
+
 PT_THREAD( device_server_thread( pt_t *pt, void *state ) );
 
 static uint32_t device_db_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
@@ -48,7 +52,9 @@ PT_BEGIN( pt );
 
 	while(1){
 
-		TMR_WAIT( pt, 1000 );
+		TMR_WAIT( pt, DEVICE_DB_TICK * 1000 );
+
+		send_device_msg();
 
 		// process timeouts
 		list_node_t ln = device_list.head;
@@ -59,9 +65,9 @@ PT_BEGIN( pt );
 
 	        device_data_t *device = list_vp_get_data( ln );
 
-	        device->timeout--;
+	        device->timeout -= DEVICE_DB_TICK;
 
-	        if( device->timeout == 0 ){
+	        if( device->timeout <= 0 ){
 
 	        	trace_printf("device DB timeout: %d.%d.%d.%d\n", device->ip.ip3, device->ip.ip2, device->ip.ip1, device->ip.ip0 );
 
@@ -254,51 +260,69 @@ void device_db_v_init( void ){
 }
 
 
-void device_db_v_process_announce( const catbus_msg_announce_t *announce, const sock_addr_t *raddr ){
+// void device_db_v_process_announce( const catbus_msg_announce_t *announce, const sock_addr_t *raddr ){
 
-	// log_v_debug_P( PSTR("announce %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
+// 	// log_v_debug_P( PSTR("announce %d.%d.%d.%d"), raddr->ipaddr.ip3, raddr->ipaddr.ip2, raddr->ipaddr.ip1, raddr->ipaddr.ip0 );
 
-	list_node_t ln = device_list.head;
+// 	list_node_t ln = device_list.head;
 
-    while( ln >= 0 ){
+//     while( ln >= 0 ){
 
-        device_data_t *device = list_vp_get_data( ln );
+//         device_data_t *device = list_vp_get_data( ln );
 
-        if( ip_b_addr_compare( raddr->ipaddr, device->ip ) ){
+//         if( ip_b_addr_compare( raddr->ipaddr, device->ip ) ){
 
-        	// update
-        	device->tags = announce->query;
-        	device->timeout = DEVICE_DB_TIMEOUT;
+//         	// update
+//         	device->tags = announce->query;
+//         	device->timeout = DEVICE_DB_TIMEOUT;
 
-        	return;
-        }
+//         	return;
+//         }
 
-        ln = list_ln_next( ln );     
-    }
+//         ln = list_ln_next( ln );     
+//     }
 
-    // device not found
+//     // device not found
 
-    device_data_t device = {
-    	announce->query,
-    	raddr->ipaddr,
-    	DEVICE_DB_TIMEOUT
+//     device_data_t device = {
+//     	announce->query,
+//     	raddr->ipaddr,
+//     	DEVICE_DB_TIMEOUT
+//     };
+
+//     ln = list_ln_create_node2( &device, sizeof(device), MEM_TYPE_DEVICEDB );
+
+//     if( ln < 0 ){
+
+//     	return;
+//     } 
+
+//     list_v_insert_tail( &device_list, ln );
+
+//     db_size = list_u8_count( &device_list );
+// }
+
+
+static void send_device_msg( void ){
+
+	const catbus_hash_t32* tag_hashes_ptr = catbus_hp_get_tag_hashes();
+
+	device_msg_t msg = {
+		.magic = DEVICE_DB_MAGIC,
+		.flags = 0,
+		// .tags -> see below
+		.gfx_sync_group = 0,
+	};
+
+	memcpy( msg.query.tags, tag_hashes_ptr, sizeof(msg.query) );
+
+	sock_addr_t raddr = {
+        .ipaddr = ip_a_addr(255, 255, 255, 255),
+        .port = DEVICE_DB_PORT
     };
 
-    ln = list_ln_create_node2( &device, sizeof(device), MEM_TYPE_DEVICEDB );
-
-    if( ln < 0 ){
-
-    	return;
-    } 
-
-    list_v_insert_tail( &device_list, ln );
-
-    db_size = list_u8_count( &device_list );
+    sock_i16_sendto( sock, &msg, sizeof(msg), &raddr );
 }
-
-
-
-
 
 PT_THREAD( device_server_thread( pt_t *pt, void *state ) )
 {
@@ -315,9 +339,53 @@ PT_BEGIN( pt );
             continue;
         }
 
-        
-       
+        const device_msg_t *msg = sock_vp_get_data( sock );
 
+        if( msg->magic != DEVICE_DB_MAGIC ){
+
+            continue;
+        }
+
+        sock_addr_t raddr;
+        sock_v_get_raddr( sock, &raddr );
+
+        list_node_t ln = device_list.head;
+
+	    while( ln >= 0 ){
+
+	        device_data_t *device = list_vp_get_data( ln );
+
+	        if( ip_b_addr_compare( raddr.ipaddr, device->ip ) ){
+
+	        	// update
+	        	device->tags = msg->query;
+	        	device->timeout = DEVICE_DB_TIMEOUT;
+
+	        	goto done;
+	        }
+
+	        ln = list_ln_next( ln );     
+	    }
+
+	    // device not found
+
+	    device_data_t device = {
+	    	msg->query,
+	    	raddr.ipaddr,
+	    	DEVICE_DB_TIMEOUT
+	    };
+
+	    ln = list_ln_create_node2( &device, sizeof(device), MEM_TYPE_DEVICEDB );
+
+	    if( ln < 0 ){
+
+	    	goto done;
+	    } 
+
+	    list_v_insert_tail( &device_list, ln );
+
+done:
+	    db_size = list_u8_count( &device_list );
 	}
 
 PT_END( pt );
