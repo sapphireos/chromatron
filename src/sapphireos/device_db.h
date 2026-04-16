@@ -22,8 +22,8 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
 	catbus_query_t tags;
     ip_addr4_t ip;
-	int16_t timeout;
 	uint32_t gfx_sync_group;
+	int16_t timeout;
 } device_data_t;
 
 

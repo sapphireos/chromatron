@@ -338,7 +338,7 @@ PT_END( pt );
 void sc_v_start( void ){
 
 	thread_t_create( superconductor_thread,
-                PSTR("superconductor"),
+                PSTR("superconductor_rx"),
                 0,
                 0 );
 }

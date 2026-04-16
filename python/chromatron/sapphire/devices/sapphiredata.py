@@ -551,7 +551,8 @@ class DeviceDBEntry(StructField):
     def __init__(self, **kwargs):
         fields = [ArrayField(_name="query", _field=Uint32Field, _length=8),
                   Ipv4Field(_name="ipaddr"),
-                  Uint16Field(_name="timeout")]
+                  Uint32Field(_name="gfx_sync_group"),
+                  Int16Field(_name="timeout")]
 
         super().__init__(_fields=fields, **kwargs)
 

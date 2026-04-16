@@ -358,8 +358,9 @@ PT_BEGIN( pt );
 	        if( ip_b_addr_compare( raddr.ipaddr, device->ip ) ){
 
 	        	// update
-	        	device->tags = msg->query;
-	        	device->timeout = DEVICE_DB_TIMEOUT;
+	        	device->tags 			= msg->query;
+	        	device->gfx_sync_group 	= msg->gfx_sync_group;
+	        	device->timeout 		= DEVICE_DB_TIMEOUT;
 
 	        	goto done;
 	        }
@@ -372,6 +373,7 @@ PT_BEGIN( pt );
 	    device_data_t device = {
 	    	msg->query,
 	    	raddr.ipaddr,
+	    	msg->gfx_sync_group,
 	    	DEVICE_DB_TIMEOUT
 	    };
 
