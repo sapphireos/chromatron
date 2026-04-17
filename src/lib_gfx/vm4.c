@@ -294,9 +294,12 @@ PT_BEGIN( pt );
 
         goto end;
     }
+
+    // set VM ID:
+    state->vm.vm_id = state->vm_id;
  
     // run top level VM script:    
-    status = vm_run_instructions(&state->vm, -1, 0);
+    status = vm_run_instructions( &state->vm, -1, 0 );
 
     if( status < 0 ){
 
