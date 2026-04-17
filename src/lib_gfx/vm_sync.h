@@ -29,10 +29,8 @@
 #ifdef ENABLE_TIME_SYNC
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
-#define SYNC_PROTOCOL_VERSION           	10
+#define SYNC_PROTOCOL_VERSION           	11
 #define SYNC_SERVER_PORT                    44777
-
-// #define SYNC_SERVICE                        __KV__vmsync
 
 
 #define SYNC_INTERVAL                       4000
@@ -59,7 +57,7 @@ typedef struct __attribute__((packed)){
     uint32_t net_time;
 
     uint64_t tick;
-    uint64_t loop_tick;
+    // uint64_t loop_tick;
     uint64_t rng_seed;
     uint32_t frame_number;
 
@@ -71,8 +69,8 @@ typedef struct __attribute__((packed)){
     
     uint16_t data_len;
 
-    uint16_t max_threads; // 16 bits for alignment on threads
-    vm_thread_t threads[SYNC_MAX_THREADS];
+    // uint16_t max_threads; // 16 bits for alignment on threads
+    // vm_thread_t threads[SYNC_MAX_THREADS];
 } vm_sync_msg_sync_t;
 #define VM_SYNC_MSG_SYNC                        1
 

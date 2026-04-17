@@ -29,17 +29,18 @@
 #include "timers.h"
 
 // #ifdef ENABLE_TIME_SYNC
-#if 0
+#if 1
 
 // #include "controller.h"
 #include "timesync.h"
 #include "vm_sync.h"
-#include "vm.h"
+#include "vm4.h"
 #include "hash.h"
 #include "graphics.h"
 #include "config.h"
 #include "logging.h"
-#include "vm_sequencer.h"
+#include "sequencer.h"
+#include "bytecode.h"
 
 static uint32_t sync_group_hash;
 static socket_t sock = -1;
@@ -103,7 +104,7 @@ static void update_checkpoints( void ){
         checkpoint_hashes[i + 1]    = checkpoint_hashes[i];
     }
 
-    checkpoint_hashes[0] = vm_u32_get_sync_data_hash();
+    checkpoint_hashes[0] = vm4_u32_get_sync_data_hash();
 }
 
 static uint8_t count_checkpoints( void ){
@@ -238,7 +239,7 @@ bool vm_sync_b_in_progress( void ){
 
 static void send_sync( sock_addr_t *raddr ){
 
-    vm_state_t *state = vm_p_get_state();
+    vm_t *state = vm4_p_get_vm_state();
 
     if( state == 0 ){
 
@@ -256,32 +257,32 @@ static void send_sync( sock_addr_t *raddr ){
 
     msg.header.program_name_hash= state->program_name_hash;
     msg.header.program_file_hash= state->file_hash;
-    msg.sync_tick               = vm_u64_get_sync_tick();
-    msg.net_time                = vm_u32_get_sync_time();
+    msg.sync_tick               = vm4_u64_get_sync_tick();
+    msg.net_time                = vm4_u32_get_sync_time();
 
-    msg.tick                    = state->tick;
-    msg.loop_tick               = state->loop_tick;
+    msg.tick                    = state->current_tick;
+    // msg.loop_tick               = state->loop_tick;
     msg.rng_seed                = state->rng_seed;
-    msg.frame_number            = state->frame_number;
+    // msg.frame_number            = state->frame_number;
 
     memcpy( msg.checkpoint_hashes, checkpoint_hashes, sizeof(msg.checkpoint_hashes) );
 
-    msg.sequencer_step          = vm_seq_u8_get_step();
+    msg.sequencer_step          = seq_u8_get_step();
     
-    msg.data_len                = vm_u16_get_sync_data_len();
-    msg.max_threads             = VM_MAX_THREADS;
+    msg.data_len                = vm4_u16_get_sync_data_len();
+    // msg.max_threads             = VM_MAX_THREADS;
 
-    if( msg.max_threads > SYNC_MAX_THREADS ){
+    // if( msg.max_threads > SYNC_MAX_THREADS ){
 
-        msg.max_threads = SYNC_MAX_THREADS;
-    }
+    //     msg.max_threads = SYNC_MAX_THREADS;
+    // }
 
-    memset( msg.threads, 0, sizeof(msg.threads) );
+    // memset( msg.threads, 0, sizeof(msg.threads) );
 
-    for( uint8_t i = 0; i < msg.max_threads; i++ ){
+    // for( uint8_t i = 0; i < msg.max_threads; i++ ){
 
-        msg.threads[i] = state->threads[i];
-    }
+    //     msg.threads[i] = state->threads[i];
+    // }
 
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );
 }
@@ -295,7 +296,7 @@ static void send_data( int32_t *data, uint16_t len, uint64_t tick, uint16_t offs
         return;
     }
 
-    vm_state_t *state = vm_p_get_state();
+    vm_t *state = vm4_p_get_vm_state();
 
     if( state == 0 ){
 
@@ -322,7 +323,7 @@ static void send_data( int32_t *data, uint16_t len, uint64_t tick, uint16_t offs
 
 static void send_request( bool request_data ){
 
-    vm_state_t *state = vm_p_get_state();
+    vm_t *state = vm4_p_get_vm_state();
 
     if( state == 0 ){
 
@@ -349,26 +350,26 @@ static void send_request( bool request_data ){
     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 }
 
-static void send_leader_query( void ){
+// static void send_leader_query( void ){
 
-    controller_msg_query_gfx_sync_t msg = {
-        {
-            CONTROLLER_MSG_MAGIC,
-            CONTROLLER_MSG_QUERY_GFX_SYNC,
-            CONTROLLER_MSG_VERSION,
-            0,
-         },
-        sync_group_hash,
-    };
+//     controller_msg_query_gfx_sync_t msg = {
+//         {
+//             CONTROLLER_MSG_MAGIC,
+//             CONTROLLER_MSG_QUERY_GFX_SYNC,
+//             CONTROLLER_MSG_VERSION,
+//             0,
+//          },
+//         sync_group_hash,
+//     };
     
-    sock_addr_t raddr;
-    if( controller_i8_get_addr( &raddr ) < 0 ){
+//     sock_addr_t raddr;
+//     if( controller_i8_get_addr( &raddr ) < 0 ){
 
-        return;
-    }
+//         return;
+//     }
 
-    sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
-}
+//     sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+// }
 
 PT_THREAD( vm_sync_server_thread( pt_t *pt, void *state ) )
 {
@@ -423,7 +424,7 @@ PT_BEGIN( pt );
             	continue;
             }
             
-            vm_state_t *vm_state = vm_p_get_state();
+            vm_t *vm_state = vm4_p_get_vm_state();
 
             if( vm_state == 0 ){
 
@@ -447,7 +448,7 @@ PT_BEGIN( pt );
 
                     vm_sync_v_reset();
 
-                    if( vm_seq_u8_get_step() == msg->sequencer_step ){
+                    if( seq_u8_get_step() == msg->sequencer_step ){
 
                         log_v_error_P( PSTR("program name mismatch") );
                     }
@@ -456,11 +457,11 @@ PT_BEGIN( pt );
                         // a sequencer step change is not an error,
                         // though it is handled the same way.
 
-                        log_v_info_P( PSTR("seq step %d -> %d"), vm_seq_u8_get_step(), msg->sequencer_step );
+                        log_v_info_P( PSTR("seq step %d -> %d"), seq_u8_get_step(), msg->sequencer_step );
                     }
 
                     // sync sequencer
-                    vm_seq_v_set_step( msg->sequencer_step );
+                    seq_v_set_step( msg->sequencer_step );
 
                     continue;
                 }
@@ -475,42 +476,42 @@ PT_BEGIN( pt );
                     continue;
                 }
 
-                if( msg->max_threads > VM_MAX_THREADS ) {
+                // if( msg->max_threads > VM_MAX_THREADS ) {
 
-                    vm_sync_v_reset();
+                //     vm_sync_v_reset();
 
-                    log_v_error_P( PSTR("too many VM threads") );
+                //     log_v_error_P( PSTR("too many VM threads") );
 
-                    continue;                
-                }
+                //     continue;                
+                // }
 
                 // sync VM
-                vm_v_sync( msg->net_time, msg->sync_tick );
+                vm4_v_sync( msg->net_time, msg->sync_tick );
 
                 // sync sequencer
-                vm_seq_v_set_step( msg->sequencer_step );
+                seq_v_set_step( msg->sequencer_step );
 
                 if( sync_state == STATE_SYNCING ){
 
                     sync_data_remaining = msg->data_len;
 
-                    vm_state->tick         = msg->tick;
-                    vm_state->loop_tick    = msg->loop_tick;
+                    // vm_state->tick         = msg->tick;
+                    // vm_state->loop_tick    = msg->loop_tick;
                     vm_state->rng_seed     = msg->rng_seed;
-                    vm_state->frame_number = msg->frame_number;
+                    // vm_state->frame_number = msg->frame_number;
 
-                    uint8_t thread_count = VM_MAX_THREADS;
+                    // uint8_t thread_count = VM_MAX_THREADS;
 
-                    if( thread_count > msg->max_threads ){
+                    // if( thread_count > msg->max_threads ){
 
-                        thread_count = msg->max_threads;
-                    }
+                    //     thread_count = msg->max_threads;
+                    // }
 
-                    // sync threads
-                    for( uint8_t i = 0; i < thread_count; i++ ){
+                    // // sync threads
+                    // for( uint8_t i = 0; i < thread_count; i++ ){
 
-                        vm_state->threads[i] = msg->threads[i];
-                    }
+                    //     vm_state->threads[i] = msg->threads[i];
+                    // }
 
                     // log_v_debug_P( PSTR("sync: vm tick %d sync tick %d"), (int32_t)msg->tick, (int32_t)msg->sync_tick );
                 }
@@ -632,7 +633,7 @@ PT_BEGIN( pt );
 
                     // send data
                     uint16_t offset = 0;
-                    uint16_t data_len = vm_u16_get_sync_data_len();
+                    uint16_t data_len = vm4_u16_get_sync_data_len();
 
                     // TODO
                     // need to split the chunk transmission with some delays.
@@ -654,7 +655,7 @@ PT_BEGIN( pt );
 
                         log_v_debug_P( PSTR("sending sync data: %d bytes"), chunk_size );
 
-                        int32_t *data_ptr = vm_i32p_get_sync_data();
+                        int32_t *data_ptr = vm4_i32p_get_sync_data();
 
                         if( data_ptr == 0 ){
 
@@ -663,14 +664,14 @@ PT_BEGIN( pt );
                             break;
                         }
 
-                        if( ( offset + chunk_size ) > vm_u16_get_sync_data_len() ){
+                        if( ( offset + chunk_size ) > vm4_u16_get_sync_data_len() ){
 
                             log_v_error_P( PSTR("Bad sync data len") );
 
                             break;
                         }
 
-                        send_data( data_ptr, chunk_size, vm_u64_get_sync_tick(), offset, &raddr );
+                        send_data( data_ptr, chunk_size, vm4_u64_get_sync_tick(), offset, &raddr );
 
                         offset += chunk_size;
                     } 
@@ -749,7 +750,7 @@ PT_BEGIN( pt );
                 }   
 
 
-                int32_t *data_ptr = vm_i32p_get_sync_data();
+                int32_t *data_ptr = vm4_i32p_get_sync_data();
 
                 if( data_ptr == 0 ){
 
@@ -758,7 +759,7 @@ PT_BEGIN( pt );
                     continue;
                 }
 
-                if( ( msg->offset + data_len ) > vm_u16_get_sync_data_len() ){
+                if( ( msg->offset + data_len ) > vm4_u16_get_sync_data_len() ){
 
                     log_v_error_P( PSTR("Bad sync data len") );
 
@@ -776,38 +777,38 @@ PT_BEGIN( pt );
                 log_v_debug_P( PSTR("END VM_SYNC_MSG_SYNC_DATA") );
             }
         }
-        else if( header->magic == CONTROLLER_MSG_MAGIC ){
+        // else if( header->magic == CONTROLLER_MSG_MAGIC ){
 
-            // should be getting query response on controller protocol
-            controller_header_t *ctrl_header = sock_vp_get_data( sock );
+        //     // should be getting query response on controller protocol
+        //     controller_header_t *ctrl_header = sock_vp_get_data( sock );
 
-            if( ctrl_header->version != CONTROLLER_MSG_VERSION ){
+        //     if( ctrl_header->version != CONTROLLER_MSG_VERSION ){
 
-                continue;
-            }
+        //         continue;
+        //     }
 
-            if( ctrl_header->msg_type == CONTROLLER_MSG_LEADER_GFX_SYNC ){
+        //     if( ctrl_header->msg_type == CONTROLLER_MSG_LEADER_GFX_SYNC ){
 
-                controller_msg_leader_gfx_sync_t *msg = (controller_msg_leader_gfx_sync_t *)ctrl_header;
+        //         controller_msg_leader_gfx_sync_t *msg = (controller_msg_leader_gfx_sync_t *)ctrl_header;
 
-                // check if leader is changing
-                if( !ip_b_addr_compare( leader_ip, msg->leader_ip ) ){
+        //         // check if leader is changing
+        //         if( !ip_b_addr_compare( leader_ip, msg->leader_ip ) ){
 
-                    // leader changed, reset sync
-                    vm_sync_v_reset();
+        //             // leader changed, reset sync
+        //             vm_sync_v_reset();
 
-                    // set leader
-                    leader_ip = msg->leader_ip;
+        //             // set leader
+        //             leader_ip = msg->leader_ip;
 
-                    log_v_debug_P( PSTR("GFX sync leader: %d.%d.%d.%d"), 
-                        leader_ip.ip3,
-                        leader_ip.ip2,
-                        leader_ip.ip1,
-                        leader_ip.ip0
-                    );
-                }
-            }
-        }
+        //             log_v_debug_P( PSTR("GFX sync leader: %d.%d.%d.%d"), 
+        //                 leader_ip.ip3,
+        //                 leader_ip.ip2,
+        //                 leader_ip.ip1,
+        //                 leader_ip.ip0
+        //             );
+        //         }
+        //     }
+        // }
     }
 
 PT_END( pt );
@@ -819,7 +820,7 @@ static uint16_t get_sync_interval( void ){
 
     uint16_t interval = SYNC_INTERVAL;
 
-    if( vm_seq_b_running() ){
+    if( seq_b_running() ){
 
         interval = SYNC_INTERVAL_SEQ;
     }
@@ -846,7 +847,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
 
         // wait while VM 0 is stopped
-        THREAD_WAIT_WHILE( pt, !vm_b_is_vm_running( 0 ) );
+        THREAD_WAIT_WHILE( pt, !vm4_b_is_vm_running( 0 ) );
 
         // wait while we don't have a leader
         THREAD_WAIT_WHILE( pt, ip_b_is_zeroes( leader_ip ) );
@@ -863,7 +864,7 @@ PT_BEGIN( pt );
             sync_least_hits = 0;
             sync_most_hits = SYNC_MAX_CHECKPOINTS;
 
-            while( vm_sync_b_is_leader() && vm_b_is_vm_running( 0 ) ){
+            while( vm_sync_b_is_leader() && vm4_b_is_vm_running( 0 ) ){
 
                 TMR_WAIT( pt, FADER_RATE );
 
@@ -902,7 +903,7 @@ PT_BEGIN( pt );
 
                 if( ( !vm_sync_b_is_follower() ) ||
                     ( vm_sync_b_is_leader() ) ||
-                    ( !vm_b_is_vm_running( 0 ) ) ){
+                    ( !vm4_b_is_vm_running( 0 ) ) ){
                     
                     THREAD_RESTART( pt );
                 }
@@ -919,7 +920,7 @@ PT_BEGIN( pt );
         thread_v_set_alarm( tmr_u32_get_system_time_ms() + get_sync_interval() );
 
         while( !ip_b_is_zeroes( leader_ip ) && 
-               vm_b_is_vm_running( 0 ) &&
+               vm4_b_is_vm_running( 0 ) &&
                ( sync_state == STATE_SYNC ) ){
 
             if( sys_b_is_shutting_down() ){
@@ -953,27 +954,27 @@ PT_BEGIN( pt );
     while( TRUE ){
 
         // wait while VM 0 is stopped
-        THREAD_WAIT_WHILE( pt, !vm_b_is_vm_running( 0 ) );
+        THREAD_WAIT_WHILE( pt, !vm4_b_is_vm_running( 0 ) );
 
         THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
 
         TMR_WAIT( pt, rnd_u16_get_int() >> 8 );
 
         // query while we do not have a leader
-        while( controller_b_is_connected() && ip_b_is_zeroes( leader_ip ) ){
+        // while( controller_b_is_connected() && ip_b_is_zeroes( leader_ip ) ){
 
-            send_leader_query();    
+        //     send_leader_query();    
 
-            TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) + 2000 );
-        }
+        //     TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) + 2000 );
+        // }
 
-        // query while we do have a leader, in case the leader changes
-        while( controller_b_is_connected() && !ip_b_is_zeroes( leader_ip ) ){
+        // // query while we do have a leader, in case the leader changes
+        // while( controller_b_is_connected() && !ip_b_is_zeroes( leader_ip ) ){
 
-            send_leader_query();    
+        //     send_leader_query();    
 
-            TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) + 8000 );
-        }
+        //     TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) + 8000 );
+        // }
     }
 
 PT_END( pt );

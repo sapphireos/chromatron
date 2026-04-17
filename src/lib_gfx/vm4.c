@@ -297,6 +297,8 @@ PT_BEGIN( pt );
 
     // set VM ID:
     state->vm.vm_id = state->vm_id;
+
+    state->vm.program_name_hash = hash_u32_string( fname );
  
     // run top level VM script:    
     status = vm_run_instructions( &state->vm, -1, 0 );
@@ -659,4 +661,46 @@ int8_t vm4_i8_run_function( uint32_t func_meta, uint8_t vm_id ){
     int status = vm_run_instructions( &thread_state->vm, -1, func_meta );
 
     return status;
+}
+
+uint32_t vm4_u32_get_sync_data_hash( void ){
+
+    return 0;    
+}
+
+uint16_t vm4_u16_get_sync_data_len( void ){
+
+    return 0;    
+}
+
+int32_t* vm4_i32p_get_sync_data( void ){
+
+    return 0;
+}
+
+vm_t* vm4_p_get_vm_state( void ){
+
+    if( vm_threads[0] < 0 ){
+
+        return 0;
+    }
+
+    vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
+
+    return &thread_state->vm;
+}
+
+uint64_t vm4_u64_get_sync_tick( void ){
+
+    return 0;
+}
+
+uint32_t vm4_u32_get_sync_time( void ){
+
+    return 0;
+}
+
+void vm4_v_sync( uint32_t net_time, uint64_t sync_tick ){
+
+
 }
