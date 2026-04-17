@@ -12,6 +12,6 @@ void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_
 void vm4_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id );
 bool vm4_b_is_vm_running( uint8_t vm_id );
 
-int8_t vm4_i8_run_coroutine( uint16_t addr, uint8_t vm_id );
+int8_t vm4_i8_run_function( uint32_t func_meta, uint8_t vm_id );
 
 #endif

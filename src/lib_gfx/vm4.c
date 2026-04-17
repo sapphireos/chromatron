@@ -642,7 +642,7 @@ bool vm4_b_is_vm_running( uint8_t vm_id ){
     return is_vm_running( vm_id );
 }
 
-int8_t vm4_i8_run_coroutine( uint16_t addr, uint8_t vm_id ){
+int8_t vm4_i8_run_function( uint32_t func_meta, uint8_t vm_id ){
 
     ASSERT( vm_id < VM4_MAX_VMS );
 
@@ -653,7 +653,7 @@ int8_t vm4_i8_run_coroutine( uint16_t addr, uint8_t vm_id ){
 
     vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[vm_id] );
 
-    int status = vm_run_instructions( &thread_state->vm, -1, addr );
+    int status = vm_run_instructions( &thread_state->vm, -1, func_meta );
 
     return status;
 }
