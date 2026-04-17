@@ -231,10 +231,10 @@ void device_db_v_init( void ){
 
 	list_v_init( &device_list );
 
-	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+	// if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-		return;
-	}
+	// 	return;
+	// }
 
 	fs_v_create_virtual( PSTR("device_db"), device_db_vfile );
 
@@ -312,6 +312,8 @@ static void send_device_msg( void ){
 		.flags = 0,
 		// .tags -> see below
 		.gfx_sync_group = 0,
+		.uptime = tmr_u64_get_system_time_ms(),
+		.mode = sys_u8_get_mode(),
 	};
 
 	memcpy( msg.query.tags, tag_hashes_ptr, sizeof(msg.query) );
@@ -360,6 +362,8 @@ PT_BEGIN( pt );
 	        	// update
 	        	device->tags 			= msg->query;
 	        	device->gfx_sync_group 	= msg->gfx_sync_group;
+	        	device->uptime          = msg->uptime;
+	        	device->mode          	= msg->mode;
 	        	device->timeout 		= DEVICE_DB_TIMEOUT;
 
 	        	goto done;
@@ -374,6 +378,8 @@ PT_BEGIN( pt );
 	    	msg->query,
 	    	raddr.ipaddr,
 	    	msg->gfx_sync_group,
+	    	msg->uptime,
+	    	msg->mode,
 	    	DEVICE_DB_TIMEOUT
 	    };
 

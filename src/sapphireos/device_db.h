@@ -17,12 +17,16 @@ typedef struct __attribute__((packed)){
 	uint32_t flags;
 	catbus_query_t query;
 	uint32_t gfx_sync_group;
+	uint64_t uptime;
+	uint8_t mode;
 } device_msg_t;
 
 typedef struct __attribute__((packed)){
 	catbus_query_t tags;
     ip_addr4_t ip;
 	uint32_t gfx_sync_group;
+	uint64_t uptime;
+	uint8_t mode;
 	int16_t timeout;
 } device_data_t;
 
