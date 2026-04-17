@@ -54,24 +54,24 @@ static int8_t _vm4_prog_kv_handler(
     }
     else if( op == KV_OP_SET ){
 
-        if( hash == __KV__vm_prog ){
+        if( hash == __KV__vm4_prog ){
 
             vm4_v_reset( 0 );
         }
         #if VM4_MAX_VMS >= 2
-        else if( hash == __KV__vm_prog_1 ){
+        else if( hash == __KV__vm4_prog_1 ){
 
             vm4_v_reset( 1 );
         }
         #endif
         #if VM4_MAX_VMS >= 3
-        else if( hash == __KV__vm_prog_2 ){
+        else if( hash == __KV__vm4_prog_2 ){
 
             vm4_v_reset( 2 );
         }
         #endif
         #if VM4_MAX_VMS >= 4
-        else if( hash == __KV__vm_prog_3 ){
+        else if( hash == __KV__vm4_prog_3 ){
 
             vm4_v_reset( 3 );
         }
