@@ -296,7 +296,7 @@ PT_BEGIN( pt );
     }
  
     // run top level VM script:    
-    status = vm_run_instructions(&state->vm, -1);
+    status = vm_run_instructions(&state->vm, -1, 0);
 
     if( status < 0 ){
 
@@ -653,7 +653,7 @@ int8_t vm4_i8_run_coroutine( uint16_t addr, uint8_t vm_id ){
 
     vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[vm_id] );
 
-    vm_run_coroutine( &thread_state->vm, addr );
+    int status = vm_run_instructions( &thread_state->vm, -1, addr );
 
-    return VM4_STATUS_OK;
+    return status;
 }
