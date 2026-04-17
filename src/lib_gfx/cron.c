@@ -31,6 +31,7 @@
 #include "datetime.h"
 #include "util.h"
 #include "config.h"
+#include "vm4.h"
 
 #include "cron.h"
 
@@ -228,6 +229,27 @@ void cron_v_add_job( char *s, uint16_t func_addr, uint8_t vm_id ){
     list_v_insert_tail( &cron_list, ln );
 }
 
+void cron_v_unload( uint8_t vm_id ){
+
+    list_node_t ln = cron_list.head;
+    list_node_t next_ln;
+
+    while( ln > 0 ){
+
+        next_ln = list_ln_next( ln );
+
+        const cron_job_t *job = list_vp_get_data( ln );
+
+        if( job->vm_id == vm_id ){
+
+            list_v_remove( &cron_list, ln );
+            list_v_release_node( ln );
+        }
+
+        ln = next_ln;
+    }   
+}
+
 
 static bool job_ready( datetime_t *now, cron_job_t *job ){
 
@@ -377,6 +399,7 @@ PT_BEGIN( pt );
                            
                             // log_v_debug_P( PSTR("Running cron job: %u for vm: %d status: %d"), entry->cron.func_addr, entry->vm_id, status );
                             log_v_debug_P( PSTR("Running cron job: %u"), job->func_addr );
+                            vm4_i8_run_coroutine( job->func_addr, job->vm_id );
                         // }
                     }
                     // else{

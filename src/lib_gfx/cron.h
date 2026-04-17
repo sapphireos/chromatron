@@ -23,8 +23,6 @@
 #ifndef _CRON_H_
 #define _CRON_H_
 
-#include "datetime.h"
-
 typedef struct{
 	int8_t minutes;
 	int8_t hours;
@@ -40,20 +38,7 @@ void cron_v_init( void );
 
 int8_t cron_i8_parse( char* s, cron_job_t *job );
 void cron_v_add_job( char *s, uint16_t func_addr, uint8_t vm_id );
+void cron_v_unload( uint8_t vm_id );
 
-// #include "vm_core.h"
-
-// typedef struct{
-// 	cron_t cron;
-// 	uint8_t vm_id;
-// } cron_job_t;
-
-// void vm_cron_v_init( void );
-// void vm_cron_v_load_job( uint8_t vm_id, cron_t *job );
-// void vm_cron_v_start_jobs( uint8_t vm_id );
-// void vm_cron_v_unload( uint8_t vm_id );
-
-// // function must be defined by vm.c
-// int8_t vm_cron_i8_run_func( uint8_t i, uint16_t func_addr );
 
 #endif

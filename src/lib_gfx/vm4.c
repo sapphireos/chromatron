@@ -438,6 +438,8 @@ end:
 
     kvdb_v_clear_tag( 0, 1 << state->vm_id );
 
+    cron_v_unload( state->vm_id );
+
     vm_run_time[state->vm_id]   = 0;
     vm_max_cycles[state->vm_id] = 0;
 
@@ -635,5 +637,23 @@ void vm4_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){
 
 bool vm4_b_is_vm_running( uint8_t vm_id ){
 
+    ASSERT( vm_id < VM4_MAX_VMS );
+
     return is_vm_running( vm_id );
+}
+
+int8_t vm4_i8_run_coroutine( uint16_t addr, uint8_t vm_id ){
+
+    ASSERT( vm_id < VM4_MAX_VMS );
+
+    if( vm_threads[vm_id] < 0 ){
+
+        return VM4_STATUS_NOT_RUNNING;
+    }
+
+    vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[vm_id] );
+
+    vm_run_coroutine( &thread_state->vm, addr );
+
+    return VM4_STATUS_OK;
 }
