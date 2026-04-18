@@ -4,7 +4,6 @@
 
 #include "device_db.h"
 
-
 static list_t device_list;
 static uint8_t db_size;
 
@@ -311,10 +310,12 @@ static void send_device_msg( void ){
 		.magic = DEVICE_DB_MAGIC,
 		.flags = 0,
 		// .tags -> see below
-		.gfx_sync_group = 0,
+		// .gfx_sync_group = vm_sync_u32_get_sync_group_hash(),
 		.uptime = tmr_u64_get_system_time_ms(),
 		.mode = sys_u8_get_mode(),
 	};
+
+	kv_i8_get( __KV__gfx_sync_group_hash, &msg.gfx_sync_group, sizeof(msg.gfx_sync_group) );
 
 	memcpy( msg.query.tags, tag_hashes_ptr, sizeof(msg.query) );
 

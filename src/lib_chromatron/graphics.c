@@ -33,7 +33,7 @@
 #include "graphics.h"
 #include "pixel_power.h"
 #include "led_detect.h"
-#include "vm.h"
+#include "vm4.h"
 #include "vm_sync.h"
 #include "superconductor.h"
 #include "util.h"
