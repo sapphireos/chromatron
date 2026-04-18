@@ -396,6 +396,8 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_SIGNAL( pt, VM4_SIGNAL_0 + state->vm_id );
 
+        uint64_t now = tmr_u64_get_system_time_ms();
+
         // check if running
         if( !vm_run[state->vm_id] ){
 
@@ -415,7 +417,8 @@ PT_BEGIN( pt );
 
         uint32_t start_time = tmr_u32_get_system_time_us();
 
-        status = vm_run_tick( &state->vm, thread_u32_get_alarm() );
+        // status = vm_run_tick( &state->vm, thread_u32_get_alarm() );
+        status = vm_run_tick( &state->vm, now );
 
         uint32_t elapsed_us = tmr_u32_elapsed_time_us( start_time );
 
