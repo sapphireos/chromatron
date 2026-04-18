@@ -270,6 +270,79 @@ void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_
     }
 }
 
+static void init_published( vm4_thread_state_t *state ){
+
+    // load published vars
+    for( uint8_t i = 0; i < cnt_of_array(state->published_vars); i++ ){
+
+        if( state->published_vars[i].hash == 0 ){
+
+            continue;
+        }
+
+        int32_t *ptr = 0;
+
+        ASSERT( state->published_vars[i].count != 0 );
+
+        if( state->published_vars[i].count == 1 ){
+
+            ptr = vm_get_global( &state->vm, state->published_vars[i].index );
+        }
+        else{ // > 1
+
+            ptr = vm_get_array( &state->vm, state->published_vars[i].index );
+        }
+
+        int8_t kv_status = catbus_i8_array_get( 
+                            state->published_vars[i].hash,
+                            CATBUS_TYPE_INT32,
+                            0,
+                            state->published_vars[i].count,
+                            ptr );
+
+        if( kv_status < 0 ){
+
+            log_v_error_P( PSTR("KV error: %d"), kv_status );
+        }
+    }
+}
+
+static void fini_published( vm4_thread_state_t *state ){
+
+    for( uint8_t i = 0; i < cnt_of_array(state->published_vars); i++ ){
+
+        if( state->published_vars[i].hash == 0 ){
+
+            continue;
+        }
+
+        ASSERT( state->published_vars[i].count != 0 );
+
+        int32_t *ptr = 0;
+
+        if( state->published_vars[i].count == 1 ){
+
+            ptr = vm_get_global( &state->vm, state->published_vars[i].index );
+        }
+        else{ // > 1
+
+            ptr = vm_get_array( &state->vm, state->published_vars[i].index );
+        }
+
+        int8_t kv_status = catbus_i8_array_set( 
+                            state->published_vars[i].hash,
+                            CATBUS_TYPE_INT32,
+                            0,
+                            state->published_vars[i].count,
+                            ptr,
+                            sizeof(int32_t) * state->published_vars[i].count );
+
+        if( kv_status < 0 ){
+
+            log_v_error_P( PSTR("KV error: %d"), kv_status );
+        }
+    }
+}
 
 PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) )
 {
@@ -336,39 +409,7 @@ PT_BEGIN( pt );
             goto end;
         }
 
-        // load published vars
-        for( uint8_t i = 0; i < cnt_of_array(state->published_vars); i++ ){
-
-            if( state->published_vars[i].hash == 0 ){
-
-                continue;
-            }
-
-            int32_t *ptr = 0;
-
-            ASSERT( state->published_vars[i].count != 0 );
-
-            if( state->published_vars[i].count == 1 ){
-
-                ptr = vm_get_global( &state->vm, state->published_vars[i].index );
-            }
-            else{ // > 1
-
-                ptr = vm_get_array( &state->vm, state->published_vars[i].index );
-            }
-
-            int8_t kv_status = catbus_i8_array_get( 
-                                state->published_vars[i].hash,
-                                CATBUS_TYPE_INT32,
-                                0,
-                                state->published_vars[i].count,
-                                ptr );
-
-            if( kv_status < 0 ){
-
-                log_v_error_P( PSTR("KV error: %d"), kv_status );
-            }
-        }
+        init_published( state );
 
         uint32_t start_time = tmr_u32_get_system_time_us();
 
@@ -400,39 +441,7 @@ PT_BEGIN( pt );
             vm_max_cycles[state->vm_id] = state->vm.cycle_count;
         }
 
-        for( uint8_t i = 0; i < cnt_of_array(state->published_vars); i++ ){
-
-            if( state->published_vars[i].hash == 0 ){
-
-                continue;
-            }
-
-            ASSERT( state->published_vars[i].count != 0 );
-
-            int32_t *ptr = 0;
-
-            if( state->published_vars[i].count == 1 ){
-
-                ptr = vm_get_global( &state->vm, state->published_vars[i].index );
-            }
-            else{ // > 1
-
-                ptr = vm_get_array( &state->vm, state->published_vars[i].index );
-            }
-
-            int8_t kv_status = catbus_i8_array_set( 
-                                state->published_vars[i].hash,
-                                CATBUS_TYPE_INT32,
-                                0,
-                                state->published_vars[i].count,
-                                ptr,
-                                sizeof(int32_t) * state->published_vars[i].count );
-
-            if( kv_status < 0 ){
-
-                log_v_error_P( PSTR("KV error: %d"), kv_status );
-            }
-        }
+        fini_published( state );
 
         THREAD_YIELD( pt );
     }
