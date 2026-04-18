@@ -2,8 +2,14 @@
 #define _VM4_H_
 
 #include "bytecode.h"
+#include "threading.h"
 
 #define VM4_MAX_VMS		4
+
+#define VM4_SIGNAL_0	SIGNAL_SYS_0
+#define VM4_SIGNAL_1	SIGNAL_SYS_1
+#define VM4_SIGNAL_2	SIGNAL_SYS_2
+#define VM4_SIGNAL_3	SIGNAL_SYS_3
 
 void vm4_v_init( void );
 
@@ -23,5 +29,7 @@ vm_t* vm4_p_get_vm_state( void );
 uint64_t vm4_u64_get_sync_tick( void );
 uint32_t vm4_u32_get_sync_time( void );
 void vm4_v_sync( uint32_t net_time, uint64_t sync_tick );
+
+void vm4_v_signal( void );
 
 #endif

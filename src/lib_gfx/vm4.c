@@ -384,15 +384,17 @@ PT_BEGIN( pt );
 
     log_v_debug_P( PSTR("VM init OK") );
 
-    thread_v_set_alarm( tmr_u32_get_system_time_ms() );
+    // thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
     while( 1 ){
 
-        thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
-        THREAD_WAIT_WHILE( pt, 
-            thread_b_alarm_set() && 
-            vm_run[state->vm_id] &&
-            !vm_reset[state->vm_id] );
+        // thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
+        // THREAD_WAIT_WHILE( pt, 
+        //     thread_b_alarm_set() && 
+        //     vm_run[state->vm_id] &&
+        //     !vm_reset[state->vm_id] );
+
+        THREAD_WAIT_SIGNAL( pt, VM4_SIGNAL_0 + state->vm_id );
 
         // check if running
         if( !vm_run[state->vm_id] ){
@@ -712,4 +714,15 @@ uint32_t vm4_u32_get_sync_time( void ){
 void vm4_v_sync( uint32_t net_time, uint64_t sync_tick ){
 
 
+}
+
+void vm4_v_signal( void ){
+
+    for( uint8_t i = 0; i < VM4_MAX_VMS; i++ ){
+
+        if( is_vm_running( i ) ){
+
+            thread_v_signal( VM4_SIGNAL_0 + i );
+        }
+    }
 }
