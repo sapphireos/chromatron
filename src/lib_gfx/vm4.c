@@ -27,6 +27,7 @@
 #include "pixelarray.h"
 #include "sequencer.h"
 #include "cron.h"
+#include "link4.h"
 
 static bool vm_reset[VM4_MAX_VMS];
 static bool vm_run[VM4_MAX_VMS];
@@ -455,6 +456,7 @@ PT_BEGIN( pt );
 end:
     vm_deinit( &state->vm );
 
+    link4_v_delete_by_tag( state->vm_id );
     kvdb_v_clear_tag( 0, 1 << state->vm_id );
 
     cron_v_unload( state->vm_id );

@@ -93,4 +93,6 @@ link4_handle_t link4_l_create(
     link4_rate_t16 rate,
     link4_aggregation_t8 aggregation );
 
+void link4_v_delete_by_tag( catbus_hash_t32 tag );
+
 #endif

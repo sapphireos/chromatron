@@ -213,6 +213,25 @@ static void delete_link( link4_handle_t link ){
     list_v_release_node( link );
 }
 
+void link4_v_delete_by_tag( catbus_hash_t32 tag ){
+
+    list_node_t ln = link_list.head;
+
+    while( ln >= 0 ){
+
+        list_node_t next_ln = list_ln_next( ln );
+
+        link4_state_t *link_state = list_vp_get_data( ln );
+        link4_t *link = &link_state->link;
+
+        if( link->tag == tag ){
+
+            delete_link( ln );
+        }
+
+        ln = next_ln;
+    }   
+}
 
 
 static uint8_t database_count( mem_handle_t database_h ){
@@ -487,6 +506,8 @@ PT_BEGIN( pt );
             		log_v_info_P( PSTR("Remote receive link timed out") );
 
             		delete_link( ln );
+
+                    goto next;
             	}
             	// not timed out, check database
             	else if( link_state->database_h > 0 ){
