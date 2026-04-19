@@ -51,8 +51,9 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     link4_t link;
-    uint16_t timeout;
+    uint16_t transmit_timeout;
     uint16_t transmit_timer;
+    uint16_t remote_timeout;
     mem_handle_t database_h;
 } link4_state_t;
 

@@ -348,7 +348,7 @@ PT_BEGIN( pt );
             	if( changed ){
 
             		// force timer so we transmit now
-            		link_state->timeout 	   = 1;
+            		link_state->transmit_timeout 	   = 1;
 					link_state->transmit_timer = 0;
             	}
 
@@ -358,24 +358,24 @@ PT_BEGIN( pt );
             	}
             	else{
 
-                    if( link_state->timeout == 0 ){
+                    if( link_state->transmit_timeout == 0 ){
 
-                        link_state->timeout = 1;
+                        link_state->transmit_timeout = 1;
                     }
 
-                    // log_v_debug_P( PSTR("%d %d"), link_state->timeout, link_state->transmit_timer );
+                    // log_v_debug_P( PSTR("%d %d"), link_state->transmit_timeout, link_state->transmit_timer );
             		
             		// tx timer expired!
-            		link_state->transmit_timer = link_state->timeout; // reset timer
+            		link_state->transmit_timer = link_state->transmit_timeout; // reset timer
 					
-					// bump timeout up towards max
-					if( link_state->timeout < LINK4_RETRANSMIT_MAX){
+					// bump transmit_timeout up towards max
+					if( link_state->transmit_timeout < LINK4_RETRANSMIT_MAX){
 
-						link_state->timeout *= 2;
+						link_state->transmit_timeout *= 2;
 					}
-					else if( link_state->timeout > LINK4_RETRANSMIT_MAX ){
+					else if( link_state->transmit_timeout > LINK4_RETRANSMIT_MAX ){
 
-						link_state->timeout = LINK4_RETRANSMIT_MAX;
+						link_state->transmit_timeout = LINK4_RETRANSMIT_MAX;
 					}
 
                     uint8_t msg_type = LINK4_MSG_TYPE_SEND;
@@ -477,12 +477,12 @@ PT_BEGIN( pt );
             }
             else if( link->mode == LINK4_MODE_REMOTE_RECV ){
 
-            	if( link_state->timeout > 0 ){
+            	if( link_state->remote_timeout > 0 ){
 
-            		link_state->timeout--;
+            		link_state->remote_timeout--;
             	}
 
-            	if( link_state->timeout == 0 ){
+            	if( link_state->remote_timeout == 0 ){
 
             		log_v_info_P( PSTR("Remote receive link timed out") );
 
@@ -674,7 +674,7 @@ PT_BEGIN( pt );
         	link4_state_t *link_state = (link4_state_t *)list_vp_get_data( lh );
 
         	// update timeout
-        	link_state->timeout = LINK4_LINK_TIMEOUT;
+        	link_state->remote_timeout = LINK4_LINK_TIMEOUT;
 
         	link4_data_t *database = 0;
 
@@ -807,7 +807,7 @@ PT_BEGIN( pt );
             link4_state_t *link_state = (link4_state_t *)list_vp_get_data( lh );
 
             // update timeout
-            link_state->timeout = LINK4_LINK_TIMEOUT;
+            link_state->remote_timeout = LINK4_LINK_TIMEOUT;
         }
     }
 
