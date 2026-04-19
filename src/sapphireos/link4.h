@@ -12,6 +12,7 @@
 
 #define LINK4_PROCESS_RATE                  100
 #define LINK4_RETRANSMIT_MAX                64
+#define LINK4_RECV_TX_RATE                  32
 
 #define LINK4_MAX_LINKS						16
 
@@ -73,6 +74,7 @@ typedef struct __attribute__((packed)){
     int32_t value;
 } link4_msg_send_t;
 #define LINK4_MSG_TYPE_SEND        		1
+#define LINK4_MSG_TYPE_REMOTE_SEND      3
 
 typedef struct __attribute__((packed)){
     link4_msg_header_t header;
