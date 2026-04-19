@@ -523,7 +523,13 @@ PT_BEGIN( pt );
 
             			if( database->timeout == 0 ){
 
-            				log_v_info_P( PSTR("Data timed out") );
+            				log_v_info_P( PSTR("Data timed out: %d.%d.%d.%d hash: 0x%08x"),
+                                database->ip.ip3,
+                                database->ip.ip2,
+                                database->ip.ip1,
+                                database->ip.ip0,
+                                link_state->link.dest_key
+                            );
 
             				uint16_t old_database_size = mem2_u16_get_size( link_state->database_h );
             				uint16_t new_database_size = old_database_size - sizeof(link4_data_t);
@@ -717,6 +723,14 @@ PT_BEGIN( pt );
             	// init first item
             	database->value = 0x7fffffff;
             	database->ip    = raddr.ipaddr;
+
+                log_v_info_P( PSTR("Create database: %d.%d.%d.%d hash: 0x%08x"),
+                    database->ip.ip3,
+                    database->ip.ip2,
+                    database->ip.ip1,
+                    database->ip.ip0,
+                    link_state->link.dest_key
+                );
         	}
 
         	// search for matching node in database
@@ -764,6 +778,14 @@ PT_BEGIN( pt );
 
         		// get new pointer
         		database = (link4_data_t *)mem2_vp_get_ptr( new_database_h ) + old_database_size;
+
+                log_v_info_P( PSTR("Update database: %d.%d.%d.%d hash: 0x%08x"),
+                    database->ip.ip3,
+                    database->ip.ip2,
+                    database->ip.ip1,
+                    database->ip.ip0,
+                    link_state->link.dest_key
+                );
         	}
 
         	// now we have a pointer to this data item

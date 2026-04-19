@@ -61,7 +61,7 @@ typedef struct __attribute__((packed)){
     int32_t value;
   	ip_addr4_t ip;
   	uint16_t timeout;
-} link4_data_t; // 10 bytes
+} link4_data_t;
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
