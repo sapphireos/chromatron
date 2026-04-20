@@ -590,21 +590,21 @@ PT_BEGIN( pt );
 
         		for( int i = 0; i < database_count( link_state->database_h ); i++ ){
 
-        			if( database->timeout > 0 ){
+        			if( database[i].timeout > 0 ){
 
-        				database->timeout--;
+        				database[i].timeout--;
         			}
 
-        			if( database->timeout > 0 ){
+        			if( database[i].timeout > 0 ){
 
                         continue;
                     }
 
     				log_v_info_P( PSTR("Data timed out: %d.%d.%d.%d hash: 0x%08x"),
-                        database->ip.ip3,
-                        database->ip.ip2,
-                        database->ip.ip1,
-                        database->ip.ip0,
+                        database[i].ip.ip3,
+                        database[i].ip.ip2,
+                        database[i].ip.ip1,
+                        database[i].ip.ip0,
                         link_state->link.dest_key
                     );
 
@@ -882,13 +882,13 @@ PT_BEGIN( pt );
         	database->ip 		= raddr.ipaddr;
         	database->timeout 	= LINK4_DATA_TIMEOUT;
 
-            log_v_info_P( PSTR("Update database: %d.%d.%d.%d hash: 0x%08x"),
-                database->ip.ip3,
-                database->ip.ip2,
-                database->ip.ip1,
-                database->ip.ip0,
-                link_state->link.dest_key
-            );
+            // log_v_info_P( PSTR("Update database: %d.%d.%d.%d hash: 0x%08x"),
+            //     database->ip.ip3,
+            //     database->ip.ip2,
+            //     database->ip.ip1,
+            //     database->ip.ip0,
+            //     link_state->link.dest_key
+            // );
 
         	// detect changes:
             bool changed = msg->value != database->value;
