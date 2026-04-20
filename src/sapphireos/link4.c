@@ -105,7 +105,68 @@ void link4_v_init( void ){
 
 bool link4_b_compare( const link4_t *link1, const link4_t *link2 ){
  
-    return memcmp( link1, link2, sizeof(link4_t) - sizeof(mem_handle_t) ) == 0;
+    // return memcmp( link1, link2, sizeof(link4_t) - sizeof(mem_handle_t) ) == 0;
+
+    if( link1->mode != link2->mode ){
+
+        log_v_debug_P( PSTR("mode") );
+
+        return FALSE;
+    }
+
+    if( link1->aggregation != link2->aggregation ){
+
+        log_v_debug_P( PSTR("aggregation") );
+
+        return FALSE;
+    }
+
+    if( link1->rate != link2->rate ){
+
+        log_v_debug_P( PSTR("rate") );
+
+        return FALSE;
+    }
+
+    if( link1->source_key != link2->source_key ){
+
+        log_v_debug_P( PSTR("source_key") );
+
+        return FALSE;
+    }
+
+    if( link1->dest_key != link2->dest_key ){
+
+        log_v_debug_P( PSTR("dest_key") );
+
+        return FALSE;
+    }
+
+    if( link1->tag != link2->tag ){
+
+        log_v_debug_P( PSTR("tag") );
+
+        return FALSE;
+    }
+
+    // copy queries, sort, and compare
+    catbus_query_t query1 = link1->query;
+    catbus_query_t query2 = link2->query;
+
+    util_v_bubble_sort_reversed_u32( query1.tags, cnt_of_array(query1.tags) );   
+    util_v_bubble_sort_reversed_u32( query2.tags, cnt_of_array(query2.tags) );
+
+    for( uint8_t i = 0; i < cnt_of_array(query1.tags); i++ ){
+
+        if( query1.tags[i] != query2.tags[i] ){
+
+            log_v_debug_P( PSTR("query") );
+
+            return FALSE;
+        }
+    }
+
+    return TRUE;
 }
 
 link4_handle_t link4_l_lookup( link4_t *link ){
@@ -778,20 +839,20 @@ PT_BEGIN( pt );
 
         		// get new pointer
         		database = (link4_data_t *)mem2_vp_get_ptr( new_database_h ) + old_database_size;
-
-                log_v_info_P( PSTR("Update database: %d.%d.%d.%d hash: 0x%08x"),
-                    database->ip.ip3,
-                    database->ip.ip2,
-                    database->ip.ip1,
-                    database->ip.ip0,
-                    link_state->link.dest_key
-                );
         	}
 
         	// now we have a pointer to this data item
         	// make sure IP is tracked
         	database->ip 		= raddr.ipaddr;
         	database->timeout 	= LINK4_DATA_TIMEOUT;
+
+            log_v_info_P( PSTR("Update database: %d.%d.%d.%d hash: 0x%08x"),
+                    database->ip.ip3,
+                    database->ip.ip2,
+                    database->ip.ip1,
+                    database->ip.ip0,
+                    link_state->link.dest_key
+                );
 
         	// detect changes:
             bool changed = msg->value != database->value;
