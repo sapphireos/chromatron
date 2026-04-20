@@ -28,10 +28,8 @@
 #include "threading.h"
 #include "timers.h"
 
-// #ifdef ENABLE_TIME_SYNC
-#if 1
+#ifdef ENABLE_TIME_SYNC
 
-// #include "controller.h"
 #include "timesync.h"
 #include "vm_sync.h"
 #include "vm4.h"

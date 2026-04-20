@@ -208,6 +208,14 @@ link4_handle_t link4_l_create2( link4_t *link ){
         return -1;
     }
 
+    // check for null query:
+    if( catbus_b_is_null_query( &link->query ) ){
+
+        log_v_error_P( PSTR("Null query!") );
+
+        return -1;
+    }
+    
     if( state.link.rate < LINK4_RATE_MIN ){
 
         state.link.rate = LINK4_RATE_MIN;
@@ -247,6 +255,11 @@ link4_handle_t link4_l_create(
 
         return -1;
     }
+
+    // for(int i = 0; i < 8; i++){
+
+    //     log_v_debug_P(PSTR("0x%08x"), query->tags[i]);
+    // }
 
     link4_t link = {
     	.mode               = mode,
@@ -388,6 +401,14 @@ PT_BEGIN( pt );
 
                 // link4_test_key++;
 
+                // check for null query:
+                if( catbus_b_is_null_query( &link->query ) ){
+
+                    log_v_error_P( PSTR("Null query!") );
+
+                    goto next;
+                }
+
             	// lookup local data
             	catbus_meta_t meta;
             	if( kv_i8_get_catbus_meta( link->source_key, &meta ) < 0 ){
@@ -487,6 +508,16 @@ PT_BEGIN( pt );
 					device_db_v_reset_iter();
 					device_db_v_set_query( &link->query );
 
+                    // log_v_info_P( PSTR("link 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x"),
+                    //         link->query.tags[0],
+                    //         link->query.tags[1],
+                    //         link->query.tags[2],
+                    //         link->query.tags[3],
+                    //         link->query.tags[4],
+                    //         link->query.tags[5],
+                    //         link->query.tags[6],
+                    //         link->query.tags[7] );
+
 					const device_data_t *device = device_db_p_get_next_query( 0 );
 
                     // if( device == 0 ){
@@ -495,6 +526,21 @@ PT_BEGIN( pt );
                     // }
 
 					while( device != 0 ){
+
+                        // log_v_info_P( PSTR("%d.%d.%d.%d 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x"),
+                        //     device->ip.ip3,
+                        //     device->ip.ip2,
+                        //     device->ip.ip1,
+                        //     device->ip.ip0,
+                        //     device->tags.tags[0],
+                        //     device->tags.tags[1],
+                        //     device->tags.tags[2],
+                        //     device->tags.tags[3],
+                        //     device->tags.tags[4],
+                        //     device->tags.tags[5],
+                        //     device->tags.tags[6],
+                        //     device->tags.tags[7] );
+
 
 						sock_addr_t raddr = {
 							.ipaddr = device->ip,
@@ -764,11 +810,13 @@ PT_BEGIN( pt );
         			continue;
         		}
 
-        		log_v_info_P( PSTR("Created remote receive link from: %d.%d.%d.%d"),
+        		log_v_info_P( PSTR("Created remote receive link from: %d.%d.%d.%d 0x%08x -> 0x%08x"),
                               raddr.ipaddr.ip3,
                               raddr.ipaddr.ip2,
                               raddr.ipaddr.ip1,
-                              raddr.ipaddr.ip0 );
+                              raddr.ipaddr.ip0,
+                              msg->link.source_key,
+                              msg->link.dest_key );
         	}
 
         	ASSERT( lh > 0 );

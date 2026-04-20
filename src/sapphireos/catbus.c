@@ -305,6 +305,21 @@ static bool _catbus_b_has_tag( catbus_hash_t32 hash ){
     return FALSE;
 }
 
+bool catbus_b_is_null_query( catbus_query_t *query ){
+
+    uint8_t count = 0;
+
+    for( uint8_t i = 0; i < cnt_of_array(query->tags); i++ ){
+
+        if( query->tags[i] != 0 ){
+
+            count++;
+        }
+    }
+
+    return count == 0;
+}
+
 bool catbus_b_query_self( catbus_query_t *query ){
 
     for( uint8_t i = 0; i < cnt_of_array(query->tags); i++ ){
