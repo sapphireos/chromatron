@@ -375,6 +375,8 @@ PT_BEGIN( pt );
         status = vm_deserialize( &state->vm, fname );    
     }
 
+    log_v_debug_P( PSTR("rng %llx"), state->vm.rng_seed );
+
     request_unfreeze = FALSE;
 
     if( status < 0 ){
@@ -756,7 +758,7 @@ void vm4_v_freeze_vm( uint8_t vm_id ){
         return;
     }
 
-    file_t f = fs_f_open("_sync.f4b", FS_MODE_READ_ONLY);
+    file_t f = fs_f_open( "_sync.f4b", FS_MODE_WRITE_OVERWRITE );
             
     if( f > 0 ){
 
@@ -772,6 +774,8 @@ void vm4_v_freeze_vm( uint8_t vm_id ){
 
         log_v_warn_P( PSTR("VM serialize failed: %d"), status );
     }
+
+    log_v_debug_P( PSTR("freeze rng %llx"), thread_state->vm.rng_seed );
 }
 
 void vm4_v_unfreeze_vm( uint8_t vm_id ){

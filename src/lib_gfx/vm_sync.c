@@ -838,7 +838,7 @@ PT_BEGIN( pt );
 
             if( msg->offset == 0 ){
 
-                file_t f = fs_f_open("_sync.f4b", FS_MODE_READ_ONLY);
+                file_t f = fs_f_open( "_sync.f4b", FS_MODE_WRITE_OVERWRITE );
             
                 if( f > 0 ){
 
@@ -882,7 +882,7 @@ PT_BEGIN( pt );
 
                 sync_state = STATE_SYNC;
             }
-            
+
 
             // int32_t *data_ptr = vm4_i32p_get_sync_data();
 
