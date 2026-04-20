@@ -586,8 +586,6 @@ PT_BEGIN( pt );
                     goto next;
                 }
 
-                goto next;
-
         		link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( link_state->database_h );
 
         		for( int i = 0; i < database_count( link_state->database_h ); i++ ){
