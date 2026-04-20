@@ -32,4 +32,7 @@ void vm4_v_sync( uint32_t net_time, uint64_t sync_tick );
 
 void vm4_v_signal( void );
 
+void vm4_v_freeze_vm( uint8_t vm_id );
+void vm4_v_unfreeze_vm( uint8_t vm_id );
+
 #endif

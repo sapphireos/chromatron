@@ -53,11 +53,12 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
     
-    uint64_t sync_tick;
-    uint32_t net_time;
+    // uint64_t sync_tick;
+    // uint32_t net_time;
 
-    uint64_t tick;
+    // uint64_t tick;
     // uint64_t loop_tick;
+
     uint64_t rng_seed;
     uint32_t frame_number;
 
@@ -65,9 +66,9 @@ typedef struct __attribute__((packed)){
     uint32_t checkpoint_hashes[SYNC_MAX_CHECKPOINTS];
 
     uint16_t sequencer_step;
-    uint16_t padding;
+    // uint16_t padding;
     
-    uint16_t data_len;
+    // uint16_t data_len;
 
     // uint16_t max_threads; // 16 bits for alignment on threads
     // vm_thread_t threads[SYNC_MAX_THREADS];
@@ -82,9 +83,9 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
-    uint64_t tick;
+    // uint64_t tick;
     uint16_t offset;
-    uint16_t padding;
+    uint16_t total;
     uint8_t data; // first data byte
 } vm_sync_msg_data_t;
 #define VM_SYNC_MSG_DATA                        3

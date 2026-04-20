@@ -38,6 +38,8 @@ static uint16_t vm_max_cycles[VM4_MAX_VMS];
 
 static thread_t vm_threads[VM4_MAX_VMS];
 
+static bool request_unfreeze;
+
 static bool is_vm_running( uint8_t vm_id ){
 
     return ( vm_status[vm_id] >= VM4_STATUS_OK ) && ( vm_status[vm_id] != VM4_STATUS_HALT );
@@ -359,8 +361,21 @@ PT_BEGIN( pt );
 
     get_program_fname( state->vm_id, fname );
 
+    int status = 0;
+
     // load VM
-    int status = vm_deserialize( &state->vm, fname );
+    if( request_unfreeze ){
+
+        log_v_debug_P( PSTR("unfreeze") );
+
+        status = vm_deserialize( &state->vm, "_sync.f4b" );
+    }
+    else{
+
+        status = vm_deserialize( &state->vm, fname );    
+    }
+
+    request_unfreeze = FALSE;
 
     if( status < 0 ){
 
@@ -420,6 +435,8 @@ PT_BEGIN( pt );
 
         // status = vm_run_tick( &state->vm, thread_u32_get_alarm() );
         status = vm_run_tick( &state->vm, now );
+
+        state->vm.frame_number++;
 
         uint32_t elapsed_us = tmr_u32_elapsed_time_us( start_time );
 
@@ -730,4 +747,43 @@ void vm4_v_signal( void ){
             thread_v_signal( VM4_SIGNAL_0 + i );
         }
     }
+}
+
+void vm4_v_freeze_vm( uint8_t vm_id ){
+
+    if( vm_threads[0] < 0 ){
+
+        return;
+    }
+
+    vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
+
+    int status = vm_serialize( &thread_state->vm, "_sync.f4b" );
+
+    if( status != 0 ){
+
+        log_v_warn_P( PSTR("VM serialize failed: %d"), status );
+    }
+}
+
+void vm4_v_unfreeze_vm( uint8_t vm_id ){
+
+    if( vm_threads[vm_id] < 0 ){
+
+        return;
+    }
+
+    request_unfreeze = TRUE;
+
+    vm4_v_reset( vm_id );
+
+    // vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
+
+    // vm_t vm = {0};
+    // int status = vm_deserialize( &vm, "_sync.f4b" );
+
+    // if( status != 0 ){
+
+    //     log_v_warn_P( PSTR("VM deserialize failed: %d"), status );
+    // }
 }
