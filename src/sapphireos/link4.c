@@ -263,7 +263,7 @@ link4_handle_t link4_l_create(
 
 static void delete_link( link4_handle_t link ){
 
-    link4_state_t *state = list_vp_get_data( link );
+    const link4_state_t *state = list_vp_get_data( link );
 
     if( state->database_h > 0 ){
 
@@ -283,7 +283,7 @@ void link4_v_delete_by_tag( catbus_hash_t32 tag ){
         list_node_t next_ln = list_ln_next( ln );
 
         link4_state_t *link_state = list_vp_get_data( ln );
-        link4_t *link = &link_state->link;
+        const link4_t *link = &link_state->link;
 
         // check if link is local
         // remote links don't get deleted here, they must time out
@@ -591,58 +591,58 @@ PT_BEGIN( pt );
             				database->timeout--;
             			}
 
-            			if( database->timeout == 0 ){
+            			if( database->timeout > 0 ){
 
                             continue;
+                        }
 
-            				log_v_info_P( PSTR("Data timed out: %d.%d.%d.%d hash: 0x%08x"),
-                                database->ip.ip3,
-                                database->ip.ip2,
-                                database->ip.ip1,
-                                database->ip.ip0,
-                                link_state->link.dest_key
-                            );
+        				log_v_info_P( PSTR("Data timed out: %d.%d.%d.%d hash: 0x%08x"),
+                            database->ip.ip3,
+                            database->ip.ip2,
+                            database->ip.ip1,
+                            database->ip.ip0,
+                            link_state->link.dest_key
+                        );
 
-            				uint16_t old_database_size = mem2_u16_get_size( link_state->database_h );
-            				uint16_t new_database_size = old_database_size - sizeof(link4_data_t);
+        				uint16_t old_database_size = mem2_u16_get_size( link_state->database_h );
+        				uint16_t new_database_size = old_database_size - sizeof(link4_data_t);
 
-            				if( new_database_size == 0 ){
+        				if( new_database_size == 0 ){
 
-            					// easy path, just release db
-            					mem2_v_free( link_state->database_h );
-            					link_state->database_h = -1;
-            				}
-            				else{
+        					// easy path, just release db
+        					mem2_v_free( link_state->database_h );
+        					link_state->database_h = -1;
+        				}
+        				else{
 
-	            				mem_handle_t new_database_h = mem2_h_alloc( new_database_size );
+            				mem_handle_t new_database_h = mem2_h_alloc( new_database_size );
 
-	            				if( new_database_h <= 0 ){
+            				if( new_database_h <= 0 ){
 
-				        			log_v_error_P( PSTR("alloc fail") );
+			        			log_v_error_P( PSTR("alloc fail") );
 
-				                	goto next;
-				        		}
+			                	goto next;
+			        		}
 
-								link4_data_t *new_database = (link4_data_t *)mem2_vp_get_ptr( new_database_h );
+							link4_data_t *new_database = (link4_data_t *)mem2_vp_get_ptr( new_database_h );
 
-								// copy old data items into new db, skipping this current item we are deleting
-				        		for( int j = 0; j < database_count( link_state->database_h ); j++ ){
+							// copy old data items into new db, skipping this current item we are deleting
+			        		for( int j = 0; j < database_count( link_state->database_h ); j++ ){
 
-				        			if( j == i ){
+			        			if( j == i ){
 
-				        				continue;
-				        			}
+			        				continue;
+			        			}
 
-				        			*new_database = database[j];
-				        			new_database++;
-				        		}
+			        			*new_database = database[j];
+			        			new_database++;
+			        		}
 
-				        		// release old db, set new on
-				        		mem2_v_free( link_state->database_h );
-				        		link_state->database_h = new_database_h;
-				        	}
-            			}
-            		}
+			        		// release old db, set new on
+			        		mem2_v_free( link_state->database_h );
+			        		link_state->database_h = new_database_h;
+			        	}
+        			}
             	}
             }
             
