@@ -11,13 +11,13 @@
 #define LINK4_MAX_TICK_RATE                 2000
 
 #define LINK4_PROCESS_RATE                  100
-#define LINK4_RETRANSMIT_MAX                64
+#define LINK4_RETRANSMIT_MAX                32
 #define LINK4_RECV_TX_RATE                  32
 
 #define LINK4_MAX_LINKS						16
 
-#define LINK4_LINK_TIMEOUT 					100
-#define LINK4_DATA_TIMEOUT 					100
+#define LINK4_LINK_TIMEOUT 					128
+#define LINK4_DATA_TIMEOUT 					128
 
 typedef list_node_t link4_handle_t;
 
