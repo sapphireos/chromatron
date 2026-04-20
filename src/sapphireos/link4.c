@@ -855,6 +855,14 @@ PT_BEGIN( pt );
 
         		// get new pointer
         		database = (link4_data_t *)mem2_vp_get_ptr( new_database_h ) + old_database_size;
+
+                log_v_info_P( PSTR("Add database: %d.%d.%d.%d hash: 0x%08x"),
+                    raddr.ipaddr.ip3,
+                    raddr.ipaddr.ip2,
+                    raddr.ipaddr.ip1,
+                    raddr.ipaddr.ip0,
+                    link_state->link.dest_key
+                );
         	}
 
         	// now we have a pointer to this data item
@@ -863,12 +871,12 @@ PT_BEGIN( pt );
         	database->timeout 	= LINK4_DATA_TIMEOUT;
 
             log_v_info_P( PSTR("Update database: %d.%d.%d.%d hash: 0x%08x"),
-                    database->ip.ip3,
-                    database->ip.ip2,
-                    database->ip.ip1,
-                    database->ip.ip0,
-                    link_state->link.dest_key
-                );
+                database->ip.ip3,
+                database->ip.ip2,
+                database->ip.ip1,
+                database->ip.ip0,
+                link_state->link.dest_key
+            );
 
         	// detect changes:
             bool changed = msg->value != database->value;
