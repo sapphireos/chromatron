@@ -285,11 +285,20 @@ void link4_v_delete_by_tag( catbus_hash_t32 tag ){
         link4_state_t *link_state = list_vp_get_data( ln );
         link4_t *link = &link_state->link;
 
+        // check if link is local
+        // remote links don't get deleted here, they must time out
+        if( ( link->mode != LINK4_MODE_SEND ) &&
+            ( link->mode != LINK4_MODE_RECV ) ){
+
+            goto next;
+        }
+
         if( link->tag == tag ){
 
             delete_link( ln );
         }
 
+next:
         ln = next_ln;
     }   
 }
@@ -583,6 +592,8 @@ PT_BEGIN( pt );
             			}
 
             			if( database->timeout == 0 ){
+
+                            continue;
 
             				log_v_info_P( PSTR("Data timed out: %d.%d.%d.%d hash: 0x%08x"),
                                 database->ip.ip3,
