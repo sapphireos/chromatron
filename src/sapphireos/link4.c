@@ -816,6 +816,18 @@ PT_BEGIN( pt );
         	bool match = FALSE;
         	for( int i = 0; i < database_count( link_state->database_h ); i++ ){
 
+                // log_v_info_P( PSTR("db: %d.%d.%d.%d -> %d.%d.%d.%d %d"),
+                //     database->ip.ip3,
+                //     database->ip.ip2,
+                //     database->ip.ip1,
+                //     database->ip.ip0,
+                //     raddr.ipaddr.ip3,
+                //     raddr.ipaddr.ip2,
+                //     raddr.ipaddr.ip1,
+                //     raddr.ipaddr.ip0,
+                //     i
+                // );
+
         		if( ip_b_addr_compare( database->ip, raddr.ipaddr ) ){
 
         			match = TRUE;
@@ -829,6 +841,7 @@ PT_BEGIN( pt );
         	if( !match ){
 
         		uint16_t old_database_size = mem2_u16_get_size( link_state->database_h );
+                uint16_t old_count = database_count( link_state->database_h );
 
         		// no match, create item
         		mem_handle_t new_database_h = mem2_h_alloc2( sizeof(link4_data_t) + old_database_size, MEM_TYPE_LINK4_DB );
@@ -854,7 +867,8 @@ PT_BEGIN( pt );
         		link_state->database_h = new_database_h;
 
         		// get new pointer
-        		database = (link4_data_t *)mem2_vp_get_ptr( new_database_h ) + old_database_size;
+        		database = (link4_data_t *)mem2_vp_get_ptr( new_database_h );
+                database += old_count;
 
                 log_v_info_P( PSTR("Add database: %d.%d.%d.%d hash: 0x%08x"),
                     raddr.ipaddr.ip3,
