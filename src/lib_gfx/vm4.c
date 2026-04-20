@@ -756,6 +756,14 @@ void vm4_v_freeze_vm( uint8_t vm_id ){
         return;
     }
 
+    file_t f = fs_f_open("_sync.f4b", FS_MODE_READ_ONLY);
+            
+    if( f > 0 ){
+
+        fs_v_delete( f );
+        f = fs_f_close( f );
+    }    
+
     vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
 
     int status = vm_serialize( &thread_state->vm, "_sync.f4b" );
