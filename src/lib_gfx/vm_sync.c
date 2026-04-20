@@ -829,18 +829,60 @@ PT_BEGIN( pt );
             sync_data_remaining -= data_len;
 
             // validate remaining data len before copying into our VM:
-            if( sync_data_remaining == 0 ){
-
-                log_v_debug_P( PSTR("sync complete") );
-
-                sync_state = STATE_SYNC;
-            }
-            else if( sync_data_remaining < 0 ){
+            if( sync_data_remaining < 0 ){
 
                 log_v_error_P( PSTR("invalid sync data remaining: %d"), sync_data_remaining );
                 continue;
             }   
 
+
+            if( msg->offset == 0 ){
+
+                file_t f = fs_f_open("_sync.f4b", FS_MODE_READ_ONLY);
+            
+                if( f > 0 ){
+
+                    fs_v_delete( f );
+                    fs_f_close( f );    
+                }    
+            }            
+
+            // write to file
+            file_t f = fs_f_open("_sync.f4b", FS_MODE_WRITE_APPEND | FS_MODE_CREATE_IF_NOT_FOUND );
+                        
+            if( f < 0 ){
+
+                continue;
+            }
+
+            if( msg->offset > fs_i32_get_size( f ) ){
+
+                log_v_debug_P( PSTR("offset error") );
+
+                fs_f_close( f );
+
+                continue;
+            }
+
+            fs_i16_write( f, &msg->data, data_len );
+
+            if( fs_i32_get_size( f ) == msg->total ){
+
+                log_v_debug_P( PSTR("received file") );
+            }
+
+            fs_f_close( f );
+
+
+            if( sync_data_remaining == 0 ){
+
+                log_v_debug_P( PSTR("sync complete") );
+
+                vm4_v_unfreeze_vm( 0 );
+
+                sync_state = STATE_SYNC;
+            }
+            
 
             // int32_t *data_ptr = vm4_i32p_get_sync_data();
 
@@ -1013,7 +1055,7 @@ PT_BEGIN( pt );
 
                 send_request( TRUE );
 
-                TMR_WAIT( pt, 2000 );
+                TMR_WAIT( pt, 200000 );
             }
         }
 
