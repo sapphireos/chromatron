@@ -313,11 +313,40 @@ static void send_device_msg( void ){
 		// .gfx_sync_group = vm_sync_u32_get_sync_group_hash(),
 		.uptime = tmr_u64_get_system_time_ms(),
 		.mode = sys_u8_get_mode(),
+		.rssi = wifi_i8_rssi(),
+
+		// .gfx = {0},
+		// .batt = {0},
+		// .solar = {0},
 	};
 
-	kv_i8_get( __KV__gfx_sync_group_hash, &msg.gfx_sync_group, sizeof(msg.gfx_sync_group) );
-
+	// attach query tags
 	memcpy( msg.query.tags, tag_hashes_ptr, sizeof(msg.query) );
+
+	// attach gfx group
+	kv_i8_get( __KV__gfx_sync_group_hash, 	&msg.gfx.gfx_sync_group, 		sizeof(msg.gfx.gfx_sync_group) );
+	kv_i8_get( __KV__gfx_master_dimmer, 	&msg.gfx.gfx_master_dimmer, 	sizeof(msg.gfx.gfx_master_dimmer) );
+	kv_i8_get( __KV__gfx_sub_dimmer, 		&msg.gfx.gfx_sub_dimmer, 		sizeof(msg.gfx.gfx_sub_dimmer) );
+	kv_i8_get( __KV__gfx_enable, 			&msg.gfx.gfx_enable, 			sizeof(msg.gfx.gfx_enable) );
+	kv_i8_get( __KV__pixel_power, 			&msg.gfx.pixel_power, 			sizeof(msg.gfx.pixel_power) );
+
+	if( kv_b_get_boolean( __KV__batt_enable ) ){
+
+		kv_i8_get( __KV__batt_volts, 			&msg.batt.batt_volts, 			sizeof(msg.batt.batt_volts) );
+		kv_i8_get( __KV__batt_charge_current,   &msg.batt.batt_charge_current,  sizeof(msg.batt.batt_charge_current) );
+		kv_i8_get( __KV__batt_temp,   			&msg.batt.batt_temp,  			sizeof(msg.batt.batt_temp) );
+		kv_i8_get( __KV__batt_charging,			&msg.batt.batt_status,  		sizeof(msg.batt.batt_status) );
+		kv_i8_get( __KV__light_level,  			&msg.batt.light_level,  		sizeof(msg.batt.light_level) );
+	}
+
+	if( kv_b_get_boolean( __KV__solar_enable ) ){
+
+		kv_i8_get( __KV__batt_aux_vbus_volts,		&msg.solar.solar_volts, 			sizeof(msg.solar.solar_volts) );
+		kv_i8_get( __KV__batt_aux_charge_current,	&msg.solar.solar_charge_current, 	sizeof(msg.solar.solar_charge_current) );
+
+		kv_i8_get( __KV__batt_case_temp,			&msg.solar.ambient_temp, 			sizeof(msg.solar.ambient_temp) );
+		kv_i8_get( __KV__batt_ambient_temp,			&msg.solar.case_temp, 				sizeof(msg.solar.case_temp) );
+	}
 
 	sock_addr_t raddr = {
         .ipaddr = ip_a_addr(255, 255, 255, 255),
@@ -362,7 +391,7 @@ PT_BEGIN( pt );
 
 	        	// update
 	        	device->tags 			= msg->query;
-	        	device->gfx_sync_group 	= msg->gfx_sync_group;
+	        	device->gfx_sync_group 	= msg->gfx.gfx_sync_group;
 	        	device->uptime          = msg->uptime;
 	        	device->mode          	= msg->mode;
 	        	device->timeout 		= DEVICE_DB_TIMEOUT;
@@ -378,7 +407,7 @@ PT_BEGIN( pt );
 	    device_data_t device = {
 	    	msg->query,
 	    	raddr.ipaddr,
-	    	msg->gfx_sync_group,
+	    	msg->gfx.gfx_sync_group,
 	    	msg->uptime,
 	    	msg->mode,
 	    	DEVICE_DB_TIMEOUT

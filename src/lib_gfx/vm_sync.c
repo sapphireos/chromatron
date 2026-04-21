@@ -282,7 +282,7 @@ bool vm_sync_b_in_progress( void ){
     return sync_state == STATE_SYNCING;
 }
 
-static void send_sync( sock_addr_t *raddr ){
+void send_sync( sock_addr_t *raddr ){
 
     vm_t *state = vm4_p_get_vm_state();
 

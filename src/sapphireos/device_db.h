@@ -13,14 +13,48 @@
 #define DEVICE_DB_TICK    2 // seconds
 
 typedef struct __attribute__((packed)){
+	// gfx info
+	uint16_t gfx_master_dimmer;
+	uint16_t gfx_sub_dimmer;
+	uint32_t gfx_sync_group;
+	uint8_t gfx_enable;
+	uint16_t pixel_power;
+} device_gfx_t;
+
+typedef struct __attribute__((packed)){
+	// battery info
+	uint16_t batt_volts;
+	uint16_t batt_charge_current;
+	int8_t batt_temp;
+	uint8_t batt_status;
+	uint32_t light_level;
+} device_batt_t;
+
+typedef struct __attribute__((packed)){
+	// solar info
+	uint16_t solar_volts;
+	uint16_t solar_charge_current;
+	int8_t ambient_temp;
+	int8_t case_temp;
+} device_solar_t;
+
+typedef struct __attribute__((packed)){
 	uint32_t magic;
 	uint32_t flags;
+
+	// basic info
 	catbus_query_t query;
-	uint32_t gfx_sync_group;
 	uint64_t uptime;
 	uint8_t mode;
+	int8_t rssi;
+
+	device_gfx_t gfx;
+	device_batt_t batt;
+	device_solar_t solar;
 } device_msg_t;
 
+
+// internal database structure
 typedef struct __attribute__((packed)){
 	catbus_query_t tags;
     ip_addr4_t ip;
