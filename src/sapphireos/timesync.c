@@ -118,7 +118,7 @@ Followers periodically sync while tracking round trip time.
 PT_THREAD( time_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( time_clock_thread( pt_t *pt, void *state ) );
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 PT_THREAD( time_debug_thread( pt_t *pt, void *state ) );
