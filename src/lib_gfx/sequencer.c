@@ -450,12 +450,16 @@ PT_BEGIN( pt );
 		else if( seq_time_mode == SEQ_TIME_MODE_INTERVAL ){
 
 			seq_time_remaining = seq_interval_time;
+
+			run_step();
 	    }
 	    else if( seq_time_mode == SEQ_TIME_MODE_RANDOM ){
 
 	    	uint16_t temp = seq_random_time_max - seq_random_time_min;
 
 	    	seq_time_remaining = seq_random_time_min + rnd_u16_range( temp );
+
+	    	run_step();
 	    }	
 	   	else if( seq_time_mode == SEQ_TIME_MODE_MANUAL ){
 

@@ -1,3 +1,4 @@
+
 // <license>
 // 
 //     This file is part of the Sapphire Operating System.
@@ -375,7 +376,7 @@ PT_BEGIN( pt );
         status = vm_deserialize( &state->vm, fname );    
     }
 
-    log_v_debug_P( PSTR("rng %llx"), state->vm.rng_seed );
+    // log_v_debug_P( PSTR("rng %llx"), state->vm.rng_seed );
 
     request_unfreeze = FALSE;
 

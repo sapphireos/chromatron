@@ -959,6 +959,16 @@ uint16_t gfx_u16_get_pix_count( void ){
     return pix_count;
 }
 
+uint16_t gfx_u16_get_pix_size_x( void ){
+
+    return pix_size_x;
+}
+
+uint16_t gfx_u16_get_pix_size_y( void ){
+
+    return pix_size_y;
+}
+
 uint16_t gfx_u16_get_physical_pix_count( void ){
 
     if( gfx_mirror_array ){
