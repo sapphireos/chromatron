@@ -536,6 +536,8 @@ PT_BEGIN( pt );
 
         while( ln >= 0 ){
 
+            bool prune = FALSE;
+
             list_node_t next_ln = list_ln_next( ln );
 
             link4_state_t *link_state = list_vp_get_data( ln );
@@ -595,6 +597,30 @@ PT_BEGIN( pt );
 
                     // init first item
                     database->value    = 0x7fffffff;
+                }
+
+                // check timeouts on remote sync
+                if( link->mode == LINK4_MODE_SYNC ){
+
+                    for( int i = 0; i < link_state->data_count; i++ ){
+
+                        if( ip_b_is_zeroes( database[i].ip ) ){
+
+                            continue;
+                        }
+
+                        if( database[i].timeout > 0 ){
+
+                            database[i].timeout--;
+                        }
+
+                        if( database[i].timeout == 0 ){
+
+                            log_v_info_P( PSTR("Remote data timed out") );
+
+                            prune = TRUE;
+                        }
+                    }
                 }
 
                 // ASSERT( link_state->data_count == 1 );
@@ -792,8 +818,6 @@ PT_BEGIN( pt );
 
         		link4_data_t *database = (link4_data_t *)( link_state + 1 );
 
-                bool prune = FALSE;
-
         		for( int i = 0; i < link_state->data_count; i++ ){
 
         			if( database[i].timeout > 0 ){
@@ -808,14 +832,14 @@ PT_BEGIN( pt );
                         prune = TRUE;
                     }
                 }
-
-                if( prune ){
-
-                    prune_database( ln );
-                }
             }
             
 next:
+            if( prune ){
+
+                prune_database( ln );
+            }
+
             ln = next_ln;
         }   
 
