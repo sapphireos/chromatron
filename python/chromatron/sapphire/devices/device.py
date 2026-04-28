@@ -1286,7 +1286,7 @@ class Device(object):
 
                     query_s += f'{v} '
 
-                s += "%-20s %-20s %4s %3s %5d %s\n" % \
+                s += "%-20s %-20s %12s %3s %5d %s\n" % \
                     (source,
                      dest,
                      mode,
