@@ -285,10 +285,10 @@ link4_handle_t link4_l_create(
     }
 
 // DEBUG!
-    if( mode == LINK4_MODE_SEND ){
+    // if( mode == LINK4_MODE_SEND ){
 
-        return -1;
-    }
+    //     return -1;
+    // }
 
     // for(int i = 0; i < 8; i++){
 
