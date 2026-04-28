@@ -299,137 +299,137 @@ class ServiceInfoArray(ArrayField):
         super(ServiceInfoArray, self).__init__(_field=field, **kwargs)
 
 
-class LinkInfo(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="source_key"),
-                  Uint32Field(_name="dest_key"),
-                  ArrayField(_name="query", _field=Uint32Field, _length=8),
-                  Uint8Field(_name="mode"),
-                  Uint8Field(_name="aggregation"),
-                  Uint16Field(_name="filter"),
-                  Uint16Field(_name="rate"),
-                  Uint32Field(_name="tag"),
-                  Uint32Field(_name="data_hash"),
-                  Int16Field(_name="retransmit_timer"),
-                  Int16Field(_name="ticks"),
-                  Uint64Field(_name="hash")]
+# class LinkInfo(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint32Field(_name="source_key"),
+#                   Uint32Field(_name="dest_key"),
+#                   ArrayField(_name="query", _field=Uint32Field, _length=8),
+#                   Uint8Field(_name="mode"),
+#                   Uint8Field(_name="aggregation"),
+#                   Uint16Field(_name="filter"),
+#                   Uint16Field(_name="rate"),
+#                   Uint32Field(_name="tag"),
+#                   Uint32Field(_name="data_hash"),
+#                   Int16Field(_name="retransmit_timer"),
+#                   Int16Field(_name="ticks"),
+#                   Uint64Field(_name="hash")]
 
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
-class LinkInfoArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = LinkInfo
+# class LinkInfoArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = LinkInfo
 
-        super().__init__(_field=field, **kwargs)
+#         super().__init__(_field=field, **kwargs)
 
 
-class Link2(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint8Field(_name="mode"),
-                  Uint8Field(_name="aggregation"),
-                  Uint16Field(_name="rate"),
-                  Uint32Field(_name="source_key"),
-                  Uint32Field(_name="dest_key"),
-                  Uint32Field(_name="tag"),
-                  ArrayField(_name="query", _field=Uint32Field, _length=8)]
+# class Link2(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint8Field(_name="mode"),
+#                   Uint8Field(_name="aggregation"),
+#                   Uint16Field(_name="rate"),
+#                   Uint32Field(_name="source_key"),
+#                   Uint32Field(_name="dest_key"),
+#                   Uint32Field(_name="tag"),
+#                   ArrayField(_name="query", _field=Uint32Field, _length=8)]
 
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
-class Link2Array(ArrayField):
-    def __init__(self, **kwargs):
-        field = Link2
+# class Link2Array(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = Link2
 
-        super().__init__(_field=field, **kwargs)
+#         super().__init__(_field=field, **kwargs)
 
-class Link2State(StructField):
-    def __init__(self, **kwargs):
-        fields = [Link2(_name="link"),
-                  Int16Field(_name="retransmit_timer"),
-                  Int16Field(_name="ticks"),
-                  Uint64Field(_name="hash")]
+# class Link2State(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Link2(_name="link"),
+#                   Int16Field(_name="retransmit_timer"),
+#                   Int16Field(_name="ticks"),
+#                   Uint64Field(_name="hash")]
 
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
-class Link2StateArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = Link2State
+# class Link2StateArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = Link2State
 
-        super().__init__(_field=field, **kwargs)
+#         super().__init__(_field=field, **kwargs)
 
-class Link2Binding(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="key"),
-                  Uint16Field(_name="rate"),
-                  Int64Field(_name="last_data"),
-                  Int16Field(_name="retransmit_ticks"),
-                  Int16Field(_name="ticks"),
-                  Uint8Field(_name="timeout"),
-                  Uint64Field(_name="hash")]
+# class Link2Binding(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint32Field(_name="key"),
+#                   Uint16Field(_name="rate"),
+#                   Int64Field(_name="last_data"),
+#                   Int16Field(_name="retransmit_ticks"),
+#                   Int16Field(_name="ticks"),
+#                   Uint8Field(_name="timeout"),
+#                   Uint64Field(_name="hash")]
 
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
-class Link2BindingArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = Link2Binding
+# class Link2BindingArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = Link2Binding
 
-        super().__init__(_field=field, **kwargs)
+#         super().__init__(_field=field, **kwargs)
 
-class Link2DataCache(StructField):
-    def __init__(self, **kwargs):
-        fields = [Ipv4Field(_name="ip"),
-                  Uint8Field(_name="timeout"),
-                  Uint32Field(_name="key"),
-                  Int64Field(_name="data"),
-                  Uint64Field(_name="hash")]
+# class Link2DataCache(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Ipv4Field(_name="ip"),
+#                   Uint8Field(_name="timeout"),
+#                   Uint32Field(_name="key"),
+#                   Int64Field(_name="data"),
+#                   Uint64Field(_name="hash")]
 
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
-class Link2DataCacheArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = Link2DataCache
+# class Link2DataCacheArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = Link2DataCache
 
-        super().__init__(_field=field, **kwargs)
+#         super().__init__(_field=field, **kwargs)
 
-class Link2Node(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint8Field(_name="timeout"),
-                  Ipv4Field(_name="ip")]
+# class Link2Node(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint8Field(_name="timeout"),
+#                   Ipv4Field(_name="ip")]
 
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
-class Link2NodeArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = Link2Node
+# class Link2NodeArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = Link2Node
 
-        super().__init__(_field=field, **kwargs)
+#         super().__init__(_field=field, **kwargs)
 
-class Link2MgrInfo(StructField):
-    def __init__(self, **kwargs):
-        fields = [Link2(_name="link"),
-                  Int64Field(_name="current_data"),
-                  BooleanField(_name="changed"),
-                  Int16Field(_name="retransmit_ticks"),
-                  Uint16Field(_name="node_count")]
+# class Link2MgrInfo(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Link2(_name="link"),
+#                   Int64Field(_name="current_data"),
+#                   BooleanField(_name="changed"),
+#                   Int16Field(_name="retransmit_ticks"),
+#                   Uint16Field(_name="node_count")]
 
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
-    def unpack(self, buffer):
-        super().unpack(buffer)
+#     def unpack(self, buffer):
+#         super().unpack(buffer)
 
-        buffer = buffer[self.size():] # trim header
-        # trim tail so we just get this chunk
-        buffer = buffer[:self.node_count * Link2Node().size()]
+#         buffer = buffer[self.size():] # trim header
+#         # trim tail so we just get this chunk
+#         buffer = buffer[:self.node_count * Link2Node().size()]
 
-        array = Link2NodeArray(_name="nodes").unpack(buffer)
-        self._fields[array._name] = array
+#         array = Link2NodeArray(_name="nodes").unpack(buffer)
+#         self._fields[array._name] = array
 
-        return self
+#         return self
 
-class Link2MgrInfoArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = Link2MgrInfo
+# class Link2MgrInfoArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = Link2MgrInfo
 
-        super().__init__(_field=field, **kwargs)
+#         super().__init__(_field=field, **kwargs)
 
 
 # class LinkProducerInfo(StructField):
@@ -563,6 +563,56 @@ class DeviceDBArray(ArrayField):
         field = DeviceDBEntry
 
         super().__init__(_field=field, **kwargs)
+
+class Link4(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint8Field(_name="mode"),
+                  Uint8Field(_name="aggregation"),
+                  Uint16Field(_name="rate"),
+                  Uint32Field(_name="source_key"),
+                  Uint32Field(_name="dest_key"),
+                  Uint32Field(_name="tag"),
+                  ArrayField(_name="query", _field=Uint32Field, _length=8)]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class Link4Array(ArrayField):
+    def __init__(self, **kwargs):
+        field = Link4
+
+        super().__init__(_field=field, **kwargs)
+
+class Link4State(StructField):
+    def __init__(self, **kwargs):
+        fields = [Link4(_name="link"),
+                  Uint16Field(_name="retransmit_timer"),
+                  Uint16Field(_name="transmit_timer"),
+                  Uint16Field(_name="remote_timeout"),
+                  Uint16Field(_name="data_count")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class Link4StateArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = Link4State
+
+        super().__init__(_field=field, **kwargs)
+
+class Link4Data(StructField):
+    def __init__(self, **kwargs):
+        fields = [Int32Field(_name="value"),
+                  Ipv4Field(_name="ip"),
+                  Uint16Field(_name="timeout"),
+                  Uint16Field(_name="sequence")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class Link4DataArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = Link4Data
+
+        super().__init__(_field=field, **kwargs)
+
 
 # class BattRecordStart(StructField):
 #     def __init__(self, **kwargs):

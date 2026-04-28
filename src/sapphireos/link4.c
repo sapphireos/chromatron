@@ -66,6 +66,27 @@ PT_THREAD( link_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( link_processor_thread( pt_t *pt, void *state ) );
 
 
+static uint32_t link_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            len = list_u16_flatten( &link_list, pos, ptr, len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = list_u16_size( &link_list );
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
+
 void link4_v_init( void ){
 
 	list_v_init( &link_list );
@@ -84,6 +105,8 @@ void link4_v_init( void ){
                  PSTR("link_processor"),
                  0,
                  0 );
+
+    fs_v_create_virtual( PSTR("link_info"), link_vfile );
 
    // 	if( ( cfg_u64_get_device_id() == 154851823073836 ) ||
    // 		( cfg_u64_get_device_id() == 109982513431848 ) ){
@@ -191,10 +214,7 @@ link4_handle_t link4_l_lookup( link4_t *link ){
 
 link4_handle_t link4_l_create2( link4_t *link ){
 
-	link4_state_t state = {0};
-    state.link = *link;
-
-    link4_handle_t lh = link4_l_lookup( &state.link );
+    link4_handle_t lh = link4_l_lookup( link );
 
     if( lh > 0 ){
 
@@ -216,25 +236,33 @@ link4_handle_t link4_l_create2( link4_t *link ){
         return -1;
     }
     
-    if( state.link.rate < LINK4_RATE_MIN ){
+    if( link->rate < LINK4_RATE_MIN ){
 
-        state.link.rate = LINK4_RATE_MIN;
+        link->rate = LINK4_RATE_MIN;
     }
-    else if( state.link.rate > LINK4_RATE_MAX ){
+    else if( link->rate > LINK4_RATE_MAX ){
 
-        state.link.rate = LINK4_RATE_MAX;
+        link->rate = LINK4_RATE_MAX;
     }
 
     // sort tags from highest to lowest so that all valid combinations
     // of the query will compare properly
-    util_v_bubble_sort_reversed_u32( state.link.query.tags, cnt_of_array(state.link.query.tags) );
+    util_v_bubble_sort_reversed_u32( link->query.tags, cnt_of_array(link->query.tags) );
 
-	list_node_t ln = list_ln_create_node2( &state, sizeof(link4_state_t), MEM_TYPE_LINK4 );
+    // create link with single database entry
+    // uint16_t size = sizeof(link4_state_t) + sizeof(link4_data_t);
+    uint16_t size = sizeof(link4_state_t);
+	list_node_t ln = list_ln_create_node2( 0, size, MEM_TYPE_LINK4 );
 
     if( ln < 0 ){
 
         return -1;
     }
+
+    link4_state_t *link_state = (link4_state_t *)list_vp_get_data( ln );
+    memset( link_state, 0, size );
+    link_state->link = *link;
+    link_state->data_count = 0;
 
     list_v_insert_tail( &link_list, ln );    
 
@@ -276,13 +304,6 @@ link4_handle_t link4_l_create(
 
 static void delete_link( link4_handle_t link ){
 
-    const link4_state_t *state = list_vp_get_data( link );
-
-    if( state->database_h > 0 ){
-
-    	mem2_v_free( state->database_h );
-    }
-
     list_v_remove( &link_list, link );
     list_v_release_node( link );
 }
@@ -316,67 +337,134 @@ next:
     }   
 }
 
+static link4_data_t* lookup_database( link4_handle_t link_h, ip_addr4_t ip ){
 
-static uint8_t database_count( mem_handle_t database_h ){
+    link4_state_t *link_state = list_vp_get_data( link_h );
 
-	return mem2_u16_get_size( database_h ) / sizeof(link4_data_t);
+    if( link_state->data_count == 0 ){
+
+        return 0;
+    }
+
+    link4_data_t *database = (link4_data_t *)( link_state + 1 );
+
+    for( int i = 0; i < link_state->data_count; i++ ){
+
+        if( ip_b_addr_compare( database->ip, ip ) ){
+
+            return database;
+        }
+
+        database++;
+    }
+
+    return 0;
 }
 
-static mem_handle_t prune_database( mem_handle_t database_h ){
+static link4_data_t* add_database( link4_handle_t *link_h, ip_addr4_t ip ){
 
-    link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( database_h );
+    link4_data_t *database = lookup_database( *link_h, ip );
 
-    uint16_t new_size = 0;
+    if( database != 0 ){
 
-    for( int i = 0; i < database_count( database_h ); i++ ){
-
-        if( database[i].timeout > 0 ){
-
-            new_size += sizeof(link4_data_t);
-        }
+        return database;
     }
 
-    if( new_size == 0 ){
+    link4_state_t *link_state = list_vp_get_data( *link_h );
+    
+    uint16_t new_size = sizeof(link4_data_t) * ( link_state->data_count + 1 );
+    link4_handle_t new_link_h = list_ln_create_node2( 0, new_size + sizeof(link4_state_t), MEM_TYPE_LINK4 );
 
-        mem2_v_free( database_h );
-
-        return -1;
-    }
-
-    // allocate new
-    mem_handle_t new_database_h = mem2_h_alloc2( new_size, MEM_TYPE_LINK4_DB );
-
-    if( new_database_h <= 0 ){
-
+    if( new_link_h < 0 ){
+                    
         log_v_error_P( PSTR("alloc fail") );
 
-        return -1;
+        return 0;
     }
 
-    // copy valid old data
-    link4_data_t *new_database = (link4_data_t *)mem2_vp_get_ptr( new_database_h );
+    database = (link4_data_t *)( link_state + 1 );
 
-    for( int i = 0; i < database_count( database_h ); i++ ){
+    link4_state_t *new_link_state = list_vp_get_data( new_link_h );
+    link4_data_t *new_database = (link4_data_t *)( new_link_state + 1 );
 
-        if( database[i].timeout > 0 ){
+    *new_link_state = *link_state;
 
-            *new_database = database[i];
-            new_database++;
-        }
+    for( uint8_t i = 0; i < link_state->data_count; i++ ){
+
+        *new_database = database[i];
+        new_database++;
     }
 
-    mem2_v_free( database_h );
+    list_v_insert_head( &link_list, new_link_h );
 
-    return new_database_h;    
+    list_v_remove( &link_list, *link_h );
+    list_v_release_node( *link_h );
+
+    *link_h = new_link_h;
+
+    new_link_state->data_count++;
+
+    new_database->ip = ip;
+
+    return new_database;
 }
 
-static int32_t aggregate( mem_handle_t database_h, link4_aggregation_t8 agg ){
+// static link4_handle_t prune_database( link4_handle_t link_h ){
 
-    link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( database_h );
+//     link4_state_t *link_state = list_vp_get_data( link_h );
 
-    uint8_t count = database_count( database_h );
+//     if( link_state->data_count == 0 ){
 
-    if( count == 0 ){
+//         return link_h;
+//     }
+
+//     const link4_data_t *database = (link4_data_t *)( link_state + 1 );
+
+//     uint16_t new_size = 0;
+
+//     for( int i = 0; i < link_state->data_count; i++ ){
+
+//         if( database[i].timeout > 0 ){
+
+//             new_size += sizeof(link4_data_t);
+//         }
+//     }
+
+//     // allocate new
+//     link4_handle_t new_link_h = mem2_h_alloc2( new_size + sizeof(link4_state_t), MEM_TYPE_LINK4 );
+
+//     if( new_link_h <= 0 ){
+
+//         log_v_error_P( PSTR("alloc fail") );
+
+//         return -1;
+//     }
+
+//     link4_state_t *new_link_state = list_vp_get_data( link_h );
+
+//     // copy valid old data
+//     link4_data_t *new_database = (link4_data_t *)( new_link_state + 1 );
+
+//     for( int i = 0; i < link_state->data_count; i++ ){
+
+//         if( database[i].timeout > 0 ){
+
+//             *new_database = database[i];
+//             new_database++;
+//         }
+//     }
+
+//     mem2_v_free( link_h );
+
+//     return new_link_h;    
+// }
+
+static int32_t aggregate( link4_handle_t link_h, link4_aggregation_t8 agg ){
+
+    link4_state_t *link_state = list_vp_get_data( link_h );
+    const link4_data_t *database = (link4_data_t *)( link_state + 1 );
+
+    if( link_state->data_count == 0 ){
 
         return 0;
     }
@@ -387,7 +475,7 @@ static int32_t aggregate( mem_handle_t database_h, link4_aggregation_t8 agg ){
 
         value = database[0].value;
 
-        for( uint8_t i = 1; i < count; i++ ){
+        for( uint8_t i = 1; i < link_state->data_count; i++ ){
 
             if( database[i].value < value ){
 
@@ -399,7 +487,7 @@ static int32_t aggregate( mem_handle_t database_h, link4_aggregation_t8 agg ){
 
         value = database[0].value;
 
-        for( uint8_t i = 1; i < count; i++ ){
+        for( uint8_t i = 1; i < link_state->data_count; i++ ){
 
             if( database[i].value > value ){
 
@@ -409,19 +497,19 @@ static int32_t aggregate( mem_handle_t database_h, link4_aggregation_t8 agg ){
     }
     else if( agg == LINK4_AGG_SUM ){
 
-        for( uint8_t i = 0; i < count; i++ ){
+        for( uint8_t i = 0; i < link_state->data_count; i++ ){
 
             value += database[i].value;
         }    
     }
     else if( agg == LINK4_AGG_AVG ){
 
-        for( uint8_t i = 0; i < count; i++ ){
+        for( uint8_t i = 0; i < link_state->data_count; i++ ){
 
             value += database[i].value;
         }
 
-        value /= count;
+        value /= link_state->data_count;
     }
 
 	return value;
@@ -476,26 +564,69 @@ PT_BEGIN( pt );
 	                goto next;
 	            }
 
+                link4_data_t *database = (link4_data_t *)( link_state + 1 );
+
+                // check if data is installed in link:
+                if( link_state->data_count == 0 ){
+
+                    // no match, create entry
+
+                    database = add_database( &ln, ip_a_addr(0,0,0,0) );
+
+                    if( database == 0 ){
+
+                        log_v_error_P( PSTR("alloc fail") );
+
+                        goto next;
+                    }   
+
+                    // update link state pointer!
+                    link_state = list_vp_get_data( ln );
+
+                    // init first item
+                    database->value    = 0x7fffffff;
+                }
+
+                ASSERT( link_state->data_count == 1 );
+
+
+
+
 	            // check if data is installed in link:
-	            if( link_state->database_h <= 0 ){
+                // ASSERT( link_state->data_count > 0 );
+	            // if( link_state->data_count == 0 ){
 
-	            	// create database
-	            	link_state->database_h = mem2_h_alloc2( sizeof(link4_data_t), MEM_TYPE_LINK4_DB );
+	            // 	// create database
+                //     uint16_t new_size = sizeof(link4_data_t);
+                //     link4_handle_t new_link_h = mem2_h_alloc2( new_size + sizeof(link4_state_t), MEM_TYPE_LINK4 );
 
-	            	if( link_state->database_h < 0 ){
+	            // 	if( new_link_h < 0 ){
 	            		
-	            		log_v_error_P( PSTR("alloc fail") );
+	            // 		log_v_error_P( PSTR("alloc fail") );
 
-	                	goto next;
-	            	}
+	            //     	goto next;
+	            // 	}
 
-	            	memset( mem2_vp_get_ptr( link_state->database_h ), 0, sizeof(link4_data_t) );
+                //     link4_state_t *old_state = link_state;
 
-	            	link_state->transmit_timer = 0;
-	            }
+                //     // replace link state
+                //     link_state = list_vp_get_data( new_link_h );
+                //     *link_state = *old_state;
+                //     link4_data_t *new_database = (link4_data_t *)( link_state + 1 );
+
+                //     memset( new_database, 0, sizeof(link4_data_t) );
+
+                //     list_v_insert_after( &link_list, ln, new_link_h );
+
+                //     // set old link to prune
+                //     old_state->link.mode = LINK4_MODE_PRUNE;
+
+                //     link_state->data_count = 1;
+	            // 	link_state->transmit_timer = 0;
+	            // }
 
 	            // deref database
-	         	link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( link_state->database_h );
+	         	// link4_data_t *database = (link4_data_t *)( link_state + 1 );
 
 	         	// detect changes:
             	bool changed = data != database->value;
@@ -678,17 +809,17 @@ PT_BEGIN( pt );
                     goto next;
             	}
             	// not timed out, check database
-            	else if( link_state->database_h <= 0 ){
+            	else if( link_state->data_count == 0 ){
 
                     // no database present, we are done processing
                     goto next;
                 }
 
-        		link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( link_state->database_h );
+        		link4_data_t *database = (link4_data_t *)( link_state + 1 );
 
                 bool prune = FALSE;
 
-        		for( int i = 0; i < database_count( link_state->database_h ); i++ ){
+        		for( int i = 0; i < link_state->data_count; i++ ){
 
         			if( database[i].timeout > 0 ){
 
@@ -703,7 +834,7 @@ PT_BEGIN( pt );
 
                 if( prune ){
 
-                    link_state->database_h = prune_database( link_state->database_h );    
+                    // link_state->database_h = prune_database( link_state->database_h );    
                 }
             }
             
@@ -729,8 +860,6 @@ PT_BEGIN( pt );
     ASSERT( sock >= 0 );
 
     sock_v_bind( sock, LINK4_PORT );
-
-
     // sock_v_set_timeout( sock, 1 );
 
     while(1){
@@ -838,116 +967,30 @@ PT_BEGIN( pt );
         	// update timeout
         	link_state->remote_timeout = LINK4_LINK_TIMEOUT;
 
-        	link4_data_t *database = 0;
+            // search for matching entry
+        	link4_data_t *database = lookup_database( lh, raddr.ipaddr );
 
-        	// check for database
-        	if( link_state->database_h <= 0 ){
+            if( database == 0 ){
 
-        		// create database
-	            link_state->database_h = mem2_h_alloc2( sizeof(link4_data_t), MEM_TYPE_LINK4_DB );
+                // no match, create entry
 
-	            if( link_state->database_h < 0 ){
-	            		
-            		log_v_error_P( PSTR("alloc fail") );
+                database = add_database( &lh, raddr.ipaddr );
 
-                	continue;
-            	}
+                if( database == 0 ){
 
-            	database = (link4_data_t *)mem2_vp_get_ptr( link_state->database_h );
+                    log_v_error_P( PSTR("alloc fail") );
 
-            	// init first item
-            	database->value    = 0x7fffffff;
-            	database->ip       = raddr.ipaddr;
-                database->sequence = msg->sequence - 1; // init sequence such that the value will update
-
-                log_v_info_P( PSTR("Create database: %d.%d.%d.%d hash: 0x%08x seq: %d"),
-                    database->ip.ip3,
-                    database->ip.ip2,
-                    database->ip.ip1,
-                    database->ip.ip0,
-                    link_state->link.dest_key,
-                    msg->sequence
-                );
-        	}
-
-        	// search for matching node in database
-        	database = (link4_data_t *)mem2_vp_get_ptr( link_state->database_h );
-
-        	bool match = FALSE;
-        	for( int i = 0; i < database_count( link_state->database_h ); i++ ){
-
-                // log_v_info_P( PSTR("db: %d.%d.%d.%d -> %d.%d.%d.%d %d"),
-                //     database->ip.ip3,
-                //     database->ip.ip2,
-                //     database->ip.ip1,
-                //     database->ip.ip0,
-                //     raddr.ipaddr.ip3,
-                //     raddr.ipaddr.ip2,
-                //     raddr.ipaddr.ip1,
-                //     raddr.ipaddr.ip0,
-                //     i
-                // );
-
-        		if( ip_b_addr_compare( database->ip, raddr.ipaddr ) ){
-
-        			match = TRUE;
-
-        			break;
-        		}
-
-        		database++;
-        	}
-
-        	if( !match ){
-
-        		uint16_t old_database_size = mem2_u16_get_size( link_state->database_h );
-                uint16_t old_count = database_count( link_state->database_h );
-
-        		// no match, create item
-        		mem_handle_t new_database_h = mem2_h_alloc2( sizeof(link4_data_t) + old_database_size, MEM_TYPE_LINK4_DB );
-
-        		if( new_database_h <= 0 ){
-
-        			log_v_error_P( PSTR("alloc fail") );
-
-                	continue;
-        		}
-
-        		// copy old data
-        		memcpy( 
-        			mem2_vp_get_ptr( new_database_h ), 
-        			mem2_vp_get_ptr( link_state->database_h ), 
-        			old_database_size 
-        		);
-
-        		// free old handle
-        		mem2_v_free( link_state->database_h );
-
-        		// assign handle
-        		link_state->database_h = new_database_h;
-
-        		// get new pointer
-        		database = (link4_data_t *)mem2_vp_get_ptr( new_database_h );
-                database += old_count;
+                    continue;
+                }
 
                 // init first item
                 database->value    = 0x7fffffff;
-                database->ip       = raddr.ipaddr;
                 database->sequence = msg->sequence - 1; // init sequence such that the value will update
+            }
 
-                log_v_info_P( PSTR("Add database: %d.%d.%d.%d hash: 0x%08x seq: %d"),
-                    raddr.ipaddr.ip3,
-                    raddr.ipaddr.ip2,
-                    raddr.ipaddr.ip1,
-                    raddr.ipaddr.ip0,
-                    link_state->link.dest_key,
-                    msg->sequence
-                );
-        	}
+            ASSERT( database != 0 );
 
             // now we have a pointer to this data item
-            // make sure IP is tracked
-            database->ip        = raddr.ipaddr;
             database->timeout   = LINK4_DATA_TIMEOUT;
 
             // check sequence
@@ -971,30 +1014,228 @@ PT_BEGIN( pt );
             //     link_state->link.dest_key
             // );
 
-        	// detect changes:
+            // detect changes:
             bool changed = msg->value != database->value;
 
-         	if( changed ){
+            if( changed ){
 
-         		// assign value
-         		database->value = msg->value;
+                // assign value
+                database->value = msg->value;
 
-         		int32_t computed_value;
-         		if( link_state->link.aggregation == LINK4_AGG_LAST ){
+                int32_t computed_value;
+                if( link_state->link.aggregation == LINK4_AGG_LAST ){
 
-         			computed_value = msg->value;
-         		}
-         		else{
+                    computed_value = msg->value;
+                }
+                else{
 
-         			computed_value = aggregate( link_state->database_h, link_state->link.aggregation );	
-         		}
+                    computed_value = aggregate( lh, link_state->link.aggregation ); 
+                }
 
-         		// set value in DB
-         		if( catbus_i8_set_i64( link_state->link.dest_key, (int64_t)computed_value ) < 0 ){
+                // set value in DB
+                if( catbus_i8_set_i64( link_state->link.dest_key, (int64_t)computed_value ) < 0 ){
 
-         			// error path
-         		}
-         	}
+                    // error path
+                }
+            }
+
+
+        	// check for database
+            // ASSERT( link_state->data_count > 0 );
+        	// if( link_state->data_count == 0 ){
+
+        	//    // create database
+
+
+
+            // //     uint16_t new_size = sizeof(link4_data_t);
+            // //     link4_handle_t new_link_h = mem2_h_alloc2( new_size + sizeof(link4_state_t), MEM_TYPE_LINK4 );
+
+            // //     if( new_link_h < 0 ){
+                    
+            // //         log_v_error_P( PSTR("alloc fail") );
+
+            // //         continue;
+            // //     }
+
+            // //     // set old link to prune
+            // //     link_state->link.mode = LINK4_MODE_PRUNE;
+
+            // //     const link4_state_t *old_state = link_state;
+
+            // //     // replace link state
+            // //     link_state = list_vp_get_data( new_link_h );
+            // //     *link_state = *old_state;
+            // //     link4_data_t *new_database = (link4_data_t *)( link_state + 1 );
+
+            // //     memset( new_database, 0, sizeof(link4_data_t) );
+
+            // //     list_v_insert_after( &link_list, lh, new_link_h );
+
+            // //     link_state->data_count = 1;
+
+            // // 	database = (link4_data_t *)( link_state + 1 );
+
+            //     database = add_database( &lh, raddr.ipaddr );
+
+            //     if( database == 0 ){
+
+            //         log_v_error_P( PSTR("alloc failed") );
+
+            //         continue;
+            //     }
+
+            // 	// init first item
+            // 	database->value    = 0x7fffffff;
+            // 	database->ip       = raddr.ipaddr;
+            //     database->sequence = msg->sequence - 1; // init sequence such that the value will update
+
+            //     log_v_info_P( PSTR("Create database: %d.%d.%d.%d hash: 0x%08x seq: %d"),
+            //         database->ip.ip3,
+            //         database->ip.ip2,
+            //         database->ip.ip1,
+            //         database->ip.ip0,
+            //         link_state->link.dest_key,
+            //         msg->sequence
+            //     );
+        	// }
+            // // search for matching node
+            // else{
+
+            //     database = lookup_database( &lh, raddr.ipaddr );
+            // }
+
+
+        	// search for matching node in database
+        	// database = (link4_data_t *)( link_state + 1 );
+
+        	// bool match = FALSE;
+        	// for( int i = 0; i < link_state->data_count; i++ ){
+
+            //     // log_v_info_P( PSTR("db: %d.%d.%d.%d -> %d.%d.%d.%d %d"),
+            //     //     database->ip.ip3,
+            //     //     database->ip.ip2,
+            //     //     database->ip.ip1,
+            //     //     database->ip.ip0,
+            //     //     raddr.ipaddr.ip3,
+            //     //     raddr.ipaddr.ip2,
+            //     //     raddr.ipaddr.ip1,
+            //     //     raddr.ipaddr.ip0,
+            //     //     i
+            //     // );
+
+        	// 	if( ip_b_is_zeroes( database->ip ) || ip_b_addr_compare( database->ip, raddr.ipaddr ) ){
+
+        	// 		match = TRUE;
+
+        	// 		break;
+        	// 	}
+
+        	// 	database++;
+        	// }
+
+        	// if( !match ){
+
+            //     uint16_t old_count = link_state->data_count;
+
+            //     // create database
+            //     uint16_t new_size = sizeof(link4_data_t) * ( link_state->data_count + 1 );
+            //     link4_handle_t new_link_h = mem2_h_alloc2( new_size + sizeof(link4_state_t), MEM_TYPE_LINK4 );
+
+            //     if( new_link_h < 0 ){
+                    
+            //         log_v_error_P( PSTR("alloc fail") );
+
+            //         continue;
+            //     }
+
+            //     link4_state_t *old_state = link_state;
+
+            //     // replace link state
+            //     link_state = list_vp_get_data( new_link_h );
+            //     *link_state = *old_state;
+            //     link4_data_t *new_database = (link4_data_t *)( link_state + 1 );
+            //     link_state->data_count++;
+
+            //     database = (link4_data_t *)( link_state + 1 );
+
+            //     // copy old data
+            //     memcpy( new_database, database, sizeof(link4_data_t) * link_state->data_count );
+
+            //     list_v_insert_after( &link_list, lh, new_link_h );
+
+            //     // set old link to prune
+            //     old_state->link.mode = LINK4_MODE_PRUNE;
+
+        	// 	// get new pointer
+        	// 	database = (link4_data_t *)( link_state + 1 );
+            //     database += old_count;
+
+            //     // init first item
+            //     database->value    = 0x7fffffff;
+            //     database->ip       = raddr.ipaddr;
+            //     database->sequence = msg->sequence - 1; // init sequence such that the value will update
+
+            //     log_v_info_P( PSTR("Add database: %d.%d.%d.%d hash: 0x%08x seq: %d"),
+            //         raddr.ipaddr.ip3,
+            //         raddr.ipaddr.ip2,
+            //         raddr.ipaddr.ip1,
+            //         raddr.ipaddr.ip0,
+            //         link_state->link.dest_key,
+            //         msg->sequence
+            //     );
+        	// }
+
+            // // now we have a pointer to this data item
+            // // make sure IP is tracked
+            // database->ip        = raddr.ipaddr; // ignore warning here, this does need to be set
+            // database->timeout   = LINK4_DATA_TIMEOUT;
+
+            // // check sequence
+            // if( util_i8_compare_sequence_u16( msg->sequence, database->sequence ) <= 0 ){
+
+            //     // sequence number is not updated or is older
+
+            //     // log_v_debug_P( PSTR("sequence number invalid %d -> %d"), msg->sequence, database->sequence );
+
+            //     continue;
+            // }
+
+            // // update sequence number
+            // database->sequence = msg->sequence;
+
+            // // log_v_info_P( PSTR("Update database: %d.%d.%d.%d hash: 0x%08x"),
+            // //     database->ip.ip3,
+            // //     database->ip.ip2,
+            // //     database->ip.ip1,
+            // //     database->ip.ip0,
+            // //     link_state->link.dest_key
+            // // );
+
+        	// // detect changes:
+            // bool changed = msg->value != database->value;
+
+         	// if( changed ){
+
+         	// 	// assign value
+         	// 	database->value = msg->value;
+
+         	// 	int32_t computed_value;
+         	// 	if( link_state->link.aggregation == LINK4_AGG_LAST ){
+
+         	// 		computed_value = msg->value;
+         	// 	}
+         	// 	else{
+
+         	// 		computed_value = aggregate( lh, link_state->link.aggregation );	
+         	// 	}
+
+         	// 	// set value in DB
+         	// 	if( catbus_i8_set_i64( link_state->link.dest_key, (int64_t)computed_value ) < 0 ){
+
+         	// 		// error path
+         	// 	}
+         	// }
         }
         else if( header->msg_type == LINK4_MSG_TYPE_RECV ){
 

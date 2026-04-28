@@ -54,7 +54,7 @@ typedef struct __attribute__((packed)){
     uint16_t transmit_timeout;
     uint16_t transmit_timer;
     uint16_t remote_timeout;
-    mem_handle_t database_h;
+    uint16_t data_count;
 } link4_state_t;
 
 typedef struct __attribute__((packed)){
