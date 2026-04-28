@@ -61,6 +61,7 @@ typedef struct __attribute__((packed)){
     int32_t value;
   	ip_addr4_t ip;
   	uint16_t timeout;
+    uint16_t sequence;
 } link4_data_t;
 
 typedef struct __attribute__((packed)){
@@ -72,6 +73,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
     link4_msg_header_t header;
     link4_t link;
+    uint16_t sequence;
     int32_t value;
 } link4_msg_send_t;
 #define LINK4_MSG_TYPE_SEND        		1

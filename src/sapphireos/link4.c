@@ -457,6 +457,9 @@ PT_BEGIN( pt );
 
             	if( changed ){
 
+                    // update sequence
+                    database->sequence++;
+
             		// force timer so we transmit now
             		link_state->transmit_timeout = 1;
 					link_state->transmit_timer = 0;
@@ -501,6 +504,7 @@ PT_BEGIN( pt );
 						.header.msg_type 	= msg_type,
 						.header.version     = LINK4_VERSION,
 						.link 				= *link,
+                        .sequence           = database->sequence,
 						.value 				= database->value,
 					};
 
@@ -844,15 +848,17 @@ PT_BEGIN( pt );
             	database = (link4_data_t *)mem2_vp_get_ptr( link_state->database_h );
 
             	// init first item
-            	database->value = 0x7fffffff;
-            	database->ip    = raddr.ipaddr;
+            	database->value    = 0x7fffffff;
+            	database->ip       = raddr.ipaddr;
+                database->sequence = msg->sequence - 1; // init sequence such that the value will update
 
-                log_v_info_P( PSTR("Create database: %d.%d.%d.%d hash: 0x%08x"),
+                log_v_info_P( PSTR("Create database: %d.%d.%d.%d hash: 0x%08x seq: %d"),
                     database->ip.ip3,
                     database->ip.ip2,
                     database->ip.ip1,
                     database->ip.ip0,
-                    link_state->link.dest_key
+                    link_state->link.dest_key,
+                    msg->sequence
                 );
         	}
 
@@ -916,12 +922,18 @@ PT_BEGIN( pt );
         		database = (link4_data_t *)mem2_vp_get_ptr( new_database_h );
                 database += old_count;
 
-                log_v_info_P( PSTR("Add database: %d.%d.%d.%d hash: 0x%08x"),
+                // init first item
+                database->value    = 0x7fffffff;
+                database->ip       = raddr.ipaddr;
+                database->sequence = msg->sequence - 1; // init sequence such that the value will update
+
+                log_v_info_P( PSTR("Add database: %d.%d.%d.%d hash: 0x%08x seq: %d"),
                     raddr.ipaddr.ip3,
                     raddr.ipaddr.ip2,
                     raddr.ipaddr.ip1,
                     raddr.ipaddr.ip0,
-                    link_state->link.dest_key
+                    link_state->link.dest_key,
+                    msg->sequence
                 );
         	}
 
@@ -929,6 +941,16 @@ PT_BEGIN( pt );
         	// make sure IP is tracked
         	database->ip 		= raddr.ipaddr;
         	database->timeout 	= LINK4_DATA_TIMEOUT;
+
+            // check sequence
+            if( util_i8_compare_sequence_u16( msg->sequence, database->sequence ) <= 0 ){
+
+                // sequence number is not updated or is older
+
+                log_v_debug_P( PSTR("sequence number invalid %d -> %d"), msg->sequence, database->sequence );
+
+                continue;
+            }
 
             // log_v_info_P( PSTR("Update database: %d.%d.%d.%d hash: 0x%08x"),
             //     database->ip.ip3,
