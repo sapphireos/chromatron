@@ -579,7 +579,7 @@ PT_BEGIN( pt );
                 link4_data_t *database = (link4_data_t *)( link_state + 1 );
 
                 // check if data is installed in link:
-                if( lookup_database( ln, ip_a_addr(0,0,0,0) ) ){
+                if( lookup_database( ln, ip_a_addr(0,0,0,0) ) == 0 ){
 
                     // no match, create entry
 
