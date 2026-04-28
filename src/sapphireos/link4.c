@@ -322,6 +322,54 @@ static uint8_t database_count( mem_handle_t database_h ){
 	return mem2_u16_get_size( database_h ) / sizeof(link4_data_t);
 }
 
+static mem_handle_t prune_database( mem_handle_t database_h ){
+
+    link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( database_h );
+
+    uint16_t new_size = 0;
+
+    for( int i = 0; i < database_count( database_h ); i++ ){
+
+        if( database[i].timeout > 0 ){
+
+            new_size += sizeof(link4_data_t);
+        }
+    }
+
+    if( new_size == 0 ){
+
+        mem2_v_free( database_h );
+
+        return -1;
+    }
+
+    // allocate new
+    mem_handle_t new_database_h = mem2_h_alloc2( new_size, MEM_TYPE_LINK4_DB );
+
+    if( new_database_h <= 0 ){
+
+        log_v_error_P( PSTR("alloc fail") );
+
+        return -1;
+    }
+
+    // copy valid old data
+    link4_data_t *new_database = (link4_data_t *)mem2_vp_get_ptr( new_database_h );
+
+    for( int i = 0; i < database_count( database_h ); i++ ){
+
+        if( database[i].timeout > 0 ){
+
+            *new_database = database[i];
+            new_database++;
+        }
+    }
+
+    mem2_v_free( database_h );
+
+    return new_database_h;    
+}
+
 static int32_t aggregate( mem_handle_t database_h, link4_aggregation_t8 agg ){
 
     link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( database_h );
@@ -638,6 +686,8 @@ PT_BEGIN( pt );
 
         		link4_data_t *database = (link4_data_t *)mem2_vp_get_ptr( link_state->database_h );
 
+                bool prune = FALSE;
+
         		for( int i = 0; i < database_count( link_state->database_h ); i++ ){
 
         			if( database[i].timeout > 0 ){
@@ -645,58 +695,16 @@ PT_BEGIN( pt );
         				database[i].timeout--;
         			}
 
-        			if( database[i].timeout > 0 ){
+                    if( database[i].timeout == 0 ){
 
-                        continue;
+                        prune = TRUE;
                     }
+                }
 
-    				log_v_info_P( PSTR("Data timed out: %d.%d.%d.%d hash: 0x%08x"),
-                        database[i].ip.ip3,
-                        database[i].ip.ip2,
-                        database[i].ip.ip1,
-                        database[i].ip.ip0,
-                        link_state->link.dest_key
-                    );
+                if( prune ){
 
-    				uint16_t old_database_size = mem2_u16_get_size( link_state->database_h );
-    				uint16_t new_database_size = old_database_size - sizeof(link4_data_t);
-
-    				if( new_database_size == 0 ){
-
-    					// easy path, just release db
-    					mem2_v_free( link_state->database_h );
-    					link_state->database_h = -1;
-    				}
-    				else{
-
-        				mem_handle_t new_database_h = mem2_h_alloc2( new_database_size, MEM_TYPE_LINK4_DB );
-
-        				if( new_database_h <= 0 ){
-
-		        			log_v_error_P( PSTR("alloc fail") );
-
-		                	goto next;
-		        		}
-
-						link4_data_t *new_database = (link4_data_t *)mem2_vp_get_ptr( new_database_h );
-
-						// copy old data items into new db, skipping this current item we are deleting
-		        		for( int j = 0; j < database_count( link_state->database_h ); j++ ){
-
-		        			if( j == i ){
-
-		        				continue;
-		        			}
-
-		        			*new_database = database[j];
-		        			new_database++;
-		        		}
-
-		        		// release old db, set new on
-		        		mem2_v_free( link_state->database_h );
-		        		link_state->database_h = new_database_h;
-		        	}
-    			}
+                    link_state->database_h = prune_database( link_state->database_h );    
+                }
             }
             
 next:
@@ -937,17 +945,17 @@ PT_BEGIN( pt );
                 );
         	}
 
-        	// now we have a pointer to this data item
-        	// make sure IP is tracked
-        	database->ip 		= raddr.ipaddr;
-        	database->timeout 	= LINK4_DATA_TIMEOUT;
+            // now we have a pointer to this data item
+            // make sure IP is tracked
+            database->ip        = raddr.ipaddr;
+            database->timeout   = LINK4_DATA_TIMEOUT;
 
             // check sequence
             if( util_i8_compare_sequence_u16( msg->sequence, database->sequence ) <= 0 ){
 
                 // sequence number is not updated or is older
 
-                log_v_debug_P( PSTR("sequence number invalid %d -> %d"), msg->sequence, database->sequence );
+                // log_v_debug_P( PSTR("sequence number invalid %d -> %d"), msg->sequence, database->sequence );
 
                 continue;
             }
