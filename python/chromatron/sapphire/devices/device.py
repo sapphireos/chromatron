@@ -1217,13 +1217,13 @@ class Device(object):
 
         try:
             linkinfo = self.get_link_info()
-            print(linkinfo)
+            # print(linkinfo)
 
             if len(linkinfo) == 0:
                 raise IOError
 
             s += 'Links:\n'
-            s += 'Source               Dest                 Mode        Agg  Rate Query\n'
+            s += 'Source               Dest                 Mode        Agg   Rate Query\n'
 
             for info in sorted(linkinfo, key=lambda x: x.link.source_key):
                 link = info.link
@@ -1294,8 +1294,13 @@ class Device(object):
                      link.rate,
                      query_s)
 
+                s += "--------------------------------------------------------------------------------\n"
+                s += "\t   value ip                    timeout seq\n"
+
                 for data in info.database:
-                    s += f'\tvalue: {data.value:8} ip: {data.ip:20} timeout: {data.timeout:4} seq: {data.sequence:5}\n'
+                    s += f'\t{data.value:8} {data.ip:20} {data.timeout:4} {data.sequence:5}\n'
+
+                s += "================================================================================\n"
 
 
         except IOError:

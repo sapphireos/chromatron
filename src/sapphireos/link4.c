@@ -404,60 +404,68 @@ static link4_data_t* add_database( link4_handle_t *link_h, ip_addr4_t ip ){
 
     new_link_state->data_count++;
 
-    new_database->ip = ip;
+    new_database->value     = 0x7FFFFFFF;
+    new_database->ip        = ip;
+    new_database->sequence  = 0;
+    new_database->timeout   = 0;
 
     return new_database;
 }
 
-// static link4_handle_t prune_database( link4_handle_t link_h ){
+static void prune_database( link4_handle_t link_h ){
 
-//     link4_state_t *link_state = list_vp_get_data( link_h );
+    link4_state_t *link_state = list_vp_get_data( link_h );
 
-//     if( link_state->data_count == 0 ){
+    if( link_state->data_count == 0 ){
 
-//         return link_h;
-//     }
+        return;
+    }
 
-//     const link4_data_t *database = (link4_data_t *)( link_state + 1 );
+    const link4_data_t *database = (link4_data_t *)( link_state + 1 );
 
-//     uint16_t new_size = 0;
+    uint16_t new_size = 0;
 
-//     for( int i = 0; i < link_state->data_count; i++ ){
+    for( int i = 0; i < link_state->data_count; i++ ){
 
-//         if( database[i].timeout > 0 ){
+        if( database[i].timeout > 0 ){
 
-//             new_size += sizeof(link4_data_t);
-//         }
-//     }
+            new_size += sizeof(link4_data_t);
+        }
+    }
 
-//     // allocate new
-//     link4_handle_t new_link_h = mem2_h_alloc2( new_size + sizeof(link4_state_t), MEM_TYPE_LINK4 );
+    // allocate new
+    link4_handle_t new_link_h = list_ln_create_node2( 0, new_size + sizeof(link4_state_t), MEM_TYPE_LINK4 );
 
-//     if( new_link_h <= 0 ){
+    if( new_link_h <= 0 ){
 
-//         log_v_error_P( PSTR("alloc fail") );
+        log_v_error_P( PSTR("alloc fail") );
 
-//         return -1;
-//     }
+        return;
+    }
 
-//     link4_state_t *new_link_state = list_vp_get_data( link_h );
+    link4_state_t *new_link_state = list_vp_get_data( link_h );
+    *new_link_state = *link_state;
 
-//     // copy valid old data
-//     link4_data_t *new_database = (link4_data_t *)( new_link_state + 1 );
+    new_link_state->data_count = 0;
 
-//     for( int i = 0; i < link_state->data_count; i++ ){
+    // copy valid old data
+    link4_data_t *new_database = (link4_data_t *)( new_link_state + 1 );
 
-//         if( database[i].timeout > 0 ){
+    for( int i = 0; i < link_state->data_count; i++ ){
 
-//             *new_database = database[i];
-//             new_database++;
-//         }
-//     }
+        if( database[i].timeout > 0 ){
 
-//     mem2_v_free( link_h );
+            *new_database = database[i];
+            new_database++;
+            new_link_state->data_count++;
+        }
+    }
 
-//     return new_link_h;    
-// }
+    list_v_insert_head( &link_list, new_link_h );
+    
+    list_v_remove( &link_list, link_h );
+    list_v_release_node( link_h ); 
+}
 
 static int32_t aggregate( link4_handle_t link_h, link4_aggregation_t8 agg ){
 
@@ -834,7 +842,7 @@ PT_BEGIN( pt );
 
                 if( prune ){
 
-                    // link_state->database_h = prune_database( link_state->database_h );    
+                    prune_database( ln );
                 }
             }
             
