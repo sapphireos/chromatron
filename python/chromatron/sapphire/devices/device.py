@@ -1245,6 +1245,9 @@ class Device(object):
                 elif link.mode == sapphiredata.LINK4_MODE_RECV:
                     mode = "recv"
 
+                elif link.mode == sapphiredata.LINK4_MODE_SYNC:
+                    mode = "sync"
+
                 elif link.mode == sapphiredata.LINK4_MODE_REMOTE_SEND:
                     mode = "remote_send"
 

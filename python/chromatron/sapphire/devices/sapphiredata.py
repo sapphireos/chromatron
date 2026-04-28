@@ -576,10 +576,11 @@ class Link4(StructField):
 
         super().__init__(_fields=fields, **kwargs)
 
-LINK4_MODE_SEND         = 0
-LINK4_MODE_RECV         = 1
-LINK4_MODE_REMOTE_RECV  = 2
-LINK4_MODE_REMOTE_SEND  = 3
+LINK4_MODE_SEND         = 1
+LINK4_MODE_RECV         = 2
+LINK4_MODE_SYNC         = 3
+LINK4_MODE_REMOTE_RECV  = 11
+LINK4_MODE_REMOTE_SEND  = 12
 
 LINK4_AGG_LAST          = 0
 LINK4_AGG_MIN           = 1

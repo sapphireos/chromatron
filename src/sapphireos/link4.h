@@ -29,10 +29,11 @@ typedef uint8_t link4_aggregation_t8;
 #define LINK4_AGG_AVG						4
 
 typedef uint8_t link4_mode_t8;
-#define LINK4_MODE_SEND						0
-#define LINK4_MODE_RECV						1
-#define LINK4_MODE_REMOTE_RECV				2
-#define LINK4_MODE_REMOTE_SEND				3
+#define LINK4_MODE_SEND						1
+#define LINK4_MODE_RECV						2
+#define LINK4_MODE_SYNC                     3
+#define LINK4_MODE_REMOTE_RECV				11
+#define LINK4_MODE_REMOTE_SEND				12
 
 typedef uint16_t link4_rate_t16;
 #define LINK4_RATE_MIN                      100
@@ -77,6 +78,7 @@ typedef struct __attribute__((packed)){
     int32_t value;
 } link4_msg_send_t;
 #define LINK4_MSG_TYPE_SEND        		1
+#define LINK4_MSG_TYPE_SYNC             4
 #define LINK4_MSG_TYPE_REMOTE_SEND      3
 
 typedef struct __attribute__((packed)){
