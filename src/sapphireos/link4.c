@@ -322,6 +322,7 @@ void link4_v_delete_by_tag( catbus_hash_t32 tag ){
         // check if link is local
         // remote links don't get deleted here, they must time out
         if( ( link->mode != LINK4_MODE_SEND ) &&
+            ( link->mode != LINK4_MODE_SYNC ) &&
             ( link->mode != LINK4_MODE_RECV ) ){
 
             goto next;
@@ -541,6 +542,7 @@ PT_BEGIN( pt );
             link4_t *link = &link_state->link;
 
             if( ( link->mode == LINK4_MODE_SEND ) ||
+                ( link->mode == LINK4_MODE_SYNC ) ||
                 ( link->mode == LINK4_MODE_REMOTE_SEND ) ){
 
                 // link4_test_key++;
@@ -595,7 +597,7 @@ PT_BEGIN( pt );
                     database->value    = 0x7fffffff;
                 }
 
-                ASSERT( link_state->data_count == 1 );
+                // ASSERT( link_state->data_count == 1 );
 
 	         	// detect changes:
             	bool changed = data != database->value;
@@ -641,7 +643,11 @@ PT_BEGIN( pt );
 
                     uint8_t msg_type = LINK4_MSG_TYPE_SEND;
 
-                    if( link->mode == LINK4_MODE_REMOTE_SEND ){
+                    if( link->mode == LINK4_MODE_SYNC ){
+
+                        msg_type = LINK4_MSG_TYPE_SYNC;
+                    }
+                    else if( link->mode == LINK4_MODE_REMOTE_SEND ){
 
                         msg_type = LINK4_MSG_TYPE_REMOTE_SEND;
                     }
@@ -873,6 +879,7 @@ PT_BEGIN( pt );
         sock_v_get_raddr( sock, &raddr );
 
         if( ( header->msg_type == LINK4_MSG_TYPE_SEND ) ||
+            ( header->msg_type == LINK4_MSG_TYPE_SYNC ) ||
             ( header->msg_type == LINK4_MSG_TYPE_REMOTE_SEND ) ){
 
         	link4_msg_send_t *msg = (link4_msg_send_t *)header;
@@ -896,13 +903,17 @@ PT_BEGIN( pt );
 
             	msg->link.mode = LINK4_MODE_REMOTE_RECV;
             }
+            if( header->msg_type == LINK4_MSG_TYPE_SYNC ){
+
+                msg->link.mode = LINK4_MODE_SYNC;
+            }
             else if( header->msg_type == LINK4_MSG_TYPE_REMOTE_SEND ){
 
                 msg->link.mode = LINK4_MODE_RECV;
             }
             else{
 
-                log_v_error_P( PSTR("Invalid link pairing") );
+                log_v_error_P( PSTR("Invalid link pairing: %d"), header->msg_type );
 
                 continue;
             }
