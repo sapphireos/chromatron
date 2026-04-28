@@ -981,13 +981,20 @@ PT_BEGIN( pt );
         	link_state->remote_timeout = LINK4_LINK_TIMEOUT;
 
             // search for matching entry
-        	link4_data_t *database = lookup_database( lh, raddr.ipaddr );
+            ip_addr4_t ip = raddr.ipaddr;
+
+            if( link_state->link.mode == LINK4_MODE_SYNC ){
+
+                ip = ip_a_addr(0,0,0,0);
+            }
+
+        	link4_data_t *database = lookup_database( lh, ip );
 
             if( database == 0 ){
 
                 // no match, create entry
 
-                database = add_database( &lh, raddr.ipaddr );
+                database = add_database( &lh, ip );
 
                 if( database == 0 ){
 
