@@ -903,7 +903,7 @@ PT_BEGIN( pt );
 
             	msg->link.mode = LINK4_MODE_REMOTE_RECV;
             }
-            if( header->msg_type == LINK4_MSG_TYPE_SYNC ){
+            else if( header->msg_type == LINK4_MSG_TYPE_SYNC ){
 
                 msg->link.mode = LINK4_MODE_SYNC;
             }
