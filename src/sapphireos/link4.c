@@ -109,42 +109,42 @@ bool link4_b_compare( const link4_t *link1, const link4_t *link2 ){
 
     if( link1->mode != link2->mode ){
 
-        log_v_debug_P( PSTR("mode") );
+        // log_v_debug_P( PSTR("mode") );
 
         return FALSE;
     }
 
     if( link1->aggregation != link2->aggregation ){
 
-        log_v_debug_P( PSTR("aggregation") );
+        // log_v_debug_P( PSTR("aggregation") );
 
         return FALSE;
     }
 
     if( link1->rate != link2->rate ){
 
-        log_v_debug_P( PSTR("rate") );
+        // log_v_debug_P( PSTR("rate") );
 
         return FALSE;
     }
 
     if( link1->source_key != link2->source_key ){
 
-        log_v_debug_P( PSTR("source_key") );
+        // log_v_debug_P( PSTR("source_key") );
 
         return FALSE;
     }
 
     if( link1->dest_key != link2->dest_key ){
 
-        log_v_debug_P( PSTR("dest_key") );
+        // log_v_debug_P( PSTR("dest_key") );
 
         return FALSE;
     }
 
     if( link1->tag != link2->tag ){
 
-        log_v_debug_P( PSTR("tag") );
+        // log_v_debug_P( PSTR("tag") );
 
         return FALSE;
     }
@@ -160,7 +160,7 @@ bool link4_b_compare( const link4_t *link1, const link4_t *link2 ){
 
         if( query1.tags[i] != query2.tags[i] ){
 
-            log_v_debug_P( PSTR("query") );
+            // log_v_debug_P( PSTR("query") );
 
             return FALSE;
         }
