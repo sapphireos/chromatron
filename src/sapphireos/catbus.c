@@ -741,7 +741,7 @@ PT_BEGIN( pt );
     ASSERT( announce_sock >= 0 );
 
     sock_v_bind( sock, CATBUS_MAIN_PORT );
-    sock_v_bind( announce_sock, CATBUS_ANNOUNCE_PORT );
+    // sock_v_bind( announce_sock, CATBUS_ANNOUNCE_PORT );
 
     sock_v_set_timeout( sock, 1 );
     sock_v_set_timeout( announce_sock, 1 );
