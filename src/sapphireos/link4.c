@@ -597,45 +597,6 @@ PT_BEGIN( pt );
 
                 ASSERT( link_state->data_count == 1 );
 
-
-
-
-	            // check if data is installed in link:
-                // ASSERT( link_state->data_count > 0 );
-	            // if( link_state->data_count == 0 ){
-
-	            // 	// create database
-                //     uint16_t new_size = sizeof(link4_data_t);
-                //     link4_handle_t new_link_h = mem2_h_alloc2( new_size + sizeof(link4_state_t), MEM_TYPE_LINK4 );
-
-	            // 	if( new_link_h < 0 ){
-	            		
-	            // 		log_v_error_P( PSTR("alloc fail") );
-
-	            //     	goto next;
-	            // 	}
-
-                //     link4_state_t *old_state = link_state;
-
-                //     // replace link state
-                //     link_state = list_vp_get_data( new_link_h );
-                //     *link_state = *old_state;
-                //     link4_data_t *new_database = (link4_data_t *)( link_state + 1 );
-
-                //     memset( new_database, 0, sizeof(link4_data_t) );
-
-                //     list_v_insert_after( &link_list, ln, new_link_h );
-
-                //     // set old link to prune
-                //     old_state->link.mode = LINK4_MODE_PRUNE;
-
-                //     link_state->data_count = 1;
-	            // 	link_state->transmit_timer = 0;
-	            // }
-
-	            // deref database
-	         	// link4_data_t *database = (link4_data_t *)( link_state + 1 );
-
 	         	// detect changes:
             	bool changed = data != database->value;
 
@@ -1000,13 +961,23 @@ PT_BEGIN( pt );
 
             ASSERT( database != 0 );
 
+            // check sequence
+            int8_t seq_compare = util_i8_compare_sequence_u16( msg->sequence, database->sequence );
+            if( seq_compare < 0 ){
+
+                // sequence number is older
+
+                // log_v_debug_P( PSTR("sequence number invalid %d -> %d"), msg->sequence, database->sequence );
+
+                continue;
+            }
+
             // now we have a pointer to this data item
             database->timeout   = LINK4_DATA_TIMEOUT;
 
-            // check sequence
-            if( util_i8_compare_sequence_u16( msg->sequence, database->sequence ) <= 0 ){
+            if( seq_compare == 0 ){
 
-                // sequence number is not updated or is older
+                // sequence number is not updated
 
                 // log_v_debug_P( PSTR("sequence number invalid %d -> %d"), msg->sequence, database->sequence );
 
@@ -1048,204 +1019,6 @@ PT_BEGIN( pt );
                     // error path
                 }
             }
-
-
-        	// check for database
-            // ASSERT( link_state->data_count > 0 );
-        	// if( link_state->data_count == 0 ){
-
-        	//    // create database
-
-
-
-            // //     uint16_t new_size = sizeof(link4_data_t);
-            // //     link4_handle_t new_link_h = mem2_h_alloc2( new_size + sizeof(link4_state_t), MEM_TYPE_LINK4 );
-
-            // //     if( new_link_h < 0 ){
-                    
-            // //         log_v_error_P( PSTR("alloc fail") );
-
-            // //         continue;
-            // //     }
-
-            // //     // set old link to prune
-            // //     link_state->link.mode = LINK4_MODE_PRUNE;
-
-            // //     const link4_state_t *old_state = link_state;
-
-            // //     // replace link state
-            // //     link_state = list_vp_get_data( new_link_h );
-            // //     *link_state = *old_state;
-            // //     link4_data_t *new_database = (link4_data_t *)( link_state + 1 );
-
-            // //     memset( new_database, 0, sizeof(link4_data_t) );
-
-            // //     list_v_insert_after( &link_list, lh, new_link_h );
-
-            // //     link_state->data_count = 1;
-
-            // // 	database = (link4_data_t *)( link_state + 1 );
-
-            //     database = add_database( &lh, raddr.ipaddr );
-
-            //     if( database == 0 ){
-
-            //         log_v_error_P( PSTR("alloc failed") );
-
-            //         continue;
-            //     }
-
-            // 	// init first item
-            // 	database->value    = 0x7fffffff;
-            // 	database->ip       = raddr.ipaddr;
-            //     database->sequence = msg->sequence - 1; // init sequence such that the value will update
-
-            //     log_v_info_P( PSTR("Create database: %d.%d.%d.%d hash: 0x%08x seq: %d"),
-            //         database->ip.ip3,
-            //         database->ip.ip2,
-            //         database->ip.ip1,
-            //         database->ip.ip0,
-            //         link_state->link.dest_key,
-            //         msg->sequence
-            //     );
-        	// }
-            // // search for matching node
-            // else{
-
-            //     database = lookup_database( &lh, raddr.ipaddr );
-            // }
-
-
-        	// search for matching node in database
-        	// database = (link4_data_t *)( link_state + 1 );
-
-        	// bool match = FALSE;
-        	// for( int i = 0; i < link_state->data_count; i++ ){
-
-            //     // log_v_info_P( PSTR("db: %d.%d.%d.%d -> %d.%d.%d.%d %d"),
-            //     //     database->ip.ip3,
-            //     //     database->ip.ip2,
-            //     //     database->ip.ip1,
-            //     //     database->ip.ip0,
-            //     //     raddr.ipaddr.ip3,
-            //     //     raddr.ipaddr.ip2,
-            //     //     raddr.ipaddr.ip1,
-            //     //     raddr.ipaddr.ip0,
-            //     //     i
-            //     // );
-
-        	// 	if( ip_b_is_zeroes( database->ip ) || ip_b_addr_compare( database->ip, raddr.ipaddr ) ){
-
-        	// 		match = TRUE;
-
-        	// 		break;
-        	// 	}
-
-        	// 	database++;
-        	// }
-
-        	// if( !match ){
-
-            //     uint16_t old_count = link_state->data_count;
-
-            //     // create database
-            //     uint16_t new_size = sizeof(link4_data_t) * ( link_state->data_count + 1 );
-            //     link4_handle_t new_link_h = mem2_h_alloc2( new_size + sizeof(link4_state_t), MEM_TYPE_LINK4 );
-
-            //     if( new_link_h < 0 ){
-                    
-            //         log_v_error_P( PSTR("alloc fail") );
-
-            //         continue;
-            //     }
-
-            //     link4_state_t *old_state = link_state;
-
-            //     // replace link state
-            //     link_state = list_vp_get_data( new_link_h );
-            //     *link_state = *old_state;
-            //     link4_data_t *new_database = (link4_data_t *)( link_state + 1 );
-            //     link_state->data_count++;
-
-            //     database = (link4_data_t *)( link_state + 1 );
-
-            //     // copy old data
-            //     memcpy( new_database, database, sizeof(link4_data_t) * link_state->data_count );
-
-            //     list_v_insert_after( &link_list, lh, new_link_h );
-
-            //     // set old link to prune
-            //     old_state->link.mode = LINK4_MODE_PRUNE;
-
-        	// 	// get new pointer
-        	// 	database = (link4_data_t *)( link_state + 1 );
-            //     database += old_count;
-
-            //     // init first item
-            //     database->value    = 0x7fffffff;
-            //     database->ip       = raddr.ipaddr;
-            //     database->sequence = msg->sequence - 1; // init sequence such that the value will update
-
-            //     log_v_info_P( PSTR("Add database: %d.%d.%d.%d hash: 0x%08x seq: %d"),
-            //         raddr.ipaddr.ip3,
-            //         raddr.ipaddr.ip2,
-            //         raddr.ipaddr.ip1,
-            //         raddr.ipaddr.ip0,
-            //         link_state->link.dest_key,
-            //         msg->sequence
-            //     );
-        	// }
-
-            // // now we have a pointer to this data item
-            // // make sure IP is tracked
-            // database->ip        = raddr.ipaddr; // ignore warning here, this does need to be set
-            // database->timeout   = LINK4_DATA_TIMEOUT;
-
-            // // check sequence
-            // if( util_i8_compare_sequence_u16( msg->sequence, database->sequence ) <= 0 ){
-
-            //     // sequence number is not updated or is older
-
-            //     // log_v_debug_P( PSTR("sequence number invalid %d -> %d"), msg->sequence, database->sequence );
-
-            //     continue;
-            // }
-
-            // // update sequence number
-            // database->sequence = msg->sequence;
-
-            // // log_v_info_P( PSTR("Update database: %d.%d.%d.%d hash: 0x%08x"),
-            // //     database->ip.ip3,
-            // //     database->ip.ip2,
-            // //     database->ip.ip1,
-            // //     database->ip.ip0,
-            // //     link_state->link.dest_key
-            // // );
-
-        	// // detect changes:
-            // bool changed = msg->value != database->value;
-
-         	// if( changed ){
-
-         	// 	// assign value
-         	// 	database->value = msg->value;
-
-         	// 	int32_t computed_value;
-         	// 	if( link_state->link.aggregation == LINK4_AGG_LAST ){
-
-         	// 		computed_value = msg->value;
-         	// 	}
-         	// 	else{
-
-         	// 		computed_value = aggregate( lh, link_state->link.aggregation );	
-         	// 	}
-
-         	// 	// set value in DB
-         	// 	if( catbus_i8_set_i64( link_state->link.dest_key, (int64_t)computed_value ) < 0 ){
-
-         	// 		// error path
-         	// 	}
-         	// }
         }
         else if( header->msg_type == LINK4_MSG_TYPE_RECV ){
 
