@@ -443,8 +443,8 @@ static void prune_database( link4_handle_t link_h ){
         return;
     }
 
-    link4_state_t *new_link_state = list_vp_get_data( link_h );
-    *new_link_state = *link_state;
+    link4_state_t *new_link_state = list_vp_get_data( new_link_h );
+    memcpy( new_link_state, link_state, sizeof(link4_state_t) );
 
     new_link_state->data_count = 0;
 
@@ -835,6 +835,8 @@ PT_BEGIN( pt );
         			}
 
                     if( database[i].timeout == 0 ){
+
+                        log_v_info_P( PSTR("Remote data timed out") );
 
                         prune = TRUE;
                     }

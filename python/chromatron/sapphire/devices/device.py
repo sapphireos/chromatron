@@ -1223,7 +1223,7 @@ class Device(object):
                 raise IOError
 
             s += 'Links:\n'
-            s += 'Source               Dest                 Mode        Agg   Rate Query\n'
+            s += 'Source               Dest                  Mode        Agg   Rate Query\n'
 
             for info in sorted(linkinfo, key=lambda x: x.link.source_key):
                 link = info.link
