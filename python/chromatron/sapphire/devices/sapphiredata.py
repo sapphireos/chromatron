@@ -576,6 +576,18 @@ class Link4(StructField):
 
         super().__init__(_fields=fields, **kwargs)
 
+LINK4_MODE_SEND         = 0
+LINK4_MODE_RECV         = 1
+LINK4_MODE_REMOTE_SEND  = 2
+LINK4_MODE_REMOTE_RECV  = 3
+
+LINK4_AGG_LAST          = 0
+LINK4_AGG_MIN           = 1
+LINK4_AGG_MAX           = 2
+LINK4_AGG_SUM           = 3
+LINK4_AGG_AVG           = 4
+
+
 class Link4Array(ArrayField):
     def __init__(self, **kwargs):
         field = Link4
@@ -591,6 +603,18 @@ class Link4State(StructField):
                   Uint16Field(_name="data_count")]
 
         super().__init__(_fields=fields, **kwargs)
+
+    def unpack(self, buffer):
+        super().unpack(buffer)
+
+        buffer = buffer[self.size():] # trim header
+        # trim tail so we just get this chunk
+        buffer = buffer[:self.data_count * Link4Data().size()]
+
+        array = Link4DataArray(_name="database").unpack(buffer)
+        self._fields[array._name] = array
+
+        return self
 
 class Link4StateArray(ArrayField):
     def __init__(self, **kwargs):
