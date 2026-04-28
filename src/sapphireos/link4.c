@@ -284,6 +284,12 @@ link4_handle_t link4_l_create(
         return -1;
     }
 
+// DEBUG!
+    if( mode == LINK4_MODE_SEND ){
+
+        return -1;
+    }
+
     // for(int i = 0; i < 8; i++){
 
     //     log_v_debug_P(PSTR("0x%08x"), query->tags[i]);
@@ -639,10 +645,10 @@ next_timeout:
 	                goto next;
 	            }
 
-                link4_data_t *database = (link4_data_t *)( link_state + 1 );
+                link4_data_t *database = lookup_database( ln, ip_a_addr(0,0,0,0) );
 
                 // check if data is installed in link:
-                if( lookup_database( ln, ip_a_addr(0,0,0,0) ) == 0 ){
+                if( database == 0 ){
 
                     // no match, create entry
 
@@ -941,6 +947,12 @@ PT_BEGIN( pt );
         	link4_handle_t lh = link4_l_lookup( &msg->link );
 
         	if( lh <= 0 ){
+
+                // is this for a remote receive
+                if( msg->link.mode != LINK4_MODE_REMOTE_RECV ){
+
+                    continue;
+                }
 
         		// need to create remote receive link
         		lh = link4_l_create2( &msg->link );
