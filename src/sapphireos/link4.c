@@ -952,6 +952,9 @@ PT_BEGIN( pt );
                 continue;
             }
 
+            // update sequence number
+            database->sequence = msg->sequence;
+
             // log_v_info_P( PSTR("Update database: %d.%d.%d.%d hash: 0x%08x"),
             //     database->ip.ip3,
             //     database->ip.ip2,
