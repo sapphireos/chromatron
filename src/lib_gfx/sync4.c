@@ -93,6 +93,56 @@ static void serialize_pixels( void ){
 	fs_i16_write( f, (uint8_t *)s_step_ptr, array_size );
 	fs_i16_write( f, (uint8_t *)v_step_ptr, array_size );
 	
+	fs_f_close( f );
+}
+
+static void deserialize_pixels( void ){
+
+	uint16_t pix_count = gfx_u16_get_pix_count();
+
+	uint16_t *h_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_HUE );
+	uint16_t *s_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_SAT );	
+	uint16_t *v_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_SAT );	
+	uint16_t *hsfade_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_HS_FADE );	
+	uint16_t *vfade_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_V_FADE );	
+	uint16_t *h_step_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_HUE_STEP );
+	uint16_t *s_step_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_SAT_STEP );	
+	uint16_t *v_step_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_VAL_STEP );
+
+
+	file_t f = fs_f_open_P( PSTR("_pixel.f4b"), FS_MODE_READ_ONLY );
+
+    if(f <= 0){
+
+        return;
+    }
+
+    uint32_t magic = 0;
+    fs_i16_read( f, (uint8_t *)&magic, sizeof(magic) );
+
+    uint16_t file_pix_count = 0;
+    fs_i16_read( f, (uint8_t *)&file_pix_count, sizeof(file_pix_count) );
+
+    uint16_t file_array_size = 0;
+    fs_i16_read( f, (uint8_t *)&file_array_size, sizeof(file_array_size) );
+
+    if( pix_count > file_pix_count ){
+
+    	pix_count = file_pix_count;
+    }
+
+    uint16_t array_size = sizeof(uint16_t) * pix_count;
+
+	fs_i16_read( f, (uint8_t *)h_ptr, array_size );
+	fs_i16_read( f, (uint8_t *)s_ptr, array_size );
+	fs_i16_read( f, (uint8_t *)v_ptr, array_size );
+	fs_i16_read( f, (uint8_t *)hsfade_ptr, array_size );
+	fs_i16_read( f, (uint8_t *)vfade_ptr, array_size );
+	fs_i16_read( f, (uint8_t *)h_step_ptr, array_size );
+	fs_i16_read( f, (uint8_t *)s_step_ptr, array_size );
+	fs_i16_read( f, (uint8_t *)v_step_ptr, array_size );
+
+    fs_f_close( f );
 }
 
 static void init_group_hash( void ){
@@ -689,7 +739,7 @@ PT_BEGIN( pt );
 
 			fs_v_seek( f, offset );
 
-			int16_t write_len = fs_i16_write( f, data, SYNC4_MAX_DATA );
+			int16_t write_len = fs_i16_write( f, data, data_len );
 
 			fs_f_close( f );
 
@@ -702,9 +752,12 @@ PT_BEGIN( pt );
 
 			state->current_page++;
 
+			// check for completion
 			if( state->current_page >= state->total_pages ){
 
 				sync_state = SYNC_STATE_DATA;
+
+				log_v_debug_P( PSTR("data sync done") );
 
 				goto done;
 			}
@@ -720,11 +773,9 @@ PT_BEGIN( pt );
 		}
 	}
 
-	
 
 error:
 	sync_state = SYNC_STATE_IDLE;
-
 
 done:
 
@@ -823,16 +874,27 @@ PT_BEGIN( pt );
 				sync4_b_is_follower()
 			);
 
-			THREAD_WAIT_WHILE( pt, SYNC_STATE_SYNCING );
+			THREAD_WAIT_WHILE( pt, 
+				( sync_state == SYNC_STATE_SYNCING ) &&
+				sync4_b_is_follower()
+			);
 
-			// THREAD_WAIT_WHILE( pt, sync4_b_is_follower() && );
+			if( sync_state != SYNC_STATE_DATA ){
 
-			// while( sync4_b_is_follower() ){
+				log_v_error_P( PSTR("bad state") );
 
+				THREAD_RESTART( pt );
+			}
 
+			// we have sync data at this point:
+			// load it!
+			vm4_v_unfreeze_vm( 0 );
+			deserialize_pixels();
 
-
-			// }
+			THREAD_WAIT_WHILE( pt, 
+				( sync_state == SYNC_STATE_DATA ) &&
+				sync4_b_is_follower()
+			);
 		}
 
 
