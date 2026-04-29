@@ -7,6 +7,51 @@
 #define SYNC4_PROTOCOL_VERSION           	12
 #define SYNC4_SERVER_PORT                    32039
 
+#define SYNC4_MAX_DATA				512
+#define SYNC4_MAX_TRIES				5
+
+
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+    uint8_t flags;
+    uint8_t padding;
+} sync4_msg_header_t;
+
+typedef struct __attribute__((packed)){
+	sync4_msg_header_t header;
+} sync4_msg_connect_t;
+#define SYNC4_MSG_TYPE_CONNECT		1
+
+typedef struct __attribute__((packed)){
+	sync4_msg_header_t header;
+	uint8_t vm_pages;
+	uint8_t pixel_pages;
+} sync4_msg_ready_t;
+#define SYNC4_MSG_TYPE_READY		2
+
+typedef struct __attribute__((packed)){
+	sync4_msg_header_t header;
+	uint8_t page;
+	uint8_t padding[3];
+} sync4_msg_request_data_t;
+#define SYNC4_MSG_TYPE_REQ_DATA		3
+
+typedef struct __attribute__((packed)){
+	sync4_msg_header_t header;
+	uint8_t page;
+	uint8_t total;
+	uint8_t type;
+	uint8_t padding;
+} sync4_msg_data_t;
+#define SYNC4_MSG_TYPE_SYNC_DATA	4
+
+#define SYNC4_DATA_TYPE_VM4			1
+#define SYNC4_DATA_TYPE_PIXELS		2
+
+
+
 
 void sync4_v_init( void );
 

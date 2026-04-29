@@ -73,6 +73,9 @@ file_t fs_f_open_P( PGM_P filename, mode_t8 mode );
 void fs_v_delete_fname_P( PGM_P filename );
 void fs_v_delete_fname( char filename[] );
 
+int32_t fs_i32_get_size_fname_P( PGM_P filename );
+int32_t fs_i32_get_size_fname( char filename[] );
+
 file_t fs_f_open_id( file_id_t8 file_id, uint8_t mode );
 void fs_v_create_virtual( PGM_P filename, 
                           uint32_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ) );

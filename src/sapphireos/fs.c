@@ -303,6 +303,31 @@ void fs_v_delete_fname( char filename[] ){
     }
 }
 
+int32_t fs_i32_get_size_fname_P( PGM_P filename ){
+
+    // copy file name to memory
+    char fname[FS_MAX_FILE_NAME_LEN];
+
+    strlcpy_P( fname, filename, FS_MAX_FILE_NAME_LEN );
+
+    return fs_i32_get_size_fname( fname );
+}
+
+int32_t fs_i32_get_size_fname( char filename[] ){
+
+    int32_t size = -1;
+    file_t f = fs_f_open( filename, FS_MODE_WRITE_OVERWRITE );
+
+    if( f > 0 ){
+
+        size = fs_i32_get_size( f );
+        
+        f = fs_f_close( f );
+    }
+    
+    return size;
+}
+
 file_t fs_f_open_id( file_id_t8 file_id, uint8_t mode ){
 
     char name[FS_MAX_FILE_NAME_LEN];
