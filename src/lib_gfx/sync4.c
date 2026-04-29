@@ -261,14 +261,61 @@ PT_BEGIN( pt );
 			continue;
 		}
 
-		const sync4_msg_data_t *msg = (sync4_msg_data_t *)( header + 1 );
+		log_v_debug_P( PSTR("receive req data") );
 
+		const sync4_msg_request_data_t *msg = (sync4_msg_request_data_t *)( header + 1 );
 
+		uint8_t buf[sizeof(sync4_msg_data_t) + SYNC4_MAX_DATA] = {0};
+		sync4_msg_data_t *reply = (sync4_msg_data_t *)buf;
+		uint8_t *data = (uint8_t *)( reply + 1 );
 
+		reply->header.magic 	= SYNC4_PROTOCOL_MAGIC;
+		reply->header.version 	= SYNC4_PROTOCOL_VERSION;
+		reply->header.type 		= SYNC4_MSG_TYPE_SYNC_DATA;
 
+		file_t f = -1;
+		uint16_t offset = 0;
+
+		if( msg->page < state->vm_pages ){
+
+			// VM page
+
+			offset = msg->page * SYNC4_MAX_DATA;
+			
+			f = fs_f_open_P( PSTR("_sync.f4b"), FS_MODE_READ_ONLY );
+		}
+		else{
+
+			// pixel page
+
+			offset = ( msg->page - state->vm_pages ) * SYNC4_MAX_DATA;
+
+			f = fs_f_open_P( PSTR("_pixel.f4b"), FS_MODE_READ_ONLY );
+		}
+
+		if( f < 0 ){
+
+			goto done;
+		}
+
+		fs_v_seek( f, offset );
+		int16_t read_len = fs_i16_read( f, data, SYNC4_MAX_DATA );
+
+		if( read_len < 0 ){
+
+			fs_f_close( f );
+			goto done;
+		}
+
+		log_v_debug_P( PSTR("send data") );
+
+		sock_i16_sendto( state->sock, buf, sizeof(sync4_msg_data_t) + read_len, &state->raddr );
+
+		fs_f_close( f );
 	}
 
 
+done:
 	data_server_count--;
 	sock_v_release( state->sock );
 
@@ -394,10 +441,7 @@ PT_BEGIN( pt );
         }
         else if( sync4_b_is_follower() ){
 
-        	if( header->type == SYNC4_MSG_TYPE_READY ){
-
-
-        	}
+        	
         }
         else{
 
@@ -427,7 +471,7 @@ static void send_connect( socket_t sock ){
 	sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
 }
 
-static void send_data_request( socket_t sock, uint8_t current_page ){
+static void send_data_request( socket_t sock, sock_addr_t *raddr, uint8_t current_page ){
 
 	sync4_msg_request_data_t msg = {0};
 
@@ -437,16 +481,12 @@ static void send_data_request( socket_t sock, uint8_t current_page ){
 
 	msg.page = current_page;
 
-	sock_addr_t raddr = {
-		leader_ip,
-		SYNC4_SERVER_PORT
-	};
-
-	sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+	sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );
 }
 
 typedef struct{
 	socket_t sock;
+	sock_addr_t raddr;
 	uint8_t current_page;
 	uint8_t total_pages;
 	uint8_t tries;
@@ -499,6 +539,8 @@ PT_BEGIN( pt );
 			continue;
 		}
 
+        sock_v_get_raddr( server_sock, &state->raddr );
+
 		const sync4_msg_ready_t *msg = (sync4_msg_ready_t *)( header + 1 );
 
 		log_v_debug_P( PSTR("received ready") );
@@ -518,104 +560,98 @@ PT_BEGIN( pt );
 
 	sync_state = SYNC_STATE_SYNCING;
 
-	goto done;
+	while( sync_state == SYNC_STATE_SYNCING ){
 
+		state->tries = SYNC4_MAX_TRIES;
+		while( state->tries > 0 ){
 
+			state->tries--;
 
-
-
-
-	// while( sync_state == SYNC_STATE_SYNCING ){
-
-	// 	state->tries = SYNC4_MAX_TRIES;
-	// 	while( state->tries > 0 ){
-
-	// 		state->tries--;
-
-	// 		send_data_request( state->sock, state->current_page );
+			log_v_debug_P( PSTR("send data request %d"), state->current_page );
+			send_data_request( state->sock, &state->raddr, state->current_page );
 				
-	// 		THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( state->sock ) < 0 );
+			THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( state->sock ) < 0 );
 
-	// 		if( sock_i16_get_bytes_read( state->sock ) <= 0 ){
+			if( sock_i16_get_bytes_read( state->sock ) <= 0 ){
 
-	// 			continue;
-	// 		}
+				continue;
+			}
 
-	// 		if( sync_state != SYNC_STATE_SYNCING ){
+			if( sync_state != SYNC_STATE_SYNCING ){
 
-	// 			break;
-	// 		}
+				break;
+			}
 
-	// 		// check response
-	// 		const sync4_msg_header_t *header = (sync4_msg_header_t *)sock_vp_get_data( state->sock );
+			// check response
+			const sync4_msg_header_t *header = (sync4_msg_header_t *)sock_vp_get_data( state->sock );
 
-	// 		if( header->magic != SYNC4_PROTOCOL_MAGIC ){
+			if( header->magic != SYNC4_PROTOCOL_MAGIC ){
 
-	// 			continue;
-	// 		}
+				continue;
+			}
 
-	// 		if( header->version != SYNC4_PROTOCOL_VERSION ){
+			if( header->version != SYNC4_PROTOCOL_VERSION ){
 
-	// 			continue;
-	// 		}
+				continue;
+			}
 
-	// 		if( header->type != SYNC4_MSG_TYPE_SYNC_DATA ){
+			if( header->type != SYNC4_MSG_TYPE_SYNC_DATA ){
 
-	// 			continue;
-	// 		}
+				continue;
+			}
 
-	// 		const sync4_msg_data_t *msg = (sync4_msg_data_t *)( header + 1 );
+			const sync4_msg_data_t *msg = (sync4_msg_data_t *)( header + 1 );
 
-	// 		if( msg->page != state->current_page ){
+			if( msg->page != state->current_page ){
 
-	// 			continue;
-	// 		}
+				continue;
+			}
 
-	// 		if( msg->total == 0 ){
+			if( msg->total == 0 ){
 
-	// 			goto error;
-	// 		}
+				goto error;
+			}
 
-	// 		if( state->total_pages == 0 ){
+			if( state->total_pages == 0 ){
 
-	// 			state->total_pages = msg->total;
-	// 		}
+				state->total_pages = msg->total;
+			}
 
-	// 		if( state->total_pages != msg->total ){
+			if( state->total_pages != msg->total ){
 
-	// 			goto error;
-	// 		}
+				goto error;
+			}
 
-	// 		// get data
-	// 		uint8_t *data = (uint8_t *)( msg + 1 );
-	// 		uint16_t data_len = sock_i16_get_bytes_read( state->sock ) - sizeof(sync4_msg_data_t);
+			// get data
+			uint8_t *data = (uint8_t *)( msg + 1 );
+			uint16_t data_len = sock_i16_get_bytes_read( state->sock ) - sizeof(sync4_msg_data_t);
 
-	// 		log_v_debug_P( PSTR("received %d bytes type %d page: %d total: %d"), 
-	// 			data_len,
-	// 			msg->type,
-	// 			state->current_page,
-	// 			state->total_pages
-	// 		);
+			log_v_debug_P( PSTR("received %d bytes type %d page: %d total: %d"), 
+				data_len,
+				msg->type,
+				state->current_page,
+				state->total_pages
+			);
 
-	// 		state->current_page++;
+			state->current_page++;
 
-	// 		if( state->current_page >= state->total_pages ){
+			if( state->current_page >= state->total_pages ){
 
-	// 			sync_state = SYNC_STATE_DATA;
+				sync_state = SYNC_STATE_DATA;
 
-	// 			goto done;
-	// 		}
+				goto done;
+			}
 			
-	// 		state->tries = SYNC4_MAX_TRIES;
-	// 	}
+			state->tries = SYNC4_MAX_TRIES;
+		}
 
 
-	// 	// retries expired
-	// 	if( state->tries == 0 ){
+		// retries expired
+		if( state->tries == 0 ){
 
-	// 		goto error;
-	// 	}
-	// }
+			goto error;
+		}
+	}
 
 	
 
@@ -644,11 +680,11 @@ PT_END( pt );
 
 
 
-
-
 PT_THREAD( sync4_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+	TMR_WAIT( pt, 4000 );
 
 	sync_state = SYNC_STATE_IDLE;
 
