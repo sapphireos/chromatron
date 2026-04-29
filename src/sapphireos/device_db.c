@@ -324,7 +324,8 @@ static void send_device_msg( void ){
 	memcpy( msg.query.tags, tag_hashes_ptr, sizeof(msg.query) );
 
 	// attach gfx group
-	kv_i8_get( __KV__gfx_sync_group_hash, 	&msg.gfx.gfx_sync_group, 		sizeof(msg.gfx.gfx_sync_group) );
+	// kv_i8_get( __KV__gfx_sync_group_hash, 	&msg.gfx.gfx_sync_group, 		sizeof(msg.gfx.gfx_sync_group) );
+	kv_i8_get( __KV__sync_group_hash, 		&msg.gfx.gfx_sync_group, 		sizeof(msg.gfx.gfx_sync_group) );
 	kv_i8_get( __KV__gfx_master_dimmer, 	&msg.gfx.gfx_master_dimmer, 	sizeof(msg.gfx.gfx_master_dimmer) );
 	kv_i8_get( __KV__gfx_sub_dimmer, 		&msg.gfx.gfx_sub_dimmer, 		sizeof(msg.gfx.gfx_sub_dimmer) );
 	kv_i8_get( __KV__gfx_enable, 			&msg.gfx.gfx_enable, 			sizeof(msg.gfx.gfx_enable) );
