@@ -366,12 +366,22 @@ PT_BEGIN( pt );
 
     int status = 0;
 
+    bool frozen = FALSE;
+
     // load VM
     if( request_unfreeze ){
+
+        request_unfreeze = FALSE;
+        frozen = TRUE;
 
         log_v_debug_P( PSTR("unfreeze") );
 
         status = vm_deserialize( &state->vm, "_sync.f4b" );
+
+        log_v_debug_P( PSTR("current_tick: %ld frame_number: %ld"),
+            state->vm.current_tick,
+            state->vm.frame_number
+        );
     }
     else{
 
@@ -380,12 +390,11 @@ PT_BEGIN( pt );
 
     // log_v_debug_P( PSTR("rng %llx"), state->vm.rng_seed );
 
-    request_unfreeze = FALSE;
-
     if( status < 0 ){
 
         log_v_error_P( PSTR("VM load failed: %d"), status );
 
+        request_unfreeze = FALSE;
         goto end;
     }
 
@@ -393,16 +402,20 @@ PT_BEGIN( pt );
     state->vm.vm_id = state->vm_id;
 
     state->vm.program_name_hash = hash_u32_string( fname );
- 
-    // run top level VM script:    
-    status = vm_run_instructions( &state->vm, -1, 0 );
+    
+    if( !frozen ){
 
-    if( status < 0 ){
+        // run top level VM script:    
+        status = vm_run_instructions( &state->vm, -1, 0 );
 
-        log_v_error_P( PSTR("VM init failed: %d"), status );
-        goto end;
+        if( status < 0 ){
+
+            log_v_error_P( PSTR("VM init failed: %d"), status );
+
+            goto end;
+        }
     }
-
+    
     // log_v_debug_P( PSTR("VM init OK") );
 
     // thread_v_set_alarm( tmr_u32_get_system_time_ms() );
