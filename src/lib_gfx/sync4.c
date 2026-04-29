@@ -227,7 +227,7 @@ PT_THREAD( data_server_thread( pt_t *pt, data_server_state_t *state ) )
 {
 PT_BEGIN( pt );
 
-	log_v_debug_P( PSTR("data server start") );
+	log_v_debug_P( PSTR("data server start lport: %d"), sock_u16_get_lport( state->sock ) );
 
 	send_ready( state->sock, &state->raddr, state->vm_pages, state->pixel_pages );
 
@@ -259,11 +259,9 @@ PT_BEGIN( pt );
 		if( header->type != SYNC4_MSG_TYPE_REQ_DATA ){
 
 			continue;
-		}
+		}		
 
-		log_v_debug_P( PSTR("receive req data") );
-
-		const sync4_msg_request_data_t *msg = (sync4_msg_request_data_t *)( header + 1 );
+		const sync4_msg_request_data_t *msg = (sync4_msg_request_data_t *)header;
 
 		uint8_t buf[sizeof(sync4_msg_data_t) + SYNC4_MAX_DATA] = {0};
 		sync4_msg_data_t *reply = (sync4_msg_data_t *)buf;
@@ -279,6 +277,7 @@ PT_BEGIN( pt );
 		if( msg->page < state->vm_pages ){
 
 			// VM page
+			reply->type = SYNC4_DATA_TYPE_VM;
 
 			offset = msg->page * SYNC4_MAX_DATA;
 			
@@ -287,13 +286,21 @@ PT_BEGIN( pt );
 		else{
 
 			// pixel page
+			reply->type = SYNC4_DATA_TYPE_PIXELS;
 
 			offset = ( msg->page - state->vm_pages ) * SYNC4_MAX_DATA;
 
 			f = fs_f_open_P( PSTR("_pixel.f4b"), FS_MODE_READ_ONLY );
 		}
 
+		reply->page = msg->page;
+		reply->total = state->vm_pages + state->pixel_pages;
+
+		log_v_debug_P( PSTR("receive req data: page: %d offset: %d"), msg->page, offset );
+
 		if( f < 0 ){
+
+			log_v_error_P( PSTR("file error") );
 
 			goto done;
 		}
@@ -301,17 +308,18 @@ PT_BEGIN( pt );
 		fs_v_seek( f, offset );
 		int16_t read_len = fs_i16_read( f, data, SYNC4_MAX_DATA );
 
+		fs_f_close( f );
+
 		if( read_len < 0 ){
 
-			fs_f_close( f );
+			log_v_error_P( PSTR("file error: %d"), read_len );
+
 			goto done;
 		}
 
 		log_v_debug_P( PSTR("send data") );
 
 		sock_i16_sendto( state->sock, buf, sizeof(sync4_msg_data_t) + read_len, &state->raddr );
-
-		fs_f_close( f );
 	}
 
 
@@ -504,7 +512,7 @@ PT_BEGIN( pt );
 	memset( state, 0, sizeof(data_client_state_t) );
 	
 	state->sock = sock_s_create( SOS_SOCK_DGRAM );
-	sock_v_set_timeout( state->sock, 1 );
+	sock_v_set_timeout( state->sock, 2 );
 
 	// send connect
 	state->tries = SYNC4_MAX_TRIES;
@@ -539,9 +547,9 @@ PT_BEGIN( pt );
 			continue;
 		}
 
-        sock_v_get_raddr( server_sock, &state->raddr );
+		sock_v_get_raddr( state->sock, &state->raddr );
 
-		const sync4_msg_ready_t *msg = (sync4_msg_ready_t *)( header + 1 );
+		const sync4_msg_ready_t *msg = (sync4_msg_ready_t *)header;
 
 		log_v_debug_P( PSTR("received ready") );
 
@@ -567,7 +575,7 @@ PT_BEGIN( pt );
 
 			state->tries--;
 
-			log_v_debug_P( PSTR("send data request %d"), state->current_page );
+			log_v_debug_P( PSTR("send data request %d rport: %d"), state->current_page, state->raddr.port );
 			send_data_request( state->sock, &state->raddr, state->current_page );
 				
 			THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( state->sock ) < 0 );
@@ -600,7 +608,7 @@ PT_BEGIN( pt );
 				continue;
 			}
 
-			const sync4_msg_data_t *msg = (sync4_msg_data_t *)( header + 1 );
+			const sync4_msg_data_t *msg = (sync4_msg_data_t *)header;
 
 			if( msg->page != state->current_page ){
 
@@ -608,6 +616,8 @@ PT_BEGIN( pt );
 			}
 
 			if( msg->total == 0 ){
+
+				log_v_error_P( PSTR("bad total") );
 
 				goto error;
 			}
@@ -618,6 +628,8 @@ PT_BEGIN( pt );
 			}
 
 			if( state->total_pages != msg->total ){
+
+				log_v_error_P( PSTR("bad total") );
 
 				goto error;
 			}
@@ -632,6 +644,61 @@ PT_BEGIN( pt );
 				state->current_page,
 				state->total_pages
 			);
+
+			file_t f = -1;
+			uint8_t page = 0;
+
+			if( msg->type == SYNC4_DATA_TYPE_VM ){
+
+				page = msg->page;
+
+				if( page == 0 ){
+
+					fs_v_delete_fname_P( PSTR("_sync.f4b") );
+				}
+
+				f = fs_f_open_P( PSTR("_sync.f4b"), FS_MODE_WRITE_OVERWRITE | FS_MODE_CREATE_IF_NOT_FOUND );
+			}
+			else if( msg->type == SYNC4_DATA_TYPE_PIXELS ){
+
+				page = msg->page - state->vm_pages;
+
+				if( page == 0 ){
+
+					fs_v_delete_fname_P( PSTR("_pixel.f4b") );
+				}
+
+				f = fs_f_open_P( PSTR("_pixel.f4b"), FS_MODE_WRITE_OVERWRITE | FS_MODE_CREATE_IF_NOT_FOUND );
+			}
+			else{
+
+				log_v_error_P( PSTR("bad type") );
+
+				goto error;
+			}
+
+			if( f < 0 ){
+
+				log_v_error_P( PSTR("file error") );
+
+				goto error;
+			}
+
+
+			uint16_t offset = page * SYNC4_MAX_DATA;
+
+			fs_v_seek( f, offset );
+
+			int16_t write_len = fs_i16_write( f, data, SYNC4_MAX_DATA );
+
+			fs_f_close( f );
+
+			if( write_len < 0 ){
+
+				log_v_error_P( PSTR("file error: %d"), write_len );
+
+				goto error;
+			}
 
 			state->current_page++;
 

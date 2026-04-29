@@ -47,7 +47,7 @@ typedef struct __attribute__((packed)){
 } sync4_msg_data_t;
 #define SYNC4_MSG_TYPE_SYNC_DATA	4
 
-#define SYNC4_DATA_TYPE_VM4			1
+#define SYNC4_DATA_TYPE_VM			1
 #define SYNC4_DATA_TYPE_PIXELS		2
 
 
