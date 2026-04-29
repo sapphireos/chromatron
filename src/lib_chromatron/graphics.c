@@ -409,7 +409,7 @@ void gfx_v_init( void ){
     pixel_v_init();
 
     #ifdef ENABLE_TIME_SYNC
-    vm_sync_v_init();
+    // vm_sync_v_init();
     #endif
 
     sc_v_init();

@@ -29,6 +29,7 @@
 #include "sequencer.h"
 #include "cron.h"
 #include "link4.h"
+#include "sync4.h"
 
 static bool vm_reset[VM4_MAX_VMS];
 static bool vm_run[VM4_MAX_VMS];
@@ -214,6 +215,7 @@ void vm4_v_init( void ){
     pixelarray_init();
 
     seq_v_init();
+    sync4_v_init();
 
     thread_t_create( vm4_loader,
                      PSTR("vm4_loader"),
@@ -759,14 +761,8 @@ void vm4_v_freeze_vm( uint8_t vm_id ){
         return;
     }
 
-    file_t f = fs_f_open( "_sync.f4b", FS_MODE_WRITE_OVERWRITE );
-            
-    if( f > 0 ){
-
-        fs_v_delete( f );
-        f = fs_f_close( f );
-    }    
-
+    fs_v_delete_fname_P( PSTR("_sync.f4b") );
+    
     vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
 
     int status = vm_serialize( &thread_state->vm, "_sync.f4b" );

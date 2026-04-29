@@ -282,6 +282,27 @@ file_t fs_f_open_P( PGM_P filename, mode_t8 mode ){
 	return file;
 }
 
+void fs_v_delete_fname_P( PGM_P filename ){
+
+    // copy file name to memory
+    char fname[FS_MAX_FILE_NAME_LEN];
+
+    strlcpy_P( fname, filename, FS_MAX_FILE_NAME_LEN );
+
+    fs_v_delete_fname( fname );
+}
+
+void fs_v_delete_fname( char filename[] ){
+
+    file_t f = fs_f_open( filename, FS_MODE_WRITE_OVERWRITE );
+
+    if( f > 0 ){
+
+        fs_v_delete( f );
+        f = fs_f_close( f );
+    }
+}
+
 file_t fs_f_open_id( file_id_t8 file_id, uint8_t mode ){
 
     char name[FS_MAX_FILE_NAME_LEN];
