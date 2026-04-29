@@ -327,6 +327,15 @@ PT_BEGIN( pt );
 
         	if( header->type == SYNC4_MSG_TYPE_CONNECT ){
 
+        		if( data_server_count > 0 ){
+
+        			log_v_debug_P( PSTR("max data servers") );		
+
+        			continue;
+        		}
+
+        		log_v_debug_P( PSTR("receive connect") );
+
         		data_server_state_t server_state = {0};
         		server_state.sock = sock_s_create( SOS_SOCK_DGRAM );
         		server_state.raddr = raddr;
@@ -462,7 +471,7 @@ PT_BEGIN( pt );
 	while( state->tries > 0 ){
 
 		state->tries--;
-		send_connect( server_sock );
+		send_connect( state->sock );
 		log_v_debug_P( PSTR("send connect") );
 
 		THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( state->sock ) < 0 );
@@ -494,8 +503,8 @@ PT_BEGIN( pt );
 
 		log_v_debug_P( PSTR("received ready") );
 
-		state->vm_pages = msg->vm_pages;
-		state->pixel_pages = msg->pixel_pages;
+		state->vm_pages 	= msg->vm_pages;
+		state->pixel_pages  = msg->pixel_pages;
 
 		state->tries = SYNC4_MAX_TRIES;
 		break;
@@ -507,9 +516,9 @@ PT_BEGIN( pt );
 		goto error;
 	}
 
+	sync_state = SYNC_STATE_SYNCING;
 
-
-
+	goto done;
 
 
 
@@ -608,15 +617,17 @@ PT_BEGIN( pt );
 	// 	}
 	// }
 
-	log_v_debug_P( PSTR("data client stop") );
+	
 
 error:
 	sync_state = SYNC_STATE_IDLE;
 
 
-// done:
+done:
 
 	sock_v_release( state->sock );
+
+	log_v_debug_P( PSTR("data client stop") );
 	
 PT_END( pt );
 }
@@ -709,7 +720,7 @@ PT_BEGIN( pt );
 				sync4_b_is_follower()
 			);
 
-			// THREAD_WAIT_WHILE( pt, SYNC_STATE_SYNCING );
+			THREAD_WAIT_WHILE( pt, SYNC_STATE_SYNCING );
 
 			// THREAD_WAIT_WHILE( pt, sync4_b_is_follower() && );
 
