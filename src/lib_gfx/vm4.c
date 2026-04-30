@@ -428,10 +428,11 @@ PT_BEGIN( pt );
 
         status = vm_deserialize( &state->vm, "_sync.f4b" );
 
-        log_v_debug_P( PSTR("now: %lld current_tick: %lld frame_number: %lld"),
+        log_v_debug_P( PSTR("now: %lld current_tick: %lld frame_number: %lld rng: %lld"),
             tmr_u64_get_system_time_ms(),
             state->vm.current_tick,
-            state->vm.frame_number
+            state->vm.frame_number,
+            state->vm.rng_seed
         );
 
         if( vm_get_coroutine_count( &state->vm ) > 0 ){
