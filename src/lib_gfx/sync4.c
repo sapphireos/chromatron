@@ -439,8 +439,9 @@ PT_BEGIN( pt );
         		vm_t vm = {0};
         		vm4_v_get_vm_state( &vm, 0 );
 
-        		// const sync4_msg_request_sync_t *msg = (sync4_msg_request_sync_t *)header;
-        		sync4_msg_sync_t msg = {
+        		const sync4_msg_request_sync_t *msg = (sync4_msg_request_sync_t *)header;
+
+        		sync4_msg_sync_t reply = {
         			.header.magic 	= SYNC4_PROTOCOL_MAGIC,
         			.header.version = SYNC4_PROTOCOL_VERSION,
         			.header.type 	= SYNC4_MSG_TYPE_SYNC,
@@ -450,15 +451,18 @@ PT_BEGIN( pt );
         			.current_tick 	= vm.current_tick,
         			.rng_seed 		= vm.rng_seed,
         			.frame_number 	= vm.frame_number,
+
+        			.net_time_rx    = msg->net_time,
+        			.net_time_tx    = time_u32_get_network_time()
         		};
 
-        		sock_i16_sendto( server_sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+        		sock_i16_sendto( server_sock, (uint8_t *)&reply, sizeof(reply), &raddr );
 
-        		log_v_debug_P( PSTR("request sync current_tick: %lld frame_number: %lld rng: %lld"),
-			            vm.current_tick,
-			            vm.frame_number,
-			            vm.rng_seed
-			        );
+        		// log_v_debug_P( PSTR("request sync current_tick: %lld frame_number: %lld rng: %lld"),
+			    //         vm.current_tick,
+			    //         vm.frame_number,
+			    //         vm.rng_seed
+			    //     );
         	}
         	else if( header->type == SYNC4_MSG_TYPE_CONNECT ){
 
@@ -533,11 +537,15 @@ PT_BEGIN( pt );
 
         		const sync4_msg_sync_t *msg = (sync4_msg_sync_t *)header;
 
-        		log_v_debug_P( PSTR("receive sync current_tick: %lld frame_number: %lld rng: %lld"),
+        		log_v_debug_P( PSTR("receive sync current_tick: %lld frame_number: %lld rng: %lld tx %ld rx %ld"),
 			            msg->current_tick,
 			            msg->frame_number,
-			            msg->rng_seed
+			            msg->rng_seed,
+			            msg->net_time_tx,
+			            msg->net_time_rx
 			        );
+
+
         	}
         }
         else{
@@ -575,6 +583,7 @@ static void send_sync_request( socket_t sock ){
 	msg.header.magic 	= SYNC4_PROTOCOL_MAGIC;
 	msg.header.version 	= SYNC4_PROTOCOL_VERSION;
 	msg.header.type 	= SYNC4_MSG_TYPE_REQ_SYNC;
+	msg.net_time        = time_u32_get_network_time();
 
 	sock_addr_t raddr = {
 		leader_ip,
@@ -848,10 +857,10 @@ PT_THREAD( sync4_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-	TMR_WAIT( pt, 4000 );
-
 	sync_state = SYNC_STATE_IDLE;
 
+	TMR_WAIT( pt, 2000 );
+	THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
 	THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
 	
 	thread_t_create( sync4_server_thread,

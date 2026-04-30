@@ -52,6 +52,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
 	sync4_msg_header_t header;
+	uint32_t net_time;
 } sync4_msg_request_sync_t;
 #define SYNC4_MSG_TYPE_REQ_SYNC		5
 
@@ -60,6 +61,8 @@ typedef struct __attribute__((packed)){
 	uint64_t current_tick;
 	uint64_t rng_seed;
 	uint64_t frame_number;
+	uint32_t net_time_rx;
+	uint32_t net_time_tx;
 } sync4_msg_sync_t;
 #define SYNC4_MSG_TYPE_SYNC			6
 
