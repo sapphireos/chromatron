@@ -883,7 +883,7 @@ PT_BEGIN( pt );
 
 				log_v_error_P( PSTR("bad state") );
 
-				THREAD_RESTART( pt );
+				goto restart;
 			}
 
 			// we have sync data at this point:
@@ -897,7 +897,7 @@ PT_BEGIN( pt );
 			);
 		}
 
-
+restart:
 		TMR_WAIT( pt, 1000 );
 	}
 

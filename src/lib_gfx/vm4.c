@@ -42,10 +42,28 @@ static thread_t vm_threads[VM4_MAX_VMS];
 
 static bool request_unfreeze;
 
-static bool is_vm_running( uint8_t vm_id ){
 
-    return ( vm_status[vm_id] >= VM4_STATUS_OK ) && ( vm_status[vm_id] != VM4_STATUS_HALT );
-}
+typedef struct __attribute__((packed)){
+    uint32_t hash;
+    uint16_t index;
+    uint16_t count;
+} published_var_t;
+
+typedef struct __attribute__((packed)){
+    vm_t vm;
+    uint8_t vm_id;
+
+    published_var_t published_vars[8];
+
+    // mem_handle_t handle;
+    // char program_fname[FFS_FILENAME_LEN];
+    
+    // int8_t vm_return;
+    // uint32_t last_run;
+    // int32_t delay_adjust;
+    // int32_t vm_delay;
+    // vm_state_t vm_state;
+} vm4_thread_state_t;
 
 
 static int8_t _vm4_prog_kv_handler(
@@ -56,6 +74,46 @@ static int8_t _vm4_prog_kv_handler(
 {
     if( op == KV_OP_GET ){
 
+        if( hash == __KV__vm4_current_tick ){
+
+            uint64_t tick = 0;
+
+            if( vm_threads[0] > 0 ){
+
+                vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
+
+                tick = thread_state->vm.current_tick;
+            }
+
+            memcpy( data, &tick, len );
+        }
+        else if( hash == __KV__vm4_co0_tick ){
+
+            uint64_t tick = 0;
+
+            if( vm_threads[0] > 0 ){
+
+                vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
+                coroutine_state_t *coroutine = (coroutine_state_t *)mem2_vp_get_ptr( thread_state->vm.coroutines[0] );
+
+                tick = coroutine->tick;
+            }
+
+            memcpy( data, &tick, len );
+        }
+        else if( hash == __KV__vm4_coroutine_count ){
+
+            uint8_t count = 0;
+
+            if( vm_threads[0] > 0 ){
+
+                vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
+
+                count = vm_get_coroutine_count( &thread_state->vm );
+            }
+
+            memcpy( data, &count, len );
+        }
     }
     else if( op == KV_OP_SET ){
 
@@ -126,6 +184,12 @@ KV_SECTION_META kv_meta_t vm4_info_kv[] = {
     #endif
 };
 
+KV_SECTION_META kv_meta_t vm4_debug_kv[] = {
+    { CATBUS_TYPE_UINT64,   0, KV_FLAGS_READ_ONLY, 0,   _vm4_prog_kv_handler,                   "vm4_current_tick" },
+    { CATBUS_TYPE_UINT64,   0, KV_FLAGS_READ_ONLY, 0,   _vm4_prog_kv_handler,                   "vm4_co0_tick" },
+    { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 0,   _vm4_prog_kv_handler,                   "vm4_coroutine_count" },
+};
+
 static const char* vm_names[VM4_MAX_VMS] = {
     "vm4_0",
 
@@ -140,31 +204,14 @@ static const char* vm_names[VM4_MAX_VMS] = {
     #endif
 };
 
-typedef struct __attribute__((packed)){
-    uint32_t hash;
-    uint16_t index;
-    uint16_t count;
-} published_var_t;
-
-typedef struct __attribute__((packed)){
-    vm_t vm;
-    uint8_t vm_id;
-
-    published_var_t published_vars[8];
-
-    // mem_handle_t handle;
-    // char program_fname[FFS_FILENAME_LEN];
-    
-    // int8_t vm_return;
-    // uint32_t last_run;
-    // int32_t delay_adjust;
-    // int32_t vm_delay;
-    // vm_state_t vm_state;
-} vm4_thread_state_t;
-
 
 PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) );
 PT_THREAD( vm4_loader( pt_t *pt, void *state ) );
+
+static bool is_vm_running( uint8_t vm_id ){
+
+    return ( vm_status[vm_id] >= VM4_STATUS_OK ) && ( vm_status[vm_id] != VM4_STATUS_HALT );
+}
 
 static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
 
@@ -378,10 +425,19 @@ PT_BEGIN( pt );
 
         status = vm_deserialize( &state->vm, "_sync.f4b" );
 
-        log_v_debug_P( PSTR("current_tick: %ld frame_number: %ld"),
+        log_v_debug_P( PSTR("now: %lld current_tick: %lld frame_number: %lld"),
+            tmr_u64_get_system_time_ms(),
             state->vm.current_tick,
             state->vm.frame_number
         );
+
+        if( vm_get_coroutine_count( &state->vm ) > 0 ){
+
+            coroutine_state_t *coroutine = (coroutine_state_t *)mem2_vp_get_ptr( state->vm.coroutines[0] );
+
+            log_v_debug_P( PSTR("co0 PC: %d locals: %d tick: %lld"), coroutine->current_pc, coroutine->locals_count, coroutine->tick );
+        }
+        
     }
     else{
 
