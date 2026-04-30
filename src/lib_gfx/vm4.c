@@ -407,6 +407,9 @@ PT_BEGIN( pt );
     memset( &state->vm, 0, sizeof(state->vm) );
     memset( &state->published_vars, 0, sizeof(state->published_vars) );
 
+    // set VM ID:
+    state->vm.vm_id = state->vm_id;
+
     char fname[FFS_FILENAME_LEN] = {0};
 
     get_program_fname( state->vm_id, fname );
@@ -454,9 +457,7 @@ PT_BEGIN( pt );
         goto end;
     }
 
-    // set VM ID:
-    state->vm.vm_id = state->vm_id;
-
+    
     state->vm.program_name_hash = hash_u32_string( fname );
     
     if( !frozen ){
