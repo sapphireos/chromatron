@@ -178,6 +178,11 @@ void sync4_v_reset( void ){
 	sync_state = SYNC_STATE_IDLE;
 }
 
+bool sync4_b_is_sync( void ){
+
+	return sync_state == SYNC_STATE_SYNCED;	
+}
+
 bool _query_leader( ip_addr4_t *ip ){
 
     // set leader to 0s
@@ -571,6 +576,8 @@ PT_BEGIN( pt );
 
         		// compute adjusted sync time
         		uint32_t sync_time = msg->net_time_tx - rtt;
+
+        		sync_state = SYNC_STATE_SYNCED;
 
         		// sync
         		vm4_v_sync( sync_time, msg->current_tick );
@@ -974,7 +981,7 @@ PT_BEGIN( pt );
 			vm4_v_unfreeze_vm( 0 );
 			deserialize_pixels();
 
-			while( ( sync_state == SYNC_STATE_DATA ) && sync4_b_is_follower() ){
+			while( ( sync_state >= SYNC_STATE_DATA ) && sync4_b_is_follower() ){
 
 				TMR_WAIT( pt, 2000 );
 

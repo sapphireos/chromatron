@@ -47,6 +47,7 @@ static uint64_t sync_tick;
 
 static int64_t _tick_delta;
 static int32_t _net_delta;
+static int16_t _timing_adjust;
 
 typedef struct __attribute__((packed)){
     uint32_t hash;
@@ -186,6 +187,7 @@ KV_SECTION_META kv_meta_t vm4_debug_kv[] = {
 
     { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_net_delta,   0,                            "vm4_delta_net" },
     { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_tick_delta,   0,                           "vm4_delta_tick" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &_timing_adjust,   0,                           "vm4_timing_adjust" },
 };
 
 static const char* vm_names[VM4_MAX_VMS] = {
@@ -395,6 +397,36 @@ static void fini_published( vm4_thread_state_t *state ){
     }
 }
 
+static uint16_t get_timing_adjust( int32_t tick_delta ){
+
+    int16_t adjust = 0;
+
+    // positive delta means server leads (this node lags)
+    // negative delta means server lags (this node leads)
+
+    int32_t abs_delta = abs32( tick_delta );
+
+    if( abs_delta > 100 ){
+
+        adjust = 100;
+    }
+    else if( abs_delta > 10 ){
+
+        adjust = 10;
+    }
+    else if( abs_delta > 1 ){
+
+        adjust = 1;
+    }
+
+    if( tick_delta < 0 ){
+
+        adjust *= -1;
+    }
+
+    return adjust;
+}
+
 PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) )
 {
 PT_BEGIN( pt );
@@ -506,15 +538,21 @@ PT_BEGIN( pt );
 
         init_published( state );
 
-        // compute delta for sync time
-        sync_tick += FADER_RATE;
-        sync_time += FADER_RATE;
+        if( ( state->vm_id == 0 ) && sync4_b_is_sync() ){
 
-        int64_t tick_delta = (int64_t)sync_tick - (int64_t)state->vm.current_tick;
-        int32_t net_delta  = (int32_t)sync_time - (int64_t)time_u32_get_network_time();
+            // compute delta for sync time
+            sync_tick += FADER_RATE;
+            sync_time += FADER_RATE;
 
-        _tick_delta = tick_delta;
-        _net_delta = net_delta;
+            int64_t tick_delta = (int64_t)sync_tick - (int64_t)state->vm.current_tick;
+            int32_t net_delta  = (int32_t)sync_time - (int64_t)time_u32_get_network_time();
+
+            _tick_delta = tick_delta;
+            _net_delta = net_delta;
+            _timing_adjust = get_timing_adjust( tick_delta );
+
+            state->vm.current_tick += _timing_adjust;
+        }
 
         uint32_t start_time = tmr_u32_get_system_time_us();
 

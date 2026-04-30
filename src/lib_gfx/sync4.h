@@ -70,5 +70,6 @@ typedef struct __attribute__((packed)){
 
 void sync4_v_init( void );
 void sync4_v_reset( void );
+bool sync4_b_is_sync( void );
 
 #endif
