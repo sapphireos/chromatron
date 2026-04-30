@@ -539,14 +539,14 @@ PT_BEGIN( pt );
 
         		int32_t delta = (int64_t)msg->net_time_rx - (int64_t)msg->net_time_tx;
 
-        		log_v_debug_P( PSTR("receive sync current_tick: %lld frame_number: %lld rng: %lld tx %ld rx %ld delta: %ld"),
-			            msg->current_tick,
-			            msg->frame_number,
-			            msg->rng_seed,
-			            msg->net_time_tx,
-			            msg->net_time_rx,
-			            delta
-			        );
+        		// log_v_debug_P( PSTR("receive sync current_tick: %lld frame_number: %lld rng: %lld tx %ld rx %ld delta: %ld"),
+			    //         msg->current_tick,
+			    //         msg->frame_number,
+			    //         msg->rng_seed,
+			    //         msg->net_time_tx,
+			    //         msg->net_time_rx,
+			    //         delta
+			    //     );
 
         		if( delta < 0 ){
 
