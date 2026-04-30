@@ -843,7 +843,11 @@ void vm4_v_freeze_vm( uint8_t vm_id ){
         log_v_warn_P( PSTR("VM serialize failed: %d"), status );
     }
 
-    log_v_debug_P( PSTR("freeze rng %llx"), thread_state->vm.rng_seed );
+    log_v_debug_P( PSTR("freeze current_tick: %lld frame_number: %lld rng: %lld"),
+            thread_state->vm.current_tick,
+            thread_state->vm.frame_number,
+            thread_state->vm.rng_seed
+        );
 }
 
 void vm4_v_unfreeze_vm( uint8_t vm_id ){
