@@ -545,13 +545,14 @@ PT_BEGIN( pt );
             sync_time += FADER_RATE;
 
             int64_t tick_delta = (int64_t)sync_tick - (int64_t)state->vm.current_tick;
-            int32_t net_delta  = (int32_t)sync_time - (int64_t)time_u32_get_network_time();
+            // int32_t net_delta  = (int32_t)sync_time - (int64_t)time_u32_get_network_time();
+            int32_t net_delta  = (int32_t)sync_time - (int64_t)tmr_u32_get_system_time_ms();
 
             _tick_delta = tick_delta;
             _net_delta = net_delta;
             _timing_adjust = get_timing_adjust( tick_delta );
 
-            // state->vm.current_tick += _timing_adjust;
+            state->vm.current_tick += _timing_adjust;
         }
 
         uint32_t start_time = tmr_u32_get_system_time_us();

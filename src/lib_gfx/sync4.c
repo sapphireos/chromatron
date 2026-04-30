@@ -457,8 +457,10 @@ PT_BEGIN( pt );
         			.rng_seed 			= vm.rng_seed,
         			.frame_number 		= vm.frame_number,
 
+        			// .net_time_client	= msg->net_time,
+        			// .net_time_server    = time_u32_get_network_time()
         			.net_time_client	= msg->net_time,
-        			.net_time_server    = time_u32_get_network_time()
+        			.net_time_server    = tmr_u32_get_system_time_ms()
         		};
 
         		sock_i16_sendto( server_sock, (uint8_t *)&reply, sizeof(reply), &raddr );
@@ -542,9 +544,13 @@ PT_BEGIN( pt );
 
         		const sync4_msg_sync_t *msg = (sync4_msg_sync_t *)header;
 
-        		int32_t delta = (int64_t)msg->net_time_server - (int64_t)msg->net_time_client;
+        		uint32_t now = tmr_u32_get_system_time_ms();
 
-        		// if( sync_state != SYNC_STATE_SYNCED ){
+        		int32_t delta = (int64_t)now - (int64_t)msg->net_time_client;
+
+        		// int32_t delta = (int64_t)msg->net_time_server - (int64_t)msg->net_time_client;
+
+        		if( sync_state != SYNC_STATE_SYNCED ){
 
 	        		log_v_debug_P( PSTR("rx sync tick: %lld frame: %lld rng: %lld server %ld client %ld delta: %ld"),
 				            msg->current_tick,
@@ -554,7 +560,7 @@ PT_BEGIN( pt );
 				            msg->net_time_client,
 				            delta
 				        );
-	        	// }
+	        	}
 
         		if( delta < 0 ){
 
@@ -578,7 +584,8 @@ PT_BEGIN( pt );
         		int32_t rtt = delta / 2;
 
         		// compute adjusted sync time
-        		uint32_t sync_time = msg->net_time_server - rtt;
+        		// uint32_t sync_time = msg->net_time_server - rtt;
+        		uint32_t sync_time = now - rtt;
 
         		sync_state = SYNC_STATE_SYNCED;
 
@@ -621,7 +628,8 @@ static void send_sync_request( socket_t sock ){
 	msg.header.magic 	= SYNC4_PROTOCOL_MAGIC;
 	msg.header.version 	= SYNC4_PROTOCOL_VERSION;
 	msg.header.type 	= SYNC4_MSG_TYPE_REQ_SYNC;
-	msg.net_time        = time_u32_get_network_time();
+	// msg.net_time        = time_u32_get_network_time();
+	msg.net_time        = tmr_u32_get_system_time_ms();
 
 	sock_addr_t raddr = {
 		leader_ip,
@@ -897,8 +905,8 @@ PT_BEGIN( pt );
 
 	sync_state = SYNC_STATE_IDLE;
 
-	TMR_WAIT( pt, 2000 );
-	THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
+	TMR_WAIT( pt, 4000 );
+	// THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
 	THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
 	
 	thread_t_create( sync4_server_thread,
