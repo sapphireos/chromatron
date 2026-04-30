@@ -3,13 +3,15 @@
 
 #include "target.h"
 
-#define SYNC4_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
-#define SYNC4_PROTOCOL_VERSION           	12
-#define SYNC4_SERVER_PORT                    32039
+#define SYNC4_PROTOCOL_MAGIC        0x434e5953 // 'SYNC' in ASCII
+#define SYNC4_PROTOCOL_VERSION      12
+#define SYNC4_SERVER_PORT           32039
 
 #define SYNC4_MAX_DATA				512
 #define SYNC4_MAX_TRIES				5
 
+#define SYNC4_DATA_TYPE_VM			1
+#define SYNC4_DATA_TYPE_PIXELS		2
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
@@ -42,14 +44,24 @@ typedef struct __attribute__((packed)){
 	sync4_msg_header_t header;
 	uint8_t page;
 	uint8_t total;
-	uint8_t type;
+	uint8_t type; // see SYNC_DATA_TYPE_
 	uint8_t padding;
 } sync4_msg_data_t;
-#define SYNC4_MSG_TYPE_SYNC_DATA	4
+#define SYNC4_MSG_TYPE_DATA			4
 
-#define SYNC4_DATA_TYPE_VM			1
-#define SYNC4_DATA_TYPE_PIXELS		2
 
+typedef struct __attribute__((packed)){
+	sync4_msg_header_t header;
+} sync4_msg_request_sync_t;
+#define SYNC4_MSG_TYPE_REQ_SYNC		5
+
+typedef struct __attribute__((packed)){
+	sync4_msg_header_t header;
+	uint64_t current_tick;
+	uint64_t rng_seed;
+	uint64_t frame_number;
+} sync4_msg_sync_t;
+#define SYNC4_MSG_TYPE_SYNC			6
 
 
 

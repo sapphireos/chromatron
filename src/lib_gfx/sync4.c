@@ -174,7 +174,7 @@ void sync4_v_init( void ){
 }
 
 void sync4_v_reset( void ){
-	
+
 	sync_state = SYNC_STATE_IDLE;
 }
 
@@ -323,7 +323,7 @@ PT_BEGIN( pt );
 
 		reply->header.magic 	= SYNC4_PROTOCOL_MAGIC;
 		reply->header.version 	= SYNC4_PROTOCOL_VERSION;
-		reply->header.type 		= SYNC4_MSG_TYPE_SYNC_DATA;
+		reply->header.type 		= SYNC4_MSG_TYPE_DATA;
 
 		file_t f = -1;
 		uint16_t offset = 0;
@@ -434,7 +434,33 @@ PT_BEGIN( pt );
 
         if( sync4_b_is_leader() ){
 
-        	if( header->type == SYNC4_MSG_TYPE_CONNECT ){
+        	if( header->type == SYNC4_MSG_TYPE_REQ_SYNC ){
+
+        		vm_t vm = {0};
+        		vm4_v_get_vm_state( &vm, 0 );
+
+        		// const sync4_msg_request_sync_t *msg = (sync4_msg_request_sync_t *)header;
+        		sync4_msg_sync_t msg = {
+        			.header.magic 	= SYNC4_PROTOCOL_MAGIC,
+        			.header.version = SYNC4_PROTOCOL_VERSION,
+        			.header.type 	= SYNC4_MSG_TYPE_SYNC,
+        			.header.flags 	= 0,
+        			.header.padding	= 0,
+
+        			.current_tick 	= vm.current_tick,
+        			.rng_seed 		= vm.rng_seed,
+        			.frame_number 	= vm.frame_number,
+        		};
+
+        		sock_i16_sendto( server_sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+
+        		log_v_debug_P( PSTR("request sync current_tick: %lld frame_number: %lld rng: %lld"),
+			            vm.current_tick,
+			            vm.frame_number,
+			            vm.rng_seed
+			        );
+        	}
+        	else if( header->type == SYNC4_MSG_TYPE_CONNECT ){
 
         		if( data_server_count > 0 ){
 
@@ -503,7 +529,16 @@ PT_BEGIN( pt );
         }
         else if( sync4_b_is_follower() ){
 
-        	
+        	if( header->type == SYNC4_MSG_TYPE_SYNC ){
+
+        		const sync4_msg_sync_t *msg = (sync4_msg_sync_t *)header;
+
+        		log_v_debug_P( PSTR("receive sync current_tick: %lld frame_number: %lld rng: %lld"),
+			            msg->current_tick,
+			            msg->frame_number,
+			            msg->rng_seed
+			        );
+        	}
         }
         else{
 
@@ -524,6 +559,22 @@ static void send_connect( socket_t sock ){
 	msg.header.magic 	= SYNC4_PROTOCOL_MAGIC;
 	msg.header.version 	= SYNC4_PROTOCOL_VERSION;
 	msg.header.type 	= SYNC4_MSG_TYPE_CONNECT;
+
+	sock_addr_t raddr = {
+		leader_ip,
+		SYNC4_SERVER_PORT
+	};
+
+	sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), &raddr );
+}
+
+static void send_sync_request( socket_t sock ){
+
+	sync4_msg_request_sync_t msg = {0};
+
+	msg.header.magic 	= SYNC4_PROTOCOL_MAGIC;
+	msg.header.version 	= SYNC4_PROTOCOL_VERSION;
+	msg.header.type 	= SYNC4_MSG_TYPE_REQ_SYNC;
 
 	sock_addr_t raddr = {
 		leader_ip,
@@ -657,7 +708,7 @@ PT_BEGIN( pt );
 				continue;
 			}
 
-			if( header->type != SYNC4_MSG_TYPE_SYNC_DATA ){
+			if( header->type != SYNC4_MSG_TYPE_DATA ){
 
 				continue;
 			}
@@ -793,15 +844,6 @@ PT_END( pt );
 
 
 
-
-
-
-
-
-
-
-
-
 PT_THREAD( sync4_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -895,10 +937,17 @@ PT_BEGIN( pt );
 			vm4_v_unfreeze_vm( 0 );
 			deserialize_pixels();
 
-			THREAD_WAIT_WHILE( pt, 
-				( sync_state == SYNC_STATE_DATA ) &&
-				sync4_b_is_follower()
-			);
+			while( ( sync_state == SYNC_STATE_DATA ) && sync4_b_is_follower() ){
+
+				TMR_WAIT( pt, 2000 );
+
+				send_sync_request( server_sock );
+			}
+
+			// THREAD_WAIT_WHILE( pt, 
+			// 	( sync_state == SYNC_STATE_DATA ) &&
+			// 	sync4_b_is_follower()
+			// );
 		}
 
 restart:

@@ -818,6 +818,19 @@ void vm4_v_unfreeze_vm( uint8_t vm_id ){
 }
 
 
+void vm4_v_get_vm_state( vm_t *vm, uint8_t vm_id ){
+
+    memset( vm, 0, sizeof(vm_t) );
+
+    if( vm_threads[0] < 0 ){
+
+        return;
+    }
+
+    const vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
+
+    *vm = thread_state->vm;
+}
 
 
 

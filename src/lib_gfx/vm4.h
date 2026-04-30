@@ -35,4 +35,6 @@ void vm4_v_signal( void );
 void vm4_v_freeze_vm( uint8_t vm_id );
 void vm4_v_unfreeze_vm( uint8_t vm_id );
 
+void vm4_v_get_vm_state( vm_t *vm, uint8_t vm_id );
+
 #endif
