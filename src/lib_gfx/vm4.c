@@ -406,15 +406,16 @@ static uint16_t get_timing_adjust( int32_t tick_delta ){
 
     int32_t abs_delta = abs32( tick_delta );
 
-    if( abs_delta > 100 ){
+    // if( abs_delta > 100 ){
 
-        adjust = 100;
-    }
-    else if( abs_delta > 10 ){
+    //     adjust = 50;
+    // }
+    // else 
+    if( abs_delta > 50 ){
 
-        adjust = 10;
+        adjust = 5;
     }
-    else if( abs_delta > 1 ){
+    else if( abs_delta > 2 ){
 
         adjust = 1;
     }

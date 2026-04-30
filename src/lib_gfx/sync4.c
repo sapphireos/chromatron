@@ -550,17 +550,25 @@ PT_BEGIN( pt );
 
         		// int32_t delta = (int64_t)msg->net_time_server - (int64_t)msg->net_time_client;
 
-        		if( sync_state != SYNC_STATE_SYNCED ){
+        		// if( sync_state != SYNC_STATE_SYNCED ){
 
-	        		log_v_debug_P( PSTR("rx sync tick: %lld frame: %lld rng: %lld server %ld client %ld delta: %ld"),
+	        		// log_v_debug_P( PSTR("rx sync tick: %lld frame: %lld rng: %lld server %ld client %ld delta: %ld"),
+				    //         msg->current_tick,
+				    //         msg->frame_number,
+				    //         msg->rng_seed,
+				    //         msg->net_time_server,
+				    //         msg->net_time_client,
+				    //         delta
+				    //     );
+
+				   	log_v_debug_P( PSTR("rx sync tick: %lld frame: %lld now %ld client %ld delta: %ld"),
 				            msg->current_tick,
 				            msg->frame_number,
-				            msg->rng_seed,
-				            msg->net_time_server,
+				            now,
 				            msg->net_time_client,
 				            delta
 				        );
-	        	}
+	        	// }
 
         		if( delta < 0 ){
 
@@ -585,12 +593,13 @@ PT_BEGIN( pt );
 
         		// compute adjusted sync time
         		// uint32_t sync_time = msg->net_time_server - rtt;
-        		uint32_t sync_time = now - rtt;
+        		// uint32_t sync_time = now - rtt;
+        		uint32_t sync_time = now;
 
         		sync_state = SYNC_STATE_SYNCED;
 
         		// sync
-        		vm4_v_sync( sync_time, msg->current_tick );
+        		vm4_v_sync( sync_time, msg->current_tick + rtt );
         	}
         }
         else{
@@ -994,7 +1003,7 @@ PT_BEGIN( pt );
 
 			while( ( sync_state >= SYNC_STATE_DATA ) && sync4_b_is_follower() ){
 
-				TMR_WAIT( pt, 2000 );
+				TMR_WAIT( pt, 8000 );
 
 				send_sync_request( server_sock );
 			}
