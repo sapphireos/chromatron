@@ -551,7 +551,7 @@ PT_BEGIN( pt );
             _net_delta = net_delta;
             _timing_adjust = get_timing_adjust( tick_delta );
 
-            state->vm.current_tick += _timing_adjust;
+            // state->vm.current_tick += _timing_adjust;
         }
 
         uint32_t start_time = tmr_u32_get_system_time_us();

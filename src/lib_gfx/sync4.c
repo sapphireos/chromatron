@@ -447,18 +447,18 @@ PT_BEGIN( pt );
         		const sync4_msg_request_sync_t *msg = (sync4_msg_request_sync_t *)header;
 
         		sync4_msg_sync_t reply = {
-        			.header.magic 	= SYNC4_PROTOCOL_MAGIC,
-        			.header.version = SYNC4_PROTOCOL_VERSION,
-        			.header.type 	= SYNC4_MSG_TYPE_SYNC,
-        			.header.flags 	= 0,
-        			.header.padding	= 0,
+        			.header.magic 		= SYNC4_PROTOCOL_MAGIC,
+        			.header.version 	= SYNC4_PROTOCOL_VERSION,
+        			.header.type 		= SYNC4_MSG_TYPE_SYNC,
+        			.header.flags 		= 0,
+        			.header.padding		= 0,
 
-        			.current_tick 	= vm.current_tick,
-        			.rng_seed 		= vm.rng_seed,
-        			.frame_number 	= vm.frame_number,
+        			.current_tick 		= vm.current_tick,
+        			.rng_seed 			= vm.rng_seed,
+        			.frame_number 		= vm.frame_number,
 
-        			.net_time_rx    = msg->net_time,
-        			.net_time_tx    = time_u32_get_network_time()
+        			.net_time_client	= msg->net_time,
+        			.net_time_server    = time_u32_get_network_time()
         		};
 
         		sock_i16_sendto( server_sock, (uint8_t *)&reply, sizeof(reply), &raddr );
@@ -542,16 +542,19 @@ PT_BEGIN( pt );
 
         		const sync4_msg_sync_t *msg = (sync4_msg_sync_t *)header;
 
-        		int32_t delta = (int64_t)msg->net_time_rx - (int64_t)msg->net_time_tx;
+        		int32_t delta = (int64_t)msg->net_time_server - (int64_t)msg->net_time_client;
 
-        		// log_v_debug_P( PSTR("receive sync current_tick: %lld frame_number: %lld rng: %lld tx %ld rx %ld delta: %ld"),
-			    //         msg->current_tick,
-			    //         msg->frame_number,
-			    //         msg->rng_seed,
-			    //         msg->net_time_tx,
-			    //         msg->net_time_rx,
-			    //         delta
-			    //     );
+        		// if( sync_state != SYNC_STATE_SYNCED ){
+
+	        		log_v_debug_P( PSTR("rx sync tick: %lld frame: %lld rng: %lld server %ld client %ld delta: %ld"),
+				            msg->current_tick,
+				            msg->frame_number,
+				            msg->rng_seed,
+				            msg->net_time_server,
+				            msg->net_time_client,
+				            delta
+				        );
+	        	// }
 
         		if( delta < 0 ){
 
@@ -575,7 +578,7 @@ PT_BEGIN( pt );
         		int32_t rtt = delta / 2;
 
         		// compute adjusted sync time
-        		uint32_t sync_time = msg->net_time_tx - rtt;
+        		uint32_t sync_time = msg->net_time_server - rtt;
 
         		sync_state = SYNC_STATE_SYNCED;
 
