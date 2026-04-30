@@ -537,15 +537,43 @@ PT_BEGIN( pt );
 
         		const sync4_msg_sync_t *msg = (sync4_msg_sync_t *)header;
 
-        		log_v_debug_P( PSTR("receive sync current_tick: %lld frame_number: %lld rng: %lld tx %ld rx %ld"),
+        		int32_t delta = (int64_t)msg->net_time_rx - (int64_t)msg->net_time_tx;
+
+        		log_v_debug_P( PSTR("receive sync current_tick: %lld frame_number: %lld rng: %lld tx %ld rx %ld delta: %ld"),
 			            msg->current_tick,
 			            msg->frame_number,
 			            msg->rng_seed,
 			            msg->net_time_tx,
-			            msg->net_time_rx
+			            msg->net_time_rx,
+			            delta
 			        );
 
+        		if( delta < 0 ){
 
+        			// negative delta indicates time sync may have been adjusted
+        			// or possibly the packet time traveled.
+        			// in any case, we can't do a sync if we violated
+        			// causality.
+
+        			continue;
+
+        		}
+        		else if( delta > 200 ){
+
+        			// uncertainty in the RTT is proportional to the
+        			// total delta, so high deltas should be skipped.
+
+        			continue;
+        		}
+
+        		// compute basic RTT
+        		int32_t rtt = delta / 2;
+
+        		// compute adjusted sync time
+        		uint32_t sync_time = msg->net_time_tx - rtt;
+
+        		// sync
+        		vm4_v_sync( sync_time, msg->current_tick );
         	}
         }
         else{

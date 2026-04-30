@@ -36,5 +36,6 @@ void vm4_v_freeze_vm( uint8_t vm_id );
 void vm4_v_unfreeze_vm( uint8_t vm_id );
 
 void vm4_v_get_vm_state( vm_t *vm, uint8_t vm_id );
+void vm4_v_sync( uint32_t net_time, uint64_t current_tick );
 
 #endif

@@ -42,6 +42,11 @@ static thread_t vm_threads[VM4_MAX_VMS];
 
 static bool request_unfreeze;
 
+static uint32_t sync_time;
+static uint64_t sync_tick;
+
+static int64_t _tick_delta;
+static int32_t _net_delta;
 
 typedef struct __attribute__((packed)){
     uint32_t hash;
@@ -178,6 +183,9 @@ KV_SECTION_META kv_meta_t vm4_debug_kv[] = {
     { CATBUS_TYPE_UINT64,   0, KV_FLAGS_READ_ONLY, 0,   _vm4_prog_kv_handler,                   "vm4_current_tick" },
     { CATBUS_TYPE_UINT64,   0, KV_FLAGS_READ_ONLY, 0,   _vm4_prog_kv_handler,                   "vm4_co0_tick" },
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 0,   _vm4_prog_kv_handler,                   "vm4_coroutine_count" },
+
+    { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_net_delta,   0,                            "vm4_delta_net" },
+    { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_tick_delta,   0,                           "vm4_delta_tick" },
 };
 
 static const char* vm_names[VM4_MAX_VMS] = {
@@ -497,6 +505,16 @@ PT_BEGIN( pt );
         }
 
         init_published( state );
+
+        // compute delta for sync time
+        sync_tick += FADER_RATE;
+        sync_time += FADER_RATE;
+
+        int64_t tick_delta = (int64_t)sync_tick - (int64_t)state->vm.current_tick;
+        int32_t net_delta  = (int32_t)sync_time - (int64_t)time_u32_get_network_time();
+
+        _tick_delta = tick_delta;
+        _net_delta = net_delta;
 
         uint32_t start_time = tmr_u32_get_system_time_us();
 
@@ -830,6 +848,12 @@ void vm4_v_get_vm_state( vm_t *vm, uint8_t vm_id ){
     const vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
 
     *vm = thread_state->vm;
+}
+
+void vm4_v_sync( uint32_t net_time, uint64_t current_tick ){
+
+    sync_time = net_time;
+    sync_tick = current_tick;   
 }
 
 
