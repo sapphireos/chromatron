@@ -29,7 +29,7 @@
 #include "timers.h"
 
 // #ifdef ENABLE_TIME_SYNC
-#if 1
+#if 0
 
 #include "timesync.h"
 #include "vm_sync.h"

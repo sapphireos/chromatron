@@ -815,16 +815,6 @@ void vm4_v_unfreeze_vm( uint8_t vm_id ){
     request_unfreeze = TRUE;
 
     vm4_v_reset( vm_id );
-
-    // vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
-
-    // vm_t vm = {0};
-    // int status = vm_deserialize( &vm, "_sync.f4b" );
-
-    // if( status != 0 ){
-
-    //     log_v_warn_P( PSTR("VM deserialize failed: %d"), status );
-    // }
 }
 
 
@@ -833,44 +823,44 @@ void vm4_v_unfreeze_vm( uint8_t vm_id ){
 
 // legacy stubs
 
-uint32_t vm4_u32_get_sync_data_hash( void ){
+// uint32_t vm4_u32_get_sync_data_hash( void ){
 
-    return 0;    
-}
+//     return 0;    
+// }
 
-uint16_t vm4_u16_get_sync_data_len( void ){
+// uint16_t vm4_u16_get_sync_data_len( void ){
 
-    return 0;    
-}
+//     return 0;    
+// }
 
-int32_t* vm4_i32p_get_sync_data( void ){
+// int32_t* vm4_i32p_get_sync_data( void ){
 
-    return 0;
-}
+//     return 0;
+// }
 
-vm_t* vm4_p_get_vm_state( void ){
+// vm_t* vm4_p_get_vm_state( void ){
 
-    if( vm_threads[0] < 0 ){
+//     if( vm_threads[0] < 0 ){
 
-        return 0;
-    }
+//         return 0;
+//     }
 
-    vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
+//     vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
 
-    return &thread_state->vm;
-}
+//     return &thread_state->vm;
+// }
 
-uint64_t vm4_u64_get_sync_tick( void ){
+// uint64_t vm4_u64_get_sync_tick( void ){
 
-    return 0;
-}
+//     return 0;
+// }
 
-uint32_t vm4_u32_get_sync_time( void ){
+// uint32_t vm4_u32_get_sync_time( void ){
 
-    return 0;
-}
+//     return 0;
+// }
 
-void vm4_v_sync( uint32_t net_time, uint64_t sync_tick ){
+// void vm4_v_sync( uint32_t net_time, uint64_t sync_tick ){
 
 
-}
+// }
