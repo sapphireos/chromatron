@@ -173,6 +173,10 @@ void sync4_v_init( void ){
                     0 );    
 }
 
+void sync4_v_reset( void ){
+	
+	sync_state = SYNC_STATE_IDLE;
+}
 
 bool _query_leader( ip_addr4_t *ip ){
 

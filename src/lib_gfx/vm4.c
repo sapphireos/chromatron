@@ -51,18 +51,8 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     vm_t vm;
-    uint8_t vm_id;
-
     published_var_t published_vars[8];
-
-    // mem_handle_t handle;
-    // char program_fname[FFS_FILENAME_LEN];
-    
-    // int8_t vm_return;
-    // uint32_t last_run;
-    // int32_t delay_adjust;
-    // int32_t vm_delay;
-    // vm_state_t vm_state;
+    uint8_t vm_id;
 } vm4_thread_state_t;
 
 
@@ -488,7 +478,8 @@ PT_BEGIN( pt );
 
         THREAD_WAIT_SIGNAL( pt, VM4_SIGNAL_0 + state->vm_id );
 
-        uint64_t now = tmr_u64_get_system_time_ms();
+        // uint64_t now = tmr_u64_get_system_time_ms();
+        state->vm.current_tick += FADER_RATE;
 
         // check if running
         if( !vm_run[state->vm_id] ){
@@ -510,7 +501,7 @@ PT_BEGIN( pt );
         uint32_t start_time = tmr_u32_get_system_time_us();
 
         // status = vm_run_tick( &state->vm, thread_u32_get_alarm() );
-        status = vm_run_tick( &state->vm, now );
+        status = vm_run_tick( &state->vm, state->vm.current_tick );
 
         state->vm.frame_number++;
 
@@ -556,6 +547,11 @@ end:
 
     vm_run_time[state->vm_id]   = 0;
     vm_max_cycles[state->vm_id] = 0;
+
+    if( ( state->vm_id == 0 ) && ( !request_unfreeze ) ){
+
+        sync4_v_reset();
+    }
 
     if( vm_reset[state->vm_id] && vm_run[state->vm_id] ){
 
@@ -772,47 +768,6 @@ int8_t vm4_i8_run_function( uint32_t func_meta, uint8_t vm_id ){
     return status;
 }
 
-uint32_t vm4_u32_get_sync_data_hash( void ){
-
-    return 0;    
-}
-
-uint16_t vm4_u16_get_sync_data_len( void ){
-
-    return 0;    
-}
-
-int32_t* vm4_i32p_get_sync_data( void ){
-
-    return 0;
-}
-
-vm_t* vm4_p_get_vm_state( void ){
-
-    if( vm_threads[0] < 0 ){
-
-        return 0;
-    }
-
-    vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
-
-    return &thread_state->vm;
-}
-
-uint64_t vm4_u64_get_sync_tick( void ){
-
-    return 0;
-}
-
-uint32_t vm4_u32_get_sync_time( void ){
-
-    return 0;
-}
-
-void vm4_v_sync( uint32_t net_time, uint64_t sync_tick ){
-
-
-}
 
 void vm4_v_signal( void ){
 
@@ -870,4 +825,52 @@ void vm4_v_unfreeze_vm( uint8_t vm_id ){
 
     //     log_v_warn_P( PSTR("VM deserialize failed: %d"), status );
     // }
+}
+
+
+
+
+
+// legacy stubs
+
+uint32_t vm4_u32_get_sync_data_hash( void ){
+
+    return 0;    
+}
+
+uint16_t vm4_u16_get_sync_data_len( void ){
+
+    return 0;    
+}
+
+int32_t* vm4_i32p_get_sync_data( void ){
+
+    return 0;
+}
+
+vm_t* vm4_p_get_vm_state( void ){
+
+    if( vm_threads[0] < 0 ){
+
+        return 0;
+    }
+
+    vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
+
+    return &thread_state->vm;
+}
+
+uint64_t vm4_u64_get_sync_tick( void ){
+
+    return 0;
+}
+
+uint32_t vm4_u32_get_sync_time( void ){
+
+    return 0;
+}
+
+void vm4_v_sync( uint32_t net_time, uint64_t sync_tick ){
+
+
 }
