@@ -49,6 +49,8 @@ static int64_t _tick_delta;
 static int32_t _net_delta;
 static int16_t _timing_adjust;
 
+static int32_t debug_globals[4];
+
 typedef struct __attribute__((packed)){
     uint32_t hash;
     uint16_t index;
@@ -185,9 +187,11 @@ KV_SECTION_META kv_meta_t vm4_debug_kv[] = {
     { CATBUS_TYPE_UINT64,   0, KV_FLAGS_READ_ONLY, 0,   _vm4_prog_kv_handler,                   "vm4_co0_tick" },
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 0,   _vm4_prog_kv_handler,                   "vm4_coroutine_count" },
 
-    { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_net_delta,   0,                            "vm4_delta_net" },
-    { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_tick_delta,   0,                           "vm4_delta_tick" },
-    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &_timing_adjust,   0,                           "vm4_timing_adjust" },
+    { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_net_delta,         0,                            "vm4_delta_net" },
+    { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_tick_delta,        0,                           "vm4_delta_tick" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &_timing_adjust,     0,                           "vm4_timing_adjust" },
+
+    { CATBUS_TYPE_INT32,    3, KV_FLAGS_READ_ONLY, &debug_globals,      0,                            "vm4_debug_globals" },
 };
 
 static const char* vm_names[VM4_MAX_VMS] = {
@@ -491,18 +495,18 @@ PT_BEGIN( pt );
     }
 
     
-    // if( !frozen ){
+    if( !frozen ){
 
-    // run top level VM script:    
-    // status = vm_run_instructions( &state->vm, -1, 0 );
+        // run top level VM script:    
+        status = vm_run_instructions( &state->vm, -1, 0 );
 
-    // if( status < 0 ){
+        if( status < 0 ){
 
-    //     log_v_error_P( PSTR("VM init failed: %d"), status );
+            log_v_error_P( PSTR("VM init failed: %d"), status );
 
-    //     goto end;
-    // }
-    // }
+            goto end;
+        }
+    }
     
     // log_v_debug_P( PSTR("VM init OK") );
 
@@ -561,6 +565,20 @@ PT_BEGIN( pt );
         status = vm_run_tick( &state->vm, state->vm.current_tick );
 
         state->vm.frame_number++;
+
+        int32_t *globals = (int32_t *)array_get_data( state->vm.globals_list );
+
+        uint16_t globals_count = array_get_count( state->vm.globals_list );
+
+        if( globals_count > cnt_of_array(debug_globals) ){
+
+            globals_count = cnt_of_array(debug_globals);
+        }
+
+        for( uint8_t i = 0; i < globals_count; i++ ){
+
+            debug_globals[i] = globals[i];
+        }
 
         uint32_t elapsed_us = tmr_u32_elapsed_time_us( start_time );
 
