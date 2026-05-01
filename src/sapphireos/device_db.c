@@ -315,38 +315,41 @@ static void send_device_msg( void ){
 		.mode = sys_u8_get_mode(),
 		.rssi = wifi_i8_rssi(),
 
-		// .gfx = {0},
-		// .batt = {0},
-		// .solar = {0},
+		.gfx = {0},
+		.batt = {0},
+		.solar = {0},
 	};
 
 	// attach query tags
 	memcpy( msg.query.tags, tag_hashes_ptr, sizeof(msg.query) );
 
-	// attach gfx group
-	// kv_i8_get( __KV__gfx_sync_group_hash, 	&msg.gfx.gfx_sync_group, 		sizeof(msg.gfx.gfx_sync_group) );
-	kv_i8_get( __KV__sync_group_hash, 		&msg.gfx.gfx_sync_group, 		sizeof(msg.gfx.gfx_sync_group) );
-	kv_i8_get( __KV__gfx_master_dimmer, 	&msg.gfx.gfx_master_dimmer, 	sizeof(msg.gfx.gfx_master_dimmer) );
-	kv_i8_get( __KV__gfx_sub_dimmer, 		&msg.gfx.gfx_sub_dimmer, 		sizeof(msg.gfx.gfx_sub_dimmer) );
-	kv_i8_get( __KV__gfx_enable, 			&msg.gfx.gfx_enable, 			sizeof(msg.gfx.gfx_enable) );
-	kv_i8_get( __KV__pixel_power, 			&msg.gfx.pixel_power, 			sizeof(msg.gfx.pixel_power) );
+	if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-	if( kv_b_get_boolean( __KV__batt_enable ) ){
+		// attach gfx group
+		// kv_i8_get( __KV__gfx_sync_group_hash, 	&msg.gfx.gfx_sync_group, 		sizeof(msg.gfx.gfx_sync_group) );
+		kv_i8_get( __KV__sync_group_hash, 		&msg.gfx.gfx_sync_group, 		sizeof(msg.gfx.gfx_sync_group) );
+		kv_i8_get( __KV__gfx_master_dimmer, 	&msg.gfx.gfx_master_dimmer, 	sizeof(msg.gfx.gfx_master_dimmer) );
+		kv_i8_get( __KV__gfx_sub_dimmer, 		&msg.gfx.gfx_sub_dimmer, 		sizeof(msg.gfx.gfx_sub_dimmer) );
+		kv_i8_get( __KV__gfx_enable, 			&msg.gfx.gfx_enable, 			sizeof(msg.gfx.gfx_enable) );
+		kv_i8_get( __KV__pixel_power, 			&msg.gfx.pixel_power, 			sizeof(msg.gfx.pixel_power) );
 
-		kv_i8_get( __KV__batt_volts, 			&msg.batt.batt_volts, 			sizeof(msg.batt.batt_volts) );
-		kv_i8_get( __KV__batt_charge_current,   &msg.batt.batt_charge_current,  sizeof(msg.batt.batt_charge_current) );
-		kv_i8_get( __KV__batt_temp,   			&msg.batt.batt_temp,  			sizeof(msg.batt.batt_temp) );
-		kv_i8_get( __KV__batt_charging,			&msg.batt.batt_status,  		sizeof(msg.batt.batt_status) );
-		kv_i8_get( __KV__light_level,  			&msg.batt.light_level,  		sizeof(msg.batt.light_level) );
-	}
+		if( kv_b_get_boolean( __KV__batt_enable ) ){
 
-	if( kv_b_get_boolean( __KV__solar_enable ) ){
+			kv_i8_get( __KV__batt_volts, 			&msg.batt.batt_volts, 			sizeof(msg.batt.batt_volts) );
+			kv_i8_get( __KV__batt_charge_current,   &msg.batt.batt_charge_current,  sizeof(msg.batt.batt_charge_current) );
+			kv_i8_get( __KV__batt_temp,   			&msg.batt.batt_temp,  			sizeof(msg.batt.batt_temp) );
+			kv_i8_get( __KV__batt_charging,			&msg.batt.batt_status,  		sizeof(msg.batt.batt_status) );
+			kv_i8_get( __KV__light_level,  			&msg.batt.light_level,  		sizeof(msg.batt.light_level) );
+		}
 
-		kv_i8_get( __KV__batt_aux_vbus_volts,		&msg.solar.solar_volts, 			sizeof(msg.solar.solar_volts) );
-		kv_i8_get( __KV__batt_aux_charge_current,	&msg.solar.solar_charge_current, 	sizeof(msg.solar.solar_charge_current) );
+		if( kv_b_get_boolean( __KV__solar_enable ) ){
 
-		kv_i8_get( __KV__batt_case_temp,			&msg.solar.ambient_temp, 			sizeof(msg.solar.ambient_temp) );
-		kv_i8_get( __KV__batt_ambient_temp,			&msg.solar.case_temp, 				sizeof(msg.solar.case_temp) );
+			kv_i8_get( __KV__batt_aux_vbus_volts,		&msg.solar.solar_volts, 			sizeof(msg.solar.solar_volts) );
+			kv_i8_get( __KV__batt_aux_charge_current,	&msg.solar.solar_charge_current, 	sizeof(msg.solar.solar_charge_current) );
+
+			kv_i8_get( __KV__batt_case_temp,			&msg.solar.ambient_temp, 			sizeof(msg.solar.ambient_temp) );
+			kv_i8_get( __KV__batt_ambient_temp,			&msg.solar.case_temp, 				sizeof(msg.solar.case_temp) );
+		}
 	}
 
 	sock_addr_t raddr = {

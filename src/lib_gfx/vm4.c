@@ -492,18 +492,18 @@ PT_BEGIN( pt );
     
     state->vm.program_name_hash = hash_u32_string( fname );
     
-    if( !frozen ){
+    // if( !frozen ){
 
-        // run top level VM script:    
-        status = vm_run_instructions( &state->vm, -1, 0 );
+    // run top level VM script:    
+    // status = vm_run_instructions( &state->vm, -1, 0 );
 
-        if( status < 0 ){
+    // if( status < 0 ){
 
-            log_v_error_P( PSTR("VM init failed: %d"), status );
+    //     log_v_error_P( PSTR("VM init failed: %d"), status );
 
-            goto end;
-        }
-    }
+    //     goto end;
+    // }
+    // }
     
     // log_v_debug_P( PSTR("VM init OK") );
 
@@ -867,6 +867,8 @@ void vm4_v_unfreeze_vm( uint8_t vm_id ){
 
     if( vm_threads[vm_id] < 0 ){
 
+        log_v_warn_P( PSTR("VM not running, cannot unfreeze") );
+
         return;
     }
 
@@ -894,7 +896,13 @@ void vm4_v_sync( uint32_t net_time, uint64_t current_tick ){
 
     sync_time = net_time;
     sync_tick = current_tick;   
-}
+
+    // vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
+
+    // int32_t tick_delta = (int64_t)sync_tick - (int64_t)thread_state->vm.current_tick;
+
+    // log_v_debug_P( PSTR("tick delta %ld"), tick_delta );
+}   
 
 
 

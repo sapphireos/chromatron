@@ -546,9 +546,13 @@ PT_BEGIN( pt );
 
         		uint32_t now = tmr_u32_get_system_time_ms();
 
-        		int32_t delta = (int64_t)now - (int64_t)msg->net_time_client;
+        		int32_t time_delta = (int64_t)now - (int64_t)msg->net_time_client;
+
+        		// compute basic RTT
+        		int32_t rtt = time_delta / 2;
 
         		// int32_t delta = (int64_t)msg->net_time_server - (int64_t)msg->net_time_client;
+
 
         		// if( sync_state != SYNC_STATE_SYNCED ){
 
@@ -561,13 +565,25 @@ PT_BEGIN( pt );
 				    //         delta
 				    //     );
 
-				   	log_v_debug_P( PSTR("rx sync tick: %lld frame: %lld now %ld client %ld delta: %ld"),
+        			vm_t vm = {0};
+        			vm4_v_get_vm_state( &vm, 0 );
+
+        			int32_t delta = (int64_t)msg->current_tick - (int64_t)vm.current_tick;
+
+        			log_v_debug_P( PSTR("server tick: %12lld local tick: %12lld delta: %4ld time delta: %4ld"),
 				            msg->current_tick,
-				            msg->frame_number,
-				            now,
-				            msg->net_time_client,
-				            delta
+				            vm.current_tick,
+				            delta,
+				            time_delta
 				        );
+
+				   	// log_v_debug_P( PSTR("rx sync tick: %lld frame: %lld now %ld client %ld delta: %ld"),
+				    //         msg->current_tick,
+				    //         msg->frame_number,
+				    //         now,
+				    //         msg->net_time_client,
+				    //         delta
+				    //     );
 	        	// }
 
         		if( delta < 0 ){
@@ -580,16 +596,14 @@ PT_BEGIN( pt );
         			continue;
 
         		}
-        		else if( delta > 200 ){
+        		// else if( delta > 200 ){
 
-        			// uncertainty in the RTT is proportional to the
-        			// total delta, so high deltas should be skipped.
+        		// 	// uncertainty in the RTT is proportional to the
+        		// 	// total delta, so high deltas should be skipped.
 
-        			continue;
-        		}
+        		// 	continue;
+        		// }
 
-        		// compute basic RTT
-        		int32_t rtt = delta / 2;
 
         		// compute adjusted sync time
         		// uint32_t sync_time = msg->net_time_server - rtt;
@@ -600,6 +614,7 @@ PT_BEGIN( pt );
 
         		// sync
         		vm4_v_sync( sync_time, msg->current_tick + rtt );
+        		// vm4_v_sync( sync_time, msg->current_tick );
         	}
         }
         else{
@@ -917,6 +932,7 @@ PT_BEGIN( pt );
 	TMR_WAIT( pt, 4000 );
 	// THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
 	THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
+	THREAD_WAIT_WHILE( pt, !vm4_b_is_vm_running( 0 ) );
 	
 	thread_t_create( sync4_server_thread,
                     PSTR("sync4_server"),
