@@ -441,9 +441,10 @@ PT_BEGIN( pt );
     // set VM ID:
     state->vm.vm_id = state->vm_id;
 
+    // set program name
     char fname[FFS_FILENAME_LEN] = {0};
-
     get_program_fname( state->vm_id, fname );
+    state->vm.program_name_hash = hash_u32_string( fname );
 
     int status = 0;
 
@@ -489,8 +490,6 @@ PT_BEGIN( pt );
         goto end;
     }
 
-    
-    state->vm.program_name_hash = hash_u32_string( fname );
     
     // if( !frozen ){
 
@@ -572,7 +571,7 @@ PT_BEGIN( pt );
         }
         else if( status == VM4_STATUS_NO_COROUTINE ){
 
-            // log_v_info_P( PSTR("VM finished") );
+            log_v_info_P( PSTR("VM finished, no coroutines") );
 
             goto end;
         }
