@@ -586,16 +586,16 @@ PT_BEGIN( pt );
 				    //     );
 	        	// }
 
-        		if( delta < 0 ){
+        		// if( delta < 0 ){
 
         			// negative delta indicates time sync may have been adjusted
         			// or possibly the packet time traveled.
         			// in any case, we can't do a sync if we violated
         			// causality.
 
-        			continue;
+        		// 	continue;
 
-        		}
+        		// }
         		// else if( delta > 200 ){
 
         		// 	// uncertainty in the RTT is proportional to the
@@ -1017,7 +1017,7 @@ PT_BEGIN( pt );
 			vm4_v_unfreeze_vm( 0 );
 			deserialize_pixels();
 
-			while( ( sync_state == SYNC_STATE_DATA ) && sync4_b_is_follower() ){
+			while( ( sync_state >= SYNC_STATE_DATA ) && sync4_b_is_follower() ){
 
 				TMR_WAIT( pt, 8000 );
 

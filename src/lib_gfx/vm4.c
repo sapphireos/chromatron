@@ -557,6 +557,17 @@ PT_BEGIN( pt );
             _timing_adjust = get_timing_adjust( tick_delta );
 
             state->vm.current_tick += _timing_adjust;
+
+            // for( uint8_t i = 0; i < MAX_COROUTINES; i++ ){
+
+            //     if( state->vm.coroutines[i] <= 0 ){
+
+            //         continue;
+            //     }
+
+            //     coroutine_state_t *coroutine = (coroutine_state_t *)mem2_vp_get_ptr( state->vm.coroutines[i] );
+            //     coroutine->tick += _timing_adjust;
+            // }
         }
 
         uint32_t start_time = tmr_u32_get_system_time_us();
@@ -566,7 +577,7 @@ PT_BEGIN( pt );
 
         state->vm.frame_number++;
 
-        int32_t *globals = (int32_t *)array_get_data( state->vm.globals_list );
+        const int32_t *globals = (int32_t *)array_get_data( state->vm.globals_list );
 
         uint16_t globals_count = array_get_count( state->vm.globals_list );
 
