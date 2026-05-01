@@ -523,8 +523,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_SIGNAL( pt, VM4_SIGNAL_0 + state->vm_id );
 
         // uint64_t now = tmr_u64_get_system_time_ms();
-        state->vm.current_tick += FADER_RATE;
-
+        
         // check if running
         if( !vm_run[state->vm_id] ){
 
@@ -542,13 +541,19 @@ PT_BEGIN( pt );
 
         init_published( state );
 
+        int64_t tick_delta = 0;
+
+        status = 0;
+
+        // state->vm.current_tick += FADER_RATE;
+
         if( ( state->vm_id == 0 ) && sync4_b_is_sync() ){
 
             // compute delta for sync time
             sync_tick += FADER_RATE;
             sync_time += FADER_RATE;
 
-            int64_t tick_delta = (int64_t)sync_tick - (int64_t)state->vm.current_tick;
+            tick_delta = (int64_t)sync_tick - (int64_t)state->vm.current_tick;
             // int32_t net_delta  = (int32_t)sync_time - (int64_t)time_u32_get_network_time();
             int32_t net_delta  = (int32_t)sync_time - (int64_t)tmr_u32_get_system_time_ms();
 
@@ -556,7 +561,7 @@ PT_BEGIN( pt );
             _net_delta = net_delta;
             _timing_adjust = get_timing_adjust( tick_delta );
 
-            state->vm.current_tick += _timing_adjust;
+            // state->vm.current_tick += _timing_adjust;
 
             // for( uint8_t i = 0; i < MAX_COROUTINES; i++ ){
 
@@ -568,19 +573,45 @@ PT_BEGIN( pt );
             //     coroutine_state_t *coroutine = (coroutine_state_t *)mem2_vp_get_ptr( state->vm.coroutines[i] );
             //     coroutine->tick += _timing_adjust;
             // }
+
+            // positive delta server leads
+                // we are behind, insert frame to catch up
+            // negative delta server lags
+                // we are ahead, skip frame to slow down
+
+            if( tick_delta > FADER_RATE ){
+
+                // we are behind, add a frame to catch up
+                state->vm.current_tick += FADER_RATE;
+                status = vm_run_tick( &state->vm, state->vm.current_tick );
+                state->vm.frame_number++;
+            }
+
         }
 
         uint32_t start_time = tmr_u32_get_system_time_us();
 
-        // status = vm_run_tick( &state->vm, thread_u32_get_alarm() );
-        status = vm_run_tick( &state->vm, state->vm.current_tick );
+        
+        if( tick_delta < -1 * FADER_RATE ){
 
-        state->vm.frame_number++;
+            // we are ahead, skip frame to slow down
+        }
+        else{
+
+            // NOT skipping - this is the NORMAL path
+            state->vm.current_tick += FADER_RATE;
+            status = vm_run_tick( &state->vm, state->vm.current_tick );
+            state->vm.frame_number++;
+        }
+
+        // // status = vm_run_tick( &state->vm, thread_u32_get_alarm() );
+        // status = vm_run_tick( &state->vm, state->vm.current_tick );
+        // state->vm.frame_number++;
+
+        uint32_t elapsed_us = tmr_u32_elapsed_time_us( start_time );
 
         const int32_t *globals = (int32_t *)array_get_data( state->vm.globals_list );
-
         uint16_t globals_count = array_get_count( state->vm.globals_list );
-
         if( globals_count > cnt_of_array(debug_globals) ){
 
             globals_count = cnt_of_array(debug_globals);
@@ -591,7 +622,8 @@ PT_BEGIN( pt );
             debug_globals[i] = globals[i];
         }
 
-        uint32_t elapsed_us = tmr_u32_elapsed_time_us( start_time );
+
+        
 
         if( status < 0 ){
 
