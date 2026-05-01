@@ -1017,17 +1017,17 @@ PT_BEGIN( pt );
 			vm4_v_unfreeze_vm( 0 );
 			deserialize_pixels();
 
-			while( ( sync_state >= SYNC_STATE_DATA ) && sync4_b_is_follower() ){
+			while( ( sync_state == SYNC_STATE_DATA ) && sync4_b_is_follower() ){
 
 				TMR_WAIT( pt, 8000 );
 
 				send_sync_request( server_sock );
 			}
 
-			// THREAD_WAIT_WHILE( pt, 
-			// 	( sync_state == SYNC_STATE_DATA ) &&
-			// 	sync4_b_is_follower()
-			// );
+			THREAD_WAIT_WHILE( pt, 
+				( sync_state == SYNC_STATE_SYNCED ) &&
+				sync4_b_is_follower()
+			);
 		}
 
 restart:
