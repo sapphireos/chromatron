@@ -40,6 +40,11 @@ static uint16_t vm_max_cycles[VM4_MAX_VMS];
 
 static thread_t vm_threads[VM4_MAX_VMS];
 
+static uint32_t frames;
+static uint32_t skipped_frames;
+static uint32_t added_frames;
+
+
 static bool request_unfreeze;
 
 static uint32_t sync_time;
@@ -192,6 +197,10 @@ KV_SECTION_META kv_meta_t vm4_debug_kv[] = {
     { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &_timing_adjust,     0,                           "vm4_timing_adjust" },
 
     { CATBUS_TYPE_INT32,    3, KV_FLAGS_READ_ONLY, &debug_globals,      0,                            "vm4_debug_globals" },
+
+    { CATBUS_TYPE_UINT32,    0, KV_FLAGS_READ_ONLY, &frames,     0,                           "vm4_frames" },
+    { CATBUS_TYPE_UINT32,    0, KV_FLAGS_READ_ONLY, &added_frames,     0,                           "vm4_frames_skipped" },
+    { CATBUS_TYPE_UINT32,    0, KV_FLAGS_READ_ONLY, &skipped_frames,     0,                           "vm4_frames_added" },
 };
 
 static const char* vm_names[VM4_MAX_VMS] = {
@@ -547,6 +556,11 @@ PT_BEGIN( pt );
 
         // state->vm.current_tick += FADER_RATE;
 
+        if( state-> vm_id == 0 ){
+
+            frames++;
+        }
+
         if( ( state->vm_id == 0 ) && sync4_b_is_sync() ){
 
             // compute delta for sync time
@@ -585,6 +599,8 @@ PT_BEGIN( pt );
                 state->vm.current_tick += FADER_RATE;
                 status = vm_run_tick( &state->vm, state->vm.current_tick );
                 state->vm.frame_number++;
+
+                added_frames++;
             }
 
         }
@@ -595,6 +611,7 @@ PT_BEGIN( pt );
         if( tick_delta < -1 * FADER_RATE ){
 
             // we are ahead, skip frame to slow down
+            skipped_frames++;
         }
         else{
 
