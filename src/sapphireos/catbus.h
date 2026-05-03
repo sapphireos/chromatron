@@ -27,9 +27,6 @@
 
 #include "catbus_common.h"
 #include "catbus_types.h"
-#include "ntp.h"
-#include "list.h"
-#include "udp.h"
 #include <stdint.h>
 
 #define CATBUS_ANNOUNCE_PORT                44631
