@@ -108,7 +108,7 @@ KV_SECTION_META kv_meta_t seq_info_kv[] = {
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_PERSIST,  	&seq_time_mode,        0,                  "seq_time_mode" },
 	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_PERSIST,  	&seq_select_mode,      0,                  "seq_select_mode" },
 
-	{ CATBUS_TYPE_UINT8,    0, 0, 					&seq_current_step,     &_vmseq_kv_handler, "seq_current_step" },
+	{ CATBUS_TYPE_UINT8,    0, KV_FLAGS_PERSIST,    &seq_current_step,     &_vmseq_kv_handler, "seq_current_step" },
 	{ CATBUS_TYPE_BOOL,     0, KV_FLAGS_READ_ONLY, 	&seq_running,     	   0,                  "seq_running" },
 
 	{ CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST, 	&seq_interval_time,    0,                  "seq_interval_time" },
