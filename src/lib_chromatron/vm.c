@@ -158,7 +158,11 @@ int8_t _vm_prog_kv_handler(
     return 0;
 }
 
-KV_SECTION_META kv_meta_t vm_info_kv[] = {
+KV_SECTION_META kv_meta_t vm_enable_kv[] = {
+    { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,                   0,          0,                  "vm_enable" },
+};
+
+KV_SECTION_OPT kv_meta_t vm_info_kv[] = {
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[0],          0,                  "vm_reset" },
     { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[0],            0,                  "vm_run" },
     { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     _vm_prog_kv_handler,"vm_prog" },
@@ -1086,6 +1090,13 @@ void vm_v_init( void ){
 
         return;
     }
+
+    if( !kv_b_get_boolean( __KV__vm_enable ) ){
+
+        return;
+    }
+
+    kv_v_add_db_info( vm_info_kv, sizeof(vm_info_kv) );
 
     COMPILER_ASSERT( ( sizeof(vm_state_t) % 4 ) == 0 );
 
