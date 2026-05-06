@@ -326,6 +326,14 @@ static int8_t _run_step( bool select_current_step ){
 		return -2;
 	}
 
+	// need to manually run persist on the current step
+	// since when it changes within the sequencer module,
+	// the change doesn't go through the KV database so it
+	// doesn't know to automatically do a persist.
+	// It will persist on a clean shutdown, but if you just
+	// pull power that won't happen.
+	kv_i8_persist( __KV__seq_current_step );
+
 	return _run_program( progname );
 }
 
