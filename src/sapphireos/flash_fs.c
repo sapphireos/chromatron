@@ -571,7 +571,17 @@ uint32_t ffs_u32_get_file_count( void ){
         return 0;
     }
 
-    return ffs_page_u8_count_files() + 2; // add 2 for firmware
+    uint8_t fw_count = 1;
+
+    #if FLASH_FS_FIRMWARE_1_SIZE_KB > 0
+    fw_count++;
+    #endif
+
+    #if FLASH_FS_FIRMWARE_2_SIZE_KB > 0
+    fw_count++;
+    #endif
+
+    return ffs_page_u8_count_files() + fw_count;
 
     #else
 

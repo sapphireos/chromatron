@@ -3,6 +3,7 @@
 #define __DEVICE_DB_H
 
 #include "catbus.h"
+#include "ip.h"
 
 #define DEVICE_DB_TIMEOUT 120
 
