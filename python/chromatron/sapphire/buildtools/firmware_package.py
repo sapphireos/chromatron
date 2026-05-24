@@ -377,6 +377,7 @@ def main():
     parser.add_argument("--releases", "-r", action="store_true", default=False, help="List available releases")
     parser.add_argument("--list", "-l", action="store", help="List available firmwares")
     parser.add_argument("--get", "-g", action="store", help="Get firmware release")
+    parser.add_argument("--show", "-s", action="store", help="Show specific firmware version")
 
     args = vars(parser.parse_args())
 
@@ -395,8 +396,6 @@ def main():
         return
 
     if args['get']:
-        # print(args['get'])
-
         tokens = args['get'].split('/')
         release = tokens[0]
         firmware = tokens[1]
@@ -407,7 +406,7 @@ def main():
             board = tokens[2]
 
             for filename, data in fw.images[board].items():
-                print(f'Image: {filename} Len: {len(data)}')
+                # print(f'Image: {filename} Len: {len(data)}')
                 with open(filename, 'wb') as f:
                     f.write(data)
 
@@ -418,6 +417,17 @@ def main():
 
         return
 
+    if args['show']:
+        tokens = args['show'].split('/')
+        release = tokens[0]
+        firmware = tokens[1]
+        board = tokens[2]
+        
+        fw = get_firmware_package(firmware, release)
+
+        print(fw.get_version_for_target(board))
+
+        return
 
 
 
