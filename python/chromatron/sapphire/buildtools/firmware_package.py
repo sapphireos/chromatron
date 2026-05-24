@@ -27,6 +27,7 @@ import json
 import shutil
 import requests
 import uuid
+import argparse
 from datetime import datetime
 from appdirs import *
 from sapphire.common import util
@@ -279,7 +280,7 @@ class FirmwarePackage(object):
         with zipfile.ZipFile(self.filepath) as myzip:
             if MANIFEST_FILENAME not in myzip.namelist():
                 # this is not a firmware package
-                raise NotAFirmwarePackage
+                raise NotAFirmwarePackage(self.filepath)
                             
             with myzip.open(MANIFEST_FILENAME) as myfile:
                 self.manifest = json.loads(myfile.read())
@@ -370,3 +371,56 @@ class FirmwarePackage(object):
 
 
 
+def main():
+    parser = argparse.ArgumentParser(description='SapphireFirmware')
+
+    parser.add_argument("--releases", "-r", action="store_true", default=False, help="List available releases")
+    parser.add_argument("--list", "-l", action="store", help="List available firmwares")
+    parser.add_argument("--get", "-g", action="store", help="Get firmware release")
+
+    args = vars(parser.parse_args())
+
+    if args['releases']:
+        for release in list_releases():
+            print(release)
+
+        return
+
+    if args['list']:
+        firmwares = get_release(release=args['list'])
+
+        for firmware in firmwares.values():
+            print(firmware)
+
+        return
+
+    if args['get']:
+        # print(args['get'])
+
+        tokens = args['get'].split('/')
+        release = tokens[0]
+        firmware = tokens[1]
+        
+        fw = get_firmware_package(firmware, release)
+
+        try:
+            board = tokens[2]
+
+            for filename, data in fw.images[board].items():
+                print(f'Image: {filename} Len: {len(data)}')
+                with open(filename, 'wb') as f:
+                    f.write(data)
+
+        except IndexError:
+            print(fw)
+            for image in list(fw.images.keys()):
+                print(image)
+
+        return
+
+
+
+
+if __name__ == "__main__":
+    main()
+    

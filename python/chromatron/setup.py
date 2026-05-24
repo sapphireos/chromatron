@@ -87,6 +87,7 @@ setup(
         [console_scripts]
         chromatron=chromatron.__main__:main
         sapphiremake=sapphire.buildtools.core:main
+        sapphirefirmware=sapphire.buildtools.firmware_package:main
         sapphireconsole=sapphire.devices.sapphireconsole:main
         catbus=catbus.__main__:main
         catbus_directory=catbus.directory:main
