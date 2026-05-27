@@ -1,6 +1,7 @@
 #ifndef __LINK4_H__
 #define __LINK4_H__
 
+#include "ip.h"
 
 #define LINK4_PORT                          44634
 
@@ -18,8 +19,6 @@
 
 #define LINK4_LINK_TIMEOUT 					128
 #define LINK4_DATA_TIMEOUT 					128
-
-typedef list_node_t link4_handle_t;
 
 typedef uint8_t link4_aggregation_t8;
 #define LINK4_AGG_LAST						0
@@ -87,6 +86,11 @@ typedef struct __attribute__((packed)){
 } link4_msg_recv_t;
 #define LINK4_MSG_TYPE_RECV        		2
 
+
+#if defined(ESP32) || defined(ESP8266)
+
+typedef list_node_t link4_handle_t;
+
 void link4_v_init( void );
 link4_handle_t link4_l_create( 
     link4_mode_t8 mode, 
@@ -98,5 +102,7 @@ link4_handle_t link4_l_create(
     link4_aggregation_t8 aggregation );
 
 void link4_v_delete_by_tag( catbus_hash_t32 tag );
+
+#endif
 
 #endif
