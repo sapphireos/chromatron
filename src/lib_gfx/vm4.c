@@ -57,9 +57,10 @@ static int16_t _timing_adjust;
 static int32_t debug_globals[4];
 
 typedef struct __attribute__((packed)){
-    uint32_t hash;
+    catbus_hash_t32 hash;
     uint16_t index;
     uint16_t count;
+    catbus_type_t8 type;
 } published_var_t;
 
 typedef struct __attribute__((packed)){
@@ -326,6 +327,7 @@ void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_
     thread_state->published_vars[slot].hash    = hash;
     thread_state->published_vars[slot].index   = index;
     thread_state->published_vars[slot].count   = count;
+    thread_state->published_vars[slot].type    = type;
 
     kvdb_i8_add( hash, type, count, 0, 0 );
     kvdb_v_set_tag( hash, ( 1 << vm_id ) );
@@ -361,7 +363,7 @@ static void init_published( vm4_thread_state_t *state ){
 
         int8_t kv_status = catbus_i8_array_get( 
                             state->published_vars[i].hash,
-                            CATBUS_TYPE_INT32,
+                            state->published_vars[i].type,
                             0,
                             state->published_vars[i].count,
                             ptr );
@@ -397,7 +399,7 @@ static void fini_published( vm4_thread_state_t *state ){
 
         int8_t kv_status = catbus_i8_array_set( 
                             state->published_vars[i].hash,
-                            CATBUS_TYPE_INT32,
+                            state->published_vars[i].type,
                             0,
                             state->published_vars[i].count,
                             ptr,
