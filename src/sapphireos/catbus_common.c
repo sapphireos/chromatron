@@ -299,6 +299,28 @@ int8_t type_i8_convert(
             return -1;
         }
     }
+    // fixed16 to float
+    else if( ( src_type == CATBUS_TYPE_FIXED16 ) && ( dest_type == CATBUS_TYPE_FLOAT ) ){
+
+        // no change detection on this conversion
+
+        int32_t src = *(int32_t *)src_data;
+
+        float *dst = (float *)dest_data;
+
+        *dst = src / 65536.0;
+    }
+    // float to fixed16
+    else if( ( src_type == CATBUS_TYPE_FLOAT ) && ( dest_type == CATBUS_TYPE_FIXED16 ) ){
+
+        // no change detection on this conversion
+
+        float src = *(float *)src_data;
+
+        int32_t *dst = (int32_t *)dest_data;
+
+        *dst = (int32_t)(src * 65536.0);
+    }
     // numeric to numeric
     else if( !dst_string && !src_string ){
     
