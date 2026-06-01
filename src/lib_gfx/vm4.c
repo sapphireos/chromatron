@@ -515,6 +515,9 @@ PT_BEGIN( pt );
 
             goto end;
         }
+
+        // apply published vars
+        fini_published( state );
     }
     
     // log_v_debug_P( PSTR("VM init OK") );
