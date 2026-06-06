@@ -100,6 +100,20 @@ uint8_t usart_u8_bytes_available( uint8_t channel ){
     return size;
 }
 
+uint16_t usart_u16_bytes_available( uint8_t channel ){
+
+    size_t size = 0;
+
+    uart_get_buffered_data_len( channel, &size );
+
+    if( size > 65535 ){
+
+        size = 65535;
+    }
+
+    return size;
+}
+
 uint8_t usart_u8_get_bytes( uint8_t channel, uint8_t *ptr, uint8_t len ){
 
     uint8_t available = usart_u8_bytes_available( channel );
@@ -110,14 +124,40 @@ uint8_t usart_u8_get_bytes( uint8_t channel, uint8_t *ptr, uint8_t len ){
         len = available;
     }
 
-    uint8_t count = len;
+    // uint8_t count = len;
 
-    while( count > 0 ){
+    // while( count > 0 ){
 
-        count--;
+    //     count--;
 
-        *ptr++ = usart_i16_get_byte( channel );
-    }   
+    //     *ptr++ = usart_i16_get_byte( channel );
+    // }   
+
+    uart_read_bytes( channel, ptr, len, 0 );
+
+    return len;
+}
+
+uint16_t usart_u16_get_bytes( uint8_t channel, uint8_t *ptr, uint16_t len ){
+
+    uint16_t available = usart_u16_bytes_available( channel );
+
+    // limit len to amount of bytes actually present
+    if( len > available ){
+
+        len = available;
+    }
+
+    // uint8_t count = len;
+
+    // while( count > 0 ){
+
+    //     count--;
+
+    //     *ptr++ = usart_i16_get_byte( channel );
+    // }   
+
+    uart_read_bytes( channel, ptr, len, 0 );
 
     return len;
 }
