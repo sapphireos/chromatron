@@ -95,8 +95,8 @@ static uint16_t dec_count;
 KV_SECTION_META kv_meta_t superconductor_info_kv[] = {
     { CATBUS_TYPE_UINT16,     MAX_BANDS - 1, KV_FLAGS_READ_ONLY,  audio_data,     0,  "superconductor_data" },
 
-    { CATBUS_TYPE_UINT16,     0,             0,                   &dec_offset,    0,  "superconductor_dec_offset"},
-    { CATBUS_TYPE_UINT16,     0,             0,                   &dec_count,     0,  "superconductor_dec_count"},
+    { CATBUS_TYPE_UINT16,     0,             KV_FLAGS_PERSIST,    &dec_offset,    0,  "superconductor_dec_offset"},
+    { CATBUS_TYPE_UINT16,     0,             KV_FLAGS_PERSIST,    &dec_count,     0,  "superconductor_dec_count"},
 
 //     { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[0],    _sc_kv_handler,  "sc_bank0" },
 //     { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[1],    _sc_kv_handler,  "sc_bank1" },
@@ -167,13 +167,13 @@ void decimate( const uint16_t input_array[MAX_BANDS], uint16_t output_array[MAX_
         count = MAX_BANDS - offset - 1;
     }
 
-    for( uint16_t i = 0; i < count; i += factor ){
+    for( uint16_t i = 0; i < count; i++ ){
 
         uint32_t accum = 0;
 
         for( uint16_t j = 0; j < factor; j++ ){
 
-            accum += input_array[offset + i + j];
+            accum += input_array[offset + ( i * factor ) + j];
         }
 
         accum /= factor;
@@ -220,6 +220,7 @@ PT_BEGIN( pt );
 
         uint16_t *msg_data = (uint16_t *)( header + 1 );
 
+        memset( audio_data, 0, sizeof(audio_data) );
         decimate( msg_data, audio_data, dec_offset, dec_count );
 
         // memcpy(audio_data, msg_data, sizeof(audio_data));
