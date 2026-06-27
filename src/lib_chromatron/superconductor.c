@@ -91,12 +91,14 @@ static uint16_t audio_data[MAX_BANDS];
 
 static uint16_t dec_offset;
 static uint16_t dec_count;
+static uint16_t dec_range;
 
 KV_SECTION_META kv_meta_t superconductor_info_kv[] = {
     { CATBUS_TYPE_UINT16,     MAX_BANDS - 1, KV_FLAGS_READ_ONLY,  audio_data,     0,  "superconductor_data" },
 
     { CATBUS_TYPE_UINT16,     0,             KV_FLAGS_PERSIST,    &dec_offset,    0,  "superconductor_dec_offset"},
     { CATBUS_TYPE_UINT16,     0,             KV_FLAGS_PERSIST,    &dec_count,     0,  "superconductor_dec_count"},
+    { CATBUS_TYPE_UINT16,     0,             KV_FLAGS_PERSIST,    &dec_range,     0,  "superconductor_dec_range"},
 
 //     { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[0],    _sc_kv_handler,  "sc_bank0" },
 //     { CATBUS_TYPE_STRING32, 	0, 0,  				  &banks[1],    _sc_kv_handler,  "sc_bank1" },
@@ -141,14 +143,24 @@ static socket_t sock;
 // }
 
 
-void decimate( const uint16_t input_array[MAX_BANDS], uint16_t output_array[MAX_BANDS], uint16_t offset, uint16_t count ){
+void decimate( 
+    const uint16_t input_array[MAX_BANDS], 
+    uint16_t output_array[MAX_BANDS], 
+    uint16_t offset, 
+    uint16_t count,
+    uint16_t range ){
 
     if( count == 0 ){
 
         count = gfx_u16_get_pix_count();
     }
 
-    uint16_t factor = MAX_BANDS / count;
+    if( range == 0 ){
+
+        range = MAX_BANDS;
+    }
+
+    uint16_t factor = range / count;
 
     if( factor == 0 ){
 
@@ -156,15 +168,15 @@ void decimate( const uint16_t input_array[MAX_BANDS], uint16_t output_array[MAX_
         factor = 1;
     }
 
-    if( offset >= MAX_BANDS ){
+    if( offset >= range ){
 
         return;
     }
 
     // check bands
-    if( ( offset + count ) >= MAX_BANDS ){
+    if( ( offset + count ) >= range ){
 
-        count = MAX_BANDS - offset - 1;
+        count = range - offset - 1;
     }
 
     for( uint16_t i = 0; i < count; i++ ){
@@ -221,7 +233,7 @@ PT_BEGIN( pt );
         uint16_t *msg_data = (uint16_t *)( header + 1 );
 
         memset( audio_data, 0, sizeof(audio_data) );
-        decimate( msg_data, audio_data, dec_offset, dec_count );
+        decimate( msg_data, audio_data, dec_offset, dec_count, dec_range );
 
         // memcpy(audio_data, msg_data, sizeof(audio_data));
     }
