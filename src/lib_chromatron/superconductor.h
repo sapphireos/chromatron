@@ -38,6 +38,8 @@ typedef struct __attribute__((packed)){
 	uint32_t magic;
 	uint8_t msg_type;
 	uint8_t reserved[3];
+	uint16_t frame_number;
+	float signal_level;
 } sc_msg_hdr_t;
 
 // typedef struct __attribute__((packed)){
@@ -56,5 +58,7 @@ typedef struct __attribute__((packed)){
 
 
 void sc_v_init( void );
+void sc_v_start( void );
+void sc_v_stop( void );
 
 #endif

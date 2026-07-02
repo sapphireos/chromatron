@@ -30,6 +30,7 @@
 #include "cron.h"
 #include "link4.h"
 #include "sync4.h"
+#include "superconductor.h"
 
 static bool vm_reset[VM4_MAX_VMS];
 static bool vm_run[VM4_MAX_VMS];
@@ -679,6 +680,12 @@ PT_BEGIN( pt );
 
 end:
     vm_deinit( &state->vm );
+
+    // if stopping VM 0, stop superconductor
+    if( state->vm_id == 0 ){
+
+        sc_v_stop();        
+    }
 
     link4_v_delete_by_tag( state->vm_id );
     kvdb_v_clear_tag( 0, 1 << state->vm_id );

@@ -10,6 +10,7 @@
 #define DEVICE_DB_PORT    44638
 
 #define DEVICE_DB_MAGIC	  0x8127159A
+#define DEVICE_DB_VERSION 1
 
 #define DEVICE_DB_TICK    2 // seconds
 
@@ -19,6 +20,7 @@ typedef struct __attribute__((packed)){
 	uint16_t gfx_sub_dimmer;
 	uint32_t gfx_sync_group;
 	uint8_t gfx_enable;
+	bool superconductor;
 	uint16_t pixel_power;
 } device_gfx_t;
 
@@ -41,7 +43,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
 	uint32_t magic;
-	uint32_t flags;
+	uint16_t version;
 
 	// basic info
 	catbus_query_t query;
@@ -60,6 +62,7 @@ typedef struct __attribute__((packed)){
 	catbus_query_t tags;
     ip_addr4_t ip;
 	uint32_t gfx_sync_group;
+	bool superconductor;
 	uint64_t uptime;
 	uint8_t mode;
 	int16_t timeout;

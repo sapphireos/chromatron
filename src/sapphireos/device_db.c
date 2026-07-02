@@ -308,7 +308,7 @@ static void send_device_msg( void ){
 
 	device_msg_t msg = {
 		.magic = DEVICE_DB_MAGIC,
-		.flags = 0,
+		.version = DEVICE_DB_VERSION,
 		// .tags -> see below
 		// .gfx_sync_group = vm_sync_u32_get_sync_group_hash(),
 		.uptime = tmr_u64_get_system_time_ms(),
@@ -331,6 +331,7 @@ static void send_device_msg( void ){
 		kv_i8_get( __KV__gfx_master_dimmer, 	&msg.gfx.gfx_master_dimmer, 	sizeof(msg.gfx.gfx_master_dimmer) );
 		kv_i8_get( __KV__gfx_sub_dimmer, 		&msg.gfx.gfx_sub_dimmer, 		sizeof(msg.gfx.gfx_sub_dimmer) );
 		kv_i8_get( __KV__gfx_enable, 			&msg.gfx.gfx_enable, 			sizeof(msg.gfx.gfx_enable) );
+		kv_i8_get( __KV__superconductor_enabled,&msg.gfx.superconductor,		sizeof(msg.gfx.superconductor) );
 		kv_i8_get( __KV__pixel_power, 			&msg.gfx.pixel_power, 			sizeof(msg.gfx.pixel_power) );
 
 		if( kv_b_get_boolean( __KV__batt_enable ) ){
@@ -382,6 +383,11 @@ PT_BEGIN( pt );
             continue;
         }
 
+        if( msg->version != DEVICE_DB_VERSION ){
+
+        	continue;
+        }
+
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
 
@@ -396,6 +402,7 @@ PT_BEGIN( pt );
 	        	// update
 	        	device->tags 			= msg->query;
 	        	device->gfx_sync_group 	= msg->gfx.gfx_sync_group;
+	        	device->superconductor 	= msg->gfx.superconductor;
 	        	device->uptime          = msg->uptime;
 	        	device->mode          	= msg->mode;
 	        	device->timeout 		= DEVICE_DB_TIMEOUT;
@@ -412,6 +419,7 @@ PT_BEGIN( pt );
 	    	msg->query,
 	    	raddr.ipaddr,
 	    	msg->gfx.gfx_sync_group,
+	    	msg->gfx.superconductor,
 	    	msg->uptime,
 	    	msg->mode,
 	    	DEVICE_DB_TIMEOUT
