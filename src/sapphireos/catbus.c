@@ -1289,6 +1289,8 @@ PT_BEGIN( pt );
                 }
                 else{
 
+                    mem2_v_free( h );
+
                     // ASSERT( FALSE ); // all requested keys were already checked, so they must exist here
                     error = CATBUS_ERROR_KEY_NOT_FOUND;
                     goto end;
