@@ -98,7 +98,7 @@ static uint16_t dec_count;
 static uint16_t dec_range;
 
 KV_SECTION_META kv_meta_t superconductor_info_kv[] = {
-    { CATBUS_TYPE_FLOAT,      0,             KV_FLAGS_READ_ONLY,  &enabled,       0,  "superconductor_enabled" },
+    { CATBUS_TYPE_BOOL,       0,             KV_FLAGS_READ_ONLY,  &enabled,       0,  "superconductor_enabled" },
 
     { CATBUS_TYPE_UINT16,     MAX_BANDS - 1, KV_FLAGS_READ_ONLY,  audio_data,     0,  "superconductor_data" },
 
