@@ -124,6 +124,9 @@ static uint16_t dimmer_zero;
 static uint8_t channel_mask;
 #endif
 
+// "channel" number, used to organize units
+static uint8_t gfx_channel;
+
 
 #define DIMMER_LOOKUP_SIZE 256
 static uint16_t dimmer_lookup[DIMMER_LOOKUP_SIZE];
@@ -511,25 +514,25 @@ int8_t gfx_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
-    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_enable,                  0,                   "gfx_enable" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST,   &gfx_enable,                0,                   "gfx_enable" },
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_READ_ONLY, &sys_enable,                0,                   "gfx_sys_enable" },
     { CATBUS_TYPE_BOOL,       0, KV_FLAGS_READ_ONLY, &zero_output,               0,                   "gfx_zero_output" },
-    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_debug,                   0,                   "gfx_debug" },
-    { CATBUS_TYPE_BOOL,       0, 0,                0,                            gfx_i8_kv_handler,   "gfx_debug_reset" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,                   "gfx_sub_dimmer" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,                   "gfx_master_dimmer" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_max_dimmer,              0,                   "gfx_max_dimmer" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  0,                   "pix_size_x" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  0,                   "pix_size_y" },
-    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,                   "gfx_interleave_x" },
-    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                0,                   "gfx_invert_x" },
-    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,                   "gfx_transpose" },
-    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_mirror_array,            0,                   "gfx_mirror_array" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              gfx_i8_kv_handler,   "gfx_hsfade" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               gfx_i8_kv_handler,   "gfx_vfade" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &dimmer_fade,                 gfx_i8_kv_handler,   "gfx_dimmer_fade" },
-    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                gfx_i8_kv_handler,   "gfx_dimmer_curve" },
-    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   gfx_i8_kv_handler,   "gfx_sat_curve" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST,   &gfx_debug,                 0,                   "gfx_debug" },
+    { CATBUS_TYPE_BOOL,       0, 0,                  0,                          gfx_i8_kv_handler,   "gfx_debug_reset" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &pix_sub_dimmer,            0,                   "gfx_sub_dimmer" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &pix_master_dimmer,         0,                   "gfx_master_dimmer" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &pix_max_dimmer,            0,                   "gfx_max_dimmer" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &pix_size_x,                0,                   "pix_size_x" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &pix_size_y,                0,                   "pix_size_y" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST,   &gfx_interleave_x,          0,                   "gfx_interleave_x" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST,   &gfx_invert_x,              0,                   "gfx_invert_x" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST,   &gfx_transpose,             0,                   "gfx_transpose" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST,   &gfx_mirror_array,          0,                   "gfx_mirror_array" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &global_hs_fade,            gfx_i8_kv_handler,   "gfx_hsfade" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &global_v_fade,             gfx_i8_kv_handler,   "gfx_vfade" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &dimmer_fade,               gfx_i8_kv_handler,   "gfx_dimmer_fade" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &dimmer_curve,              gfx_i8_kv_handler,   "gfx_dimmer_curve" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &sat_curve,                 gfx_i8_kv_handler,   "gfx_sat_curve" },
     
     #ifdef DIMMER_ZERO_REMAP
     // these are only used for debug:
@@ -538,15 +541,17 @@ KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
     #endif
 
     #ifdef ENABLE_VIRTUAL_ARRAY
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         gfx_i8_kv_handler,   "gfx_varray_start" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        gfx_i8_kv_handler,   "gfx_varray_length" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &virtual_array_start,       gfx_i8_kv_handler,   "gfx_varray_start" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &virtual_array_length,      gfx_i8_kv_handler,   "gfx_varray_length" },
     #endif
 
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &gfx_frame_rate,            gfx_i8_kv_handler,   "gfx_frame_rate" },
     
     #ifdef ENABLE_CHANNEL_MASK
-    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &channel_mask,                0,                   "gfx_channel_mask" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &channel_mask,              0,                   "gfx_channel_mask" },
     #endif
+
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &gfx_channel,               0,                   "gfx_channel" },
 };
 
 
