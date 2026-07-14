@@ -371,7 +371,7 @@ PT_BEGIN( pt );
         //     THREAD_EXIT( pt );
         // }
 
-        EVENT(EVENT_ID_GFX_FADERS, 0);
+        EVENT(EVENT_ID_GFX_FADERS, vm_fader_time); // param is last fader time
 
         gfx_v_process_faders();
         calc_pixel_power();
