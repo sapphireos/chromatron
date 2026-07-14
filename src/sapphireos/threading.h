@@ -34,7 +34,8 @@
 #include "pt.h"
 #include "system.h"
 
-#define THREAD_MAX_NAME_LEN 64
+#include "threadinfo.h"
+
 
 #define THREAD_MAX_SIGNALS  16
 
@@ -79,19 +80,6 @@ typedef struct{
     uint32_t runs;
     uint32_t max_time;
 } thread_state_t;
-
-typedef struct __attribute__((packed)){
-    char name[THREAD_MAX_NAME_LEN];
-    uint16_t flags;
-    uint32_t thread_addr;
-    uint16_t data_size;
-    uint32_t run_time;
-    uint32_t runs;
-    uint16_t line;
-    uint64_t alarm;
-    uint32_t max_time;
-    uint8_t reserved[20];
-} thread_info_t;
 
 #define THREAD_FLAGS_WAITING		0b00000001
 #define THREAD_FLAGS_YIELDED		0b00000010

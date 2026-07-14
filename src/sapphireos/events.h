@@ -24,7 +24,11 @@
 #ifndef _EVENTS_H
 #define _EVENTS_H
 
-
+typedef struct{
+    catbus_hash_t32 event_id;
+    uint32_t param;
+    uint32_t timestamp;
+} event_t;
 
 #define EVENT_ID_EVT_LOG_INIT                   __KV__evt_log_init
 #define EVENT_ID_EVT_LOG_RECORD                 __KV__evt_log_record

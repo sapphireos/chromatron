@@ -49,14 +49,6 @@
 // #define EVENT_LOG_ONE_SHOT
 
 
-
-typedef struct{
-    catbus_hash_t32 event_id;
-    uint32_t param;
-    uint32_t timestamp;
-} event_t;
-
-
 #define EVENT_LOG_MAX_SIZE ( EVENT_LOG_MAX_ENTRIES * sizeof(event_t) )
 
 
