@@ -44,8 +44,8 @@
 #define ENABLE_AUX_BATTERY
 #define ENABLE_SOLAR
 #define ENABLE_LED_DETECT
-#define ENABLE_CONTROLLER
-#define ENABLE_BROKER
+// #define ENABLE_CONTROLLER
+#define ENABLE_EVENT_LOG
 
 // DEBUG!
 // Turn this off for normal operation!

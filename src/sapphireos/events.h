@@ -24,6 +24,10 @@
 #ifndef _EVENTS_H
 #define _EVENTS_H
 
+#include <stdint.h>
+
+#include "catbus_common.h"
+
 typedef struct{
     catbus_hash_t32 event_id;
     uint32_t param;
