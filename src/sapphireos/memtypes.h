@@ -24,6 +24,12 @@
 #define _MEMTYPES_H
 
 typedef uint8_t mem_type_t8;
+
+typedef struct __attribute__((packed)){
+    uint16_t size;
+    mem_type_t8 type;
+} mem_info_t;
+
 #define MEM_TYPE_UNKNOWN            0
 #define MEM_TYPE_NETMSG             1
 #define MEM_TYPE_THREAD             5
