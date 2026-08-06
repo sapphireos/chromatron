@@ -218,7 +218,6 @@ def get_firmware_package(name_or_fwid, release='build'):
     release_dir = os.path.join(PACKAGE_DIR, release)
 
     # test if UUID or name
-    name = None
     try:
         uuid.UUID(name_or_fwid.replace('-', ''))
         
@@ -239,8 +238,6 @@ def get_firmware_package(name_or_fwid, release='build'):
         raise FirmwarePackageNotFound(name_or_fwid)
 
     except ValueError:
-        name = name_or_fwid
-
         try:
             fw = FirmwarePackage(filepath=os.path.join(release_dir, name_or_fwid + '.zip'))
 
