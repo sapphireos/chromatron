@@ -523,7 +523,7 @@ PT_BEGIN( pt );
         fini_published( state );
     }
     
-    log_v_debug_P( PSTR("VM %d init OK"), state->vm_id );
+    // log_v_debug_P( PSTR("VM %d init OK"), state->vm_id );
 
     // thread_v_set_alarm( tmr_u32_get_system_time_ms() );
 
@@ -718,7 +718,7 @@ end:
 
     vm_threads[state->vm_id]    = -1;
 
-    log_v_info_P( PSTR("VM %d stop"), state->vm_id );
+    // log_v_info_P( PSTR("VM %d stop"), state->vm_id );
     
 PT_END( pt );
 }
