@@ -500,7 +500,7 @@ PT_BEGIN( pt );
 
     if( status < 0 ){
 
-        log_v_error_P( PSTR("VM load failed: %d"), status );
+        log_v_error_P( PSTR("VM %d load failed: %d"), state->vm_id, status );
 
         request_unfreeze = FALSE;
         goto end;
@@ -514,7 +514,7 @@ PT_BEGIN( pt );
 
         if( status < 0 ){
 
-            log_v_error_P( PSTR("VM init failed: %d"), status );
+            log_v_error_P( PSTR("VM %d init failed: %d"), state->vm_id, status );
 
             goto end;
         }
@@ -650,12 +650,12 @@ PT_BEGIN( pt );
 
         if( status < 0 ){
 
-            log_v_error_P( PSTR("VM error: %d"), status );
+            log_v_error_P( PSTR("VM %d error: %d"), state->vm_id, status );
             goto end;
         }
         else if( status == VM4_STATUS_NO_COROUTINE ){
 
-            log_v_info_P( PSTR("VM finished, no coroutines") );
+            log_v_info_P( PSTR("VM %d finished, no coroutines"), state->vm_id );
 
             goto end;
         }

@@ -371,6 +371,10 @@ PT_BEGIN( pt );
                     continue;
                 }
 
+                char s[32] = {0};
+                datetime_v_to_iso8601(s, sizeof(s), &cron_now);
+                log_v_debug_P(PSTR("%s"), s);
+
                 // run through job list
                 list_node_t ln = cron_list.head;
                 list_node_t next_ln;
