@@ -910,6 +910,12 @@ PT_END( pt );
 PT_THREAD( sync4_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+	
+	static uint8_t sync_interval;
+	sync_interval = 1;
+	
+	static uint8_t sync_timer;
+	sync_timer = sync_interval;
 
 	sync4_v_reset();
 
@@ -996,8 +1002,25 @@ PT_BEGIN( pt );
 
 			while( ( sync_state >= SYNC_STATE_DATA ) && sync4_b_is_follower() ){
 
-				thread_v_set_alarm( tmr_u32_get_system_time_ms() + 8000 );
+				thread_v_set_alarm( tmr_u32_get_system_time_ms() + 1000 );
 				THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && is_enabled() );
+
+				if(sync_timer > 0){
+
+					sync_timer--;
+				}
+
+				if(sync_timer != 0){
+
+					continue;
+				}
+
+				if(sync_interval < 8){
+
+					sync_interval++;
+				}
+
+				sync_timer = sync_interval;
 
 				if( !is_enabled() ){
 
