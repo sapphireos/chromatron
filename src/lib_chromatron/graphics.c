@@ -27,6 +27,7 @@
 #include "threading.h"
 #include "timers.h"
 #include "fs.h"
+#include "ffs_fw.h"
 
 #include "pixel.h"
 #include "pixel_vars.h"

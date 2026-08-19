@@ -196,7 +196,7 @@ KV_SECTION_META kv_meta_t vm4_debug_kv[] = {
 
     { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_net_delta,         0,                      "vm4_sync_delta_net" },
     { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_tick_delta,        0,                      "vm4_sync_delta_tick" },
-    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &_timing_adjust,     0,                      "vm4_sync_timing_adjust" },
+    // { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &_timing_adjust,     0,                      "vm4_sync_timing_adjust" },
 
     { CATBUS_TYPE_INT32,    3, KV_FLAGS_READ_ONLY, &debug_globals,      0,                      "vm4_debug_globals" },
 
@@ -413,36 +413,36 @@ static void fini_published( vm4_thread_state_t *state ){
     }
 }
 
-static uint16_t get_timing_adjust( int32_t tick_delta ){
+// static uint16_t get_timing_adjust( int32_t tick_delta ){
 
-    int16_t adjust = 0;
+//     int16_t adjust = 0;
 
-    // positive delta means server leads (this node lags)
-    // negative delta means server lags (this node leads)
+//     // positive delta means server leads (this node lags)
+//     // negative delta means server lags (this node leads)
 
-    int32_t abs_delta = abs32( tick_delta );
+//     int32_t abs_delta = abs32( tick_delta );
 
-    // if( abs_delta > 100 ){
+//     // if( abs_delta > 100 ){
 
-    //     adjust = 50;
-    // }
-    // else 
-    if( abs_delta > 50 ){
+//     //     adjust = 50;
+//     // }
+//     // else 
+//     if( abs_delta > 50 ){
 
-        adjust = 5;
-    }
-    else if( abs_delta > 2 ){
+//         adjust = 5;
+//     }
+//     else if( abs_delta > 2 ){
 
-        adjust = 1;
-    }
+//         adjust = 1;
+//     }
 
-    if( tick_delta < 0 ){
+//     if( tick_delta < 0 ){
 
-        adjust *= -1;
-    }
+//         adjust *= -1;
+//     }
 
-    return adjust;
-}
+//     return adjust;
+// }
 
 PT_THREAD( vm4_thread( pt_t *pt, vm4_thread_state_t *state ) )
 {
@@ -572,7 +572,7 @@ PT_BEGIN( pt );
 
             _tick_delta = tick_delta;
             _net_delta = net_delta;
-            _timing_adjust = get_timing_adjust( tick_delta );
+            // _timing_adjust = get_timing_adjust( tick_delta );
 
             // positive delta server leads
                 // we are behind, insert frame to catch up

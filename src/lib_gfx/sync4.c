@@ -23,6 +23,7 @@ static uint8_t sync_state;
 #define SYNC_STATE_DATA 	4
 #define SYNC_STATE_SYNCED 	5
 
+static bool enabled;
 
 
 int8_t sync4_i8_kv_handler(
@@ -39,12 +40,26 @@ int8_t sync4_i8_kv_handler(
             sync_group_hash = hash_u32_string( data );    
         }
     }
+    else if( op == KV_OP_GET ){
+
+        if( hash == __KV__sync_group ){
+
+        	if( enabled ){
+
+        		memcpy( data, &sync_group_hash, sizeof(sync_group_hash) );
+        	}
+            else{
+
+            	memset( data, 0, sizeof(sync_group_hash) );
+            }
+        }
+    }
 
     return 0;
 }
 
 KV_SECTION_META kv_meta_t sync4_kv[] = {
-	{ CATBUS_TYPE_BOOL,     0,		KV_FLAGS_PERSIST,   0,                  0,   				   "sync_enable" },
+	{ CATBUS_TYPE_BOOL,     0,		KV_FLAGS_PERSIST,   &enabled,           0,   				   "sync_enable" },
     { CATBUS_TYPE_STRING32, 0,		KV_FLAGS_PERSIST,   0,                  sync4_i8_kv_handler,   "sync_group" },
     { CATBUS_TYPE_UINT32,   0,  	KV_FLAGS_READ_ONLY, &sync_group_hash,   0,                     "sync_group_hash" },
     { CATBUS_TYPE_UINT8,    0,      KV_FLAGS_READ_ONLY, &sync_state,        0,                     "sync_state" },
@@ -66,7 +81,8 @@ static bool is_enabled(void){
 		return false;
 	}
 
-	return kv_b_get_boolean( __KV__sync_enable );
+	// return kv_b_get_boolean( __KV__sync_enable );
+	return enabled;
 }
 
 static void serialize_pixels( void ){
@@ -910,13 +926,10 @@ PT_THREAD( sync4_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
 	sync4_v_reset();
-	sync_group_hash = 0;
 
 	TMR_WAIT( pt, 1000 );
 
 	THREAD_WAIT_WHILE( pt, !is_enabled() );
-
-	sync_group_hash = hash_u32_string( data );
 
 	server_sock = sock_s_create( SOS_SOCK_DGRAM ); 
 
