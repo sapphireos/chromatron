@@ -910,10 +910,13 @@ PT_THREAD( sync4_thread( pt_t *pt, void *state ) )
 PT_BEGIN( pt );
 
 	sync4_v_reset();
+	sync_group_hash = 0;
 
 	TMR_WAIT( pt, 1000 );
 
 	THREAD_WAIT_WHILE( pt, !is_enabled() );
+
+	sync_group_hash = hash_u32_string( data );
 
 	server_sock = sock_s_create( SOS_SOCK_DGRAM ); 
 
