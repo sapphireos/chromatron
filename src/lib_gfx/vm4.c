@@ -194,15 +194,15 @@ KV_SECTION_META kv_meta_t vm4_debug_kv[] = {
     { CATBUS_TYPE_UINT64,   0, KV_FLAGS_READ_ONLY, 0,   _vm4_prog_kv_handler,                   "vm4_co0_tick" },
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY, 0,   _vm4_prog_kv_handler,                   "vm4_coroutine_count" },
 
-    { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_net_delta,         0,                            "vm4_delta_net" },
-    { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_tick_delta,        0,                           "vm4_delta_tick" },
-    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &_timing_adjust,     0,                           "vm4_timing_adjust" },
+    { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_net_delta,         0,                      "vm4_sync_delta_net" },
+    { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_tick_delta,        0,                      "vm4_sync_delta_tick" },
+    { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &_timing_adjust,     0,                      "vm4_sync_timing_adjust" },
 
-    { CATBUS_TYPE_INT32,    3, KV_FLAGS_READ_ONLY, &debug_globals,      0,                            "vm4_debug_globals" },
+    { CATBUS_TYPE_INT32,    3, KV_FLAGS_READ_ONLY, &debug_globals,      0,                      "vm4_debug_globals" },
 
-    { CATBUS_TYPE_UINT32,    0, KV_FLAGS_READ_ONLY, &frames,     0,                           "vm4_frames" },
-    { CATBUS_TYPE_UINT32,    0, KV_FLAGS_READ_ONLY, &added_frames,     0,                           "vm4_frames_skipped" },
-    { CATBUS_TYPE_UINT32,    0, KV_FLAGS_READ_ONLY, &skipped_frames,     0,                           "vm4_frames_added" },
+    { CATBUS_TYPE_UINT32,    0, KV_FLAGS_READ_ONLY, &frames,     0,                             "vm4_frames" },
+    { CATBUS_TYPE_UINT32,    0, KV_FLAGS_READ_ONLY, &added_frames,     0,                       "vm4_frames_skipped" },
+    { CATBUS_TYPE_UINT32,    0, KV_FLAGS_READ_ONLY, &skipped_frames,     0,                     "vm4_frames_added" },
 };
 
 static const char* vm_names[VM4_MAX_VMS] = {
