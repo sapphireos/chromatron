@@ -262,6 +262,14 @@ PT_BEGIN( pt );
 
     while(1){        
 
+        if( ffs_fw_u32_size( 0 ) == 0 ){
+
+            // if firmware has been erased, pause graphics for a while.
+            // we are probably loading firmware and graphics slow the process down.
+
+            TMR_WAIT( pt, 120000 );
+        }
+
         // #ifdef GFX_SYNC_FADERS
         // if( time_b_is_sync() ){
 
