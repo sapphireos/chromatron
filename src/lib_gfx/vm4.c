@@ -578,22 +578,20 @@ PT_BEGIN( pt );
                 // we are behind, insert frame to catch up
             // negative delta server lags
                 // we are ahead, skip frame to slow down
+        }
 
-            if( tick_delta > FADER_RATE ){
+        if( tick_delta > FADER_RATE ){
 
-                // we are behind, add a frame to catch up
-                state->vm.current_tick += FADER_RATE;
-                status = vm_run_tick( &state->vm, state->vm.current_tick );
-                state->vm.frame_number++;
+            // we are behind, add a frame to catch up
+            state->vm.current_tick += FADER_RATE;
+            status = vm_run_tick( &state->vm, state->vm.current_tick );
+            state->vm.frame_number++;
 
-                added_frames++;
-            }
-
+            added_frames++;
         }
 
         uint32_t start_time = tmr_u32_get_system_time_us();
 
-        
         if( tick_delta < -1 * FADER_RATE ){
 
             // we are ahead, skip frame to slow down
