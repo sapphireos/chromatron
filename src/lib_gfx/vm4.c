@@ -556,8 +556,6 @@ PT_BEGIN( pt );
 
         status = 0;
 
-        // state->vm.current_tick += FADER_RATE;
-
         if( state-> vm_id == 0 ){
 
             frames++;
