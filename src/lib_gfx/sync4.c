@@ -44,6 +44,7 @@ int8_t sync4_i8_kv_handler(
 }
 
 KV_SECTION_META kv_meta_t sync4_kv[] = {
+	{ CATBUS_TYPE_BOOL,     0,		KV_FLAGS_PERSIST,   0,                  0,   				   "sync_enable" },
     { CATBUS_TYPE_STRING32, 0,		KV_FLAGS_PERSIST,   0,                  sync4_i8_kv_handler,   "sync_group" },
     { CATBUS_TYPE_UINT32,   0,  	KV_FLAGS_READ_ONLY, &sync_group_hash,   0,                     "sync_group_hash" },
     // { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_state,        0,                      "gfx_sync_state" },
@@ -55,6 +56,21 @@ KV_SECTION_META kv_meta_t sync4_kv[] = {
 
 PT_THREAD( sync4_server_thread( pt_t *pt, void *state ) );
 PT_THREAD( sync4_thread( pt_t *pt, void *state ) );
+
+static bool is_enabled(void){
+
+	if(sync_group_hash == 0){
+
+		return false;
+	}
+
+	if(!vm4_b_is_vm_running( 0 )){
+
+		return false;
+	}
+
+	return kv_b_get_boolean( __KV__sync_enable );
+}
 
 static void serialize_pixels( void ){
 
@@ -175,6 +191,7 @@ void sync4_v_init( void ){
 
 void sync4_v_reset( void ){
 
+	leader_ip = ip_a_addr( 0, 0, 0, 0 );
 	sync_state = SYNC_STATE_IDLE;
 }
 
@@ -294,7 +311,13 @@ PT_BEGIN( pt );
 
 	while( sync4_b_is_leader() ){
 
-		THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( state->sock ) < 0 );
+		THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) && ( is_enabled() ) );
+
+		// check if enabled
+		if(!is_enabled()){
+
+			break;
+		}
 
 		if( sock_i16_get_bytes_read( state->sock ) <= 0 ){
 
@@ -411,6 +434,7 @@ PT_BEGIN( pt );
     while( TRUE ){
 
     	THREAD_WAIT_WHILE( pt, 
+    		( is_enabled() ) &&
             ( sock_i8_recvfrom( server_sock ) < 0 ) &&
              ( !sys_b_is_shutting_down() ) );
 
@@ -419,8 +443,15 @@ PT_BEGIN( pt );
 
             log_v_debug_P( PSTR("VM sync server shut down") );
 
-    		THREAD_EXIT( pt );
+    		goto done;
     	}
+
+    	// check if enabled
+		if(!is_enabled()){
+
+			// exit thread if not
+			goto done;
+		}
 
         sock_addr_t raddr;
         sock_v_get_raddr( server_sock, &raddr );
@@ -473,7 +504,7 @@ PT_BEGIN( pt );
         	}
         	else if( header->type == SYNC4_MSG_TYPE_CONNECT ){
 
-        		if( data_server_count > 0 ){
+        		if( data_server_count >= SYNC4_MAX_DATA_SERVERS ){
 
         			log_v_debug_P( PSTR("max data servers") );		
 
@@ -570,7 +601,7 @@ PT_BEGIN( pt );
 
         			int32_t delta = (int64_t)msg->current_tick - (int64_t)vm.current_tick;
 
-        			log_v_debug_P( PSTR("server tick: %12lld local tick: %12lld delta: %4ld time delta: %4ld"),
+        			log_v_debug_P( PSTR("sync: server tick: %12ld local tick: %12ld delta: %4ld time delta: %4ld"),
 				            msg->current_tick,
 				            vm.current_tick,
 				            delta,
@@ -622,6 +653,10 @@ PT_BEGIN( pt );
         	// neither
         }
     }
+
+done:
+	sock_v_release( server_sock );
+	server_sock = -1;
 
 PT_END( pt );
 }
@@ -706,7 +741,13 @@ PT_BEGIN( pt );
 		send_connect( state->sock );
 		log_v_debug_P( PSTR("send connect") );
 
-		THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( state->sock ) < 0 );
+		THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) && ( is_enabled() ) );
+
+		// check if enabled
+		if(!is_enabled()){
+
+			goto done;
+		}
 
 		if( sock_i16_get_bytes_read( state->sock ) <= 0 ){
 
@@ -762,7 +803,13 @@ PT_BEGIN( pt );
 			log_v_debug_P( PSTR("send data request %d rport: %d"), state->current_page, state->raddr.port );
 			send_data_request( state->sock, &state->raddr, state->current_page );
 				
-			THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( state->sock ) < 0 );
+			THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) && ( is_enabled() ) );
+
+			// check if enabled
+			if(!is_enabled()){
+
+				goto done;
+			}
 
 			if( sock_i16_get_bytes_read( state->sock ) <= 0 ){
 
@@ -909,7 +956,8 @@ PT_BEGIN( pt );
 
 
 error:
-	sync_state = SYNC_STATE_IDLE;
+	log_v_debug_P( PSTR("sync failed!") );
+	sync4_v_reset();
 
 done:
 
@@ -921,18 +969,16 @@ PT_END( pt );
 }
 
 
-
-
 PT_THREAD( sync4_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
 	sync_state = SYNC_STATE_IDLE;
 
-	TMR_WAIT( pt, 4000 );
-	// THREAD_WAIT_WHILE( pt, !time_b_is_sync() );
-	THREAD_WAIT_WHILE( pt, sync_group_hash == 0 );
-	THREAD_WAIT_WHILE( pt, !vm4_b_is_vm_running( 0 ) );
+	TMR_WAIT( pt, 1000 );
+
+	THREAD_WAIT_WHILE( pt, !is_enabled() );
+	
 	
 	thread_t_create( sync4_server_thread,
                     PSTR("sync4_server"),
@@ -941,35 +987,14 @@ PT_BEGIN( pt );
 	
 	while(1){
 
-		// // check for leader
-		// ip_addr4_t next_leader;
-		// if( !_query_leader( &next_leader ) ){
+		// check if enabled
+		if(!is_enabled()){
 
-		// 	// no leader
-		// 	leader_ip = ip_a_addr( 0, 0, 0, 0 );
+			sync4_v_reset();
 
-		// 	TMR_WAIT( pt, 1000 );
-
-		// 	THREAD_RESTART( pt );
-		// }
-
-		// // check for leader change
-		// if( !ip_b_addr_compare( next_leader, leader_ip ) ){
-
-		// 	// leader changed
-
-		// 	leader_ip = next_leader;
-
-		// 	log_v_debug_P( PSTR("Leader changed to %d.%d.%d.%d"),
-		// 		leader_ip.ip3,
-		// 		leader_ip.ip2,
-		// 		leader_ip.ip1,
-		// 		leader_ip.ip0
-		// 	);
-
-
-		// }
-
+			goto restart;
+		}
+		
 		// check if leader
 		if( sync4_b_is_leader() ){
 

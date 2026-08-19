@@ -476,7 +476,7 @@ PT_BEGIN( pt );
 
         status = vm_deserialize( &state->vm, "_sync.f4b" );
 
-        log_v_debug_P( PSTR("now: %lld current_tick: %lld frame_number: %lld rng: %lld"),
+        log_v_debug_P( PSTR("now: %ld current_tick: %ld frame_number: %ld rng: %ld"),
             tmr_u64_get_system_time_ms(),
             state->vm.current_tick,
             state->vm.frame_number,
@@ -487,7 +487,7 @@ PT_BEGIN( pt );
 
             coroutine_state_t *coroutine = (coroutine_state_t *)mem2_vp_get_ptr( state->vm.coroutines[0] );
 
-            log_v_debug_P( PSTR("co0 PC: %d locals: %d tick: %lld"), coroutine->current_pc, coroutine->locals_count, coroutine->tick );
+            log_v_debug_P( PSTR("co0 PC: %d locals: %d tick: %ld"), coroutine->current_pc, coroutine->locals_count, coroutine->tick );
         }
         
     }
@@ -945,7 +945,7 @@ void vm4_v_freeze_vm( uint8_t vm_id ){
         log_v_warn_P( PSTR("VM serialize failed: %d"), status );
     }
 
-    log_v_debug_P( PSTR("freeze current_tick: %lld frame_number: %lld rng: %lld"),
+    log_v_debug_P( PSTR("freeze current_tick: %ld frame_number: %ld rng: %ld"),
             thread_state->vm.current_tick,
             thread_state->vm.frame_number,
             thread_state->vm.rng_seed

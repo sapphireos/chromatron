@@ -13,6 +13,9 @@
 #define SYNC4_DATA_TYPE_VM			1
 #define SYNC4_DATA_TYPE_PIXELS		2
 
+#define SYNC4_MAX_DATA_SERVERS      2
+
+
 typedef struct __attribute__((packed)){
     uint32_t magic;
     uint8_t version;
