@@ -40,21 +40,7 @@ int8_t sync4_i8_kv_handler(
             sync_group_hash = hash_u32_string( data );    
         }
     }
-    else if( op == KV_OP_GET ){
-
-        if( hash == __KV__sync_group ){
-
-        	if( enabled ){
-
-        		memcpy( data, &sync_group_hash, sizeof(sync_group_hash) );
-        	}
-            else{
-
-            	memset( data, 0, sizeof(sync_group_hash) );
-            }
-        }
-    }
-
+   	
     return 0;
 }
 
