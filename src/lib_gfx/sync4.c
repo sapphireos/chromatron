@@ -416,18 +416,7 @@ PT_END( pt );
 PT_THREAD( sync4_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-
-    server_sock = sock_s_create( SOS_SOCK_DGRAM ); 
-
-    if( server_sock < 0 ){
-
-    	log_v_error_P( PSTR("alloc fail") );
-
-    	THREAD_EXIT( pt );
-    }
-
-    sock_v_bind( server_sock, SYNC4_SERVER_PORT );
-
+	
     while( TRUE ){
 
     	THREAD_WAIT_WHILE( pt, 
@@ -654,6 +643,8 @@ PT_BEGIN( pt );
 done:
 	sock_v_release( server_sock );
 	server_sock = -1;
+
+	log_v_debug_P( PSTR("server stop") );
 
 PT_END( pt );
 }
@@ -970,11 +961,22 @@ PT_THREAD( sync4_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-	sync_state = SYNC_STATE_IDLE;
+	sync4_v_reset();
 
 	TMR_WAIT( pt, 1000 );
 
 	THREAD_WAIT_WHILE( pt, !is_enabled() );
+
+	server_sock = sock_s_create( SOS_SOCK_DGRAM ); 
+
+    if( server_sock < 0 ){
+
+    	log_v_error_P( PSTR("alloc fail") );
+
+    	THREAD_EXIT( pt );
+    }
+
+    sock_v_bind( server_sock, SYNC4_SERVER_PORT );
 	
 	thread_t_create( sync4_server_thread,
                     PSTR("sync4_server"),
@@ -986,9 +988,7 @@ PT_BEGIN( pt );
 	while(1){
 
 		// check if enabled
-		if(!is_enabled()){
-
-			sync4_v_reset();
+		if( !is_enabled() ){
 
 			THREAD_RESTART( pt );
 		}
@@ -1000,10 +1000,7 @@ PT_BEGIN( pt );
 
 			sync_state = SYNC_STATE_LEADER;
 
-			THREAD_WAIT_WHILE( pt, sync4_b_is_leader() );
-
-			// while( sync4_b_is_leader() ){
-			// }
+			THREAD_WAIT_WHILE( pt, sync4_b_is_leader() && is_enabled() );
 		}
 		// check if follower
 		else if( sync4_b_is_follower() ){
@@ -1019,14 +1016,21 @@ PT_BEGIN( pt );
                     sizeof(data_client_state_t) );
 
 			THREAD_WAIT_WHILE( pt, 
+				is_enabled() &&
 				( sync_state == SYNC_STATE_CONNECT ) &&
 				sync4_b_is_follower()
 			);
 
 			THREAD_WAIT_WHILE( pt, 
+				is_enabled() &&
 				( sync_state == SYNC_STATE_SYNCING ) &&
 				sync4_b_is_follower()
 			);
+
+			if( !is_enabled() ){
+
+				THREAD_RESTART( pt );
+			}
 
 			if( sync_state != SYNC_STATE_DATA ){
 
@@ -1042,12 +1046,19 @@ PT_BEGIN( pt );
 
 			while( ( sync_state >= SYNC_STATE_DATA ) && sync4_b_is_follower() ){
 
-				TMR_WAIT( pt, 8000 );
+				thread_v_set_alarm( tmr_u32_get_system_time_ms() + 8000 );
+				THREAD_WAIT_WHILE( pt, thread_b_alarm_set() && is_enabled() );
+
+				if( !is_enabled() ){
+
+					THREAD_RESTART( pt );
+				}
 
 				send_sync_request( server_sock );
 			}
 
 			THREAD_WAIT_WHILE( pt, 
+				is_enabled() &&
 				( sync_state == SYNC_STATE_SYNCED ) &&
 				sync4_b_is_follower()
 			);
