@@ -979,11 +979,12 @@ PT_BEGIN( pt );
 
 	THREAD_WAIT_WHILE( pt, !is_enabled() );
 	
-	
 	thread_t_create( sync4_server_thread,
                     PSTR("sync4_server"),
                     0,
                     0 );
+
+	TMR_WAIT( pt, 200 );
 	
 	while(1){
 
@@ -992,7 +993,7 @@ PT_BEGIN( pt );
 
 			sync4_v_reset();
 
-			goto restart;
+			THREAD_RESTART( pt );
 		}
 		
 		// check if leader
