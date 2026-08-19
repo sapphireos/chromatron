@@ -675,21 +675,26 @@ PT_BEGIN( pt );
 
     while(1){
 
-        uint8_t buf[256];
+        for( uint8_t i = 0; i < 8; i++ ){
 
-        int16_t read_len = fs_i16_read( state->file, buf, sizeof(buf) );
+            uint8_t buf[256];
 
-        // check for end of file
-        if( read_len <= 0 ){
+            int16_t read_len = fs_i16_read( state->file, buf, sizeof(buf) );
 
-            break;
+            // check for end of file
+            if( read_len <= 0 ){
+
+                goto eof;
+            }
+
+            state->hash = hash_u32_partial( state->hash, buf, read_len );
         }
-
-        state->hash = hash_u32_partial( state->hash, buf, read_len );
 
         THREAD_YIELD( pt );
     }
 
+eof: {}
+    
     // send response
     catbus_msg_file_check_response_t msg;
     _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_FILE_CHECK_RESPONSE, state->transaction_id );
