@@ -525,8 +525,6 @@ PT_BEGIN( pt );
     
     // log_v_debug_P( PSTR("VM %d init OK"), state->vm_id );
 
-    // thread_v_set_alarm( tmr_u32_get_system_time_ms() );
-
     while( 1 ){
 
         // thread_v_set_alarm( thread_u32_get_alarm() + FADER_RATE );
@@ -536,8 +534,6 @@ PT_BEGIN( pt );
         //     !vm_reset[state->vm_id] );
 
         THREAD_WAIT_SIGNAL( pt, VM4_SIGNAL_0 + state->vm_id );
-
-        // uint64_t now = tmr_u64_get_system_time_ms();
         
         // check if running
         if( !vm_run[state->vm_id] ){
@@ -574,25 +570,11 @@ PT_BEGIN( pt );
             sync_time += FADER_RATE;
 
             tick_delta = (int64_t)sync_tick - (int64_t)state->vm.current_tick;
-            // int32_t net_delta  = (int32_t)sync_time - (int64_t)time_u32_get_network_time();
             int32_t net_delta  = (int32_t)sync_time - (int64_t)tmr_u32_get_system_time_ms();
 
             _tick_delta = tick_delta;
             _net_delta = net_delta;
             _timing_adjust = get_timing_adjust( tick_delta );
-
-            // state->vm.current_tick += _timing_adjust;
-
-            // for( uint8_t i = 0; i < MAX_COROUTINES; i++ ){
-
-            //     if( state->vm.coroutines[i] <= 0 ){
-
-            //         continue;
-            //     }
-
-            //     coroutine_state_t *coroutine = (coroutine_state_t *)mem2_vp_get_ptr( state->vm.coroutines[i] );
-            //     coroutine->tick += _timing_adjust;
-            // }
 
             // positive delta server leads
                 // we are behind, insert frame to catch up
@@ -627,10 +609,6 @@ PT_BEGIN( pt );
             state->vm.frame_number++;
         }
 
-        // // status = vm_run_tick( &state->vm, thread_u32_get_alarm() );
-        // status = vm_run_tick( &state->vm, state->vm.current_tick );
-        // state->vm.frame_number++;
-
         uint32_t elapsed_us = tmr_u32_elapsed_time_us( start_time );
 
         const int32_t *globals = (int32_t *)array_get_data( state->vm.globals_list );
@@ -645,8 +623,6 @@ PT_BEGIN( pt );
             debug_globals[i] = globals[i];
         }
 
-
-        
 
         if( status < 0 ){
 
@@ -985,56 +961,4 @@ void vm4_v_sync( uint32_t net_time, uint64_t current_tick ){
 
     sync_time = net_time;
     sync_tick = current_tick;   
-
-    // vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
-
-    // int32_t tick_delta = (int64_t)sync_tick - (int64_t)thread_state->vm.current_tick;
-
-    // log_v_debug_P( PSTR("tick delta %ld"), tick_delta );
 }   
-
-
-
-// legacy stubs
-
-// uint32_t vm4_u32_get_sync_data_hash( void ){
-
-//     return 0;    
-// }
-
-// uint16_t vm4_u16_get_sync_data_len( void ){
-
-//     return 0;    
-// }
-
-// int32_t* vm4_i32p_get_sync_data( void ){
-
-//     return 0;
-// }
-
-// vm_t* vm4_p_get_vm_state( void ){
-
-//     if( vm_threads[0] < 0 ){
-
-//         return 0;
-//     }
-
-//     vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[0] );
-
-//     return &thread_state->vm;
-// }
-
-// uint64_t vm4_u64_get_sync_tick( void ){
-
-//     return 0;
-// }
-
-// uint32_t vm4_u32_get_sync_time( void ){
-
-//     return 0;
-// }
-
-// void vm4_v_sync( uint32_t net_time, uint64_t sync_tick ){
-
-
-// }

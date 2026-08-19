@@ -199,9 +199,6 @@ bool sync4_b_is_sync( void ){
 
 bool _query_leader( ip_addr4_t *ip ){
 
-    // set leader to 0s
-    // leader_ip = ip_a_addr( 0, 0, 0, 0 );
-
     *ip = ip_a_addr( 0, 0, 0, 0 );
 
     // check if we have a sync group
@@ -416,7 +413,7 @@ PT_END( pt );
 PT_THREAD( sync4_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-	
+
     while( TRUE ){
 
     	THREAD_WAIT_WHILE( pt, 
@@ -474,8 +471,6 @@ PT_BEGIN( pt );
         			.rng_seed 			= vm.rng_seed,
         			.frame_number 		= vm.frame_number,
 
-        			// .net_time_client	= msg->net_time,
-        			// .net_time_server    = time_u32_get_network_time()
         			.net_time_client	= msg->net_time,
         			.net_time_server    = tmr_u32_get_system_time_ms()
         		};
@@ -568,70 +563,23 @@ PT_BEGIN( pt );
         		// compute basic RTT
         		int32_t rtt = time_delta / 2;
 
-        		// int32_t delta = (int64_t)msg->net_time_server - (int64_t)msg->net_time_client;
+    			vm_t vm = {0};
+    			vm4_v_get_vm_state( &vm, 0 );
 
+    			int32_t delta = (int64_t)msg->current_tick - (int64_t)vm.current_tick;
 
-        		// if( sync_state != SYNC_STATE_SYNCED ){
+    			log_v_debug_P( PSTR("sync: server tick: %12ld local tick: %12ld delta: %4ld time delta: %4ld"),
+			            msg->current_tick,
+			            vm.current_tick,
+			            delta,
+			            time_delta
+			        );
 
-	        		// log_v_debug_P( PSTR("rx sync tick: %lld frame: %lld rng: %lld server %ld client %ld delta: %ld"),
-				    //         msg->current_tick,
-				    //         msg->frame_number,
-				    //         msg->rng_seed,
-				    //         msg->net_time_server,
-				    //         msg->net_time_client,
-				    //         delta
-				    //     );
-
-        			vm_t vm = {0};
-        			vm4_v_get_vm_state( &vm, 0 );
-
-        			int32_t delta = (int64_t)msg->current_tick - (int64_t)vm.current_tick;
-
-        			log_v_debug_P( PSTR("sync: server tick: %12ld local tick: %12ld delta: %4ld time delta: %4ld"),
-				            msg->current_tick,
-				            vm.current_tick,
-				            delta,
-				            time_delta
-				        );
-
-				   	// log_v_debug_P( PSTR("rx sync tick: %lld frame: %lld now %ld client %ld delta: %ld"),
-				    //         msg->current_tick,
-				    //         msg->frame_number,
-				    //         now,
-				    //         msg->net_time_client,
-				    //         delta
-				    //     );
-	        	// }
-
-        		// if( delta < 0 ){
-
-        			// negative delta indicates time sync may have been adjusted
-        			// or possibly the packet time traveled.
-        			// in any case, we can't do a sync if we violated
-        			// causality.
-
-        		// 	continue;
-
-        		// }
-        		// else if( delta > 200 ){
-
-        		// 	// uncertainty in the RTT is proportional to the
-        		// 	// total delta, so high deltas should be skipped.
-
-        		// 	continue;
-        		// }
-
-
-        		// compute adjusted sync time
-        		// uint32_t sync_time = msg->net_time_server - rtt;
-        		// uint32_t sync_time = now - rtt;
-        		uint32_t sync_time = now;
-
+			
         		sync_state = SYNC_STATE_SYNCED;
 
         		// sync
-        		vm4_v_sync( sync_time, msg->current_tick + rtt );
-        		// vm4_v_sync( sync_time, msg->current_tick );
+        		vm4_v_sync( now, msg->current_tick + rtt );
         	}
         }
         else{
