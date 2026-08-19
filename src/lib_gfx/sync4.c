@@ -569,8 +569,8 @@ PT_BEGIN( pt );
     			int32_t delta = (int64_t)msg->current_tick - (int64_t)vm.current_tick;
 
     			log_v_debug_P( PSTR("sync: server tick: %12ld local tick: %12ld delta: %4ld time delta: %4ld"),
-			            msg->current_tick,
-			            vm.current_tick,
+			            (uint32_t)msg->current_tick,
+			            (uint32_t)vm.current_tick,
 			            delta,
 			            time_delta
 			        );

@@ -478,9 +478,9 @@ PT_BEGIN( pt );
 
         log_v_debug_P( PSTR("now: %ld current_tick: %ld frame_number: %ld rng: %ld"),
             tmr_u64_get_system_time_ms(),
-            state->vm.current_tick,
-            state->vm.frame_number,
-            state->vm.rng_seed
+            (uint32_t)state->vm.current_tick,
+            (uint32_t)state->vm.frame_number,
+            (uint32_t)state->vm.rng_seed
         );
 
         if( vm_get_coroutine_count( &state->vm ) > 0 ){
