@@ -47,11 +47,8 @@ KV_SECTION_META kv_meta_t sync4_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0,		KV_FLAGS_PERSIST,   0,                  0,   				   "sync_enable" },
     { CATBUS_TYPE_STRING32, 0,		KV_FLAGS_PERSIST,   0,                  sync4_i8_kv_handler,   "sync_group" },
     { CATBUS_TYPE_UINT32,   0,  	KV_FLAGS_READ_ONLY, &sync_group_hash,   0,                     "sync_group_hash" },
-    // { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_state,        0,                      "gfx_sync_state" },
-    { CATBUS_TYPE_IPv4,     0,      KV_FLAGS_READ_ONLY, &leader_ip,         0,                      "sync_leader_ip" },
-    // { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_least_hits,   0,                      "gfx_sync_least_hits" },
-    // { CATBUS_TYPE_UINT8,    0,                          KV_FLAGS_READ_ONLY, &sync_most_hits,    0,                      "gfx_sync_most_hits" },
-    // { CATBUS_TYPE_UINT32,   0,                          KV_FLAGS_READ_ONLY, &sync_losses,       0,                      "gfx_sync_sync_losses" },
+    { CATBUS_TYPE_UINT8,    0,      KV_FLAGS_READ_ONLY, &sync_state,        0,                     "sync_state" },
+    { CATBUS_TYPE_IPv4,     0,      KV_FLAGS_READ_ONLY, &leader_ip,         0,                     "sync_leader_ip" },
 };
 
 PT_THREAD( sync4_server_thread( pt_t *pt, void *state ) );
