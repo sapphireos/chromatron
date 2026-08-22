@@ -53,7 +53,6 @@ static uint64_t sync_tick;
 
 static int64_t _tick_delta;
 static int32_t _net_delta;
-static int16_t _timing_adjust;
 
 static int32_t debug_globals[4];
 
@@ -196,7 +195,6 @@ KV_SECTION_META kv_meta_t vm4_debug_kv[] = {
 
     { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_net_delta,         0,                      "vm4_sync_delta_net" },
     { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_tick_delta,        0,                      "vm4_sync_delta_tick" },
-    // { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &_timing_adjust,     0,                      "vm4_sync_timing_adjust" },
 
     { CATBUS_TYPE_INT32,    3, KV_FLAGS_READ_ONLY, &debug_globals,      0,                      "vm4_debug_globals" },
 
@@ -572,7 +570,6 @@ PT_BEGIN( pt );
 
             _tick_delta = tick_delta;
             _net_delta = net_delta;
-            // _timing_adjust = get_timing_adjust( tick_delta );
 
             // positive delta server leads
                 // we are behind, insert frame to catch up
