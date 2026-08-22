@@ -46,14 +46,17 @@ void vm_v_sync( uint32_t ts, uint64_t ticks );
 
 uint32_t vm_u32_get_sync_time( void );
 uint64_t vm_u64_get_sync_tick( void );
-uint32_t vm_u32_get_checkpoint( void );
-uint32_t vm_u32_get_checkpoint_hash( void );
+// uint32_t vm_u32_get_checkpoint( void );
+// uint32_t vm_u32_get_checkpoint_hash( void );
+// void vm_v_clear_checkpoint( void );
 
 uint64_t vm_u64_get_tick( void );
 uint64_t vm_u64_get_frame( void );
-uint32_t vm_u32_get_data_hash( void );
-uint16_t vm_u16_get_data_len( void );
-int32_t* vm_i32p_get_data( void ); 
+uint32_t vm_u32_get_sync_data_hash( void );
+uint16_t vm_u16_get_sync_data_len( void );
+int32_t* vm_i32p_get_sync_data( void ); 
 vm_state_t* vm_p_get_state( void );
+
+void vm_v_add_published_var( uint8_t index, catbus_hash_t32 hash, catbus_type_t8 type, uint8_t flags, uint8_t vm_id );
 
 #endif

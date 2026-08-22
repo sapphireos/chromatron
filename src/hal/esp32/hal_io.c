@@ -154,6 +154,37 @@ static const gpio_num_t gpios_elite[IO_PIN_COUNT] = {
     GPIO_NUM_2,  // IO_PIN_LED2
 };
 
+static const gpio_num_t gpios_charger_3_1[IO_PIN_COUNT] = {
+    GPIO_NUM_13, // IO_PIN_13_A12 
+    GPIO_NUM_12, // IO_PIN_12_A11 
+    GPIO_NUM_27, // IO_PIN_27_A10 
+    GPIO_NUM_33, // IO_PIN_33_A9  
+    GPIO_NUM_15, // IO_PIN_15_A8  
+    GPIO_NUM_32, // IO_PIN_32_A7  
+    GPIO_NUM_14, // IO_PIN_14_A6  
+    GPIO_NUM_22, // IO_PIN_22_SCL 
+    GPIO_NUM_23, // IO_PIN_23_SDA 
+    GPIO_NUM_21, // IO_PIN_21     
+    GPIO_NUM_17, // IO_PIN_17_TX  
+    GPIO_NUM_16, // IO_PIN_16_RX  
+    GPIO_NUM_19, // IO_PIN_19_MISO
+    GPIO_NUM_18, // IO_PIN_18_MOSI
+    GPIO_NUM_5,  // IO_PIN_5_SCK  
+    GPIO_NUM_4,  // IO_PIN_4_A5   
+    GPIO_NUM_36, // IO_PIN_36_A4  
+    GPIO_NUM_39, // IO_PIN_39_A3  
+    GPIO_NUM_34, // IO_PIN_34_A2  
+    GPIO_NUM_25, // IO_PIN_25_A1  
+    GPIO_NUM_26, // IO_PIN_26_A0  
+
+    // RGB pin mapping is different on charger 3.1
+    GPIO_NUM_2, // IO_PIN_LED0 
+    GPIO_NUM_0, // IO_PIN_LED1
+    GPIO_NUM_15,// IO_PIN_LED2
+};
+
+static io_int_handler_t int_handlers[IO_PIN_COUNT];
+
 static const gpio_num_t *gpios = gpios_v0_1;
 
 int32_t hal_io_i32_get_gpio_num( uint8_t pin ){
@@ -207,6 +238,14 @@ void io_v_init( void ){
 
         gpios = gpios_elite;
     }
+    else if( board == BOARD_TYPE_CHARGER_3_1 ){
+
+        gpios = gpios_charger_3_1;
+    }
+    else if( board == BOARD_TYPE_2025 ){
+
+        gpios = gpios_charger_3_1;
+    }
     else{
 
         trace_printf("Unknown board type, setting default IO map.\r\n");
@@ -232,7 +271,50 @@ void io_v_set_mode( uint8_t pin, io_mode_t8 mode ){
     // need to reset pin first to initialize it.
     gpio_reset_pin( gpio );
 
-    if( mode == IO_MODE_INPUT ){
+    if( ( gpio == GPIO_NUM_32 ) || ( gpio == GPIO_NUM_33 ) ){ // special handling for GPIO 32 and 33
+
+        // don't need this:
+        // gpio_pad_select_gpio( gpio );
+        // rtc_gpio_deinit( gpio );
+        // don't need this:
+        // REG_CLR_BIT(RTC_IO_XTAL_32K_PAD_REG, RTC_IO_X32P_MUX_SEL);
+        // REG_CLR_BIT(RTC_IO_XTAL_32K_PAD_REG, RTC_IO_X32N_MUX_SEL);
+
+        uint64_t gpio_bit_mask = (uint64_t)1 << gpio;
+
+        gpio_config_t io_conf;
+        io_conf.intr_type = GPIO_INTR_DISABLE;
+        io_conf.mode = GPIO_MODE_INPUT;
+        io_conf.pin_bit_mask = gpio_bit_mask;
+        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+        
+        if( mode == IO_MODE_INPUT ){
+
+            io_conf.mode = GPIO_MODE_INPUT;
+        }
+        else if( mode == IO_MODE_INPUT_PULLUP ){
+
+            io_conf.mode = GPIO_MODE_INPUT;
+            io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+        }
+        else if( mode == IO_MODE_INPUT_PULLDOWN ){
+
+            io_conf.mode = GPIO_MODE_INPUT;
+            io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+        }
+        else if( mode == IO_MODE_OUTPUT ){
+
+            io_conf.mode = GPIO_MODE_OUTPUT;
+        }
+        else if( mode == IO_MODE_OUTPUT_OPEN_DRAIN ){
+
+            io_conf.mode = GPIO_MODE_OUTPUT_OD;
+        }
+        
+        gpio_config( &io_conf );
+    }
+    else if( mode == IO_MODE_INPUT ){
 
         gpio_set_direction( gpio, GPIO_MODE_INPUT );
         gpio_set_pull_mode( gpio, GPIO_FLOATING );
@@ -314,12 +396,50 @@ void io_v_disable_jtag( void ){
 
 }
 
+static void IRAM_ATTR gpio_interrupt_handler(void *args)
+{
+    int pin = (int)args;
+
+    int_handlers[pin]();
+}
+
 void io_v_enable_interrupt(
     uint8_t int_number,
     io_int_handler_t handler,
     io_int_mode_t8 mode )
 {
+    #ifndef BOOTLOADER
 
+    ASSERT( int_number < IO_PIN_COUNT );
+    gpio_num_t gpio = gpios[int_number];
+
+    gpio_int_type_t int_type = GPIO_INTR_DISABLE;
+
+    if( mode == IO_INT_LOW ){
+
+        int_type = GPIO_INTR_LOW_LEVEL;
+    }
+    else if( mode == IO_INT_CHANGE ){
+
+        int_type = GPIO_INTR_ANYEDGE;
+    }
+    else if( mode == IO_INT_FALLING ){
+
+        int_type = GPIO_INTR_NEGEDGE;
+    }
+    else if( mode == IO_INT_RISING ){
+
+        int_type = GPIO_INTR_POSEDGE;
+    }
+
+    gpio_set_intr_type( gpio, int_type );
+
+    int_handlers[int_number] = handler;
+
+    gpio_install_isr_service( 0 );
+    gpio_isr_handler_add( gpio, gpio_interrupt_handler, (void *)(uint32_t)int_number );
+
+    #endif
 }
 
 void io_v_disable_interrupt( uint8_t int_number )

@@ -192,8 +192,9 @@ def is_wildcard(key):
 logging_initalized = False
 
 DEFAULT_FORMAT = '%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(yellow)s[%(thread)d] %(purple)s%(module)s %(white)s%(message)s'
+DEFAULT_FORMAT_NO_THREAD = '%(log_color)s%(levelname)s %(blue)s%(asctime)s.%(msecs)03d %(purple)s%(module)s %(white)s%(message)s'
 
-def setup_basic_logging(console=True, filename=None, level=logging.DEBUG, log_format=DEFAULT_FORMAT):
+def setup_basic_logging(console=True, filename=None, show_thread=True, level=logging.DEBUG, log_format=DEFAULT_FORMAT):
     global logging_initalized
 
     if logging_initalized:
@@ -212,6 +213,10 @@ def setup_basic_logging(console=True, filename=None, level=logging.DEBUG, log_fo
     if console:
         handler = colorlog.StreamHandler()
         handler.setLevel(level)
+
+        if not show_thread:
+            log_format = DEFAULT_FORMAT_NO_THREAD
+            
         formatter = colorlog.ColoredFormatter(log_format, 
                                                 datefmt=dt_format,
                                                 log_colors={
@@ -219,7 +224,7 @@ def setup_basic_logging(console=True, filename=None, level=logging.DEBUG, log_fo
                                                     'INFO':     'green',
                                                     'WARNING':  'yellow',
                                                     'ERROR':    'red',
-                                                    'CRITICAL': 'red,bg_white',
+                                                    'CRITICAL': 'black,bg_red',
                                                 })
         handler.setFormatter(formatter)
         root.addHandler(handler)
@@ -247,3 +252,32 @@ def setup_basic_logging(console=True, filename=None, level=logging.DEBUG, log_fo
     #                     logging.handlers.DEFAULT_TCP_LOGGING_PORT)
 
     # root.addHandler(socket_handler)
+
+
+"""High-level support for working with threads in asyncio"""
+
+
+import functools
+import contextvars
+
+from asyncio import events
+
+
+__all__ = "to_thread",
+
+
+async def to_thread(func, /, *args, **kwargs):
+    """Asynchronously run function *func* in a separate thread.
+
+    Any *args and **kwargs supplied for this function are directly passed
+    to *func*. Also, the current :class:`contextvars.Context` is propagated,
+    allowing context variables from the main thread to be accessed in the
+    separate thread.
+
+    Return a coroutine that can be awaited to get the eventual result of *func*.
+    """
+    loop = events.get_running_loop()
+    ctx = contextvars.copy_context()
+    func_call = functools.partial(ctx.run, func, *args, **kwargs)
+    return await loop.run_in_executor(None, func_call)
+

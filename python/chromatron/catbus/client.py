@@ -48,14 +48,16 @@ SYSTEM_HASHES = {catbus_string_hash(k): k for k in SYSTEM_KEYS}
 
 
 import random
+from sapphire.common.util import to_thread
 
 
 class BaseClient(object):
-    def __init__(self, host=None, universe=0, default_port=CATBUS_MAIN_PORT):
+    def __init__(self, host=None, universe=0, default_port=CATBUS_MAIN_PORT, initial_timeout=0.3):
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         self.default_port = default_port
         self.universe = universe
+        self.initial_timeout = initial_timeout
 
         try:
             os.makedirs(firmware_package.data_dir())
@@ -68,6 +70,13 @@ class BaseClient(object):
         if host is not None:
             self.connect(host)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+        return False
+
     def __str__(self):
         return f'BaseClient({self._connected_host})'
 
@@ -75,7 +84,10 @@ class BaseClient(object):
     def local_port(self):
         return self._sock.getsockname()[1]
 
-    def _exchange(self, msg, host=None, timeout=0.3, tries=16):
+    def _exchange(self, msg, host=None, timeout=None, tries=16):
+        if timeout is None:
+            timeout = self.initial_timeout
+
         msg.header.universe = self.universe
 
         self._sock.settimeout(timeout)
@@ -119,6 +131,9 @@ class BaseClient(object):
             except socket.error:
                 pass
 
+            timeout += 0.1
+            self._sock.settimeout(timeout)
+
         raise NoResponseFromHost(msg.header.msg_type, host)
 
     def flush(self):
@@ -145,6 +160,8 @@ class BaseClient(object):
 
         self._connected_host = host
 
+    def close(self):
+        self._sock.close()
 
 class Client(BaseClient):
     def __init__(self, host=None, universe=0, **kwargs):
@@ -156,7 +173,8 @@ class Client(BaseClient):
         self.nodes = {}
         self._meta = {}
 
-        self._filelock = FileLock(CACHE_LOCK, timeout=1)
+        self._filelock = FileLock(CACHE_LOCK, timeout=4)
+        self._cache = self._get_cache_data()
 
     def __str__(self):
         return f'Client({self._connected_host})'
@@ -194,12 +212,22 @@ class Client(BaseClient):
                     with open(DATA_DIR_FILE_PATH_ALT, 'r') as f:
                         file_data = f.read()
 
-                return json.loads(file_data)
+                temp = json.loads(file_data)
+
+                cache = {}
+
+                # have to convert keys back to int because json only does string keys
+                for k, v in temp.items():
+                    cache[int(k)] = v
+
+                return cache
 
             except IOError:
                 return {}
 
     def _update_cache(self, cache):
+        self._cache.update(cache)
+
         with self._filelock:
             # get current cache from file
 
@@ -252,18 +280,14 @@ class Client(BaseClient):
                     # ensure file is committed to disk
                     f.flush()
 
-    def lookup_hash(self, *args, skip_cache=False):
-        cache = {}
+    def add_hashes(self, *args):
+        for arg in args:
+            h = catbus_string_hash(arg)
+            self._cache[h] = arg
+
+    def lookup_hash(self, *args, skip_cache=False, host=None):
+        cache = self._cache
         
-        if not skip_cache:
-            # open cache file
-            temp = self._get_cache_data()
-
-            cache = {}
-            # have to convert keys back to int because json only does string keys
-            for k, v in temp.items():
-                cache[int(k)] = v
-
         resolved_keys = {}
         cache.update(SYSTEM_HASHES)
 
@@ -302,7 +326,7 @@ class Client(BaseClient):
 
             msg = LookupHashMsg(hashes=hashes)
 
-            response, sender = self._exchange(msg)
+            response, sender = self._exchange(msg, host=host)
 
             for i in range(len(response.keys)):
                 key = response.keys[i]
@@ -913,6 +937,132 @@ class Client(BaseClient):
             d[response.filename] = {'size': response.filesize, 'flags': response.flags, 'filename': response.filename}
 
         return d
+
+
+import threading
+from copy import deepcopy
+
+class BackgroundClient(threading.Thread):
+    def __init__(self, host, rate=2.0, semaphore=None):
+        super().__init__()
+
+        self._host = host
+        self._client = Client(host)
+        self._rate = rate
+        self._semaphore = semaphore
+
+        self._keys = ['wifi_rssi']
+        self._set_kv = {}
+        self._data = {}
+        self._last_update = None
+        self._connection_failed = False
+
+        self._lock = threading.Lock()
+
+        self._stop_event = threading.Event()
+
+        self.daemon = True
+        self.start()
+
+    def _subscribe_keys(self, keys=[]):
+        for k in keys:
+            if k not in self._keys:
+                self._keys.append(k)
+
+    def subscribe_keys(self, keys=[]):
+        with self._lock:
+            self._subscribe_keys(keys)
+            
+    def set_keys(self, data={}):
+        with self._lock:
+            self._set_kv.update(data)   
+
+            # setting a key implies subscribing to it
+            self._subscribe_keys(self._set_kv.keys())
+            
+    def _update_kv(self, keys=None):
+        if keys is None:
+            keys = self._keys
+
+        try:
+            data = self._client.get_keys(keys)
+
+            with self._lock:
+                self._data.update(data)
+
+        except KeyError:
+            pass
+
+
+    def poll(self):
+        if self._semaphore:
+            self._semaphore.acquire()
+
+        try:
+            if len(self._set_kv) > 0:
+                with self._lock:
+                    kv = deepcopy(self._set_kv)
+                    self._set_kv = {}
+
+                self._client.set_keys(**kv)
+            
+            self._update_kv()
+
+            self._last_update = time.time()
+
+        except NoResponseFromHost:
+            print(f"{self._host} failed")
+            self._connection_failed = True 
+            
+        finally:
+            if self._semaphore:
+                self._semaphore.release()
+
+        
+
+    @property
+    def data(self):
+        with self._lock:
+            return deepcopy(self._data)
+
+    def run(self):
+        while not self._stop_event.is_set():
+    
+            self.poll()
+
+            time.sleep(self._rate)
+
+    def stop(self):
+        self._stop_event.set()
+        
+
+# class AsyncClient(Client):
+#     async def ping(self):
+#         return await to_thread(super().ping())
+
+#     async def lookup_hash(self, *args, **kwargs):
+#         return await to_thread(super().lookup_hash, *args, **kwargs)
+
+#     async def get_directory(self, *args, **kwargs):
+#         return await to_thread(super().get_directory, *args, **kwargs)
+
+#     async def discover(self, *args, **kwargs):
+#         return await to_thread(super().discover, *args, **kwargs)
+
+#     async def get_meta(self, *args, **kwargs):
+#         return await to_thread(super().get_meta, *args, **kwargs)
+
+#     async def get_keys(self, *args, **kwargs):
+#         return await to_thread(super().get_keys, *args, **kwargs)
+
+#     # async def get_key(self, *args, **kwargs):
+#         # return await to_thread(super().get_key, *args, **kwargs)
+#     async def get_key(self, key):
+#         try:
+#             return (await self.get_keys(key))[key]
+
+#         except KeyError:
+#             raise KeyError(key)
 
 
 if __name__ == '__main__':

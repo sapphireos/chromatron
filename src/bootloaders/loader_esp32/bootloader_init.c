@@ -37,6 +37,7 @@
 #include "soc/rtc_cntl_reg.h"
 #include "soc/timer_group_reg.h"
 #include "soc/gpio_periph.h"
+#include "soc/spi_periph.h"
 #include "soc/rtc_wdt.h"
 
 #include "sdkconfig.h"

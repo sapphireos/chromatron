@@ -20,6 +20,7 @@
 // 
 // </license>
 
+#include "logging.h"
 #include "target.h"
 
 #include <inttypes.h>
@@ -78,6 +79,7 @@ static int16_t sat_step[MAX_PIXELS];
 static int16_t val_step[MAX_PIXELS];
 
 static bool gfx_enable = TRUE;
+static bool gfx_debug = FALSE;
 static bool sys_enable = TRUE; // internal system control
 static uint16_t pix_max_dimmer = 65535;
 static uint16_t pix_master_dimmer = 0;
@@ -91,18 +93,19 @@ static uint16_t pix_size_y;
 static bool gfx_interleave_x;
 static bool gfx_invert_x;
 static bool gfx_transpose;
+static bool gfx_mirror_array;
 
 static uint8_t pix_array_count;
 static gfx_pixel_array_t *pix_arrays;
 
-// #define ENABLE_VIRTUAL_ARRAY
+#define ENABLE_VIRTUAL_ARRAY
 
 #ifdef ENABLE_VIRTUAL_ARRAY
 static uint16_t virtual_array_start;
 static uint16_t virtual_array_length;
-static uint8_t virtual_array_sub_position;
-static uint32_t scaled_pix_count;
-static uint32_t scaled_virtual_array_length;
+// static uint8_t virtual_array_sub_position;
+// static uint32_t scaled_pix_count;
+// static uint32_t scaled_virtual_array_length;
 #endif
 
 static uint16_t gfx_frame_rate = 100;
@@ -120,6 +123,9 @@ static uint16_t dimmer_zero;
 #ifdef ENABLE_CHANNEL_MASK
 static uint8_t channel_mask;
 #endif
+
+// "channel" number, used to organize units
+static uint8_t gfx_channel;
 
 
 #define DIMMER_LOOKUP_SIZE 256
@@ -244,6 +250,24 @@ static void compute_sat_lookup( void ){
     }
 }
 
+// #ifdef ENABLE_VIRTUAL_ARRAY
+// static void setup_varray( void ){
+
+//     if( pix_count == 0 ){
+
+//         virtual_array_sub_position = 0;
+//         scaled_pix_count = 0;
+//         scaled_virtual_array_length = 0;
+
+//         return;
+//     }
+
+//     virtual_array_sub_position      = virtual_array_start / pix_count;
+//     scaled_pix_count                = (uint32_t)pix_count * 65536;
+//     scaled_virtual_array_length     = (uint32_t)virtual_array_length * 65536;
+// }
+// #endif
+
 static void param_error_check( void ){
 
     // update pix count
@@ -308,6 +332,21 @@ static void param_error_check( void ){
 
         sat_curve = GFX_SAT_CURVE_DEFAULT;
     }
+
+    if( gfx_mirror_array ){
+
+        // error check
+        if( ( pix_count > ( MAX_PIXELS / 2 ) ) ||
+            ( pix_count < 2 ) ){
+
+            gfx_mirror_array = FALSE;
+            log_v_error_P( PSTR("Mirroring not available, too many pixels") );
+        }
+    }
+
+    // #ifdef ENABLE_VIRTUAL_ARRAY
+    // setup_varray();
+    // #endif
 }
 
 
@@ -398,7 +437,6 @@ KV_SECTION_META kv_meta_t hal_pixel_info_kv[] = {
     #endif
 };
 
-
 int8_t gfx_i8_kv_handler(
     kv_op_t8 op,
     catbus_hash_t32 hash,
@@ -440,44 +478,259 @@ int8_t gfx_i8_kv_handler(
 
             compute_sat_lookup();
         }
+        else if( hash == __KV__gfx_debug_reset ){
+
+            for( uint16_t i = 0; i < MAX_PIXELS; i++ ){
+
+                hue[i] = 0;
+                sat[i] = 0;
+                val[i] = 0;
+
+                target_hue[i] = 0;
+                target_sat[i] = 0;
+                target_val[i] = 0;
+
+                hue_step[i] = 0;
+                sat_step[i] = 0;
+                val_step[i] = 0;
+
+                hs_fade[i] = 0;
+                v_fade[i]  = 0;
+            }
+        }
+        #ifdef ENABLE_VIRTUAL_ARRAY
+        else if( hash == __KV__gfx_virtual_array_length ){
+
+            // setup_varray();
+        }
+        else if( hash == __KV__gfx_virtual_array_start ){
+
+            // setup_varray();
+        }
+        #endif
     }
 
     return 0;
 }
 
 KV_SECTION_META kv_meta_t gfx_lib_info_kv[] = {
-    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_enable,                  0,                   "gfx_enable" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_sub_dimmer,              0,                   "gfx_sub_dimmer" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_master_dimmer,           0,                   "gfx_master_dimmer" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_max_dimmer,              0,                   "gfx_max_dimmer" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_x,                  0,                   "pix_size_x" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &pix_size_y,                  0,                   "pix_size_y" },
-    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_interleave_x,            0,                   "gfx_interleave_x" },
-    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_invert_x,                0,                   "gfx_invert_x" },
-    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST, &gfx_transpose,               0,                   "gfx_transpose" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_hs_fade,              gfx_i8_kv_handler,   "gfx_hsfade" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &global_v_fade,               gfx_i8_kv_handler,   "gfx_vfade" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &dimmer_fade,                 gfx_i8_kv_handler,   "gfx_dimmer_fade" },
-    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &dimmer_curve,                gfx_i8_kv_handler,   "gfx_dimmer_curve" },
-    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &sat_curve,                   gfx_i8_kv_handler,   "gfx_sat_curve" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST,   &gfx_enable,                0,                   "gfx_enable" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_READ_ONLY, &sys_enable,                0,                   "gfx_sys_enable" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_READ_ONLY, &zero_output,               0,                   "gfx_zero_output" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST,   &gfx_debug,                 0,                   "gfx_debug" },
+    { CATBUS_TYPE_BOOL,       0, 0,                  0,                          gfx_i8_kv_handler,   "gfx_debug_reset" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &pix_sub_dimmer,            0,                   "gfx_sub_dimmer" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &pix_master_dimmer,         0,                   "gfx_master_dimmer" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &pix_max_dimmer,            0,                   "gfx_max_dimmer" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &pix_size_x,                0,                   "pix_size_x" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &pix_size_y,                0,                   "pix_size_y" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST,   &gfx_interleave_x,          0,                   "gfx_interleave_x" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST,   &gfx_invert_x,              0,                   "gfx_invert_x" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST,   &gfx_transpose,             0,                   "gfx_transpose" },
+    { CATBUS_TYPE_BOOL,       0, KV_FLAGS_PERSIST,   &gfx_mirror_array,          0,                   "gfx_mirror_array" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &global_hs_fade,            gfx_i8_kv_handler,   "gfx_hsfade" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &global_v_fade,             gfx_i8_kv_handler,   "gfx_vfade" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &dimmer_fade,               gfx_i8_kv_handler,   "gfx_dimmer_fade" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &dimmer_curve,              gfx_i8_kv_handler,   "gfx_dimmer_curve" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &sat_curve,                 gfx_i8_kv_handler,   "gfx_sat_curve" },
     
-    // #ifdef DIMMER_ZERO_REMAP
+    #ifdef DIMMER_ZERO_REMAP
     // these are only used for debug:
-    // { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &dimmer_zero,               0,                   "gfx_dimmer_zero_level" },
-    // { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &zero_mapped_dimmer,        0,                   "gfx_dimmer_zero_mapped" },
-    // #endif
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &dimmer_zero,               0,                   "gfx_dimmer_zero_level" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &zero_mapped_dimmer,        0,                   "gfx_dimmer_zero_mapped" },
+    #endif
 
     #ifdef ENABLE_VIRTUAL_ARRAY
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_start,         0,                   "gfx_varray_start" },
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &virtual_array_length,        0,                   "gfx_varray_length" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &virtual_array_start,       gfx_i8_kv_handler,   "gfx_varray_start" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &virtual_array_length,      gfx_i8_kv_handler,   "gfx_varray_length" },
     #endif
 
-    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST, &gfx_frame_rate,              gfx_i8_kv_handler,   "gfx_frame_rate" },
+    { CATBUS_TYPE_UINT16,     0, KV_FLAGS_PERSIST,   &gfx_frame_rate,            gfx_i8_kv_handler,   "gfx_frame_rate" },
     
     #ifdef ENABLE_CHANNEL_MASK
-    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST, &channel_mask,                0,                   "gfx_channel_mask" },
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &channel_mask,              0,                   "gfx_channel_mask" },
     #endif
+
+    { CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &gfx_channel,               0,                   "gfx_channel" },
 };
+
+
+static uint32_t gfx_debug_hue_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    /*
+    
+    gfx debug data set renders arrays to pix_count
+    
+    */
+
+    uint32_t array_len = sizeof(uint16_t) * pix_count;
+    void *src = target_hue;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+
+            memcpy( ptr, src, len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = array_len;
+            break;
+
+        case FS_VFILE_OP_DELETE:
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
+static uint32_t gfx_debug_sat_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    /*
+    
+    gfx debug data set renders arrays to pix_count
+    
+    */
+
+    uint32_t array_len = sizeof(uint16_t) * pix_count;
+    void *src = target_sat;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+
+            memcpy( ptr, src, len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = array_len;
+            break;
+
+        case FS_VFILE_OP_DELETE:
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
+static uint32_t gfx_debug_val_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    /*
+    
+    gfx debug data set renders arrays to pix_count
+    
+    */
+
+    uint32_t array_len = sizeof(uint16_t) * pix_count;
+    void *src = target_val;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+
+            memcpy( ptr, src, len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = array_len;
+            break;
+
+        case FS_VFILE_OP_DELETE:
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
+static uint32_t gfx_debug_hs_fade_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    /*
+    
+    gfx debug data set renders arrays to pix_count
+    
+    */
+
+    uint32_t array_len = sizeof(uint16_t) * pix_count;
+    void *src = hs_fade;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+
+            memcpy( ptr, src, len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = array_len;
+            break;
+
+        case FS_VFILE_OP_DELETE:
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
+
+static uint32_t gfx_debug_v_fade_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    /*
+    
+    gfx debug data set renders arrays to pix_count
+    
+    */
+
+    uint32_t array_len = sizeof(uint16_t) * pix_count;
+    void *src = v_fade;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+
+            memcpy( ptr, src, len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = array_len;
+            break;
+
+        case FS_VFILE_OP_DELETE:
+            break;
+
+        default:
+            len = 0;
+
+            break;
+    }
+
+    return len;
+}
+
 
 static void setup_master_array( void ){
 
@@ -630,6 +883,12 @@ int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t p
         // this allows scripts to get random numbers
         // unique to themselves when doing a frame sync
         // with other nodes (which syncs the VM rng)
+        // NOTE that this will break a VM sync:
+        // since it introduces unsynchronized data into the
+        // VM state, the checkpoints will differ and a 
+        // resync will occur.
+        // In general, this function is probably not 
+        // very useful for our typical usage.
         case __KV__urand:
             return urand( params, param_len );
     
@@ -637,6 +896,20 @@ int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t p
 
         case __KV__noise:
             return gfx_u16_noise( params[0] % 65536 );
+            break;
+
+        case __KV__shuffle:
+            return gfx_u16_shuffle();
+            break;
+
+        case __KV__shuffle_count:
+            return gfx_u16_shuffle_count();
+            break;
+
+        case __KV__reset_shuffle:
+            gfx_v_init_shuffle();
+
+            return 0;
             break;
 
         case __KV__sine:
@@ -669,6 +942,11 @@ int32_t gfx_i32_lib_call( catbus_hash_t32 func_hash, int32_t *params, uint16_t p
 
             break;
 
+        case __KV__test_gfx_lib_call:
+            return 1;
+    
+            break;
+
         default:
             break;
     }    
@@ -682,6 +960,26 @@ void gfx_v_set_pix_count( uint16_t setting ){
 }
 
 uint16_t gfx_u16_get_pix_count( void ){
+
+    return pix_count;
+}
+
+uint16_t gfx_u16_get_pix_size_x( void ){
+
+    return pix_size_x;
+}
+
+uint16_t gfx_u16_get_pix_size_y( void ){
+
+    return pix_size_y;
+}
+
+uint16_t gfx_u16_get_physical_pix_count( void ){
+
+    if( gfx_mirror_array ){
+
+        return pix_count * 2;
+    }
 
     return pix_count;
 }
@@ -707,6 +1005,20 @@ uint16_t gfx_u16_get_pix_driver_offset( uint8_t output ){
     return offset;
 }
 
+bool gfx_b_get_transpose( void ){
+
+    return gfx_transpose;
+}
+
+bool gfx_b_get_interleave_x( void ){
+
+    return gfx_interleave_x;
+}
+
+bool gfx_b_get_invert_x( void ){
+
+    return gfx_invert_x;
+}
 
 static inline void _gfx_v_set_hue_1d( uint16_t h, uint16_t index ){
 
@@ -782,34 +1094,299 @@ static inline void _gfx_v_set_v_fade_1d( uint16_t a, uint16_t index ){
     val_step[index] = 0;
 }
 
+void gfx_v_set_hue_1d( uint16_t a, uint16_t index ){
 
+    _gfx_v_set_hue_1d( a, index );
+}
 
-static uint16_t* _gfx_u16p_get_array_ptr( uint8_t attr ){
+uint16_t gfx_u16_get_hue_1d( uint16_t index ){
+
+    index %= pix_count;
+
+    return target_hue[index];
+}
+
+void gfx_v_set_sat_1d( uint16_t a, uint16_t index ){
+
+    _gfx_v_set_sat_1d( a, index );
+}
+
+uint16_t gfx_u16_get_sat_1d( uint16_t index ){
+
+    index %= pix_count;
+
+    return target_sat[index];
+}
+
+void gfx_v_set_val_1d( uint16_t a, uint16_t index ){
+
+    _gfx_v_set_val_1d( a, index );
+}
+
+uint16_t gfx_u16_get_val_1d( uint16_t index ){
+
+    index %= pix_count;
+
+    return target_val[index];
+}
+
+void gfx_v_set_hs_fade_1d( uint16_t a, uint16_t index ){
+
+    _gfx_v_set_hs_fade_1d( a, index );
+}
+
+uint16_t gfx_u16_get_hs_fade_1d( uint16_t index ){
+
+    index %= pix_count;
+
+    return hs_fade[index];
+}
+
+void gfx_v_set_v_fade_1d( uint16_t a, uint16_t index ){
+
+    _gfx_v_set_v_fade_1d( a, index );
+}
+
+uint16_t gfx_u16_get_v_fade_1d( uint16_t index ){
+
+    index %= pix_count;
+
+    return v_fade[index];
+}
+
+uint16_t* _gfx_u16p_get_array_ptr( uint8_t attr ){
 
     uint16_t *ptr = target_val;
 
-    if( attr == PIX_ATTR_HUE ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
         ptr = target_hue;
     }
-    else if( attr == PIX_ATTR_SAT ){
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
 
         ptr = target_sat;
     }
-    else if( attr == PIX_ATTR_VAL ){
+    else if( attr == PIX_ARRAY_ATTR_VAL ){
 
         ptr = target_val;
     }
-    else if( attr == PIX_ATTR_HS_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
 
         ptr = hs_fade;
     }
-    else if( attr == PIX_ATTR_V_FADE ){
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
 
         ptr = v_fade;
     }
+    else if( attr == PIX_ARRAY_ATTR_HUE_STEP ){
+
+        ptr = (uint16_t *)hue_step;
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT_STEP ){
+
+        ptr = (uint16_t *)sat_step;
+    }
+    else if( attr == PIX_ARRAY_ATTR_VAL_STEP ){
+
+        ptr = (uint16_t *)val_step;
+    }
 
     return ptr;
+}
+
+// void gfx_v_pixel_move( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
+
+// }
+
+static void _gfx_v_set_pixel_op( uint16_t index, uint8_t attr, int32_t a ){
+
+    if( attr == PIX_ARRAY_ATTR_HUE ){
+
+        a %= 65536;
+
+        _gfx_v_set_hue_1d( a, index );    
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
+
+        if( a > 65535 ){
+
+            a = 65535;
+        }
+        else if( a < 0 ){
+
+            a = 0;
+        }
+
+        _gfx_v_set_sat_1d( a, index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
+
+        if( a > 65535 ){
+
+            a = 65535;
+        }
+        else if( a < 0 ){
+
+            a = 0;
+        }
+
+        _gfx_v_set_hs_fade_1d( a, index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
+
+        if( a > 65535 ){
+
+            a = 65535;
+        }
+        else if( a < 0 ){
+
+            a = 0;
+        }
+
+        _gfx_v_set_v_fade_1d( a, index );
+    }   
+    else if( attr == PIX_ARRAY_ATTR_VAL ){
+
+        if( a > 65535 ){
+
+            a = 65535;
+        }
+        else if( a < 0 ){
+
+            a = 0;
+        }
+
+        _gfx_v_set_val_1d( a, index );
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+}
+
+void gfx_v_pixel_add( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
+    
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    int32_t a = ptr[index] + src;
+
+    _gfx_v_set_pixel_op( index, attr, a ); 
+}
+
+void gfx_v_pixel_sub( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
+
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    int32_t a = ptr[index] - src;
+
+    _gfx_v_set_pixel_op( index, attr, a ); 
+}
+
+void gfx_v_pixel_mul( uint8_t obj, uint16_t index, uint8_t attr, int32_t src, catbus_type_t8 type ){
+    
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    int32_t a = ptr[index];
+
+    if( ( attr != PIX_ARRAY_ATTR_HS_FADE ) &&
+        ( attr != PIX_ARRAY_ATTR_V_FADE ) &&
+        ( type == CATBUS_TYPE_FIXED16 ) ){
+
+        a = ( (int64_t)src * a ) / 65536;
+    }
+    else{
+
+        a *= src;    
+    }
+
+    _gfx_v_set_pixel_op( index, attr, a ); 
+}
+
+void gfx_v_pixel_div( uint8_t obj, uint16_t index, uint8_t attr, int32_t src, catbus_type_t8 type ){
+    
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    int32_t a = 0;
+
+    if( src != 0 ){
+
+        a = ptr[index];
+
+        if( ( attr != PIX_ARRAY_ATTR_HS_FADE ) &&
+            ( attr != PIX_ARRAY_ATTR_V_FADE ) &&
+            ( type == CATBUS_TYPE_FIXED16 ) ){
+
+            a = ( (int64_t)a * 65536 ) / src;
+        }
+        else{
+
+            a /= src;    
+        }
+    }
+
+    _gfx_v_set_pixel_op( index, attr, a ); 
+}
+
+void gfx_v_pixel_mod( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
+    
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    int32_t a = ptr[index] % src;
+
+    _gfx_v_set_pixel_op( index, attr, a );     
+}
+
+void gfx_v_pixel_store( uint8_t obj, uint16_t index, uint8_t attr, int32_t src ){
+
+    if( obj >= pix_array_count ){
+
+        return;
+    }
+
+    index += pix_arrays[obj].index;
+    index %= pix_count;
+
+    _gfx_v_set_pixel_op( index, attr, src );     
 }
 
 void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
@@ -819,43 +1396,30 @@ void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
         return;
     }
 
-    // possible optimization:
-    // void ( *array_func )( uint16_t a, uint16_t i );
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
-    // if( attr == PIX_ATTR_HUE ){
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
-    //     array_func = _gfx_v_set_hue_1d;
-    // }
-    // else if( attr == PIX_ATTR_SAT ){
+            uint16_t index = i + pix_arrays[obj].index;
 
-    //     array_func = _gfx_v_set_sat_1d;
-    // }
-    // else if( attr == PIX_ATTR_HS_FADE ){
+            index %= pix_count;
 
-    //     array_func = _gfx_v_set_hs_fade_1d;
-    // }
-    // else if( attr == PIX_ATTR_V_FADE ){
-
-    //     array_func = _gfx_v_set_v_fade_1d;
-    // }   
-    // else{
-
-    //     array_func = _gfx_v_set_val_1d;
-    // }
-
-    for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
-
-        uint16_t index = i + pix_arrays[obj].index;
-
-        index %= pix_count;
-
-        int32_t a = src;
-
-        if( attr == PIX_ATTR_HUE ){
+            int32_t a = src;
 
             a %= 65536;
-        }
-        else{
+
+            _gfx_v_set_hue_1d( a, index );
+        }        
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = src;
 
             if( a > 65535 ){
 
@@ -865,30 +1429,75 @@ void gfx_v_array_move( uint8_t obj, uint8_t attr, int32_t src ){
 
                 a = 0;
             }
-        }
-        // possible optimization:
-        // array_func( a, index );
-        
-        if( attr == PIX_ATTR_HUE ){
-
-            _gfx_v_set_hue_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_SAT ){
 
             _gfx_v_set_sat_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_HS_FADE ){
+        }        
+    }
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = src;
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_hs_fade_1d( a, index );
         }
-        else if( attr == PIX_ATTR_V_FADE ){
+    }
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = src;
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_v_fade_1d( a, index );
-        }   
-        else{
+        }        
+    }   
+    else{
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = src;
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_val_1d( a, index );
-        }
+        }        
     }
 }
 
@@ -901,21 +1510,32 @@ void gfx_v_array_add( uint8_t obj, uint8_t attr, int32_t src ){
 
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
     
-    for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
-        uint16_t index = i + pix_arrays[obj].index;
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
-        index %= pix_count;
+            uint16_t index = i + pix_arrays[obj].index;
 
-        int32_t a = *( ptr + index );
+            index %= pix_count;
 
-        a += src;
-
-        if( attr == PIX_ATTR_HUE ){
+            int32_t a = *( ptr + index );
+            a += src;
 
             a %= 65536;
-        }
-        else{
+
+            _gfx_v_set_hue_1d( a, index );
+        }        
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+            a += src;
 
             if( a > 65535 ){
 
@@ -925,28 +1545,78 @@ void gfx_v_array_add( uint8_t obj, uint8_t attr, int32_t src ){
 
                 a = 0;
             }
-        }
-
-        if( attr == PIX_ATTR_HUE ){
-
-            _gfx_v_set_hue_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_SAT ){
 
             _gfx_v_set_sat_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_HS_FADE ){
+        }        
+    }
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+            a += src;
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_hs_fade_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_V_FADE ){
+        }        
+    }
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+            a += src;
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_v_fade_1d( a, index );
-        }   
-        else{
+        }        
+    }   
+    else{
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+            a += src;
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_val_1d( a, index );
-        }
+        }        
     }
 }
 
@@ -960,21 +1630,32 @@ void gfx_v_array_sub( uint8_t obj, uint8_t attr, int32_t src ){
 
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
     
-    for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
-        uint16_t index = i + pix_arrays[obj].index;
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
-        index %= pix_count;
+            uint16_t index = i + pix_arrays[obj].index;
 
-        int32_t a = *( ptr + index );
+            index %= pix_count;
 
-        a -= src;
-
-        if( attr == PIX_ATTR_HUE ){
+            int32_t a = *( ptr + index );
+            a -= src;
 
             a %= 65536;
-        }
-        else{
+
+            _gfx_v_set_hue_1d( a, index );
+        }        
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+            a -= src;
 
             if( a > 65535 ){
 
@@ -984,33 +1665,83 @@ void gfx_v_array_sub( uint8_t obj, uint8_t attr, int32_t src ){
 
                 a = 0;
             }
-        }
-
-        if( attr == PIX_ATTR_HUE ){
-
-            _gfx_v_set_hue_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_SAT ){
-
+        
             _gfx_v_set_sat_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_HS_FADE ){
+        }        
+    }
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+            a -= src;
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_hs_fade_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_V_FADE ){
+        }        
+    }
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+            a -= src;
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_v_fade_1d( a, index );
-        }   
-        else{
+        }        
+    }   
+    else{
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+            a -= src;
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_val_1d( a, index );
-        }
+        }        
     }
 }
 
 
-void gfx_v_array_mul( uint8_t obj, uint8_t attr, int32_t src ){
+void gfx_v_array_mul( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 type ){
 
     if( obj >= pix_array_count ){
 
@@ -1019,21 +1750,105 @@ void gfx_v_array_mul( uint8_t obj, uint8_t attr, int32_t src ){
 
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
     
-    for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
-        uint16_t index = i + pix_arrays[obj].index;
+        if( type == CATBUS_TYPE_FIXED16 ){
+            
+            for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
-        index %= pix_count;
+                uint16_t index = i + pix_arrays[obj].index;
 
-        int32_t a = *( ptr + index );
+                index %= pix_count;
 
-        a *= src;
+                int32_t a = *( ptr + index );
 
-        if( attr == PIX_ATTR_HUE ){
+                a = ( src * a ) / 65536;
 
-            a %= 65536;
+                a %= 65536;
+
+                _gfx_v_set_hue_1d( a, index );
+            }                
         }
         else{
+
+            for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+                uint16_t index = i + pix_arrays[obj].index;
+
+                index %= pix_count;
+
+                int32_t a = *( ptr + index );
+
+                a = ( src * a );
+
+                a %= 65536;
+
+                _gfx_v_set_hue_1d( a, index );
+            }    
+        }
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
+
+        if( type == CATBUS_TYPE_FIXED16 ){
+
+            for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+                uint16_t index = i + pix_arrays[obj].index;
+
+                index %= pix_count;
+
+                int32_t a = *( ptr + index );
+
+                a = ( src * a ) / 65536;
+
+                if( a > 65535 ){
+
+                    a = 65535;
+                }
+                else if( a < 0 ){
+
+                    a = 0;
+                }
+
+                _gfx_v_set_sat_1d( a, index );
+            }    
+        }
+        else{
+
+            for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+                uint16_t index = i + pix_arrays[obj].index;
+
+                index %= pix_count;
+
+                int32_t a = *( ptr + index );
+
+                a = ( src * a );
+
+                if( a > 65535 ){
+
+                    a = 65535;
+                }
+                else if( a < 0 ){
+
+                    a = 0;
+                }
+
+                _gfx_v_set_sat_1d( a, index );
+            }    
+        }
+    }
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+
+            a = ( src * a );
 
             if( a > 65535 ){
 
@@ -1043,56 +1858,204 @@ void gfx_v_array_mul( uint8_t obj, uint8_t attr, int32_t src ){
 
                 a = 0;
             }
-        }
-
-        if( attr == PIX_ATTR_HUE ){
-
-            _gfx_v_set_hue_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_SAT ){
-
-            _gfx_v_set_sat_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_HS_FADE ){
-
+        
             _gfx_v_set_hs_fade_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_V_FADE ){
+        }    
+    }
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+
+            a = ( src * a );
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_v_fade_1d( a, index );
-        }   
+        }    
+    }   
+    else{
+
+        if( type == CATBUS_TYPE_FIXED16 ){
+
+            for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+                uint16_t index = i + pix_arrays[obj].index;
+
+                index %= pix_count;
+
+                int32_t a = *( ptr + index );
+
+                a = ( src * a ) / 65536;
+
+                if( a > 65535 ){
+
+                    a = 65535;
+                }
+                else if( a < 0 ){
+
+                    a = 0;
+                }
+
+                _gfx_v_set_val_1d( a, index );
+            }    
+        }
         else{
 
-            _gfx_v_set_val_1d( a, index );
+            for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+                uint16_t index = i + pix_arrays[obj].index;
+
+                index %= pix_count;
+
+                int32_t a = *( ptr + index );
+
+                a = ( src * a );
+
+                if( a > 65535 ){
+
+                    a = 65535;
+                }
+                else if( a < 0 ){
+
+                    a = 0;
+                }
+
+                _gfx_v_set_val_1d( a, index );
+            }                
         }
-    }
+    }    
 }
 
 
-void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src ){
+void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src, catbus_type_t8 type ){
 
     if( obj >= pix_array_count ){
 
         return;
     }
 
+    // check for divide by zero
+    if( src == 0 ){
+
+        gfx_v_array_move( obj, attr, 0 );
+
+        return;
+    }
+
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
     
-    for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
-        uint16_t index = i + pix_arrays[obj].index;
+        if( type == CATBUS_TYPE_FIXED16 ){
 
-        index %= pix_count;
+            for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
-        int32_t a = *( ptr + index );
+                uint16_t index = i + pix_arrays[obj].index;
 
-        a /= src;
+                index %= pix_count;
 
-        if( attr == PIX_ATTR_HUE ){
+                int64_t a = *( ptr + index );
 
-            a %= 65536;
+                a = ( a * 65536 ) / src;
+
+                a %= 65536;
+
+                _gfx_v_set_hue_1d( a, index );
+            }    
         }
         else{
+
+            for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+                uint16_t index = i + pix_arrays[obj].index;
+
+                index %= pix_count;
+
+                int32_t a = *( ptr + index );
+
+                a = a / src;
+
+                a %= 65536;
+
+                _gfx_v_set_hue_1d( a, index );
+            }    
+        }
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
+
+        if( type == CATBUS_TYPE_FIXED16 ){
+
+            for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+                uint16_t index = i + pix_arrays[obj].index;
+
+                index %= pix_count;
+
+                int64_t a = *( ptr + index );
+
+                a = ( a * 65536 ) / src;
+
+                if( a > 65535 ){
+
+                    a = 65535;
+                }
+                else if( a < 0 ){
+
+                    a = 0;
+                }
+
+                _gfx_v_set_sat_1d( a, index );
+            }    
+        }
+        else{
+
+            for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+                uint16_t index = i + pix_arrays[obj].index;
+
+                index %= pix_count;
+
+                int32_t a = *( ptr + index );
+
+                a = a / src;
+
+                if( a > 65535 ){
+
+                    a = 65535;
+                }
+                else if( a < 0 ){
+
+                    a = 0;
+                }
+
+                _gfx_v_set_sat_1d( a, index );
+            }
+        }
+    }
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+
+            a = ( a / src  );
 
             if( a > 65535 ){
 
@@ -1102,29 +2065,85 @@ void gfx_v_array_div( uint8_t obj, uint8_t attr, int32_t src ){
 
                 a = 0;
             }
-        }
-
-        if( attr == PIX_ATTR_HUE ){
-
-            _gfx_v_set_hue_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_SAT ){
-
-            _gfx_v_set_sat_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_HS_FADE ){
-
+        
             _gfx_v_set_hs_fade_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_V_FADE ){
+        }    
+    }
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+
+            a = ( a / src  );
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_v_fade_1d( a, index );
-        }   
+        }    
+    }   
+    else{
+
+        if( type == CATBUS_TYPE_FIXED16 ){
+
+            for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+                uint16_t index = i + pix_arrays[obj].index;
+
+                index %= pix_count;
+
+                int64_t a = *( ptr + index );
+
+                a = ( a * 65536 ) / src;
+
+                if( a > 65535 ){
+
+                    a = 65535;
+                }
+                else if( a < 0 ){
+
+                    a = 0;
+                }
+
+                _gfx_v_set_val_1d( a, index );
+            }    
+        }
         else{
 
-            _gfx_v_set_val_1d( a, index );
+            for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+                uint16_t index = i + pix_arrays[obj].index;
+
+                index %= pix_count;
+
+                int32_t a = *( ptr + index );
+
+                a = a / src;
+
+                if( a > 65535 ){
+
+                    a = 65535;
+                }
+                else if( a < 0 ){
+
+                    a = 0;
+                }
+
+                _gfx_v_set_val_1d( a, index );
+            }    
         }
-    }
+    } 
 }
 
 
@@ -1135,23 +2154,42 @@ void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src ){
         return;
     }
 
+    // check for divide by zero
+    if( src == 0 ){
+        
+        gfx_v_array_move( obj, attr, 0 );
+
+        return;
+    }
+
     uint16_t *ptr = _gfx_u16p_get_array_ptr( attr );
     
-    for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+    if( attr == PIX_ARRAY_ATTR_HUE ){
 
-        uint16_t index = i + pix_arrays[obj].index;
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
 
-        index %= pix_count;
+            uint16_t index = i + pix_arrays[obj].index;
 
-        int32_t a = *( ptr + index );
+            index %= pix_count;
 
-        a %= src;
-
-        if( attr == PIX_ATTR_HUE ){
+            int32_t a = *( ptr + index );
+            a %= src;
 
             a %= 65536;
-        }
-        else{
+
+            _gfx_v_set_hue_1d( a, index );
+        }        
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+            a %= src;
 
             if( a > 65535 ){
 
@@ -1161,28 +2199,78 @@ void gfx_v_array_mod( uint8_t obj, uint8_t attr, int32_t src ){
 
                 a = 0;
             }
-        }
-
-        if( attr == PIX_ATTR_HUE ){
-
-            _gfx_v_set_hue_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_SAT ){
 
             _gfx_v_set_sat_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_HS_FADE ){
+        }        
+    }
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+            a %= src;
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_hs_fade_1d( a, index );
-        }
-        else if( attr == PIX_ATTR_V_FADE ){
+        }        
+    }
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+            a %= src;
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_v_fade_1d( a, index );
-        }   
-        else{
+        }        
+    }   
+    else{
+
+        for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
+
+            uint16_t index = i + pix_arrays[obj].index;
+
+            index %= pix_count;
+
+            int32_t a = *( ptr + index );
+            a %= src;
+
+            if( a > 65535 ){
+
+                a = 65535;
+            }
+            else if( a < 0 ){
+
+                a = 0;
+            }
 
             _gfx_v_set_val_1d( a, index );
-        }
+        }        
     }
 }
 
@@ -1244,6 +2332,12 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         return 0xffff;
     }
 
+    // avoid divide by 0 exceptions:
+    if( pix_arrays[obj].count == 0 ){
+
+        return 0;
+    }
+
     if( gfx_transpose ){
 
         uint16_t temp = y;
@@ -1258,7 +2352,7 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         // if y is not given, we need to figure out which row we're in
         if( y == 65535 ){
 
-            uint16_t row = x / pix_arrays[obj].size_x;
+            uint16_t row = ( x % pix_arrays[obj].count ) / pix_arrays[obj].size_x;
             
             if( row & 1 ){
 
@@ -1272,7 +2366,7 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         // 2D access, this is easier because we already know y
         else{
 
-            if( y & 1 ){
+            if( ( y % pix_arrays[obj].size_y ) & 1 ){
 
                 x = ( pix_arrays[obj].size_x - 1 ) - ( x % pix_arrays[obj].size_x );
             }
@@ -1285,7 +2379,7 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         // if y is not given, we need to figure out which row we're in
         if( y == 65535 ){
 
-            uint16_t row = x / pix_arrays[obj].size_x;
+            uint16_t row = ( x % pix_arrays[obj].count ) / pix_arrays[obj].size_x;
             uint16_t temp_x = x % pix_arrays[obj].size_x;
 
             // flip x around
@@ -1316,29 +2410,60 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
         }
         else{ 
 
-            // virtual array enabled
-            // note this only works in one dimension
+            // wrap the X index around the overall virtual array
+            // size
+            i = x % virtual_array_length;
 
-            uint16_t sub_array_offset = ( pix_count - pix_arrays[obj].count ) * virtual_array_sub_position;
-            uint16_t adjusted_virtual_array_start = virtual_array_start - sub_array_offset;
+            // get coordinate of our local segment of the array:
+            uint16_t virtual_chunk_start = virtual_array_start + pix_arrays[obj].index;
+            uint16_t virtual_chunk_end = pix_arrays[obj].count + virtual_array_start;
 
-            uint32_t sub_len = scaled_pix_count / pix_arrays[obj].count;
-            uint16_t adjusted_virtual_array_len = scaled_virtual_array_length / sub_len;
+            // check if the requested index is in-bound of our
+            // segment:
+            if( ( i < virtual_chunk_start ) ||
+                ( i >= virtual_chunk_end ) ){
 
-            i = x % adjusted_virtual_array_len;
+                // out of bounds
 
-            // check if this index is within our local array
-            if( ( i < adjusted_virtual_array_start ) ||
-                ( i >= ( adjusted_virtual_array_start + pix_arrays[obj].count ) ) ){
-
-                // return invalid index
+                // we don't write to this index
                 return 0xffff;
             }
 
-            // adjust index to local array
-            i -= adjusted_virtual_array_start;
+            // adjust from the segment start back to our actual array indexes
+            i -= virtual_array_start;
 
+            // make sure we are in bounds
             i %= pix_arrays[obj].count;
+
+
+
+        //     // virtual array enabled
+        //     // note this only works in one dimension
+
+        //     uint16_t sub_array_offset = ( pix_count - pix_arrays[obj].count ) * virtual_array_sub_position;
+        //     uint16_t adjusted_virtual_array_start = virtual_array_start - sub_array_offset;
+
+        //     // ASSERT( pix_arrays[obj].count > 0 );
+        //     uint32_t sub_len = scaled_pix_count / pix_arrays[obj].count;
+
+        //     // ASSERT( sub_len > 0 );
+        //     uint16_t adjusted_virtual_array_len = scaled_virtual_array_length / sub_len;
+
+        //     i = x % adjusted_virtual_array_len;
+
+        //     // check if this index is within our local array
+        //     if( ( i < adjusted_virtual_array_start ) ||
+        //         ( i >= ( adjusted_virtual_array_start + pix_arrays[obj].count ) ) ){
+
+        //         // return invalid index
+        //         return 0xffff;
+        //     }
+
+            
+        //     // adjust index to local array
+        //     i -= adjusted_virtual_array_start;
+
+            // i %= pix_arrays[obj].count;
         }
         #endif
     }
@@ -1365,7 +2490,351 @@ static uint16_t calc_index( uint8_t obj, uint16_t x, uint16_t y ){
     return index;
 }
 
+uint16_t gfx_u16_calc_index( uint8_t obj, uint16_t x, uint16_t y ){
 
+    return calc_index( obj, x, y );
+}
+
+
+#define GFX_GRID_RESOLUTION 100
+
+uint32_t _distance( int32_t x0, int32_t y0, int32_t x1, int32_t y1 ){
+
+    // using the alpha max beta min algorithm
+    // https://en.wikipedia.org/wiki/Alpha_max_plus_beta_min_algorithm
+
+    // compute distance between Xs and Ys
+    int32_t a = x1 - x0;
+    int32_t b = y1 - y0;
+
+    uint32_t abs_a = abs32( a );
+    uint32_t abs_b = abs32( b );  
+
+    uint32_t max = abs_a;
+    if( abs_b > max ){
+
+        max = abs_b;
+    }
+
+    uint32_t min = abs_a;
+    if( abs_b < min ){
+
+        min = abs_b;
+    }
+
+    #define ALPHA ( 1 / 1 )
+    #define BETA ( 3 / 8 )
+
+    uint32_t Z = max + 3 * min / 8;
+
+    return Z;
+}
+
+// static uint32_t grid_x;
+// static uint32_t grid_y;
+// static uint32_t grid_spacing_x;
+// static uint32_t grid_spacing_y;
+
+// KV_SECTION_META kv_meta_t gfx_lib_grid_kv[] = {
+//     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_x,                  0,                   "gfx_grid_size_x" },
+//     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_y,                  0,                   "gfx_grid_size_y" },
+//     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_spacing_x,          0,                   "gfx_grid_spacing_x" },
+//     { CATBUS_TYPE_UINT32,       0, KV_FLAGS_READ_ONLY, &grid_spacing_y,          0,                   "gfx_grid_spacing_y" },
+// };
+
+// specify spacing between grid cells in units of pixels
+// IE:
+// 2.0 means there are 2 grid cells per pixel (grid is larger than pixel array)
+// 0.5 means there are 0.5 grid cells per pixel, or 2 pixels per grid cell.  Grid is smaller than array,  
+// we use 100 points for grid space
+// so in integer, 2.0 = 200, 0.5 = 50, etc
+void gfx_v_grid( uint32_t x_space, uint32_t y_space ){
+
+    // grid_spacing_x = x_space;
+    // grid_spacing_y = y_space;
+
+    // int32_t x_max = pix_arrays[0].size_x - 1;
+    // int32_t y_max = pix_arrays[0].size_y - 1;
+
+    // grid_x = x_max * grid_spacing_x;
+    // grid_y = y_max * grid_spacing_y;
+
+}
+
+// specify exact grid size
+void gfx_v_plane( uint16_t x_size, uint16_t y_size ){
+    
+    // grid_x = x_size;
+    // grid_y = y_size;
+
+
+    // // ERROR CHECK FOR DIV 0 HERE!
+
+    // int32_t x_max = pix_arrays[0].size_x - 1;
+    // int32_t y_max = pix_arrays[0].size_y - 1;
+
+    // grid_spacing_x = grid_x / x_max;
+    // grid_spacing_y = grid_y / y_max;
+}
+
+
+void gfx_v_drop( int32_t h, int32_t s, int32_t v, int32_t x, int32_t y, uint16_t diameter ){
+
+    /*
+    
+    Given a circle defined by an XY coordinate and diameter, find all
+    pixels that fit within the circle.
+
+    The input grid is mapped onto a standard unit grid size of 1.0 using fixed16.
+    In integer, this corresponds to an input range of 0 to 65535.
+
+    Grid coordinate 0 is pixel 0, coordinate 1.0 (65535) is the last pixel.
+        
+    Diameter uses the same fixed16.
+    Thus a diameter of 0.0 would be a nop and 1.0 would span the entire array.
+
+    */
+
+    int32_t pixels_x_max;
+    int32_t pixels_y_max;
+
+    // check if we are using 1D or 2D:
+    if( y < 0 ){
+
+        // 1D mode:
+        pixels_y_max = 0;
+        pixels_x_max = pix_arrays[0].count - 1;
+    }
+    else{
+        // 2D mode:
+        pixels_x_max = pix_arrays[0].size_x - 1;
+        pixels_y_max = pix_arrays[0].size_y - 1;
+    }
+
+    uint16_t radius = diameter / 2;
+
+    // Compute the bounding box for the circle:
+    int32_t bounds_x0 = x - radius;
+    int32_t bounds_x1 = x + radius;
+    int32_t bounds_y0 = y - radius;
+    int32_t bounds_y1 = y + radius;
+
+    // Convert to pixel coordinates:
+    int32_t pixels_x0 = ( bounds_x0 * pixels_x_max ) / 65536;
+    int32_t pixels_x1 = ( bounds_x1 * pixels_x_max ) / 65536;
+    int32_t pixels_y0 = ( bounds_y0 * pixels_y_max ) / 65536;
+    int32_t pixels_y1 = ( bounds_y1 * pixels_y_max ) / 65536;
+
+    // search within the bounding box:
+    if( y < 0 ){
+
+        // 1D
+        for( uint32_t x_i = pixels_x0; x_i <= pixels_x1; x_i++ ){
+
+            // compute distance, using the 1.0 grid units
+            // note the conversion of x_i (pixel coordinate) back to grid coorindate
+            int32_t x_coord = ( x_i * 65536 ) / pixels_x_max;
+            int32_t distance = _distance( x, 0, x_coord, 0 );
+
+            // check for match
+            if( distance <= radius ){
+
+                // match!
+
+                // calc pixel index for the currently matched pixel
+                uint16_t index = calc_index( 0, x_i, 65535 );
+
+                // bounds check!
+                if( index >= MAX_PIXELS ){
+
+                   continue;
+                }
+
+                // test, write hue
+                _gfx_v_set_hue_1d( h, index );
+            }
+        }
+    }
+    else{
+
+        // 2D
+        for( uint16_t x_i = pixels_x0; x_i <= pixels_x1; x_i++ ){
+
+            for( uint16_t y_i = pixels_y0; y_i <= pixels_y1; y_i++ ){
+
+                // compute distance, using the 1.0 grid units
+                // note the conversion of x_i (pixel coordinate) back to grid coorindate
+                int32_t x_coord = ( x_i * 65536 ) / pixels_x_max;
+                int32_t y_coord = ( y_i * 65536 ) / pixels_y_max;
+                int32_t distance = _distance( x, y, x_coord, y_coord );
+                    
+                // check for match
+                if( distance <= radius ){
+
+                    // match!
+
+                    // calc pixel index for the currently matched pixel
+                    uint16_t index = calc_index( 0, x_i, y_i );
+
+                    // bounds check!
+                    if( index >= MAX_PIXELS ){
+
+                       continue;
+                    }
+
+                    // test, write hue
+                    _gfx_v_set_hue_1d( h, index );
+                }
+            }
+        }
+    }
+
+
+
+
+    // /*
+    
+    // Given a circle defined by an XY coordinate and radius, find all
+    // pixels that fit within the circle.
+
+    // The XY and radius are scaled by the grid resolution to allow
+    // coordinates between pixels.
+
+    // */
+
+    // // log_v_info_P( PSTR("%d %d"), x, y);
+
+
+    // int32_t x_max = pix_arrays[0].size_x - 1;
+    // int32_t y_max = pix_arrays[0].size_y - 1;
+
+    // // scale X and Y max to grid resolution
+    // x_max *= GFX_GRID_RESOLUTION;
+    // y_max *= GFX_GRID_RESOLUTION;
+
+    // // convert coordinate from grid to pixels
+    // //??????????????????????????????????????????????
+    // uint32_t fractional_x = x / grid_spacing_x;
+    // uint32_t fractional_y = y / grid_spacing_y;
+
+    // uint32_t radius_x = radius / grid_spacing_x;
+    // uint32_t radius_y = radius / grid_spacing_y;   
+
+
+    // // check if we are using 1D or 2D:
+    // if( y < 0 ){
+
+    //     // 1D mode:
+    //     y_max = 0;
+    //     x_max = pix_arrays[0].count - 1;
+    // }
+    
+    // // Compute the bounding box for the circle:
+    // // int32_t x0 = ( x - radius ) / GFX_GRID_RESOLUTION;
+    // // int32_t x1 = ( x + radius) / GFX_GRID_RESOLUTION;
+    // // int32_t y0 = ( y - radius ) / GFX_GRID_RESOLUTION;
+    // // int32_t y1 = ( y + radius ) / GFX_GRID_RESOLUTION;
+
+    // uint32_t x0 = ( fractional_x - radius_x ) / GFX_GRID_RESOLUTION;
+    // uint32_t x1 = ( fractional_x + radius_x ) / GFX_GRID_RESOLUTION;
+    // uint32_t y0 = ( fractional_y - radius_y ) / GFX_GRID_RESOLUTION;
+    // uint32_t y1 = ( fractional_y + radius_y ) / GFX_GRID_RESOLUTION;
+
+
+    // // constrain the bounding box to fit within the pixel grid
+    // if( x0 < 0 ){
+
+    //     x0 = 0;
+    // }
+
+    // if( x0 > x_max ){ // out of bounds
+
+    //     log_v_info_P( PSTR("bounds") );
+
+    //     return;
+    // }
+
+    // if( x1 > x_max ){
+
+    //     x1 = x_max;
+    // }    
+
+    // if( y0 < 0 ){
+
+    //     y0 = 0;
+    // }
+
+    // if( y0 > y_max ){ // out of bounds
+
+    //     log_v_info_P( PSTR("bounds") );
+
+    //     return;
+    // }
+
+    // if( y1 > y_max ){
+
+    //     y1 = y_max;
+    // }
+
+    // // log_v_info_P( PSTR("%d %d %d %d"), x0, y0, x1, y1);
+
+    // // search within the bounding box:
+    // if( y < 0 ){
+
+    //     // 1D
+    //     for( uint16_t x_i = x0; x_i <= x1; x_i++ ){
+
+    //         int32_t distance = _distance( x, 0, x_i * GFX_GRID_RESOLUTION, 0 );
+
+    //         // check for match
+    //         if( distance <= radius ){
+
+    //             // match!
+
+    //             // calc pixel index for the currently matched pixel
+    //             uint16_t index = calc_index( 0, x_i, 65535 );
+
+    //             // bounds check!
+    //             if( index >= MAX_PIXELS ){
+
+    //                continue;
+    //             }
+
+    //             // test, write hue
+    //             _gfx_v_set_hue_1d( h, index );
+    //         }
+    //     }
+    // }
+    // else{
+
+    //     // 2D
+    //     for( uint16_t x_i = x0; x_i <= x1; x_i++ ){
+
+    //         for( uint16_t y_i = y0; y_i <= y1; y_i++ ){
+                    
+    //             int32_t distance = _distance( x, y, x_i * GFX_GRID_RESOLUTION, y_i * GFX_GRID_RESOLUTION );
+
+    //             // check for match
+    //             if( distance <= radius ){
+
+    //                 // match!
+
+    //                 // calc pixel index for the currently matched pixel
+    //                 uint16_t index = calc_index( 0, x_i, y_i );
+
+    //                 // bounds check!
+    //                 if( index >= MAX_PIXELS ){
+
+    //                    continue;
+    //                 }
+
+    //                 // test, write hue
+    //                 _gfx_v_set_hue_1d( h, index );
+    //             }
+    //         }
+    //     }
+    // }
+}
 
 void gfx_v_set_hsv( int32_t h, int32_t s, int32_t v, uint16_t index ){
 
@@ -1539,6 +3008,11 @@ uint16_t gfx_u16_get_v_fade( uint16_t x, uint16_t y, uint8_t obj ){
 
 uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
+    if( obj >= pix_array_count ){
+
+        return 0;
+    }
+
     if( ( x == 65535 ) && ( y == 65535 ) ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
@@ -1547,7 +3021,7 @@ uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
             index %= pix_count;
 
-            if( target_val[i] != val[i] ){
+            if( target_val[index] != val[index] ){
 
                 return 1;
             }
@@ -1574,6 +3048,11 @@ uint16_t gfx_u16_get_is_v_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
 uint16_t gfx_u16_get_is_hs_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
+    if( obj >= pix_array_count ){
+
+        return 0;
+    }
+
     if( ( x == 65535 ) && ( y == 65535 ) ){
 
         for( uint16_t i = 0; i < pix_arrays[obj].count; i++ ){
@@ -1582,8 +3061,8 @@ uint16_t gfx_u16_get_is_hs_fading( uint16_t x, uint16_t y, uint8_t obj ){
 
             index %= pix_count;
 
-            if( ( target_hue[i] != hue[i] ) ||
-                ( target_sat[i] != sat[i] ) ){
+            if( ( target_hue[index] != hue[index] ) ||
+                ( target_sat[index] != sat[index] ) ){
 
                 return 1;
             }
@@ -1735,6 +3214,106 @@ void gfx_v_delete_pixel_arrays( void ){
     // clear arrays
     pix_arrays = 0;
     pix_array_count = 0;
+}
+
+
+int8_t gfx_i8_get_pixel_array( uint8_t obj, gfx_pixel_array_t **array_ptr ){
+
+    if( obj >= pix_array_count ){
+
+        return -1;
+   }
+
+   *array_ptr = &pix_arrays[obj];
+
+   return 0;
+}
+
+int32_t gfx_i32_get_pixel_attr_single( uint16_t index, uint8_t attr ){
+
+    if( attr == PIX_ATTR_IS_V_FADING ){
+
+        return gfx_u16_get_is_v_fading( index, 65535, 0 );
+    }
+    else if( attr == PIX_ATTR_IS_HS_FADING ){
+
+        return gfx_u16_get_is_hs_fading( index, 65535, 0 );
+    }
+    else if( attr == PIX_ARRAY_ATTR_HUE ){
+
+        return gfx_u16_get_hue_1d( index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_SAT ){
+
+        return gfx_u16_get_sat_1d( index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_VAL ){
+
+        return gfx_u16_get_val_1d( index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_HS_FADE ){
+
+        return gfx_u16_get_hs_fade_1d( index );
+    }
+    else if( attr == PIX_ARRAY_ATTR_V_FADE ){
+
+        return gfx_u16_get_v_fade_1d( index );
+    }
+
+    return 0;    
+}
+
+int32_t gfx_i32_get_pixel_attr( uint8_t obj, uint8_t attr ){
+
+    if( attr == PIX_ATTR_IS_V_FADING ){
+
+        return gfx_u16_get_is_v_fading( 65535, 65535, obj );
+    }
+    else if( attr == PIX_ATTR_IS_HS_FADING ){
+
+        return gfx_u16_get_is_hs_fading( 65535, 65535, obj );
+    }
+    else if( ( virtual_array_length > 0 ) && 
+             ( attr == PIX_ATTR_COUNT ) &&
+             ( obj == 0 ) ){
+
+        return virtual_array_length;
+    }
+
+    gfx_pixel_array_t *array = 0;
+
+    if( gfx_i8_get_pixel_array( obj, &array ) != 0 ){
+
+        return 0;
+    }
+
+    if( attr >= ( sizeof(gfx_pixel_array_t) / sizeof(int32_t) ) ){
+
+        return 0;
+    }
+
+    int32_t *ptr = (int32_t *)array;
+
+    return ptr[attr];
+}
+
+void gfx_v_set_pixel_attr( uint8_t obj, uint8_t attr, int32_t value ){
+
+    gfx_pixel_array_t *array = 0;
+
+    if( gfx_i8_get_pixel_array( obj, &array ) != 0 ){
+
+        return;
+    }
+
+    if( attr >= ( sizeof(gfx_pixel_array_t) / sizeof(int32_t) ) ){
+
+        return;
+    }
+
+    int32_t *ptr = (int32_t *)array;
+
+    ptr[attr] = value;
 }
 
 #ifdef DIMMER_ZERO_REMAP
@@ -1987,6 +3566,16 @@ void gfx_v_process_faders( void ){
 
 void gfxlib_v_init( void ){
 
+    if( gfx_debug ){
+
+        fs_v_create_virtual( PSTR("gfx_hue"), gfx_debug_hue_vfile_handler );
+        fs_v_create_virtual( PSTR("gfx_sat"), gfx_debug_sat_vfile_handler );
+        fs_v_create_virtual( PSTR("gfx_val"), gfx_debug_val_vfile_handler );
+        fs_v_create_virtual( PSTR("gfx_hs_fade"), gfx_debug_hs_fade_vfile_handler );
+        fs_v_create_virtual( PSTR("gfx_v_fade"), gfx_debug_v_fade_vfile_handler );
+    }
+    
+
     #ifdef PIXEL_USE_MALLOC
 
     array_red = malloc( MAX_PIXELS );
@@ -2005,6 +3594,8 @@ void gfxlib_v_init( void ){
 
     compute_dimmer_lookup();
     compute_sat_lookup();
+
+    // gfx_v_plane( pix_size_x, pix_size_y );
 
     // initialize pixel arrays to defaults
     gfx_v_reset();
@@ -2027,26 +3618,34 @@ void gfx_v_sync_array( void ){
     uint16_t dimmed_val;
     uint16_t curved_sat;
 
-    // PWM modes will use pixel 0 and need 16 bits.
-    // for simplicity's sake, and to avoid a compare-branch in the
-    // HSV converversion loop, we'll just always compute the 16 bit values
-    // here, and then go on with the 8 bit arrays.
-
-    dimmed_val = gfx_u16_get_dimmed_val( val[0] );
-    curved_sat = gfx_u16_get_curved_sat( sat[0] );
-
-    gfx_v_hsv_to_rgb(
-        hue[0],
-        sat[0],
-        dimmed_val,
-        &pix0_16bit_red,
-        &pix0_16bit_green,
-        &pix0_16bit_blue
-    );
-
     zero_output = TRUE;
 
-    if( pix_mode == PIX_MODE_SK6812_RGBW ){
+    // analog:
+    if( pix_mode == PIX_MODE_ANALOG ){
+
+        // PWM modes will use pixel 0 and need 16 bits.
+
+        dimmed_val = gfx_u16_get_dimmed_val( val[0] );
+        curved_sat = gfx_u16_get_curved_sat( sat[0] );
+
+        gfx_v_hsv_to_rgb(
+            hue[0],
+            curved_sat,
+            dimmed_val,
+            &pix0_16bit_red,
+            &pix0_16bit_green,
+            &pix0_16bit_blue
+        );
+
+        if( ( pix0_16bit_red != 0 ) ||
+            ( pix0_16bit_green != 0 ) ||
+            ( pix0_16bit_blue != 0 ) ){
+
+            zero_output = FALSE;            
+        }
+    }
+    // RBGW:
+    else if( pix_mode == PIX_MODE_SK6812_RGBW ){
 
         for( uint16_t i = 0; i < pix_count; i++ ){
 
@@ -2063,7 +3662,8 @@ void gfx_v_sync_array( void ){
                 &b,
                 &w
             );
-      
+        
+            // convert to 8 bit channels
             r /= 256;
             g /= 256;
             b /= 256;
@@ -2083,7 +3683,8 @@ void gfx_v_sync_array( void ){
             array_misc[i] = w;
         }
     }
-    else{
+    // RGB without dithering:
+    else if( !pix_dither ){ // if dithering is NOT enabled (the usual case)
 
         for( uint16_t i = 0; i < pix_count; i++ ){
 
@@ -2100,14 +3701,52 @@ void gfx_v_sync_array( void ){
                 &b
             );
       
+            // convert to 8 bit channels
+            r /= 256;
+            g /= 256;
+            b /= 256;
+
+            if( ( r != 0 ) ||
+                ( g != 0 ) ||
+                ( b != 0 ) ){
+
+                zero_output = FALSE;     
+            }
+        
+            array_red[i] = r;
+            array_green[i] = g;
+            array_blue[i] = b;
+        }
+    }
+    // RGB with dithering:
+    else{ // if dithering is enabled
+
+        for( uint16_t i = 0; i < pix_count; i++ ){
+
+            // process master dimmer
+            dimmed_val = gfx_u16_get_dimmed_val( val[i] );
+            curved_sat = gfx_u16_get_curved_sat( sat[i] );
+
+            gfx_v_hsv_to_rgb(
+                hue[i],
+                curved_sat,
+                dimmed_val,
+                &r,
+                &g,
+                &b
+            );
+        
+            // convert to 10 bit channels
             r /= 64;
             g /= 64;
             b /= 64;
 
+            // compute dither
             dither =  ( r & 0x0003 ) << 4;
             dither |= ( g & 0x0003 ) << 2;
             dither |= ( b & 0x0003 );
 
+            // convert down to 8 bit channels
             r /= 4;
             g /= 4;
             b /= 4;
@@ -2123,6 +3762,28 @@ void gfx_v_sync_array( void ){
             array_green[i] = g;
             array_blue[i] = b;
             array_misc[i] = dither;
+        }
+    }
+
+    if( gfx_mirror_array ){
+
+        // error check
+        if( ( pix_count > ( MAX_PIXELS / 2 ) ) ||
+            ( pix_count < 2 ) ){
+
+            gfx_mirror_array = FALSE;
+            log_v_error_P( PSTR("Mirroring not available, too many pixels") );            
+        }
+        else{
+
+            // mirror the RGB arrays:
+            for( uint16_t i = 0; i < pix_count; i++ ){
+
+                array_red[pix_count + i]    = array_red[( pix_count - 1 ) - i];
+                array_green[pix_count + i]  = array_green[( pix_count - 1 ) - i];
+                array_blue[pix_count + i]   = array_blue[( pix_count - 1 ) - i];
+                array_misc[pix_count + i]   = array_misc[( pix_count - 1 ) - i];
+            }
         }
     }
     
@@ -2182,6 +3843,116 @@ uint16_t gfx_u16_noise( uint16_t x ){
 
     return lerp( noise_table[x_min], noise_table[x_min + 1], t );
 }
+
+
+// Shuffle
+
+/*
+
+Basic Fisher-Yates Shuffle:
+
+1. Write down the numbers from 1 through N.
+
+2. Pick a random number k between one and the number of 
+   unstruck numbers remaining (inclusive).
+
+3. Counting from the low end, strike out the kth number 
+   not yet struck out, and write it down at the end of a separate list.
+
+4. Repeat from step 2 until all the numbers have been struck out.
+
+5. The sequence of numbers written down in step 3 is now 
+   a random permutation of the original numbers.
+
+
+Our modified algorithm:
+
+The original is about shuffling an array.  We just want the index of the
+current item and to track which items have already been pulled from the
+"deck".
+
+We track the deck as a bit array, with one bit for each pixel in our
+main pixel array (it is assumed this algorithm is being used for
+pixel selection).
+
+We select a random number from 0 to N - 1.  N is the number of items remaining
+in the deck.  This is our selection of the *remaining* items.
+We search the bit array (deck): bits that are 0 have not been removed from the
+deck, so we count these and skip over the 1s.  Once we get to our 0, we mark it
+as a 1 and return that overall bit position (covering 1s and 0s).
+
+Once the deck is depleted, we automatically re-initialize it.
+
+*/
+
+static uint16_t shuffle_count; // count of items still in the deck
+
+// "deck" with space for maximum possible pixel count:
+static uint8_t shuffle_state[( MAX_PIXELS / 8 ) + 1];
+
+void gfx_v_init_shuffle( void ){
+
+    shuffle_count = pix_count;
+    memset( shuffle_state, 0, sizeof(shuffle_state) );
+}
+
+// return count of remaining items
+uint16_t gfx_u16_shuffle_count( void ){
+
+    return shuffle_count;
+}
+
+uint16_t gfx_u16_shuffle( void ){
+
+    if( shuffle_count == 0 ){
+
+        return 0;
+    }
+
+    // get a random number k between 0 and N - 1, N being the number of
+    // items in the deck:
+    uint16_t k = rnd_u16_range( shuffle_count - 1 );
+    uint16_t b = 0; // b tracks the overall bit position
+
+    // count zeros in bitmask until we get to k
+    for( uint16_t i = 0; i < cnt_of_array(shuffle_state); i++ ){
+
+        for( uint8_t j = 0; j < 8; j++ ){
+
+            if( ( ( shuffle_state[i] >> j ) & 1 ) == 0 ){
+
+                k--;
+            }
+
+            if( k == 0 ){
+
+                // mark this bit as a 1.
+                // this removes it from the deck.
+                shuffle_state[i] |= ( 1 << j );
+
+                goto done;
+            }
+
+            b++;
+        }
+    }
+
+
+done:   
+    
+    // decrement count of items in the deck:
+    shuffle_count--;
+
+    if( shuffle_count == 0 ){
+
+        // deck is empty, automatically re-shuffle it:
+
+        gfx_v_init_shuffle();
+    }
+
+    return b;
+}
+
 
 
 uint32_t gfx_u32_get_pixel_r( void ){

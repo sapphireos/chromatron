@@ -187,6 +187,7 @@ PT_THREAD( sys_reboot_thread( pt_t *pt, void *state ) );
 KV_SECTION_META kv_meta_t sys_info_kv[] = {
     { CATBUS_TYPE_INT8,   0, 0,                   0, sys_kv_reboot_handler,            "reboot" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &sys_mode,                       0,  "sys_mode" },
+    { CATBUS_TYPE_BOOL,   0, KV_FLAGS_READ_ONLY,  &shutting_down,                  0,  "sys_shutting_down" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &startup_boot_mode,              0,  "sys_boot_mode" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_minor, 0,  "loader_version_minor" },
     { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,  &boot_data.loader_version_major, 0,  "loader_version_major" },
@@ -830,6 +831,8 @@ PT_BEGIN( pt );
 
 	   TMR_WAIT( pt, 1000 );
 
+       // log_v_info_P( PSTR("delay: %d"), reboot_delay );
+
        reboot_delay--;
     }
 
@@ -841,7 +844,7 @@ PT_BEGIN( pt );
     usb_v_shutdown();
     #endif
 
-    log_v_debug_P( PSTR("Ldr Cmd: %x Mode: %d"), boot_data.loader_command, boot_data.boot_mode );
+    log_v_debug_P( PSTR("Ldr Cmd: %x Mode: %d State: %d"), boot_data.loader_command, boot_data.boot_mode, shut_down_state );
 
     log_v_flush();
 
@@ -849,9 +852,13 @@ PT_BEGIN( pt );
 
     if( shut_down_state <= 0 ){
 
+        log_v_debug_P( PSTR("Rebooting now...") );
+
         reboot( TRUE );    
     }
     else{
+
+        log_v_debug_P( PSTR("Shutdown state reached") );
 
         shut_down_state = 2;
 
@@ -859,6 +866,8 @@ PT_BEGIN( pt );
         // or otherwise initiate a reset.
         // in case that does not happen, we will delay and then force a reboot.
         TMR_WAIT( pt, 20000 );
+
+        log_v_warn_P( PSTR("Shutdown state 2 timeout - rebooting...") );
 
         reboot( TRUE );
     }

@@ -126,6 +126,10 @@
  */
 #define ARP_QUEUEING                    1
 
+// JGB: custom ARP settings
+#define ARP_TABLE_SIZE 64
+#define ARP_QUEUE_LEN 4
+
 /*
    --------------------------------
    ---------- IP options ----------

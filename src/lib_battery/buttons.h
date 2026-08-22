@@ -1,0 +1,44 @@
+/*
+// <license>
+// 
+//     This file is part of the Sapphire Operating System.
+// 
+//     Copyright (C) 2013-2022  Jeremy Billheimer
+// 
+// 
+//     This program is free software: you can redistribute it and/or modify
+//     it under the terms of the GNU General Public License as published by
+//     the Free Software Foundation, either version 3 of the License, or
+//     (at your option) any later version.
+// 
+//     This program is distributed in the hope that it will be useful,
+//     but WITHOUT ANY WARRANTY; without even the implied warranty of
+//     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//     GNU General Public License for more details.
+// 
+//     You should have received a copy of the GNU General Public License
+//     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// 
+// </license>
+*/
+
+#ifndef _BUTTONS_H
+#define _BUTTONS_H
+
+// #define ENABLE_VBUS_SHUTDOWN
+
+void button_v_init( void );
+
+void button_v_register( uint8_t index, int8_t button );
+
+bool button_b_is_button_pressed( uint8_t button );
+bool button_b_peek_button_pressed( uint8_t button );
+bool button_b_is_button_hold( uint8_t button );
+bool button_b_is_button_released( uint8_t button );
+bool button_b_peek_button_released( uint8_t button );
+bool button_b_is_button_hold_released( uint8_t button );
+
+void button_v_request_shutdown( void );
+bool button_b_is_shutdown_requested( void );
+
+#endif

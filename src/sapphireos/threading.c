@@ -24,6 +24,39 @@
 
 
 
+/*
+
+Thread timing improvements:
+
+Rate: run thread at specific multiple of 10 ms.
+The threading system drives a high priority 10 ms clock.
+Any thread with the rate flag set will run when the tick hits its
+modulo of the current clock.
+
+
+Add flag for rate control (similar to current alarm).
+The alarm field becomes the rate field.
+
+There will need to be an accurate 10 ms clock driving the scheduler.
+Rate-driven threads should run at higher priority than others, except signals.
+
+Stats should be collected on rate driven threads: avg and max timings at least.
+
+Rate threads should run in a priority order, with higher rates running first.
+
+
+
+The overall idea is to get better control and accuracy of timed tasks and hopefully
+improve the amount of time the CPU can go to sleep and minimize wakeups while still maintaining
+timing.  The same amount of work needs to be done, but it is more efficient if it is coordinated
+to maximize work done on a wake up.  The current system spreads tasks out haphazardly.
+
+
+
+*/
+
+
+
 #include "cpu.h"
 
 #include "system.h"
@@ -123,6 +156,7 @@ KV_SECTION_META kv_meta_t thread_info_kv[] = {
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.task_time,       0,  "thread_task_time" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.sleep_time,      0,  "thread_sleep_time" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &cpu_info.scheduler_loops, 0,  "thread_loops" },
+    // { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  &signals, 0,  "thread_signals" },
 };
 
 
@@ -164,6 +198,7 @@ static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
                 info.runs           = state->runs;
                 info.line           = state->pt.lc;
                 info.alarm          = state->alarm;
+                info.max_time       = state->max_time;
 
                 // get offset info page
                 uint16_t offset = pos - ( page * sizeof(info) );
@@ -222,6 +257,16 @@ thread_t thread_t_get_current_thread( void ){
 void thread_v_get_cpu_info( cpu_info_t *info ){
 
     *info = cpu_info;
+}
+
+uint8_t thread_u8_get_cpu_percent( void ){
+
+    if( cpu_info.run_time == 0 ){ // prevent divide by 0 if run time is not initialized
+
+        return 0;
+    }
+
+    return cpu_info.task_time * 100 / cpu_info.run_time;
 }
 
 void thread_v_dump( void ){
@@ -296,6 +341,7 @@ static thread_t make_thread( PT_THREAD( ( *thread )( pt_t *pt, void *state ) ),
     state->run_time = 0;
     state->runs     = 0;
     state->alarm    = 0;
+    state->max_time = 0;
 
     // copy data (if present)
     if( initial_data != 0 ){
@@ -469,9 +515,24 @@ void thread_v_create_timed_signal( uint8_t signum, uint8_t rate ){
         return;
     }
 
+    // check if signal is already registered
+    for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
+
+        if( timed_signals[i].signal == signum ){
+
+            // update rate
+            timed_signals[i].rate = rate * 1000; // convert to microseconds
+            timed_signals[i].ticks = timed_signals[i].rate;
+
+            return;
+        }
+    }
+
     for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
 
         if( timed_signals[i].rate == 0 ){
+
+            // add signal
 
             timed_signals[i].signal = signum;
             timed_signals[i].rate = rate * 1000; // convert to microseconds
@@ -483,6 +544,26 @@ void thread_v_create_timed_signal( uint8_t signum, uint8_t rate ){
 
     // no signals available
     ASSERT( FALSE );
+}
+
+void thread_v_destroy_timed_signal( uint8_t signum ){
+
+    // cannot use timed signals in safe mode
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
+    for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
+
+        if( timed_signals[i].signal == signum ){
+
+            timed_signals[i].signal = 0;
+            timed_signals[i].rate = 0;
+
+            return;
+        }
+    }
 }
 
 uint8_t thread_u8_get_run_cause( void ){
@@ -634,6 +715,11 @@ void run_thread( thread_t thread, thread_state_t *state ){
 
             state->runs++;
         }
+
+        if( elapsed_us > state->max_time ){
+
+            state->max_time = elapsed_us;
+        }
     }
 
     // check returned thread state
@@ -692,10 +778,12 @@ void run_thread( thread_t thread, thread_state_t *state ){
 }
 
 
-static void process_timed_signals( void ){
+static uint32_t process_timed_signals( void ){
 
     uint32_t now = tmr_u32_get_system_time_us();
     uint32_t elapsed = tmr_u32_elapsed_times( last_timed_signal_check, now );
+
+    uint32_t min_time_remaining = 0xffffffff;
 
     for( uint8_t i = 0; i < cnt_of_array(timed_signals); i++ ){
 
@@ -712,9 +800,18 @@ static void process_timed_signals( void ){
 
             signals |= ( 1 << timed_signals[i].signal );
         }
+        
+        if( timed_signals[i].ticks < (int32_t)min_time_remaining ){
+
+            // track minimum time left on any timed signal
+
+            min_time_remaining = timed_signals[i].ticks;
+        }
     }
 
     last_timed_signal_check = now;
+
+    return min_time_remaining / 1000; // convert to milliseconds
 }
 
 static void process_signalled_threads( void ){
@@ -774,10 +871,14 @@ static void process_signalled_threads( void ){
 //     }
 // }
 
-void thread_core( void ){
+int32_t thread_core( void ){
 
     // set sleep flag
     thread_flags |= FLAGS_SLEEP;
+
+    // process signals first
+    uint32_t timed_signals_ms_remaining = process_timed_signals();
+    process_signalled_threads();
 
     // ********************************************************************
     // Process Waiting threads
@@ -817,17 +918,22 @@ void thread_core( void ){
             run_thread( ln, state );
         }
 
-        ln = ln_state->next;
-
-        process_timed_signals();
+        timed_signals_ms_remaining = process_timed_signals();
         process_signalled_threads();
 
         #ifdef ENABLE_USB
         usb_v_poll();
         #endif
+
+        ln = ln_state->next;
     }
 
     mem2_v_collect_garbage();        
+
+    if( loops < 0xffff ){
+
+        loops++;
+    }
 
     // ********************************************************************
     // Check for sleep conditions
@@ -835,6 +941,24 @@ void thread_core( void ){
     // If no IRQ threads, and all threads are asleep, enter sleep mode
     // ********************************************************************
     #ifdef ENABLE_POWER
+    #ifdef ESP8266
+
+    if( ( thread_flags & FLAGS_SLEEP ) &&
+        ( thread_u16_get_signals() == 0 )  ){
+
+        uint32_t next_alarm_delta = thread_u32_get_next_alarm_delta();
+
+        // check if timed signal is sooner
+        if( timed_signals_ms_remaining < next_alarm_delta ){
+
+            next_alarm_delta = timed_signals_ms_remaining;   
+        }
+
+        return next_alarm_delta;
+    }
+
+    #else
+
     if( ( thread_flags & FLAGS_SLEEP ) &&
         ( thread_u16_get_signals() == 0 ) ){
 
@@ -846,17 +970,23 @@ void thread_core( void ){
 
         sleep_us += tmr_u32_elapsed_time_us( sleep_start );
     }
+
+    #endif
     #endif
 
     #ifdef __SIM__
     break;
     #endif
 
-    if( loops < 0xffff ){
-
-        loops++;
-    }
+    return 0;
 }
+
+#ifdef ESP8266
+void thread_v_add_sleep_time( uint32_t sleep_time ){
+
+    sleep_us += sleep_time;
+}
+#endif
 
 // start the thread scheduler
 void thread_start( void ){
@@ -876,7 +1006,7 @@ void thread_start( void ){
     thread_t_create( cpu_stats_thread, PSTR("cpu_stats"), 0, 0 );
 
     // create vfile
-    fs_f_create_virtual( PSTR("threadinfo"), vfile );
+    fs_v_create_virtual( PSTR("threadinfo"), vfile );
 
 
     #if defined(ESP8266) || defined(ESP32)

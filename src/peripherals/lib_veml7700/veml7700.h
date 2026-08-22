@@ -59,8 +59,8 @@
 void veml7700_v_init( void );
 
 void veml7700_v_configure( uint8_t _gain, uint8_t _int_time );
-uint16_t veml7700_u16_read_als( void );
-uint16_t veml7700_u16_read_white( void );
+uint32_t veml7700_u32_read_als( void );
+uint32_t veml7700_u32_read_white( void );
 
 
 #endif

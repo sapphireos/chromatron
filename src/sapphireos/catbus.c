@@ -22,6 +22,7 @@
 // </license>
  */
 
+#include "catbus_common.h"
 #include "sapphire.h"
 
 #include "config.h"
@@ -29,17 +30,22 @@
 #include "catbus.h"
 #include "random.h"
 #include "timesync.h"
-#include "services.h"
 
 // #define NO_LOGGING
 #include "logging.h"
+
+// #include "device_db.h"
 
 
 #ifdef ENABLE_NETWORK
 static uint64_t origin_id;
 
 static socket_t sock;
+static socket_t announce_sock;
 static thread_t file_sessions[CATBUS_MAX_FILE_SESSIONS];
+
+// client
+// static list_t name_lookup_list;
 #endif
 
 static catbus_hash_t32 meta_tag_hashes[CATBUS_QUERY_LEN];
@@ -98,6 +104,9 @@ static void _catbus_v_setup_tag_hashes( void ){
         if( cfg_i8_get( hash, s ) == 0 ){
 
             meta_tag_hashes[i] = hash_u32_string( s );
+
+            // add to names db
+            kvdb_v_set_name( s );
         }
         else{
 
@@ -215,6 +224,8 @@ void catbus_v_init( void ){
 
     trace_printf("Catbus max data len: %d\r\n", CATBUS_MAX_DATA);
 
+    _catbus_v_setup_tag_hashes();
+
     #ifdef ENABLE_CATBUS_LINK
     // list_v_init( &send_list );
     // list_v_init( &receive_cache );
@@ -223,12 +234,16 @@ void catbus_v_init( void ){
 
     }
     else{
-
+        
         link_v_init();
     }
     #endif
 
     #ifdef ENABLE_NETWORK
+
+    // client 
+    // list_v_init( &name_lookup_list );
+
     thread_t_create( catbus_server_thread,
                      PSTR("catbus_server"),
                      0,
@@ -269,7 +284,7 @@ static void _catbus_v_msg_init( catbus_header_t *header,
     header->origin_id       = origin_id;
 }
 
-static void _catbus_v_get_query( catbus_query_t *query ){
+void catbus_v_get_query( catbus_query_t *query ){
 
     for( uint8_t i = 0; i < cnt_of_array(query->tags); i++ ){
 
@@ -290,6 +305,21 @@ static bool _catbus_b_has_tag( catbus_hash_t32 hash ){
     return FALSE;
 }
 
+bool catbus_b_is_null_query( catbus_query_t *query ){
+
+    uint8_t count = 0;
+
+    for( uint8_t i = 0; i < cnt_of_array(query->tags); i++ ){
+
+        if( query->tags[i] != 0 ){
+
+            count++;
+        }
+    }
+
+    return count == 0;
+}
+
 bool catbus_b_query_self( catbus_query_t *query ){
 
     for( uint8_t i = 0; i < cnt_of_array(query->tags); i++ ){
@@ -307,6 +337,40 @@ bool catbus_b_query_self( catbus_query_t *query ){
 
     return TRUE;
 }
+
+// return TRUE if has is found in tags
+bool catbus_b_query_single( catbus_hash_t32 hash, catbus_query_t *tags ){
+
+    if( hash == 0 ){
+
+        return TRUE;
+    }
+
+    for( uint8_t i = 0; i < CATBUS_QUERY_LEN; i++ ){
+
+        if( hash == tags->tags[i] ){
+
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+// return TRUE if all hashes in the query are found in the tags
+bool catbus_b_query_tags( catbus_query_t *query, catbus_query_t *tags ){
+
+    for( uint8_t i = 0; i < CATBUS_QUERY_LEN; i++ ){
+
+        if( !catbus_b_query_single( query->tags[i], tags ) ){
+
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
 
 static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id ){
 
@@ -328,7 +392,7 @@ static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id )
     msg->flags = 0;
     msg->data_port = sock_u16_get_lport( sock );
 
-    _catbus_v_get_query( &msg->query );
+    catbus_v_get_query( &msg->query );
 
     sock_i16_sendto_m( sock, h, raddr );
 }
@@ -336,7 +400,7 @@ static void _catbus_v_send_announce( sock_addr_t *raddr, uint32_t discovery_id )
 static void _catbus_v_broadcast_announce( void ){
 
     sock_addr_t raddr;
-    raddr.ipaddr = ip_a_addr(CATBUS_ANNOUNCE_MCAST_ADDR);
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
     raddr.port = CATBUS_ANNOUNCE_PORT;
 
     _catbus_v_send_announce( &raddr, 0 );
@@ -370,7 +434,7 @@ static void _catbus_v_send_shutdown( void ){
 
     // multicast shutdown to announce port
     raddr.port = CATBUS_ANNOUNCE_PORT;
-    raddr.ipaddr = ip_a_addr(CATBUS_ANNOUNCE_MCAST_ADDR);
+    raddr.ipaddr = ip_a_addr(255,255,255,255);
     _catbus_v_transmit_shutdown( &raddr );
 }
 #endif
@@ -397,7 +461,7 @@ int8_t _catbus_i8_internal_set(
     uint16_t array_len = meta.array_len + 1;
 
     // wrap index
-    if( index > array_len ){
+    if( index >= array_len ){
 
         index %= array_len;
     }
@@ -437,6 +501,12 @@ int8_t _catbus_i8_internal_set(
     return status;
 }
 
+int8_t catbus_i8_set_i64(
+    catbus_hash_t32 hash, 
+    int64_t data )
+{
+    return catbus_i8_set( hash, CATBUS_TYPE_INT64, &data, sizeof(data) );
+}
 
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
@@ -468,6 +538,14 @@ int8_t catbus_i8_get(
     return catbus_i8_array_get( hash, type, 0, 1, data );
 }
 
+int8_t catbus_i8_get_i64(
+    catbus_hash_t32 hash, 
+    int64_t *data)
+{
+
+    return catbus_i8_get( hash, CATBUS_TYPE_INT64, data );
+}
+
 int8_t catbus_i8_array_get(
     catbus_hash_t32 hash,
     catbus_type_t8 type,
@@ -488,7 +566,7 @@ int8_t catbus_i8_array_get(
     uint16_t array_len = meta.array_len + 1;
 
     // wrap index
-    if( index > array_len ){
+    if( index >= array_len ){
 
         index %= array_len;
     }
@@ -597,21 +675,26 @@ PT_BEGIN( pt );
 
     while(1){
 
-        uint8_t buf[256];
+        for( uint8_t i = 0; i < 16; i++ ){
 
-        int16_t read_len = fs_i16_read( state->file, buf, sizeof(buf) );
+            uint8_t buf[256];
 
-        // check for end of file
-        if( read_len <= 0 ){
+            int16_t read_len = fs_i16_read( state->file, buf, sizeof(buf) );
 
-            break;
+            // check for end of file
+            if( read_len <= 0 ){
+
+                goto eof;
+            }
+
+            state->hash = hash_u32_partial( state->hash, buf, read_len );
         }
-
-        state->hash = hash_u32_partial( state->hash, buf, read_len );
 
         THREAD_YIELD( pt );
     }
 
+eof: {}
+    
     // send response
     catbus_msg_file_check_response_t msg;
     _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_FILE_CHECK_RESPONSE, state->transaction_id );
@@ -650,14 +733,23 @@ PT_THREAD( catbus_server_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    // create socket
-    sock = sock_s_create( SOS_SOCK_DGRAM );
+    static uint32_t last_lookup_check;
+    last_lookup_check = tmr_u32_get_system_time_ms();
+
+    // wifi_i8_igmp_join( ip_a_addr( CATBUS_ANNOUNCE_MCAST_ADDR ) );
+
+    // create sockets
+    sock          = sock_s_create( SOS_SOCK_DGRAM );
+    announce_sock = sock_s_create( SOS_SOCK_DGRAM );
 
     ASSERT( sock >= 0 );
+    ASSERT( announce_sock >= 0 );
 
     sock_v_bind( sock, CATBUS_MAIN_PORT );
+    // sock_v_bind( announce_sock, CATBUS_ANNOUNCE_PORT );
 
     sock_v_set_timeout( sock, 1 );
+    sock_v_set_timeout( announce_sock, 1 );
 
     // wait for device id
     cfg_i8_get( CFG_PARAM_DEVICE_ID, &origin_id );
@@ -678,20 +770,148 @@ PT_BEGIN( pt );
     }
 
     // set up tag hashes
-    _catbus_v_setup_tag_hashes();
+    // _catbus_v_setup_tag_hashes();
 
     while(1){
 
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+        // client
+        // THREAD_WAIT_WHILE( pt, 
+        //     ( sock_i8_recvfrom( sock ) < 0 ) && 
+        //     ( sock_i8_recvfrom( announce_sock ) < 0 ) && 
+        //     ( list_u8_count( &name_lookup_list ) == 0 ) );
+        THREAD_WAIT_WHILE( pt, 
+            ( sock_i8_recvfrom( sock ) < 0 ) && 
+            ( sock_i8_recvfrom( announce_sock ) < 0 ) );
 
         uint16_t error = CATBUS_STATUS_OK;
 
-        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+        if( ( sock_i16_get_bytes_read( sock ) <= 0 ) &&
+            ( sock_i16_get_bytes_read( announce_sock ) <= 0 ) ){
+
+        #ifdef ENABLE_WIFI
+            // only do the resolve if the server is not processing a message
+
+            if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+                goto end; // don't do any of this in safe mode
+            }
+
+            // client
+            // if( list_u8_count( &name_lookup_list ) == 0 ){
+
+            //     // no lookups to process, we got here via socket timeout
+            //     goto end; // nothing to do
+            // }
+
+            if( !wifi_b_connected() ){
+
+                // wifi not connected, we cannot do a lookup
+                goto end;
+            }
+
+        // client
+        // HASH_LOOKUP
+        //    // check if it is time for a hash lookup
+        //     if( tmr_u32_elapsed_time_ms( last_lookup_check ) > CATBUS_HASH_LOOKUP_INTERVAL ){
+
+        //         last_lookup_check = tmr_u32_get_system_time_ms();
+
+        //         list_node_t ln = name_lookup_list.head;
+
+        //         while( ln >= 0 ){
+
+        //             catbus_hash_lookup_t *lookup = list_vp_get_data( ln );
+        //             list_node_t next_ln = list_ln_next( ln );
+
+
+        //             lookup->tries--;
+
+        //             if( lookup->tries == 0 ){
+
+        //                 // timeout, delete
+        //                 list_v_remove( &name_lookup_list, ln );
+        //                 list_v_release_node( ln );                                  
+
+        //                 goto next_lookup;
+        //             }
+
+        //             // we are only doing a single lookup at a time
+        //             // this mechanism does not need to be efficient,
+        //             // since the lookup is recorded by the requesting 
+        //             // device, it should never need to ask again.
+
+        //             mem_handle_t h = mem2_h_alloc( sizeof(catbus_msg_lookup_hash_t) );
+
+        //             if( h < 0 ){
+
+        //                 break; // bummer!  
+        //             }
+
+        //             catbus_msg_lookup_hash_t *msg = mem2_vp_get_ptr_fast( h );
+
+        //             _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_LOOKUP_HASH, 0 );
+        //             msg->count = 1;
+        //             msg->first_hash = lookup->hash;
+
+        //             sock_addr_t raddr = {
+        //                 lookup->host_ip,
+        //                 CATBUS_MAIN_PORT
+        //             };
+
+        //             if( sock_i16_sendto_m( sock, h, &raddr ) < 0 ){
+
+        //                 // if transmission fails, bail out of the loop
+
+        //                 break;
+        //             }
+
+        //             log_v_debug_P( PSTR("Looking up hash: 0x%08x at %d.%d.%d.%d"), 
+        //                 lookup->hash,
+        //                 lookup->host_ip.ip3,
+        //                 lookup->host_ip.ip2,
+        //                 lookup->host_ip.ip1,
+        //                 lookup->host_ip.ip0
+        //             );
+
+        //         next_lookup:
+        //             ln = next_ln;
+        //         }            
+        //     }
+        //     else{
+
+        //         // it is NOT time for a lookup,
+        //         // do a short delay so we don't swamp the CPU poking the list
+        //         TMR_WAIT( pt, 5 );
+        //     }
+
+        #endif
 
             goto end;
         }
+        // /HASH_LOOKUP
 
-        catbus_header_t *header = sock_vp_get_data( sock );
+        catbus_header_t *header = 0;
+
+        // check which socket has data:
+        bool is_announce_sock = false;
+
+        sock_addr_t raddr;
+        
+        if( sock_i16_get_bytes_read( sock ) > 0 ){
+
+            header = sock_vp_get_data( sock );    
+            sock_v_get_raddr( sock, &raddr );
+        }
+        else if( sock_i16_get_bytes_read( announce_sock ) > 0 ){
+
+            is_announce_sock = true;
+            header = sock_vp_get_data( announce_sock );    
+            sock_v_get_raddr( announce_sock, &raddr );
+        }
+        else{
+
+            goto end;
+        }
 
         // verify message
         if( header->meow != CATBUS_MEOW ){
@@ -710,19 +930,25 @@ PT_BEGIN( pt );
             goto end;
         }
 
-        sock_addr_t raddr;
-        sock_v_get_raddr( sock, &raddr );
-
         // uint32_t start = tmr_u32_get_system_time_us();
 
         // log_v_debug_P( PSTR("%d"), header->msg_type );
 
         // DISCOVERY MESSAGES
-        if( header->msg_type == CATBUS_MSG_TYPE_ANNOUNCE ){
+        // if( header->msg_type == CATBUS_MSG_TYPE_ANNOUNCE ){
 
-            // no op
+            // catbus_msg_announce_t *msg = (catbus_msg_announce_t *)header;
+
+            // device_db_v_process_announce( msg, &raddr );
+        // }
+
+        // check if announce sock, if so, we only process announce
+        if( is_announce_sock ){
+
+            goto end;
         }
-        else if( header->msg_type == CATBUS_MSG_TYPE_DISCOVER ){
+
+        if( header->msg_type == CATBUS_MSG_TYPE_DISCOVER ){
 
             catbus_msg_discover_t *msg = (catbus_msg_discover_t *)header;
 
@@ -784,14 +1010,49 @@ PT_BEGIN( pt );
                 uint32_t hash = LOAD32(hash_ptr);
 
                 if( kv_i8_get_name( hash, str->str ) != KV_ERR_STATUS_OK ){
-
+                
                     // try query tags
                     for( uint8_t i = 0; i < cnt_of_array(meta_tag_hashes); i++ ){
 
                         if( meta_tag_hashes[i] == hash ){
 
+                            uint32_t meta_kv = 0;
+
+                            if( i == 0 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_0;
+                            }
+                            else if( i == 1 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_1;
+                            }
+                            else if( i == 2 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_2;
+                            }
+                            else if( i == 3 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_3;
+                            }
+                            else if( i == 4 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_4;
+                            }
+                            else if( i == 5 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_5;
+                            }
+                            else if( i == 6 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_6;
+                            }
+                            else if( i == 7 ){
+
+                                meta_kv = CFG_PARAM_META_TAG_7;
+                            }
+
                             // retrieve string from config DB
-                            cfg_i8_get( CFG_PARAM_META_TAG_0 + i, str->str );
+                            cfg_i8_get( meta_kv, str->str );
 
                             break;
                         }
@@ -804,6 +1065,63 @@ PT_BEGIN( pt );
 
             sock_i16_sendto_m( sock, h, 0 );
         }
+        // client
+        // this is a client response message, so there is no reply (this is the reply)
+        // else if( header->msg_type == CATBUS_MSG_TYPE_RESOLVED_HASH ){
+
+        //     catbus_msg_resolved_hash_t *msg = (catbus_msg_resolved_hash_t *)header;
+
+        //     if( msg->count == 0 ){
+
+        //         error = CATBUS_ERROR_PROTOCOL_ERROR;
+        //         goto end;
+        //     }
+        //     else if( msg->count > CATBUS_MAX_HASH_LOOKUPS ){
+
+        //         error = CATBUS_ERROR_PROTOCOL_ERROR;
+        //         goto end;
+        //     }
+
+        //     catbus_string_t *str = &msg->first_string;
+
+        //     while( msg->count > 0 ){
+
+        //         msg->count--;
+
+        //         log_v_debug_P( PSTR("Resolved hash: %s from %d.%d.%d.%d"), 
+        //                 str->str,
+        //                 raddr.ipaddr.ip3,
+        //                 raddr.ipaddr.ip2,
+        //                 raddr.ipaddr.ip1,
+        //                 raddr.ipaddr.ip0
+        //             );
+
+        //         kvdb_v_set_name( str->str );
+
+        //         // check for a lookup entry and delete it if needed
+        //         catbus_hash_t32 hash = hash_u32_string( str->str );
+        //         list_node_t ln = name_lookup_list.head;
+
+        //         while( ln >= 0 ){
+
+        //             catbus_hash_lookup_t *lookup = list_vp_get_data( ln );
+        //             list_node_t next_ln = list_ln_next( ln );
+
+        //             if( lookup->hash == hash ){
+
+        //                 // timeout, delete
+        //                 list_v_remove( &name_lookup_list, ln );
+        //                 list_v_release_node( ln );                                  
+
+        //                 break;
+        //             }
+
+        //             ln = next_ln;
+        //         }
+
+        //         str++;
+        //     }        
+        // }
         else if( header->msg_type == CATBUS_MSG_TYPE_GET_KEY_META ){
 
             catbus_msg_get_key_meta_t *msg = (catbus_msg_get_key_meta_t *)header;
@@ -976,7 +1294,11 @@ PT_BEGIN( pt );
                 }
                 else{
 
-                    ASSERT( FALSE ); // all requested keys were already checked, so they must exist here
+                    mem2_v_free( h );
+
+                    // ASSERT( FALSE ); // all requested keys were already checked, so they must exist here
+                    error = CATBUS_ERROR_KEY_NOT_FOUND;
+                    goto end;
                 }
 
                 hash++;
@@ -1401,6 +1723,72 @@ PT_BEGIN( pt );
             // send reply
             sock_i16_sendto_m( sock, h, 0 );
         }
+        // else if( header->msg_type == CATBUS_MSG_TYPE_GET_FILE_HASH_LIST ){
+
+        //     // catbus_msg_file_list_t *msg = (catbus_msg_file_list_t *)header;
+
+        //     int16_t file_count = fs_u32_get_file_count();
+        //     // int16_t index = msg->index;
+        //     int16_t item_count = CATBUS_MAX_FILE_HASH_ENTRIES;
+            
+        //     uint16_t reply_len = sizeof(catbus_msg_file_hash_list_t) + ( ( item_count - 1 ) * sizeof(catbus_file_hash_t) );
+
+        //     mem_handle_t h = mem2_h_alloc( reply_len );
+
+        //     if( h < 0 ){
+
+        //         error = CATBUS_ERROR_ALLOC_FAIL;
+        //         goto end;
+        //     }
+
+        //     catbus_msg_file_hash_list_t *reply = mem2_vp_get_ptr( h );
+
+        //     memset( reply, 0, reply_len );
+
+        //     _catbus_v_msg_init( &reply->header, CATBUS_MSG_TYPE_FILE_HASH_LIST, header->transaction_id );
+
+        //     reply->file_count       = file_count;
+        //     catbus_file_hash_t *item = &reply->first_hash;
+
+        //     for( uint8_t i = 0; i < item_count; i++ ){
+
+        //         item[i].size = -1;
+        //     }
+
+        //     uint8_t index = 0;
+
+        //     while( ( item_count > 0 ) && ( index < FS_MAX_FILES ) ){
+                
+        //         item->size = fs_i32_get_size_id( index );  
+
+        //         if( item->size >= 0 ){
+
+        //             // if( FS_FILE_IS_VIRTUAL( index ) ){
+
+        //             //     item->flags = FS_INFO_FLAGS_VIRTUAL;
+        //             // }
+
+        //             char filename[FS_MAX_FILE_NAME_LEN];
+        //             fs_i8_get_filename_id( index, filename, sizeof(filename) );
+
+        //             kvdb_v_set_name( filename );
+
+        //             item->hash = hash_u32_string( filename );
+
+        //             item++;
+        //             item_count--;
+        //         }
+
+        //         index++;
+        //     }
+
+        //     // send next index to client, because some indexes will be empty and 
+        //     // we skip those.
+        //     // reply->next_index = index;
+
+        //     // send reply
+        //     sock_i16_sendto_m( sock, h, 0 );
+        // }
         else if( header->msg_type == CATBUS_MSG_TYPE_ERROR ){
 
             // catbus_msg_error_t *msg = (catbus_msg_error_t *)header;
@@ -1477,7 +1865,7 @@ PT_BEGIN( pt );
     
     while(1){
 
-        TMR_WAIT( pt, ( CATBUS_ANNOUNCE_INTERVAL * 1000 ) + ( rnd_u16_get_int() >> 6 ) ); // add up to 1023 ms randomly
+        TMR_WAIT( pt, ( CATBUS_ANNOUNCE_INTERVAL * 1000 ) + ( rnd_u16_get_int() >> 5 ) ); // add up to 2047 ms randomly
 
         // are we shutting down?
         if( sys_b_is_shutting_down() ){
@@ -1488,6 +1876,8 @@ PT_BEGIN( pt );
             THREAD_EXIT ( pt );
         }
 
+        _catbus_v_broadcast_announce();
+        TMR_WAIT( pt, 100 );
         _catbus_v_broadcast_announce();
         TMR_WAIT( pt, 100 );
         _catbus_v_broadcast_announce();
@@ -1552,3 +1942,476 @@ const catbus_hash_t32* catbus_hp_get_tag_hashes( void ){
     return meta_tag_hashes;
 }
 #endif
+
+
+
+
+
+
+
+
+
+// static bool is_hash_lookup_in_list( catbus_hash_t32 hash ){
+
+//     list_node_t ln = name_lookup_list.head;
+
+//     while( ln >= 0 ){
+
+//         catbus_hash_lookup_t *lookup = list_vp_get_data( ln );
+
+//         if( lookup->hash == hash ){
+
+//             // reset tries, since we obviously still want this lookup
+//             // lookup->tries = CATBUS_HASH_LOOKUP_TRIES;
+
+//             // let it expire?
+//             // callers can add it back of course.
+
+//             return TRUE;
+//         }
+
+//         ln = list_ln_next( ln );
+//     }     
+
+//     return FALSE;
+// }
+
+
+// Clients
+
+
+// int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN], ip_addr4_t *host_ip ){
+
+//     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+//         // do not enable this function in safe mode
+
+//         return -1;
+//     }
+
+//     memset( name, 0, CATBUS_STRING_LEN );
+
+//     if( hash == 0 ){
+
+//         // set default string so we at least return something
+
+//         if( host_ip == 0 ){
+
+//             snprintf_P( name, CATBUS_STRING_LEN, PSTR("0x%08x"), hash );
+//         }
+//         else{
+
+//             snprintf_P( name, CATBUS_STRING_LEN, PSTR("%d.%d.%d.%d"), host_ip->ip3, host_ip->ip2, host_ip->ip1, host_ip->ip0 );
+//         }
+
+//         return 0;
+//     }
+
+//     // try to look up string, from KV database
+//     int8_t status = kv_i8_get_name( hash, name );
+
+//     if( status != KV_ERR_STATUS_OK ){
+
+//         // check name lookup list and if host IP is given
+//         if( ( host_ip != 0 ) &&
+//             ( list_u8_count( &name_lookup_list ) < CATBUS_MAX_HASH_RESOLVER_LOOKUPS ) ){
+
+//             // search list to see if this hash is already present
+//             // note that since the hash is only a couple bytes and we are using
+//             // the linked list, there is a lot of overhead.
+//             // however, we limit the size of the list and it is ephemeral,
+//             // lookups either resolve or time out.
+
+//             if( !is_hash_lookup_in_list( hash ) ){
+
+//                 // add new lookup
+//                 catbus_hash_lookup_t lookup = {
+//                     hash,
+//                     *host_ip,
+//                     CATBUS_HASH_LOOKUP_TRIES                    
+//                 };
+
+//                 list_node_t ln = list_ln_create_node( &lookup, sizeof(lookup) );
+
+//                 if( ln > 0 ){
+
+//                     list_v_insert_tail( &name_lookup_list, ln );
+//                 }
+//             }   
+//         }
+
+//         // set default string so we at least return something
+//         if( host_ip == 0 ){
+
+//             snprintf_P( name, CATBUS_STRING_LEN, PSTR("0x%08x"), hash );
+//         }
+//         else{
+
+//             snprintf_P( name, CATBUS_STRING_LEN, PSTR("%d.%d.%d.%d"), host_ip->ip3, host_ip->ip2, host_ip->ip1, host_ip->ip0 );
+//         }
+//     }
+
+//     return status;
+// }
+
+
+
+
+// static uint8_t client_count;
+
+// typedef struct{
+//     uint8_t tries;
+//     socket_t sock;
+//     sock_addr_t raddr;
+//     catbus_file_hash_t hash_list[CATBUS_MAX_FILE_HASH_ENTRIES * sizeof(catbus_file_hash_t)];
+//     catbus_file_hash_list_callback_t callback;
+// } file_hash_list_thread_state_t;
+
+
+// PT_THREAD( catbus_hash_list_session_thread( pt_t *pt, file_hash_list_thread_state_t *state ) )
+// {
+// PT_BEGIN( pt );
+
+//     THREAD_WAIT_WHILE( pt, client_count >= CATBUS_MAX_CLIENT_SESSIONS );
+
+//     state->sock = sock_s_create( SOS_SOCK_DGRAM );
+
+//     if( state->sock <= 0 ){
+    
+//         THREAD_EXIT( pt );    
+//     }
+
+//     client_count++;
+
+//     while( state->tries > 0 ){
+
+//         state->tries--;
+            
+//         catbus_header_t header;
+//         _catbus_v_msg_init( &header, CATBUS_MSG_TYPE_GET_FILE_HASH_LIST, 0 );
+
+//         // fake origin ID so we can loopback
+//         header.origin_id = 1;
+
+//         sock_v_set_timeout( state->sock, 2 );
+//         sock_i16_sendto( state->sock, (uint8_t *)&header, sizeof(header), &state->raddr );
+
+//         THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) );
+
+//         if( sock_i16_get_bytes_read( state->sock ) > 0 ){
+
+//             const catbus_msg_file_hash_list_t *reply = sock_vp_get_data( state->sock );
+
+//             if( reply->header.msg_type != CATBUS_MSG_TYPE_FILE_HASH_LIST ){
+
+//                 log_v_error_P( PSTR("Error") );
+
+//                 goto done;
+//             }
+
+//             log_v_debug_P( PSTR("file count: %d"), reply->file_count );
+
+//             const catbus_file_hash_t *hash = &reply->first_hash;
+            
+//             for( uint8_t i = 0; i < reply->file_count; i++ ){
+
+//                 char str[CATBUS_STRING_LEN];
+//                 catbus_i8_get_string_for_hash( hash->hash, str, &state->raddr.ipaddr );
+
+//                 log_v_debug_P( PSTR("file: 0x%08x %s %d"), hash->hash, str, hash->size );
+
+//                 state->hash_list[i] = *hash;
+
+//                 hash++;
+//             }
+
+//             state->callback( reply->file_count, state->hash_list, state->raddr.ipaddr );
+
+//             goto done;
+//         }
+//     }
+
+//     if( state->tries == 0 ){
+
+//         log_v_info_P( PSTR("List files failed") );
+//     }
+
+// done:
+//     client_count--;
+//     sock_v_release( state->sock );
+
+// PT_END( pt );
+// }
+
+
+// static thread_t _catbus_t_create_file_hash_list_session(
+//     ip_addr4_t ipaddr,
+//     catbus_file_hash_list_callback_t callback ){
+
+//     mem_handle_t h = mem2_h_alloc( sizeof(file_hash_list_thread_state_t) );
+
+//     if( h < 0 ){
+
+//         return 0;
+//     }
+
+//     file_hash_list_thread_state_t *state = mem2_vp_get_ptr( h );
+//     state->tries         = 5;
+//     state->callback      = callback;
+//     state->raddr.ipaddr  = ipaddr;
+//     state->raddr.port    = CATBUS_MAIN_PORT;
+    
+//     memset( state->hash_list, 0, sizeof(state->hash_list) );
+
+//     thread_t t = thread_t_create( 
+//                     THREAD_CAST(catbus_hash_list_session_thread),
+//                     PSTR("catbus_hash_list_session"),
+//                     (uint8_t *)state,
+//                     sizeof(file_hash_list_thread_state_t) );
+
+
+//     mem2_v_free( h );
+    
+//     return t;
+// }
+
+// void catbus_v_get_file_hash_list( ip_addr4_t ipaddr, catbus_file_hash_list_callback_t callback ){
+
+//     _catbus_t_create_file_hash_list_session( ipaddr, callback );
+// }
+
+
+
+
+// typedef struct{
+//     uint8_t tries;
+//     socket_t sock;
+//     sock_addr_t raddr;
+//     catbus_meta_t meta;
+//     // data bytes follow
+// } set_key_thread_state_t;
+
+
+// PT_THREAD( catbus_set_key_session_thread( pt_t *pt, set_key_thread_state_t *state ) )
+// {
+// PT_BEGIN( pt );
+
+//     THREAD_WAIT_WHILE( pt, client_count >= CATBUS_MAX_CLIENT_SESSIONS );
+
+//     state->sock = sock_s_create( SOS_SOCK_DGRAM );
+
+//     if( state->sock <= 0 ){
+
+//         THREAD_EXIT( pt );        
+//     }
+
+//     client_count++;
+
+//     while( state->tries > 0 ){
+
+//         state->tries--;
+
+//         uint8_t buf[128];
+//         catbus_msg_set_keys_t *msg = (catbus_msg_set_keys_t *)buf;
+//         _catbus_v_msg_init( &msg->header, CATBUS_MSG_TYPE_SET_KEYS, 0 );
+
+//         uint16_t data_len = type_u16_size( state->meta.type );
+
+//         // fake origin ID so we can loopback
+//         msg->header.origin_id = 1;
+//         msg->count = 1;
+//         msg->first_data.meta = state->meta;
+
+//         const uint8_t *src = (uint8_t *)( state + 1 );
+//         uint8_t *dst = (uint8_t *)&msg->first_data.data; 
+//         memcpy( dst, src, data_len );
+
+//         sock_v_set_timeout( state->sock, 2 );
+//         sock_i16_sendto( state->sock, (uint8_t *)msg, sizeof(catbus_msg_set_keys_t) - 1 + data_len, &state->raddr );
+
+//         THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) );
+
+//         if( sock_i16_get_bytes_read( state->sock ) > 0 ){
+
+//             const catbus_msg_key_data_t *reply = sock_vp_get_data( state->sock );
+
+//             if( reply->header.msg_type != CATBUS_MSG_TYPE_KEY_DATA ){
+
+//                 log_v_error_P( PSTR("Error") );
+
+//                 goto done;
+//             }
+
+//             // log_v_debug_P( PSTR("count: %d"), reply->count );
+
+//             // state->callback( reply->file_count, state->hash_list );
+
+//             goto done;
+//         }
+//     }
+
+//     if( state->tries == 0 ){
+
+//         log_v_info_P( PSTR("Set key failed") );
+//     }
+        
+// done:
+//     client_count--;
+//     sock_v_release( state->sock );
+
+// PT_END( pt );
+// }
+
+
+// void catbus_v_set_key( 
+//     ip_addr4_t ipaddr, 
+//     catbus_hash_t32 hash, 
+//     catbus_type_t8 type,
+//     const void *data ){
+
+//     uint16_t data_len = type_u16_size( type );
+
+//     mem_handle_t h = mem2_h_alloc( sizeof(set_key_thread_state_t) + data_len );
+
+//     if( h < 0 ){
+
+//         return;
+//     }
+
+//     set_key_thread_state_t *state = mem2_vp_get_ptr( h );
+
+//     state->tries            = 5;
+//     state->raddr.ipaddr     = ipaddr;
+//     state->raddr.port       = CATBUS_MAIN_PORT;
+//     state->meta.count       = 0;
+//     state->meta.flags       = 0;
+//     state->meta.hash        = hash;
+//     state->meta.type        = type;
+//     state->meta.reserved    = 0;
+
+//     void *state_data    = (void *)( state + 1 );
+//     memcpy( state_data, data, data_len );
+
+//     thread_t_create( 
+//                     THREAD_CAST(catbus_set_key_session_thread),
+//                     PSTR("catbus_set_key_session"),
+//                     (uint8_t *)state,
+//                     sizeof(set_key_thread_state_t) + data_len );
+
+
+//     mem2_v_free( h );
+// }
+
+
+
+// typedef struct{
+//     uint8_t tries;
+//     socket_t sock;
+//     sock_addr_t raddr;
+//     catbus_hash_t32 hash;
+//     catbus_get_key_callback_t callback;
+// } get_key_thread_state_t;
+
+
+// PT_THREAD( catbus_get_key_session_thread( pt_t *pt, get_key_thread_state_t *state ) )
+// {
+// PT_BEGIN( pt );
+    
+//     THREAD_WAIT_WHILE( pt, client_count >= CATBUS_MAX_CLIENT_SESSIONS );
+
+//     state->sock = sock_s_create( SOS_SOCK_DGRAM );
+
+//     if( state->sock <= 0 ){
+
+//         THREAD_EXIT( pt );
+//     }
+
+//     client_count++;
+
+//     // log_v_debug_P( PSTR("get key") );
+    
+//     while( state->tries > 0 ){
+
+//         state->tries--;
+
+//         catbus_msg_get_keys_t msg;
+//         _catbus_v_msg_init( &msg.header, CATBUS_MSG_TYPE_GET_KEYS, 0 );
+
+//         // fake origin ID so we can loopback
+//         msg.header.origin_id = 1;
+//         msg.count = 1;
+//         msg.first_hash = state->hash;
+
+//         sock_v_set_timeout( state->sock, 2 );
+//         sock_i16_sendto( state->sock, (uint8_t *)&msg, sizeof(catbus_msg_get_keys_t), &state->raddr );
+
+//         THREAD_WAIT_WHILE( pt, ( sock_i8_recvfrom( state->sock ) < 0 ) );
+
+//         if( sock_i16_get_bytes_read( state->sock ) > 0 ){
+
+//             const catbus_msg_key_data_t *reply = sock_vp_get_data( state->sock );
+
+//             if( reply->header.msg_type != CATBUS_MSG_TYPE_KEY_DATA ){
+
+//                 log_v_error_P( PSTR("Error") );
+
+//                 goto done;
+//             }
+
+//             const uint8_t *data = &reply->first_data.data;
+
+//             log_v_debug_P( PSTR("count: %d / %d"), reply->count, reply->first_data.meta.count );
+
+//             state->callback( 
+//                 state->hash,
+//                 reply->first_data.meta.type, 
+//                reply->first_data.meta.count + 1, 
+//                        data, 
+//                state->raddr.ipaddr );
+
+//             goto done;
+//         }
+//     }
+
+//     if( state->tries == 0 ){
+
+//         log_v_info_P( PSTR("Get key failed") );
+//     }
+        
+// done:
+//     client_count--;
+//     sock_v_release( state->sock );
+
+// PT_END( pt );
+// }
+
+
+// void catbus_v_get_key( 
+//     ip_addr4_t ipaddr, 
+//     catbus_hash_t32 hash,
+//     catbus_get_key_callback_t callback ){
+
+//     mem_handle_t h = mem2_h_alloc( sizeof(get_key_thread_state_t) );
+
+//     if( h < 0 ){
+
+//         return;
+//     }
+
+//     get_key_thread_state_t *state = mem2_vp_get_ptr( h );
+
+//     state->tries            = 5;
+//     state->raddr.ipaddr     = ipaddr;
+//     state->raddr.port       = CATBUS_MAIN_PORT;
+//     state->hash             = hash;
+//     state->callback         = callback;
+
+//     thread_t_create( 
+//                     THREAD_CAST(catbus_get_key_session_thread),
+//                     PSTR("catbus_get_key_session"),
+//                     (uint8_t *)state,
+//                     sizeof(get_key_thread_state_t) );
+
+
+//     mem2_v_free( h );
+// }

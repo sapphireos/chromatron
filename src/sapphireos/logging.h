@@ -42,6 +42,12 @@
     #define LOG_ENABLE
 #endif
 
+// #define ENABLE_LOG_SERVER
+
+#ifndef ENABLE_MSGFLOW
+    #undef ENABLE_LOG_SERVER
+#endif
+
 // check if flash file system is disabled,
 // if so, disable logging module
 #ifndef ENABLE_FFS

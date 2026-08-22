@@ -31,7 +31,8 @@ typedef struct{
 } cron_job_t;
 
 void vm_cron_v_init( void );
-void vm_cron_v_load( uint8_t vm_id, vm_state_t *state, file_t f );
+void vm_cron_v_load_job( uint8_t vm_id, cron_t *job );
+void vm_cron_v_start_jobs( uint8_t vm_id );
 void vm_cron_v_unload( uint8_t vm_id );
 
 // function must be defined by vm.c

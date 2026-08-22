@@ -28,138 +28,168 @@
 #include "ip.h"
 #include "threading.h"
 #include "logging.h"
+#include "sockets.h"
 
 #if defined(ENABLE_WIFI) && !defined(AVR)
 
-static ip_addr4_t igmp_groups[WIFI_MAX_IGMP];
+// static ip_addr4_t igmp_groups[WIFI_MAX_IGMP];
 
 
-PT_THREAD( igmp_thread( pt_t *pt, void *state ) );
+PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
+// PT_THREAD( igmp_thread( pt_t *pt, void *state ) );
 
 void wifi_v_init( void ){
 
     hal_wifi_v_init();
 
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-        return;
-    }
+    //     return;
+    // }
 
-    thread_t_create( igmp_thread,
-                     PSTR("igmp"),
-                     0,
-                     0 );
-   
-}
-
-int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
-
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-        return 0;
-    }
-
-    for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
-
-        if( ip_b_addr_compare( mcast_ip, igmp_groups[i] ) ){
-
-            // already joined
-            return 0;
-        }
-    }
-
-    // add new group
-    for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
-
-        if( ip_b_is_zeroes( igmp_groups[i] ) ){
-
-            igmp_groups[i] = mcast_ip;
-
-            // check if wifi is connected, if so, join here
-            // if not, we'll join in the igmp_thread.
-            if( wifi_b_connected() ){
-
-                hal_wifi_i8_igmp_join( igmp_groups[i] );   
-            }
-
-            break;
-        }
-    }
+    // thread_t_create( igmp_thread,
+    //                  PSTR("igmp"),
+    //                  0,
+    //                  0 );
     
-    return 0;
-}
-
-int8_t wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
-
-    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
-
-        return 0;
-    }
-
-    for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
-
-        if( ip_b_addr_compare( mcast_ip, igmp_groups[i] ) ){
-
-            hal_wifi_i8_igmp_leave( mcast_ip );
-
-            igmp_groups[i] = ip_a_addr(0,0,0,0);
-
-            break;
-        }
-    }
-    
-    return 0;
+    thread_t_create( 
+                wifi_echo_thread,
+                PSTR("wifi_echo"),
+                0,
+                0 );  
 }
 
 
-PT_THREAD( igmp_thread( pt_t *pt, void *state ) )
+PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
-    
+
+    static socket_t sock;
+
+    sock = sock_s_create( SOS_SOCK_DGRAM );
+    sock_v_bind( sock, 7 );
+
     while(1){
 
-        THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
-        TMR_WAIT( pt, 1000 );
-
-        for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
-
-            if( ip_b_is_zeroes( igmp_groups[i] ) ){
-
-                continue;
-            }
-
-            int8_t status = hal_wifi_i8_igmp_join( igmp_groups[i] );
-
-            if( status != 0 ){
-
-                log_v_error_P( PSTR("IGMP join failed: %d group: %d.%d.%d.%d"), status, igmp_groups[i].ip3, igmp_groups[i].ip2, igmp_groups[i].ip1, igmp_groups[i].ip0 );
-            }
-        }
-
-        THREAD_WAIT_WHILE( pt, wifi_b_connected() && !sys_b_is_shutting_down() );
-
-        // if shutting down, or lost connection, leave all groups so we'll rejoin later
-        if( !wifi_b_connected() || sys_b_is_shutting_down() ){
-
-            for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
-
-                if( ip_b_is_zeroes( igmp_groups[i] ) ){
-
-                    continue;
-                }
-
-                hal_wifi_i8_igmp_leave( igmp_groups[i] );
-            }
-        }
-
-        if( sys_b_is_shutting_down() ){
-
-            THREAD_EXIT( pt );
+        if( sock_i16_sendto( sock, sock_vp_get_data( sock ), sock_i16_get_bytes_read( sock ), 0 ) >= 0 ){
+            
         }
     }
 
 PT_END( pt );
 }
+
+
+// int8_t wifi_i8_igmp_join( ip_addr4_t mcast_ip ){
+
+//     // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+//     //     return 0;
+//     // }
+
+//     for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
+
+//         if( ip_b_addr_compare( mcast_ip, igmp_groups[i] ) ){
+
+//             // already joined
+//             return 0;
+//         }
+//     }
+
+//     // add new group
+//     for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
+
+//         if( ip_b_is_zeroes( igmp_groups[i] ) ){
+
+//             igmp_groups[i] = mcast_ip;
+
+//             // check if wifi is connected, if so, join here
+//             // if not, we'll join in the igmp_thread.
+//             if( wifi_b_connected() ){
+
+//                 hal_wifi_i8_igmp_join( igmp_groups[i] );   
+//             }
+
+//             break;
+//         }
+//     }
+    
+//     return 0;
+// }
+
+// int8_t wifi_i8_igmp_leave( ip_addr4_t mcast_ip ){
+
+//     // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+//     //     return 0;
+//     // }
+
+//     for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
+
+//         if( ip_b_addr_compare( mcast_ip, igmp_groups[i] ) ){
+
+//             hal_wifi_i8_igmp_leave( mcast_ip );
+
+//             igmp_groups[i] = ip_a_addr(0,0,0,0);
+
+//             break;
+//         }
+//     }
+    
+//     return 0;
+// }
+
+
+// PT_THREAD( igmp_thread( pt_t *pt, void *state ) )
+// {
+// PT_BEGIN( pt );
+    
+//     while(1){
+
+//         THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
+
+//         TMR_WAIT( pt, 1000 );
+
+//         for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
+
+//             if( ip_b_is_zeroes( igmp_groups[i] ) ){
+
+//                 continue;
+//             }
+
+//             int8_t status = hal_wifi_i8_igmp_join( igmp_groups[i] );
+
+//             if( status != 0 ){
+
+//                 log_v_error_P( PSTR("IGMP join failed: %d group: %d.%d.%d.%d"), status, igmp_groups[i].ip3, igmp_groups[i].ip2, igmp_groups[i].ip1, igmp_groups[i].ip0 );
+//             }
+//         }
+
+//         THREAD_WAIT_WHILE( pt, wifi_b_connected() && !sys_b_is_shutting_down() );
+
+//         // if shutting down, or lost connection, leave all groups so we'll rejoin later
+//         if( !wifi_b_connected() || sys_b_is_shutting_down() ){
+
+//             for( uint8_t i = 0; i < cnt_of_array(igmp_groups); i++ ){
+
+//                 if( ip_b_is_zeroes( igmp_groups[i] ) ){
+
+//                     continue;
+//                 }
+
+//                 hal_wifi_i8_igmp_leave( igmp_groups[i] );
+//             }
+//         }
+
+//         if( sys_b_is_shutting_down() ){
+
+//             THREAD_EXIT( pt );
+//         }
+//     }
+
+// PT_END( pt );
+// }
 
 #endif

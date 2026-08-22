@@ -167,8 +167,8 @@ int8_t ffs_fw_i8_init( void ){
 
     // read firmware info from external flash partition
     #ifdef ESP32
-    uint32_t fw_start_offset = hal_flash25_u32_get_partition_start();
-    trace_printf("Partition FW_START_OFFSET 0x%0x\n", fw_start_offset);
+    // uint32_t fw_start_offset = hal_flash25_u32_get_partition_start();
+    // trace_printf("Partition FW_START_OFFSET 0x%0x\n", fw_start_offset);
 
     flash25_v_read( FLASH_FS_FIRMWARE_0_PARTITION_START + FW_START_OFFSET - FW_SPI_START_OFFSET,
                     &ext_fw_length,
@@ -228,6 +228,8 @@ int8_t ffs_fw_i8_init( void ){
     // esp8266 (with coprocessor) cannot copy fw to coproc
     return FFS_STATUS_OK;
     #endif
+
+    #ifndef DISABLE_FFS_FW_COPY
 
     // check CRC or if partition length is bad
     if( ffs_fw_u16_crc() != 0 ){
@@ -291,6 +293,8 @@ int8_t ffs_fw_i8_init( void ){
             return FFS_STATUS_ERROR;
         }
     }
+
+    #endif
 
     return FFS_STATUS_OK;
 }
@@ -487,7 +491,10 @@ void ffs_fw_v_erase( uint8_t partition, bool immediate ){
         return;
     }
 
-    immediate = TRUE;
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+        
+        immediate = TRUE;
+    }
 
     if( !immediate ){
 

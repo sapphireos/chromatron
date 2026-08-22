@@ -12,6 +12,7 @@ projects = [
     'lib_battery',
     'lib_veml7700',
     'lib_rfm95w',
+    'lib_ssd1306',
     'lib_gfx',
     'chromatron',
 ]

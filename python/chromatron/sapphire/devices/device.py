@@ -47,6 +47,13 @@ import json
 import base64
 import traceback
 import crcmod
+from pprint import pprint
+
+from colorama import init as colorama_init
+from colorama import Fore
+from colorama import Style
+
+colorama_init()
 
 from sapphire.buildtools import firmware_package
 from sapphire.buildtools.firmware_package import FirmwarePackage
@@ -209,21 +216,23 @@ class KVKey(object):
         flags = ''
 
         if "persist" in self.flags:
-            flags += 'P'
+            flags += f'{Fore.WHITE}P'
         else:
-            flags += ' '
+            flags += f'{Fore.WHITE} '
 
         if "read_only" in self.flags:
-            flags += 'R'
+            flags += f'{Fore.YELLOW}R'
         else:
-            flags += ' '
+            flags += f'{Fore.YELLOW} '
 
         if "dynamic" in self.flags:
-            flags += 'D'
+            flags += f'{Fore.BLUE}D'
         else:
-            flags += ' '
+            flags += f'{Fore.BLUE} '
 
-        s = "%32s %6s %8s %s" % (self.key, flags, get_type_name(self.type), str(self._value))
+        type_str = get_type_name(self.type)
+
+        s = f"{Fore.GREEN}{self.key:32} {flags:6} {Fore.MAGENTA}{type_str:8} {Fore.CYAN}{self._value}{Style.RESET_ALL}"
         return s
 
     def is_readonly(self):
@@ -252,6 +261,20 @@ class KVMeta(UserDict):
         self.data[key] = value
         value.key = key
 
+
+EVENTS = [ 
+    "evt_log_init",
+    "evt_log_record",
+    "log_record",
+    "sys_assert",
+    "signal",
+    "watchdog_kick",
+    "ffs_garbage_collect",
+    "ffs_wear_level",
+    "mem_defrag",
+    "gfx_faders",
+    "pix_signal"
+]
 
 class Device(object):
     def __init__(self,
@@ -304,12 +327,15 @@ class Device(object):
             self._client.connect((self.host, self.port))
 
         elif self.channel_type == 'serial_udp':
-            self._client = Client()
+            self._client = Client(initial_timeout=2.0) # USB serial can be slower than wifi
             # set window to 1, so messages will ping pong over the bridge.
             self._client.set_window(1, 1)
             self._bridge = channel.UDPSerialBridge(self._channel, CATBUS_MAIN_PORT)
     
             self._client.connect(('localhost', self._bridge.port))
+
+        if self._client is not None:
+            self._client.add_hashes(*EVENTS)
 
 
     def __str__(self):
@@ -346,7 +372,7 @@ class Device(object):
 
         return d
 
-    def scan(self, get_all=True):    
+    def scan(self, get_all=False):    
         self.get_kv_meta()
 
         # check if this is a chromatron device (running sapphireos)
@@ -439,8 +465,8 @@ class Device(object):
 
         return responses
 
-    def lookup_hash(self, key):
-        value = self._client.lookup_hash(key)[key]
+    def lookup_hash(self, key, host=None):
+        value = self._client.lookup_hash(key, host=host)[key]
 
         if value == key:
             raise KeyError(key)
@@ -538,7 +564,12 @@ class Device(object):
 
         if fw_info.board not in fw.manifest['targets']:
             # board not found, or board not listed (from 2.x firmware without that information)
-            hw_type = self.get_key('hw_type')
+            try:
+                hw_type = self.get_key('hw_type')
+
+            except KeyError:
+                hw_type = 'Chromatron'
+
             if hw_type in ['Chromatron']:
                 if fw.FWID == CHROMATRON_ESP_UPGRADE_FWID:
                     fw_info.board = 'chromatron_classic_upgrade'
@@ -636,26 +667,42 @@ class Device(object):
 
         return info
 
-    def get_service_info(self):
-        data = self.get_file("serviceinfo")
-        info = sapphiredata.ServiceInfoArray()
-        info.unpack(data)
+    # def get_service_info(self):
+    #     data = self.get_file("serviceinfo")
+    #     info = sapphiredata.ServiceInfoArray()
+    #     info.unpack(data)
 
-        return info
+    #     return info
 
-    def get_service(self, service_id, group):
-        services = self.get_service_info()
+    # def get_service(self, service_id, group):
+    #     services = self.get_service_info()
 
-        for s in services:
-            if s.id == service_id and s.group == group:
-                return s
+    #     for s in services:
+    #         if s.id == service_id and s.group == group:
+    #             return s
 
-        return None
+    #     return None
 
     def get_datalog_config(self):
         data = self.get_file("datalog_config")
 
         info = sapphiredata.DatalogEntryArray()
+        info.unpack(data)
+
+        return info
+
+    def get_telemetry_config(self):
+        data = self.get_file("telemetry_config")
+
+        info = sapphiredata.TelemetryConfigEntryArray()
+        info.unpack(data)
+
+        return info
+
+    def get_telemetry_data(self):
+        data = self.get_file("telemetry_data")
+
+        info = sapphiredata.TelemetryDataEntryArray()
         info.unpack(data)
 
         return info
@@ -676,6 +723,21 @@ class Device(object):
 
         return info
 
+    def get_vm_threads(self):
+        data = self.get_file("vm0_threads")
+
+        info = sapphiredata.VMThreadEntryArray()
+        info.unpack(data)
+
+        return info
+
+    def get_directory(self):
+        data = self.get_file("directory")
+
+        info = sapphiredata.DirectoryArray()
+        info.unpack(data)
+
+        return info
 
     # helper for testing mostly
     def wait_service(self, service_id, group, state=None, timeout=30.0):
@@ -705,26 +767,30 @@ class Device(object):
 
         return info
 
+    def get_device_db(self):
+        data = self.get_file("device_db")
+        info = sapphiredata.DeviceDBArray()
+        info.unpack(data)
+
+        return info
+
     def get_link_info(self):
         data = self.get_file("link_info")
-        info = sapphiredata.LinkInfoArray()
+        info = sapphiredata.Link4StateArray()
         info.unpack(data)
 
         return info
 
-    def get_link_consumer_info(self):
-        data = self.get_file("link_consumers")
-        info = sapphiredata.LinkConsumerInfoArray()
-        info.unpack(data)
+    def dump_hsv(self):
+        pix_count = self.get_key('pix_count')
 
-        return info
+        hsv = {}
+        
+        for k in ['hue', 'sat', 'val', 'hs_fade', 'v_fade']:
+            data = self.get_file(f'gfx_{k}')
+            hsv[k] = struct.unpack(f'{pix_count}H', data)
 
-    def get_link_producer_info(self):
-        data = self.get_file("link_producers")
-        info = sapphiredata.LinkProducerInfoArray()
-        info.unpack(data)
-
-        return info
+        return hsv
 
 
     ##########################
@@ -740,6 +806,13 @@ class Device(object):
         self.scan()
 
         return "Done"
+
+    def cli_dump_hsv(self, line):
+        print('')
+        
+        hsv = self.dump_hsv()
+
+        pprint(hsv)
 
     def cli_echo(self, line):
         start = time.time()
@@ -923,7 +996,7 @@ class Device(object):
         else:
             info = self.get_thread_info()
 
-        s = "\nAddr      Line  Flags  Data         Time     Runs   Avg  CPU Name\n"
+        s = "\nAddr      Line  Flags  Data         Time     Runs   Avg    Max  CPU Name\n"
 
         total_run_time = 0
         for n in info:
@@ -966,7 +1039,7 @@ class Device(object):
 
             cpu_usage = (n.run_time / float(total_run_time)) * 100.0
 
-            s += "%8x  %4d   %5s %4d %12d %8d %5d %4.1f %s\n" % \
+            s += "%8x  %4d   %5s %4d %12d %8d %5d %6d %4.1f %s\n" % \
                 (n.addr,
                  n.line,
                  flags,
@@ -974,6 +1047,7 @@ class Device(object):
                  n.run_time,
                  n.runs,
                  avg_time,
+                 n.max_time,
                  cpu_usage,
                  n.name)
 
@@ -1012,6 +1086,20 @@ class Device(object):
             28: "link_producer",
             29: "link_remote",
             30: "kv_opt",
+            31: "vm_thread_context",
+            32: "fs_page_cache",
+            33: "mqtt_sub",
+            34: "mqtt_broker_sub",
+            35: "controller_node",
+            36: "link2",
+            37: "link2_binding",
+            38: "link2_data_cache",
+            39: "link2_meta",
+            40: "devicedb",
+            41: "link4",
+            42: "vm_array",
+            43: "vm_coroutine",
+            44: "link4_db",
         }
 
         total_size = 0
@@ -1076,104 +1164,112 @@ class Device(object):
 
         return s
 
-    def cli_serviceinfo(self, line):
-        try:
-            serviceinfo = self.get_service_info()
+    # def cli_serviceinfo(self, line):
+    #     try:
+    #         serviceinfo = self.get_service_info()
 
-        except IOError:
-            return "No services found"
+    #     except IOError:
+    #         return "No services found"
 
-        states = {
-                0: 'listen',
-                1: 'connected',
-                2: 'server',
-            }
+    #     states = {
+    #             0: 'listen',
+    #             1: 'connected',
+    #             2: 'server',
+    #         }
         
-        s = "\nService          Group               IP           Port  Priority    Uptime    Timeout | State\n"
+    #     s = "\nService          Group               IP           Port  Priority    Uptime    Timeout | State\n"
 
-        # iterate over service cache entries
-        for e in serviceinfo:
-            if states[e.state] == 'server':
-                uptime = e.local_uptime
-                port = e.local_port
-            else:
-                uptime = e.server_uptime
-                port = e.server_port
+    #     # iterate over service cache entries
+    #     for e in serviceinfo:
+    #         if states[e.state] == 'server':
+    #             uptime = e.local_uptime
+    #             port = e.local_port
+    #         else:
+    #             uptime = e.server_uptime
+    #             port = e.server_port
 
-            try:
-                service_id = self.lookup_hash(e.id)
+    #         try:
+    #             service_id = self.lookup_hash(e.id)
 
-            except KeyError:
-                service_id = f'{e.id:x}'
+    #         except KeyError:
+    #             service_id = f'{e.id:x}'
 
-            try:
-                group_id = self.lookup_hash(e.group)
+    #         try:
+    #             group_id = self.lookup_hash(e.group)
 
-            except KeyError:
-                group_id = f'{e.group:x}'
+    #         except KeyError:
+    #             group_id = f'{e.group:x}'
 
-            s += "%16s %16s %15s %5d %3d     %7d     %3d         %-10s\n" % \
-                (service_id,
-                 group_id,
-                 e.server_ip,
-                 port,
-                 e.local_priority,
-                 uptime,
-                 e.timeout,
-                 states[e.state])
+    #         s += "%16s %16s %15s %5d %3d     %7d     %3d         %-10s\n" % \
+    #             (service_id,
+    #              group_id,
+    #              e.server_ip,
+    #              port,
+    #              e.local_priority,
+    #              uptime,
+    #              e.timeout,
+    #              states[e.state])
 
-        return s
+    #     return s
 
     def cli_linkinfo(self, line):
         s = '\n'
 
         try:
             linkinfo = self.get_link_info()
+            # print(linkinfo)
 
             if len(linkinfo) == 0:
                 raise IOError
 
             s += 'Links:\n'
-            s += 'Source           Dest             Mode Agg  Rate Hash             Query\n'
+            s += 'Source               Dest                  Mode        Agg   Rate Query\n'
 
-            for info in sorted(linkinfo, key=lambda x: x.hash):
+            for info in sorted(linkinfo, key=lambda x: x.link.source_key):
+                link = info.link
                 try:
-                    source = self.lookup_hash(info.source_key)
+                    source = self.lookup_hash(link.source_key)
 
                 except KeyError:
-                    source = f'{info.source_key:x}'                
+                    source = f'{link.source_key:x}'                
 
                 try:
-                    dest = self.lookup_hash(info.dest_key)
+                    dest = self.lookup_hash(link.dest_key)
 
                 except KeyError:
-                    dest = f'{info.dest_key:x}'       
+                    dest = f'{link.dest_key:x}'       
 
-                if info.mode == LINK_MODE_SEND:
+                if link.mode == sapphiredata.LINK4_MODE_SEND:
                     mode = "send"
                 
-                elif info.mode == LINK_MODE_RECV:
+                elif link.mode == sapphiredata.LINK4_MODE_RECV:
                     mode = "recv"
 
-                elif info.mode == LINK_MODE_SYNC:
+                elif link.mode == sapphiredata.LINK4_MODE_SYNC:
                     mode = "sync"
+
+                elif link.mode == sapphiredata.LINK4_MODE_REMOTE_SEND:
+                    mode = "remote_send"
+
+                elif link.mode == sapphiredata.LINK4_MODE_REMOTE_RECV:
+                    mode = "remote_recv"
 
                 else:
                     mode = "????"
 
-                if info.aggregation == LINK_AGG_ANY:
-                    agg = "any"
+                if link.aggregation == sapphiredata.LINK4_AGG_LAST:
+                    agg = "last"
 
-                elif info.aggregation == LINK_AGG_MIN:
+                elif link.aggregation == sapphiredata.LINK4_AGG_MIN:
                     agg = "min"
 
-                elif info.aggregation == LINK_AGG_MAX:
+                elif link.aggregation == sapphiredata.LINK4_AGG_MAX:
                     agg = "max"
 
-                elif info.aggregation == LINK_AGG_SUM:
+                elif link.aggregation == sapphiredata.LINK4_AGG_SUM:
                     agg = "sum"
 
-                elif info.aggregation == LINK_AGG_AVG:
+                elif link.aggregation == sapphiredata.LINK4_AGG_AVG:
                     agg = "avg"
 
                 else:
@@ -1181,7 +1277,7 @@ class Device(object):
 
 
                 query_s = ''
-                for q in info.query:
+                for q in link.query:
                     try:
                         v = self.lookup_hash(q)
 
@@ -1193,66 +1289,26 @@ class Device(object):
 
                     query_s += f'{v} '
 
-                s += "%16s %16s %4s %3s %5d %16x %s\n" % \
+                s += "%-20s %-20s %12s %3s %5d %s\n" % \
                     (source,
                      dest,
                      mode,
                      agg,
-                     info.rate,
-                     info.hash,
+                     link.rate,
                      query_s)
 
-        except IOError:
-            pass
+                s += "--------------------------------------------------------------------------------\n"
+                s += "\t   value ip                    timeout seq\n"
 
-        
-        try:
-            linkinfo = self.get_link_producer_info()
+                for data in info.database:
+                    s += f'\t{data.value:8} {data.ip:20} {data.timeout:4} {data.sequence:5}\n'
 
-            if len(linkinfo) == 0:
-                raise IOError
+                s += "================================================================================\n"
 
-            s += 'Producers:\n'
-            s += 'Source                Leader: IP Port   Rate Timeout Hash\n'
-
-            for info in sorted(linkinfo, key=lambda x: x.link_hash):
-                try:
-                    source = self.lookup_hash(info.source_key)
-
-                except KeyError:
-                    source = f'{info.source_key:x}'                
-                
-                s += "%16s %15s %5d %5d %5d   %16x\n" % \
-                    (source,
-                     info.leader_ip,
-                     info.leader_port,
-                     info.rate,
-                     info.timeout,
-                     info.link_hash)
 
         except IOError:
             pass
 
-        try:
-            linkinfo = self.get_link_consumer_info()
-
-            if len(linkinfo) == 0:
-                raise IOError
-
-            s += 'Consumers:\n'
-            s += 'Hash                IP           Port  Timeout\n'
-            
-            for info in sorted(linkinfo, key=lambda x: x.link_hash):
-                s += "%16x %15s %5d %5d\n" % \
-                    (info.link_hash,
-                     info.ip,
-                     info.port,
-                     info.timeout)
-                
-
-        except IOError:
-            pass
-        
         return s
     
 
@@ -1261,6 +1317,13 @@ class Device(object):
 
         if len(line) == 0:
             line = '*'
+
+        for event in events:
+            try:
+                event.event_str = self.lookup_hash(event.event_id)
+
+            except KeyError:
+                event.event_str = str(event.event_id)
 
         eventlog = [event for event in events if fnmatch.fnmatch(event.event_str, line)]
 
@@ -1313,10 +1376,12 @@ class Device(object):
             params = self.get_kv('*')
 
         else:
+            # convert cmd2's new whatever object back into the string it was always meant to be.
+            line = str(line)
             params = self.get_kv(line)
 
         if isinstance(params, dict):
-            s = "\nName                             Flags  Type     Value\n"
+            s = f"{Style.RESET_ALL}\nName                           Flags Type     Value\n"
 
             for k in sorted(params.keys()):
                 s += "%s\n" % (self._keys[k])
@@ -1325,6 +1390,9 @@ class Device(object):
             s = "%s = %s" % (line, params)
 
         return s
+
+    def cli_gektey(self, line):
+        return cli_getkey(line)
 
     def cli_setkey(self, line):
         tokens = line.split(' ', 1)
@@ -1346,6 +1414,9 @@ class Device(object):
         new_param = self.get_key(param)
 
         return "%s set to: %s" % (param, new_param)
+
+    def cli_sektey(self, line):
+        return cli_setkey(line)
 
 
     def cli_resetcfg(self, line):
@@ -1440,20 +1511,20 @@ class Device(object):
 
         return s
 
-    def cli_irqinfo(self, line):
-        params = self.get_kv("sys_time_us", "irq_time", "irq_longest_time", "irq_longest_addr")
+    # def cli_irqinfo(self, line):
+    #     params = self.get_kv("sys_time_us", "irq_time", "irq_longest_time", "irq_longest_addr")
 
-        # convert all params to floats
-        params = {k: float(v) for (k, v) in params.items()}
+    #     # convert all params to floats
+    #     params = {k: float(v) for (k, v) in params.items()}
 
-        irq_usage = (params["irq_time"] / params["sys_time_us"]) * 100.0
+    #     irq_usage = (params["irq_time"] / params["sys_time_us"]) * 100.0
 
-        s = "IRQ:%2.1f%% Longest:%6d uS Addr:0x%05x" % \
-            (irq_usage,
-             params["irq_longest_time"],
-             params["irq_longest_addr"])
+    #     s = "IRQ:%2.1f%% Longest:%6d uS Addr:0x%05x" % \
+    #         (irq_usage,
+    #          params["irq_longest_time"],
+    #          params["irq_longest_addr"])
 
-        return s
+    #     return s
 
 
     def cli_meminfo(self, line):
@@ -1481,6 +1552,37 @@ class Device(object):
              params["loader_status"])
 
         return s
+
+    def cli_nettime(self, line, targets=None):
+
+        target_modem_sleep = {}
+
+        for target in targets:
+            target_modem_sleep[target] = target.get_key('wifi_disable_modem_sleep')
+            target.set_key('wifi_disable_modem_sleep', True)
+
+        time.sleep(2.0)
+
+        nettimes = []
+
+        for target in targets:
+            nt = target.get_key('net_time')
+
+            nettimes.append(nt)
+
+        for target in targets:
+            target.set_key('wifi_disable_modem_sleep', target_modem_sleep[target])
+
+        base = nettimes[0]
+
+        print('Base time: {base} ms')
+
+        i = 0
+        for nt in nettimes:
+            print(f'{str(targets[i]):32}: {int(nt - base):5} ms')
+            i += 1
+
+        return ''
 
     def cli_ntptime(self, line):
         ntp_seconds = self.get_key("ntp_seconds")
@@ -1710,78 +1812,199 @@ class Device(object):
     def cli_portinfo(self, line):
         data = self.get_port_monitor()
         
-        s = '\nIP           rport lport      tx      rx     drop  timeout\n'
+        s = '\nIP            rport lport      tx      rx     drop  timeout\n'
 
         for item in data:
             if item.timeout == 0:
                 continue
 
-            s += f'{item.ipaddr:12} {item.rport:5} {item.lport:5} {item.tx_count:7} {item.rx_count:7} {item.dropped:5}    {item.timeout:3}\n'
+            s += f'{item.ipaddr:15} {item.rport:5} {item.lport:5} {item.tx_count:7} {item.rx_count:7} {item.dropped:5}    {item.timeout:3}\n'
 
         return s
 
-    def cli_batt_recorder_info(self, line):
+    def cli_watch(self, line):
+        if line == '*':
+            return "Cannot watch on all keys"
+
         try:
-            data = self.get_batt_records()
+            while True:
+                params = self.get_kv(line)
+
+                if isinstance(params, dict):
+                    s = f"{Style.RESET_ALL}\nName                           Flags Type     Value\n"
+
+                    for k in sorted(params.keys()):
+                        s += "%s\n" % (self._keys[k])
+
+                else:
+                    s = "%s = %s" % (line, params)
+
+                print(s)
+
+                try:
+                    time.sleep(0.2)
+
+                except KeyboardInterrupt:
+                    return ""
+
+        except (DeviceCommsErrorException, NoResponseFromHost):
+            return "Lost connection!"
+
+    def cli_telemetry_info(self, line):
+        try:
+            data = self.get_telemetry_data()
+
+        except OSError:
+            return
+
+        s = ''
+        # s = '\nKey                     Rate (ms)\n'
+
+        for item in data:
+            s += f'{item}\n'
+            
+        #     s += f'{self._client.lookup_hash(item.hash)[item.hash]:20}   {item.rate}\n'
+
+        return s
+
+    def cli_vm_thread_info(self, line):
+        try:
+            data = self.get_vm_threads()
 
         except OSError:
             # file not found
             return
 
-        data_sets = {}
-        rates = {}
-
-        record_id = None
         for item in data:
+            if item.func_addr == 0xffff:
+                continue
+                
+            print(item)
 
-            if isinstance(item, sapphiredata.BattRecordStart):
-                record_id = item.record_id
+    def cli_directory(self, line):
+        try:
+            data = self.get_directory()
 
-                data_sets[record_id] = []
-                rates[record_id] = item.rate * 10
+        except OSError:
+            return
 
-            elif record_id is not None:
-                data_sets[record_id].append(item)
+        if len(data) == 0:
+            return
 
+        s = '\nIP           Query                            Svc  Timeout\n'
 
-        # get remaining data
         for item in data:
-            if isinstance(item, sapphiredata.BattRecordStart):
-                break
+            query_s = ''
+            for q in list(item.query)[:2]:
+                try:
+                    v = self.lookup_hash(q, (str(item.ipaddr), CATBUS_MAIN_PORT))
 
-            data_sets[record_id].append(item)
+                    if v is None:
+                        continue
+
+                except KeyError:
+                    v = f'{q:x}'
+
+                query_s += f'{v} '
+
+            s += f'{item.ipaddr:12} {query_s:32} {item.service_flags:04x} {item.timeout}\n'
+            
+        #     s += f'{self._client.lookup_hash(item.hash)[item.hash]:20}   {item.rate}\n'
+
+        return s
+
+    def cli_device_db(self, line):
+        try:
+            data = self.get_device_db()
+
+        except OSError:
+            return
+
+        if len(data) == 0:
+            return
+
+        s = '\nIP           Query                            Timeout\n'
+
+        for item in data:
+            query_s = ''
+            for q in list(item.query)[:2]:
+                try:
+                    v = self.lookup_hash(q, (str(item.ipaddr), CATBUS_MAIN_PORT))
+
+                    if v is None:
+                        continue
+
+                except KeyError:
+                    v = f'{q:x}'
+
+                query_s += f'{v} '
+
+            s += f'{item.ipaddr:12} {query_s:32} {item.timeout}\n'
+            
+        return s
+
+    # def cli_batt_recorder_info(self, line):
+    #     try:
+    #         data = self.get_batt_records()
+
+    #     except OSError:
+    #         # file not found
+    #         return
+
+    #     data_sets = {}
+    #     rates = {}
+
+    #     record_id = None
+    #     for item in data:
+
+    #         if isinstance(item, sapphiredata.BattRecordStart):
+    #             record_id = item.record_id
+
+    #             data_sets[record_id] = []
+    #             rates[record_id] = item.rate * 10
+
+    #         elif record_id is not None:
+    #             data_sets[record_id].append(item)
+
+
+    #     # get remaining data
+    #     for item in data:
+    #         if isinstance(item, sapphiredata.BattRecordStart):
+    #             break
+
+    #         data_sets[record_id].append(item)
 
         
-        print('')
-        print('ID     Status      Volts Power   Temp')
+    #     print('')
+    #     print('ID     Status      Volts Power   Temp')
 
-        # for item in data:
-        for record_id, data in data_sets.items():
-            print(f'Record ID: {record_id} Rate: {rates[record_id]}')
+    #     # for item in data:
+    #     for record_id, data in data_sets.items():
+    #         print(f'Record ID: {record_id} Rate: {rates[record_id]}')
             
-            for item in data:
-                record_type = item.flags
+    #         for item in data:
+    #             record_type = item.flags
 
-                volts = 2500 + item.volts * 8
-                power = item.pix_power * 64
-                temp = item.temp
+    #             volts = 2500 + item.volts * 8
+    #             power = item.pix_power * 64
+    #             temp = item.temp
 
-                status = 'idle'
+    #             status = 'idle'
 
-                if record_type == sapphiredata.BATT_RECORD_TYPE_BLANK:
-                    continue
+    #             if record_type == sapphiredata.BATT_RECORD_TYPE_BLANK:
+    #                 continue
 
-                elif record_type == sapphiredata.BATT_RECORD_TYPE_DISCHARGE:
-                    status = 'discharge'
+    #             elif record_type == sapphiredata.BATT_RECORD_TYPE_DISCHARGE:
+    #                 status = 'discharge'
 
-                elif record_type == sapphiredata.BATT_RECORD_TYPE_CHARGE:
-                    status = 'charge'
+    #             elif record_type == sapphiredata.BATT_RECORD_TYPE_CHARGE:
+    #                 status = 'charge'
 
-                print(f'{record_id:5}  {status:9}   {volts:4}  {power:5} {temp:4}')
+    #             print(f'{record_id:5}  {status:9}   {volts:4}  {power:5} {temp:4}')
 
-            print('')
+    #         print('')
 
-        return ''
+    #     return ''
 
 def createDevice(**kwargs):
     return Device(**kwargs)

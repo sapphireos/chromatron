@@ -23,17 +23,26 @@
 #include "system.h"
 #include "logging.h"
 #include "keyvalue.h"
+#include "target.h"
 #include "threading.h"
 #include "timers.h"
 #include "fs.h"
+#include "ffs_fw.h"
 
 #include "pixel.h"
+#include "pixel_vars.h"
 #include "graphics.h"
-#include "battery.h"
-#include "vm.h"
+#include "pixel_power.h"
+#include "led_detect.h"
+#include "vm4.h"
 #include "vm_sync.h"
 #include "superconductor.h"
+#include "util.h"
+#include "event_log.h"
 
+// #ifdef GFX_SYNC_FADERS
+// #include "timesync.h"
+// #endif
 
 #ifdef ENABLE_GFX
 
@@ -57,17 +66,40 @@ static uint16_t pix_max_power; // in milliwatts
 static uint32_t max_timing_lag;
 static uint32_t avg_timing_lag;
 
+static uint32_t timing_lag_0ms;
+static uint32_t timing_lag_5ms;
+static uint32_t timing_lag_10ms;
+static uint32_t timing_lag_15ms;
+static uint32_t timing_lag_18ms;
+static uint32_t timing_lag_20ms;
+static uint32_t timing_lag_22ms;
+static uint32_t timing_lag_25ms;
+static uint32_t timing_lag_30ms;
+static uint32_t timing_lag_40ms;
+static uint32_t timing_lag_50ms;
+
 KV_SECTION_META kv_meta_t gfx_info_kv[] = {
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_fader_time,        0,                  "vm_fade_time" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_PERSIST,    &pix_max_power,        0,                  "pix_max_power" },
     { CATBUS_TYPE_UINT32,   0, 0,                   &max_timing_lag,       0,                  "gfx_timing_lag_max" },
     { CATBUS_TYPE_UINT32,   0, 0,                   &avg_timing_lag,       0,                  "gfx_timing_lag_avg" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_0ms,       0,                  "gfx_timing_lag_00ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_5ms,       0,                  "gfx_timing_lag_05ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_10ms,      0,                  "gfx_timing_lag_10ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_15ms,      0,                  "gfx_timing_lag_15ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_18ms,      0,                  "gfx_timing_lag_18ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_20ms,      0,                  "gfx_timing_lag_20ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_22ms,      0,                  "gfx_timing_lag_22ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_25ms,      0,                  "gfx_timing_lag_25ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_30ms,      0,                  "gfx_timing_lag_30ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_40ms,      0,                  "gfx_timing_lag_40ms" },
+    { CATBUS_TYPE_UINT32,   0, KV_FLAGS_READ_ONLY,  &timing_lag_50ms,      0,                  "gfx_timing_lag_50ms" },
 };
 
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) );
 
 
-static uint8_t fx_rainbow[] __attribute__((aligned(4))) = {
+static const uint8_t fx_rainbow[] __attribute__((aligned(4))) = {
     #include "rainbow.fx.carray"
 };
 
@@ -105,8 +137,8 @@ bool gfx_b_pixels_enabled( void ){
     }
 
     #ifdef ENABLE_BATTERY
-    // battery manager indicates power is off
-    if( !batt_b_pixels_enabled() ){
+    // pixel power manager indicates power is off
+    if( !pixelpower_b_pixels_enabled() ){
 
         return FALSE;
     }
@@ -153,6 +185,12 @@ static void calc_pixel_power( void ){
         power_temp += ( gfx_u32_get_pixel_b() * MICROAMPS_BLUE_PIX ) / 256;
         power_temp += ( gfx_u32_get_pixel_w() * MICROAMPS_WHITE_PIX ) / 256;
 
+        // for APA102, adjust power based on the global dimmer
+        if( pix_u8_get_mode() == PIX_MODE_APA102 ){
+
+            power_temp = ( power_temp * pix_apa102_dimmer ) / 31;
+        }
+
         // multiply by voltage to get power in microwatts
         power_temp *= PIXEL_MILLIVOLTS;
         power_temp /= 1000;
@@ -196,6 +234,7 @@ static void apply_power_limit( void ){
     }
 }
 
+
 PT_THREAD( gfx_control_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -207,21 +246,108 @@ PT_BEGIN( pt );
     gfx_v_process_faders();
     gfx_v_sync_array();
     calc_pixel_power();
-    pixel_v_signal();
 
     THREAD_WAIT_WHILE( pt, pix_u8_get_mode() == 0 );
 
-    thread_v_create_timed_signal( GFX_SIGNAL_0, 20 );
+    pixel_v_signal();
+        
+    // #ifdef GFX_SYNC_FADERS
+    // static uint32_t next_alarm;
+    // next_alarm = tmr_u32_get_system_time_ms();
+    // #else
+    thread_v_create_timed_signal( GFX_SIGNAL_0, FADER_RATE );
+    // #endif
 
     static uint32_t start;
     start = tmr_u32_get_system_time_us();
 
     while(1){        
 
-        THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
+        if( ffs_fw_u32_size( 0 ) == 0 ){
 
-        uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
+            // if firmware has been erased, pause graphics for a while.
+            // we are probably loading firmware and graphics slow the process down.
+
+            TMR_WAIT( pt, 120000 );
+        }
+
+        // #ifdef GFX_SYNC_FADERS
+        // if( time_b_is_sync() ){
+
+        //     // align faders to net time on FADER_RATE intervals
+
+        //     uint32_t net_time = time_u32_get_network_time();            
+
+        //     // compute net time milliseconds in this cycle
+        //     uint32_t cycle_ticks = net_time % FADER_RATE;
+
+        //     // compute milliseconds remaining in this cycle
+        //     uint32_t ticks_remaining = FADER_RATE - cycle_ticks;
+
+        //     // set up delay
+        //     next_alarm = tmr_u32_get_system_time_ms() + ticks_remaining;
+        //     thread_v_set_alarm( next_alarm );
+        //     THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        // }
+        // else{
+
+        //     next_alarm += FADER_RATE;
+        //     thread_v_set_alarm( next_alarm );
+        //     THREAD_WAIT_WHILE( pt, thread_b_alarm_set() );
+        // }
+        // #else
+        THREAD_WAIT_SIGNAL( pt, GFX_SIGNAL_0 );
+        // #endif
+
+
+        // uint32_t lag = tmr_u32_elapsed_time_us( start ) - 20000;
+        uint32_t lag = tmr_u32_elapsed_time_us( start );
         start = tmr_u32_get_system_time_us();
+
+        if( lag >= 50000 ){
+
+            timing_lag_50ms++;
+        }
+        else if( lag >= 40000 ){
+
+            timing_lag_40ms++;
+        }
+        else if( lag >= 30000 ){
+
+            timing_lag_30ms++;
+        }
+        else if( lag >= 25000 ){
+
+            timing_lag_25ms++;
+        }
+        else if( lag >= 22000 ){
+
+            timing_lag_22ms++;
+        }
+        else if( lag >= 20000 ){
+
+            timing_lag_20ms++;
+        }
+        else if( lag >= 18000 ){
+
+            timing_lag_18ms++;
+        }
+        else if( lag >= 15000 ){
+
+            timing_lag_15ms++;
+        }
+        else if( lag >= 10000 ){
+
+            timing_lag_10ms++;
+        }
+        else if( lag >= 5000 ){
+
+            timing_lag_5ms++;
+        }
+        else{
+
+            timing_lag_0ms++;
+        }
 
         if( lag < 1000000000 ){
 
@@ -237,18 +363,25 @@ PT_BEGIN( pt );
             avg_timing_lag = util_u32_ewma( lag, avg_timing_lag, 4 );
         }
 
-        if( sys_b_is_shutting_down() ){
+        // run detection algorithm (if enabled) before signalling
+        // pixel driver to run
+        // this avoids signal cross talk between the LED signal line
+        // and the LED detection line.
+        led_detect_v_run_detect();
 
-            gfx_v_shutdown_graphic();
-            calc_pixel_power();
-            apply_power_limit();
+        // if( sys_b_is_shutting_down() ){
+
+        //     gfx_v_shutdown_graphic();
+        //     calc_pixel_power();
+        //     apply_power_limit();
             
-            pixel_v_signal();        
+        //     pixel_v_signal();        
 
-            THREAD_EXIT( pt );
-        }
+        //     THREAD_EXIT( pt );
+        // }
 
-        
+        EVENT(EVENT_ID_GFX_FADERS, vm_fader_time); // param is last fader time
+
         gfx_v_process_faders();
         calc_pixel_power();
         apply_power_limit();
@@ -256,6 +389,9 @@ PT_BEGIN( pt );
         gfx_v_sync_array();
 
         pixel_v_signal();
+
+        // signal VMs
+        vm4_v_signal();
 
         uint32_t elapsed = tmr_u32_elapsed_time_us( start );
 
@@ -274,19 +410,20 @@ void gfx_v_init( void ){
 
     gfxlib_v_init();
 
+    thread_t_create( gfx_control_thread,
+            PSTR("gfx_control"),
+            0,
+            0 );
+
     pixel_v_init();
 
     #ifdef ENABLE_TIME_SYNC
-    vm_sync_v_init();
+    // vm_sync_v_init();
     #endif
 
     sc_v_init();
 
-    fs_f_create_virtual( PSTR("_rainbow.fxb"), fx_rainbow_vfile_handler );
+    fs_v_create_virtual( PSTR("_rainbow.fxb"), fx_rainbow_vfile_handler );
 
-    thread_t_create( gfx_control_thread,
-                PSTR("gfx_control"),
-                0,
-                0 );
     #endif
 }

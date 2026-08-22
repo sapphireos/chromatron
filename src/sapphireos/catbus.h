@@ -27,20 +27,21 @@
 
 #include "catbus_common.h"
 #include "catbus_types.h"
-#include "catbus_link.h"
-#include "ntp.h"
-#include "list.h"
-#include "udp.h"
+#include <stdint.h>
 
 #define CATBUS_ANNOUNCE_PORT                44631
 #define CATBUS_MAIN_PORT                    44632
 #define CATBUS_VERSION                      1
 #define CATBUS_MEOW                         0x574f454d // 'MEOW'
 
-#define CATBUS_ANNOUNCE_MCAST_ADDR          239,43,96,30
+// #define CATBUS_ANNOUNCE_MCAST_ADDR          239,43,96,30
 
-#define CATBUS_ANNOUNCE_INTERVAL            24
+#define CATBUS_ANNOUNCE_INTERVAL            8
 #define CATBUS_MAX_FILE_SESSIONS            8
+
+#ifndef CATBUS_MAX_CLIENT_SESSIONS
+#define CATBUS_MAX_CLIENT_SESSIONS          8
+#endif
 
 typedef struct __attribute__((packed)){
     uint32_t meow;
@@ -115,7 +116,7 @@ typedef struct __attribute__((packed)){
 // DATABASE
 
 #define CATBUS_MAX_HASH_LOOKUPS                 16
-#define CATBUS_MAX_KEY_ITEM_COUNT               32
+#define CATBUS_MAX_KEY_ITEM_COUNT               32 // guidance for clients, not actually used by server
 #define CATBUS_MAX_KEY_META                     64
 
 typedef struct __attribute__((packed)){
@@ -261,7 +262,23 @@ typedef struct __attribute__((packed)){
 #define CATBUS_MAX_FILE_ENTRIES                  ( CATBUS_MAX_DATA / sizeof(catbus_file_meta_t) )
 
 
+// // HASH_LOOKUP
+// #define CATBUS_MSG_TYPE_GET_FILE_HASH_LIST       ( 12 + CATBUS_MSG_FILE_GROUP_OFFSET )
+
+// typedef struct __attribute__((packed)){
+//     catbus_header_t header;
+//     uint16_t file_count;
+//     catbus_file_hash_t first_hash;
+// } catbus_msg_file_hash_list_t;
+// #define CATBUS_MSG_TYPE_FILE_HASH_LIST           ( 13 + CATBUS_MSG_FILE_GROUP_OFFSET )
+// #define CATBUS_MAX_FILE_HASH_ENTRIES             ( CATBUS_MAX_DATA / sizeof(catbus_file_hash_t) )
+
+
 void catbus_v_init( void );
+
+int8_t catbus_i8_set_i64(
+    catbus_hash_t32 hash, 
+    int64_t data );
 
 int8_t catbus_i8_set(
     catbus_hash_t32 hash,
@@ -276,6 +293,11 @@ int8_t catbus_i8_array_set(
     uint16_t count,
     void *data,
     uint16_t data_len );
+
+
+int8_t catbus_i8_get_i64(
+    catbus_hash_t32 hash, 
+    int64_t *data );
 
 int8_t catbus_i8_get(
     catbus_hash_t32 hash,
@@ -295,7 +317,31 @@ void catbus_v_shutdown( void );
 
 uint64_t catbus_u64_get_origin_id( void );
 const catbus_hash_t32* catbus_hp_get_tag_hashes( void );
+
+bool catbus_b_is_null_query( catbus_query_t *query );
 bool catbus_b_query_self( catbus_query_t *query );
+bool catbus_b_query_single( catbus_hash_t32 hash, catbus_query_t *tags );
+bool catbus_b_query_tags( catbus_query_t *query, catbus_query_t *tags );
+void catbus_v_get_query( catbus_query_t *query );
+
+// Clients
+// int8_t catbus_i8_get_string_for_hash( catbus_hash_t32 hash, char name[CATBUS_STRING_LEN], ip_addr4_t *host_ip );
+
+// typedef void (*catbus_file_hash_list_callback_t)( uint16_t file_count, catbus_file_hash_t *hashes, ip_addr4_t ipaddr );
+// void catbus_v_get_file_hash_list( ip_addr4_t ipaddr, catbus_file_hash_list_callback_t callback );
+
+// void catbus_v_set_key( 
+//     ip_addr4_t ipaddr, 
+//     catbus_hash_t32 hash, 
+//     catbus_type_t8 type,
+//     const void *data );
+
+// typedef void (*catbus_get_key_callback_t)( catbus_hash_t32 hash, catbus_type_t8 type, uint16_t count, const uint8_t *data, ip_addr4_t ipaddr );
+// void catbus_v_get_key( 
+//     ip_addr4_t ipaddr, 
+//     catbus_hash_t32 hash,
+//     catbus_get_key_callback_t callback );
+
 
 #endif
 

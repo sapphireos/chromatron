@@ -28,6 +28,27 @@
 #include "driver/timer.h"
 #include "esp_timer.h"
 
+
+/*
+
+
+Some ESP32 timer notes:
+
+On normal operation, the system timer is driven by the esp_timer.
+
+In light sleep, the esp_timer is stopped and the RTC timer is used.
+
+
+150 KHz default RC RTC clock is not very accurate.
+The 8.5 MHz supposedly has better frequency accuracy.
+This must be enabled in the IDF config.
+
+*/
+
+
+
+
+
 // #define TICKS_TO_US(a) (a / 40000000)
 
 // uint64_t get_ticks( void ){

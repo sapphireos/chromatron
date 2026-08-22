@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include "catbus_common.h"
+#include "catbus_types.h"
 
 int64_t specific_to_i64( catbus_type_t8 type, const void *data ){
 
@@ -70,6 +71,10 @@ int64_t specific_to_i64( catbus_type_t8 type, const void *data ){
             break;
 
         case CATBUS_TYPE_FIXED16:
+            i64_data = *(int32_t *)data;
+            break;
+
+        case CATBUS_TYPE_GFX16:
             i64_data = *(int32_t *)data;
             break;
             
@@ -180,6 +185,19 @@ void i64_to_specific( int64_t source_data, catbus_type_t8 type, void *data ){
 
             *(int32_t *)data = source_data;
             break;
+
+        case CATBUS_TYPE_GFX16:
+            if( source_data > INT32_MAX ){
+
+                source_data = INT32_MAX;
+            }
+            else if( source_data < INT32_MIN ){
+
+                source_data = INT32_MIN;
+            }
+
+            *(int32_t *)data = source_data;
+            break;
             
         case CATBUS_TYPE_UINT32:
             if( source_data > UINT32_MAX ){
@@ -243,8 +261,68 @@ int8_t type_i8_convert(
         src_size = src_data_len;
     }
 
+    // int32 to fixed16
+    if( ( src_type == CATBUS_TYPE_INT32 ) && ( dest_type == CATBUS_TYPE_FIXED16 ) ){
+
+        int32_t src = *(int32_t *)src_data;
+        src <<= 16;
+
+        int32_t dst = *(int32_t *)dest_data;
+        i64_to_specific( src, dest_type, dest_data );
+
+        // check if changing
+        if( src > dst ){
+
+            return 1;
+        }
+        else if( src < dst ){
+
+            return -1;
+        }
+    }
+    // fixed16 to int32
+    else if( ( src_type == CATBUS_TYPE_FIXED16 ) && ( dest_type == CATBUS_TYPE_INT32 ) ){
+
+        int32_t src = *(int32_t *)src_data;
+        src >>= 16;
+
+        int32_t dst = *(int32_t *)dest_data;
+        i64_to_specific( src, dest_type, dest_data );
+
+        // check if changing
+        if( src > dst ){
+
+            return 1;
+        }
+        else if( src < dst ){
+
+            return -1;
+        }
+    }
+    // fixed16 to float
+    else if( ( src_type == CATBUS_TYPE_FIXED16 ) && ( dest_type == CATBUS_TYPE_FLOAT ) ){
+
+        // no change detection on this conversion
+
+        int32_t src = *(int32_t *)src_data;
+
+        float *dst = (float *)dest_data;
+
+        *dst = src / 65536.0;
+    }
+    // float to fixed16
+    else if( ( src_type == CATBUS_TYPE_FLOAT ) && ( dest_type == CATBUS_TYPE_FIXED16 ) ){
+
+        // no change detection on this conversion
+
+        float src = *(float *)src_data;
+
+        int32_t *dst = (int32_t *)dest_data;
+
+        *dst = (int32_t)(src * 65536.0);
+    }
     // numeric to numeric
-    if( !dst_string && !src_string ){
+    else if( !dst_string && !src_string ){
     
         int64_t src_i64 = specific_to_i64( src_type, src_data );
         int64_t dst_i64 = specific_to_i64( dest_type, dest_data );
@@ -303,4 +381,17 @@ uint16_t type_u16_size_meta( catbus_meta_t *meta ){
     return ( meta->count + 1 ) * type_u16_size( meta->type );
 }
 
+fixed16_t type_f16_from_i32( int32_t n ){
 
+    return n * 65536;
+}
+
+int32_t type_i32_from_f16( fixed16_t n ){
+
+    return n / 65536;
+}
+
+fixed16_t type_f16_from_decimal( int16_t n, uint16_t decimal ){
+
+    return (int32_t)n * 65536 + ( (uint32_t)decimal * 65536 ) / 10;
+}

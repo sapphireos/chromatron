@@ -120,6 +120,8 @@ void main( void ){
     io_v_init();
 
     ldr_v_set_yellow_led();
+    
+goto start;
 
     if( FW_START_OFFSET == 0xffffffff ){
 
@@ -220,6 +222,7 @@ void main( void ){
         }
     }
 
+start:
     // clear loader command
     boot_data.loader_command = LDR_CMD_NONE;
 

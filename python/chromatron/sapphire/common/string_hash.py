@@ -27,6 +27,9 @@ from fnvhash import fnv1a_32
 
 @util.memoize
 def catbus_string_hash(s):
+    if s is None:
+        return 0
+
     try:
         s = s.encode()
     except AttributeError:

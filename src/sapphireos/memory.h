@@ -83,11 +83,6 @@ typedef struct{
     uint16_t peak_handles;
 } mem_rt_data_t;
 
-typedef struct __attribute__((packed)){
-    uint16_t size;
-    mem_type_t8 type;
-} mem_info_t;
-
 void mem2_v_init( void );
 
 mem_block_header_t mem2_h_get_header( uint16_t index );
@@ -126,6 +121,7 @@ uint16_t mem2_u16_get_handles_used( void );
 void mem2_v_get_rt_data( mem_rt_data_t *rt_data );
 uint16_t mem2_u16_get_free( void );
 uint16_t mem2_u16_get_dirty( void );
+uint16_t mem2_u16_get_used( void );
 void mem2_v_collect_garbage( void );
 uint16_t mem2_u16_stack_count( void );
 

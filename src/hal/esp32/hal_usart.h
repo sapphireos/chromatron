@@ -27,11 +27,9 @@
 #include "cpu.h"
 #include "usart_bauds.h"
 
-#ifdef ENABLE_COPROCESSOR
-#define USER_USART          1
-#else
-#define USER_USART          0
-#endif
+#include "driver/uart.h"
+
+#define USER_USART          UART_NUM_2
 
 
 void usart_v_init( uint8_t channel );
@@ -40,6 +38,8 @@ void usart_v_send_byte( uint8_t channel, uint8_t data );
 void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len );
 int16_t usart_i16_get_byte( uint8_t channel );
 uint8_t usart_u8_bytes_available( uint8_t channel );
+uint16_t usart_u16_bytes_available( uint8_t channel );
 uint8_t usart_u8_get_bytes( uint8_t channel, uint8_t *ptr, uint8_t len );
+uint16_t usart_u16_get_bytes( uint8_t channel, uint8_t *ptr, uint16_t len );
 
 #endif

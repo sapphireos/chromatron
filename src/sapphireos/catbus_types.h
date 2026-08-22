@@ -43,6 +43,8 @@ typedef int8_t catbus_type_t8;
 #define CATBUS_TYPE_FLOAT             10
 #define CATBUS_TYPE_FIXED16           11
 
+#define CATBUS_TYPE_GFX16             20
+
 #define CATBUS_TYPE_STRING128         40
 #define CATBUS_TYPE_MAC48             41
 #define CATBUS_TYPE_MAC64             42
@@ -52,11 +54,16 @@ typedef int8_t catbus_type_t8;
 #define CATBUS_TYPE_STRING32          46
 #define CATBUS_TYPE_STRING64          47
 
+#define CATBUS_TYPE_REF               80
+#define CATBUS_TYPE_STRREF            81
+
 #define CATBUS_TYPE_INVALID           255
 
 
 #define CATBUS_TYPE_SIZE_INVALID      65535
 uint16_t type_u16_size( catbus_type_t8 type );
 bool type_b_is_string( catbus_type_t8 type );
+
+typedef int32_t fixed16_t;
 
 #endif

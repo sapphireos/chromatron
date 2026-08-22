@@ -29,32 +29,17 @@
 
 #include "ntp.h"
 
-// #define TIME_SERVER_PORT                32037
+#define TIME_SERVER_PORT                32037
 
 #define TIME_PROTOCOL_MAGIC             0x454d4954 // 'TIME' in ASCII
-#define TIME_PROTOCOL_VERSION           8
-
-#define TIME_ELECTION_SERVICE           __KV__timesync8
+#define TIME_PROTOCOL_VERSION           9
 
 #define TIME_RTT_THRESHOLD              500
 
-#define TIME_SYNC_RATE_BASE             16 // in seconds
-#define TIME_SYNC_RATE_MAX              256 // in seconds
+// #define TIME_SYNC_RATE_BASE             1  // in seconds
+#define TIME_SYNC_RATE_MAX              16 // in seconds
+#define TIME_SYNC_MASTER_TIMEOUT        128
 
-
-typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-} time_msg_ping_t;
-#define TIME_MSG_PING               1
-
-typedef struct __attribute__((packed)){
-    uint32_t magic;
-    uint8_t version;
-    uint8_t type;
-} time_msg_ping_response_t;
-#define TIME_MSG_PING_RESPONSE      2
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
@@ -73,6 +58,15 @@ typedef struct __attribute__((packed)){
 } time_msg_sync_t;
 #define TIME_MSG_SYNC               4
 
+typedef struct __attribute__((packed)){
+    uint32_t magic;
+    uint8_t version;
+    uint8_t type;
+    uint32_t sequence;
+    uint16_t priority;
+    uint32_t net_time;
+} time_msg_clock_t;
+#define TIME_MSG_CLOCK               5
 
 void time_v_init( void );
 
@@ -81,18 +75,6 @@ uint32_t time_u32_get_network_time( void );
 uint32_t time_u32_get_network_time_from_local( uint32_t local_time );
 int8_t time_i8_compare_network_time( uint32_t time );
 uint32_t time_u32_get_network_aligned( uint32_t alignment );
-
-// void time_v_set_gps_sync( bool sync );
-
-// ntp_ts_t time_t_from_system_time( uint32_t end_time );
-// void time_v_set_ntp_master_clock( 
-//     ntp_ts_t source_ts, 
-//     uint32_t local_system_time,
-//     uint8_t source );
-
-// void time_v_get_timestamp( ntp_ts_t *ntp_now, uint32_t *system_time );
-// ntp_ts_t time_t_now( void );
-// ntp_ts_t time_t_local_now( void );
 
 #endif
 #endif

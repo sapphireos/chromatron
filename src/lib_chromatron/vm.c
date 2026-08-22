@@ -34,10 +34,16 @@
 #include "timesync.h"
 #include "vm_sync.h"
 #include "util.h"
+#include "scenes.h"
 
 #include "vm.h"
 #include "vm_core.h"
 #include "vm_cron.h"
+#include "vm_sequencer.h"
+
+// #ifdef ENABLE_CONTROLLER
+// #include "link.h"
+// #endif
 
 #ifdef ENABLE_GFX
 
@@ -53,6 +59,8 @@ static uint8_t vm_timing_status;
 
 #define VM_FLAG_UPDATE_FRAME_RATE   0x08
 static uint8_t vm_run_flags[VM_MAX_VMS];
+
+static catbus_hash_t32 vm_published_hash[8];
 
 
 int8_t vm_i8_kv_handler(
@@ -72,11 +80,92 @@ int8_t vm_i8_kv_handler(
     return 0;
 }
 
+#ifdef VM_DEBUG
+static uint32_t threads_vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
-KV_SECTION_META kv_meta_t vm_info_kv[] = {
+    // get state for VM 0
+    vm_state_t *state = vm_p_get_state();
+
+    if( state == 0 ){
+
+        return 0;
+    }
+
+    uint8_t *thread_p = (uint8_t *)state->threads;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+
+        case FS_VFILE_OP_READ:
+            // len = list_u16_flatten( &query_list, pos, ptr, len );
+            memcpy( ptr, thread_p + pos, len );
+
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            len = sizeof(state->threads);
+            break;
+
+        default:
+            len = 0;
+            break;
+    }
+
+    return len;
+}
+#endif
+
+
+int8_t _vm_prog_kv_handler(
+    kv_op_t8 op,
+    catbus_hash_t32 hash,
+    void *data,
+    uint16_t len )
+{
+    if( op == KV_OP_GET ){
+
+    }
+    else if( op == KV_OP_SET ){
+
+        if( hash == __KV__vm_prog ){
+
+            vm_v_reset( 0 );
+        }
+        #if VM_MAX_VMS >= 2
+        else if( hash == __KV__vm_prog_1 ){
+
+            vm_v_reset( 1 );
+        }
+        #endif
+        #if VM_MAX_VMS >= 3
+        else if( hash == __KV__vm_prog_2 ){
+
+            vm_v_reset( 2 );
+        }
+        #if VM_MAX_VMS >= 4
+        else if( hash == __KV__vm_prog_3 ){
+
+            vm_v_reset( 3 );
+        }
+        #endif
+        #endif
+    }
+    else{
+
+        ASSERT( FALSE );
+    }
+
+    return 0;
+}
+
+KV_SECTION_META kv_meta_t vm_enable_kv[] = {
+    { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,                   0,          0,                  "vm_enable" },
+};
+
+KV_SECTION_OPT kv_meta_t vm_info_kv[] = {
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[0],          0,                  "vm_reset" },
     { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[0],            0,                  "vm_run" },
-    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog" },
+    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     _vm_prog_kv_handler,"vm_prog" },
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[0],         0,                  "vm_status" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[0],       0,                  "vm_run_time" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[0],     0,                  "vm_peak_cycles" },
@@ -85,7 +174,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     #if VM_MAX_VMS >= 2
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[1],          0,                  "vm_reset_1" },
     { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[1],            0,                  "vm_run_1" },
-    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_1" },
+    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     _vm_prog_kv_handler,"vm_prog_1" },
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[1],         0,                  "vm_status_1" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[1],       0,                  "vm_run_time_1" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[1],     0,                  "vm_peak_cycles_1" },
@@ -94,7 +183,7 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     #if VM_MAX_VMS >= 3
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[2],          0,                  "vm_reset_2" },
     { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[2],            0,                  "vm_run_2" },
-    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_2" },
+    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     _vm_prog_kv_handler,"vm_prog_2" },
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[2],         0,                  "vm_status_2" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[2],       0,                  "vm_run_time_2" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[2],     0,                  "vm_peak_cycles_2" },
@@ -103,13 +192,15 @@ KV_SECTION_META kv_meta_t vm_info_kv[] = {
     #if VM_MAX_VMS >= 4
     { CATBUS_TYPE_BOOL,     0, 0,                   &vm_reset[3],          0,                  "vm_reset_3" },
     { CATBUS_TYPE_BOOL,     0, KV_FLAGS_PERSIST,    &vm_run[3],            0,                  "vm_run_3" },
-    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     0,                  "vm_prog_3" },
+    { CATBUS_TYPE_STRING32, 0, KV_FLAGS_PERSIST,    0,                     _vm_prog_kv_handler,"vm_prog_3" },
     { CATBUS_TYPE_INT8,     0, KV_FLAGS_READ_ONLY,  &vm_status[3],         0,                  "vm_status_3" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_run_time[3],       0,                  "vm_run_time_3" },
     { CATBUS_TYPE_UINT16,   0, KV_FLAGS_READ_ONLY,  &vm_max_cycles[3],     0,                  "vm_peak_cycles_3" },
     #endif
 
     { CATBUS_TYPE_UINT8,    0, KV_FLAGS_READ_ONLY,  0,                     vm_i8_kv_handler,   "vm_isa" },
+
+    { CATBUS_TYPE_UINT32,   cnt_of_array(vm_published_hash) - 1, KV_FLAGS_READ_ONLY,  &vm_published_hash,    0,                  "vm_published_hashes" },
 };
 
 static const char* vm_names[VM_MAX_VMS] = {
@@ -132,52 +223,56 @@ static const char* vm_names[VM_MAX_VMS] = {
 // generally, these are going to be things that would allow it to 
 // brick hardware, mess up the wifi connection, or mess up the pixel 
 // array.
-static const PROGMEM uint32_t restricted_keys[] = {
-    __KV__reboot,
-    __KV__wifi_enable_ap,
-    __KV__wifi_router,
-    __KV__pix_clock,
-    __KV__pix_count,
-    __KV__pix_mode,    
-};
+// static const PROGMEM uint32_t restricted_keys[] = {
+//     __KV__reboot,
+//     __KV__wifi_enable_ap,
+//     __KV__wifi_router,
+//     __KV__pix_clock,
+//     __KV__pix_count,
+//     __KV__pix_mode,    
+// };
 
-#ifdef ENABLE_CATBUS_LINK
-static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
+// #ifdef ENABLE_CATBUS_LINK
+// static catbus_hash_t32 get_link_tag( uint8_t vm_id ){
 
-    catbus_hash_t32 link_tag = 0;
+//     catbus_hash_t32 link_tag = 0;
 
-    if( vm_id == 0 ){
+//     if( vm_id == 0 ){
 
-        link_tag = __KV__vm_0;
-    }
-    else if( vm_id == 1 ){
+//         link_tag = __KV__vm_0;
+//     }
+//     else if( vm_id == 1 ){
 
-        link_tag = __KV__vm_1;
-    }
-    else if( vm_id == 2 ){
+//         link_tag = __KV__vm_1;
+//     }
+//     else if( vm_id == 2 ){
 
-        link_tag = __KV__vm_2;
-    }
-    else if( vm_id == 3 ){
+//         link_tag = __KV__vm_2;
+//     }
+//     else if( vm_id == 3 ){
 
-        link_tag = __KV__vm_3;
-    }
-    else{
+//         link_tag = __KV__vm_3;
+//     }
+//     else{
 
-        ASSERT( FALSE );
-    }
+//         ASSERT( FALSE );
+//     }
 
-    return link_tag;
-}
-#endif
+//     return link_tag;
+// }
+// #endif
 
 static void reset_published_data( uint8_t vm_id ){
 
     kvdb_v_clear_tag( 0, 1 << vm_id );
 
-    #ifdef ENABLE_CATBUS_LINK
-    link_v_delete_by_tag( get_link_tag( vm_id ) );
-    #endif
+    // #ifdef ENABLE_CONTROLLER
+    // link2_v_delete_by_tag( 1 << vm_id );
+    // #endif
+
+    // #ifdef ENABLE_CATBUS_LINK
+    // link_v_delete_by_tag( 1 << vm_id );
+    // #endif
 } 
 
 static int8_t get_program_fname( uint8_t vm_id, char name[FFS_FILENAME_LEN] ){
@@ -217,275 +312,6 @@ static bool is_vm_running( uint8_t vm_id ){
 }
 
 
-static int8_t load_vm( uint8_t vm_id, char *program_fname, mem_handle_t *handle ){
-
-    uint32_t start_time = tmr_u32_get_system_time_ms();
-    
-    *handle = -1;
-    
-
-    // open file
-    file_t f = fs_f_open( program_fname, FS_MODE_READ_ONLY );
-
-    if( f < 0 ){
-
-        // try again, adding .fxb extension
-        char s[FFS_FILENAME_LEN];
-        memset( s, 0, sizeof(s) );
-        strlcpy( s, program_fname, sizeof(s) );
-        strlcat( s, ".fxb", sizeof(s) );
-
-        f = fs_f_open( s, FS_MODE_READ_ONLY );
-
-        if( f < 0 ){
-
-            log_v_debug_P( PSTR("VM file not found") );
-
-            return -1;
-        }
-    }
-
-    log_v_debug_P( PSTR("Loading VM: %d"), vm_id );
-
-    // file found, get program size from file header
-    int32_t vm_size;
-    fs_i16_read( f, (uint8_t *)&vm_size, sizeof(vm_size) );
-
-    // sanity check
-    if( vm_size > VM_MAX_IMAGE_SIZE ){
-
-        goto error;
-    }
-
-    fs_v_seek( f, 0 );    
-    int32_t check_len = fs_i32_get_size( f ) - sizeof(uint32_t);
-
-    uint32_t computed_file_hash = hash_u32_start();
-
-    // check file hash
-    while( check_len > 0 ){
-
-        uint8_t chunk[512];
-
-        uint16_t copy_len = sizeof(chunk);
-
-        if( copy_len > check_len ){
-
-            copy_len = check_len;
-        }
-
-        int16_t read = fs_i16_read( f, chunk, copy_len );
-
-        if( read < 0 ){
-
-            // this should not happen. famous last words.
-            goto error;
-        }
-
-        // update hash
-        computed_file_hash = hash_u32_partial( computed_file_hash, chunk, copy_len );
-        
-        check_len -= read;
-    }
-
-    // read file hash
-    uint32_t file_hash = 0;
-    fs_i16_read( f, (uint8_t *)&file_hash, sizeof(file_hash) );
-
-    // check hashes
-    if( file_hash != computed_file_hash ){
-
-        log_v_debug_P( PSTR("VM load error: %d"), VM_STATUS_ERR_BAD_FILE_HASH );
-        goto error;
-    }
-
-    // read header
-    fs_v_seek( f, sizeof(vm_size) );    
-    vm_program_header_t header;
-    fs_i16_read( f, (uint8_t *)&header, sizeof(header) );
-
-    vm_state_t state;
-
-    int8_t status = vm_i8_load_program( VM_LOAD_FLAGS_CHECK_HEADER, (uint8_t *)&header, sizeof(header), &state );
-
-    if( status < 0 ){
-
-        log_v_debug_P( PSTR("VM load error: %d"), status );
-        goto error;
-    }
-
-    // seek back to program start
-    fs_v_seek( f, sizeof(vm_size) );
-
-    // allocate memory
-    *handle = mem2_h_alloc2( vm_size, MEM_TYPE_VM_DATA );
-
-    if( *handle < 0 ){
-
-        goto error;
-    }
-
-    // read file
-    int16_t read = fs_i16_read( f, mem2_vp_get_ptr( *handle ), vm_size );
-
-    if( read < 0 ){
-
-        // this should not happen. famous last words.
-        goto error;
-    }
-
-    // read magic number
-    uint32_t meta_magic = 0;
-    fs_i16_read( f, (uint8_t *)&meta_magic, sizeof(meta_magic) );
-
-    if( meta_magic == META_MAGIC ){
-
-        char meta_string[KV_NAME_LEN];
-        memset( meta_string, 0, sizeof(meta_string) );
-
-        // skip first string, it's the script name
-        fs_v_seek( f, fs_i32_tell( f ) + sizeof(meta_string) );
-
-        // load meta names to database lookup
-        while( fs_i16_read( f, meta_string, sizeof(meta_string) ) == sizeof(meta_string) ){
-        
-            kvdb_v_set_name( meta_string );
-            
-            memset( meta_string, 0, sizeof(meta_string) );
-        }
-    }
-    else{
-
-        log_v_debug_P( PSTR("Meta read failed") );
-
-        goto error;
-    }
-
-
-    catbus_meta_t meta;
-    
-    // set up additional DB entries
-    fs_v_seek( f, sizeof(vm_size) + state.db_start );
-
-    for( uint8_t i = 0; i < state.db_count; i++ ){
-
-        fs_i16_read( f, (uint8_t *)&meta, sizeof(meta) );
-
-        kvdb_i8_add( meta.hash, meta.type, meta.count + 1, 0, 0 );
-        kvdb_v_set_tag( meta.hash, 1 << vm_id );      
-    }   
-
-
-    // read through database keys
-    uint32_t read_key_hash = 0;
-
-    fs_v_seek( f, sizeof(vm_size) + state.read_keys_start );
-
-    for( uint16_t i = 0; i < state.read_keys_count; i++ ){
-
-        fs_i16_read( f, (uint8_t *)&read_key_hash, sizeof(uint32_t) );
-    }
-    
-
-    // check published keys and add to DB
-    fs_v_seek( f, sizeof(vm_size) + state.publish_start );
-
-    for( uint8_t i = 0; i < state.publish_count; i++ ){
-
-        vm_publish_t publish;
-
-        fs_i16_read( f, (uint8_t *)&publish, sizeof(publish) );
-
-        kvdb_i8_add( publish.hash, publish.type, 1, 0, 0 );
-        kvdb_v_set_tag( publish.hash, ( 1 << vm_id ) );
-    }   
-
-    // check write keys
-    fs_v_seek( f, sizeof(vm_size) + state.write_keys_start );
-
-    for( uint8_t i = 0; i < state.write_keys_count; i++ ){
-
-        uint32_t write_hash = 0;
-        fs_i16_read( f, (uint8_t *)&write_hash, sizeof(write_hash) );
-
-        if( write_hash == 0 ){
-
-            continue;
-        }
-
-        // check if writing to restricted key
-        for( uint8_t j = 0; j < cnt_of_array(restricted_keys); j++ ){
-
-            uint32_t restricted_key = 0;
-            memcpy( (uint8_t *)&restricted_key, &restricted_keys[j], sizeof(restricted_key) );
-
-            if( restricted_key == 0 ){
-
-                continue;
-            }   
-
-            // check for match
-            if( restricted_key == write_hash ){
-
-                vm_status[vm_id] = VM_STATUS_RESTRICTED_KEY;
-
-                log_v_debug_P( PSTR("Restricted key: %lu"), write_hash );
-
-                goto error;
-            }
-        }
-    }
-
-    // set up links
-    fs_v_seek( f, sizeof(vm_size) + state.link_start );
-    #ifdef ENABLE_CATBUS_LINK
-    catbus_hash_t32 link_tag = get_link_tag( vm_id );
-    #endif
-
-    for( uint8_t i = 0; i < state.link_count; i++ ){
-
-        link_t link;
-
-        fs_i16_read( f, (uint8_t *)&link, sizeof(link) );
-
-        #ifdef ENABLE_CATBUS_LINK
-        link_l_create( 
-            link.mode,
-            link.source_key,
-            link.dest_key,
-            &link.query,
-            link_tag,
-            link.rate,
-            link.aggregation,
-            LINK_FILTER_OFF );   
-        #endif         
-    }
-
-    // load cron jobs
-    vm_cron_v_load( vm_id, &state, f );
-
-    fs_f_close( f );
-
-    vm_status[vm_id]        = VM_STATUS_READY;
-    vm_run_time[vm_id]      = 0;
-    vm_max_cycles[vm_id]    = 0;
-
-    log_v_debug_P( PSTR("VM loaded in: %lu ms"), tmr_u32_elapsed_time_ms( start_time ) );
-
-    return 0;
-
-error:
-    
-    if( *handle > 0 ){
-
-        mem2_v_free( *handle );
-    }
-
-    fs_f_close( f );
-    return -1;
-}
-
-
 typedef struct{
     uint8_t vm_id;
     char program_fname[FFS_FILENAME_LEN];
@@ -500,8 +326,6 @@ typedef struct{
 #ifdef ENABLE_TIME_SYNC
 static uint32_t vm0_sync_ts;
 static uint64_t vm0_sync_ticks;
-static uint32_t vm0_checkpoint;
-static uint32_t vm0_checkpoint_hash;
 
 void vm_v_sync( uint32_t ts, uint64_t ticks ){
 
@@ -519,16 +343,6 @@ uint32_t vm_u32_get_sync_time( void ){
 uint64_t vm_u64_get_sync_tick( void ){
 
     return vm0_sync_ticks;
-}
-
-uint32_t vm_u32_get_checkpoint( void ){
-
-    return vm0_checkpoint;
-}
-
-uint32_t vm_u32_get_checkpoint_hash( void ){
-
-    return vm0_checkpoint_hash;
 }
 
 uint64_t vm_u64_get_tick( void ){
@@ -555,21 +369,19 @@ uint64_t vm_u64_get_frame( void ){
     return state->frame_number;
 }
 
-uint32_t vm_u32_get_data_hash( void ){
+uint32_t vm_u32_get_sync_data_hash( void ){
 
     if( vm_threads[0] <= 0 ){
 
         return 0;
     }
 
-    vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );        
+    uint8_t *data = (uint8_t *)vm_i32p_get_sync_data();
 
-    uint8_t *data = (uint8_t *)vm_i32p_get_data_ptr( mem2_vp_get_ptr( state->handle ), &state->vm_state );
-
-    return hash_u32_data( data, state->vm_state.data_len );
+    return hash_u32_data( data, vm_u16_get_sync_data_len() );
 }
 
-uint16_t vm_u16_get_data_len( void ){
+uint16_t vm_u16_get_sync_data_len( void ){
 
     if( vm_threads[0] <= 0 ){
 
@@ -578,10 +390,10 @@ uint16_t vm_u16_get_data_len( void ){
 
     vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );    
 
-    return state->vm_state.data_len;
+    return vm_u16_get_data_len( &state->vm_state );
 }
 
-int32_t* vm_i32p_get_data( void ){
+int32_t* vm_i32p_get_sync_data( void ){
 
     if( vm_threads[0] <= 0 ){
 
@@ -590,7 +402,14 @@ int32_t* vm_i32p_get_data( void ){
 
     vm_thread_state_t *state = thread_vp_get_data( vm_threads[0] );
 
-    return vm_i32p_get_data_ptr( mem2_vp_get_ptr( state->handle ), &state->vm_state );   
+    if( state->handle <= 0 ){
+
+        return 0;
+    }
+
+    void *stream = mem2_vp_get_ptr( state->handle );
+
+    return vm_i32p_get_data_ptr( stream, &state->vm_state );   
 }
 
 
@@ -611,8 +430,31 @@ vm_state_t* vm_p_get_state( void ){
     return &state->vm_state;
 }
 
+void vm_v_add_published_var( uint8_t index, catbus_hash_t32 hash, catbus_type_t8 type, uint8_t flags, uint8_t vm_id ){
+
+    if( vm_id == 0 ){
+
+        if( index < cnt_of_array(vm_published_hash) ){
+
+            vm_published_hash[index] = hash;
+        }
+    }
+
+    kvdb_i8_add( hash, type, 1, 0, 0 );
+    kvdb_v_set_tag( hash, ( 1 << vm_id ) );
+
+    if( flags & KV_FLAGS_PERSIST ){
+
+        kvdb_i8_set_persist( hash, TRUE );
+    }
+}
 
 static void kill_vm( uint8_t vm_id ){
+
+    if( vm_id == 0 ){
+
+        memset( vm_published_hash, 0, sizeof(vm_published_hash) );
+    }
 
     vm_run[vm_id] = FALSE;
     vm_reset[vm_id] = FALSE;
@@ -629,6 +471,19 @@ static void kill_vm( uint8_t vm_id ){
     }
 
     vm_thread_state_t *state = thread_vp_get_data( vm_threads[vm_id] );
+    vm_state_t *vm_state = &state->vm_state;
+
+    // clear links
+    for( uint16_t i = 0; i < vm_state->link_count; i++ ){
+
+        #ifdef ENABLE_CATBUS_LINK
+        if( vm_state->links[i] > 0 ){
+
+            link_v_delete( vm_state->links[i] );
+            vm_state->links[i] = 0;
+        }
+        #endif
+    }
 
     if( state->handle > 0 ){
 
@@ -637,6 +492,9 @@ static void kill_vm( uint8_t vm_id ){
 
     // reset VM data
     reset_published_data( state->vm_id );
+
+    // clear cron jobs:
+    vm_cron_v_unload( state->vm_id );
     
     // clear thread handle
     vm_threads[state->vm_id] = -1;
@@ -657,58 +515,38 @@ PT_BEGIN( pt );
 
     get_program_fname( state->vm_id, state->program_fname );
 
-    log_v_debug_P( PSTR("Starting VM thread: %s"), state->program_fname );
-
+    trace_printf( PSTR("Starting VM thread: %s\r\n"), state->program_fname );
+    // log_v_debug_P( PSTR("Starting VM thread: %s"), state->program_fname );
+    
     // reset VM data
     reset_published_data( state->vm_id );
 
-    if( load_vm( state->vm_id, state->program_fname, &state->handle ) < 0 ){
-
-        // error loading VM
-        goto exit;        
-    }
-
-    state->vm_return = vm_i8_load_program( 0, mem2_vp_get_ptr( state->handle ), mem2_u16_get_size( state->handle ), &state->vm_state );
+    state->vm_return = vm_i8_load_program( 
+                        state->vm_id, 
+                        state->program_fname, 
+                        &state->handle, 
+                        &state->vm_state );
 
     if( state->vm_return ){
 
-        log_v_debug_P( PSTR("VM load fail: %d"), state->vm_return );
+        log_v_debug_P( PSTR("VM load fail: %d %s"), state->vm_return, state->program_fname );
 
         goto exit;
     }
 
-    // init RNG seed to device ID
-    uint64_t rng_seed;
-    cfg_i8_get( CFG_PARAM_DEVICE_ID, &rng_seed );
-
-    // make sure seed is never 0 (otherwise RNG will not work)
-    if( rng_seed == 0 ){
-
-        rng_seed = 1;
-    }
-
-    state->vm_state.rng_seed = rng_seed;
-
-    // init database
-    // vm_v_init_db( mem2_vp_get_ptr( state->handle ), &state->vm_state, 1 << state->vm_id );
-
     // run VM init
-    state->vm_return = vm_i8_run_init( mem2_vp_get_ptr( state->handle ), &state->vm_state );
+    state->vm_return = vm_i8_run_init( 
+                        mem2_vp_get_ptr( state->handle ), 
+                        &state->vm_state );
 
-    if( state->vm_return ){
+    if( state->vm_return != VM_STATUS_OK ){
 
         log_v_debug_P( PSTR("VM init fail: %d"), state->vm_return );
 
         goto exit;
     }
 
-    #ifdef ENABLE_TIME_SYNC
-    // set initial checkpoint
-    vm0_checkpoint = state->vm_state.frame_number;
-    vm0_checkpoint_hash = vm_u32_get_data_hash();
-
-    // log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
-    #endif
+    // log_v_debug_P( PSTR("VM ready: %s"), state->program_fname );
 
     vm_status[state->vm_id] = VM_STATUS_OK;
 
@@ -719,18 +557,18 @@ PT_BEGIN( pt );
 
         state->delay_adjust = 0;
         
-        #ifdef ENABLE_TIME_SYNC
-        if( state->vm_id == 0 ){
+        // #ifdef ENABLE_TIME_SYNC
+        // if( state->vm_id == 0 ){
 
-            // check if syncing VM and hold if so
-            if( vm_sync_b_in_progress() ){
+        //     // check if syncing VM and hold if so
+        //     if( vm_sync_b_in_progress() ){
 
-                THREAD_WAIT_WHILE( pt, vm_sync_b_in_progress() );
-                // our synced frame is already behind, so instead of computing a delay,
-                // we will run immediately.
-            }
-        }
-        #endif
+        //         THREAD_WAIT_WHILE( pt, vm_sync_b_in_progress() );
+        //         // our synced frame is already behind, so instead of computing a delay,
+        //         // we will run immediately.
+        //     }
+        // }
+        // #endif
 
         uint64_t next_tick = vm_u64_get_next_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state );
         state->vm_delay = (int64_t)next_tick - (int64_t)state->vm_state.tick;
@@ -760,55 +598,55 @@ PT_BEGIN( pt );
         }        
         // VM sync stuff, only for VM 0
         else if( state->vm_id == 0 ){
-            #ifdef ENABLE_TIME_SYNC
-            // check if vm is a synced follower
-            if( vm_sync_b_is_follower() ){
+            // #ifdef ENABLE_TIME_SYNC
+            // // check if vm is a synced follower
+            // if( vm_sync_b_is_follower() && vm_sync_b_is_synced() ){
 
-                uint32_t net_time = time_u32_get_network_time();
-                int32_t elapsed = (int64_t)net_time - (int64_t)vm0_sync_ts;
-                uint64_t current_vm_net_tick = vm0_sync_ticks + elapsed;
-                int32_t sync_delta = state->vm_state.tick - current_vm_net_tick;
+            //     uint32_t net_time = time_u32_get_network_time();
+            //     int32_t elapsed = (int64_t)net_time - (int64_t)vm0_sync_ts;
+            //     uint64_t current_vm_net_tick = vm0_sync_ticks + elapsed;
+            //     int32_t sync_delta = state->vm_state.tick - current_vm_net_tick;
 
-                state->delay_adjust = 0;
+            //     state->delay_adjust = 0;
 
 
-                if( ( sync_delta > 4000 ) || ( sync_delta < -4000 ) ){
+            //     if( ( sync_delta > 4000 ) || ( sync_delta < -4000 ) ){
 
-                    log_v_debug_P( PSTR("lost sync: %d resetting %u %d %u %u %u"), sync_delta, net_time, elapsed, (uint32_t)current_vm_net_tick, vm0_sync_ts, vm0_sync_ticks );        
+            //         log_v_debug_P( PSTR("lost sync: %d resetting %u %d %u %u %u"), sync_delta, net_time, elapsed, (uint32_t)current_vm_net_tick, vm0_sync_ts, vm0_sync_ticks );        
 
-                    vm_sync_v_reset();
-                }
-                else if( sync_delta > 100 ){
+            //         vm_sync_v_reset();
+            //     }
+            //     else if( sync_delta > 100 ){
 
-                    state->delay_adjust = -100;
-                }
-                else if( sync_delta > 10 ){
+            //         state->delay_adjust = -100;
+            //     }
+            //     else if( sync_delta > 10 ){
 
-                    state->delay_adjust = -10;
-                }
-                else if( sync_delta > 1 ){
+            //         state->delay_adjust = -10;
+            //     }
+            //     else if( sync_delta > 1 ){
 
-                    state->delay_adjust = -1;
-                }
-                else if( sync_delta < -100 ){
+            //         state->delay_adjust = -1;
+            //     }
+            //     else if( sync_delta < -100 ){
 
-                    state->delay_adjust = 100;
-                }
-                else if( sync_delta < -10 ){
+            //         state->delay_adjust = 100;
+            //     }
+            //     else if( sync_delta < -10 ){
 
-                    state->delay_adjust = 10;
-                }
-                else if( sync_delta < -1 ){
+            //         state->delay_adjust = 10;
+            //     }
+            //     else if( sync_delta < -1 ){
 
-                    state->delay_adjust = 1;
-                }
+            //         state->delay_adjust = 1;
+            //     }
 
-                if( state->delay_adjust != 0 ){
+            //     if( state->delay_adjust != 0 ){
 
-                    // log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
-                }
-            }
-            #endif
+            //         // log_v_debug_P( PSTR("%d -> %d"), sync_delta, state->delay_adjust );        
+            //     }
+            // }
+            // #endif
         }
 
         if( state->vm_id == 0 ){
@@ -836,16 +674,16 @@ PT_BEGIN( pt );
             goto exit;
         }
 
-        #ifdef ENABLE_TIME_SYNC
-        // check if syncing
-        if( ( state->vm_id == 0 ) && vm_sync_b_in_progress() ){
+        // #ifdef ENABLE_TIME_SYNC
+        // // check if syncing
+        // if( ( state->vm_id == 0 ) && vm_sync_b_in_progress() ){
 
-            // go back to top of loop so we wait for the sync
-            // if we ran now we could corrupt the VM data.
+        //     // go back to top of loop so we wait for the sync
+        //     // if we ran now we could corrupt the VM data.
 
-            continue;
-        }
-        #endif
+        //     continue;
+        // }
+        // #endif
 
         if( ( vm_run_flags[state->vm_id] & VM_FLAG_UPDATE_FRAME_RATE ) != 0 ){
 
@@ -864,27 +702,15 @@ PT_BEGIN( pt );
         // run VM
         state->vm_return = vm_i8_run_tick( mem2_vp_get_ptr( state->handle ), &state->vm_state, delay );
 
-        #ifdef ENABLE_TIME_SYNC
-        if( ( state->vm_id == 0 ) && ( vm_sync_b_is_leader() ) ){
+        // #ifdef ENABLE_TIME_SYNC
+        // if( ( state->vm_id == 0 ) && ( vm_sync_b_is_leader() ) ){
 
-            // record network timestamp and current VM tick
-            vm0_sync_ts = time_u32_get_network_time();
-            vm0_sync_ticks = state->vm_state.tick;   
-        }
+        //     // record network timestamp and current VM tick
+        //     vm0_sync_ts = time_u32_get_network_time();
+        //     vm0_sync_ticks = state->vm_state.tick;   
+        // }
 
-        if( ( state->vm_id == 0 ) && ( vm_sync_b_is_synced() ) ){
-
-            // check if it is time for a checkpoint
-            if( ( state->vm_state.frame_number % SYNC_CHECKPOINT ) == 0 ){
-
-                vm0_checkpoint = state->vm_state.frame_number;
-                vm0_checkpoint_hash = vm_u32_get_data_hash();
-
-                // log_v_debug_P( PSTR("checkpoint: %u -> %x"), (uint32_t)vm0_checkpoint, vm0_checkpoint_hash );
-            }
-        }
-
-        #endif
+        // #endif
         
         // update timestamp
         state->last_run = tmr_u32_get_system_time_ms();
@@ -938,14 +764,14 @@ PT_BEGIN( pt );
         if( state->vm_return == VM_STATUS_HALT ){
 
             vm_status[state->vm_id] = VM_STATUS_HALT;
-            trace_printf( "VM %d halted\r\n", state->vm_id );
+            // log_v_debug_P( "VM %d halted\r\n", state->vm_id );
             goto exit;
         }
         else if( state->vm_return < 0 ){
 
             vm_status[state->vm_id] = state->vm_return;
 
-            trace_printf( "VM %d error: %d\r\n", state->vm_id, state->vm_return );
+            log_v_debug_P( "VM %d error: %d\r\n", state->vm_id, state->vm_return );
             goto exit;
         }
     }
@@ -973,17 +799,6 @@ static bool vm_loader_wait( void ){
     }
 
     return TRUE;
-}
-
-static void reset_vm( uint8_t vm_id ){
-
-    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
-
-    // verify thread exists
-    if( vm_threads[vm_id] > 0 ){
-
-        thread_v_restart( vm_threads[vm_id] );
-    }   
 }
 
 static int8_t start_vm( uint8_t vm_id ){
@@ -1041,10 +856,27 @@ static void stop_vm( uint8_t vm_id ){
         thread_v_kill( thread );
     }
 
+    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
     vm_run[vm_id] = FALSE;
 
     vm_run_time[vm_id]      = 0;
     vm_max_cycles[vm_id]    = 0;
+}
+
+static void reset_vm( uint8_t vm_id ){
+
+    vm_status[vm_id] = VM_STATUS_NOT_RUNNING;
+
+    // verify thread exists
+    if( vm_threads[vm_id] > 0 ){
+
+        // thread_v_restart( vm_threads[vm_id] );
+
+        stop_vm( vm_id );
+
+        vm_run[vm_id] = TRUE;
+        start_vm( vm_id );
+    }   
 }
 
 
@@ -1091,7 +923,7 @@ PT_BEGIN( pt );
 
                     // this isn't actually an error, it is the VM
                     // signalling the script has requested a stop.
-                    log_v_debug_P( PSTR("VM %d halted"), i );
+                    // log_v_debug_P( PSTR("VM %d halted"), i );
                 }
                 else{
 
@@ -1102,7 +934,7 @@ PT_BEGIN( pt );
             // Are we resetting a VM?
             if( vm_reset[i] ){
 
-                log_v_debug_P( PSTR("Resetting VM: %d"), i );
+                trace_printf( PSTR("Resetting VM: %d\r\n"), i );
 
                 reset_vm( i );
             }
@@ -1124,7 +956,7 @@ PT_BEGIN( pt );
             // Did VM that was running just get told to stop?
             else if( !vm_run[i] && is_vm_running( i ) ){
 
-                log_v_debug_P( PSTR("Stopping VM: %d"), i );
+                trace_printf( PSTR("Stopping VM: %d\r\n"), i );
                 
                 stop_vm( i );
             }
@@ -1203,7 +1035,10 @@ void vm_v_run_prog( char name[FFS_FILENAME_LEN], uint8_t vm_id ){
 
     kv_i8_set( hash, prog, FFS_FILENAME_LEN );
 
-    log_v_info_P( PSTR("Starting %s on VM: %d"), prog, vm_id );
+    // log_v_info_P( PSTR("Starting %s on VM: %d"), prog, vm_id );
+    
+    
+    stop_vm( vm_id );
 
     vm_run[vm_id] = TRUE;
     vm_reset[vm_id] = TRUE;
@@ -1260,6 +1095,13 @@ void vm_v_init( void ){
         return;
     }
 
+    if( !kv_b_get_boolean( __KV__vm_enable ) ){
+
+        return;
+    }
+
+    kv_v_add_db_info( vm_info_kv, sizeof(vm_info_kv) );
+
     COMPILER_ASSERT( ( sizeof(vm_state_t) % 4 ) == 0 );
 
     memset( vm_status, VM_STATUS_NOT_RUNNING, sizeof(vm_status) );
@@ -1270,6 +1112,13 @@ void vm_v_init( void ){
                      0 );
 
     vm_cron_v_init();
+    // vm_seq_v_init();
+    scenes_v_init();
+
+    #ifdef VM_DEBUG
+    fs_v_create_virtual( PSTR("vm0_threads"), threads_vfile );
+    #endif
+
     #endif
 }
 

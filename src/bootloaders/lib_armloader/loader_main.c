@@ -69,7 +69,6 @@ Generic mode:
 #include "flash25.h"
 #include "hal_cpu.h"
 #include "crc.h"
-#include "hal_status_led.h"
 #include "watchdog.h"
 
 // bootloader shared memory

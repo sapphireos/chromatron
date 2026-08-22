@@ -27,11 +27,13 @@ import socket
 import types
 import threading
 import json
+import struct
 from collections import UserDict 
 import getpass
 import zipfile
 import hashlib
-import pkg_resources
+# import pkg_resources
+import importlib.resources
 from .filewatcher import Watcher
 from sapphire.buildtools import firmware_package
 from sapphire.buildtools.firmware_package import FirmwarePackage
@@ -72,6 +74,23 @@ BACKUP_SETTINGS = [
     'gfx_transpose',
     'gfx_varray_length',
     'gfx_varray_start',
+    'sync_group',
+    'seq_slot_0',
+    'seq_slot_1',
+    'seq_slot_2',
+    'seq_slot_3',
+    'seq_slot_4',
+    'seq_slot_5',
+    'seq_slot_6',
+    'seq_slot_7',
+    'seq_slot_charging',
+    'seq_slot_startup',
+    'seq_slot_shutdown',
+    'seq_interval_time',
+    'seq_random_time_max',
+    'seq_random_time_min',
+    'seq_select_mode',
+    'seq_time_mode',
     'meta_tag_0',
     'meta_tag_1',
     'meta_tag_2',
@@ -89,6 +108,14 @@ BACKUP_SETTINGS = [
     'pix_size_x',
     'pix_size_y',
     'sntp_server',
+    'vm4_run',
+    'vm4_prog',
+    'vm4_run_1',
+    'vm4_prog_1',
+    'vm4_run_2',
+    'vm4_prog_2',
+    'vm4_run_3',
+    'vm4_prog_3',
     'vm_run',
     'vm_prog',
     'vm_run_1',
@@ -197,8 +224,11 @@ PIXEL_SETTINGS = [
 MAX_UPDATE_THREADS = 4
 
 def get_package_fx_script(fname):
-    return pkg_resources.resource_filename('chromatron', fname)
+    # return pkg_resources.resource_filename('chromatron', fname)
+    ref = importlib.resources.files('chromatron') / fname # thanks 3.12 for removing a thing that worked fine
 
+    with importlib.resources.as_file(ref) as path:
+        return str(path)
 
 # note - this is just a convenience wrapper around the
 # underlying Device object.
@@ -476,6 +506,9 @@ class Chromatron(object):
         else:
             return self._device.get_all_kv()
 
+    def dump_hsv(self):
+        return self._device.dump_hsv()
+
     def set_wifi(self, ssid, password):
         self.set_key('wifi_ssid', ssid)
         self.set_key('wifi_password', password)
@@ -487,15 +520,17 @@ class Chromatron(object):
         self._device.safe_mode()
 
     def load_vm(self, vm_index=0, filename=None, start=True, bin_data=None):
-        self.stop_vm(vm_index)
-
         if bin_data:
-            code = code_gen.compile_text(bin_data).stream
+            code = code_gen.build_text(bin_data)
             bin_filename = 'vm.fxb'
 
         elif filename:
-            code = code_gen.compile_script(filename).stream
+            code = code_gen.build_script(filename)
             bin_filename = os.path.split(filename)[1] + 'b'
+
+            # write out .fxb file
+            with open(bin_filename, 'wb+') as f:
+                f.write(code)
 
         try:
             self.delete_file(bin_filename)
@@ -507,15 +542,20 @@ class Chromatron(object):
 
         # change vm program
         if vm_index == 0:
-            s = 'vm_prog'
+            vm_prog_slot = 'vm_prog'
+            vm_run = 'vm_run'
+            vm_reset = 'vm_reset'
+
         else:
-            s = 'vm_prog_%d' % (vm_index)
-
-        self.set_key(s, bin_filename)
-
+            vm_prog_slot = f'vm_prog_{vm_index}'
+            vm_run = f'vm_run_{vm_index}'
+            vm_reset = f'vm_reset_{vm_index}'
 
         if start:
-            self.start_vm(vm_index)
+            self.set_keys(**{vm_prog_slot: bin_filename, vm_run: True, vm_reset: True})
+
+        else:
+            self.set_keys({vm_prog_slot: bin_filename, vm_run: False})
 
     def reset_vm(self, vm_index=0):
         if vm_index == 0:
@@ -559,6 +599,81 @@ class Chromatron(object):
         # must go through the client to get VM dynamic keys.
         # the USB interface can only retrieve static keys.
         return self.client.get_key(regname)
+
+
+    def load_vm4(self, vm_index=0, filename=None, start=True, bin_data=None, should_compile=True):
+        if bin_data:
+            assert false
+
+        elif filename and should_compile:
+            cmd = f'fx4 {filename}'
+            os.system(cmd)
+
+        bin_filename = os.path.splitext(filename)[0] + '.f4b'
+
+        try:
+            self.delete_file(bin_filename)
+
+        except IOError:
+            pass
+
+        code = open(bin_filename, 'rb').read()
+
+        self.put_file(bin_filename, code)
+
+        # change vm program
+        if vm_index == 0:
+            vm_prog_slot = 'vm4_prog'
+            vm_run = 'vm4_run'
+            # vm_reset = 'vm4_reset'
+
+        else:
+            vm_prog_slot = f'vm4_prog_{vm_index}'
+            vm_run = f'vm4_run_{vm_index}'
+            # vm_reset = f'vm4_reset_{vm_index}'
+
+        if start:
+            # self.set_keys(**{vm_prog_slot: bin_filename, vm_run: True, vm_reset: True})
+            self.set_keys(**{vm_prog_slot: bin_filename, vm_run: True})
+
+        else:
+            self.set_keys({vm_prog_slot: bin_filename, vm_run: False})
+
+    def reset_vm4(self, vm_index=0):
+        if vm_index == 0:
+            s = 'vm4_reset'
+        else:
+            s = 'vm4_reset_%d' % (vm_index)
+
+        self.set_key(s, True)
+
+    def start_vm4(self, vm_index=0):
+        if vm_index == 0:
+            s = 'vm4_run'
+        else:
+            s = 'vm4_run_%d' % (vm_index)
+
+        self.set_key(s, True)
+
+    def stop_vm4(self, vm_index=0):
+        if vm_index == 0:
+            s = 'vm4_run'
+        else:
+            s = 'vm4_run_%d' % (vm_index)
+
+        self.set_key(s, False)
+
+    def clean_vm4_files(self):
+        """Deletes all .fxb files from device"""
+        for fname in self.list_files():
+            try:
+                name, ext = fname.split('.')
+
+            except ValueError:
+                continue
+
+            if ext == 'f4b':
+                self.delete_file(fname)
 
     def delete_file(self, filename):
         self._device.delete_file(filename)
@@ -813,6 +928,38 @@ class DeviceGroup(UserDict):
     def sub_dimmer(self, value):
         for d in self.data.values():
             d.sub_dimmer = value
+
+    def load_vm(self, *args, **kwargs):
+        # run load VM in parallel, since it can be slow in large groups
+        threads = []
+
+        for d in self.data.values():
+            t = threading.Thread(target=d.load_vm, args=args, kwargs=kwargs, daemon=True)
+            t.start()
+
+            threads.append(t)
+
+        for t in threads:
+            t.join()
+
+    def load_vm4(self, *args, **kwargs):
+        # run load VM in parallel, since it can be slow in large groups
+        threads = []
+
+        # compile first:
+        cmd = f'fx4 {args[1]}'
+        os.system(cmd)
+
+        kwargs['should_compile'] = False
+
+        for d in self.data.values():
+            t = threading.Thread(target=d.load_vm4, args=args, kwargs=kwargs, daemon=True)
+            t.start()
+
+            threads.append(t)
+
+        for t in threads:
+            t.join()
 
     # @property
     # def hue(self):
@@ -1255,7 +1402,12 @@ def show(ctx):
     click.echo(s)
 
     for ct in sorted(group.values(), key=lambda a: a.name):
-        keys = ct.get_keys('wifi_rssi', 'wifi_uptime', 'supply_voltage', catbus.META_TAG_LOC, 'meta_tag_0', 'meta_tag_1')
+        try:
+            keys = ct.get_keys('wifi_rssi', 'wifi_uptime', 'supply_voltage', catbus.META_TAG_LOC, 'meta_tag_0', 'meta_tag_1')
+
+        except catbus.client.NoResponseFromHost:
+            click.echo(f'No response from {ct}')
+            continue
 
         name = ct.name
         rssi = keys['wifi_rssi']
@@ -1493,16 +1645,22 @@ def load(ctx, filename, live):
     if live:
         click.secho('Live mode', fg='magenta')
 
-
+    
     try:
+        start = time.monotonic()
+
         group.load_vm(n, filename)
-        click.echo('Loaded %s to VM %d on:' % (click.style(filename, fg=VAL_COLOR), n))
+
+        elapsed_ms = int((time.monotonic() - start) * 1000)
+
+        click.echo(f'Loaded {click.style(filename, fg=VAL_COLOR)} to VM {n} in {elapsed_ms} ms on:')
 
         echo_group(group)
 
     except Exception as e:
         click.secho("Error:", fg='magenta')
         click.secho(str(e), fg=ERROR_COLOR)
+        raise
 
 
     if live:
@@ -1510,12 +1668,16 @@ def load(ctx, filename, live):
 
         try:
             while True:
-                time.sleep(0.2)
+                time.sleep(0.1)
 
                 if watcher.changed():
                     try:
+                        start = time.monotonic()
+
                         group.load_vm(n, filename)
-                        click.echo('Loaded %s' % (click.style(filename, fg=VAL_COLOR)))
+                        elapsed_ms = int((time.monotonic() - start) * 1000)
+
+                        click.echo(f'Loaded {click.style(filename, fg=VAL_COLOR)} in {elapsed_ms} ms')
 
                     except Exception as e:
                         click.secho("Error:", fg='magenta')
@@ -1571,7 +1733,7 @@ def compile(ctx, filename, debug):
     click.echo('Compiling: %s' % (filename))
 
     try:
-        code = code_gen.compile_script(filename, debug_print=debug).stream
+        code = code_gen.build_script(filename, debug_print=debug)
 
     except IOError:
         click.secho("No such file", fg=ERROR_COLOR)
@@ -1596,6 +1758,176 @@ def clean(ctx):
     click.echo('Cleaned VM files on:')
 
     echo_group(group)
+
+
+
+@cli.group()
+@click.pass_context
+@click.option('-n', default=0, help='VM slot')
+def vm4(ctx, n):
+    """Virtual machine controls"""
+    ctx.obj['n'] = int(n)
+
+@vm4.command()
+@click.pass_context
+def start(ctx):
+    """Start virtual machine"""
+    group = ctx.obj['GROUP']()
+    n = ctx.obj['n']
+    group.start_vm4(n)
+
+    click.echo("Started VM %d on:" % (n))
+
+    echo_group(group)
+
+@vm4.command()
+@click.pass_context
+def stop(ctx):
+    """Stop virtual machine"""
+
+    group = ctx.obj['GROUP']()
+    n = ctx.obj['n']
+    group.stop_vm4(n)
+
+    click.echo("Stopped VM %d on:" % (n))
+
+    echo_group(group)
+
+
+@vm4.command('reset')
+@click.pass_context
+def vm4_reset(ctx):
+    """Reset virtual machine"""
+    group = ctx.obj['GROUP']()
+    n = ctx.obj['n']
+    group.reset_vm4(n)
+
+    click.echo("Reset VM %d on:" % (n))
+
+    echo_group(group)
+
+
+@vm4.command()
+@click.pass_context
+@click.argument('filename')
+@click.option('--live', default=None, is_flag=True, help='Live mode')
+def load(ctx, filename, live):
+    """Compile and load script to virtual machine"""
+
+    group = ctx.obj['GROUP']()
+    n = ctx.obj['n']
+
+    if live:
+        click.secho('Live mode', fg='magenta')
+
+    
+    try:
+        start = time.monotonic()
+
+        group.load_vm4(n, filename)
+
+        elapsed_ms = int((time.monotonic() - start) * 1000)
+
+        click.echo(f'Loaded {click.style(filename, fg=VAL_COLOR)} to VM {n} in {elapsed_ms} ms on:')
+
+        echo_group(group)
+
+    except Exception as e:
+        click.secho("Error:", fg='magenta')
+        click.secho(str(e), fg=ERROR_COLOR)
+        raise
+
+
+    if live:
+        watcher = Watcher(filename)
+
+        try:
+            while True:
+                time.sleep(0.1)
+
+                if watcher.changed():
+                    try:
+                        start = time.monotonic()
+
+                        group.load_vm4(n, filename)
+                        elapsed_ms = int((time.monotonic() - start) * 1000)
+
+                        click.echo(f'Loaded {click.style(filename, fg=VAL_COLOR)} in {elapsed_ms} ms')
+
+                    except Exception as e:
+                        click.secho("Error:", fg='magenta')
+                        click.secho(str(e), fg=ERROR_COLOR)
+
+
+        except KeyboardInterrupt:
+            pass
+
+        watcher.stop()
+
+
+@vm4.command()
+@click.pass_context
+def reload(ctx):
+    """Recompile and reload the FX script on device"""
+
+    group = ctx.obj['GROUP']()
+    n = ctx.obj['n']
+
+    for ct in group.values():
+        echo_name(ct, nl=False)
+
+        try:
+            if n == 0:
+                prog = ct.get_key('vm4_prog')
+
+            else:
+                prog = ct.get_key('vm4_prog_%d' % (n))
+
+            filename, ext = os.path.splitext(prog)
+            filename += '.fx4'        
+
+            ct.load_vm4(n, filename)
+
+            click.echo(" %s" % (filename))
+            
+        except KeyError:
+            click.echo(" No VM program - skipping")
+
+        except IOError:
+            click.echo(" File not found: %s" % (filename))
+
+
+
+@cli.command()
+@click.pass_context
+@click.argument('filename')
+@click.option('--debug', default=False, is_flag=True, help='Print debug information during script compilation')
+def fx4(ctx, filename, debug):
+    """Compile an FX script"""
+
+    click.echo('Compiling with FX4: %s' % (filename))
+
+    cmd = f'fx4 {filename}'
+    if debug:
+        cmd += ' -d'
+
+    os.system(cmd)
+    
+    # bin_filename = os.splitext(filename)[0] + '.f4b'
+    
+
+@vm4.command()
+@click.pass_context
+def clean(ctx):
+    """Erase all VM script files (.fxb)"""
+
+    group = ctx.obj['GROUP']()
+    group.clean_vm4_files()
+
+    click.echo('Cleaned VM files on:')
+
+    echo_group(group)
+
 
 @cli.group()
 @click.pass_context
@@ -1705,7 +2037,7 @@ def fs_get(ctx, filename):
             data = ct.get_file(filename)
 
             with open(os.path.join(ct.name, filename), 'w+') as f:
-                f.write(data)
+                f.write(data.decode())
 
             click.echo("Received %s" % (click.style(filename, fg=VAL_COLOR)))
 

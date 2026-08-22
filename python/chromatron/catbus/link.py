@@ -58,131 +58,131 @@ LINK_BASE_PRIORITY      = 128
 
 
 
-class MsgHeader(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="magic"),
-                  Uint8Field(_name="type"),
-                  Uint8Field(_name="version"),
-                  Uint8Field(_name="flags"),
-                  Uint8Field(_name="reserved"),
-                  Uint64Field(_name="origin_id"),
-                  CatbusHash(_name="universe")]
+# class MsgHeader(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint32Field(_name="magic"),
+#                   Uint8Field(_name="type"),
+#                   Uint8Field(_name="version"),
+#                   Uint8Field(_name="flags"),
+#                   Uint8Field(_name="reserved"),
+#                   Uint64Field(_name="origin_id"),
+#                   CatbusHash(_name="universe")]
 
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
-        self.magic          = LINK_MAGIC
-        self.version        = LINK_VERSION
-        self.flags          = 0 
-        self.type           = 0
-        self.reserved       = 0
-        self.origin_id      = 0
-        self.universe       = 0
+#         self.magic          = LINK_MAGIC
+#         self.version        = LINK_VERSION
+#         self.flags          = 0 
+#         self.type           = 0
+#         self.reserved       = 0
+#         self.origin_id      = 0
+#         self.universe       = 0
         
-LINK_MSG_TYPE_CONSUMER_QUERY        = 1        
-class ConsumerQueryMsg(StructField):
-    def __init__(self, **kwargs):
-        fields = [MsgHeader(_name="header"),
-                  CatbusHash(_name="key"),
-                  CatbusQuery(_name="query"),
-                  Uint8Field(_name="mode"),
-                  Uint64Field(_name="hash")]
+# LINK_MSG_TYPE_CONSUMER_QUERY        = 1        
+# class ConsumerQueryMsg(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [MsgHeader(_name="header"),
+#                   CatbusHash(_name="key"),
+#                   CatbusQuery(_name="query"),
+#                   Uint8Field(_name="mode"),
+#                   Uint64Field(_name="hash")]
 
-        super().__init__(_name="consumer_query", _fields=fields, **kwargs)
+#         super().__init__(_name="consumer_query", _fields=fields, **kwargs)
 
-        self.header.type = LINK_MSG_TYPE_CONSUMER_QUERY
+#         self.header.type = LINK_MSG_TYPE_CONSUMER_QUERY
 
-LINK_MSG_TYPE_CONSUMER_MATCH        = 2
-class ConsumerMatchMsg(StructField):
-    def __init__(self, **kwargs):
-        fields = [MsgHeader(_name="header"),
-                  Uint64Field(_name="hash")]
+# LINK_MSG_TYPE_CONSUMER_MATCH        = 2
+# class ConsumerMatchMsg(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [MsgHeader(_name="header"),
+#                   Uint64Field(_name="hash")]
 
-        super().__init__(_name="consumer_match", _fields=fields, **kwargs)
+#         super().__init__(_name="consumer_match", _fields=fields, **kwargs)
 
-        self.header.type = LINK_MSG_TYPE_CONSUMER_MATCH
+#         self.header.type = LINK_MSG_TYPE_CONSUMER_MATCH
 
         
-LINK_MSG_TYPE_PRODUCER_QUERY        = 3        
-class ProducerQueryMsg(StructField):
-    def __init__(self, **kwargs):
-        fields = [MsgHeader(_name="header"),
-                  CatbusHash(_name="key"),
-                  CatbusQuery(_name="query"),
-                  Uint16Field(_name="rate"),
-                  Uint64Field(_name="hash")]
+# LINK_MSG_TYPE_PRODUCER_QUERY        = 3        
+# class ProducerQueryMsg(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [MsgHeader(_name="header"),
+#                   CatbusHash(_name="key"),
+#                   CatbusQuery(_name="query"),
+#                   Uint16Field(_name="rate"),
+#                   Uint64Field(_name="hash")]
 
-        super().__init__(_name="producer_query", _fields=fields, **kwargs)
+#         super().__init__(_name="producer_query", _fields=fields, **kwargs)
 
-        self.header.type = LINK_MSG_TYPE_PRODUCER_QUERY
+#         self.header.type = LINK_MSG_TYPE_PRODUCER_QUERY
 
-LINK_MSG_TYPE_CONSUMER_DATA         = 10
-class ConsumerDataMsg(StructField):
-    def __init__(self, **kwargs):
-        fields = [MsgHeader(_name="header"),
-                  Uint64Field(_name="hash"),
-                  CatbusData(_name="data")]
+# LINK_MSG_TYPE_CONSUMER_DATA         = 10
+# class ConsumerDataMsg(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [MsgHeader(_name="header"),
+#                   Uint64Field(_name="hash"),
+#                   CatbusData(_name="data")]
 
-        super().__init__(_name="consumer_data", _fields=fields, **kwargs)
+#         super().__init__(_name="consumer_data", _fields=fields, **kwargs)
 
-        self.header.type = LINK_MSG_TYPE_CONSUMER_DATA
+#         self.header.type = LINK_MSG_TYPE_CONSUMER_DATA
 
-LINK_MSG_TYPE_PRODUCER_DATA         = 11
-class ProducerDataMsg(StructField):
-    def __init__(self, **kwargs):
-        fields = [MsgHeader(_name="header"),
-                  Uint64Field(_name="hash"),
-                  CatbusData(_name="data")]
+# LINK_MSG_TYPE_PRODUCER_DATA         = 11
+# class ProducerDataMsg(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [MsgHeader(_name="header"),
+#                   Uint64Field(_name="hash"),
+#                   CatbusData(_name="data")]
 
-        super().__init__(_name="producer_data", _fields=fields, **kwargs)
+#         super().__init__(_name="producer_data", _fields=fields, **kwargs)
 
-        self.header.type = LINK_MSG_TYPE_PRODUCER_DATA
+#         self.header.type = LINK_MSG_TYPE_PRODUCER_DATA
 
-LINK_MSG_TYPE_ADD                   = 20
-class AddMsg(StructField):
-    def __init__(self, **kwargs):
-        fields = [MsgHeader(_name="header"),
-                  CatbusHash(_name="source_key"),
-                  CatbusHash(_name="dest_key"),
-                  CatbusQuery(_name="query"),
-                  CatbusHash(_name="tag"),
-                  Uint8Field(_name="mode"),
-                  Uint8Field(_name="aggregation"),
-                  Uint16Field(_name="rate"),
-                  Uint16Field(_name="filter")]
+# LINK_MSG_TYPE_ADD                   = 20
+# class AddMsg(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [MsgHeader(_name="header"),
+#                   CatbusHash(_name="source_key"),
+#                   CatbusHash(_name="dest_key"),
+#                   CatbusQuery(_name="query"),
+#                   CatbusHash(_name="tag"),
+#                   Uint8Field(_name="mode"),
+#                   Uint8Field(_name="aggregation"),
+#                   Uint16Field(_name="rate"),
+#                   Uint16Field(_name="filter")]
 
-        super().__init__(_name="link_add", _fields=fields, **kwargs)
+#         super().__init__(_name="link_add", _fields=fields, **kwargs)
 
-        self.header.type = LINK_MSG_TYPE_ADD
+#         self.header.type = LINK_MSG_TYPE_ADD
 
-LINK_MSG_TYPE_DELETE                 = 21
-class DeleteMsg(StructField):
-    def __init__(self, **kwargs):
-        fields = [MsgHeader(_name="header"),
-                  CatbusHash(_name="tag"),
-                  Uint64Field(_name="hash")]
+# LINK_MSG_TYPE_DELETE                 = 21
+# class DeleteMsg(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [MsgHeader(_name="header"),
+#                   CatbusHash(_name="tag"),
+#                   Uint64Field(_name="hash")]
 
-        super().__init__(_name="link_delete", _fields=fields, **kwargs)
+#         super().__init__(_name="link_delete", _fields=fields, **kwargs)
 
-        self.header.type = LINK_MSG_TYPE_DELETE
+#         self.header.type = LINK_MSG_TYPE_DELETE
 
-LINK_MSG_TYPE_CONFIRM                = 22
-class ConfirmMsg(StructField):
-    def __init__(self, **kwargs):
-        fields = [MsgHeader(_name="header"),
-                  Int32Field(_name="status")]
+# LINK_MSG_TYPE_CONFIRM                = 22
+# class ConfirmMsg(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [MsgHeader(_name="header"),
+#                   Int32Field(_name="status")]
 
-        super().__init__(_name="link_confirm", _fields=fields, **kwargs)
+#         super().__init__(_name="link_confirm", _fields=fields, **kwargs)
 
-        self.header.type = LINK_MSG_TYPE_CONFIRM
+#         self.header.type = LINK_MSG_TYPE_CONFIRM
 
-LINK_MSG_TYPE_SHUTDOWN                = 30
-class ShutdownMsg(StructField):
-    def __init__(self, **kwargs):
-        fields = [MsgHeader(_name="header")]
+# LINK_MSG_TYPE_SHUTDOWN                = 30
+# class ShutdownMsg(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [MsgHeader(_name="header")]
 
-        super().__init__(_name="link_shutdown", _fields=fields, **kwargs)
+#         super().__init__(_name="link_shutdown", _fields=fields, **kwargs)
 
-        self.header.type = LINK_MSG_TYPE_SHUTDOWN
+#         self.header.type = LINK_MSG_TYPE_SHUTDOWN
 
 
 LINK_MODE_SEND  = 0

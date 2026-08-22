@@ -329,7 +329,7 @@ void mem2_v_init( void ){
 
 	mem_rt_data.handles_used = 0;
 
-    fs_f_create_virtual( PSTR("handleinfo"), mem_info_vfile_handler );
+    fs_v_create_virtual( PSTR("handleinfo"), mem_info_vfile_handler );
 }
 
 // for debug only, returns a copy of the header at given index
@@ -367,6 +367,8 @@ bool mem2_b_verify_handle( mem_handle_t handle ){
     // check if handle is negative
     if( handle < 0 ){
 
+        // trace_printf("invalid handle!\r\n");
+
         sys_v_set_error( SYS_ERR_INVALID_HANDLE );
 
         status = FALSE;
@@ -377,6 +379,8 @@ bool mem2_b_verify_handle( mem_handle_t handle ){
     handle = unswizzle(handle);
 
     if( handles[handle] == 0 ){
+
+        // trace_printf("unallocated!\r\n");
 
         sys_v_set_error( SYS_ERR_HANDLE_UNALLOCATED );
 
@@ -390,6 +394,8 @@ bool mem2_b_verify_handle( mem_handle_t handle ){
 
     if( *canary != generate_canary( header ) ){
 
+        // trace_printf("invalid canary!\r\n");
+
         sys_v_set_error( SYS_ERR_INVALID_CANARY );
 
         status = FALSE;
@@ -397,6 +403,8 @@ bool mem2_b_verify_handle( mem_handle_t handle ){
     }
 
     if( is_dirty( header ) == TRUE ){
+
+        // trace_printf("block is dirty!\r\n");
 
         sys_v_set_error( SYS_ERR_MEM_BLOCK_IS_DIRTY );
 
@@ -790,6 +798,11 @@ void mem2_v_check_canaries( void ){
 
 			uint8_t *canary = CANARY_PTR( header );
 
+            if( *canary != generate_canary( header ) ){
+
+                log_v_debug_P( PSTR("Bad canary.  Type: %d"), header->type );
+            }
+
 			// check the canary
 			ASSERT_MSG( *canary == generate_canary( header ), "Invalid canary!" );
 		}
@@ -852,6 +865,19 @@ uint16_t mem2_u16_get_dirty( void ){
 
     return temp;
 }
+
+// return amount of dirty memory
+uint16_t mem2_u16_get_used( void ){
+
+    MEM_ATOMIC;
+
+    uint16_t temp = mem_rt_data.used_space;
+
+    MEM_END_ATOMIC;
+
+    return temp;
+}
+
 
 /*
 

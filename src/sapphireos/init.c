@@ -48,7 +48,6 @@
 #ifdef ENABLE_NETWORK
 #include "netmsg.h"
 #include "sockets.h"
-#include "services.h"
 #endif
 
 #include "flash25.h"
@@ -71,10 +70,10 @@
 #include "time_ntp.h"
 #endif
 
-#ifdef ENABLE_MSGFLOW
-#include "msgflow.h"
 #include "datalogger.h"
-#endif
+#include "link4.h"
+
+#include "device_db.h"
 
 #include "init.h"
 
@@ -98,8 +97,14 @@ int8_t sapphire_i8_init( void ){
     // init CRC module
     crc_v_init();
 
-    // init serial command port
-    cmd_usart_v_init();
+    #ifdef FLASH_FS_TIMING
+    // init timers
+    // this is needed for flash fs timing
+    tmr_v_init();
+
+    uint32_t start_time = tmr_u32_get_system_time_ms();
+
+    #endif
 
     // init flash driver
     flash25_v_init();
@@ -129,8 +134,10 @@ int8_t sapphire_i8_init( void ){
         status_led_v_set( 1, STATUS_LED_RED );
     }
 
-    // // init serial command port
-    // cmd_usart_v_init();
+    #ifndef SKIP_CMD_USART_INIT
+    // init serial command port
+    cmd_usart_v_init();
+    #endif
 
     // init user file system
     fs_v_init();
@@ -196,21 +203,18 @@ int8_t sapphire_i8_init( void ){
     wifi_v_init();
     #endif
 
-    #ifdef ENABLE_SERVICES
-    services_v_init();
-    #endif
 
     catbus_v_init();
+
+    // datalog_v_init();
+    
+    device_db_v_init();
+    link4_v_init();
 
     #ifdef ENABLE_TIME_SYNC
     time_v_init();
     ntp_v_init();
     sntp_v_init();
-    #endif
-
-    #ifdef ENABLE_MSGFLOW
-    msgflow_v_init();
-    datalog_v_init();
     #endif
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
@@ -230,9 +234,17 @@ int8_t sapphire_i8_init( void ){
 
     log_v_info_P( PSTR("SapphireOS start") );
 
+    #ifdef DISABLE_SAFE_MODE
+    log_v_critical_P( PSTR("!!! SAFE MODE DISABLED !!!") );
+    #endif
+
     trace_printf( "SapphireOS ready\r\n" );
 
     trace_printf( "HW Rev: %u\r\n", io_u8_get_board_rev() );
+
+    #ifdef FLASH_FS_TIMING
+    flash_fs_boot_time = tmr_u32_elapsed_time_ms( start_time );
+    #endif
 
     // return system OK
     return 0;
@@ -248,15 +260,15 @@ void sapphire_run( void ){
     usb_v_init();
     #endif
 
+    #ifndef FLASH_FS_TIMING
     // init timers
 	// do this just before starting the scheduler so that we won't miss the
 	// first timer interrupt
 	tmr_v_init();
+    #endif
 
     // enable watchdog timer
-    // sys_v_init_watchdog();
-
-    status_led_v_set( 1, STATUS_LED_YELLOW );
+    sys_v_init_watchdog();
 
 	// start the thread scheduler
 	thread_start();

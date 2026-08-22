@@ -36,9 +36,20 @@
 
 #ifndef BOOTLOADER
 
+int dummy_printf(const char* format, ...){
+
+    return 0;
+}
+
+#ifdef ENABLE_TRACE
 int trace_printf(const char* format, ...){
   int ret;
   va_list ap;
+
+  if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+      return 0;
+  }
 
   va_start (ap, format);
 
@@ -74,4 +85,6 @@ int trace_printf(const char* format, ...){
   va_end (ap);
   return ret;
 }
+#endif
+
 #endif

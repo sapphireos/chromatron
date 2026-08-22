@@ -31,6 +31,7 @@
 #include "udp.h"
 
 #include "driver/gpio.h"
+#include "driver/uart.h"
 
 #define HAL_CMD_UART UART_NUM_0
 

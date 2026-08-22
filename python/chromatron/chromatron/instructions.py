@@ -612,12 +612,12 @@ class insJmpIfZero(insJmpConditional):
         if vm.memory[self.op1.addr] == 0:
             return self.label
 
-class insJmpNotZero(insJmpConditional):
-    mnemonic = 'JMP_IF_NOT_Z'
+# class insJmpIfNotZero(insJmpConditional):
+#     mnemonic = 'JMP_IF_NOT_Z'
 
-    def execute(self, vm):
-        if vm.memory[self.op1.addr] != 0:
-            return self.label
+#     def execute(self, vm):
+#         if vm.memory[self.op1.addr] != 0:
+#             return self.label
 
 # class insJmpIfZeroPostDec(insJmpConditional):
     # mnemonic = 'JMP_IF_Z_DEC'

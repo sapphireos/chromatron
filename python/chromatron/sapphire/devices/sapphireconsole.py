@@ -32,7 +32,10 @@ from chromatron import DeviceGroup
 import sys
 import traceback # ignore unused warning!
 
-import cmd2 as cmd
+# cmd2 now directly included in source tree.
+# modern versions of pip refuse to install cmd2 0.6.9 and newer versions of cmd2
+# remove features (like auto command abbreviation)
+from . import cmd2 as cmd
 
 
 class SapphireConsole(cmd.Cmd):
@@ -136,6 +139,13 @@ class SapphireConsole(cmd.Cmd):
         for target in self.targets:
             print(target.who())
 
+    # needed if we ever update cmd2
+    # def sigint_handler(self, signum, frame):
+    #     raise SystemExit
+
+    # def do_exit(self, line):
+    #     raise SystemExit
+
 
 cli_template = """
     def do_$fname(self, line):
@@ -154,6 +164,20 @@ cli_template = """
 
 """
 
+cli_template_group = """
+    def do_$fname(self, line):
+        try:
+            print(self.targets[0].cli_$fname(line, targets=self.targets))
+
+        except DeviceUnreachableException as e:
+            print('Error:%s from %s' % (e, target.host))
+
+        except Exception as e:
+            print('Error: %s' % (e))
+            traceback.print_exc()
+
+"""
+
 def makeConsole(targets=[], devices=[], device=None):
     if not device:
         try:
@@ -166,8 +190,15 @@ def makeConsole(targets=[], devices=[], device=None):
 
     s = "class aConsole(SapphireConsole):\n"
 
+    group_commands = ['nettime']
+
     for fname in cli_funcs:
-        s += cli_template.replace('$fname', fname)
+        if fname in group_commands:
+
+            s += cli_template_group.replace('$fname', fname)
+
+        else:
+            s += cli_template.replace('$fname', fname)
     
     exec(s)
 

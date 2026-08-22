@@ -30,6 +30,8 @@
 #include "pixel.h"
 #include "pixel_vars.h"
 #include "graphics.h"
+#include "timers.h"
+#include "event_log.h"
 
 #include "logging.h"
 
@@ -46,11 +48,9 @@ PT_BEGIN( pt );
 
     while(1){
 
-        THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
-
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
-
-        uint16_t pix_count = gfx_u16_get_pix_count();
+        THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
+        EVENT(EVENT_ID_PIX_SIGNAL, 0);
 
         if( pix_mode == PIX_MODE_ANALOG ){
 
@@ -120,7 +120,13 @@ PT_BEGIN( pt );
 
 
             #ifdef ENABLE_COPROCESSOR
+            #define PIXEL_RX_TIMEOUT 500
+
+            uint16_t pix_count = gfx_u16_get_physical_pix_count();
+
             coproc_i32_call1( OPCODE_PIX_LOAD, pix_count );  
+
+            uint32_t start = tmr_u32_get_system_time_ms();
 
             while( pix_count > 0 ){
 
@@ -133,8 +139,10 @@ PT_BEGIN( pt );
 
                 if( ( pix_count % COPROC_PIX_WAIT_COUNT ) == 0 ){
 
-                    while( usart_u8_bytes_available( UART_CHANNEL ) == 0 );
-                    usart_i16_get_byte( UART_CHANNEL );                
+                    while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
+                           ( tmr_u32_elapsed_time_ms( start) < PIXEL_RX_TIMEOUT ) );
+
+                    ASSERT( usart_i16_get_byte( UART_CHANNEL ) >= 0 );
                 }
             }
 
@@ -143,16 +151,38 @@ PT_BEGIN( pt );
             #endif
         }
 
-        if( sys_b_is_shutting_down() ){
-            
-            THREAD_EXIT( pt );
-        }
 
-        // wait while pixels are zero output
-        while( gfx_b_is_output_zero() ){
+        // we keep getting pixels popping on from this, so turning it off for now.
 
-            THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
-        }
+        // if( gfx_b_is_output_zero() ){
+
+        //     // we are going to shut down the pixel drivers, and then
+        //     // wait until the gfx system indicates there is
+        //     // non-zero output again.
+
+        //     // FIRST:
+        //     // wait a bit to allow the coprocessor to drive 0s onto
+        //     // the pixel bus.  since the coproc pixel update timing
+        //     // is not synchronized with the host, we can just wait for
+        //     // a few update cycles to make sure it has been done.
+        //     TMR_WAIT( pt, 50 );
+
+        //     // SECOND: 
+        //     // signal coprocessor should shut down pixel drivers.
+        //     // this is done by setting the coproc pixel count to 0.
+        //     coproc_i32_call1( OPCODE_PIX_SET_COUNT, 0 );
+         
+        //     // THIRD:
+        //     // wait while pixels are zero output:
+        //     while( gfx_b_is_output_zero() ){
+
+        //         THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
+        //     }
+
+        //     // FOURTH:
+        //     // signal coproc to re-enable pixel drivers
+        //     coproc_i32_call1( OPCODE_PIX_SET_COUNT, gfx_u16_get_pix_count() );
+        // }
     }
 
 PT_END( pt );

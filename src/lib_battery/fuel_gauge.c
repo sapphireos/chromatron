@@ -28,9 +28,90 @@
 #include "battery.h"
 #include "fuel_gauge.h"
 #include "energy.h"
-#include "graphics.h"
+#include "util.h"
 
 /*
+
+
+Another take on this:
+
+We really need a battery cycle counter.  This can just be mV recovered by charge.  Nothing fancy.
+
+Basic SoC on voltage is usable.  Later we can compensate for load, but the cycle count is more valuable.
+
+
+Some knowledge of the day/night cycle for solar charging would be useful.  This could come from light level, if available.
+
+This module might not be the right place for that though.  The top level solar charge control loop should do this.
+
+
+Might turn off the recorder, and just rewrite this module to be more streamlined.  Not sure the filters are useful either.
+
+Just want cycle count and basic Soc!
+
+Some kind of very basic lifetime logging would be neat.  Like, ever N cycles (10? 100?) record a data type in a 
+fixed sized buffer.
+
+
+To enhance the accuracy, we need to disable the charger while we take our voltage measurement during a charge cycle.
+(We should also attempt to get a voltage drop estimate from pixels off to on at a given power level - maybe could 
+do a calibration at assembly time, and maybe semi periodically).
+
+Re-enable the charger after the measurement.  This should be driven externally by the overall solar charge control loop.
+The fuel gauge does not need to be updated often.  10 minute intervals is a good start, and on some events such as changing
+from charge to discharge or enabling/disabling the pixel array.
+
+
+
+Solar system modes:
+
+IDLE/RESET - this is an unknown state, the system has usually just started.
+DISCHARGE_IDLE - battery discharging, system is running, pixels are OFF
+DISCHARGE_PIXELS - above, but pixels are ON
+CHARGE_DC - charging on DC wall power
+CHARGE_SOLAR - charging on solar power
+FULL_CHARGE - system is fully charged and is connected to a valid power source (DC plugged in, or solar is generating enough)
+
+solar KV should have a text system mode name for easy field use.
+
+Solar module controls:
+
+solar panel voltage enable
+solar panel tilt motor
+batt charger config (mppt voltage set point and currents)
+gfx system enable
+
+
+Solar module knows:
+
+batt params (voltage, temp)
+pixel power
+dc input detect
+solar panel voltage
+panel tilt angle
+
+
+
+remember it does not control pixel enable - that is done on zero gfx to make sure we always get clean fade downs.
+
+gfx_v_set_system_enable() API commands gfx system to shut down.  This can be controlled by solar.  The battery control
+loop is handling this now.
+
+Solar and battery control loops can be combined.  The DC only devices are actually just a special case with the solar
+and tilt system disabled.  Solar is a first class always-available citizen in Chromatron.
+
+
+
+
+
+
+
+
+
+
+
+
+Old notes:
 
 
 Fuel gauge notes:
@@ -85,11 +166,472 @@ Discharge rate at a given load.
 
 
 
+*/
+
+static uint16_t charge_start_voltage;
+static uint32_t total_charge_cycle_mv;
+static uint16_t total_cycles;
+static uint16_t current_charge_cycle_mv;
+
+static uint8_t batt_soc = 100; // state of charge in percent
+
+#define SOC_MAX_VOLTS   ( batt_u16_get_charge_voltage() - 0 )
+#define SOC_MIN_VOLTS   ( batt_u16_get_min_discharge_voltage() )
+
+#define SOC_CYCLE_RANGE_MV  ( LION_MAX_VOLTAGE - LION_MIN_VOLTAGE )
+
+
+KV_SECTION_OPT kv_meta_t fuel_gauge_info_kv[] = {
+    { CATBUS_TYPE_UINT8,  0, KV_FLAGS_READ_ONLY,                    &batt_soc,                    0,  "batt_soc" },
+    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_READ_ONLY,                    &charge_start_voltage,        0,  "batt_charge_start_volts" },
+    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_READ_ONLY,                    &current_charge_cycle_mv,     0,  "batt_charge_cycle_mv" },
+    { CATBUS_TYPE_UINT16, 0, KV_FLAGS_READ_ONLY,                    &total_cycles,     0,  "batt_charge_cycles" },
+    { CATBUS_TYPE_UINT32, 0, KV_FLAGS_READ_ONLY | KV_FLAGS_PERSIST, &total_charge_cycle_mv,       0,  "batt_total_cycle_mv" },
+};
+
+static uint16_t batt_volts_filter[FUEL_GAUGE_VOLTS_FILTER_DEPTH];
+static uint8_t batt_volts_filter_index;
+static uint32_t filtered_batt_volts;
+
+
+PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) );
+
+
+void fuel_v_init( void ){
+
+    kv_v_add_db_info( fuel_gauge_info_kv, sizeof(fuel_gauge_info_kv) );
+
+
+    thread_t_create( fuel_gauge_thread,
+                     PSTR("fuel_gauge"),
+                     0,
+                     0 );
+}
+
+uint8_t fuel_u8_get_soc( void ){
+
+    return batt_soc;
+}
+
+bool fuel_b_threshold_full_charge( void ){
+
+    return batt_soc >= FUEL_GAUGE_THRESHOLD_FULL_CHARGE;
+}
+
+bool fuel_b_threshold_top_charge( void ){
+
+    return ( batt_soc < FUEL_GAUGE_THRESHOLD_FULL_CHARGE ) && ( batt_soc >= FUEL_GAUGE_THRESHOLD_TOP_CHARGE );
+}
+
+bool fuel_b_threshold_mid_charge( void ){
+
+    return ( batt_soc < FUEL_GAUGE_THRESHOLD_TOP_CHARGE ) && ( batt_soc >= FUEL_GAUGE_THRESHOLD_MID_CHARGE );
+}
+
+bool fuel_b_threshold_low_charge( void ){
+
+    return ( batt_soc < FUEL_GAUGE_THRESHOLD_MID_CHARGE ) && ( batt_soc >= FUEL_GAUGE_THRESHOLD_LOW_CHARGE );
+}
+
+bool fuel_b_threshold_critical_charge( void ){
+
+    return ( batt_soc < FUEL_GAUGE_THRESHOLD_LOW_CHARGE );
+}
+
+static void reset_filter( void ){
+
+    uint16_t batt_volts = batt_u16_get_batt_volts();
+
+    for( uint8_t i = 0; i < cnt_of_array(batt_volts_filter); i++ ){
+
+        batt_volts_filter[i] = batt_volts;
+    }       
+
+    filtered_batt_volts = batt_volts;
+}
+
+PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    static bool is_charging;
+
+    is_charging = FALSE;
+    
+    // wait until battery voltage is valid
+    THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() < SOC_MIN_VOLTS );
+
+    reset_filter();
+
+
+    while(1){
+
+        TMR_WAIT( pt, 1000 );
+
+        total_cycles = total_charge_cycle_mv / SOC_CYCLE_RANGE_MV;
+
+        // update volts filter
+        uint16_t batt_volts = batt_u16_get_batt_volts();
+
+        batt_volts_filter[batt_volts_filter_index] = batt_volts;
+        batt_volts_filter_index++;
+
+        if( batt_volts_filter_index >= cnt_of_array(batt_volts_filter) ){
+
+            batt_volts_filter_index = 0;
+        }
+        
+        filtered_batt_volts = 0;
+
+        for( uint8_t i = 0; i < cnt_of_array(batt_volts_filter); i++ ){
+
+            filtered_batt_volts += batt_volts_filter[i];
+        }
+
+        filtered_batt_volts /= cnt_of_array(batt_volts_filter);
+
+
+        // update soc
+        if( filtered_batt_volts >= SOC_MAX_VOLTS ){
+
+            batt_soc = 100;
+        }
+        else if( filtered_batt_volts <= SOC_MIN_VOLTS ){
+
+            batt_soc = 0;
+        }
+        else{
+            
+            batt_soc = util_u16_linear_interp( 
+                            filtered_batt_volts, 
+                            SOC_MIN_VOLTS, 
+                            0,
+                            SOC_MAX_VOLTS,
+                            100 );
+        }
+
+        // update state machine:
+
+        // if charging
+        if( is_charging ){
+
+            // leaving charge
+            if( !batt_b_is_charging() ){
+
+                is_charging = FALSE;
+
+                // set final charge cycle
+                total_charge_cycle_mv += current_charge_cycle_mv;
+
+                kv_i8_persist( __KV__batt_total_cycle_mv );
+
+                reset_filter();
+            }
+        }
+        else{
+
+            // switching into charge
+            if( batt_b_is_charging() ){
+
+                is_charging = TRUE;
+
+                charge_start_voltage = filtered_batt_volts;
+                current_charge_cycle_mv = 0;
+
+                reset_filter();
+            }
+        }
+
+        // if charging, update current recovered voltage
+        if( is_charging ){
+
+            current_charge_cycle_mv = filtered_batt_volts - charge_start_voltage;
+        }
+    }
+
+PT_END( pt );
+}
 
 
 
+
+
+
+#if 0
+#define SOC_VOLTS_MAX 4100
+#define SOC_VOLTS_MIN 3100
+#define SOC_VOLTS_STEP 100
+#define SOC_VOLTS_BINS ( ( SOC_VOLTS_MAX - SOC_VOLTS_MIN ) / SOC_VOLTS_STEP )
+
+// packed for easy file storage
+typedef struct __attribute__((packed)){
+    uint32_t seconds[SOC_VOLTS_BINS];
+    uint32_t energy[SOC_VOLTS_BINS];
+    int8_t temp[SOC_VOLTS_BINS];
+} fuel_curve_t;
+
+static uint64_t base_energy;
+static int8_t base_temp;
+
+static uint8_t current_bin = 255;
+
+static fuel_curve_t the_curve;
+
+static fuel_curve_t *curve_ptr;
+
+
+// static const PROGMEM char fuel_data_fname[] = "batt_soc_data";
+
+static uint8_t batt_soc = 100; // state of charge in percent
+// static uint16_t soc_state;
+// #define SOC_MAX_VOLTS   ( batt_u16_get_charge_voltage() - 100 )
+// #define SOC_MIN_VOLTS   ( batt_u16_get_discharge_voltage() )
+// #define SOC_FILTER      64
+
+
+KV_SECTION_OPT kv_meta_t fuel_gauge_info_kv[] = {
+    { CATBUS_TYPE_UINT8,  0,                  KV_FLAGS_READ_ONLY,  &batt_soc,                    0,  "batt_soc" },
+    { CATBUS_TYPE_UINT32, SOC_VOLTS_BINS - 1, KV_FLAGS_READ_ONLY,  the_curve.seconds,            0,  "batt_fuel_bins_time" },
+    { CATBUS_TYPE_UINT32, SOC_VOLTS_BINS - 1, KV_FLAGS_READ_ONLY,  the_curve.energy,             0,  "batt_fuel_bins_energy" },
+    { CATBUS_TYPE_INT8,   SOC_VOLTS_BINS - 1, KV_FLAGS_READ_ONLY,  the_curve.temp,               0,  "batt_fuel_bins_temp" },
+    { CATBUS_TYPE_UINT8,  0,                  KV_FLAGS_READ_ONLY,  &current_bin,                 0,  "batt_fuel_bin" },
+};
+
+
+PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) );
+
+
+void fuel_v_init( void ){
+
+    kv_v_add_db_info( fuel_gauge_info_kv, sizeof(fuel_gauge_info_kv) );
+
+
+    // load data file
+
+
+
+    thread_t_create( fuel_gauge_thread,
+                     PSTR("fuel_gauge"),
+                     0,
+                     0 );
+}
+
+uint8_t fuel_u8_get_soc( void ){
+
+    return batt_soc;
+}
+
+
+static void update_file( void ){
+
+
+}
+
+//     0    1    2    3    4    5    6    7    8    9    
+// 4100 4000 3900 3800 3700 3600 3500 3400 3300 3200 3100
+
+static uint64_t get_energy( void ){
+
+    return energy_u64_get_pixel_mwh();
+}
+
+uint32_t calc_power_from_energy( uint32_t seconds, uint32_t mwh ){
+
+    return ( (uint64_t)mwh * 3600 ) / seconds;
+}
+
+
+static uint8_t volts_to_bin( uint16_t volts ){
+
+    return SOC_VOLTS_BINS - ( ( volts - SOC_VOLTS_MIN ) / SOC_VOLTS_STEP );
+}
+
+/*
+Search for a curve matching the given power level and with
+available data for volts.
 
 */
+fuel_curve_t *search_curve( uint16_t volts, uint32_t mw ){
+
+    return &the_curve;
+}
+
+/*
+
+Calculate total energy capacity in a curve
+
+*/
+
+uint32_t calc_energy_for_curve( fuel_curve_t *curve ){
+
+    uint32_t total = 0;
+
+    for( uint8_t i = 0; i < SOC_VOLTS_BINS; i++ ){
+
+        total += curve->energy[i];
+    }
+
+    return total;
+}
+
+/*
+
+Calculate state of charge
+
+*/
+uint8_t calc_soc( uint16_t volts, uint16_t mw, uint32_t mwh ){
+
+
+    return 0;
+}
+
+
+
+static void reset_soc_tracking( void ){
+
+    curve_ptr = &the_curve;
+    current_bin = 255;
+    base_energy = get_energy();
+    base_temp = batt_i8_get_batt_temp();
+}
+
+PT_THREAD( fuel_gauge_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+    
+    reset_soc_tracking();
+
+    // wait until battery voltage is valid
+    THREAD_WAIT_WHILE( pt, batt_u16_get_batt_volts() < SOC_VOLTS_MIN );
+
+
+    while(1){
+
+        // check if charging:
+        THREAD_WAIT_WHILE( pt, batt_b_is_charging() );
+
+        TMR_WAIT( pt, 1000 );
+
+        // check if charging:
+        if( batt_b_is_charging() ){
+
+            reset_soc_tracking();
+
+            continue;
+        }
+
+        // the double charging checks around the wait serve to require (in a coarse
+        // fashion) the charging have stopped for at least one second.
+
+
+
+
+        uint16_t volts = batt_u16_get_batt_volts();
+
+        if( volts > SOC_VOLTS_MAX ){
+
+            // battery charging is not an exact process, at full charge the battery
+            // voltage might be a bit over the intended maximum.
+            // this is not a bug, it is a consequence of the analog nature of reality.
+
+            batt_soc = 100;
+
+            continue;
+        }
+        else if( volts <= SOC_VOLTS_MIN ){
+
+            // battery may run down beyond minimum tracking voltage
+            // also not an error.
+
+            batt_soc = 0;
+
+            continue;
+        }
+
+
+        // compute simple SoC for now
+        batt_soc = ( ( volts - SOC_VOLTS_MIN ) * 100 ) / ( SOC_VOLTS_MAX - SOC_VOLTS_MIN  );
+
+
+
+        uint8_t bin = volts_to_bin( volts );
+
+        if( bin >= SOC_VOLTS_BINS ){
+
+            // this could probably change to an assert
+
+            log_v_error_P( PSTR("invalid bin") );
+
+            continue;
+        }
+
+        // initialize current bin tracking
+        if( current_bin == 255 ){
+
+            current_bin = bin;
+        }
+
+        // incrment seconds in bin
+        curve_ptr->seconds[bin]++;
+
+        // get delta of pixel energy since last bin
+        uint64_t current_energy = get_energy();
+
+        curve_ptr->energy[bin] = current_energy - base_energy;
+
+        // set average temp over bin so far
+        int8_t avg_temp = ( base_temp - batt_i8_get_batt_temp() ) / 2;
+        
+        curve_ptr->temp[bin] = avg_temp;
+
+
+        // if bin is changing:
+        if( bin != current_bin ){
+
+            // update data file
+            update_file();
+
+            current_bin = bin;
+            base_energy = current_energy;
+        }
+
+
+
+
+
+
+
+
+
+    }
+
+PT_END( pt );
+}
+
+
+
+
+
+
+
+
+
+
+// void fuel_v_do_soc( void ){
+    
+    
+    
+    
+    
+// }
+
+
+
+
+
+#if 0
+
+
 
 #define MODE_UNKNOWN        0
 #define MODE_DISCHARGE      1 // discharging on battery power
@@ -564,7 +1106,8 @@ PT_BEGIN( pt );
 
             // get charge state
             bool is_charging = batt_b_is_charging();
-            bool is_wall_power = batt_b_is_wall_power();
+            // bool is_wall_power = batt_b_is_wall_power();
+            bool is_wall_power = 0;
 
             if( is_charging ){
 
@@ -679,3 +1222,9 @@ PT_BEGIN( pt );
 
 PT_END( pt );
 }
+
+
+#endif
+
+
+#endif

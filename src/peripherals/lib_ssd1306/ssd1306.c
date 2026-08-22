@@ -24,6 +24,8 @@
 
 #include "sapphire.h"
 
+#ifdef ESP32
+
 #include "datetime.h"
 
 #include "ssd1306.h"
@@ -32,30 +34,54 @@
 
 #define DEFAULT_CONTRAST 0x8F
 
-static uint8_t current_dimmer = DEFAULT_CONTRAST;
+// static uint8_t current_dimmer = DEFAULT_CONTRAST;
 static uint8_t target_dimmer = DEFAULT_CONTRAST;
 
+static bool invert;
 static uint16_t debug;
 
 KV_SECTION_META kv_meta_t ssd1306_kv[] = {
     {CATBUS_TYPE_BOOL,      0, KV_FLAGS_PERSIST, 0,    0, "ssd1306_enable"},   
-    {CATBUS_TYPE_UINT8,     0, 0, &target_dimmer,      0, "ssd1306_dimmer"},   
-    {CATBUS_TYPE_UINT16,    0, 0, &debug,              0, "ssd1306_debug"},   
 };
-
-#define BUF_SIZE 64
 
 static uint8_t lcd_width = 128;
 static uint8_t lcd_height = 32;
 
-static uint8_t disp_buf[128 * 32 / 8];
+
+KV_SECTION_OPT kv_meta_t ssd1306_opt_kv[] = {
+    {CATBUS_TYPE_UINT8,     0, 0, &target_dimmer,           0, "ssd1306_dimmer"},   
+    {CATBUS_TYPE_UINT16,    0, 0, &debug,                   0, "ssd1306_debug"},   
+    {CATBUS_TYPE_BOOL,      0, KV_FLAGS_PERSIST, &invert,   0, "ssd1306_invert"},   
+    {CATBUS_TYPE_UINT8,     0, KV_FLAGS_PERSIST, &lcd_width,0, "ssd1306_width"},   
+    {CATBUS_TYPE_UINT8,     0, KV_FLAGS_PERSIST, &lcd_height,0, "ssd1306_height"},   
+};
+
+#define BUF_SIZE 64
+
+static mem_handle_t disp_buf_h;
 
 static uint16_t cursor_x, cursor_y;
 static uint8_t current_font;
 
+
+static uint8_t *get_disp_buf( void ){
+
+    if( disp_buf_h <= 0 ){
+
+        return 0;
+    }
+
+    return mem2_vp_get_ptr( disp_buf_h );
+}
+
 static void command_n( uint8_t cmd, uint8_t *data, uint16_t len ){
     
     ASSERT( len <= BUF_SIZE );
+
+    if( data == 0 ){
+
+        return;
+    }
 
     uint8_t buf[BUF_SIZE + 2];
 
@@ -104,6 +130,13 @@ static void refresh_display( void ){
     command2( SSD1306_CMD_SET_PAGE_ADDR, 0x00, lcd_height - 1 );
     command2( SSD1306_CMD_SET_COL_ADDR, 0x00, lcd_width - 1 );
 
+    uint8_t *disp_buf = get_disp_buf();
+
+    if( disp_buf == 0 ){
+
+        return;
+    }
+
     data_n( &disp_buf[0],   128 );
     data_n( &disp_buf[128], 128 );
     data_n( &disp_buf[256], 128 );
@@ -120,6 +153,19 @@ static void write_pixel( uint16_t x, uint16_t y, uint8_t val ){
     if( y >= lcd_height ){
 
         return;
+    }
+
+    uint8_t *disp_buf = get_disp_buf();
+
+    if( disp_buf == 0 ){
+
+        return;
+    }
+
+    if( invert ){
+
+        x = ( lcd_width - 1 ) - x;
+        y = ( lcd_height - 1 ) - y;
     }
 
     if( val != 0 ){
@@ -240,7 +286,14 @@ void ssd1306_v_printf( char * format, ... ){
 
 void ssd1306_v_clear( void ){
 
-    memset( disp_buf, 0, sizeof(disp_buf) );
+    uint8_t *disp_buf = get_disp_buf();
+
+    if( disp_buf == 0 ){
+
+        return;
+    }
+
+    memset( disp_buf, 0, mem2_u16_get_size( disp_buf_h ) );
 }
 
 void ssd1306_v_home( void ){
@@ -258,11 +311,6 @@ PT_THREAD( ssd1306_thread( pt_t *pt, void *state ) )
 {       	
 PT_BEGIN( pt );  
 
-    if( !kv_b_get_boolean( __KV__ssd1306_enable ) ){
-
-        THREAD_EXIT( pt );
-    }
-    
     // send first command twice, the first write seems to consistently fail
     command(  SSD1306_CMD_DISP_OFF );
     command(  SSD1306_CMD_DISP_OFF );
@@ -341,7 +389,7 @@ PT_BEGIN( pt );
 
     while( TRUE ){
 
-        TMR_WAIT( pt, 100 );
+        TMR_WAIT( pt, 200 );
 
         // if( ( current_dimmer == 0 ) && ( target_dimmer == 0 ) ){
         if( target_dimmer == 0 ){
@@ -355,13 +403,25 @@ PT_BEGIN( pt );
         ssd1306_v_home();
         ssd1306_v_clear();
 
+        #ifdef ENABLE_CATBUS_LINK
         char iso8601[ISO8601_STRING_MIN_LEN];
-        ntp_ts_t ntp = time_t_local_now();
+        ntp_ts_t ntp = ntp_t_local_now();
         datetime_t now;
         datetime_v_seconds_to_datetime( ntp.seconds, &now );
         datetime_v_to_iso8601( iso8601, sizeof(iso8601), &now );
+        #endif
 
-        ssd1306_v_printf("%d\n%s", debug, iso8601);
+        uint16_t batt_volts = 0;
+        kv_i8_get( __KV__batt_volts, &batt_volts, sizeof(batt_volts) );
+
+        uint16_t batt_charge_current = 0;
+        kv_i8_get( __KV__batt_charge_current, &batt_charge_current, sizeof(batt_charge_current) );
+
+        uint32_t lux = 0;
+        kv_i8_get( __KV__veml7700_filtered_als, &lux, sizeof(lux) );
+
+        // ssd1306_v_printf("%4dmV RSSI:%2d\n%s", batt_volts, wifi_i8_rssi(), iso8601);
+        ssd1306_v_printf("%4d mV RSSI:%2d\n%4d mA %5d lux", batt_volts, wifi_i8_rssi(), batt_charge_current, lux / 1000 );
 
         ssd1306_v_set_contrast( target_dimmer );
 
@@ -399,6 +459,25 @@ PT_END( pt );
 
 void ssd1306_v_init( void ){
 
+    if( !kv_b_get_boolean( __KV__ssd1306_enable ) ){
+
+        return;
+    }
+
+    uint16_t buf_size = lcd_width * lcd_height / 8;
+
+    disp_buf_h = mem2_h_alloc( buf_size );
+
+    if( disp_buf_h < 0 ){
+
+        // the system is pretty hosed if this fails on init
+        log_v_critical_P( PSTR("mem fail") );
+
+        return;
+    }
+    
+    kv_v_add_db_info( ssd1306_opt_kv, sizeof(ssd1306_opt_kv) );
+
     i2c_v_init( I2C_BAUD_400K );
 
     thread_t_create( ssd1306_thread,
@@ -407,3 +486,4 @@ void ssd1306_v_init( void ){
                      0 );
 }
 
+#endif

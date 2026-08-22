@@ -141,6 +141,11 @@ void usart_v_send_data( uint8_t channel, const uint8_t *data, uint16_t len ){
     }
 }
 
+static uint8_t _read_fifo_byte( void ){
+
+    return READ_PERI_REG(UART_FIFO(UART0)) & 0xFF;
+}
+
 int16_t usart_i16_get_byte( uint8_t channel ){
 
     if( channel == 0 ){
@@ -150,7 +155,7 @@ int16_t usart_i16_get_byte( uint8_t channel ){
     		return -1;
     	}
 
-    	return READ_PERI_REG(UART_FIFO(UART0)) & 0xFF;
+    	return _read_fifo_byte();
     }
     #ifdef ENABLE_COPROCESSOR
     else if( channel == USER_USART ){
@@ -189,9 +194,21 @@ uint8_t usart_u8_get_bytes( uint8_t channel, uint8_t *ptr, uint8_t len ){
     }
 
     #ifdef ENABLE_COPROCESSOR
+    if( channel == 0 ){
 
-    coproc_i32_callp1( OPCODE_IO_USART_GET_CHUNK, len, ptr, len );
+        uint8_t count = len;
 
+        while( count > 0 ){
+
+            count--;
+
+            *ptr++ = _read_fifo_byte();
+        }   
+    }
+    else if( channel == USER_USART ){
+     
+        coproc_i32_callp1( OPCODE_IO_USART_GET_CHUNK, len, ptr, len );
+    }
     #else
 
     uint8_t count = len;
@@ -202,7 +219,6 @@ uint8_t usart_u8_get_bytes( uint8_t channel, uint8_t *ptr, uint8_t len ){
 
         *ptr++ = usart_i16_get_byte( channel );
     }   
-
 
     #endif
 

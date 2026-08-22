@@ -22,6 +22,8 @@
 
 #include "sapphire.h"
 
+#ifdef ESP32
+
 #include "veml7700.h"
 
 /*
@@ -48,27 +50,30 @@ Luminance Example
 
 // values in lux
 static uint32_t als;
-static uint32_t white;
+// static uint32_t white;
 static uint32_t filtered_als;
-static uint32_t filtered_white;
+// static uint32_t filtered_white;
 static uint16_t raw_als;
-static uint16_t raw_white;
+// static uint16_t raw_white;
 
-static uint8_t gain;
-static uint8_t int_time;
+static uint8_t gain = VEML7700_ALS_GAIN_x0_125;
+static uint8_t int_time = VEML7700_ALS_INT_TIME_100ms;
 
 #define FILTER_RATIO 16
 
-KV_SECTION_META kv_meta_t veml7700_kv[] = {
+KV_SECTION_OPT kv_meta_t veml7700_kv[] = {
     {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &als,               0, "veml7700_als"},   
-    {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &white,             0, "veml7700_white"},   
+    // {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &white,             0, "veml7700_white"},   
     {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &filtered_als,      0, "veml7700_filtered_als"},   
-    {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &filtered_white,    0, "veml7700_filtered_white"},   
+    // {CATBUS_TYPE_UINT32,     0, KV_FLAGS_READ_ONLY, &filtered_white,    0, "veml7700_filtered_white"},   
     
     {CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_als,           0, "veml7700_raw_als"},   
-    {CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_white,         0, "veml7700_raw_white"},   
-    {CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &gain,              0, "veml7700_gain"},   
-    {CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY, &int_time,          0, "veml7700_int_time"},   
+    // {CATBUS_TYPE_UINT16,     0, KV_FLAGS_READ_ONLY, &raw_white,         0, "veml7700_raw_white"},   
+    
+    // {CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &gain,              0, "veml7700_gain"},   
+    // {CATBUS_TYPE_UINT8,      0, KV_FLAGS_PERSIST,   &int_time,          0, "veml7700_int_time"},   
+    {CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY,   &gain,              0, "veml7700_gain"},   
+    {CATBUS_TYPE_UINT8,      0, KV_FLAGS_READ_ONLY,   &int_time,          0, "veml7700_int_time"},   
 };
 
 
@@ -110,25 +115,35 @@ void veml7700_v_configure( uint8_t _gain, uint8_t _int_time ){
 
     uint16_t config = _read_reg16( VEML7700_REG_ALS_CONF_0 );
     config &= ~( VEML7700_ALS_GAIN_MASK << VEML7700_ALS_GAIN_SHIFT );
-    config |= ( ( gain & VEML7700_ALS_GAIN_MASK ) << VEML7700_ALS_GAIN_SHIFT );
+    config |= ( ( _gain & VEML7700_ALS_GAIN_MASK ) << VEML7700_ALS_GAIN_SHIFT );
 
     config &= ~( VEML7700_ALS_INT_TIME_MASK << VEML7700_ALS_INT_TIME_SHIFT );
-    config |= ( ( int_time & VEML7700_ALS_INT_TIME_MASK ) << VEML7700_ALS_INT_TIME_SHIFT );
+    config |= ( ( _int_time & VEML7700_ALS_INT_TIME_MASK ) << VEML7700_ALS_INT_TIME_SHIFT );
 
     _write_reg16( VEML7700_REG_ALS_CONF_0, config );
 
     set_shutdown( FALSE );
 }
 
-uint16_t veml7700_u16_read_als( void ){
+uint32_t veml7700_u32_read_als( void ){
+
+    return filtered_als;
+}
+
+// uint32_t veml7700_u32_read_white( void ){
+
+//     return filtered_white;
+// }
+
+uint16_t _veml7700_u16_read_als( void ){
 
     return _read_reg16( VEML7700_REG_ALS );
 }
 
-uint16_t veml7700_u16_read_white( void ){
+// uint16_t _veml7700_u16_read_white( void ){
 
-    return _read_reg16( VEML7700_REG_WHITE );
-}
+//     return _read_reg16( VEML7700_REG_WHITE );
+// }
 
 static uint32_t calc_lux( uint16_t val, uint8_t _gain, uint8_t _int_time ){
 
@@ -144,19 +159,19 @@ static uint32_t calc_lux( uint16_t val, uint8_t _gain, uint8_t _int_time ){
 
     if( _gain == VEML7700_ALS_GAIN_x1 ){
 
-        resolution = 57600;
+        resolution = 67200;
     }
     else if( _gain == VEML7700_ALS_GAIN_x2 ){
 
-        resolution = 28800;
+        resolution = 33600;
     }
     else if( _gain == VEML7700_ALS_GAIN_x0_125 ){
 
-        resolution = 460800;
+        resolution = 537600;
     }
     else if( _gain == VEML7700_ALS_GAIN_x0_25 ){
 
-        resolution = 230400;
+        resolution = 268800;
     }
     else{
 
@@ -201,10 +216,102 @@ static uint32_t calc_lux( uint16_t val, uint8_t _gain, uint8_t _int_time ){
     // return lux
     // return ( (uint64_t)val * resolution ) / 1000000;
 
+    // uint32_t millilux = ( (uint64_t)val * resolution ) / 1000;
+
+    // convert to float lux
+    float lux = ( (uint64_t)val * resolution ) / 1000000.0;
+
+    float corrected_lux =  0.00000000000060135 * pow( lux, 4 ) + 
+                          -0.0000000093924     * pow( lux, 3 ) + 
+                           0.000081488         * pow( lux, 2 ) + 
+                           1.0023              * pow( lux, 1 );
+
+    
     // return millilux
-    return ( (uint64_t)val * resolution ) / 1000;
+    return (uint32_t)( corrected_lux * 1000 );
 }
 
+
+static uint32_t median_filter[5];
+static uint8_t median_index;
+
+
+// returns 0 if sample was computed,
+// non-zero if a setting needed to be changed and
+// the sample is not ready
+static int8_t process_sensor( void ){
+
+    raw_als = _veml7700_u16_read_als();
+    // raw_white = _veml7700_u16_read_white();
+
+    if( gain == VEML7700_ALS_GAIN_x0_125 ){
+
+        // if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
+        if( raw_als < 100 ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }
+    }
+    else if( gain == VEML7700_ALS_GAIN_x0_25 ){
+
+        // if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
+        if( raw_als < 100 ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }
+        // else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
+        else if( raw_als > 10000 ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }
+    }
+    else if( gain == VEML7700_ALS_GAIN_x1 ){
+
+        // if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
+        if( raw_als < 100 ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x2, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }                
+        // else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
+        else if( raw_als > 10000 ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }
+    }
+    else if( gain == VEML7700_ALS_GAIN_x2 ){
+    
+        // if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
+        if( raw_als > 10000 ){
+
+            veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
+            return -1;
+        }            
+    }    
+
+    als = calc_lux( raw_als, gain, int_time );
+    // white = calc_lux( raw_white, gain, int_time );
+
+    // update median filter:
+    median_filter[median_index] = als;
+    median_index++;
+    median_index %= cnt_of_array(median_filter);
+
+    // sort filter
+    util_v_bubble_sort_u32( median_filter, cnt_of_array(median_filter) );
+
+    uint32_t median_als = median_filter[(cnt_of_array(median_filter) - 1) / 2]; // select middle item from filter
+
+
+    filtered_als = util_u32_ewma( median_als, filtered_als, FILTER_RATIO );
+    // filtered_white = util_u32_ewma( white, filtered_white, FILTER_RATIO );
+        
+    return 0;
+}
 
 PT_THREAD( veml7700_thread( pt_t *pt, void *state ) )
 {       	
@@ -228,68 +335,31 @@ PT_BEGIN( pt );
 
     log_v_info_P( PSTR("VEML7700 detected") );
 
+    // add DB entries if the sensor exists
+    kv_v_add_db_info( veml7700_kv, sizeof(veml7700_kv) );
+
     
     // veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_25ms );
     // veml7700_v_configure( VEML7700_ALS_GAIN_x2, VEML7700_ALS_INT_TIME_800ms );
-    veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_100ms );
+    // veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_100ms );
+
+
+    // run several cycles to set gain and init filter
+    for( uint8_t i = 0; i < 16; i++ ){
+
+        if( process_sensor() == 0 ){
+
+            break;
+        }
+    }
 
     while(1){
 
+        veml7700_v_configure( gain, int_time );
+
         TMR_WAIT( pt, 1000 );
 
-        raw_als = veml7700_u16_read_als();
-        raw_white = veml7700_u16_read_white();
-
-        if( gain == VEML7700_ALS_GAIN_x0_125 ){
-
-            if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
-
-                veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
-                continue;
-            }
-        }
-        else if( gain == VEML7700_ALS_GAIN_x0_25 ){
-
-            if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
-
-                veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
-                continue;
-            }
-            else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
-
-                veml7700_v_configure( VEML7700_ALS_GAIN_x0_125, VEML7700_ALS_INT_TIME_100ms );
-                continue;
-            }
-        }
-        else if( gain == VEML7700_ALS_GAIN_x1 ){
-
-            if( ( raw_als < 100 ) || ( raw_white < 100 ) ){
-
-                veml7700_v_configure( VEML7700_ALS_GAIN_x2, VEML7700_ALS_INT_TIME_100ms );
-                continue;
-            }                
-            else if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
-
-                veml7700_v_configure( VEML7700_ALS_GAIN_x0_25, VEML7700_ALS_INT_TIME_100ms );
-                continue;
-            }
-        }
-        else if( gain == VEML7700_ALS_GAIN_x2 ){
-        
-            if( ( raw_als > 60000 ) || ( raw_white > 60000 ) ){
-
-                veml7700_v_configure( VEML7700_ALS_GAIN_x1, VEML7700_ALS_INT_TIME_100ms );
-                continue;
-            }            
-        }
-
-        als = calc_lux( raw_als, gain, int_time );
-        white = calc_lux( raw_white, gain, int_time );
-
-        filtered_als = util_u32_ewma( als, filtered_als, FILTER_RATIO );
-        filtered_white = util_u32_ewma( white, filtered_white, FILTER_RATIO );
-
-        // log_v_debug_P( PSTR("%d %d"), raw_als, raw_white );
+        process_sensor();        
     }
     
 
@@ -306,3 +376,5 @@ void veml7700_v_init( void ){
                      0,
                      0 );
 }
+
+#endif

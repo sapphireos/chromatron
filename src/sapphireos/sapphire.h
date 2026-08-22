@@ -37,6 +37,7 @@
 #include "crc.h"
 #include "util.h"
 #include "datetime.h"
+#include "time_ntp.h"
 #include "fs.h"
 #include "ip.h"
 #include "memory.h"
@@ -54,7 +55,6 @@
 #include "timesync.h"
 #include "wifi.h"
 #include "i2s.h"
-#include "services.h"
 #include "hash.h"
 
 #endif

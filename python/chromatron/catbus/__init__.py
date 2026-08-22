@@ -25,5 +25,6 @@ from .catbustypes import *
 from .options import *
 from .client import Client
 from .catbus import CatbusService
+from .cat_herder import CatHerder
 from .directory import *
 from .link import *

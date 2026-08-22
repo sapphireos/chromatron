@@ -510,8 +510,10 @@ int *__errno( void ){
 
 
 void _Error_Handler( char *file, int line ){
-  
+    
+    #ifndef BOOTLOADER
     sos_assert( 0, file, line );
+    #endif
 }
     
 #pragma GCC push_options

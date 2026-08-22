@@ -24,6 +24,12 @@
 #define _MEMTYPES_H
 
 typedef uint8_t mem_type_t8;
+
+typedef struct __attribute__((packed)){
+    uint16_t size;
+    mem_type_t8 type;
+} mem_info_t;
+
 #define MEM_TYPE_UNKNOWN            0
 #define MEM_TYPE_NETMSG             1
 #define MEM_TYPE_THREAD             5
@@ -35,24 +41,39 @@ typedef uint8_t mem_type_t8;
 #define MEM_TYPE_CMD_REPLY_BUFFER   12
 #define MEM_TYPE_FILE_HANDLE        13
 #define MEM_TYPE_FS_BLOCKS          14
-#define MEM_TYPE_KV_LINK            15
-#define MEM_TYPE_KV_SEND            16
-#define MEM_TYPE_KV_RX_CACHE        17
-#define MEM_TYPE_CATBUS_LINK        15
-#define MEM_TYPE_CATBUS_SEND        16
-#define MEM_TYPE_CATBUS_RX_CACHE    17
+// #define MEM_TYPE_KV_LINK            15
+// #define MEM_TYPE_KV_SEND            16
+// #define MEM_TYPE_KV_RX_CACHE        17
+// #define MEM_TYPE_CATBUS_LINK        15
+// #define MEM_TYPE_CATBUS_SEND        16
+// #define MEM_TYPE_CATBUS_RX_CACHE    17
 #define MEM_TYPE_KVDB_ENTRY         18
-#define MEM_TYPE_SUBSCRIBED_KEYS    19
+// #define MEM_TYPE_SUBSCRIBED_KEYS    19
 #define MEM_TYPE_VM_DATA            20
 #define MEM_TYPE_CRON_JOB           21
-#define MEM_TYPE_ELECTION           22
+// #define MEM_TYPE_ELECTION           22
 #define MEM_TYPE_DNS_QUERY          23
-#define MEM_TYPE_MSGFLOW            24
-#define MEM_TYPE_MSGFLOW_ARQ_BUF    25
-#define MEM_TYPE_SERVICE            26
-#define MEM_TYPE_LINK_CONSUMER      27
-#define MEM_TYPE_LINK_PRODUCER      28
-#define MEM_TYPE_LINK_REMOTE        29
+// #define MEM_TYPE_MSGFLOW            24
+// #define MEM_TYPE_MSGFLOW_ARQ_BUF    25
+// #define MEM_TYPE_SERVICE            26
+// #define MEM_TYPE_LINK_CONSUMER      27
+// #define MEM_TYPE_LINK_PRODUCER      28
+// #define MEM_TYPE_LINK_REMOTE        29
 #define MEM_TYPE_KV_OPT             30
+#define MEM_TYPE_VM_THREAD_CONTEXT  31
+#define MEM_TYPE_FS_PAGE_CACHE      32
+#define MEM_TYPE_MQTT_SUB      		33
+#define MEM_TYPE_MQTT_BROKER_SUB   	34
+#define MEM_TYPE_CONTROLLER_NODE   	35
+// #define MEM_TYPE_LINK2   			36
+// #define MEM_TYPE_LINK2_BINDING      37
+// #define MEM_TYPE_LINK2_DATA_CACHE   38
+// #define MEM_TYPE_LINK2_META   		39
+#define MEM_TYPE_DEVICEDB   		40
+#define MEM_TYPE_LINK4  	 		41
+#define MEM_TYPE_VM_ARRAY  	 		42
+#define MEM_TYPE_VM_COROUTINE 		43
+#define MEM_TYPE_LINK4_DB 	 		44
 
 #endif
+

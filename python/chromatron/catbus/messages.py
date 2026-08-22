@@ -435,4 +435,7 @@ SYSTEM_KEYS = [
     'datalogger',
     'logserver',
     'timesync',
+    'timesync8',
+    'ntpclock',
+    'vmsync',
 ]

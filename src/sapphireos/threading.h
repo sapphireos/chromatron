@@ -34,7 +34,8 @@
 #include "pt.h"
 #include "system.h"
 
-#define THREAD_MAX_NAME_LEN 64
+#include "threadinfo.h"
+
 
 #define THREAD_MAX_SIGNALS  16
 
@@ -77,19 +78,8 @@ typedef struct{
     uint32_t alarm;
     uint32_t run_time;
     uint32_t runs;
+    uint32_t max_time;
 } thread_state_t;
-
-typedef struct __attribute__((packed)){
-    char name[THREAD_MAX_NAME_LEN];
-    uint16_t flags;
-    uint32_t thread_addr;
-    uint16_t data_size;
-    uint32_t run_time;
-    uint32_t runs;
-    uint16_t line;
-    uint64_t alarm;
-    uint8_t reserved[24];
-} thread_info_t;
 
 #define THREAD_FLAGS_WAITING		0b00000001
 #define THREAD_FLAGS_YIELDED		0b00000010
@@ -122,6 +112,7 @@ uint16_t thread_u16_get_thread_count( void );
 thread_t thread_t_get_current_thread( void );
 
 void thread_v_get_cpu_info( cpu_info_t *info );
+uint8_t thread_u8_get_cpu_percent( void );
 void thread_v_dump( void );
 
 thread_t thread_t_create( PT_THREAD( ( *thread )( pt_t *pt, void *state ) ),
@@ -148,6 +139,7 @@ void thread_v_set_signal_flag( void );
 void thread_v_clear_signal_flag( void );
 uint16_t thread_u16_get_signals( void );
 void thread_v_create_timed_signal( uint8_t signum, uint8_t rate );
+void thread_v_destroy_timed_signal( uint8_t signum );
 
 uint8_t thread_u8_get_run_cause( void );
 
@@ -166,9 +158,12 @@ uint32_t thread_u32_get_next_alarm_delta( void );
 #endif
 
 #if defined(ESP8266) || defined(ESP32)
-void thread_core( void );
+int32_t thread_core( void );
 #endif
 
+#ifdef ESP8266
+void thread_v_add_sleep_time( uint32_t sleep_time );
+#endif
 
 #define THREAD_SLEEP( pt ) \
 	PT_SLEEP( pt ); \

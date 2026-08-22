@@ -128,6 +128,13 @@ void cpu_v_init( void ){
     // }
     #endif    
 
+
+    /*
+    
+    Note that older ESP32-MINI-1 modules are single core, and newer ones are dual core.
+
+    */
+
     #ifndef BOOTLOADER
     #ifdef CONFIG_FREERTOS_UNICORE
     trace_printf("CPU: 1 core\n");
@@ -226,15 +233,15 @@ void cpu_v_remap_isrs( void ){
 
 }
 
-#define SLEEP_THRESHOLD 4
-#define MAX_SLEEP_PERIOD 20
+#define SLEEP_THRESHOLD 2
+#define MAX_SLEEP_PERIOD 5
 
 void cpu_v_sleep( void ){
 
     // only yield the RTOS task (so auto light sleep can operate)
-    // if we are not in safe mode and pixels are not enabled.
+    // if we are not in safe mode.
 
-    if( gfx_b_pixels_enabled() || ( sys_u8_get_mode() == SYS_MODE_SAFE ) ){
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
         #ifdef CONFIG_FREERTOS_UNICORE
         // in single core mode, we must still yield
@@ -277,6 +284,23 @@ bool cpu_b_osc_fail( void ){
 
 NOTE light sleep will break the JTAG connection when debugging!
 
+
+clock notes:
+
+the 240 MHz CPU clock switches the internal PLL to 480 MHz.
+
+the 80/160 MHz speeds will use a 320 MHz PLL clock.
+
+according to Espressif, the PLL switch is very slow.  If DFS is enabled
+and there is a PLL switch, it will throw off system timers and cause large delays.
+this will throw off the timer used for modem sleep.
+
+See: https://github.com/espressif/esp-idf/issues/9766
+
+So, if we want to use DFS, probably we should set a 160 MHz max clock.
+Or just turn off DFS and continue to use light sleep.
+
+
 */
 
 void cpu_v_set_clock_speed_low( void ){
@@ -290,7 +314,7 @@ void cpu_v_set_clock_speed_low( void ){
     pm_config.min_freq_mhz = 80;
     #endif
 
-    pm_config.light_sleep_enable = TRUE;
+    pm_config.light_sleep_enable = FALSE;
 
     esp_pm_configure( &pm_config );    
 
@@ -302,13 +326,13 @@ void cpu_v_set_clock_speed_high( void ){
     esp_pm_config_esp32_t pm_config = { 0 };
     #ifdef ESP32_MAX_CPU_160M
     pm_config.max_freq_mhz = 160;
-    pm_config.min_freq_mhz = 80;
+    pm_config.min_freq_mhz = 160;
     #else
     pm_config.max_freq_mhz = 240;
-    pm_config.min_freq_mhz = 80;
+    pm_config.min_freq_mhz = 240;
     #endif
 
-    pm_config.light_sleep_enable = TRUE;
+    pm_config.light_sleep_enable = FALSE;
 
     esp_pm_configure( &pm_config );    
 
@@ -327,7 +351,7 @@ void cpu_reboot( void ){
     while(1);
 }
 
-void hal_cpu_v_delay_us( uint16_t us ){
+void IRAM_ATTR hal_cpu_v_delay_us( uint16_t us ){
 	
 	ets_delay_us( us );
 }

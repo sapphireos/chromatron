@@ -411,7 +411,8 @@ PT_BEGIN( pt );
         process_packet( recv_pkt, &network_time, &sys_time_ms );
 
         // sync master clock
-        ntp_v_set_master_clock( network_time, sys_time_ms, NTP_SOURCE_SNTP );
+        // ntp_v_set_master_clock( network_time, sys_time_ms, NTP_SOURCE_SNTP );
+        ntp_v_set_master_clock( network_time, ip_a_addr(0,0,0,0), tmr_u64_get_system_time_us(), NTP_SOURCE_SNTP );
 
         // parse current time to ISO so we can read it in the log file
         // char time_str2[ISO8601_STRING_MIN_LEN_MS];

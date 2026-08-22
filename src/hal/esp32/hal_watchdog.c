@@ -34,7 +34,7 @@ void esp_task_wdt_isr_user_handler( void ){
     // and the *interrupt* watchdog will trigger.
         
 
-    trace_printf("WATCHDOG!\r\n");
+    // trace_printf("WATCHDOG!\r\n");
 
     // ASSERT( 0 );
 }

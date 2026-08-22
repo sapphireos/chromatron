@@ -28,15 +28,24 @@
 #include "pixel.h"
 #include "graphics.h"
 #include "vm.h"
+#include "vm4.h"
 #include "energy.h"
 #include "battery.h"
 #include "flash_fs.h"
-
-#include "veml7700.h"
+#include "buttons.h"
 
 #ifdef ESP32
+#include "veml7700.h"
+#include "hx711.h"
+#include "ssd1306.h"
+#include "amg8833.h"
 #include "telemetry.h"
+#include "ui.h"
 #endif
+
+#include "mpu9250.h"
+
+#include "pixel_power.h"
 
 #ifdef ESP8266_UPGRADE
 #error "ESP8266_UPGRADE must not be defined in Chromatron builds!"
@@ -47,22 +56,35 @@ SERVICE_SECTION kv_svc_name_t chromatron_service = {"sapphire.device.chromatron"
 
 void app_v_init( void ){
 
-    // gfx_v_init();
+    gfx_v_init();
 
-    // vm_v_init();
+    vm_v_init();
+    vm4_v_init();
 
-    // #ifdef ENABLE_BATTERY
-    // batt_v_init();
-    // #endif
+    #ifdef ESP32
 
-    // #ifdef ESP32
+    pwm_v_init();
 
-    // pwm_v_init();
+    veml7700_v_init();
+    amg8833_v_init();
 
-    // veml7700_v_init();
+    ssd1306_v_init();
+    hx711_v_init();
 
-    // telemetry_v_init();
+    telemetry_v_init();
 
-    // #endif
+    ui_v_init();
+
+    #endif
+
+    button_v_init();
+
+    #ifdef ENABLE_BATTERY
+    batt_v_init();
+    #endif
+
+    mpu9250_v_init();
+
+    pixelpower_v_init();
 }
 

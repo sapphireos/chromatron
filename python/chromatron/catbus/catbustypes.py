@@ -41,6 +41,8 @@ CATBUS_TYPE_INT64            = 9
 CATBUS_TYPE_FLOAT            = 10
 CATBUS_TYPE_FIXED16          = 11
 
+CATBUS_TYPE_GFX16            = 20
+
 CATBUS_TYPE_STRING128        = 40
 CATBUS_TYPE_MAC48            = 41
 CATBUS_TYPE_MAC64            = 42
@@ -49,6 +51,9 @@ CATBUS_TYPE_IPv4             = 44
 CATBUS_TYPE_STRING512        = 45
 CATBUS_TYPE_STRING32         = 46
 CATBUS_TYPE_STRING64         = 47
+
+CATBUS_TYPE_REF              = 80
+CATBUS_TYPE_STRREF           = 81
 
 CATBUS_TYPE_MISMATCH         = -6
 
@@ -65,6 +70,8 @@ type_registry = {
     CATBUS_TYPE_INT64: Int64Field,
     CATBUS_TYPE_FLOAT: FloatField,
     CATBUS_TYPE_FIXED16: Fixed16Field,
+
+    CATBUS_TYPE_GFX16: Int32Field,
 
     CATBUS_TYPE_STRING128: String128Field,
     CATBUS_TYPE_STRING32: String32Field,
@@ -93,15 +100,23 @@ type_id_registry = {
     'fixed16': CATBUS_TYPE_FIXED16,
     'f16': CATBUS_TYPE_FIXED16,
 
+    'gfx16': CATBUS_TYPE_GFX16,
+
     'string128': CATBUS_TYPE_STRING128,
     'string32': CATBUS_TYPE_STRING32,
     'string64': CATBUS_TYPE_STRING64,
     'string512': CATBUS_TYPE_STRING512,
     'str': CATBUS_TYPE_STRING64,
+    'strlit': CATBUS_TYPE_STRING64,
     'mac48': CATBUS_TYPE_MAC48,
     'mac64': CATBUS_TYPE_MAC64,
     'key128': CATBUS_TYPE_KEY128,
     'ipv4': CATBUS_TYPE_IPv4,
+
+    'funcref': CATBUS_TYPE_NONE,
+    'pixref': CATBUS_TYPE_NONE,
+    'strref': CATBUS_TYPE_STRREF,
+    'strbuf': CATBUS_TYPE_STRING64,
 }
 
 def get_type_id(type_name):

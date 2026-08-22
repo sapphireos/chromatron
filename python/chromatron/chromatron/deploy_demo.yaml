@@ -1,0 +1,20 @@
+
+test_deployment:
+  query:
+    - lab
+    - grid
+
+  fx:
+    - rainbow
+    # - beam
+    # - woof
+
+  kv:
+    enable_ntp_sync: true
+
+  vm:
+    0:
+      prog: matrix
+      run: true
+
+

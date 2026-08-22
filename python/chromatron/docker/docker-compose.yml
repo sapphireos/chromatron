@@ -1,0 +1,173 @@
+services:
+  mqtt:
+    container_name: mqtt
+    image: eclipse-mosquitto:2.0.20
+    restart: unless-stopped
+    ports: 
+      - 1883:1883
+      - 9001:9001
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      network_main: {}
+
+  grafana:
+    container_name: grafana
+    build:
+      context: ../
+      dockerfile: docker/grafana/Dockerfile
+    # image: grafana/grafana:11.4.0
+    restart: unless-stopped
+    # user: "1000"
+    environment:
+      - GF_AUTH_ANONYMOUS=true
+    volumes:
+      # - ./grafana_data:/var/lib/grafana
+      - grafana_chromatron:/var/lib/grafana
+      # these are needed for mDNS to work
+      - /var/run/dbus:/var/run/dbus
+      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
+    ports:
+      - 3000:3000
+    networks:
+      network_main: {}
+
+  influx:
+    # influx -execute 'CREATE DATABASE chromatron'
+    container_name: influx
+    image: influxdb:1.11.8
+    restart: unless-stopped
+    volumes:
+      - influx_chromatron:/var/lib/influxdb
+      # - ./influx:/var/lib/influxdb
+    # ports:
+      # - 8086:8086
+    networks:
+      network_main: {}
+
+  mqtt_bridge:
+    container_name: mqtt_bridge
+    build:
+      context: ../
+      dockerfile: docker/mqtt_bridge/Dockerfile
+    restart: unless-stopped
+    volumes:
+      # these are needed for mDNS to work
+      - /var/run/dbus:/var/run/dbus
+      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
+    network_mode: host
+
+  catbus_directory:
+    container_name: catbus_directory
+    build:
+      context: ../
+      dockerfile: docker/directory/Dockerfile
+    restart: unless-stopped
+    network_mode: host
+  
+  timezone:
+    container_name: timezone
+    build:
+      context: ../
+      dockerfile: docker/timezone_service/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    networks:
+      network_main: {}
+
+  datalogger:
+    container_name: datalogger
+    build:
+      context: ../
+      dockerfile: docker/datalogger/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - /etc/chromatron/datalogger.cfg:/app/datalogger.cfg
+    networks:
+      network_main: {}
+
+volumes:
+  influx_chromatron:
+  grafana_chromatron:
+
+networks:
+  network_main:
+    driver: bridge
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  # logserver:
+  #   container_name: logserver
+  #   build:
+  #     context: ../
+  #     dockerfile: docker/logserver/Dockerfile
+  #   restart: unless-stopped
+  #   network_mode: host
+      
+  # weather:
+  #   container_name: weather
+  #   build:
+  #     context: ../
+  #     dockerfile: docker/weather/Dockerfile
+  #   restart: unless-stopped
+  #   network_mode: host
+
+  # homeassistant_bridge:
+    # container_name: homeassistant_bridge
+    # build:
+    #   context: ../
+    #   dockerfile: docker/ha_bridge/Dockerfile
+    # restart: unless-stopped
+    # network_mode: host
+
+  # connection_monitor:
+  #   container_name: connection_monitor
+  #   build:
+  #     context: ../
+  #     dockerfile: docker/connection_monitor/Dockerfile
+  #   restart: unless-stopped
+  #   network_mode: host
+
+  # shelly_logger:
+  #   container_name: shelly_logger
+  #   build:
+  #     context: ../
+  #     dockerfile: docker/shelly/Dockerfile
+  #   restart: unless-stopped
+  #   network_mode: host
+
+  # mqtt:
+  #   container_name: mqtt
+  #   image: eclipse-mosquitto:2.0.15
+  #   restart: unless-stopped
+  #   ports: 
+  #     - 1883:1883
+  #     - 9001:9001
+  #   volumes:
+  #     - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+  
+  # homeassistant:
+  #   container_name: homeassistant
+  #   image: homeassistant/home-assistant:2022.6.5
+  #   restart: unless-stopped
+  #   network_mode: host
+  #   volumes:
+  #     - /etc/localtime:/etc/localtime:ro
+  #     - ./homeassistant:/config

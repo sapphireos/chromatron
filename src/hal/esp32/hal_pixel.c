@@ -33,8 +33,9 @@
 #include "pixel.h"
 #include "pixel_vars.h"
 #include "gfx_lib.h"
-#include "battery.h"
+#include "pixel_power.h"
 
+#include "event_log.h"
 #include "logging.h"
 
 #define FADE_TIMER_VALUE            1 // 1 ms
@@ -64,7 +65,7 @@ static uint16_t setup_pixel_buffer( void ){
 
     uint8_t *buf = outputs;
 
-    uint16_t transfer_pixel_count = gfx_u16_get_pix_count();
+    uint16_t transfer_pixel_count = gfx_u16_get_physical_pix_count();
 
     if( transfer_pixel_count == 0 ){
 
@@ -244,60 +245,97 @@ static void _pixel_v_configure( void ){
         freq = 3200000;
     }
 
+    if( freq == 0 ){
+
+        // set a default frequency
+
+        freq = 1000000;
+    }
+
     spi_v_init( PIXEL_SPI_CHANNEL, freq, 0 );
 }
 
+
+static void start_transfer( void ){
+
+    uint16_t data_length = setup_pixel_buffer();
+
+    // this will transmit using interrupt/DMA mode
+    memset( &spi_transaction, 0, sizeof(spi_transaction) );
+
+    spi_transaction.length = data_length * 8;
+    spi_transaction.tx_buffer = outputs;
+    
+    esp_err_t err = spi_device_queue_trans( hal_spi_s_get_handle(), &spi_transaction, 200 );
+    if( err != ESP_OK ){
+
+        log_v_critical_P( PSTR("pixel spi bus error: 0x%03x handle: 0x%x len: %u"), err, hal_spi_s_get_handle(), data_length );
+
+        // this is bad, but log and we will try on the next frame
+
+        // continue;
+    }     
+}
 
 PT_THREAD( pixel_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
+    // make sure pixel drivers are enabled
+    _pixel_v_configure();
+    
+    // start up with pixel power enabled
+    if( pixelpower_b_power_control_enabled() ){
+
+        if( !gfx_b_is_output_zero() ){ // if graphics is non-zero output:
+
+            // enable pixel power
+            pixelpower_v_enable_pixels();
+
+            // wait until pixels have been re-enabled
+            THREAD_WAIT_WHILE( pt, !pixelpower_b_pixels_enabled() );
+        }
+    }
+
     while(1){
 
-        THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
         THREAD_WAIT_WHILE( pt, pix_mode == PIX_MODE_OFF );
+        THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
+        EVENT(EVENT_ID_PIX_SIGNAL, 0);
 
-        if( request_reconfigure ){
+        // check if output is zero
+        // only if power control is enabled!
+        if( gfx_b_is_output_zero() && pixelpower_b_power_control_enabled() ){
 
-            _pixel_v_configure();
+            // check if pixels are POWERED:
+            if( pixelpower_b_pixels_enabled() ){
+                // if pixels aren't powered, we can just skip this part
+                // and wait for the graphics system to be non-zeroes.
 
-            request_reconfigure = FALSE;
-        }
 
-        // initiate SPI transfers
+                // make sure pixel drivers are enabled
+                _pixel_v_configure();
 
-        uint16_t data_length = setup_pixel_buffer();
+                // start final transfer to drive 0s to bus
+                start_transfer();
 
-        // this will transmit using interrupt/DMA mode
-        memset( &spi_transaction, 0, sizeof(spi_transaction) );
+                THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
 
-        spi_transaction.length = data_length * 8;
-        spi_transaction.tx_buffer = outputs;
-        
-        esp_err_t err = spi_device_queue_trans( hal_spi_s_get_handle(), &spi_transaction, 200 );
-        if( err != ESP_OK ){
 
-            log_v_critical_P( PSTR("pixel spi bus error: 0x%03x handle: 0x%x len: %u"), err, hal_spi_s_get_handle(), data_length );
+                // shut down pixel driver IO
+                spi_v_release();
 
-            // this is bad, but log and we will try on the next frame
+                if( pixelpower_b_power_control_enabled() ){
 
-            continue;
-        }     
+                    // shut down pixel power
+                    pixelpower_v_disable_pixels();
 
-        THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
-
-        TMR_WAIT( pt, 5 );
-
-        
-        if( gfx_b_is_output_zero() ){
-
-            // shut down pixel driver IO
-            spi_v_release();
-
-            // shut down pixel power
-            batt_v_disable_pixels();
+                    THREAD_WAIT_WHILE( pt, pixelpower_b_pixels_enabled() );
+                }
+            }
 
             // wait while pixels are zero output
+            // while( gfx_b_is_output_zero() || ( pixelpower_b_power_control_enabled() && !pixelpower_b_pixels_enabled() ) ){
             while( gfx_b_is_output_zero() ){
 
                 THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
@@ -305,19 +343,51 @@ PT_BEGIN( pt );
                 setup_pixel_buffer();
             }
 
-            // re-enable pixel power
-            batt_v_enable_pixels();
+            if( pixelpower_b_power_control_enabled() ){
 
-            // wait until pixels have been re-enabled
-            THREAD_WAIT_WHILE( pt, !batt_b_pixels_enabled() );
+                // re-enable pixel power
+                pixelpower_v_enable_pixels();
+
+                // wait until pixels have been re-enabled
+                THREAD_WAIT_WHILE( pt, !pixelpower_b_pixels_enabled() );
+            }
 
             // re-enable pixel drivers
             _pixel_v_configure();
 
             // signal so we process pixels immediately
             pixel_v_signal();
-        }
+        } // end of block ZERO OUTPUT && power control enabled
 
+
+        // check that pixels are enabled here and deal with it if not
+        if( !pixelpower_b_pixels_enabled() ){
+
+            log_v_error_P( PSTR("Pixels are still unpowered!") );
+
+            // generally, this isn't supposed to happen.
+            // but we can just request to turn them back on and
+            // jump back up the loop for the next frame.
+            pixelpower_v_enable_pixels();
+
+            continue;
+        }
+    
+
+        if( request_reconfigure ){
+
+            _pixel_v_configure();
+
+            request_reconfigure = FALSE;
+        }
+        
+        // initiate SPI transfers
+
+        start_transfer();        
+
+        THREAD_WAIT_WHILE( pt, spi_device_get_trans_result( hal_spi_s_get_handle(), &transaction_ptr, 0 ) != ESP_OK );
+
+        TMR_WAIT( pt, 5 );
     }
 
 PT_END( pt );
@@ -333,12 +403,13 @@ void hal_pixel_v_init( void ){
 
     #endif
 
+    // init with pixel driver disabled
+    spi_v_release();
+
 	thread_t_create( pixel_thread,
                      PSTR("pixel"),
                      0,
                      0 );
-
-	_pixel_v_configure();
 }
 
 void hal_pixel_v_configure( void ){

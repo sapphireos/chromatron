@@ -142,7 +142,11 @@ static int8_t _kv_i8_dynamic_count_handler(
     
     if( op == KV_OP_GET ){
 
-        if( hash == __KV__kv_dynamic_count ){
+        if( hash == __KV__kv_count ){
+            
+            STORE16(data, kv_u16_count());
+        }
+        else if( hash == __KV__kv_dynamic_count ){
             
             STORE16(data, kvdb_u16_count());
         }
@@ -165,6 +169,7 @@ KV_SECTION_META kv_meta_t kv_cfg[] = {
     { CATBUS_TYPE_UINT32,  0, 0,                   &kv_persist_writes,  0,           "kv_persist_writes" },
     { CATBUS_TYPE_INT32,   0, 0,                   &kv_test_key,        0,           "kv_test_key" },
     { CATBUS_TYPE_INT32,   3, 0,                   &kv_test_array,      0,           "kv_test_array" },
+    { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_count" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_optional_count" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_count" },
     { CATBUS_TYPE_UINT16,  0, KV_FLAGS_READ_ONLY,  0, _kv_i8_dynamic_count_handler,  "kv_dynamic_db_size" },
@@ -275,7 +280,7 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
     // check if hash exists
     if( hash == 0 ){
 
-        return -1;
+        return KV_ERR_STATUS_NOT_FOUND;
     }
 
     // check cache
@@ -587,6 +592,10 @@ int8_t kv_i8_get_name( catbus_hash_t32 hash, char name[KV_NAME_LEN] ){
 
         strlcpy( name, meta.name, KV_NAME_LEN );
     }
+    else if( status < 0 ){
+
+        status = kvdb_i8_lookup_name( hash, name );
+    }
 
     return status;
 }
@@ -766,19 +775,57 @@ void kv_v_add_db_info( kv_meta_t *meta, uint16_t len ){
 
         if( opt_meta.ptr == 0 ){
 
-            continue;
+            goto done;
+        }
+
+        // check if persist flag is set
+        if( ( opt_meta.flags & KV_FLAGS_PERSIST ) == 0 ){
+
+            // running through the persist file is very slow,
+            // so we want to skip that if this entry
+            // isn't valid for persistence.
+
+            goto done;
         }
 
         uint16_t size = kv_u16_get_size_meta( &opt_meta );
 
         if( size == CATBUS_TYPE_SIZE_INVALID ){
 
-            continue;
+            goto done;
         }
 
         _kv_i8_persist_get( opt_meta.hash, opt_meta.ptr, size );
 
+    done:
         meta++;
+    }
+}
+
+
+void kv_v_remove_db_info( kv_meta_t *meta ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        return;
+    }
+
+    list_node_t ln = kv_opt_list.head;
+
+    while( ln >= 0 ){
+
+        const kv_opt_info_t *info = list_vp_get_data( ln );
+        
+        if( info->meta == meta ){
+
+            // remove node
+            list_v_remove( &kv_opt_list, ln );
+            list_v_release_node( ln );
+
+            return;
+        }
+
+        ln = list_ln_next( ln );
     }
 }
 
@@ -948,12 +995,12 @@ static int8_t _kv_i8_internal_set(
 
     const void *ptr = data;
 
+    int diff = 0;
+
     // check if parameter has a pointer
     if( meta->ptr != 0 ){
 
         meta->ptr += ( index * type_u16_size( meta->type ) );
-
-        int diff = 0;
 
         ATOMIC;
 
@@ -1008,7 +1055,11 @@ static int8_t _kv_i8_internal_set(
 
                 _kv_i8_persist_set( meta, hash, data, copy_len );
             }
-            else{
+            else if( diff != 0 ){
+                // if we have a ptr, then we have done a comparison
+                // against the original data.
+                // only signal the persist thread if the value
+                // is actually changing.
 
                 // signal thread to persist in background
                 run_persist = TRUE;
@@ -1313,6 +1364,7 @@ PT_BEGIN( pt );
     static kv_meta_t *ptr;
     static kv_meta_t *end_ptr;
     static file_t f;
+    static uint16_t index;
 
     while(1){
 
@@ -1327,34 +1379,64 @@ PT_BEGIN( pt );
             goto end;
         }
 
-        kv_meta_t meta;
-        ptr = (kv_meta_t *)kv_start;
-        end_ptr = (kv_meta_t *)kv_end;
-
         if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-            end_ptr = (kv_meta_t *)kv_opt_end;
+            // NEW algorithm to work with KVDB dynamic persist
+
+            for( index = 0; index < kv_u16_count(); index++ ){
+
+                kv_meta_t meta;
+
+                if( kv_i8_lookup_index( index, &meta ) != KV_ERR_STATUS_OK ){
+
+                    continue;
+                }
+
+                // check flags - and that there is a RAM pointer
+                if( ( ( meta.flags & KV_FLAGS_PERSIST ) != 0 ) &&
+                      ( meta.ptr != 0 ) ){
+
+                    uint16_t param_len = kv_u16_get_size_meta( &meta );
+
+                    uint32_t hash = hash_u32_string( meta.name );
+                    _kv_i8_persist_set_internal( f, &meta, hash, meta.ptr, param_len );
+
+                    TMR_WAIT( pt, 5 );
+                }   
+            }
         }
+        // TODO Remove this section after confirming the dynamic works
+        else{
 
-        // iterate through handlers
-        while( ptr < end_ptr ){
+            kv_meta_t meta;
+            ptr = (kv_meta_t *)kv_start;
+            end_ptr = (kv_meta_t *)kv_end;
 
-            // load meta data
-            memcpy_P( &meta, ptr, sizeof(kv_meta_t) );
+            if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
-            // check flags - and that there is a RAM pointer
-            if( ( ( meta.flags & KV_FLAGS_PERSIST ) != 0 ) &&
-                  ( meta.ptr != 0 ) ){
+                end_ptr = (kv_meta_t *)kv_opt_end;
+            }
 
-                uint16_t param_len = kv_u16_get_size_meta( &meta );
+            // iterate through handlers
+            while( ptr < end_ptr ){
 
-                uint32_t hash = hash_u32_string( meta.name );
-                _kv_i8_persist_set_internal( f, &meta, hash, meta.ptr, param_len );
+                // load meta data
+                memcpy_P( &meta, ptr, sizeof(kv_meta_t) );
 
-                TMR_WAIT( pt, 5 );
-            }   
+                // check flags - and that there is a RAM pointer
+                if( ( ( meta.flags & KV_FLAGS_PERSIST ) != 0 ) &&
+                      ( meta.ptr != 0 ) ){
 
-            ptr++;
+                    uint16_t param_len = kv_u16_get_size_meta( &meta );
+
+                    uint32_t hash = hash_u32_string( meta.name );
+                    _kv_i8_persist_set_internal( f, &meta, hash, meta.ptr, param_len );
+
+                    TMR_WAIT( pt, 5 );
+                }   
+
+                ptr++;
+            }
         }
 
         f = fs_f_close( f );

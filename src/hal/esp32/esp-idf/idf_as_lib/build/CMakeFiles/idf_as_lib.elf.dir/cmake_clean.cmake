@@ -7,6 +7,7 @@ file(REMOVE_RECURSE
   "flash_project_args"
   "idf_as_lib.bin"
   "CMakeFiles/idf_as_lib.elf.dir/main.c.obj"
+  "CMakeFiles/idf_as_lib.elf.dir/main.c.obj.d"
   "idf_as_lib.elf"
   "idf_as_lib.elf.pdb"
 )

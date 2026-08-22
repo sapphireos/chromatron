@@ -282,6 +282,52 @@ file_t fs_f_open_P( PGM_P filename, mode_t8 mode ){
 	return file;
 }
 
+void fs_v_delete_fname_P( PGM_P filename ){
+
+    // copy file name to memory
+    char fname[FS_MAX_FILE_NAME_LEN];
+
+    strlcpy_P( fname, filename, FS_MAX_FILE_NAME_LEN );
+
+    fs_v_delete_fname( fname );
+}
+
+void fs_v_delete_fname( char filename[] ){
+
+    file_t f = fs_f_open( filename, FS_MODE_WRITE_OVERWRITE );
+
+    if( f > 0 ){
+
+        fs_v_delete( f );
+        f = fs_f_close( f );
+    }
+}
+
+int32_t fs_i32_get_size_fname_P( PGM_P filename ){
+
+    // copy file name to memory
+    char fname[FS_MAX_FILE_NAME_LEN];
+
+    strlcpy_P( fname, filename, FS_MAX_FILE_NAME_LEN );
+
+    return fs_i32_get_size_fname( fname );
+}
+
+int32_t fs_i32_get_size_fname( char filename[] ){
+
+    int32_t size = -1;
+    file_t f = fs_f_open( filename, FS_MODE_WRITE_OVERWRITE );
+
+    if( f > 0 ){
+
+        size = fs_i32_get_size( f );
+        
+        f = fs_f_close( f );
+    }
+    
+    return size;
+}
+
 file_t fs_f_open_id( file_id_t8 file_id, uint8_t mode ){
 
     char name[FS_MAX_FILE_NAME_LEN];
@@ -294,8 +340,8 @@ file_t fs_f_open_id( file_id_t8 file_id, uint8_t mode ){
     return fs_f_open( name, mode );
 }
 
-file_t fs_f_create_virtual( PGM_P filename,
-                            uint32_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ) ){
+void fs_v_create_virtual( PGM_P filename,
+                          uint32_t (*handler)( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ) ){
 
     for( uint8_t i = 0; i < FS_MAX_VIRTUAL_FILES; i++ ){
 
@@ -304,11 +350,28 @@ file_t fs_f_create_virtual( PGM_P filename,
             vfiles[i].filename  = filename;
             vfiles[i].handler   = handler;
 
-            return i;
+            return;
         }
     }
+}
 
-    return -1;
+void fs_v_destroy_virtual( PGM_P filename ){
+
+    for( uint8_t i = 0; i < FS_MAX_VIRTUAL_FILES; i++ ){
+
+        if( vfiles[i].filename == 0 ){
+
+            continue;
+        }
+
+        if( strncmp_P( filename, vfiles[i].filename, FS_MAX_FILE_NAME_LEN ) == 0 ){
+
+            vfiles[i].filename  = 0;
+            vfiles[i].handler   = 0;
+
+            return;
+        }
+    }
 }
 
 uint32_t fs_u32_get_virtual_file_count( void ){
@@ -376,7 +439,12 @@ int16_t fs_i16_readline( file_t file, void *dst, uint16_t maxlen ){
     maxlen--; // leave space at the end for a null terminator
 
     // read buffer of data from file
-    uint16_t bytes_read = fs_i16_read( file, dst, maxlen );
+    int16_t bytes_read = fs_i16_read( file, dst, maxlen );
+
+    if( bytes_read < 0 ){
+
+        return bytes_read;
+    }
 
     // get file state
 	file_state_t *state = mem2_vp_get_ptr( file );
@@ -391,7 +459,7 @@ int16_t fs_i16_readline( file_t file, void *dst, uint16_t maxlen ){
     state->current_pos -= bytes_read;
 
     // find LF
-    for( uint16_t i = 0; i < bytes_read; i++ ){
+    for( int16_t i = 0; i < bytes_read; i++ ){
 
         if( ((char *)dst)[i] == 0x0A ){
 
@@ -405,15 +473,17 @@ int16_t fs_i16_readline( file_t file, void *dst, uint16_t maxlen ){
                 state->current_pos += bytes_read;
             }
 
-            // set null termination
-            ((char *)dst)[bytes_read] = 0;
+            // set null termination on top of the newline
+            ((char *)dst)[bytes_read - 1] = 0;
 
             return bytes_read;
         }
     }
 
+    state->current_pos += bytes_read;
+
     // did not find terminator, or EOF
-    return 0;
+    return bytes_read;
 }
 
 // write to a file
@@ -552,6 +622,8 @@ file_t fs_f_close( file_t file ){
 
         // flush the file cache
         // .... if we had one
+
+        ffs_v_close( file );
     }
 
 	mem2_v_free( file );
@@ -565,7 +637,7 @@ file_t fs_f_close( file_t file ){
 void fs_v_init( void ){
 
     // create vfile
-    // fs_f_create_virtual( PSTR("fileinfo"), vfile );
+    // fs_v_create_virtual( PSTR("fileinfo"), vfile );
 }
 
 

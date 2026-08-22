@@ -114,7 +114,8 @@ class ThreadInfoField(StructField):
                   Uint32Field(_name="runs"),
                   Uint16Field(_name="line"),
                   Uint64Field(_name="alarm"),
-                  ArrayField(_name="reserved", _field=Uint8Field, _length=24)]
+                  Uint32Field(_name="max_time"),
+                  ArrayField(_name="reserved", _field=Uint8Field, _length=20)]
 
         super(ThreadInfoField, self).__init__(_fields=fields, **kwargs)
 
@@ -298,64 +299,173 @@ class ServiceInfoArray(ArrayField):
         super(ServiceInfoArray, self).__init__(_field=field, **kwargs)
 
 
-class LinkInfo(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="source_key"),
-                  Uint32Field(_name="dest_key"),
-                  ArrayField(_name="query", _field=Uint32Field, _length=8),
-                  Uint8Field(_name="mode"),
-                  Uint8Field(_name="aggregation"),
-                  Uint16Field(_name="filter"),
-                  Uint16Field(_name="rate"),
-                  Uint32Field(_name="tag"),
-                  Uint32Field(_name="data_hash"),
-                  Int16Field(_name="retransmit_timer"),
-                  Int16Field(_name="ticks"),
-                  Uint64Field(_name="hash")]
+# class LinkInfo(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint32Field(_name="source_key"),
+#                   Uint32Field(_name="dest_key"),
+#                   ArrayField(_name="query", _field=Uint32Field, _length=8),
+#                   Uint8Field(_name="mode"),
+#                   Uint8Field(_name="aggregation"),
+#                   Uint16Field(_name="filter"),
+#                   Uint16Field(_name="rate"),
+#                   Uint32Field(_name="tag"),
+#                   Uint32Field(_name="data_hash"),
+#                   Int16Field(_name="retransmit_timer"),
+#                   Int16Field(_name="ticks"),
+#                   Uint64Field(_name="hash")]
 
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
-class LinkInfoArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = LinkInfo
+# class LinkInfoArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = LinkInfo
 
-        super().__init__(_field=field, **kwargs)
+#         super().__init__(_field=field, **kwargs)
 
 
-class LinkProducerInfo(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint32Field(_name="source_key"),
-                  Uint64Field(_name="link_hash"),
-                  Ipv4Field(_name="leader_ip"),
-                  Uint16Field(_name="leader_port"),
-                  Uint32Field(_name="data_hash"),
-                  Uint16Field(_name="rate"),
-                  Int16Field(_name="ticks"),
-                  Int16Field(_name="retransmit_timer"),
-                  Int32Field(_name="timeout")]
+# class Link2(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint8Field(_name="mode"),
+#                   Uint8Field(_name="aggregation"),
+#                   Uint16Field(_name="rate"),
+#                   Uint32Field(_name="source_key"),
+#                   Uint32Field(_name="dest_key"),
+#                   Uint32Field(_name="tag"),
+#                   ArrayField(_name="query", _field=Uint32Field, _length=8)]
 
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
-class LinkProducerInfoArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = LinkProducerInfo
+# class Link2Array(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = Link2
 
-        super().__init__(_field=field, **kwargs)
+#         super().__init__(_field=field, **kwargs)
 
-class LinkConsumerInfo(StructField):
-    def __init__(self, **kwargs):
-        fields = [Uint64Field(_name="link_hash"),
-                  Ipv4Field(_name="ip"),
-                  Uint16Field(_name="port"),
-                  Int32Field(_name="timeout")]
+# class Link2State(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Link2(_name="link"),
+#                   Int16Field(_name="retransmit_timer"),
+#                   Int16Field(_name="ticks"),
+#                   Uint64Field(_name="hash")]
 
-        super().__init__(_fields=fields, **kwargs)
+#         super().__init__(_fields=fields, **kwargs)
 
-class LinkConsumerInfoArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = LinkConsumerInfo
+# class Link2StateArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = Link2State
 
-        super().__init__(_field=field, **kwargs)
+#         super().__init__(_field=field, **kwargs)
+
+# class Link2Binding(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint32Field(_name="key"),
+#                   Uint16Field(_name="rate"),
+#                   Int64Field(_name="last_data"),
+#                   Int16Field(_name="retransmit_ticks"),
+#                   Int16Field(_name="ticks"),
+#                   Uint8Field(_name="timeout"),
+#                   Uint64Field(_name="hash")]
+
+#         super().__init__(_fields=fields, **kwargs)
+
+# class Link2BindingArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = Link2Binding
+
+#         super().__init__(_field=field, **kwargs)
+
+# class Link2DataCache(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Ipv4Field(_name="ip"),
+#                   Uint8Field(_name="timeout"),
+#                   Uint32Field(_name="key"),
+#                   Int64Field(_name="data"),
+#                   Uint64Field(_name="hash")]
+
+#         super().__init__(_fields=fields, **kwargs)
+
+# class Link2DataCacheArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = Link2DataCache
+
+#         super().__init__(_field=field, **kwargs)
+
+# class Link2Node(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint8Field(_name="timeout"),
+#                   Ipv4Field(_name="ip")]
+
+#         super().__init__(_fields=fields, **kwargs)
+
+# class Link2NodeArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = Link2Node
+
+#         super().__init__(_field=field, **kwargs)
+
+# class Link2MgrInfo(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Link2(_name="link"),
+#                   Int64Field(_name="current_data"),
+#                   BooleanField(_name="changed"),
+#                   Int16Field(_name="retransmit_ticks"),
+#                   Uint16Field(_name="node_count")]
+
+#         super().__init__(_fields=fields, **kwargs)
+
+#     def unpack(self, buffer):
+#         super().unpack(buffer)
+
+#         buffer = buffer[self.size():] # trim header
+#         # trim tail so we just get this chunk
+#         buffer = buffer[:self.node_count * Link2Node().size()]
+
+#         array = Link2NodeArray(_name="nodes").unpack(buffer)
+#         self._fields[array._name] = array
+
+#         return self
+
+# class Link2MgrInfoArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = Link2MgrInfo
+
+#         super().__init__(_field=field, **kwargs)
+
+
+# class LinkProducerInfo(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint32Field(_name="source_key"),
+#                   Uint64Field(_name="link_hash"),
+#                   Ipv4Field(_name="leader_ip"),
+#                   Uint16Field(_name="leader_port"),
+#                   Uint32Field(_name="data_hash"),
+#                   Uint16Field(_name="rate"),
+#                   Int16Field(_name="ticks"),
+#                   Int16Field(_name="retransmit_timer"),
+#                   Int32Field(_name="timeout")]
+
+#         super().__init__(_fields=fields, **kwargs)
+
+# class LinkProducerInfoArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = LinkProducerInfo
+
+#         super().__init__(_field=field, **kwargs)
+
+# class LinkConsumerInfo(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint64Field(_name="link_hash"),
+#                   Ipv4Field(_name="ip"),
+#                   Uint16Field(_name="port"),
+#                   Int32Field(_name="timeout")]
+
+#         super().__init__(_fields=fields, **kwargs)
+
+# class LinkConsumerInfoArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = LinkConsumerInfo
+
+#         super().__init__(_field=field, **kwargs)
 
 # this data structure needs rework to be viable
 # class LinkRemoteInfo(StructField):
@@ -406,58 +516,225 @@ class PortMonitorArray(ArrayField):
         super().__init__(_field=field, **kwargs)
 
 
-class BattRecordStart(StructField):
+class VMThreadEntry(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint8Field(_name="flags"),
-                  Uint16Field(_name="record_id"),
-                  Uint8Field(_name="rate")]
+        fields = [Uint16Field(_name="func_addr"),
+                  Uint16Field(_name="pc_offset"),
+                  Uint64Field(_name="tick"),
+                  Uint32Field(_name="run_count")]
 
         super().__init__(_fields=fields, **kwargs)
 
-class BattRecordData(StructField):
+class VMThreadEntryArray(ArrayField):
     def __init__(self, **kwargs):
-        fields = [Uint8Field(_name="flags"),
-                  Uint8Field(_name="volts"),
-                  Uint8Field(_name="pix_power"),
-                  Int8Field(_name="temp")]
-
-        super().__init__(_fields=fields, **kwargs)
-
-BATT_RECORD_TYPE_BLANK      = 0b00000000
-BATT_RECORD_TYPE_IDLE       = 0b00100000
-BATT_RECORD_TYPE_DISCHARGE  = 0b10000000
-BATT_RECORD_TYPE_CHARGE     = 0b01000000
-BATT_RECORD_TYPE_START      = 0b11000000
-
-class BattRecordDataArray(ArrayField):
-    def __init__(self, **kwargs):
-        field = BattRecordData
+        field = VMThreadEntry
 
         super().__init__(_field=field, **kwargs)
 
+
+class DirectoryEntry(StructField):
+    def __init__(self, **kwargs):
+        fields = [Ipv4Field(_name="ipaddr"),
+                  ArrayField(_name="query", _field=Uint32Field, _length=8),
+                  Uint16Field(_name="service_flags"),
+                  Uint16Field(_name="timeout")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class DirectoryArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = DirectoryEntry
+
+        super().__init__(_field=field, **kwargs)
+
+class DeviceDBEntry(StructField):
+    def __init__(self, **kwargs):
+        fields = [ArrayField(_name="query", _field=Uint32Field, _length=8),
+                  Ipv4Field(_name="ipaddr"),
+                  Uint32Field(_name="gfx_sync_group"),
+                  Uint64Field(_name="uptime"),
+                  Uint8Field(_name="mode"),
+                  Int16Field(_name="timeout")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class DeviceDBArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = DeviceDBEntry
+
+        super().__init__(_field=field, **kwargs)
+
+class Link4(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint8Field(_name="mode"),
+                  Uint8Field(_name="aggregation"),
+                  Uint16Field(_name="rate"),
+                  Uint32Field(_name="source_key"),
+                  Uint32Field(_name="dest_key"),
+                  Uint32Field(_name="tag"),
+                  ArrayField(_name="query", _field=Uint32Field, _length=8)]
+
+        super().__init__(_fields=fields, **kwargs)
+
+LINK4_MODE_SEND         = 1
+LINK4_MODE_RECV         = 2
+LINK4_MODE_SYNC         = 3
+LINK4_MODE_REMOTE_RECV  = 11
+LINK4_MODE_REMOTE_SEND  = 12
+
+LINK4_AGG_LAST          = 0
+LINK4_AGG_MIN           = 1
+LINK4_AGG_MAX           = 2
+LINK4_AGG_SUM           = 3
+LINK4_AGG_AVG           = 4
+
+
+class Link4Array(ArrayField):
+    def __init__(self, **kwargs):
+        field = Link4
+
+        super().__init__(_field=field, **kwargs)
+
+class Link4State(StructField):
+    def __init__(self, **kwargs):
+        fields = [Link4(_name="link"),
+                  Uint16Field(_name="retransmit_timer"),
+                  Uint16Field(_name="transmit_timer"),
+                  Uint16Field(_name="remote_timeout"),
+                  Uint16Field(_name="data_count")]
+
+        super().__init__(_fields=fields, **kwargs)
+
     def unpack(self, buffer):
-        array_len = self._length
-        self._fields = []
+        super().unpack(buffer)
 
-        count = 0
+        buffer = buffer[self.size():] # trim header
+        # trim tail so we just get this chunk
+        buffer = buffer[:self.data_count * Link4Data().size()]
 
-        while len(buffer) > 0:
-            if buffer[0] == BATT_RECORD_TYPE_START:
-                field = BattRecordStart()
-
-            else:
-                field = self._field()
-
-            self._fields.append(field.unpack(buffer))
-
-            buffer = buffer[field.size():]
-            count += 1
-
-            if ( array_len > 0 ) and ( count >= array_len ):
-                break
+        array = Link4DataArray(_name="database").unpack(buffer)
+        self._fields[array._name] = array
 
         return self
 
+class Link4StateArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = Link4State
+
+        super().__init__(_field=field, **kwargs)
+
+class Link4Data(StructField):
+    def __init__(self, **kwargs):
+        fields = [Int32Field(_name="value"),
+                  Ipv4Field(_name="ip"),
+                  Uint16Field(_name="timeout"),
+                  Uint16Field(_name="sequence")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class Link4DataArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = Link4Data
+
+        super().__init__(_field=field, **kwargs)
+
+
+# class BattRecordStart(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint8Field(_name="flags"),
+#                   Uint16Field(_name="record_id"),
+#                   Uint8Field(_name="rate")]
+
+#         super().__init__(_fields=fields, **kwargs)
+
+# class BattRecordData(StructField):
+#     def __init__(self, **kwargs):
+#         fields = [Uint8Field(_name="flags"),
+#                   Uint8Field(_name="volts"),
+#                   Uint8Field(_name="pix_power"),
+#                   Int8Field(_name="temp")]
+
+#         super().__init__(_fields=fields, **kwargs)
+
+# BATT_RECORD_TYPE_BLANK      = 0b00000000
+# BATT_RECORD_TYPE_IDLE       = 0b00100000
+# BATT_RECORD_TYPE_DISCHARGE  = 0b10000000
+# BATT_RECORD_TYPE_CHARGE     = 0b01000000
+# BATT_RECORD_TYPE_START      = 0b11000000
+
+# class BattRecordDataArray(ArrayField):
+#     def __init__(self, **kwargs):
+#         field = BattRecordData
+
+#         super().__init__(_field=field, **kwargs)
+
+#     def unpack(self, buffer):
+#         array_len = self._length
+#         self._fields = []
+
+#         count = 0
+
+#         while len(buffer) > 0:
+#             if buffer[0] == BATT_RECORD_TYPE_START:
+#                 field = BattRecordStart()
+
+#             else:
+#                 field = self._field()
+
+#             self._fields.append(field.unpack(buffer))
+
+#             buffer = buffer[field.size():]
+#             count += 1
+
+#             if ( array_len > 0 ) and ( count >= array_len ):
+#                 break
+
+#         return self
+
+class TelemetryDataEntry(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint64Field(_name="src_addr"),
+                  Int16Field(_name="rssi"),
+                  Int16Field(_name="snr"),
+                  Uint32Field(_name="time_since_last_contact"),
+                  StringField(_name="name", _length=32),
+
+                  Uint8Field(_name="flags"),
+                  Uint32Field(_name="sample"),
+                  Uint32Field(_name="sys_time"),
+                  Int16Field(_name="base_rssi"),
+                  Int16Field(_name="base_snr"),
+                  Uint16Field(_name="vbus_volts"),
+                  Uint16Field(_name="batt_volts"),
+                  Uint16Field(_name="charge_current"),
+                  Uint32Field(_name="als"),
+                  Int8Field(_name="batt_temp"),
+                  Int8Field(_name="case_temp"),
+                  Int8Field(_name="ambient_temp"),
+                  Uint8Field(_name="batt_fault"),
+                  Uint16Field(_name="pixel_power"),
+                  Uint8Field(_name="vm_status"),
+        ]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class TelemetryDataEntryArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = TelemetryDataEntry
+
+        super().__init__(_field=field, **kwargs)
+
+class TelemetryConfigEntry(StructField):
+    def __init__(self, **kwargs):
+        fields = [Uint16Field(_name="padding")]
+
+        super().__init__(_fields=fields, **kwargs)
+
+class TelemetryConfigEntryArray(ArrayField):
+    def __init__(self, **kwargs):
+        field = TelemetryConfigEntry
+
+        super().__init__(_field=field, **kwargs)
 
 
 
@@ -520,16 +797,20 @@ event_lookup = parse_raw_events(raw_events)
 
 class EventField(StructField):
     def __init__(self, **kwargs):
-        fields = [Uint16Field(_name="event_id"),
-                  Uint16Field(_name="param"),
+        fields = [Uint32Field(_name="event_id"),
+                  Uint32Field(_name="param"),
                   Uint32Field(_name="timestamp")]
 
         super(EventField, self).__init__(_fields=fields, **kwargs)
 
-    def get_event_str(self):
-        return event_lookup[self.event_id]
+    # def get_event_str(self):
+    #     try:
+    #         return event_lookup[self.event_id]
 
-    event_str = property(get_event_str)
+    #     except KeyError:
+    #         return str(self.event_id)
+
+    # event_str = property(get_event_str)
 
 
 class EventArray(ArrayField):

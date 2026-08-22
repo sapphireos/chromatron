@@ -40,7 +40,7 @@ from .data_structures import *
 from sapphire.buildtools import firmware_package
 LOG_FILE_PATH = os.path.join(firmware_package.data_dir(), 'catbus_directory.log')
 
-from sapphire.common import util, MsgServer, run_all, synchronized, Ribbon
+from sapphire.common import util, run_all, synchronized, Ribbon
 
 TTL = 240
 
@@ -76,9 +76,8 @@ class Directory(CatbusService):
 
         except KeyError:
             if host:
-                c = Client(host)
-
-                key = c.lookup_hash(hashed_key)
+                with Client(host) as c:                
+                    key = c.lookup_hash(hashed_key)
 
                 if len(key) == 0:
                     raise KeyError(hashed_key)
@@ -116,10 +115,9 @@ class Directory(CatbusService):
                 return
 
             def update_info(msg, host):
-                c = Client(host)
-
-                name = c.get_key(META_TAG_NAME)
-                location = c.get_key(META_TAG_LOC)
+                with Client(host) as c:
+                    name = c.get_key(META_TAG_NAME)
+                    location = c.get_key(META_TAG_LOC)
 
                 info = {'host': tuple(host),
                         'name': name,

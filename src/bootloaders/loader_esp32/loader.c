@@ -50,10 +50,10 @@
 #include <string.h>
 
 
-esp_err_t spi_flash_read( size_t src, void *dest, size_t size ){
+// esp_err_t spi_flash_read( size_t src, void *dest, size_t size ){
 
-    return bootloader_flash_read( src, dest, size, false );
-}
+//     return bootloader_flash_read( src, dest, size, false );
+// }
 
 void ldr_v_erase_app( void ){
 

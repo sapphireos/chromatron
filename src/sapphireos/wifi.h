@@ -34,7 +34,9 @@
 // since we are using an integer, we will set to 17 for our max.
 #define WIFI_MAX_HW_TX_POWER    17 // this is for the ESP8266.  The ESP32 may be able to run a bit higher.
 
-#define WIFI_CONNECT_TIMEOUT    10000
+#define WIFI_CONNECT_TIMEOUT    20000 // milliseconds
+
+#define WIFI_RESCAN_INTERVAL	1800 // seconds
 
 #define WIFI_STATE_ERROR        -2
 #define WIFI_STATE_BOOT         -1
@@ -73,8 +75,6 @@ int8_t wifi_i8_igmp_leave( ip_addr4_t mcast_ip );
 void hal_wifi_v_init( void );
 int8_t hal_wifi_i8_igmp_join( ip_addr4_t mcast_ip );
 int8_t hal_wifi_i8_igmp_leave( ip_addr4_t mcast_ip );
-
-uint32_t wifi_u32_get_power( void );
 
 void wifi_v_reset_scan_timeout( void );
 

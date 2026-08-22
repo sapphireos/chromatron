@@ -24,7 +24,15 @@
 #ifndef _EVENTS_H
 #define _EVENTS_H
 
+#include <stdint.h>
 
+#include "catbus_common.h"
+
+typedef struct{
+    catbus_hash_t32 event_id;
+    uint32_t param;
+    uint32_t timestamp;
+} event_t;
 
 #define EVENT_ID_EVT_LOG_INIT                   __KV__evt_log_init
 #define EVENT_ID_EVT_LOG_RECORD                 __KV__evt_log_record
@@ -38,5 +46,8 @@
 #define EVENT_ID_FFS_WEAR_LEVEL                 __KV__ffs_wear_level
 
 #define EVENT_ID_MEM_DEFRAG                     __KV__mem_defrag
+
+#define EVENT_ID_GFX_FADERS                     __KV__gfx_faders
+#define EVENT_ID_PIX_SIGNAL                     __KV__pix_signal
 
 #endif

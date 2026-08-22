@@ -84,7 +84,7 @@ void dns_v_init( void ){
                      0 );
 
     // create vfile
-    fs_f_create_virtual( PSTR("dns_cache"), vfile );
+    fs_v_create_virtual( PSTR("dns_cache"), vfile );
 }
 
 thread_t start_resolver( list_node_t query ){

@@ -75,6 +75,11 @@ typedef struct __attribute__((packed)){
     char filename[CATBUS_STRING_LEN];
 } catbus_file_meta_t;
 
+typedef struct __attribute__((packed)){
+    catbus_hash_t32 hash;
+    int32_t size;
+} catbus_file_hash_t;
+
 
 int64_t specific_to_i64( catbus_type_t8 type, const void *data );
 void i64_to_specific( int64_t source_data, catbus_type_t8 type, void *data );
@@ -87,5 +92,12 @@ int8_t type_i8_convert(
     uint16_t src_data_len );
 
 uint16_t type_u16_size_meta( catbus_meta_t *meta );
+
+fixed16_t type_f16_from_i32( int32_t n );
+int32_t type_i32_from_f16( fixed16_t n );
+fixed16_t type_f16_from_decimal( int16_t n, uint16_t decimal );
+
+#define F16_FROM_I32(n) (n * 65536)
+#define I32_FROM_F16(n) (n / 65536)
 
 #endif

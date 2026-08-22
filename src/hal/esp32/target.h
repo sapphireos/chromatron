@@ -28,7 +28,7 @@
 #include "esp_task.h"
 
 // modules
-#define ENABLE_CATBUS_LINK
+// #define ENABLE_CATBUS_LINK
 #define ENABLE_TIME_SYNC
 #define ENABLE_WIFI
 #define ENABLE_FFS
@@ -38,14 +38,22 @@
 #define ENABLE_USB_UDP_TRANSPORT
 // #define ENABLE_USB
 #define ENABLE_GFX
-#define ENABLE_MSGFLOW
-#define ENABLE_SERVICES
+// #define ENABLE_MSGFLOW
+// #define ENABLE_SERVICES
 #define ENABLE_BATTERY
+#define ENABLE_AUX_BATTERY
+#define ENABLE_SOLAR
+#define ENABLE_LED_DETECT
+// #define ENABLE_CONTROLLER
+#define ENABLE_EVENT_LOG
 
-#define ENABLE_TRACE
+// DEBUG!
+// Turn this off for normal operation!
+// #define ENABLE_TRACE
+
 
 // wifi
-#define WIFI_MAX_PORTS          16
+#define WIFI_MAX_PORTS          64
 #define WIFI_MAX_IGMP           8
 
 // pixel config
@@ -55,7 +63,7 @@
 #define PIXEL_SPI_CHANNEL		0
 #define USER_SPI_CHANNEL        1
 
-#define ENABLE_PIXEL_MAPPER
+// #define ENABLE_PIXEL_MAPPER
 
 // if defined, places pixel buffers in malloc region
 #define PIXEL_USE_MALLOC
@@ -64,8 +72,8 @@
 #define VM_ENABLE_GFX
 #define VM_ENABLE_KV
 #define VM_ENABLE_CATBUS
-#define VM_MAX_IMAGE_SIZE   	4096
-#define VM_MAX_CYCLES       	16000
+#define VM_MAX_IMAGE_SIZE   	8192
+#define VM_MAX_CYCLES       	64000
 #define VM_MIN_DELAY                10
 #define VM_MAX_VMS                  4
 #define VM_MAX_CALL_DEPTH           8
@@ -79,7 +87,7 @@
 
 // memory
 #define MAX_MEM_HANDLES         512
-#define MEM_MAX_STACK           4096
+#define MEM_MAX_STACK           (1024 * 6)
 #define MEM_HEAP_SIZE			65535
 
 // flash fs
@@ -87,6 +95,10 @@
 #define FFS_BLOCK_MAX_BLOCKS 1024
 
 #define FLASH_FS_MAX_USER_FILES 64
+
+#define FLASH_FS_TIMING
+#define FLASH_FS_CACHE
+#define FFS_CACHE_ENTRIES 128
 
 #define FFS_ALIGN32
 
@@ -103,8 +115,8 @@
 #define ENABLE_LOG_TO_TRACE_PRINT
 
 // msgflow
-#define MSGFLOW_MAX_Q_SIZE      8192
-#define MSGFLOW_MAX_Q_MSGS      128
+// #define MSGFLOW_MAX_Q_SIZE      8192
+// #define MSGFLOW_MAX_Q_MSGS      128
 
 // ARP
 #define ARP_GRATUITOUS_INTERVAL 16
@@ -127,7 +139,7 @@
 // comment this out to turn off run-time asserts
 #define INCLUDE_ASSERTS
 
-
+// #define DISABLE_FFS_FW_COPY
 
 // recovery mode
 // #define DISABLE_SAFE_MODE

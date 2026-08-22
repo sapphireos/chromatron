@@ -31,22 +31,27 @@
 #define ENABLE_FFS
 #define ENABLE_NETWORK
 // #define ENABLE_IP
-// #define ENABLE_POWER
+#define ENABLE_POWER
 // #define ENABLE_USB
 // #define ENABLE_WIFI_USB_LOADER
-// #define ENABLE_EVENT_LOG
+#define ENABLE_EVENT_LOG
 
 #define ENABLE_COPROCESSOR 
 
 #if !defined(ESP8266_UPGRADE) && !defined(BOOTLOADER)
 #define ENABLE_GFX
 #define ENABLE_BATTERY
-#define ENABLE_CATBUS_LINK
+// #define ENABLE_CATBUS_LINK
 #define ENABLE_TIME_SYNC
-#define ENABLE_MSGFLOW
-#define ENABLE_SERVICES
+// #define ENABLE_MSGFLOW
+// #define ENABLE_SERVICES
+// #define ENABLE_CONTROLLER
+// #define ENABLE_BROKER
 #endif
 
+// DEBUG!
+// Turn this off for normal operation!
+// #define ENABLE_TRACE
 
 
 
@@ -84,7 +89,7 @@
 #define VM_MAX_CALL_DEPTH           8
 #define VM_MAX_THREADS              8
 
-#define ENABLE_PIXEL_MAPPER
+// #define ENABLE_PIXEL_MAPPER
 
 // KV
 #define KV_CACHE_SIZE 16
@@ -93,7 +98,7 @@
 // #define ENABLE_LIST_ATOMIC
 
 // memory
-#define MAX_MEM_HANDLES         255
+#define MAX_MEM_HANDLES         192
 #define MEM_MAX_STACK           4096
 #define MEM_HEAP_SIZE			16384
 
@@ -102,6 +107,10 @@
 #define FFS_BLOCK_MAX_BLOCKS 1024
 
 #define FLASH_FS_MAX_USER_FILES 64
+
+#define FLASH_FS_TIMING
+#define FLASH_FS_CACHE
+#define FFS_CACHE_ENTRIES 32
 
 #define FFS_ALIGN32
 

@@ -32,36 +32,13 @@
 #include "hal_cpu.h"
 #include "bool.h"
 #include "cnt_of_array.h"
+#include "fwinfo.h"
 
 //#define ENABLE_MEMORY_DUMP
 // #define ATOMIC_TIMING
 // #define EXPERIMENTAL_ATOMIC
 
 // no user selectable options exist below this line!
-
-#ifndef FW_INFO_SECTION
-    #define FW_INFO_SECTION
-#endif
-
-
-#define FW_ID_LENGTH 16
-#define OS_NAME_LEN  128
-#define OS_VER_LEN  16
-#define FW_NAME_LEN  128
-#define FW_VER_LEN  16
-#define HW_NAME_LEN  32
-
-typedef struct __attribute__((packed)){
-    uint32_t fw_length;
-    uint8_t fwid[FW_ID_LENGTH];
-    char os_name[OS_NAME_LEN];
-    char os_version[OS_VER_LEN];
-    char firmware_name[FW_NAME_LEN];
-    char firmware_version[FW_VER_LEN];
-    char board[HW_NAME_LEN];
-    uint32_t kv_index_addr;
-    uint32_t kv_index_len;
-} fw_info_t;
 
 
 #define SYS_REBOOT_SAFE         -2

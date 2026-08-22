@@ -30,8 +30,9 @@
 #include "memory.h"
 #include "netmsg.h"
 #include "udp.h"
+#include "target.h"
 
-#define SOCK_SINGLE_BUF
+// #define SOCK_SINGLE_BUF // move this to target specific if needed in the future
 
 #define SOCK_MEM_BUSY_THRESHOLD         1024
 
@@ -66,13 +67,13 @@ typedef int8_t sock_type_t8;
 #define SOCK_STATUS_PORT_BUF_FULL   -2
 #define SOCK_STATUS_MCAST_SELF      -15
 #define SOCK_STATUS_SEND_ONLY       -20
-#define SOCK_STATUS_NO_SEC          -21
+// #define SOCK_STATUS_NO_SEC          -21
 
 
 // options flags
 typedef uint8_t sock_options_t8;
 #define SOCK_OPTIONS_TTL_1                      0x01 // set TTL to 1, currently only works on UDP
-#define SOCK_OPTIONS_NO_SECURITY                0x02 // disable packet security on wireless
+// #define SOCK_OPTIONS_NO_SECURITY                0x02 // disable packet security on wireless
 #define SOCK_OPTIONS_SEND_ONLY                  0x04 // socket will not receive data
 #define SOCK_OPTIONS_NO_WIRELESS                0x10 // socket will not transmit over the wireless
 
@@ -97,6 +98,7 @@ bool sock_b_rx_pending( void );
 void sock_v_clear_rx_pending( void );
 
 bool sock_b_busy( socket_t sock );
+void sock_v_flush( socket_t sock );
 
 int8_t sock_i8_recvfrom( socket_t sock );
 int16_t sock_i16_sendto( socket_t sock, void *buf, uint16_t bufsize, sock_addr_t *raddr );

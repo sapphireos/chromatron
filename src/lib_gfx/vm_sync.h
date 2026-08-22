@@ -29,14 +29,15 @@
 #ifdef ENABLE_TIME_SYNC
 
 #define SYNC_PROTOCOL_MAGIC             	0x434e5953 // 'SYNC' in ASCII
-#define SYNC_PROTOCOL_VERSION           	5
+#define SYNC_PROTOCOL_VERSION           	11
+#define SYNC_SERVER_PORT                    44777
 
-#define SYNC_SERVICE                        __KV__vmsync
 
-#define SYNC_INTERVAL                       8000
-#define SYNC_CHECKPOINT                     512
+#define SYNC_INTERVAL                       4000
+#define SYNC_INTERVAL_SEQ                   1000 // sync interval when sequencer is running
 
 #define SYNC_MAX_THREADS                    16
+#define SYNC_MAX_CHECKPOINTS                32
 
 typedef struct __attribute__((packed)){
     uint32_t magic;
@@ -45,27 +46,32 @@ typedef struct __attribute__((packed)){
     uint8_t flags;
     uint8_t padding;
     uint32_t sync_group_hash;
+    uint32_t program_name_hash;
+    uint32_t program_file_hash;
 } vm_sync_msg_header_t;
 
 typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
-    uint32_t program_name_hash;
     
-    uint64_t sync_tick;
-    uint32_t net_time;
+    // uint64_t sync_tick;
+    // uint32_t net_time;
 
-    uint64_t tick;
-    uint64_t loop_tick;
+    // uint64_t tick;
+    // uint64_t loop_tick;
+
     uint64_t rng_seed;
     uint32_t frame_number;
 
-    uint32_t checkpoint;
-    uint32_t checkpoint_hash;
-    
-    uint16_t data_len;
+    // uint32_t checkpoints[SYNC_MAX_CHECKPOINTS];
+    uint32_t checkpoint_hashes[SYNC_MAX_CHECKPOINTS];
 
-    uint16_t max_threads; // 16 bits for alignment on threads
-    vm_thread_t threads[SYNC_MAX_THREADS];
+    uint16_t sequencer_step;
+    // uint16_t padding;
+    
+    // uint16_t data_len;
+
+    // uint16_t max_threads; // 16 bits for alignment on threads
+    // vm_thread_t threads[SYNC_MAX_THREADS];
 } vm_sync_msg_sync_t;
 #define VM_SYNC_MSG_SYNC                        1
 
@@ -77,9 +83,9 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     vm_sync_msg_header_t header;
-    uint64_t tick;
+    // uint64_t tick;
     uint16_t offset;
-    uint16_t padding;
+    uint16_t total;
     uint8_t data; // first data byte
 } vm_sync_msg_data_t;
 #define VM_SYNC_MSG_DATA                        3
@@ -87,6 +93,11 @@ typedef struct __attribute__((packed)){
 
 void vm_sync_v_init( void );
 void vm_sync_v_reset( void );
+
+uint32_t vm_sync_u32_get_sync_group_hash( void );
+
+void vm_sync_v_hold( void );
+void vm_sync_v_unhold( void );
 
 bool vm_sync_b_is_leader( void );
 bool vm_sync_b_is_follower( void );

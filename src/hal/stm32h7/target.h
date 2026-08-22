@@ -55,6 +55,8 @@
 #define ENABLE_SERVICES
 #define ENABLE_MSGFLOW
 
+#define ENABLE_ESP8266_LOADER
+
 // wifi
 #define WIFI_MAX_IGMP           8
 

@@ -23,6 +23,7 @@
  */
 
 #include "system.h"
+#include "logging.h"
 
 #include "hal_io.h"
 #include "hal_i2c.h"
@@ -34,55 +35,37 @@
 static gpio_num_t gpio_sda = GPIO_NUM_23;
 static gpio_num_t gpio_scl = GPIO_NUM_22;
 
-static i2c_baud_t8 i2c_baud;
+static i2c_config_t conf;
 
-// static i2c_cmd_handle_t handle;
+static i2c_baud_t8 i2c_baud;
+static bool is_init;
 
 #define CHECK_ACK   TRUE
 #define NO_ACK      FALSE
 
 void i2c_v_init( i2c_baud_t8 baud ){
 
-    // if( handle == 0 ){
+    if( is_init ){
 
-    //     handle = i2c_cmd_link_create();    
-    // }
+        // avoid reinstalling driver if already done
+        return;
+    }
+
+    is_init = TRUE;
+
+    // i2c_driver_delete( I2C_MASTER_PORT ); // this does not actually work, we can't re-init.
     
-    i2c_baud = baud;
-
-    i2c_config_t conf = {0};
-
     conf.mode               = I2C_MODE_MASTER;
+
+    // set default config
     conf.sda_io_num         = gpio_sda;
     conf.sda_pullup_en      = GPIO_PULLUP_ENABLE;
     conf.scl_io_num         = gpio_scl;
     conf.scl_pullup_en      = GPIO_PULLUP_ENABLE;
-
-    if( i2c_baud == I2C_BAUD_100K ){
-
-        conf.master.clk_speed = 100000;        
-    }
-    else if( i2c_baud == I2C_BAUD_200K ){
-
-        conf.master.clk_speed = 200000;        
-    }
-    else if( i2c_baud == I2C_BAUD_300K ){
-
-        conf.master.clk_speed = 300000;        
-    }
-    else if( i2c_baud == I2C_BAUD_400K ){
-
-        conf.master.clk_speed = 400000;        
-    }
-    else if( i2c_baud == I2C_BAUD_1000K ){
-
-        conf.master.clk_speed = 1000000;        
-    }
-
-    gpio_set_direction( gpio_sda, GPIO_MODE_OUTPUT_OD );
-    gpio_set_direction( gpio_scl, GPIO_MODE_OUTPUT_OD );
-
-    i2c_param_config( I2C_MASTER_PORT, &conf );
+    conf.master.clk_speed   = 100000;        
+    
+    i2c_v_set_baud( baud ); // must set baud first to avoid a div /0 error!
+    i2c_v_set_pins( IO_PIN_22_SCL, IO_PIN_23_SDA );
 
     i2c_driver_install( I2C_MASTER_PORT, conf.mode, 0, 0, 0 );
 
@@ -90,9 +73,56 @@ void i2c_v_init( i2c_baud_t8 baud ){
 }
 
 void i2c_v_set_pins( uint8_t clock, uint8_t data ){
-	
+
+    gpio_reset_pin( gpio_sda );
+    gpio_reset_pin( gpio_scl );
+
     gpio_sda = hal_io_i32_get_gpio_num( data );
     gpio_scl = hal_io_i32_get_gpio_num( clock );
+
+    gpio_set_direction( gpio_sda, GPIO_MODE_OUTPUT_OD );
+    gpio_set_direction( gpio_scl, GPIO_MODE_OUTPUT_OD );
+
+    conf.sda_io_num         = gpio_sda;
+    conf.sda_pullup_en      = GPIO_PULLUP_ENABLE;
+    conf.scl_io_num         = gpio_scl;
+    conf.scl_pullup_en      = GPIO_PULLUP_ENABLE;
+
+    if( i2c_param_config( I2C_MASTER_PORT, &conf ) != ESP_OK ){
+
+        log_v_error_P( PSTR("I2C set pins failed!") );
+    }
+}
+
+void i2c_v_set_baud( i2c_baud_t8 baud ){
+
+    i2c_baud = baud;
+
+    if( baud == I2C_BAUD_100K ){
+
+        conf.master.clk_speed = 100000;        
+    }
+    else if( baud == I2C_BAUD_200K ){
+
+        conf.master.clk_speed = 200000;        
+    }
+    else if( baud == I2C_BAUD_300K ){
+
+        conf.master.clk_speed = 300000;        
+    }
+    else if( baud == I2C_BAUD_400K ){
+
+        conf.master.clk_speed = 400000;        
+    }
+    else if( baud == I2C_BAUD_1000K ){
+
+        conf.master.clk_speed = 1000000;        
+    }
+
+    if( i2c_param_config( I2C_MASTER_PORT, &conf ) != ESP_OK ){
+
+        log_v_error_P( PSTR("I2C set baud failed!") );
+    }
 }
 
 void i2c_v_write( uint8_t dev_addr, const uint8_t *src, uint8_t len ){

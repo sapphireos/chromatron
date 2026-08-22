@@ -32,7 +32,18 @@
 
 #ifdef AVR
 #include "hal_esp8266.h"
-#include "hal_status_led.h"
+#include "status_led.h"
+#endif
+
+
+#ifdef ESP8266
+static uint8_t slowest_opcode;
+static uint16_t slowest_time;
+
+KV_SECTION_META kv_meta_t coproc_test_cfg_kv[] = {
+    { CATBUS_TYPE_UINT8,     0, 0,  &slowest_opcode, 	0,  "coproc_slowest_opcode" },
+    { CATBUS_TYPE_UINT16,    0, 0,  &slowest_time, 		0,  "coproc_slowest_time" },
+};
 #endif
 
 // bootloader shared memory
@@ -60,7 +71,20 @@ void coproc_v_send_block( uint8_t data[COPROC_BLOCK_LEN] ){
 	#endif
 }
 
+#ifdef AVR
 extern uint8_t current_opcode;
+extern uint8_t current_length;
+#else
+static uint8_t current_opcode;
+#endif
+
+
+#define COPROC_RX_TIMEOUT 		500 // timeout for most commands
+#define COPROC_ERASE_TIMEOUT 	2000 // extra time for erase fw
+
+#ifdef ESP8266
+static uint16_t receive_timeout = COPROC_ERASE_TIMEOUT;
+#endif
 
 void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 
@@ -70,26 +94,69 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 	memset( rx_data, 0, len );
 
 	#ifdef ESP8266
-	while( len > 0 ){
 
-		// wait for data
-		while( usart_u8_bytes_available( UART_CHANNEL ) == 0 );
+	uint32_t start = tmr_u32_get_system_time_ms();
 
-		int16_t byte = usart_i16_get_byte( UART_CHANNEL );
+	if( header ){
 
-		// waiting for SOF and received printable character instead of start of frame
-		if( header && ( len == sizeof(block) ) && ( byte < 128 ) ){
+		// SOF byte, filter for non printable
+		while( len == sizeof(block) ){
 
-			// skip byte			
+			while( ( usart_u8_bytes_available( UART_CHANNEL ) == 0 ) &&
+			   	   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
+
+			if( usart_u8_bytes_available( UART_CHANNEL ) == 0 ){
+
+				if( current_opcode == OPCODE_SAFE_MODE ){
+
+					// if this was a safe mode command, a timeout is expected.
+					while(1); // just spin until the coproc resets.
+				}
+				else if( current_opcode == OPCODE_REBOOT ){
+
+					// if this was a reboot command, a timeout is expected.
+					while(1); // just spin until the coproc resets.
+				}
+
+				log_v_debug_P( PSTR("coproc receive timeout: %d opcode: 0x%02x"), receive_timeout, current_opcode );
+
+				ASSERT( FALSE );
+			}
+
+			int16_t byte = usart_i16_get_byte( UART_CHANNEL );
+
+			// waiting for SOF and received printable character instead of start of frame
+			if( byte < 128 ){
+
+				// skip byte			
+			}
+			else{
+
+				*rx_data++ = byte;
+				len--;	
+			}	
 		}
-		else{
 
-			*rx_data++ = byte;
-			len--;	
-		}
+		// get rest of header
+		while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) &&
+			   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
+
+		ASSERT( usart_u8_bytes_available( UART_CHANNEL ) >= len );
+
+		usart_u8_get_bytes( UART_CHANNEL, rx_data, len );
 	}
+	else{
+
+		while( ( usart_u8_bytes_available( UART_CHANNEL ) < len ) &&
+			   ( tmr_u32_elapsed_time_ms( start) < receive_timeout ) );
+
+		ASSERT( usart_u8_bytes_available( UART_CHANNEL ) >= len );
+
+		usart_u8_get_bytes( UART_CHANNEL, rx_data, len );
+	}
+	
 	#else 
-	if( hal_wifi_i8_usart_receive( rx_data, len, 10000000 ) != 0 ){
+	if( hal_wifi_i8_usart_receive( rx_data, len, 500000 ) != 0 ){
 
 		sys_v_wdt_reset();		
 		status_led_v_set( 0, STATUS_LED_GREEN );
@@ -120,6 +187,13 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
+		uint32_t err_flags = COPROC_ERROR_RX_FAIL;
+		if( header ){
+
+			err_flags |= COPROC_ERROR_HEADER;
+		}
+
+		coproc_v_set_error_flags( err_flags, current_opcode, current_length );
 
 		// BOOM!
 		while(1);
@@ -165,6 +239,18 @@ void coproc_v_receive_block( uint8_t data[COPROC_BLOCK_LEN], bool header ){
 		_delay_ms( 500 );
 		sys_v_wdt_reset();
 
+		uint32_t err_flags = COPROC_ERROR_CRC_FAIL;
+		if( header ){
+
+			err_flags |= COPROC_ERROR_HEADER;
+		}
+
+		coproc_v_set_error_flags( err_flags, current_opcode, current_length );
+
+		#else
+
+		// ESP8266
+		ASSERT(FALSE);
 
 		#endif
 
@@ -206,6 +292,8 @@ void coproc_v_sync( void ){
 
 	if( usart_i16_get_byte( UART_CHANNEL ) != COPROC_VERSION ){
 
+		coproc_v_set_error_flags( COPROC_ERROR_VERSION, current_opcode, current_length );
+
 		// lets hope this was a bus error and rebooting will recover
 		sys_reboot();
 	}
@@ -216,6 +304,7 @@ void coproc_v_sync( void ){
 
 void coproc_v_init( void ){
 
+	#ifdef ESP8266
 	if( !sync ){
 
 		return;
@@ -224,11 +313,45 @@ void coproc_v_init( void ){
 	char coproc_firmware_version[FW_VER_LEN];
     memset( coproc_firmware_version, 0, FW_VER_LEN );
     coproc_v_fw_version( coproc_firmware_version );
+    
+    uint8_t err_flags = coproc_i32_call0( OPCODE_GET_ERROR_FLAGS );
+    uint8_t reset_source = coproc_i32_call0( OPCODE_GET_RESET_SOURCE );
+    uint8_t coproc_boot_mode = coproc_i32_call0( OPCODE_GET_BOOT_MODE );
+
     log_v_debug_P( 
     	PSTR("coproc ver: %s reset: %u boot: %u"), 
     	coproc_firmware_version, 
-    	coproc_i32_call0( OPCODE_GET_RESET_SOURCE ),
-    	coproc_i32_call0( OPCODE_GET_BOOT_MODE ) );
+    	reset_source,
+    	coproc_boot_mode
+    );
+
+    if( err_flags != 0 ){
+
+    	log_v_error_P( PSTR("coproc error flags: 0x%0x opcode: 0x%0x len: %d"),
+    		err_flags,
+    		coproc_i32_call0( OPCODE_GET_ERROR_OPCODE ),
+    		coproc_i32_call0( OPCODE_GET_ERROR_LENGTH )
+    	);
+	}
+
+	if( reset_source == RESET_SOURCE_WATCHDOG ){
+
+		char error_log[COPROC_FLASH_XFER_LEN];
+		memset( error_log, 0, sizeof(error_log) );
+
+		coproc_i32_callp( OPCODE_GET_ERROR_LOG, (uint8_t *)error_log, COPROC_FLASH_XFER_LEN ); 
+			
+		if( error_log[0] != 0xff ){
+
+			log_v_error_P( PSTR("coproc log: %s"), error_log );
+		}
+	}
+
+	if( ( err_flags != 0 ) || ( reset_source == RESET_SOURCE_WATCHDOG ) ){
+
+		coproc_i32_call0( OPCODE_CLEAR_ERROR_FLAGS );
+	}
+	#endif
 }
 
 
@@ -250,10 +373,27 @@ uint8_t coproc_u8_issue(
 	uint8_t *data, 
 	uint8_t len ){
 
+	#ifdef AVR
+	return 0;
+	#else
+
 	if( !sync ){
 
 		return 0;
 	}
+
+	if( opcode == OPCODE_FW_ERASE ){
+
+		receive_timeout = COPROC_ERASE_TIMEOUT;
+	}
+	else{
+
+		receive_timeout = COPROC_RX_TIMEOUT;
+	}
+
+	current_opcode = opcode;
+
+	uint32_t start = tmr_u32_get_system_time_ms();
 
 	coproc_hdr_t hdr;
 
@@ -296,7 +436,16 @@ uint8_t coproc_u8_issue(
 		rx_len -= COPROC_BLOCK_LEN;
 	}
 
+	uint32_t elapsed = tmr_u32_elapsed_time_ms( start );
+
+	if( elapsed > slowest_time ){
+
+		slowest_opcode = opcode;
+		slowest_time = elapsed;
+	}
+
 	return hdr.length;
+	#endif
 }
 
 // note this function should not return, the coprocessor will hit the reset line.
@@ -339,7 +488,10 @@ uint16_t coproc_u16_fw_crc( void ){
 }
 
 void coproc_v_fw_erase( void ){
-	
+		
+	// this is a long command, so kick the watchdog here just in case
+	sys_v_wdt_reset();
+
 	coproc_i32_call0( OPCODE_FW_ERASE );	
 }
 
@@ -402,6 +554,8 @@ void coproc_v_fw_load( uint8_t *data, uint32_t len ){
 	log_v_debug_P( PSTR("coproc image crc: 0x%04x"), coproc_crc );
 
 	if( coproc_crc != 0 ){
+
+		coproc_v_set_error_flags( COPROC_ERROR_IMAGE_CRC, current_opcode, current_length );
 
 		ASSERT( FALSE );
 	}

@@ -1,0 +1,5980 @@
+
+import logging
+from copy import copy, deepcopy
+import struct
+from enum import Enum
+from collections.abc import Iterable
+
+import graphviz
+
+from .types import *
+from .instructions2 import *
+from .exceptions import *
+
+# debug imports:
+import sys
+from pprint import pprint
+# /debug
+
+COMMUTATIVE_OPS = ['add', 'mul']
+PRIMITIVE_TYPES = ['i32', 'f16']
+ARRAY_FUNCS = ['len', 'min', 'max', 'avg', 'sum']
+THREAD_FUNCS = ['start_thread', 'stop_thread', 'thread_running', 'delay', 'yield']
+COMPARE_BINOPS = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte']
+
+PIXEL_FIELDS = {
+    'hue': 'gfx16',
+    'sat': 'gfx16',
+    'val': 'gfx16',
+    'hs_fade': 'i32',
+    'v_fade': 'i32',
+    
+    'is_v_fading': 'i32',
+    'is_hs_fading': 'i32',
+    'index': 'i32',
+    'count': 'i32',
+    'size_x': 'i32',
+    'size_y': 'i32',
+    'reverse': 'i32',
+    'mirror': 'i32',
+    'offset': 'i32',
+    'palette': 'i32',
+}
+
+PIXEL_SCALARS = [
+    # 'is_v_fading', 
+    # 'is_hs_fading',
+    'index',
+    'count',
+    'size_x',
+    'size_y',
+    'reverse',
+    'mirror',
+    'offset',
+    'palette',
+]
+
+OBJECT_FIELDS = {
+    'pixobj': PIXEL_FIELDS
+}
+
+
+class OptPasses(Enum):
+    NONE          = 0
+    SSA           = 1
+    LS_SCHED      = 2
+    LOOP          = 3
+    GVN           = 4
+
+
+
+
+DEBUG = False
+DEBUG_FILTER_LOAD_STORE = False
+DEBUG_PRINT = True
+EXCEPTION_ON_LIVENESS_ERROR = False
+SHOW_LIVENESS = True
+LIVENESS_MODE = 'register'
+# LIVENESS_MODE = 'mem'
+
+
+def debug_print(s):
+    if DEBUG or DEBUG_PRINT:
+        print(s)
+
+
+
+"""
+
+QUESTIONS
+
+Composite vars declared as function local:
+Do these go into global memory and just get treated as global?
+For: This is very convenient
+Against: We cannot support re-entrant functions (which means no recursion)
+
+
+Recursion:
+Should we support it?
+For: Not even sure.  How often do we need recursion for this DSL?
+Against: It kills the stack and has unpredictable bounds.  This is bad for
+determinism especially in memory requirements.
+
+Re-entrancy:
+For: Could support thread yields from nested function calls.
+Against: Requires function local storage for composites and spills
+
+Spills:
+If functions are not re-entrant, we can just spill to global.
+If they are, we need to spill to a local pool.
+
+
+Call stack:
+Definitely limit depth.
+- Easy way: we just recursively call the VM.
+    - We can only yield from top level if we do this.
+- Implement call stack and use a jump.
+    - Could yield in nests if we save the call stack on the VM state.
+    - Requires external call/param stack.
+    - We need a way to handle params anyway...
+
+
+Recursion: No
+Yield from nested function: ?
+
+It might be more flexible to allow allocation to a function local region on the function's call frame.
+We need one anyway to pass parameters and return data, and we need to do our own instead of recursing the VM
+so we can control our stack depth.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+STRINGS
+
+s = String("hello!")
+
+"hello!" -> string table
+s -> strref in symbol table, init to point to entry in string table
+
+string table addressing needs to be contiguous with global or local memory.
+string table init is a copy from .fxb file data.
+
+
+s2 = String(32)
+
+String(32) -> 32 nulls in string table
+s2 -> strref in symbol table, init to point to entry in string table
+
+
+s3 = String()
+
+s3 -> strref in symbol table, init to null string (string with single null, but it is an actual string)
+
+
+s3 = "hello"
+
+"hello" -> string table
+s3 assigned (load const/immediate) to string table entry
+s3 must have already been declared.
+
+
+
+
+String operations:
+
+The main thing we care about is formatted strings and being able to assign them to DB values.
+
+s = String(32)
+format(s, '%d', 123)
+
+This calls a library function, format, which takes the string reference and then calls the C lib snprintf on it.
+s must reference a string with enough space for the formatting.
+
+
+db.my_string = s
+
+Assigns to db.  The DB store instruction needs to understand storing a string.
+
+
+
+All strings are mutable.  The buffers should be stored separately from the string literals.  Literals are copied into
+target buffers on init.  Maybe we need a string copy instruction to do this and add it to our init code?
+
+You can do:
+s = String("hello!")
+format(s, '%d', 123)
+
+The storage location of String('hello!') is now String('123')
+The literal "hello!" is still stored in the string table, so you can undo the operation:
+s = "hello!"
+This is a string copy into the String('123') buffer from the literal table.
+
+Note that the '%d' for the format string is also a string literal.
+
+
+
+
+string = String("hello!")
+s = String()
+s = string
+
+string points to buffer containing space for 6 characters initialied to "hello!"
+s is a string ref pointing to null buffer.
+s = string
+this loads the ref to string to s, so s now references string ('hello!')
+
+If instead we do:
+s = "meow"
+
+This does a str load from the string literal table into whatever
+string buffer s is pointing to.
+In this case, since it is a null buffer, nothing would happen.
+
+
+Hmmm.
+
+This is somewhat confusing.  What if we add:
+s2 = String('woof')
+
+s = s2
+
+Does s now point to s2?  Or does the buffer that s points to get
+loaded with the contents from s2?
+
+Maybe add an explicit data type for this?
+
+StringRef()
+
+So, String() creates a string *buffer*, either with some number
+of characters or initialized with a string literal, and we
+get a StringRef which points to that buffer.
+
+
+OR:
+
+String() always creates a buffer and a reference to that buffer.
+We never change which buffer we point to (that would effectively be a redeclaration).
+
+So, 
+s = string
+performs a string copy from the buffer for string to the buffer for s.
+
+There is no way to actually just switch the reference (since that is kind of confusing).
+
+s = String()
+This is actually invalid - you can't declare an empty string buffer.
+
+String loads to a destination buffer that is too small will just truncate the string.
+
+
+How do we handle an array of strings?
+
+Same.  Strings are value types.  The reference is transparent.
+
+
+array = String(32)[4]
+s = String(32)
+s = array[2]
+
+copies the string from array[2] to the buffer for s
+
+format(array[2], "%d", 123)
+
+Replace contents of buffer at array[2] with formatted print.
+
+
+
+"""
+
+def params_to_string(params):
+    s = ''
+
+    if len(params) == 0:
+        return s
+
+    for p in params:
+        try:
+            s += '%s %s,' % (p.data_type, p.name)
+
+        except AttributeError:
+            s += '%s' % (p.name)            
+
+    # strip last comma
+    if s[-1] == ',':
+        s = s[:-1]
+
+    return s
+
+
+def add_reg(temp, datatype='i32', lineno=None):
+    name = str(temp)
+    
+    ir = irVar(name, datatype=datatype, lineno=lineno)
+
+    return ir
+
+
+# return true if value fits in 16 bits
+def is_16_bits(value):
+    if isinstance(value, float):
+        value = int(value * 65536)
+
+    try:
+        struct.pack('H', value)
+        return True
+
+    except struct.error:
+        return False
+
+class IR(object):
+    def __init__(self, lineno=None):
+        self.lineno = lineno
+        self.block = None
+        self.scope_depth = None
+        self.live_in = []
+        self.live_out = []
+        self.mem_live_in = []
+        self.mem_live_out = []
+        self.is_nop = False
+
+        # self.loops = []
+
+        assert self.lineno != None
+
+    def generate(self):
+        raise NotImplementedError(self)
+
+    def get_input_vars(self):
+        return []
+
+    def get_output_vars(self):
+        return []
+
+    def get_jump_target(self):
+        return None
+
+    def replace_labels(self, label, replace):
+        return
+
+    @property
+    def loop_depth(self):
+        return len(self.loops)
+
+    @property
+    def gvn_expr(self):
+        return None
+
+    def gvn_process(self, VN):
+        return None
+
+
+class irAddr(IR):
+    def __init__(self, var, addr, storage: StorageType):
+        super().__init__(lineno=var.lineno)
+
+        self.var = var
+        self.addr = addr
+        self.storage = storage
+
+    def __str__(self):
+        return f'{self.addr}: {self.storage}'
+
+    def generate(self):
+        return insAddr(self.addr, self.var, self.storage)
+
+class irProgram(IR):
+    def __init__(
+        self, 
+        name, 
+        funcs={}, 
+        symbols=None, 
+        strings={}, 
+        links=[],
+        db={},
+        cron={},
+        **kwargs):
+        
+        super().__init__(**kwargs)
+
+        self.name = name
+        self.funcs = funcs
+        self.global_symbols = symbols
+        self.strings = strings
+        self.links = links
+        self.db = db
+        self.cron = cron
+        self.constant_pool = []
+        self.call_graph = None
+
+    def __str__(self):
+        s = "FX IR:\n"
+
+        s += 'Globals:\n'
+        # top level symbols are global
+        for i in list(self.global_symbols.symbols.values()):
+            s += '%d:\t%s\n' % (i.lineno, i)
+
+        s += 'Strings:\n'
+        for i in list(self.strings.values()):
+            s += '%d:\t%s\n' % (i.lineno, i)
+
+        s += 'Functions:\n'
+        for func in list(self.funcs.values()):
+            s += '%s\n' % (func)
+
+        return s
+
+    @property
+    def global_vars(self):
+        return [g for g in self.global_symbols.symbols.values() if g.is_allocatable]
+
+    @property
+    def objects(self):
+        return [o for o in self.global_symbols.symbols.values() if isinstance(o, varObject)]
+    
+    def analyze(self, opt_passes:OptPasses=OptPasses.SSA):
+        for func in self.funcs.values():
+            func.analyze_blocks(opt_passes=opt_passes)
+
+    def analyze_call_graph(self):
+        for func in self.funcs.values():
+            func.analyze_calls()
+
+        call_graph = {}
+
+        for func_name in self.funcs:
+            func = self.funcs[func_name]
+
+            call_graph[func_name] = func.get_call_graph(self.funcs)
+
+        self.call_graph = call_graph
+
+    def is_called(self, func_name, graph={}):
+        if func_name in graph or func_name in self.cron:
+            return True
+
+        for name in graph:
+            if self.is_called(func_name, graph=graph[name]):
+                return True
+
+        return False
+
+    def remove_unused_functions(self):
+        used_funcs = {}
+
+        for name, func in self.funcs.items():
+            if self.is_called(name, graph=self.call_graph):
+                used_funcs[name] = func
+
+        self.funcs = used_funcs
+
+        sym_table = deepcopy(self.global_symbols)
+
+        for k, v in sym_table.symbols.items():
+            if not isinstance(v, varFunction):
+                continue
+
+            if k not in used_funcs:
+                logging.debug(f'Removing unused function: {k}')
+                del self.global_symbols.symbols[k]
+
+    def _allocate_memory(self):
+        addr = 0
+
+        for g in [g for g in self.global_vars if not isinstance(g, varStringLiteral)]:
+            assert g.addr is None
+            g.addr = irAddr(g, addr, StorageType.GLOBAL)
+
+            addr += g.size
+
+        pix_arrays = {p.name: p for p in self.global_symbols.symbols.values() if p.data_type == 'pixobj'}
+        pix_arrays['pixels'].addr = irAddr(pix_arrays['pixels'], 0, StorageType.PIXEL_ARRAY)
+        pix_addr = 1
+
+        for p in [a for a in pix_arrays.values() if a.name != 'pixels']:
+            p.addr = irAddr(p, pix_addr, StorageType.PIXEL_ARRAY)
+            pix_addr += 1
+
+        func_addr = 0
+        for f in [g for g in self.global_symbols.symbols.values() if isinstance(g, varFunction)]:
+            f.addr = irAddr(f, func_addr, StorageType.FUNCTIONS)
+            func_addr += 1
+
+        str_addr = 0
+        for s in [g for g in self.global_symbols.symbols.values() if isinstance(g, varStringLiteral)]:
+            s.addr = irAddr(s, str_addr, StorageType.STRING_LITERALS)
+            str_addr += s.size
+
+    def generate(self):
+        self.analyze_call_graph()
+
+        self.remove_unused_functions()
+
+        self._allocate_memory()
+
+        ins_funcs = {}
+        for name, func in self.funcs.items():
+            ins_funcs[name] = func.generate()
+
+        return insProgram(
+                self.name, 
+                funcs=ins_funcs, 
+                global_vars=[g for g in self.global_vars if g.addr is not None], 
+                objects=self.objects,
+                strings=self.strings,
+                links=self.links,
+                db=self.db,
+                cron=self.cron,
+                call_graph=self.call_graph)
+
+class Edge(object):
+    def __init__(self, from_node, to_node):
+        self.from_node = from_node
+        self.to_node = to_node
+
+    def __hash__(self):
+        t = (self.from_node, self.to_node)
+
+        return hash(t)
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def __str__(self):
+        return f'{self.from_node.name} -> {self.to_node.name}'
+
+
+class irBlock(IR):
+    def __init__(self, func=None, **kwargs):
+        super().__init__(**kwargs)
+        self.predecessors = []
+        self.successors = []
+        self.code = []
+        self.func = func
+        self.defines = {}
+        self.incoming_back_edges = []
+
+        self.is_ssa = False
+        self.filled = False
+        self.sealed = False
+        self.temp_phis = []
+
+        self.loops = []
+
+    @property
+    def source_code(self):
+        return self.func.source_code
+
+    def __str__(self):
+        tab = '\t'
+        depth = f'{self.scope_depth * tab}'
+        s =  f'{depth}||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n'
+        s += f'{depth}| BLOCK: {self.name} @ {self.lineno}'
+        if self.is_leader:
+            s += ': LEADER'
+
+        if self.is_terminator:
+            s += ': TERMINATOR'
+
+        s += '\n'
+
+        s += f'{depth}| Predecessors:\n'
+        for p in self.predecessors:
+            s += f'{depth}|\t\t{p.name}\n'
+
+        s += f'{depth}| Successors:\n'
+        for p in self.successors:
+            s += f'{depth}|\t\t{p.name}\n'
+
+        s += f'{depth}| Defines:\n'
+        for p in sorted(self.defines.values(), key=lambda a: a.ssa_name):
+            s += f'{depth}|\t\t{p.ssa_name}\n'
+
+        lines_printed = []
+        s += f'{depth}| Code:\n'
+        index = 0
+        for ir in self.code:
+            if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
+                s += f'{depth}|________________________________________________________\n'
+                s += f'{depth}| Line: {ir.lineno}: {depth}{self.source_code[ir.lineno - 1].strip()}\n'
+                lines_printed.append(ir.lineno)
+
+            ir_s = f'{depth}|{index:3}\t{str(ir):48}'
+
+            if SHOW_LIVENESS:
+                if LIVENESS_MODE == 'register' and self.func.live_in and ir in self.func.live_in:
+                    s += f'{ir_s}\n'
+                    ins = sorted(list(set([f'{a}' for a in self.func.live_in[ir]])))
+                    outs = sorted(list(set([f'{a}' for a in self.func.live_out[ir]])))
+                    s += f'{depth}|\t  in:  {ins}\n'
+                    s += f'{depth}|\t  out: {outs}\n'
+
+
+                elif LIVENESS_MODE == 'mem' and self.func.mem_live_in and ir in self.func.mem_live_in:
+                    s += f'{ir_s}\n'
+                    ins = sorted(list(set([f'{a}' for a in self.func.mem_live_in[ir]])))
+                    outs = sorted(list(set([f'{a}' for a in self.func.mem_live_out[ir]])))
+                    s += f'{depth}|\t  in:  {ins}\n'
+                    s += f'{depth}|\t  out: {outs}\n'
+
+            else:
+                s += f'{ir_s}\n'
+
+            index += 1
+
+        s += f'{depth}|^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n'
+
+        return s
+
+    def __repr__(self):
+        return self.name
+
+    def get_blocks(self, blocks=None, visited=None):
+        if blocks is None:
+            blocks = []
+
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return visited
+
+        visited.append(self)
+
+        if self not in blocks:
+            blocks.append(self)
+
+        blocks.extend([s for s in self.successors if s not in blocks])
+
+        for s in self.successors:
+            s.get_blocks(blocks, visited)
+
+        return blocks
+
+    def recalc_defines(self):
+        self.defines = {}
+
+        for ir in self.code:
+            for o in ir.get_output_vars():
+                self.defines[o.name] = o.var
+
+                # also annotate phi targets:
+                if isinstance(ir, irPhi):
+                    if o == ir.target:
+                        if len(ir.merges) > 1:
+                            o.is_phi_merge = True
+
+                        else:
+                            o.is_phi_merge = False
+
+    @property
+    def type_manager(self):
+        return self.func.type_manager
+
+    @property
+    def ssa_next_val(self):
+        return self.func.ssa_next_val
+
+    @property
+    def name(self):
+        try:
+            if isinstance(self.code[0], irLabel):
+                return f'{self.code[0].name}'
+            else:
+                assert False
+
+        except IndexError:
+            return 'UNKNOWN BLOCK'
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    @property
+    def is_leader(self):
+        return len(self.predecessors) == 0
+
+    @property
+    def is_terminator(self):
+        return len(self.successors) == 0    
+
+    def get_input_vars(self):
+        v = []
+        for node in self.code:
+            for i in node.get_input_vars():
+                assert isinstance(i, VarContainer)
+
+            v.extend(node.get_input_vars())
+
+        return v
+
+    def get_output_vars(self):
+        v = []
+        for node in self.code:
+            v.extend(node.get_output_vars())
+
+        return v
+
+    def append(self, node):
+        # ensure that each node only belongs to one block:
+
+        assert node.block is None
+ 
+        node.block = self
+        self.code.append(node)
+
+    def get_defined(self, name, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return []
+
+        try:
+            return [self.defines[name]]
+
+        except KeyError:
+            pass
+
+        visited.append(self)
+
+        ds = []
+        for pre in self.predecessors:
+            for d in pre.get_defined(name, visited=visited):
+                if d not in ds:
+                    ds.append(d)
+
+        return ds
+
+    ##############################################
+    # Analysis Passes
+    ##############################################
+
+    # depth first reachability check
+    def reachable(self, target, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return False
+
+        visited.append(self)
+
+        if self is target:
+            return True
+
+        for suc in self.successors:
+            if suc.reachable(target, visited=visited):
+                return True
+
+        return False
+
+    def _get_consts(self, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return []
+
+        visited.append(self)
+
+        consts = []
+
+        for ir in self.code:
+            for i in ir.get_input_vars():
+                if i.is_const:
+                    consts.append(i)
+
+        for suc in self.successors:
+            consts.extend(suc._get_consts(visited=visited))
+
+        return list(set(consts))
+
+    def _loop_test_vars(self, loop):
+        test_vars = [loop['test_var']]
+
+        # test vars will be in the loop block
+        for ir in reversed(loop['loop'].code):
+            # skip phi nodes
+            if isinstance(ir, irPhi):
+                continue
+
+            for o in ir.get_output_vars():
+                if o in test_vars:
+                    # output is a test var,
+                    # so the inputs are dependent as well
+                    test_vars.extend([i for i in ir.get_input_vars() if not i.is_const])
+
+        return test_vars
+
+    def _loops_find_header(self, loop, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+        for ir in self.code:
+            if isinstance(ir, irLoopHeader) and ir.name == loop:
+                return self
+                # we are a loop header
+
+        for suc in self.successors:
+            header = suc._loops_find_header(loop, visited)
+
+            if header is not None:
+                return header
+
+        return None
+
+    def _loops_find_footer(self, loop, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+        for ir in self.code:
+            if isinstance(ir, irLoopFooter) and ir.name == loop:
+                return self
+                # we are a loop header
+
+        for suc in self.successors:
+            header = suc._loops_find_footer(loop, visited)
+
+            if header is not None:
+                return header
+
+        return None
+
+    def get_blocks_depth_first(self, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return []
+
+        visited.append(self)
+
+        blocks = [self]
+
+        for s in self.successors:
+            blocks.extend(s.get_blocks_depth_first(visited=visited))
+
+        return blocks
+
+    def get_blocks_breadth_first(self, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return []
+
+        visited.append(self)
+
+        blocks = [self]
+        blocks.extend(self.successors)
+
+        for s in self.successors:
+            succ_blocks = s.get_blocks_breadth_first(visited=visited)
+            blocks.extend([s for s in succ_blocks if s not in blocks])
+
+        return blocks
+
+    # optimized ordering prioritizes fall throughs by loop depth.
+    # the assumption is that loops always run in most cases.
+    def get_blocks_optimized(self, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return []
+
+        visited.append(self)
+
+        blocks = [self]
+
+        # assume branches take true.
+        # this optimizes for fall throughs.
+        if isinstance(self.code[-1], irBranch):
+            branch = self.code[-1]
+            successors = {s.name: s for s in self.successors}
+            prioritized_successors = [successors[branch.true_label.name], successors[branch.false_label.name]]
+
+        else:
+            prioritized_successors = list(reversed(sorted(self.successors, key=lambda x: x.loop_depth)))
+
+        for s in prioritized_successors:
+            succ_blocks = s.get_blocks_optimized(visited=visited)
+            blocks.extend([s for s in succ_blocks if s not in blocks])
+
+        return blocks
+
+        
+    ##############################################
+    # Optimizer Passes
+    ##############################################
+    def gvn_process_phi(self, VN):
+        new_code = []
+        changed = False
+
+        # analyze phi nodes
+        for ir in self.code:
+            if not isinstance(ir, irPhi):
+                new_code.append(ir)
+                continue
+
+            phi = ir
+
+
+            # check if phi input blocks still exist
+            # they can be removed by GVN for constant branches
+            remove = []
+            for merge in phi.merges:
+                # if merge[1] not in self.func.blocks.values():
+                if merge[1] not in self.predecessors:
+                    debug_print(f'removing unused phi input {merge[0]} from missing predecessor: {merge[1].name}')
+
+                    remove.append(merge)
+
+            phi.merges = [m for m in phi.merges if m not in remove]
+
+            # check if phi is meaningless or redundant
+
+            # meaningless: all inputs have the same value number
+            # redundant: computes same value as another phi in the same block
+
+
+            # first, check if there are value numbers for all of the inputs
+            input_values = [p[0] for p in phi.merges if p[0] in VN]
+
+            if len(input_values) != len(phi.merges):
+                new_code.append(ir)
+
+                continue
+
+            # check if meaningless
+            first_value = VN[input_values[0]]
+
+            meaningless = True
+            for i in input_values:
+                if VN[i] != first_value:
+                    meaningless = False
+                    break
+
+            if meaningless:
+                debug_print(f"removing meaningless phi: {phi}")
+
+                VN[phi.target] = first_value
+
+                # remove the phi
+
+                changed = True
+
+            else:
+                # append the phi as-is
+                new_code.append(ir)
+
+                VN[phi.target] = phi.target
+
+        self.code = new_code
+
+        return changed
+
+    def gvn_adjust_successor_phi(self, VN):
+        """
+
+        After value numbering the φ -functions and instructions in a block, the algorithm visits each
+        successor block and updates any φ -function inputs that come from the current block. This
+        involves determining which φ -function parameter corresponds to input from the current block
+        and overwriting the parameter with its value number. Notice the resemblance between this step
+        and the corresponding step in the SSA construction algorithm. This step must be performed
+        before value numbering any of the block’s children in the dominator tree, if the compiler is
+        going to analyze φ -functions.
+        
+        """
+
+        # check successors and adjust phi function inputs in each
+        for s in self.successors:
+            phis = [p for p in s.code if isinstance(p, irPhi)]
+
+            for phi in phis:
+                for i in range(len(phi.merges)):
+                    m = phi.merges[i][0]
+                    b = phi.merges[i][1]
+
+                    # check if this input is in the value number table:
+                    if m in VN:
+                        replacement = VN[VN[m]]
+
+                        if m != replacement:
+                            # replace phi input with the value number
+
+                            debug_print(f"Replace phi {phi.target} input {m} with {replacement}")
+
+                            phi.merges[i] = (replacement, b)
+
+                            changed = True
+
+
+    def replace_labels(self, label, replace):
+        for ir in self.code:
+            ir.replace_labels(label, replace)
+
+    def relink_blocks(self, visited=None):
+        # run after optimizers that change or eliminate branchs
+
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return
+
+        visited.append(self)
+
+        # check if block has no predecessors and is not the leader
+        if (len(self.predecessors) == 0) and (self is not self.func.leader_block):
+            # unlink all successors
+            remove = self.successors
+
+        else:
+            # unlink successors that this block can no longer branch to
+            exit_branch = self.code[-1]
+            assert isinstance(exit_branch, irControlFlow)
+
+            exit_targets = [t.name for t in exit_branch.get_jump_target()]
+
+            remove = [s for s in self.successors if s.name not in exit_targets]
+
+        # remove this block from predecessors from pruned successors
+        for s in remove:
+            s.predecessors.remove(self)
+
+        # apply relink down the tree (including successors that are about to be unlinked)
+        for s in self.successors:
+            s.relink_blocks(visited=visited)
+
+        # filter out removed successors
+        self.successors = [s for s in self.successors if s not in remove]
+
+    def prune_unreachable_blocks(self):
+        # get_blocks will walk the tree and return all reachable blocks
+        blocks = self.get_blocks()
+
+        for block in blocks:
+            # prune predecessors that are not reachable
+            block.predecessors = [p for p in block.predecessors if p in blocks]
+
+    def gvn_analyze2(self, VN=None):
+        # global value numbering
+        # from Briggs, Cooper, and Simpson 1995
+
+        """
+        Figure 4:
+
+        procedure DVNT(Block B )
+            Mark the beginning of a new scope
+            for each φ -function p of the form “ n ← φ(. . .) ” in B
+                if p is meaningless or redundant
+                    Put the value number for p into VN [n]
+                    Remove p
+                else
+                    VN [n] ← n
+                    Add p to the hash table
+
+            for each assignment a of the form “ x ← y op z ” in B
+                Overwrite y with VN [y] and z with VN [z]
+                expr ← {y op z}
+
+                if expr can be simplified to expr'
+                    Replace a with “ x ← expr' ”
+                    expr ← expr'
+
+                if expr is found in the hash table with value number v
+                    VN [x] ← v
+                    Remove a
+                else
+                    VN [x] ← x
+                    Add expr to the hash table with value number x
+
+            for each successor s of B
+                Adjust the φ -function inputs in s
+
+            for each child c of B in the dominator tree
+                DVNT( c )
+
+            Clean up the hash table after leaving this scope
+
+    
+        Phi rules:
+        The φ -functions require special treatment. Before the compiler can analyze the φ -functions
+        in a block, it must previously have assigned value numbers to all of the inputs. This is not
+        possible in all cases; specifically, any φ -function input whose value flows along a back edge
+        (with respect to the dominator tree) cannot have a value number. If any of the parameters
+        of a φ -function have not been assigned a value number, then the compiler cannot analyze
+        the φ -function, and it must assign a unique, new value number to the result. The following
+        two conditions guarantee that all φ -function parameters in a block have been assigned value
+        numbers:
+
+        1. When procedure DVNT (see Figure 4) is called recursively for the children of block b in
+            the dominator tree, the children must be processed in reverse postorder. This ensures that
+            all of a block’s predecessors are processed before the block itself, unless the predecessor
+            is connected by a back edge relative to the DFS tree.
+
+        2. The block must have no incoming back edges.
+
+    
+        Replacement rules:
+
+        1. The value number can replace a redundant computation in any block dominated by the
+            first occurrence.
+
+        2. The value number can replace a redundant evaluation that is a parameter to a φ -node
+            corresponding to control flow from a block dominated by the first occurrence. To find
+            these φ -node parameters, we compute the dominance frontier of the block containing
+            the first occurrence of the expression. The dominance frontier of node X is the set of
+            nodes Y such that X dominates a predecessor of Y , but X does not strictly dominate Y.
+
+        """
+
+        logging.debug(f'GVN Analyze: {self.name}')
+
+        changed = False
+
+        self.gvn_process_phi(VN)
+
+        new_code = []
+        for ir in self.code:
+            op = ir.gvn_process(VN)
+
+            if isinstance(op, IR):
+                debug_print(f'Replace: {ir} with {op}')
+                ir = op
+                ir.block = self
+
+                changed = True
+
+            elif op == 'remove':
+                debug_print(f'Remove: {ir}')
+
+                changed = True
+                
+                continue
+
+            new_code.append(ir)
+
+        self.code = new_code
+
+
+        self.gvn_adjust_successor_phi(VN)
+
+        debug_print(f"\n----------------------\nGVN Summary: {self.name}")
+        debug_print("\nVALUES:")
+
+        for k, v in VN.items():
+            debug_print(f'{str(k):48} = {v}')
+
+        debug_print('\n')
+
+        # if changed:
+        #     debug_print("changes marked in this pass")
+
+        # else:
+        #     debug_print("no changes in this pass")
+
+        debug_print('\n')
+        
+
+        if self not in self.func.dominator_tree:
+            return changed
+
+        # process children in RPO:
+        children = self.func.dominator_tree[self]
+        rpo = [c for c in self.func.reverse_postorder if c in children]
+        
+        for c in rpo:
+            if c.gvn_analyze2(copy(VN)):
+                changed = True
+
+        return changed
+
+    def local_load_store_elim(self):
+        loads = {}
+
+        load_replace_count = 0
+
+        new_code = []
+        for ir in self.code:
+            if isinstance(ir, irLoad):
+                if ir.ref not in loads:
+                    loads[ir.ref] = ir.register
+
+                else:
+                    assign = irAssign(ir.register, loads[ir.ref], lineno=ir.lineno)
+                    assign.block = self
+
+                    # logging.debug(f'Replace load {ir} with assign {assign}')
+
+                    load_replace_count += 1
+
+                    ir = assign
+
+            elif isinstance(ir, irStore):
+                loads[ir.ref] = ir.register
+
+            new_code.append(ir)
+
+        self.code = new_code
+
+        store_replace_count = 0
+
+        stores = {}
+
+        new_code = []
+
+        for ir in reversed(self.code):
+            if isinstance(ir, irStore):
+                if ir.ref not in stores:
+                    stores[ir.ref] = ir
+
+                else:
+                    store_replace_count += 1
+                    continue
+
+            new_code.append(ir)
+
+        self.code = list(reversed(new_code))
+
+        logging.debug(f'LoadStoreElim: Remove {load_replace_count} loads and {store_replace_count} stores')
+
+    def remove_dead_code(self, reads=None):
+        new_code = []
+
+        assert reads is not None
+
+        for ir in self.code:
+            # check for assign to self
+            # other optimizations might leave some of these around
+            if isinstance(ir, irAssign):
+                if ir.target == ir.value:
+                    # remove instruction
+                    continue
+
+            elif isinstance(ir, irCallType):
+                # always include calls, because they may 
+                # have global side-effects:
+                new_code.append(ir)
+                continue
+
+            is_read = False
+
+            # check if this instruction writes to any vars which are read
+            for o in ir.get_output_vars():
+                if o.ssa_name in reads:
+                    is_read = True
+                    break
+
+            # any of this instruction's outputs are eventually read:
+            # if this instruction has no outputs, we will not remove it.
+            if is_read or \
+               len(ir.get_output_vars()) == 0 and \
+               not isinstance(ir, irNop):
+
+                # keep this instruction
+                new_code.append(ir)
+
+            else:
+                logging.debug(f'Removing instruction: {ir} from line {ir.lineno}')
+
+        old_code = self.code
+
+        self.code = new_code
+
+        return old_code != new_code
+
+    ##############################################
+    # Transformation Passes
+    ##############################################
+
+
+    def lookup_var(self, var, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return None
+
+        visited.append(self)
+
+        if var.name in self.defines:
+            return self.defines[var.name]
+
+        # search predecessors
+        for p in self.predecessors:
+            v = p.lookup_var(var, visited=visited)
+            if v:
+                return v
+        
+        return None
+
+    def resolve_phi(self, merge_number=0):
+        # extract phis and remove from block code
+        phis = []
+        new_code = []
+        for ir in self.code:
+            if isinstance(ir, irPhi):
+                phis.append(ir)
+                
+                # phi node will be removed from block
+            else:
+                new_code.append(ir)
+
+        self.code = new_code
+        self.recalc_defines()
+
+        # print('MEOW')
+        
+        NEW_ALGORITHM = False
+
+        if NEW_ALGORITHM:
+
+            merges = {}
+
+            for phi in phis:
+                # print(phi)
+
+                for a in phi.merges:
+                    d = a[0]
+                    p = a[1]
+
+                    if p not in merges:
+                        merges[p] = []
+
+                    if d not in merges[p]:
+                        merges[p].append((phi.target, d))
+                    
+            for block, values in merges.items():
+                # print(block.name)
+                for val in values:
+                    target = val[0]
+                    source = val[1]
+                    # print(val[0], val[1])
+
+                    ir = irAssign(target, source, lineno=-1)
+                    ir.block = block
+
+                    # print(ir)
+
+                    block.code.insert(-1, ir)
+
+            return
+
+        # collect incoming blocks from all phis
+        incoming_blocks = []
+        merges = {}
+        for phi in phis:
+            merges[phi] = {}
+            phi_merges = merges[phi]
+
+            for a in phi.merges:
+                d = a[0]
+                p = a[1]
+
+                assert d not in phi_merges
+                phi_merges[d] = p
+                if p not in incoming_blocks:
+                    incoming_blocks.append(p)
+            
+            assert len(phi_merges) == len(phi.merges)
+
+        merge_blocks = {}
+
+        # insert a merge block for each incoming block
+        for in_block in incoming_blocks:
+            merge_block = irBlock(self.func, lineno=in_block.lineno - 1)
+            merge_block.scope_depth = self.scope_depth
+
+            label = irLabel(f'merge.{merge_number}_{self.name}', lineno=-1)
+            merge_number += 1
+            merge_block.append(label)
+
+
+            # set exit jump to self block
+            jump = irJump(self.code[0], lineno=-1)
+            merge_block.append(jump)
+
+            # replace jump on the incoming block to point to the merge block
+            incoming_jump = in_block.code[-1]
+
+            if isinstance(incoming_jump, irJump):
+                incoming_jump.target = label
+
+            elif isinstance(incoming_jump, irBranch):
+                if incoming_jump.true_label.name == self.name:
+                    incoming_jump.true_label = label
+
+                if incoming_jump.false_label.name == self.name:
+                    incoming_jump.false_label = label
+
+            elif isinstance(incoming_jump, irLoop):
+                if incoming_jump.true_label.name == self.name:
+                    incoming_jump.true_label = label
+
+                if incoming_jump.false_label.name == self.name:
+                    incoming_jump.false_label = label
+
+            else:
+                # last instruction in block is supposed to be a jump or branch
+                raise CompilerFatal(f'{incoming_jump}')
+
+            # rearrange block structure    
+            try:
+                in_block.successors.remove(self)
+
+            except ValueError:
+                logging.error(f'PHI resolver failed on block: {self.name} merging: {merge_block.name} from {in_block.name}')
+
+                raise
+
+            in_block.successors.append(merge_block)
+            merge_block.predecessors.append(in_block)
+            merge_block.successors.append(self)
+            self.predecessors.remove(in_block)
+            self.predecessors.append(merge_block)
+
+            # merge blocks are considered "auto" filled and sealed
+            merge_block.filled = True
+            merge_block.sealed = True
+
+            merge_blocks[in_block] = merge_block
+
+        for phi, phi_merges in merges.items():
+            for var, pred in phi_merges.items():
+                
+                merge_block = merge_blocks[pred]
+
+                # check if target and value are the same,
+                # if they are, we don't need an assign here.
+                if phi.target != var: 
+                    ir = irAssign(phi.target, var, lineno=-1)
+                    ir.block = merge_block
+                    merge_block.code.insert(len(merge_block.code) - 1, ir)
+
+                    merge_block.recalc_defines()
+
+        self.recalc_defines()
+
+        return merge_number        
+
+    def add_phi(self, var):
+        ir = irPhi(var, lineno=-1)
+        ir.block = self
+        self.temp_phis.append(ir)
+
+        return ir
+
+    def add_incomplete_phi(self, var):
+        ir = irIncompletePhi(var, self, lineno=-1)
+        ir.block = self
+        self.temp_phis.append(ir)
+
+        return ir
+
+    def ssa_lookup_var(self, var, skip_local=False, visited=None):
+        if visited is None:
+            visited = []
+
+        if self in visited:
+            return None
+
+        visited.append(self)
+
+        if not isinstance(var, str):
+            var_name = var.name
+
+        else:
+            var_name = var
+
+        # check local block
+        if var_name in self.defines and not skip_local:
+            return self.defines[var_name]
+
+        # if no predecessors
+        elif len(self.predecessors) == 0:
+            # look up fails
+            raise KeyError(var_name)
+
+        # if only one predecessor
+        elif len(self.predecessors) == 1:
+            # we enforce that at least one predecessor is filled before filling a block
+            # we check that here.  since there is only one in this case, it has to be filled.
+            assert self.predecessors[0].filled
+
+            v = self.predecessors[0].ssa_lookup_var(var, visited=visited)
+            return v
+
+        # if block is sealed (all preds are filled)
+        elif len([p for p in self.predecessors if not p.filled]) == 0:
+
+            assert var_name not in self.defines
+
+            # create new var and add a phi node
+            new_var = self.type_manager.create_var_from_type(var_name, var.data_type, lineno=-1)
+
+            new_var.convert_to_ssa(self.ssa_next_val)
+
+            # this will ensure the lookup will resolve on a loop
+            self.defines[var_name] = new_var.var
+
+            # add the temp phi
+            phi = self.add_phi(new_var)
+
+            # search predecessors for incoming phi values
+            values = []
+            for p in self.predecessors:
+                pv = p.ssa_lookup_var(var)
+
+                assert pv is not None
+                v = VarContainer(pv)
+                values.append((v, p))
+
+            merges = list(sorted(set(values), key=lambda a: a[0].name))
+            phi.merges = merges
+
+            return new_var.var
+
+        # if block is not sealed:
+        elif len([p for p in self.predecessors if p.filled]) < len(self.predecessors):
+            assert not self.sealed
+
+            new_var = self.type_manager.create_var_from_type(var_name, var.data_type, lineno=-1)
+
+            if isinstance(new_var.var, varRef):
+                new_var.target = var.target
+
+            new_var.convert_to_ssa(self.ssa_next_val)
+
+            self.defines[var_name] = new_var.var
+
+            # this requires an incomplete phi which defines a new value
+            self.add_incomplete_phi(new_var)
+
+            return new_var.var
+
+        else:
+            assert False
+
+
+    def seal(self):        
+        if len(self.predecessors) == 0:
+            # if no preds, we must be the start block
+            self.sealed = True
+
+        if self.sealed:
+            return
+
+        assert len(self.predecessors) > 0
+
+        # check if all predecessors are filled
+        if len([p for p in self.predecessors if not p.filled]) > 0:
+            # at least one predecessor is unfilled
+            return
+
+        # get any incomplete phis and add them to the code
+        for ir in [p for p in self.temp_phis if isinstance(p, irIncompletePhi)]:
+            self.code.insert(1, ir)
+
+        self.temp_phis = [p for p in self.temp_phis if not isinstance(p, irIncompletePhi)]
+
+        # we can seal this block
+        new_code = []
+        for ir in self.code:
+            if isinstance(ir, irIncompletePhi):
+                values = []
+                for p in self.predecessors:
+                    pv = p.ssa_lookup_var(ir.var)
+
+                    v = VarContainer(pv)
+                    
+                    if ir.var != v: # check for self reference
+                        values.append((v, p))
+
+                values = list(sorted(set(values), key=lambda a: a[0].name))
+
+
+                # assert len(values) > 0
+                if len(values) > 0:
+
+                    phi = irPhi(ir.var, values, lineno=ir.lineno)
+                    phi.block = self
+
+                    new_code.append(phi)
+
+                else:
+                    undef = irUndefinedPhi(ir.var, self, lineno=ir.lineno)
+                    new_code.append(undef)
+
+            else:
+                new_code.append(ir)
+
+        self.code = new_code
+
+        self.sealed = True
+
+    def fill(self):
+        if self.filled:
+            return
+
+        # are any predecessors filled?
+        if len(self.predecessors) > 0 and \
+           len([p for p in self.predecessors if p.filled]) == 0:
+            return
+
+        new_code = []
+        # start to fill block
+        for ir in self.code:
+            inputs = ir.get_input_vars()
+
+            for i in inputs:
+                try:
+                    v = self.ssa_lookup_var(i)
+
+                except KeyError:
+                    raise SyntaxError(f'Variable {i.name} is not defined.', lineno=ir.lineno)
+
+                i.var = v
+
+            # look for writes to current set of vars and increment versions
+            outputs = ir.get_output_vars()
+
+            for o in outputs:
+                o.convert_to_ssa(self.ssa_next_val)
+                self.defines[o.name] = o.var
+        
+            new_code.append(ir)
+
+        self.code = new_code
+
+        self.filled = True                    
+
+    def apply_temp_phis(self):
+        # insert any phis that are leftover
+        for ir in self.temp_phis:
+            # incomplete phis should already have been processed at this point
+            assert isinstance(ir, irPhi)
+
+            self.code.insert(1, ir)
+
+        self.temp_phis = [] # done with temp phis
+
+    def clean_up_phis(self):
+        changed = False
+
+        assert len(self.temp_phis) == 0
+
+        assert len([ir for ir in self.code if isinstance(ir, irIncompletePhi)]) == 0
+
+        new_code = []
+        for ir in self.code:
+            if isinstance(ir, irPhi):
+                # check if the phi target variable is in it's defines.
+                # this could occur during a previous replace-use (above)
+                # if so, let's remove it
+                if ir.target in [a[0] for a in ir.merges]:
+                    ir.merges = [a for a in ir.merges if a[0] != ir.target]
+                
+                    changed = True
+                
+                # no defines?
+                elif len(ir.merges) == 0:
+                    # get users of phi target
+                    users = [i for i in self.func.get_input_vars() if i == ir.target]
+
+                    # ensure no one is actually using this var
+                    assert len(users) == 0
+            
+                    # remove target from defines:
+                    del self.defines[ir.target]
+
+                    # skip phi (remove from code)
+                    changed = True
+                    continue 
+
+                # check if only one merge
+                # if so, that means that any user of the target var is a copy of
+                # the singular definition - they must always be equivalent.  thanks SSA!
+                # we can replace all users of the target with the define, eliminating
+                # this phi and also eliminating a variable.
+                elif len(ir.merges) == 1:
+                    merge = ir.merges[0][0]
+
+                    # get all users of this variable
+                    users = [i for i in self.func.get_input_vars() if i == ir.target]
+
+                    for user in users:
+                        user.var = merge.var.copy()
+
+                    changed = True                    
+                    continue # remove phi from code
+
+                elif len(ir.merges) > 1:
+                    # remove duplicates
+                    seen = []
+                    merges = []
+                    for var, block in ir.merges:
+                        if var not in seen:
+                            seen.append(var)
+                            merges.append((var, block))
+
+                    if merges != ir.merges:
+                        ir.merges = merges
+                        changed = True
+
+            new_code.append(ir)
+
+        self.code = new_code
+
+        return changed
+
+class irFunc(IR):
+    def __init__(self, name, ret_type='i32', params=None, body=None, symbol_table=None, type_manager=None, source_code=[], **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+        self.ret_type = ret_type
+        self.params = params
+        self.body = [] # input IR
+        self.code = [] # output IR
+        self.symbol_table = symbol_table
+        self.type_manager = type_manager
+        self.source_code = source_code
+
+        self.next_temp = 0
+
+        if self.params == None:
+            self.params = []
+
+        self.leader_block = None
+        self.live_vars = None
+        self.loops = {}
+        self.back_edges = []
+        self.dominators = {}
+        self.dominator_tree = {}
+
+        self.live_in = None
+        self.live_out = None
+        self.live_ranges = {}
+
+        self.mem_live_in = None
+        self.mem_live_out = None
+        self.mem_live_ranges = {}
+
+        self.direct_calls = None
+        self.indirect_calls = None
+
+        self.ssa_next_val = {}
+
+        self.instructions = None
+        self.register_count = None
+        self.registers = {}
+
+    @property
+    def blocks(self):
+        return {b.name: b for b in self.leader_block.get_blocks()}
+
+    @property    
+    def postorder(self):
+        visited = []
+        order = []
+
+        def walk(block):
+            if block not in visited:
+                visited.append(block)
+
+            for s in block.successors:
+                if s not in visited:
+                    walk(s)
+
+            order.append(block)
+
+        walk(self.leader_block)
+
+        assert len(order) == len(self.blocks)
+
+        return order
+
+    @property    
+    def reverse_postorder(self):
+        return list(reversed(self.postorder))
+
+    @property
+    def locals(self):
+        return [l for l in self.symbol_table.symbols.values() if not isinstance(l, VarContainer)]
+
+    def get_input_vars(self):
+        v = []
+        for block in self.blocks.values():
+            v.extend(block.get_input_vars())
+
+        return v
+    
+    def get_output_vars(self):
+        v = []
+        for block in self.blocks.values():
+            v.extend(block.get_output_vars())
+
+        return v
+
+    @property
+    def max_registers(self):
+        if self.live_vars is None:
+            return None
+
+        max_live =0 
+        for ir, live in self.live_vars.items():
+            live = {l.name: None for l in live}
+
+            if len(live) > max_live:
+                max_live = len(live)
+
+        return max_live
+
+    @property
+    def var_defines(self):
+        d = {}
+
+        for ir in self.get_code_from_blocks():
+            for o in ir.get_output_vars():
+                if o not in d:
+                    d[o] = []
+
+                d[o].append(ir)
+
+        return d
+
+    def __str__(self):
+        try:
+            params = params_to_string(self.params)
+
+            s = "\n######## Line %4d       ########\n" % (self.lineno)
+            s += "Func %s(%s) -> %s\n" % (self.name, params, self.ret_type)
+
+            s += "********************************\n"
+            s += "Params:\n"
+            s += "********************************\n"
+
+            for v in self.params:
+                s += f'\t{v.name:16}:{v.data_type}\n'
+
+            s += "********************************\n"
+            s += "Locals:\n"
+            s += "********************************\n"
+
+            for v in self.locals:
+                s += f'{v.lineno:3}\t{v.name:16}:{v.data_type}/{v.size} @ {v.addr}\n'
+
+            s += "********************************\n"
+            s += "Input Code:\n"
+            s += "********************************\n"
+            lines_printed = []
+            for ir in self.body:
+                if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
+                    s += f'________________________________________________________\n'
+                    s += f' {ir.lineno}: {self.source_code[ir.lineno - 1].strip()}\n'
+                    lines_printed.append(ir.lineno)
+        
+                s += f'\t{ir}\n'
+
+            s += "********************************\n"
+            s += "Dominance:\n"
+            s += "********************************\n"
+            for n, dom in self.dominators.items():
+                s += f'\t{n.name}\n'
+                for d in dom:
+                    s += f'\t\t{d.name}\n'
+
+            s += "********************************\n"
+            s += "Dominator Tree:\n"
+            s += "********************************\n"
+            for n, dom in self.dominator_tree.items():
+                s += f'\t{n.name}\n'
+                if len(dom) == 0:
+                    s += '\t\tNone\n'
+                else:
+                    for d in dom:
+                        s += f'\t\t{d.name}\n'
+
+            s += "********************************\n"
+            s += "Loops:\n"
+            s += "********************************\n"
+            for loop, info in self.loops.items():
+                s += f'{loop}\n'
+                s += f'\tHeader: {info["header"].name}\n'
+                s += '\tBody:\n'
+                for block in info['body']:
+                    s += f'\t\t\t{block.name}\n'
+
+                s += '\tBody Vars:\n'
+                for v in sorted(list(set([v.name for v in info['body_vars']]))):
+                    s += f'\t\t\t{v}\n'
+
+            s += "********************************\n"
+            s += "Blocks:\n"
+            s += "********************************\n"
+
+            blocks = self.sorted_blocks
+            for block in blocks:
+                s += f'{block}\n'
+
+            s += "********************************\n"
+            s += "IR:\n"
+            s += "********************************\n"
+            lines_printed = []
+            index = 0
+            for ir in self.code:
+                if ir.lineno >= 0 and ir.lineno not in lines_printed and not isinstance(ir, irLabel):
+                    s += f'________________________________________________________\n'
+                    s += f' Line {ir.lineno}: {self.source_code[ir.lineno - 1].strip()}\n'
+                    lines_printed.append(ir.lineno)
+
+                
+                if self.live_vars:
+                    live = sorted(list(set([a.name for a in self.live_vars[ir]])))
+                    s += f'\t{str(ir):48}\tlive: {live}\n'
+
+                else:
+                    s += f'{index:3}\t{ir}\n'
+
+                index += 1
+
+            s += f'IR Instructions: {len([i for i in self.get_code_from_blocks() if not isinstance(i, irLabel)])}\n'
+
+            s += "********************************\n"
+            s += "Virtual Registers:\n"
+            s += "********************************\n"
+            s += f'Registers: {len(self.registers)}\n'
+            for var, reg in self.registers.items():
+                s += f'\t{var.ssa_name:24}: {reg}\n'
+            
+            return s
+
+        except Exception as e:
+            return f'!!! Exception during string rendering for func "{self.name}": {e} !!!'
+
+    def create_block_from_code_at_label(self, label, prev_block=None, blocks=None):
+        labels = self.labels()
+        index = labels[label.name]
+
+        # verify instruction at index is actually our label:
+        assert self.body[index].name == label.name
+        assert isinstance(self.body[index], irLabel)
+
+        return self.create_block_from_code_at_index(index, prev_block=prev_block, blocks=blocks)
+
+    def create_block_from_code_at_index(self, index, prev_block=None, blocks=None):
+        if blocks is None:
+            blocks = {}
+
+        # check if we already have a block starting at this index
+        if index in blocks:
+            block = blocks[index]
+            # check if prev_block is not already as predecessor:
+            if prev_block not in block.predecessors:
+                block.predecessors.append(prev_block)
+
+            return block
+
+        block = irBlock(func=self, lineno=self.body[index].lineno)
+        block.scope_depth = self.body[index].scope_depth
+        blocks[index] = block
+
+        if prev_block:
+            block.predecessors.append(prev_block)
+
+        while True:
+            ir = self.body[index]
+
+            # check if label,
+            # if so, this is an entry point for a new block,
+            # possibly a backwards jump
+            if isinstance(ir, irLabel) and (len(block.code) > 0):
+                new_block = self.create_block_from_code_at_label(ir, prev_block=block, blocks=blocks)
+                block.successors.append(new_block)
+
+                # add a jump to this label in this block, this creates a clean
+                # end point for this block
+                jump = irJump(ir, lineno=ir.lineno)
+                block.append(jump)
+
+                break
+
+            index += 1
+
+            block.append(ir)
+
+            if isinstance(ir, irBranch) or isinstance(ir, irLoop):
+                # conditional branch choosing between 2 locations
+                true_block = self.create_block_from_code_at_label(ir.true_label, prev_block=block, blocks=blocks)
+                block.successors.append(true_block)
+
+                false_block = self.create_block_from_code_at_label(ir.false_label, prev_block=block, blocks=blocks)
+                block.successors.append(false_block)
+
+                break
+
+            elif isinstance(ir, irJump):
+                # jump to a single location
+                target_block = self.create_block_from_code_at_label(ir.target, prev_block=block, blocks=blocks)
+                block.successors.append(target_block)
+                break
+
+            elif isinstance(ir, irReturn):
+                # return from function
+                break
+
+        return block
+
+    def recalc_defines(self):
+        for block in self.blocks.values():
+            block.recalc_defines()
+
+    def fixup_globals(self):
+        assert len(self.code) > 0
+
+        for ir in self.code:
+            if  isinstance(ir, irLoad) or \
+                isinstance(ir, irStore):
+                # isinstance(ir, irLoadRef):
+
+                # assert self.symbol_table.globals[ir.ref].addr is not None
+                if ir.ref.data_type != 'offset':
+                    # assign addresses to globals
+                    ir.ref.addr = self.symbol_table.globals[ir.ref].addr
+
+    def render_dominator_tree(self):
+        dot = graphviz.Digraph(comment=self.name)
+
+        for node, children in self.dominator_tree.items():
+            dot.node(node.name)
+
+            for c in children:
+                dot.edge(node.name, c.name)
+
+
+        dot.render('___fx_dom_tree___.gv', view=True, cleanup=True)
+
+    def render_graph(self, graph_name=None):
+        if not DEBUG:
+            return
+
+        if self.name != 'init':
+            return
+
+        if graph_name is None:
+            graph_name = self.name
+
+        dot = graphviz.Digraph(comment=graph_name)
+
+        for block in self.blocks.values():
+            name = block.name
+            # replace colons, as they are part of the DOT syntax
+            name = name.replace(':', '() ')
+
+            label = name
+            label += '\n--------------------\n'
+
+            for ir in block.code:
+                if isinstance(ir, irLabel):
+                    continue
+
+                if DEBUG_FILTER_LOAD_STORE:
+                    if isinstance(ir, irLoad):
+                        continue
+
+                    if isinstance(ir, irStore):
+                        continue
+
+                if ir.lineno >= 0:
+                    source_line = self.source_code[ir.lineno - 1]
+                    label += f'{source_line} -->\t{ir}\n'
+
+                else:
+                    label += f'{ir}\n'
+
+            dot.node(name, label=label)
+
+            for suc in block.successors:
+                dot.edge(name, suc.name)
+
+        dot.render(f'___fx_graph___{graph_name}.gv', view=True, cleanup=True)
+
+    def calc_dominance(self):
+        dominators = {self.leader_block: set([self.leader_block])}
+
+        # blocks = [b for b in self.blocks.values() if b is not self.leader_block]
+        blocks = list(self.blocks.values())
+        for block in blocks:
+            if block is self.leader_block:
+                continue
+
+            dominators[block] = set(copy(blocks))
+        
+        changed = True
+        while changed:
+            changed = False
+
+            for block in blocks:
+                predecessor_sets = []
+
+                for pre in block.predecessors:
+                    predecessor_sets.append(set(dominators[pre]))
+
+                if len(predecessor_sets) == 0:
+                    # leader block will not have predecessors
+                    intersection = set()
+
+                else:
+                    # every other block:
+                    intersection = predecessor_sets[0].intersection(*predecessor_sets[1:])
+
+                new = set([block]).union(intersection)
+
+                if dominators[block] != new:
+                    changed = True
+
+                dominators[block] = new
+
+        # lookup: key is dominated by values
+
+        return dominators
+
+    def calc_strict_dominance(self, dominators):
+        sdom = {}
+
+        for node, dom in dominators.items():
+            sdom[node] = copy(dom)
+            sdom[node].remove(node)
+
+        return sdom
+
+    def calc_immediate_dominance(self, sdom):
+        idom = {}
+
+        # convert from "is-dominated_by" to "dominates"
+        sdom2 = {}
+        for n in self.blocks.values():
+            sdom2[n] = []
+
+        for node, dom in sdom.items():
+            for d in dom:
+                if node is not d:
+                    sdom2[d].append(node)
+
+        for n in self.blocks.values():
+            idom[n] = None
+
+            """
+            The immediate dominator or idom of a node n is 
+            the unique node that strictly dominates n but 
+            does not strictly dominate any other node that 
+            strictly dominates n. Every node, except the 
+            entry node, has an immediate dominator.
+
+            """
+
+            sdoms = sdom[n] # all nodes that strictly dominate n
+            # one of these will be the idom
+
+            for d in sdoms:
+                # does d strictly dominate any other node that
+                # also strictly dominates n?
+
+                d_doms = sdom2[d] # set of nodes that d strictly dominates
+
+                skip = False
+                for d2 in d_doms:
+                    # does d2 strictly dominate n?
+                    if n in sdom2[d2]:
+                        skip = True
+                        break
+
+                if skip:
+                    continue
+
+                assert idom[n] is None
+                idom[n] = d                
+
+        assert idom[self.leader_block] is None
+
+        return idom
+
+    def calc_dominator_tree(self, dominators):
+        sdom = self.calc_strict_dominance(dominators)
+        idom = self.calc_immediate_dominance(sdom)
+
+        # convert from "is-dominated_by" to "dominates"
+        tree = {}
+        for n in self.blocks.values():
+            tree[n] = []
+
+        for n in self.blocks.values():
+            if idom[n] is None:
+                continue
+
+            tree[idom[n]].append(n)
+
+        return tree
+
+    def get_successors(self, code=None):
+        if code is None:
+            code = self.get_code_from_blocks()
+
+        succ = {}
+
+        # init to empty
+        for ir in code:
+            succ[ir] = []
+
+        # init successors
+        for i in range(len(code)):
+            ir = code[i]
+
+            targets = ir.get_jump_target()
+
+            if isinstance(ir, irReturn):
+                # returns have no successor
+                continue
+
+            if targets is None:
+                # no jump targets, successor is next instruction
+                succ[ir] = [code[i + 1]]
+
+            else:
+                succ[ir].extend(targets)
+        
+        return succ
+
+    def liveness_analysis(self):
+        live_in = {}
+        live_out = {}
+
+        assert len(self.code) > 0
+        
+        code = self.code
+
+        # init to empty sets
+        for ir in code:
+            live_in[ir] = set()
+            live_out[ir] = set()
+
+        succ = self.get_successors(code=code)
+
+        iterations = 0
+        iteration_limit = 512
+        changed = True
+        while changed and iterations < iteration_limit:
+            iterations += 1
+            changed = False
+            prev_live_in = {}
+            prev_live_out = {}
+
+            for ir in reversed(code):
+                prev_live_in[ir] = copy(live_in[ir])
+                prev_live_out[ir] = copy(live_out[ir])
+
+                in_vars = ir.get_input_vars()
+                out_vars = ir.get_output_vars()
+
+                use = set(in_vars)
+                define = set(out_vars)
+
+                live_in[ir] = use | (live_out[ir] - define)
+                live_out[ir] = set()
+
+                for s in succ[ir]:
+                    live_out[ir] |= live_in[s]
+
+            if prev_live_in != live_in:
+                changed = True
+
+            elif prev_live_out != live_out:
+                changed = True
+
+        # force liveness on any outputs marked to be forced:
+        for ir in self.code:
+            for o in ir.get_output_vars():
+                if o.force_used:
+                    live_out[ir] |= set([o])
+
+        self.live_in = live_in
+        self.live_out = live_out
+
+        logging.debug(f'Liveness analysis in {iterations} iterations')
+
+        # top of function should not have anything live other than it's parameters:
+        # if these trigger, it is possible that the SSA construction was missing a Phi node,
+        # so there exists a code path where a variable is not defined (and thus, has its liveness killed),
+        # so that var will "leak" to the top.
+        for v in self.live_in[code[0]]:
+            if v not in self.params:
+                logging.error(f'Liveness error: {v} func: {self.name}')
+                
+                if not DEBUG and EXCEPTION_ON_LIVENESS_ERROR:
+                    raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
+
+        for v in self.live_out[code[0]]:
+            if v not in self.params:
+                logging.error(f'Liveness error: {v} func: {self.name}')
+
+                if not DEBUG and EXCEPTION_ON_LIVENESS_ERROR:
+                    raise CompilerFatal(f'Liveness error: {v} func: {self.name}')
+
+        # copy liveness information into instructions:
+        for ir in code:
+            ir.live_in = set(self.live_in[ir])
+            ir.live_out = set(self.live_out[ir])
+
+    def liveness_analysis_memory(self):
+        live_in = {}
+        live_out = {}
+
+        code = self.get_code_from_blocks()
+
+        # init to empty sets
+        for ir in code:
+            live_in[ir] = set()
+            live_out[ir] = set()
+
+        succ = self.get_successors(code=code)
+
+        mem_vars = {}
+        for ir in code:
+            if isinstance(ir, irLoad) or isinstance(ir, irStore):
+                if ir.ref not in mem_vars:
+                    mem_vars[ir.ref.name] = ir.ref
+
+
+        # code = [ir for ir in code if not isinstance(ir, irLoad)]
+        # code = [ir for ir in code if not isinstance(ir, irStore)]
+
+        iterations = 0
+        iteration_limit = 512
+        changed = True
+        while changed and iterations < iteration_limit:
+            iterations += 1
+            changed = False
+            prev_live_in = {}
+            prev_live_out = {}
+
+            for ir in reversed(code):
+                prev_live_in[ir] = copy(live_in[ir])
+                prev_live_out[ir] = copy(live_out[ir])
+
+                in_vars = [mem_vars[i.name] for i in ir.get_input_vars() if i.name in mem_vars]
+                out_vars = [mem_vars[i.name] for i in ir.get_output_vars() if i.name in mem_vars]
+
+                use = set(in_vars)
+                define = set(out_vars)
+
+                live_in[ir] = use | (live_out[ir] - define)
+                live_out[ir] = set()
+
+                for s in succ[ir]:
+                    live_out[ir] |= live_in[s]
+
+            if prev_live_in != live_in:
+                changed = True
+
+            elif prev_live_out != live_out:
+                changed = True
+
+        self.mem_live_in = live_in
+        self.mem_live_out = live_out
+
+
+        logging.debug(f'Memory liveness analysis in {iterations} iterations')
+
+        # top of function should not have anything live other than it's parameters:
+        # if these trigger, it is possible that the SSA construction was missing a Phi node,
+        # so there exists a code path where a variable is not defined (and thus, has its liveness killed),
+        # so that var will "leak" to the top.
+        for v in self.mem_live_in[code[0]]:
+            if v not in self.params:
+                logging.error(f'Memory liveness error: {v} func: {self.name}')
+                
+                if not DEBUG and EXCEPTION_ON_LIVENESS_ERROR:
+                    raise CompilerFatal(f'Memory liveness error: {v} func: {self.name}')
+
+        for v in self.mem_live_out[code[0]]:
+            if v not in self.params:
+                logging.error(f'Memory liveness error: {v} func: {self.name}')
+
+                if not DEBUG and EXCEPTION_ON_LIVENESS_ERROR:
+                    raise CompilerFatal(f'Memory liveness error: {v} func: {self.name}')
+
+        # copy liveness information into instructions:
+        for ir in code:
+            ir.mem_live_in = set(self.mem_live_in[ir])
+            ir.mem_live_out = set(self.mem_live_out[ir])
+
+
+    def analyze_calls(self):
+        direct_calls = []
+        indirect_calls = []
+
+        for ir in self.body:
+            if isinstance(ir, irCall):
+                if ir.target not in direct_calls:
+                    direct_calls.append(ir.target)
+
+            elif isinstance(ir, irLoadRef):
+                if isinstance(ir.ref, varFunction):
+                    indirect_calls.append(ir.ref)
+
+        self.direct_calls = direct_calls
+        self.indirect_calls = indirect_calls
+
+    def get_call_graph(self, funcs):
+        calls = []
+        calls.extend(self.direct_calls)
+        calls.extend(self.indirect_calls)
+
+        call_graph = {}
+
+        for call in [c.name for c in calls]:
+            func = funcs[call]
+            call_graph[call] = func.get_call_graph(funcs)
+
+        return call_graph
+
+    def verify_block_assignments(self):
+        # verify all instructions are recording their blocks:
+        for block in self.blocks.values():
+            for ir in block.code:
+                try:
+                    assert ir.block is block
+
+                except AssertionError:
+
+                    logging.critical(f'FATAL: {ir} from {block.name} does not have a block assignment.')
+                    raise
+
+    def verify_block_links(self):
+        for b in self.blocks.values():
+            for p in b.predecessors:
+                # verify b is member of each predecessor's successors
+                assert b in p.successors
+
+            for s in b.successors:
+                # verify b is member of each successor's predecessors
+                assert b in s.predecessors
+
+    def verify_variables(self):
+        # check that used vars have a define
+        # this is just a basic check, it does not
+        # perform a dataflow analysis
+        outputs = self.get_output_vars()
+        inputs = self.get_input_vars()
+        for i in inputs:
+            if i not in outputs and i not in self.params:
+                raise CompilerFatal(f'Variable {i} used without define')
+
+
+    def resolve_phi(self):
+        self.recalc_defines()
+
+        merge_number = 0
+        for block in self.blocks.values():
+            merge_number = block.resolve_phi(merge_number)
+
+    def convert_to_ssa(self):
+        """
+        This code is based on "Simple and Efficient Construction of Static Single Assignment Form"
+        from Braun, et al. 2013
+
+        """
+
+
+        logging.debug(f'Converting function: {self.name} to SSA')
+
+        for p in self.params:
+            p.convert_to_ssa()
+            self.leader_block.defines[p.name] = p.var
+
+        blocks = self.blocks.values()
+        
+        iterations = 0
+        iteration_limit = 1024
+        while (len([b for b in blocks if not b.filled]) > 0) or \
+              (len([b for b in blocks if not b.sealed]) > 0):
+              
+            if iterations > iteration_limit:
+                raise CompilerFatal(f'SSA conversion failed after {iterations} iterations')
+                break
+
+            for block in blocks:
+                block.fill()
+                block.seal()
+
+            iterations += 1
+        # return
+        for block in blocks:
+            assert block.filled
+            assert block.sealed
+            block.apply_temp_phis()
+        # return
+        changed = True
+        while changed:
+            if iterations > iteration_limit:
+                logging.critical(f'SSA conversion failed after {iterations} iterations in function: "{self.name}"')
+                raise CompilerFatal(f'SSA conversion failed after {iterations} iterations in function: "{self.name}"')
+                break
+
+            changed = False
+            for block in blocks:
+                if block.clean_up_phis():
+                    changed = True
+
+            iterations += 1
+
+        self.recalc_defines()
+
+        logging.debug(f'SSA conversion in {iterations} iterations')
+
+    def check_critical_edges(self):
+        for block in self.blocks.values():
+            # check if block has multiple successors
+            if len(block.successors) <= 1:
+                continue
+
+            # check if any successors have multiple predecessors
+            for s in block.successors:
+                if len(s.predecessors) > 1:
+                    raise CompilerFatal(f'Critical edge from {block.name} to {s.name}')
+
+    def analyze_loops(self):
+        self.loops = {}
+
+        # reset loop membership
+        for block in self.blocks.values():
+            block.loops = []
+            block.incoming_back_edges = []
+
+        # dominator based algorithm
+        # get back edges:
+        back_edges = []
+        for h in self.dominator_tree:
+            for n in self.blocks.values():
+                if h is not n and h in self.dominators[n] and h in n.successors:
+                    # n dominated by h
+                    back_edges.append((n, h))
+
+                    if n not in h.incoming_back_edges:
+                        h.incoming_back_edges.append(n)
+
+                    # loop body is all nodes starting at h that reach n
+
+        self.back_edges = back_edges
+
+        loop_bodies = []
+
+        # https://www.csd.uwo.ca/~mmorenom/CS447/Lectures/CodeOptimization.html/node6.html        
+        for back_edge in back_edges:
+            n = back_edge[0]
+            d = back_edge[1]
+            loop_nodes = list(back_edge)
+            stack = [n]
+
+            while len(stack) > 0:
+                m = stack.pop()
+
+                for p in m.predecessors:
+                    if p not in loop_nodes:
+                        loop_nodes.append(p)
+                        stack.append(p)
+
+            loop_bodies.append(loop_nodes)
+
+        loops = {}
+        for body in loop_bodies:
+            loop_name = None
+            info = {
+                'header': None,
+                'marker': None,
+                'body': body,
+                'body_vars': [],
+                'footer': None
+                }
+
+            for block in body:
+                # look for loop marker
+                try:
+                    loop_marker = [a for a in block.code if isinstance(a, irLoopMarker)][0]
+
+                except IndexError:
+                    continue
+
+                info['marker'] = block
+
+                loop_name = loop_marker.name
+                info['body'] = body
+
+                loops[loop_name] = info
+                break
+
+        for loop, info in loops.items():
+            # search for headers
+            info['header'] = self.leader_block._loops_find_header(loop)
+            assert info['header'] is not None
+
+            info['header'].loops.append(info)
+
+            info['footer'] = self.leader_block._loops_find_footer(loop)
+
+            if info['footer'] is not None:
+                info['footer'].loops.append(info)
+
+            # add loop to blocks in body
+            for block in info['body']:
+                block.loops.append(loop)
+                info['body_vars'].extend(block.get_output_vars())
+
+        self.loops = loops
+
+    @property
+    def sorted_blocks(self):
+        return self.leader_block.get_blocks_optimized()
+        # return self.leader_block.get_blocks_breadth_first()
+
+    def compute_live_ranges(self):
+        ranges = {}
+
+        assert len(self.code) > 0
+
+        for index in range(len(self.code)):
+            ir = self.code[index]
+
+            for o in self.live_out[ir]:
+                if o not in ranges:
+                    ranges[o] = []
+
+                ranges[o].append(index)
+
+        self.live_ranges = ranges
+
+    def compute_live_ranges_memory(self):
+        ranges = {}
+
+        code = self.get_code_from_blocks()
+
+        assert len(code) > 0
+
+        for index in range(len(code)):
+            ir = code[index]
+
+            for o in self.mem_live_out[ir]:
+                if o not in ranges:
+                    ranges[o] = []
+
+                ranges[o].append(ir)
+
+            for i in self.mem_live_in[ir]:
+                if i not in ranges:
+                    ranges[i] = []
+
+                if ir not in ranges[i]:
+                    ranges[i].append(ir)
+
+        self.mem_live_ranges = ranges
+
+    @property
+    def local_size(self):
+        s = 0
+
+        for l in self.locals:
+            s += l.size
+
+        return s
+
+    def init_vars(self):
+        defines = {}
+        for v in self.params:
+            defines[v.name] = v.var
+        
+        self.leader_block.defines.update(defines)
+
+    def allocate_locals(self):
+        addr = self.register_count
+
+        for l in self.locals:
+            l.addr = irAddr(l, addr, StorageType.LOCAL)
+            addr += l.size
+
+    def allocate_registers(self, max_registers=256):        
+        """
+        Assign registers greedily variable by variable in the live range.
+        A given variable always receives the same register, even if there is a 
+        gap in its range.  So, assign based on interval, basically:
+
+        Live range:
+        The set of points in the program where the variable is live.
+        This excludes points where the variable is not live.
+        There could be multiple contiguous live ranges for a given variable (branches typically)
+
+        Live interval:
+        The span of the program containing all of the live ranges for a given variable,
+        including "holes" between live ranges where that variable is not live.
+    
+        Linear scan uses the interval, not range.
+        
+        The ordering of IR code will somewhat affect the efficiency 
+        of this algorithm.
+
+        """
+
+        assert len(self.code) > 0
+
+        registers = {}
+        address_pool = list(range(max_registers)) # preload with all registers
+        min_address_pool = len(address_pool)
+
+        # this is terrible, but is the simplest thing that mostly works:
+        # just assign a unique register to every variable.
+        # that's it.
+        # we can get away with it for testing purposes because we 
+        # can use up to 256 registers.
+        # for var, live_at in self.live_ranges.items():
+        #     try:
+        #         registers[var] = address_pool.pop(0)
+
+        #     except IndexError:
+        #         logging.critical("This terrible allocator has run out of registers!")
+        #         raise CompilerFatal("Register allocator failed because it is bad at its job")
+
+        # Linear Scan:
+        # convert ranges to intervals
+        intervals = {}
+        for var, live_at in self.live_ranges.items():
+            # skip params, we will manually allocate these
+            if var in self.params:
+                continue
+
+            live_at = list(sorted(live_at))
+
+            intervals[var] = list(range(live_at[0], live_at[-1] + 1))
+
+        # assign zero register to register 0
+        # 0 is live always
+        zero = self.symbol_table.lookup('__zero__').var
+        registers[zero] = address_pool.pop(0)
+
+        # allocate first set of registers directly to params.
+        # even if the param is unused, it still requires a register
+        # so the caller can pass a value to it.
+        for param in self.params:
+            registers[param] = address_pool.pop(0)
+
+        for i in range(len(self.code)):
+            for var in sorted(intervals.keys(), key=lambda a: a.name):
+                # check if const 0: 
+                if var.const and var.value == 0:
+                    registers[var] = registers[zero]
+                    continue
+
+                interval = intervals[var]
+                if i == (interval[-1] + 1):
+                    # are we terminating liveness?
+                    address_pool.insert(0, registers[var])
+
+                # are we in within the interval?
+                elif i in interval:
+                    # is this var allocated?
+                    if var not in registers:
+                        # check if we are out of registers:
+                        if len(address_pool) == 0:
+                            raise CompilerFatal("Register allocator failed")
+
+                        registers[var] = address_pool.pop(0)
+
+                        if len(address_pool) < min_address_pool:
+                            min_address_pool = len(address_pool)
+
+
+        # perform register assignment to instructions:
+        unassigned_ir = []
+        index = 0
+        for ir in self.code:
+            for i in ir.get_input_vars():
+                assert i in registers
+                # assign register
+                i.reg = registers[i]
+
+            for o in ir.get_output_vars():
+                # if not isinstance(ir, irCallType):
+                assert o in registers
+
+                # check if output register is actually live at this instruction:
+                # assume always live this is a param
+                if o not in self.params and index not in intervals[o]:
+                    # this register is not live!
+                    o.reg = -1
+                    
+                    if ir not in unassigned_ir:
+                        unassigned_ir.append(ir)
+
+                else:
+                    o.reg = registers[o]
+
+            index += 1
+
+        for param in self.params:
+            if param in registers:
+                param.reg = registers[param]
+
+        # prune instructions that have unassigned registers:
+        # this is a form of dead code elimination:
+        # (and is necessary to prevent executing instructions with 
+        # invalid register assignments)
+        self.code = [ir for ir in self.code if ir not in unassigned_ir]
+        
+        self.register_count = max(registers.values()) + 1
+        assert self.register_count > 0
+
+        self.registers = registers          
+
+        logging.debug(f'Allocated {len(registers)} virtual registers and {max_registers - min_address_pool} machine registers')  
+
+    def generate(self):
+        logging.debug(f'Generating code for {self.name}')
+
+         # convert to IR code listing        
+        self.code = self.get_code_from_blocks()
+
+        self.fixup_globals()
+
+        # run trivial prunes
+        self.prune_jumps()
+        self.prune_no_ops()
+
+        # liveness
+        self.liveness_analysis()
+        
+        self.compute_live_ranges()
+
+        # allocate local memory
+        self.allocate_registers()
+        self.allocate_locals()
+
+        self.remove_useless_copies()
+
+        instructions = []
+        assert len(self.code) > 0
+        for ir in self.code:
+            ins = ir.generate()
+
+            if ins is None:
+                continue
+
+            if isinstance(ins, list):
+                instructions.extend(ins)
+
+            else:
+                instructions.append(ins)
+
+        func = insFunc(
+                self.name, 
+                self.params, 
+                instructions, 
+                self.source_code, 
+                self.locals, 
+                self.register_count, 
+                lineno=self.lineno)
+
+        func.prune_jumps()
+
+        logging.debug(f'Code generation complete with {len(func.code)} machine instructions')
+
+        return func
+
+    def gvn_optimizer(self, *args, **kwargs):
+        original_count = len(self.get_code_from_blocks())
+
+        MAX_GVN_ITERATIONS = 100
+
+        changed = True
+        i = 0
+
+        while changed and i <= MAX_GVN_ITERATIONS:
+            i += 1
+
+            logging.debug(f'GVN pass: {i}')
+
+            # we may have eliminated instructions, or entire blocks:
+            # relink blocks, prune, verify, recalc dominance, and re-analyze loops
+            self.leader_block.relink_blocks()
+            self.leader_block.prune_unreachable_blocks()
+            self.verify_block_assignments()
+            self.verify_block_links()
+            self.recalc_defines()
+            self.recalc_dominators()
+            self.analyze_loops()
+
+            changed = self.leader_block.gvn_analyze2(VN={})
+
+            # changed = False
+
+        # if self.name == 'init':
+        #     with open(f"GVN.fxir", 'w') as f:
+        #         f.write(str(self))
+
+        # we may have eliminated instructions, or entire blocks:
+        # relink blocks, prune, verify, recalc dominance, and re-analyze loops
+        self.leader_block.relink_blocks()
+        self.leader_block.prune_unreachable_blocks()
+        self.verify_block_assignments()
+        self.verify_block_links()
+        self.recalc_defines()
+        self.recalc_dominators()
+        self.analyze_loops()
+
+        new_count = len(self.get_code_from_blocks())
+
+        logging.info(f'GVN completed in {i} passes.  Removed {original_count - new_count} instructions.')
+
+        # return
+
+        
+        # MAX_GVN_ITERATIONS = 100
+
+        # changed = True
+        # i = 0
+        # while changed and i <= MAX_GVN_ITERATIONS:
+        #     i += 1
+        #     changed = self.leader_block.gvn_analyze(pass_number=i)
+                
+        #     # we may have eliminated instructions, or entire blocks:
+        #     # relink blocks, prune, verify, recalc dominance, and re-analyze loops
+        #     self.leader_block.relink_blocks()
+        #     self.leader_block.prune_unreachable_blocks()
+        #     self.verify_block_assignments()
+        #     self.verify_block_links()
+        #     self.recalc_defines()
+        #     self.recalc_dominators()
+        #     self.analyze_loops()
+
+        #     with open(f"GVN_pass_{i}.fxir", 'w') as f:
+        #         f.write(str(self))
+
+
+        # if i >= MAX_GVN_ITERATIONS:
+        #     raise CompilerFatal(f'GVN failed to complete after {i} iterations')
+
+        # new_count = len(self.get_code_from_blocks())
+        # delta = original_count - new_count
+
+        # logging.debug(f'GVN in {i} iterations. Eliminated {delta} instructions.')
+
+    def optimize_branches(self):
+
+        count = 0
+
+        for block in self.blocks.values():
+            new_code = []
+            for ir in block.code:
+                if isinstance(ir, irBranch):
+                    if ir.value.const:
+                        count += 1
+
+                        # replace branch with jump
+                        if ir.value.value == 0:
+                            logging.debug(f'replace 2-way branch with jump to FALSE: {ir.false_label}')
+                            ir = irJump(ir.false_label, lineno=ir.lineno)
+                            ir.block = block
+
+                        else:
+                            logging.debug(f'replace 2-way branch with jump to TRUE: {ir.true_label}')
+                            ir = irJump(ir.true_label, lineno=ir.lineno)
+                            ir.block = block
+
+                new_code.append(ir)
+
+            block.code = new_code
+        
+        self.leader_block.relink_blocks()
+        self.leader_block.prune_unreachable_blocks()
+        self.verify_block_assignments()
+        self.verify_block_links()
+        self.recalc_defines()
+        self.recalc_dominators()
+        self.analyze_loops()
+
+
+        logging.debug(f'Optimized branches: replaced {count} branches with jump.')
+
+    def hoist_loads(self):
+        self.analyze_loops()
+
+        hoisted = []
+        
+        for loop, info in self.loops.items():
+            logging.debug(f'LoadHoist: loop: {loop}')
+            for block in info['body']:
+                # new_code = []
+                for ir in block.code:
+                    if isinstance(ir, irLoad):
+
+                        # check if already hoisted
+                        if ir.ref in hoisted:
+                            continue
+
+                        header = info['header']
+
+                        logging.debug(f'LoadHoist: Hoist {ir.register} from {block.name} to header {header.name}')
+
+                        hoisted.append(ir.ref)
+
+                        # create a *copy* of the load and create a new register for it.
+                        # then insert in the loop header.
+                        new_ir = copy(ir)
+                        header.code.insert(-1, new_ir)
+                        new_ir.block = header                        
+
+                        new_var = self.type_manager.create_var_from_type(new_ir.register.name, new_ir.register.data_type, lineno=-1)
+                        new_var.convert_to_ssa(self.ssa_next_val)
+                        new_ir.register = new_var
+
+                        # note that we *don't* remove the load instruction.
+                        # we will rely on the elimination pass to do that, because it will
+                        # see this load as redundant and replace it with a copy from the load
+                        # we just placed in the header.
+
+                    # new_code.append(ir)
+
+                # block.code = new_code
+    
+    def schedule_load_stores(self, *args, **kwargs):
+        logging.debug(f'Load/store scheduling')
+
+        for block in self.reverse_postorder:
+            block.local_load_store_elim()
+    
+    def recalc_dominators(self):
+        self.dominators = self.calc_dominance()
+        self.dominator_tree = self.calc_dominator_tree(self.dominators)
+
+    def analyze_blocks(self, opt_passes:OptPasses=[OptPasses.SSA]):
+        logging.debug(f'Starting block analysis for func {self.name} with optimization passes: {opt_passes}')
+
+        if not isinstance(opt_passes, Iterable):
+            opt_passes = [opt_passes]
+
+        for opt in opt_passes:
+             if opt.value > OptPasses.SSA.value and OptPasses.SSA not in opt_passes:
+                opt_passes.append(OptPasses.SSA)
+                break
+
+        if len(opt_passes) == 0:
+            opt_passes.append(OptPasses.SSA)
+
+        self.ssa_next_val = {}
+        
+        self.leader_block = self.create_block_from_code_at_index(0)
+        self.verify_block_links()
+
+        self.recalc_dominators()
+        self.analyze_loops()
+        
+        self.init_vars()
+
+        # with open("initial_construction.fxir", 'w') as f:
+        #     f.write(str(self))
+
+        # self.render_dominator_tree()
+        # self.render_graph()
+        # if opt_level == OptPasses.NONE:
+        # if self.name == 'init':
+            # self.render_graph()
+
+        # if OptPasses.LS_SCHED in opt_passes:
+        #     self.schedule_load_stores()        
+            
+        #     with open("ls_sched_construction.fxir", 'w') as f:
+        #         f.write(str(self))
+
+        # prune emply blocks, this is mostly a convenience to make
+        # analysis simpler
+        self.prune_empty_blocks()
+
+        self.verify_block_links()
+        self.verify_block_assignments()
+        self.verify_variables()
+
+        # self.render_graph()
+
+        # if OptPasses.LS_SCHED in opt_passes:
+        #     self.schedule_load_stores()        
+        
+        #     with open("ls_sched_construction.fxir", 'w') as f:
+        #         f.write(str(self))
+
+        # opt_passes.remove(OptPasses.SSA)
+        
+        if OptPasses.SSA in opt_passes:
+
+            self.convert_to_ssa()            
+            
+            # checks
+            self.verify_block_links()
+            self.verify_block_assignments()
+            self.verify_ssa()
+            self.verify_variables()
+
+            self.recalc_defines()
+
+            self.render_graph('ssa')
+
+
+            # with open("SSA_construction.fxir", 'w') as f:
+                # f.write(str(self))
+
+            if OptPasses.LS_SCHED in opt_passes:
+                self.schedule_load_stores()        
+            
+                # with open("ls_sched_construction.fxir", 'w') as f:
+                    # f.write(str(self))
+
+            # self.render_graph()
+
+            if OptPasses.GVN in opt_passes:
+                self.gvn_optimizer()
+                
+                    
+            # # optimizers
+            # optimize = False
+            # # optimize = True
+            # if optimize:
+            #     # loop analysis
+            #     self.analyze_loops()
+            
+            #     # basic loop invariant code motion:
+            #     self.loop_invariant_code_motion(self.loops)
+
+            # # if opt_level == OptPasses.GVN:
+            # #     if self.name == 'init':
+            # #         self.render_graph()
+
+
+            if OptPasses.LOOP in opt_passes:
+                self.loop_invariant_code_motion()
+
+                # with open("LICM_construction.fxir", 'w') as f:
+                    # f.write(str(self))
+
+
+            self.render_graph('ssa_after_opt')
+            # self.render_graph()
+            
+            # if OptPasses.LS_SCHED in opt_passes:
+            #     self.schedule_load_stores()
+
+            # convert out of SSA form
+            self.resolve_phi()
+
+            self.render_graph('resolved_after_opt')
+            
+
+        if len(opt_passes) > 1:
+            self.optimize_branches()
+
+        # blocks may have been rearranged or added at this point
+        self.recalc_dominators()
+
+        # redo loop analysis
+        self.analyze_loops()
+
+        # checks
+        # self.check_critical_edges()
+        self.verify_block_assignments()
+        self.verify_block_links()
+
+
+        # basic block merging (helps with jump elimination)
+        self.merge_basic_blocks()
+
+        self.remove_dead_code()
+
+        self.recalc_defines()
+
+        self.render_graph('final')
+
+        # self.render_dominator_tree()
+        # if opt_level == OptPasses.GVN:
+        #     if self.name == 'init':
+        #         self.render_graph()
+        
+        logging.debug('Block analysis complete')
+
+    # def fold_constants(self):
+    #     changes = 0
+    #     iterations = 0
+    #     iteration_limit = 512
+    #     prev_changes = None
+
+    #     while changes != prev_changes and iterations < iteration_limit:
+    #         iterations += 1
+
+    #         prev_changes = changes
+
+    #         for block in self.blocks.values():
+    #             changes += block.fold_constants()
+
+    #     logging.debug(f'Folded constants in {iterations} iterations. Folded {changes} instructions.')
+
+
+    def remove_dead_code(self):
+        original_count = len(self.get_code_from_blocks())
+
+        iterations = 0
+        iteration_limit = 1024
+        changed = True
+        while changed:
+            changed = False
+
+            if iterations > iteration_limit:
+                raise CompilerFatal(f'Remove dead code failed after {iterations} iterations')
+                break
+
+            reads = [a.ssa_name for a in self.get_input_vars()]
+
+            for block in self.blocks.values():            
+                if block.remove_dead_code(reads=reads):
+                    changed = True
+
+            iterations += 1
+
+        new_count = len(self.get_code_from_blocks())
+        delta = original_count - new_count
+
+        logging.debug(f'Removed dead code in {iterations} iterations. Eliminated {delta} instructions.')
+
+    def get_code_from_blocks(self):
+        code = []
+
+        for block in self.sorted_blocks:
+            # attach code
+            code.extend(block.code)
+
+        return code
+
+    def verify_ssa(self):
+        writes = {}
+        for ir in self.get_code_from_blocks():
+            for o in ir.get_output_vars():
+                try:
+                    assert o.ssa_name not in writes
+
+                except AssertionError:
+                    logging.critical(f'FATAL: {o.ssa_name} defined by {writes[o.ssa_name]} at line {writes[o.ssa_name].lineno}, overwritten by {ir} at line {ir.lineno}')
+
+                    raise
+
+                try:
+                    assert o.ssa_version is not None
+
+                except AssertionError:
+                    logging.critical(f'FATAL: {o.ssa_name} not assigned to SSA. Line {ir.lineno}')
+
+                    raise
+
+                try:
+                    assert o.data_type is not None
+
+                except AssertionError:
+                    logging.critical(f'FATAL: {o.ssa_name} not assigned a type. Line {ir.lineno}')
+
+                    raise
+
+                writes[o.ssa_name] = ir
+
+            for i in ir.get_input_vars():
+                try:
+                    assert i.ssa_version is not None
+
+                except AssertionError:
+                    logging.critical(f'FATAL: {i.ssa_name} not assigned to SSA. Line {ir.lineno}')
+
+                    raise
+
+                try:
+                    assert i.data_type is not None
+
+                except AssertionError:
+                    logging.critical(f'FATAL: {i.ssa_name} not assigned a type. Line {ir.lineno}')
+
+                    raise
+
+    def replace_labels(self, label, replace):
+        for block in self.blocks.values():
+            if block.code[0] == label:
+                continue
+                
+            block.replace_labels(label, replace)
+
+    def combine_labels(self):
+        label_sets = {}
+        prev_lable = None
+
+        for i in range(len(self.code)):
+            ir = self.code[i]
+
+            if isinstance(ir, irLabel):
+                assert ir not in label_sets
+
+                if prev_lable is None:
+                    label_sets[ir] = []
+                    prev_lable = ir
+
+                else:
+                    label_sets[prev_lable].append(ir)
+
+            else:
+                prev_lable = None
+
+        for top_label in label_sets:
+            for label in label_sets[top_label]:
+                # replace all references to this label with the top label
+                for ir in self.code:
+                    ir.replace_labels(label, top_label)
+
+    def prune_jumps(self):
+        iterations = 0
+        iteration_limit = 128
+
+        old_length = len(self.code)
+
+        new_code = []
+        prev_code = self.code
+        while prev_code != new_code:
+            if iterations > iteration_limit:
+                raise CompilerFatal(f'Prune jumps failed after {iterations} iterations')
+                break
+
+            self.combine_labels()
+
+            new_code = []
+            prev_code = self.code
+
+            # this is a peephole optimization
+            # note we skip the last instruction in the loop, since
+            # we check current + 1 in the peephole
+            for index in range(len(self.code) - 1):
+                ir = self.code[index]
+                next_ir = self.code[index + 1]
+
+                # if a jump followed by a label:
+                if isinstance(ir, irJump) and isinstance(next_ir, irLabel):
+                    # check if label is jump target:
+                    if ir.target.name == next_ir.name:
+                        # skip this jump
+                        pass
+
+                    else:
+                        new_code.append(ir)
+
+                else:
+                    new_code.append(ir)
+
+            # append last instruction (since loop will miss it)
+            new_code.append(self.code[-1])
+
+            self.code = new_code
+
+            iterations += 1
+
+        self.combine_labels()
+        
+        logging.debug(f'Prune IR jumps in {iterations} iterations. Eliminated {old_length - len(self.code)} instructions')
+
+
+    def prune_empty_blocks(self, include_merge_blocks=False):
+        # remove blocks that contain only an entry label and an unconditional jump
+
+        remove = []
+
+        for b in self.blocks.values():
+            # empty blocks contain only 2 instructions
+            if len(b.code) != 2:
+                continue
+
+            # final instruction must be unconditional jump
+            if not isinstance(b.code[-1], irJump):
+                continue
+
+            # if merge blocks are not included, then only prune blocks
+            # that have a single entry point
+            if not include_merge_blocks:
+                if len(b.predecessors) > 1:
+                    continue
+
+            assert len(b.successors) == 1
+
+            logging.debug(f'Pruning empty block: {b.name}')
+            self.replace_labels(b.code[0], b.code[-1].target)
+
+            jump_target_block = b.successors[0]
+
+            # remove this block
+            jump_target_block.predecessors.remove(b)
+
+            for p in b.predecessors:
+                p.successors.remove(b)
+                p.successors.append(jump_target_block)
+
+                jump_target_block.predecessors.append(p)
+
+            
+    def merge_basic_blocks(self):
+        # a block B can be merged with it's successor S if:
+        # 1. B has only the one successor AND
+        # 2. S has only one predecessor, B
+
+        changed = True
+        while changed:
+            changed = False
+
+            for b in self.blocks.values():
+                if len(b.successors) != 1:
+                    continue
+
+                s = b.successors[0]
+
+                if len(s.predecessors) != 1:
+                    continue
+
+                p = s.predecessors[0]
+
+                assert p is b
+
+                # block is ready for merging
+
+                # get pruned code from s
+                s_code = s.code[1:-1] # we don't need the label or the jump
+
+                # pop jump from b
+                b.code.pop()
+
+                # add s code at end
+                b.code.extend(s_code)
+
+                # add jump from s
+                b.code.append(s.code[-1])
+
+                # replace blocks in tree
+                for suc in s.successors:
+                    if s in suc.predecessors:
+                        suc.predecessors.remove(s)
+                        suc.predecessors.append(b)
+
+                b.successors = s.successors
+
+                changed = True 
+                # break loop so we can re-render the block list
+                # otherwise, we may pull in blocks that we've removed from the tree
+                break
+
+        self.verify_block_links()   
+
+    def remove_useless_copies(self):
+        new_code = []
+
+        for ir in self.code:
+            if isinstance(ir, irAssign):
+                assert ir.target.reg is not None
+                assert ir.value.reg is not None
+
+                # src and dst registers are the same, 
+                # that makes this a nop
+                if ir.target.reg == ir.value.reg:
+                    continue
+
+            new_code.append(ir)
+
+        logging.debug(f'Removed useless copies. Eliminated {len(self.code) - len(new_code)} instructions')
+
+        self.code = new_code
+
+    # remove all no-op instructions
+    def prune_no_ops(self):
+        new_code = []
+
+        for ir in self.code:            
+            if not ir.is_nop:
+                new_code.append(ir)
+
+        self.code = new_code
+
+    def loop_invariant_code_motion(self):
+
+        logging.debug(f'Loop invariant code motion')
+
+        count = 0
+
+        changed = True
+        iterations = 0
+        MAX_LICM_ITERATIONS = 128
+
+        while changed and iterations < MAX_LICM_ITERATIONS:
+            changed = False
+            iterations += 1
+
+            self.analyze_loops()
+
+            for loop, info in self.loops.items():
+                header_code = []
+
+                for block in info['body']:
+                    block_code = []
+
+                    for index in range(len(block.code)):
+                        ir = block.code[index]
+                        block_code.append(ir)
+
+                        if isinstance(ir, irLabel) or \
+                           ir.is_nop or \
+                           isinstance(ir, irPhi) or \
+                           isinstance(ir, irControlFlow) or \
+                           isinstance(ir, irCallType) or \
+                           isinstance(ir, irLoadRetVal) or \
+                           isinstance(ir, irLoad) or \
+                           isinstance(ir, irStore):
+
+                            continue
+
+                        if isinstance(ir, irLoadConst):
+                            # this is always const, so it must be invariant
+
+                            header_code.append(ir)
+                            block_code.remove(ir)
+
+                            count += 1
+
+                            # remove load const target from body vars, 
+                            # as they are invariant by definition
+                            if ir.target in info['body_vars']:
+                                info['body_vars'].remove(ir.target)
+
+                            changed = True
+
+                        elif not isinstance(ir, irControlFlow):
+                        # else:
+                            # include refs as variant inputs, as they will often point to objects outside of the VM and 
+                            # can change during loop iteration across yields.
+                            variant_inputs = [i for i in ir.get_input_vars() if i in info['body_vars'] or isinstance(i.var, varRef)]
+                            
+                            if len(variant_inputs) == 0:
+                                header_code.append(ir)
+                                block_code.remove(ir)
+
+                                count += 1
+
+                                # remove output vars from body vars, as they are definitely now
+                                # invariant.
+                                for o in ir.get_output_vars():
+                                    if o in info['body_vars']:
+                                        info['body_vars'].remove(o)
+
+                                changed = True
+
+
+                            # print(ir)
+                            # for v in info['body_vars']:
+                            #     print(v)
+
+                        # for i in ir.get_input_vars():
+                            # print(i)
+
+                        # if isinstance(ir, irBinop):
+                        #     # check if inputs are loop invariant
+
+                        #     # for now, just check for consts, until we have a reaching def
+                        #     if ir.left.is_const and ir.right.is_const:
+                        #         # move instruction to header
+                        #         header_code.append(ir)
+
+                        #         # remove from block code
+                        #         block_code.remove(ir)
+
+                        #         logging.debug(f'LICM: loop {loop} moving [{ir}] to loop header')
+
+                        # elif isinstance(ir, irAssign) or isinstance(ir, irLoadConst):
+                        #     if ir.value.is_const:
+                        #         # move instruction to header
+                        #         header_code.append(ir)
+
+                        #         # remove from block code
+                        #         block_code.remove(ir)
+
+                        #         logging.debug(f'LICM: loop {loop} moving [{ir}] to loop header')
+
+                    block.code = block_code
+
+                if len(header_code) > 0:
+                    header = info['header']
+                    insert_index = len(header.code) - 1
+                    
+                    # add code to loop header
+                    for ir in header_code:
+                        logging.debug(f'LICM: Moving: {type(ir)} {ir} from {ir.block.name}')
+
+                        ir.block = header
+                        header.code.insert(insert_index, ir)
+                        insert_index += 1
+
+        logging.debug(f'LICM: Moved {count} instructions in {iterations} passes')
+
+    def labels(self):
+        labels = {}
+
+        for i in range(len(self.body)):
+            ins = self.body[i]
+
+            if isinstance(ins, irLabel):
+                labels[ins.name] = i
+
+        return labels
+
+    def append_node(self, ir):
+        self.body.append(ir)
+
+    @property
+    def prev_node(self):
+        return self.body[-1]
+
+
+
+
+
+# ***************************************************************
+# Instructions:
+# ***************************************************************
+
+
+class irPhi(IR):
+    def __init__(self, target, merges=[], **kwargs):
+        super().__init__(**kwargs)
+
+        self.target = target
+        self.merges = merges
+
+        for d in merges:
+            assert isinstance(d[0], VarContainer)
+            assert isinstance(d[1], irBlock)
+
+        assert self.target not in [a[0] for a in merges]
+
+    def __str__(self):
+        s = ''
+        for d in sorted(self.merges, key=lambda a: a[0].name):
+            s += f'{d[0]}:{d[1].name},'
+
+        s = s[:-2]
+
+        s = f'{self.target} = PHI({s})'
+
+        return s
+
+    @property
+    def expr(self):
+        s = 'phi '
+        for m in sorted(self.merges, key=lambda x: x.ssa_name):
+            s += f'{m.ssa_name} '
+
+        return s
+
+    @property
+    def gvn_expr(self):
+        s = 'phi '
+        for m in sorted(self.merges, key=lambda x: x[0].ssa_name):
+            s += f'{m[0].ssa_name} '
+
+        return s
+
+    def gvn_process(self, VN):
+        available_values = []
+
+        for m in self.merges:
+            try:
+                available_values.append(VN[m[0]])
+
+            except KeyError:
+                pass
+
+        new_merges = []
+        if len(available_values) == len(self.merges):
+            for merge in self.merges:
+                m = merge[0]
+                b = merge[1]
+
+                replacement = VN[VN[m]]
+
+                if replacement != m:
+                    debug_print(f'replace phi input {m} with {replacement}')
+
+                    m = replacement
+                
+                new_merges.append((m, b))
+
+            self.merges = new_merges
+
+        expr = self.gvn_expr
+
+        if expr in VN:
+            VN[self.target] = expr
+            
+            return 'remove'
+
+        else:
+            VN[self.target] = self.target
+            VN[expr] = self.target
+
+    def get_input_vars(self):
+        return [a[0] for a in self.merges]
+
+    def get_output_vars(self):
+        return [self.target]
+
+class irIncompletePhi(IR):
+    def __init__(self, var, block, **kwargs):
+        super().__init__(**kwargs)
+        self.var = var
+        self.block = block
+
+    def __str__(self):
+        return f'{self.var} = Incomplete PHI() @ {self.block.name}'
+
+class irUndefinedPhi(IR):
+    def __init__(self, var, block, **kwargs):
+        super().__init__(**kwargs)
+        self.var = var
+        self.block = block
+
+    def __str__(self):
+        return f'{self.var} = Undefined PHI() @ {self.block.name}'
+
+    def generate(self):
+        return None
+
+class irNop(IR):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.is_nop = True
+
+    def __str__(self):
+        return "NOP" 
+
+class irDefine(IR):
+    def __init__(self, var, **kwargs):
+        super().__init__(**kwargs)
+        self.var = var
+        self.is_nop = True
+    
+    def __str__(self):
+        return f'DEF: {self.var} depth: {self.scope_depth}'
+
+    def generate(self):
+        return None
+
+class irLoopMarker(IR):
+    def __init__(self, name, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+        self.is_nop = True
+
+    def __str__(self):
+        return f'LoopMarker: {self.name}'
+
+    def generate(self):
+        return None
+
+class irLoopHeader(IR):
+    def __init__(self, name, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+        self.is_nop = True
+
+    def __str__(self):
+        return f'LoopHeader: {self.name}'
+
+    def generate(self):
+        return None
+
+class irLoopFooter(IR):
+    def __init__(self, name, **kwargs):
+        super().__init__(**kwargs)
+        self.name = name
+        self.is_nop = True
+
+    def __str__(self):
+        return f'LoopFooter: {self.name}'
+
+    def generate(self):
+        return None
+
+class irLabel(IR):
+    def __init__(self, name, **kwargs):
+        super().__init__(**kwargs)        
+        self.name = name
+
+        self.loop_top = None
+        self.loop_end = None
+    
+    @property
+    def is_loop(self):
+        return self.loop_top is not None and self.loop_end is not None
+
+    @property
+    def is_loop_top(self):
+        return self.loop_top == self
+
+    @property
+    def is_loop_end(self):
+        return self.loop_end == self
+
+    def __str__(self):
+        s = 'LABEL %s' % (self.name)
+
+        return s
+
+    def generate(self):
+        return insLabel(self.name, lineno=self.lineno)
+
+class irControlFlow(IR):
+    pass
+
+class irBranch(irControlFlow):
+    def __init__(self, value, true_label, false_label, **kwargs):
+        super().__init__(**kwargs)        
+        self.value = value
+        self.true_label = true_label
+        self.false_label = false_label
+
+    def __str__(self):
+        s = 'BR %s -> T: %s | F: %s' % (self.value, self.true_label.name, self.false_label.name)
+
+        return s    
+
+    def gvn_process(self, VN):
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if replacement != self.value:
+                debug_print(f'replace value {self.value} with {replacement}')
+                self.value = replacement
+
+        # simplify this branch if input is a const
+        if self.value.const:
+            # replace branch with jump
+            if self.value.value == 0:
+                debug_print(f'replace 2-way branch with jump to FALSE: {self.false_label}')
+                return irJump(self.false_label, lineno=self.lineno)
+            
+            else:
+                debug_print(f'replace 2-way branch with jump to TRUE: {self.true_label}')
+                return irJump(self.true_label, lineno=self.lineno)
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_jump_target(self):
+        return [self.true_label, self.false_label]
+
+    def replace_labels(self, label, replace):
+        if self.true_label == label:
+            self.true_label = replace
+
+        if self.false_label == label:
+            self.false_label = replace
+
+    def generate(self):
+        ins = [
+            insJmpIfZero(self.value.generate(), self.false_label.generate(), lineno=self.lineno),
+            insJmp(self.true_label.generate(), lineno=self.lineno)
+        ]
+
+        return ins
+
+class irJump(irControlFlow):
+    def __init__(self, target, **kwargs):
+        super().__init__(**kwargs)        
+        self.target = target
+
+    def __str__(self):
+        s = 'JMP -> %s' % (self.target.name)
+
+        return s    
+
+    def generate(self):
+        return insJmp(self.target.generate(), lineno=self.lineno)
+
+    def get_jump_target(self):
+        return [self.target]
+
+    def replace_labels(self, label, replace):
+        if self.target == label:
+            self.target = replace
+
+class irLoop(irControlFlow):
+    def __init__(self, true_label, false_label, iterator_in, iterator_out, stop, **kwargs):
+        super().__init__(**kwargs)        
+        self.true_label = true_label
+        self.false_label = false_label
+        self.iterator_in = iterator_in
+        self.iterator_out = iterator_out
+        self.stop = stop
+
+    def __str__(self):
+        s = f'LOOP {self.iterator_out} <- ++{self.iterator_in} < {self.stop} -> T: {self.true_label.name} | F: {self.false_label.name}'
+
+        return s    
+
+    def gvn_process(self, VN):
+        if self.iterator_in in VN:
+            replacement = VN[VN[self.iterator_in]]
+
+            if replacement != self.iterator_in:
+                debug_print(f'replace iterator_in {self.iterator_in} with {replacement}')
+                self.iterator_in = replacement
+
+        if self.stop in VN:
+            replacement = VN[VN[self.stop]]
+
+            if replacement != self.stop:
+                debug_print(f'replace stop {self.stop} with {replacement}')
+                self.stop = replacement
+
+    def get_input_vars(self):
+        return [self.iterator_in, self.stop]
+
+    def get_output_vars(self):
+        return [self.iterator_out]
+
+    def generate(self):
+        return [
+            insLoop(self.iterator_in.generate(), self.iterator_out.generate(), self.stop.generate(), self.true_label.generate(), lineno=self.lineno),
+            insJmp(self.false_label.generate(), lineno=self.lineno)
+        ]
+
+    def get_jump_target(self):
+        return [self.true_label, self.false_label]
+
+    def replace_labels(self, label, replace):
+        if self.true_label == label:
+            self.true_label = replace
+
+        if self.false_label == label:
+            self.false_label = replace
+
+class irReturn(irControlFlow):
+    def __init__(self, ret_var, **kwargs):
+        super().__init__(**kwargs)
+        self.ret_var = ret_var
+
+    def __str__(self):
+        return "RET %s" % (self.ret_var)
+
+    def gvn_process(self, VN):
+        if self.ret_var in VN:
+            replacement = VN[VN[self.ret_var]]
+
+            if replacement != self.ret_var:
+                debug_print(f'replace return value {self.ret_var} with {replacement}')
+                self.ret_var = replacement
+
+    def generate(self):
+        return insReturn(self.ret_var.generate(), lineno=self.lineno)
+
+    def get_input_vars(self):
+        return [self.ret_var]
+
+    def get_jump_target(self):
+        return []
+
+class irAssign(IR):
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        target = f'{self.target}'
+        value = f'{self.value}'
+
+        return f'{target} = {value}'
+
+    @property
+    def gvn_expr(self):
+        return self.value
+
+    def gvn_process(self, VN):
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if replacement != self.value:
+                debug_print(f'replace value {self.value} with {replacement}')
+                self.value = replacement
+
+
+        expr = self.gvn_expr
+
+        # simplify
+
+
+
+        if expr in VN:
+            VN[self.target] = expr
+            
+            return 'remove'
+
+        else:
+            VN[self.target] = self.target
+            VN[expr] = self.target
+
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return [self.target]
+
+    def generate(self):
+        return insMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+class irVectorAssign(IR):
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        return '*%s =(vector) %s' % (self.target, self.value)
+
+    @property
+    def expr(self):
+        return f'{self.target} vector assign {self.value}'
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace vector assign target {self.target} with {replacement}")
+
+                self.target = replacement
+
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace vector assign value {self.value} with {replacement}")
+
+                self.value = replacement
+
+    def get_input_vars(self):
+        return [self.target, self.value]
+
+    def get_output_vars(self):
+        return []
+
+    def generate(self):
+        if isinstance(self.target.var, varPixelChannelRef):
+            if len(self.target.lookups) > 0:
+                return insPixelStoreSelect(self.target.generate(), None, self.value.generate(), lineno=self.lineno)
+
+            else:
+                return insVPixelStoreSelect(self.target.generate(), None, self.value.generate(), lineno=self.lineno)
+
+        else:
+            return insVectorMov(self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+class irVectorOp(IR):
+    def __init__(self, op, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.op = op
+        self.target = target
+        self.value = value
+        
+    def __str__(self):
+        s = '*%s %s=(vector) %s' % (self.target, self.op, self.value)
+
+        return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace vector op target {self.target} with {replacement}")
+
+                self.target = replacement
+
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace vector op value {self.value} with {replacement}")
+
+                self.value = replacement
+
+    def get_input_vars(self):
+        return [self.target, self.value]
+
+    def get_output_vars(self):
+        return []
+
+    def generate(self):
+        if isinstance(self.target.var, varPixelChannelRef):
+            if len(self.target.lookups) > 0:
+                return insPixelOpSelect(self.op, self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+            else:
+                return insVPixelOpSelect(self.op, self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+        ops = {
+            'add': insVectorAdd,
+            'sub': insVectorSub,
+            'mul': insVectorMul,
+            'div': insVectorDiv,
+            'mod': insVectorMod,
+        }
+
+        return ops[self.op](self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+class irVectorCalc(IR):
+    def __init__(self, op, result, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.op = op
+        self.result = result
+        self.ref = ref
+        
+    def __str__(self):
+        s = f'{self.result} = {self.op}({self.ref})'
+
+        return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.ref in VN:
+            replacement = VN[VN[self.ref]]
+
+            if self.ref != replacement:
+                debug_print(f"replace vector calc {self.ref} with {replacement}")
+
+                self.ref = replacement
+
+    def get_input_vars(self):
+        return [self.ref]
+
+    def get_output_vars(self):
+        return [self.result]
+
+    def generate(self):
+        ops = {
+            'min': insVectorMin,
+            'max': insVectorMax,
+            'avg': insVectorAvg,
+            'sum': insVectorSum,
+        }
+
+        return ops[self.op](self.result.generate(), self.ref.generate(), lineno=self.lineno)
+
+
+class irObjectLookup(IR):
+    def __init__(self, result, target, lookups=[], **kwargs):
+        super().__init__(**kwargs)
+        self.result = result
+        self.target = target
+
+        assert isinstance(self.target, varObject) or isinstance(self.target.var, varObjectRef)
+    
+        self.lookups = lookups
+
+    def __str__(self):
+        lookups = ''
+        for a in self.lookups:    
+            lookups += f'[{a}]'
+
+        return f'{self.result} <-- LOOKUP(object) {self.target}{lookups}'
+
+    @property
+    def expr(self):
+        s = f'object lookup: {self.target} '
+        for m in self.lookups:
+            s += f'{m.ssa_name} '
+
+        return s
+
+    @property
+    def gvn_expr(self):
+        s = f'object lookup: {self.target} '
+        for m in self.lookups:
+            s += f'{m.ssa_name} '
+
+        return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace object lookup {self.target} with {replacement}")
+
+                self.target = replacement
+
+        for i in range(len(self.lookups)):
+            lookup = self.lookups[i]
+            if lookup in VN:
+                replacement = VN[VN[lookup]]
+
+                if lookup != replacement:
+
+                    debug_print(f"replace object lookup {self.lookups[i]} with {replacement}")
+
+                    self.lookups[i] = replacement
+
+        expr = self.gvn_expr
+
+        # is expr in hash table?
+        if expr in VN:
+            v = VN[expr]
+
+            VN[self.result] = v
+
+            return 'remove'
+
+        else:
+            VN[self.result] = self.result
+            VN[expr] = self.result
+
+    def get_input_vars(self):
+        inputs = [self.target]
+        inputs.extend(self.lookups)
+        return inputs
+
+    def get_output_vars(self):
+        return [self.result]
+
+    def generate(self):
+        target = self.target.generate()
+        result = self.result.generate()
+        lookups = [l.generate() for l in self.lookups]
+
+        if target.var.data_type == 'pixref' or \
+           target.var.target.data_type == 'pixref' or \
+           target.var.target.data_type == 'pixobj':
+
+            if len(lookups) == 1:
+                return insPixelLookup1(result, target, lookups, lineno=self.lineno)
+
+            elif len(lookups) == 2:
+                return insPixelLookup2(result, target, lookups, lineno=self.lineno)
+
+            else:
+                raise CompilerFatal(f'VM does not have an instruction coded for {len(lookups)} indexes')
+
+        else:
+            raise CompilerFatal(f'No matching instruction for object lookup: {self}')
+
+class irObjectStore(IR):
+    def __init__(self, target, value, attr, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+        self.lookups = target.var.lookups
+
+        self.attr = attr
+
+        if self.attr is None:
+            raise CompilerFatal("attr cannot be None on object store")
+
+    def __str__(self):
+        return f'{self.target}.{self.attr.name} =(object) {self.value}'
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace object store {self.target} with {replacement}")
+
+                self.target = replacement
+
+        for i in range(len(self.lookups)):
+            if self.lookups[i] in VN:
+                replacement = VN[VN[self.lookups[i]]]
+
+                if self.lookups[i] != replacement:
+
+                    debug_print(f"replace object store lookup {self.lookups[i]} with {replacement}")
+
+                    self.lookups[i] = replacement
+
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace object store {self.value} with {replacement}")
+
+                self.value = replacement
+
+
+    def get_input_vars(self):
+        inputs = [self.value, self.target]
+        inputs.extend(self.lookups)
+        return inputs
+
+    def get_output_vars(self):
+        return []
+
+    def generate(self):
+        target = self.target.generate()
+        value = self.value.generate()
+
+        # pixel array reference
+        if target.var.data_type == 'pixref' or \
+           target.var.target.data_type == 'pixref' or \
+           target.var.target.data_type == 'pixobj':
+
+            attr = self.attr.name
+
+            # vector:
+            if len(target.var.lookups) == 0:
+                ins = {
+                    'hue': insVPixelStoreHue,
+                    'sat': insVPixelStoreSat,
+                    'val': insVPixelStoreVal,
+                    # 'pval': insVPixelStorePVal,
+                    'hs_fade': insVPixelStoreHSFade,
+                    'v_fade': insVPixelStoreVFade,
+                }
+
+            # scalar:
+            else:
+                ins = {
+                    'hue': insPixelStoreHue,
+                    'sat': insPixelStoreSat,
+                    'val': insPixelStoreVal,
+                    # 'pval': insPixelStorePVal,
+                    'hs_fade': insPixelStoreHSFade,
+                    'v_fade': insPixelStoreVFade,
+                }
+
+            # add attrs to instruction map:
+            for k, v in PIXEL_FIELDS.items():
+                if k not in ins:
+                    if len(self.target.lookups) == 0:
+                        ins[k] = insVPixelStoreAttr
+
+            try:
+                return ins[attr](target.var, attr, value, lineno=self.lineno)
+
+            except KeyError:
+                raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
+
+        # DB reference
+        elif target.var.data_type == 'objref' and target.var.target.name == 'db':
+            if len(self.lookups) > 0:
+                if len(self.lookups) > 1:
+                    raise SyntaxError(f'DB access only supports 1-D array lookups', lineno=self.lineno)
+
+                lookup = self.lookups[0].generate()
+
+                return insStoreDBIndexed(target, value, lookup, lineno=self.lineno)
+
+            else:
+                return insStoreDB(target, value, lineno=self.lineno)
+
+        raise SyntaxError(f'Unknown type for object store: {self.target}', lineno=self.lineno)
+
+class irObjectLoad(IR):
+    def __init__(self, target, value, attr, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+        self.lookups = value.var.lookups
+    
+        self.attr = attr
+
+        if self.attr is None:
+            raise CompilerFatal("attr cannot be None on object load")
+
+    def __str__(self):
+        return f'{self.target} =(object) {self.value}.{self.attr.name}'
+
+    @property
+    def gvn_expr(self):
+        return f"obj load {self.value}"
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        for i in range(len(self.lookups)):
+            if self.lookups[i] in VN:
+                replacement = VN[VN[self.lookups[i]]]
+
+                if self.lookups[i] != replacement:
+
+                    debug_print(f"replace object load lookups {self.lookups[i]} with {replacement}")
+
+                    self.lookups[i] = replacement
+
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace object load value {self.value} with {replacement}")
+
+                self.value = replacement
+
+
+        # we can't do this part of the optimization until we 
+        # also adjust object store to clear the VN entry for the attribute
+        # so we don't remove loads that would have loaded a changed value.
+        # effectively, we need value numbering to be able to act on 
+        # memory objects and not just registers.
+        # this type of optimization might need to be done in the load/store eliminator
+        # instead.  we don't have SSA on memory values so GVN isn't going to work, since
+        # it cannot track changes.
+
+        # expr = self.gvn_expr
+
+        # # simplify
+
+        # if len(self.lookups) == 0 and self.attr.name in PIXEL_SCALARS:
+        #     if expr in VN:
+        #         VN[self.target] = expr
+
+        #     else:
+        #         VN[self.target] = self.target
+        #         VN[expr] = self.target
+
+    def get_input_vars(self):
+        inputs = [self.value]
+        inputs.extend(self.lookups)
+        return inputs
+
+    def get_output_vars(self):
+        return [self.target]
+
+    def generate(self):
+        target = self.target.generate()
+        value = self.value.generate()
+
+
+        """ 
+        self.value.var.attr will point to attribute if it is am array load,
+        and to None if a point load.
+
+        Lookups are not forwarded, that would probably be useful as it is
+        more clear if this is an array access or a point access.
+
+        target lookups show up in object store, so having them appear
+        in values on load would make it more orthogonal.
+
+        """
+
+        # pixel channel reference:
+        if value.var.data_type == 'pixchref':
+            attr = self.attr.name
+
+            if attr == 'pixchref':
+                if len(value.var.lookups) != 0:
+                    return insPixelLoadSelect(target, value.var, attr, lineno=self.lineno)
+
+            # non-vector, go to next block
+            # for the attribute store
+
+        if value.var.data_type == 'pixref' or \
+           value.var.target.data_type == 'pixref' or \
+           value.var.target.data_type == 'pixobj':
+
+            attr = self.attr.name
+
+            ins = {
+                'hue': insPixelLoadHue,
+                'sat': insPixelLoadSat,
+                'val': insPixelLoadVal,
+                # 'pval': insPixelLoadPVal,
+                'hs_fade': insPixelLoadHSFade,
+                'v_fade': insPixelLoadVFade,
+            }
+
+            # add attrs to instruction map:
+            for k, v in PIXEL_FIELDS.items():
+                if k not in ins:
+                    if len(self.value.lookups) == 0:
+                        ins[k] = insVPixelLoadAttr
+
+                    else:
+                        ins[k] = insPixelLoadAttr
+            
+            # check for erroneous array loads
+            if len(self.value.lookups) == 0 and \
+                attr in PIXEL_VECTORS:
+
+                raise SyntaxError(f'Cannot load from array: {attr}', lineno=self.lineno)
+            
+            try:
+                return ins[attr](target, value.var, attr, lineno=self.lineno)
+
+            except KeyError:
+                raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
+
+        # DB reference
+        elif value.var.data_type == 'objref' and value.var.target.name == 'db':
+            if len(self.lookups) > 0:
+                if len(self.lookups) > 1:
+                    raise SyntaxError(f'DB access only supports 1-D array lookups', lineno=self.lineno)
+
+                lookup = self.lookups[0].generate()
+                return insLoadDBIndexed(target, value, lookup, lineno=self.lineno)
+
+            else:
+                return insLoadDB(target, value, lineno=self.lineno)
+
+        raise SyntaxError(f'Unknown type for object load: {self.target}', lineno=self.lineno)
+
+
+class irObjectOp(IR):
+    def __init__(self, op, target, value, attr, **kwargs):
+        super().__init__(**kwargs)
+        self.op = op
+        self.target = target
+        self.value = value
+        self.attr = attr
+
+        if self.attr is None:
+            raise CompilerFatal("attr cannot be None on object op")
+
+    def __str__(self):
+        return f'{self.target}.{self.attr.name} {self.op}=(object) {self.value}'
+
+    def gvn_process(self, VN):
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace object op {self.target} with {replacement}")
+
+                self.target = replacement
+        
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace object op {self.value} with {replacement}")
+
+                self.value = replacement
+
+    def get_input_vars(self):
+        return [self.value, self.target]
+
+    def get_output_vars(self):
+        return []
+
+    def generate(self):
+        target = self.target.generate()
+        value = self.value.generate()
+
+        if target.var.data_type == 'pixref' or \
+           target.var.target.data_type == 'pixref' or \
+           target.var.target.data_type == 'pixobj':
+
+            attr = self.attr.name
+
+            # vector:
+            if len(target.var.lookups) == 0:
+                ins = {
+                    'hue': {
+                        'add': insVPixelAddHue,
+                        'sub': insVPixelSubHue,
+                        'mul': insVPixelMulHue,
+                        'div': insVPixelDivHue,
+                        'mod': insVPixelModHue,
+                    },
+                    'sat': {
+                        'add': insVPixelAddSat,
+                        'sub': insVPixelSubSat,
+                        'mul': insVPixelMulSat,
+                        'div': insVPixelDivSat,
+                        'mod': insVPixelModSat,
+                    },
+                    'val': {
+                        'add': insVPixelAddVal,
+                        'sub': insVPixelSubVal,
+                        'mul': insVPixelMulVal,
+                        'div': insVPixelDivVal,
+                        'mod': insVPixelModVal,
+                    },
+                    'hs_fade': {
+                        'add': insVPixelAddHSFade,
+                        'sub': insVPixelSubHSFade,
+                        'mul': insVPixelMulHSFade,
+                        'div': insVPixelDivHSFade,
+                        'mod': insVPixelModHSFade,
+                    },
+                    'v_fade': {
+                        'add': insVPixelAddVFade,
+                        'sub': insVPixelSubVFade,
+                        'mul': insVPixelMulVFade,
+                        'div': insVPixelDivVFade,
+                        'mod': insVPixelModVFade,
+                    },
+                }
+
+            # scalar:
+            else:
+                ins = {
+                    'hue': {
+                        'add': insPixelAddHue,
+                        'sub': insPixelSubHue,
+                        'mul': insPixelMulHue,
+                        'div': insPixelDivHue,
+                        'mod': insPixelModHue,
+                    },
+                    'sat': {
+                        'add': insPixelAddSat,
+                        'sub': insPixelSubSat,
+                        'mul': insPixelMulSat,
+                        'div': insPixelDivSat,
+                        'mod': insPixelModSat,
+                    },
+                    'val': {
+                        'add': insPixelAddVal,
+                        'sub': insPixelSubVal,
+                        'mul': insPixelMulVal,
+                        'div': insPixelDivVal,
+                        'mod': insPixelModVal,
+                    },
+                    'hs_fade': {
+                        'add': insPixelAddHSFade,
+                        'sub': insPixelSubHSFade,
+                        'mul': insPixelMulHSFade,
+                        'div': insPixelDivHSFade,
+                        'mod': insPixelModHSFade,
+                    },
+                    'v_fade': {
+                        'add': insPixelAddVFade,
+                        'sub': insPixelSubVFade,
+                        'mul': insPixelMulVFade,
+                        'div': insPixelDivVFade,
+                        'mod': insPixelModVFade,
+                    },
+                }
+                
+            try:
+                return ins[attr][self.op](target, attr, value, lineno=self.lineno)
+                
+            except KeyError:
+                raise SyntaxError(f'Unknown attribute for PixelArray: {self.target} -> {attr.name}', lineno=self.lineno)
+
+        raise SyntaxError(f'Unknown type for object store: {self.target}', lineno=self.lineno)
+
+
+# Load constant to register
+class irLoadConst(IR):
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+
+    @property
+    def expr(self):
+        return f'const {self.value}'
+
+    def __str__(self):
+        return f'LOAD CONST {self.target} <-- {self.value}'
+
+    @property
+    def gvn_expr(self):
+        return f'const {self.value}'
+
+    def gvn_process(self, VN):
+        # there is no replacement step for a load const
+
+        # assign value to target
+        self.target.value = self.value
+
+        # since this is a constant load, we can assert that the target
+        # is now marked as const
+        assert self.target.const
+
+        expr = self.gvn_expr
+
+
+        # is expr in hash table?
+        if expr in VN:
+            VN[self.target] = expr
+            
+            return 'remove'
+            
+        else:
+            VN[self.target] = self.target
+            VN[expr] = self.target
+
+    def get_input_vars(self):
+        return []
+
+    def get_output_vars(self):
+        return [self.target]
+
+    def generate(self):
+        value = self.value
+
+        if is_16_bits(value):
+            # a load immediate will work here
+            return insLoadImmediate(self.target.generate(), value, lineno=self.lineno)
+
+        else:
+            # 32 bits, requires constant pooling
+            return insLoadConst(self.target.generate(), value, lineno=self.lineno)
+
+class irLoadString(IR):
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+
+    def __str__(self):
+        return f'LOAD STR {self.target} <-- {self.value}'
+
+    def gvn_process(self, VN):
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f'replace loadstr target {self.target} with {replacement}')
+
+                self.target = replacement
+
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f'replace loadstr value {self.value} with {replacement}')
+
+                self.value = replacement
+
+    def get_input_vars(self):
+        return [self.target, self.value]
+
+    def get_output_vars(self):
+        return []
+
+    def generate(self):
+        return insLoadString(self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+class irFormatString(IR):
+    def __init__(self, string, values, target=None, **kwargs):
+        super().__init__(**kwargs)
+        self.string = string
+        self.values = values
+        self.target = target
+
+    def __str__(self):
+        values = '('
+        for v in self.values:
+            values += str(v) + ', '
+
+        values = values[:-2]
+        values += ')'
+        
+        return f'FORMAT STR {self.target} <-- {self.string} % {values}'
+
+    def gvn_process(self, VN):
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f'replace formatstr target {self.target} with {replacement}')
+
+                self.target = replacement
+
+        if self.string in VN:
+            replacement = VN[VN[self.string]]
+
+            if self.string != replacement:
+                debug_print(f'replace formatstr string {self.string} with {replacement}')
+
+                self.string = replacement
+
+        for i in range(len(self.values)):
+            value = self.values[i]
+            if value in VN:
+                replacement = VN[VN[value]]
+
+                if value != replacement:
+
+                    debug_print(f"replace formatstr value {self.values[i]} with {replacement}")
+
+                    self.values[i] = replacement
+
+    def get_input_vars(self):
+        inputs = [self.target, self.string]
+        inputs.extend(self.values)
+        return inputs
+
+    def get_output_vars(self):
+        return []
+
+    def generate(self):
+        return insFormatString(self.target.generate(), self.string.generate(), [v.generate() for v in self.values], lineno=self.lineno)
+
+class irLoadRef(IR):
+    def __init__(self, target, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.ref = ref
+
+        try:
+            self.attr = target.var.attr
+
+        except AttributeError:
+            self.attr = None
+
+        if isinstance(ref, VarContainer):
+            raise CompilerFatal
+
+    def __str__(self):
+        return f'LOAD REF {self.target} <-- {self.ref}'
+
+    @property
+    def expr(self):
+        return f'loadref {self.ref}'
+
+    @property
+    def gvn_expr(self):
+        return f'loadref {self.ref}.{self.attr}'
+
+    def gvn_process(self, VN):
+        if self.ref in VN:
+            replacement = VN[VN[self.ref]]
+
+            if self.ref != replacement:
+                debug_print(f'replace ref {self.ref} with {replacement}')
+
+                self.ref = replacement
+
+        expr = self.gvn_expr
+
+        if expr in VN:
+            VN[self.target] = expr
+
+            return 'remove'
+        else:
+            VN[self.target] = self.target
+            VN[expr] = self.target
+
+    def get_input_vars(self):
+        return []
+
+    def get_output_vars(self):
+        return [self.target]
+
+    def generate(self):
+        target = self.target.generate()
+        ref = self.ref.generate()
+
+        if isinstance(target.var.var, varObjectRef) and \
+           target.var.target.data_type == 'pixobj' and \
+           target.var.attr is not None and \
+           target.var.attr.name in PIXEL_VECTORS:
+
+            ref.index = PIXEL_VECTORS[target.var.attr.name]
+
+        return insLoadRef(target, ref, lineno=self.lineno)
+        
+# Load register from memory
+class irLoad(IR):
+    def __init__(self, register, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.register = register
+        self.ref = ref
+
+    def __str__(self):
+        return f'LOAD {self.register} <-- {self.ref}'
+
+    @property
+    def expr(self):
+        return f'mem {self.ref}'
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.ref in VN:
+            replacement = VN[VN[self.ref]]
+
+            if self.ref != replacement:
+                debug_print(f"replace load ref {self.ref} with {replacement}")
+
+                self.ref = replacement
+
+    def get_input_vars(self):
+        if self.ref.data_type == 'offset':
+            return [self.ref]
+
+        return []
+
+    def get_output_vars(self):
+        return [self.register]
+
+    def generate(self):
+        ref = self.ref.generate()
+
+        if isinstance(ref, insReg):
+            return insLoadMem(self.register.generate(), ref, lineno=self.lineno)
+
+            # if self.ref.target.is_global:
+            #     return insLoadGlobal(self.register.generate(), ref, lineno=self.lineno)
+
+            # else:
+            #     return insLoadLocal(self.register.generate(), ref, lineno=self.lineno)
+
+        else:
+            assert self.ref.is_global
+            return insLoadGlobalImmediate(self.register.generate(), ref, lineno=self.lineno)
+
+# Store register to memory
+class irStore(IR):
+    def __init__(self, register, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.register = register
+        self.ref = ref
+
+    def __str__(self):
+        return f'STORE {self.register} --> {self.ref}'
+
+    @property
+    def expr(self):
+        return f'mem {self.ref}'
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.ref in VN:
+            replacement = VN[VN[self.ref]]
+
+            if self.ref != replacement:
+                debug_print(f"replace store ref {self.ref} with {replacement}")
+
+                self.ref = replacement
+
+        if self.register in VN:
+            replacement = VN[VN[self.register]]
+
+            if self.register != replacement:
+                debug_print(f"replace store register {self.register} with {replacement}")
+
+                self.register = replacement
+
+    def get_input_vars(self):
+        i = [self.register]
+
+        if self.ref.data_type == 'offset':
+            i.append(self.ref)
+
+        return i
+
+    def get_output_vars(self):
+        return []
+
+    def generate(self):
+        ref = self.ref.generate()
+
+        if isinstance(ref, insReg):
+            return insStoreMem(ref, self.register.generate(), lineno=self.lineno)
+
+            # if self.ref.target.is_global:
+            #     return insStoreGlobal(ref, self.register.generate(), lineno=self.lineno)
+
+            # else:
+            #     return insStoreLocal(ref, self.register.generate(), lineno=self.lineno)
+
+        else:
+            assert self.ref.is_global
+            return insStoreGlobalImmediate(ref, self.register.generate(), lineno=self.lineno)
+
+# Spill register to stack
+class irSpill(IR):
+    def __init__(self, target, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.ref = ref
+        
+    def __str__(self):
+        return f'SPILL {self.target} >>> {self.ref}'
+
+    def get_input_vars(self):
+        return [self.ref]
+
+    def get_output_vars(self):
+        return [self.target]
+
+# Fill register from stack
+class irFill(IR):
+    def __init__(self, target, ref, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.ref = ref
+        
+    def __str__(self):
+        return f'FILL {self.target} <<< {self.ref}'
+
+    def get_input_vars(self):
+        return [self.ref]
+
+    def get_output_vars(self):
+        return [self.target]
+
+class irUnaryNot(IR):
+    def __init__(self, target, value, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.value = value
+
+    def __str__(self):
+        return "%s = NOT %s" % (self.target, self.value)
+
+    @property
+    def expr(self):    
+        return f'not {self.value}'
+
+    def gvn_process(self, VN):
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace unary not value {self.value} with {replacement}")
+
+                self.value = replacement
+
+    def fold(self):
+        if self.value.value is None:
+            return
+
+        val = not self.value.value
+
+        val = int(val)
+
+        ir = irLoadConst(self.target, val, lineno=self.lineno)
+
+        self.target.value = val
+
+        return ir
+
+    def generate(self):
+        return insNot(self.target.generate(), self.value.generate(), lineno=self.lineno)
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return [self.target]
+
+class irBinop(IR):
+    def __init__(self, target, op, left, right, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.op = op
+
+        # canonicalize the binop expression, if possible:
+        if op in COMMUTATIVE_OPS:
+            # check if one side is a const, if so,
+            # make sure it is on the right to make
+            # common subexpressions easier to find.
+            # this only applies to operations which are commutative
+            # if op in COMMUTATIVE_OPS and isinstance(left, irConst) and not isinstance(right, irConst):
+            # if left.const and not right.const:
+            #     temp = left
+            #     left = right
+            #     right = temp
+
+            # else:
+                
+            # place them in sorted order by name
+            temp = list(sorted([left, right], key=lambda a: a.name))
+            left = temp[0]
+            right = temp[1]
+
+            # NOTE:
+            # it *looks* like Python's parser already does something like this.
+            # however, we are not going to rely on that behavior, and will ensure 
+            # it is done to our specs here.
+
+        self.left = left
+        self.right = right
+
+        if self.op == 'div' and self.right.const and self.right.value == 0:
+            raise DivByZero("Division by 0", lineno=self.lineno)
+
+    def __str__(self):
+        s = '%s = %s %s %s' % (self.target, self.left, self.op, self.right)
+
+        return s
+
+    @property
+    def expr(self):    
+        return irExpr(self.left, self.op, self.right, lineno=self.lineno)
+
+    @property
+    def gvn_expr(self):
+        return f'{self.left.ssa_name} {self.op} {self.right.ssa_name}'
+
+    def gvn_process(self, VN):
+        if self.left in VN:
+            replacement = VN[VN[self.left]]
+
+            if self.left != replacement:
+                debug_print(f'replace left {self.left} with {replacement}')
+                self.left = replacement
+
+        if self.right in VN:
+            replacement = VN[VN[self.right]]
+
+            if self.right != replacement:
+                debug_print(f'replace right {self.right} with {replacement}')
+                self.right = replacement
+
+        expr = self.gvn_expr
+
+        # simplify
+        fold = self.fold()
+
+        if fold is not None:
+            debug_print(f'Fold binop: {self} to {fold}')
+
+            assert isinstance(fold, irLoadConst)
+
+            VN[fold.target] = fold.target
+            VN[fold.gvn_expr] = fold.target
+            VN[expr] = fold.target
+
+            return fold
+
+        if expr in VN:
+            VN[self.target] = expr
+            
+            return 'remove'
+
+        else:
+            VN[self.target] = self.target
+            VN[expr] = self.target
+
+
+    @property
+    def data_type(self):
+        return self.target.data_type
+
+    def get_input_vars(self):
+        return [self.left, self.right]
+
+    def get_output_vars(self):
+        return [self.target]
+
+    def reduce_strength(self):
+        if self.op == 'add':
+            # add to 0 is just an assign
+            if self.left.is_const and self.left.value == 0:
+                return irAssign(self.target, self.right, lineno=self.lineno)
+
+            elif self.right.is_const and self.right.value == 0:
+                return irAssign(self.target, self.left, lineno=self.lineno)
+
+        elif self.op == 'sub':
+            # sub 0 from var is just an assign
+            if self.right.is_const and self.right.value == 0:
+                return irAssign(self.target, self.left, lineno=self.lineno)
+        
+        elif self.op == 'mul':
+            # mul times 0 is assign to 0
+            if self.left.is_const and self.left.value == 0:
+                return irAssign(self.target, self.get_zero(self.lineno), lineno=self.lineno)
+
+            elif self.right.is_const and self.right.value == 0:
+                return irAssign(self.target, self.get_zero(self.lineno), lineno=self.lineno)
+
+            # mul times 1 is assign
+            elif self.left.is_const and self.left.value == 1:
+                return irAssign(self.target, self.right, lineno=self.lineno)
+
+            elif self.right.is_const and self.right.value == 1:
+                return irAssign(self.target, self.left, lineno=self.lineno)
+
+        elif self.op == 'div':
+            # div by 1 is assign
+            if self.right.is_const and self.right.value == 1:
+                return irAssign(self.target, self.left, lineno=self.lineno)
+
+        return None
+
+    def fold(self):
+        val = None
+        op = self.op
+        left = self.left
+        right = self.right
+
+        left_value = left.value
+        right_value = right.value
+
+        if left_value is None or right_value is None:
+            return None
+
+        # check f16 conversions.  if these are represented as floats, they need to be
+        # converted to the integer form first
+        if left.data_type == 'f16' and isinstance(left_value, float):
+            left_value = int(left_value * 65536)
+
+        if right.data_type == 'f16' and isinstance(right_value, float):
+            right_value = int(right_value * 65536)
+
+        if op == 'eq':
+            val = left_value == right_value
+
+        elif op == 'neq':
+            val = left_value != right_value
+
+        elif op == 'gt':
+            val = left_value > right_value
+
+        elif op == 'gte':
+            val = left_value >= right_value
+
+        elif op == 'lt':
+            val = left_value < right_value
+
+        elif op == 'lte':
+            val = left_value <= right_value
+
+        elif op == 'logical_and':
+            val = left_value and right_value
+
+        elif op == 'logical_or':
+            val = left_value or right_value
+
+        elif op == 'add':
+            val = left_value + right_value
+
+        elif op == 'sub':
+            val = left_value - right_value
+
+        elif op == 'mul':
+            val = left_value * right_value
+
+            if left.data_type == 'f16':
+                val //= 65536
+
+        elif op == 'div':
+            if right_value == 0:
+                val = 0
+
+            elif left.data_type == 'f16':
+                val = (left_value * 65536) // right_value
+
+            else:
+                val = left_value // right_value
+
+        elif op == 'mod':
+            if right_value == 0:
+                val = 0
+
+            else:
+                val = left_value % right_value
+
+        else:
+            assert False
+
+        # if value is a boolean, convert to an integer 0 or 1
+        if isinstance(val, bool):
+            val = int(val)
+
+        ir = irLoadConst(self.target, val, lineno=self.lineno)
+        # self.target.name = f'{val}'
+
+        self.target.value = val
+
+        return ir
+
+    def generate(self):
+        ops = {
+            'i32':
+                {'eq': insCompareEq,
+                'neq': insCompareNeq,
+                'gt': insCompareGt,
+                'gte': insCompareGtE,
+                'lt': insCompareLt,
+                'lte': insCompareLtE,
+                'logical_and': insAnd,
+                'logical_or': insOr,
+                'add': insAdd,
+                'sub': insSub,
+                'mul': insMul,
+                'div': insDiv,
+                'mod': insMod},
+            'f16':
+                {'eq': insCompareEq,
+                'neq': insCompareNeq,
+                'gt': insCompareGt,
+                'gte': insCompareGtE,
+                'lt': insCompareLt,
+                'lte': insCompareLtE,
+                'logical_and': insAnd,
+                'logical_or': insOr,
+                'add': insAdd,
+                'sub': insSub,
+                'mul': insF16Mul,
+                'div': insF16Div,
+                'mod': insMod},
+            # 'str':
+            #     # placeholders for now
+            #     # need actual string instructions
+            #     {'eq': insBinop, # compare
+            #     'neq': insBinop, # compare not equal
+            #     'in': insBinop,  # search
+            #     'add': insBinop, # concatenate
+            #     'mod': insBinop} # formatted output
+        }
+
+        return ops[self.data_type][self.op](self.target.generate(), self.left.generate(), self.right.generate(), lineno=self.lineno)
+
+
+type_conversions = {
+# result  |  value
+    ('i32', 'f16'): insConvF16toI32,
+    ('f16', 'i32'): insConvI32toF16,
+    ('f16', 'gfx16'): insConvGFX16toF16,
+}
+
+class irConvertType(IR):
+    def __init__(self, result, value, **kwargs):
+        super().__init__(**kwargs)
+        self.result = result
+        self.value = value
+
+    def __str__(self):
+        s = '%s = %s(%s)' % (self.result, self.result.data_type, self.value)
+
+        return s
+
+    @property
+    def expr(self):
+        return f'conv {self.result.data_type} {self.value}'
+
+    def gvn_process(self, VN):
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace convert type {self.value} with {replacement}")
+
+                self.value = replacement
+
+    def fold(self):
+        if self.result.data_type == self.value.data_type:
+            # data type is converting to same type.
+            # we can replace with an assign.
+            ir = irAssign(self.result, self.value, lineno=self.lineno)
+
+            return ir
+
+        elif self.result.data_type == 'gfx16':
+            # result is gfx16, there is no conversion, just a move
+
+            ir = irAssign(self.result, self.value, lineno=self.lineno)
+
+            return ir            
+
+        if self.value.value is None:
+            return None
+
+        if self.result.data_type == 'f16':
+            val = float(self.value.value)
+
+        elif self.result.data_type == 'i32':
+            val = int(self.value.value)
+
+        else:
+            assert False
+
+        ir = irLoadConst(self.result, val, lineno=self.lineno)
+        self.result.value = val
+
+        return ir
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def get_output_vars(self):
+        return [self.result]
+
+    def generate(self):
+        try:
+            return type_conversions[(self.result.data_type, self.value.data_type)](self.result.generate(), self.value.generate(), lineno=self.lineno)
+
+        except KeyError:
+            ins = insConvMov(self.result.generate(), self.value.generate(), lineno=self.lineno)
+            return ins
+
+# this is mostly used for optimizations:
+class irExpr(IR):
+    def __init__(self, var1, op, var2, **kwargs):
+        super().__init__(**kwargs)
+
+        self.var1 = var1
+        self.var2 = var2
+        self.op = op
+
+        self.is_global = False
+        self.is_temp = False
+        self.holds_const = False
+        self.is_const = False
+
+    @property
+    def is_commutative(self):
+        return self.op in COMMUTATIVE_OPS
+
+    def __str__(self):
+        return f'{self.var1} {self.op} {self.var2}'
+
+    def __hash__(self):
+        return hash(f'{self.var1}{self.op}{self.var2}')
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+
+class irLookup(IR):
+    def __init__(self, result, ref, lookups=[], counts=[], strides=[], **kwargs):
+        super().__init__(**kwargs)        
+        self.result = result
+        self.ref = ref
+        assert isinstance(ref.var, varRef)
+        self.lookups = lookups
+        self.counts = counts
+        self.strides = strides
+
+    def __str__(self):
+        lookups = ''
+        for a in self.lookups:
+            lookups += f'[{a}]'
+
+        return f'{self.result} = LOOKUP {self.ref} {lookups}'
+
+    @property
+    def expr(self):
+        s = f'lookup: {self.ref} '
+        for m in self.lookups:
+            s += f'{m.ssa_name} '
+
+        return s
+
+    def gvn_process(self, VN):
+        if self.ref in VN:
+            replacement = VN[VN[self.ref]]
+
+            if self.ref != replacement:
+                debug_print(f"replace lookup {self.ref} with {replacement}")
+
+                self.ref = replacement
+
+        for i in range(len(self.lookups)):
+            if self.lookups[i] in VN:
+                replacement = VN[VN[self.lookups[i]]]
+
+                if self.lookups[i] != replacement:
+                    debug_print(f"replace lookup {self.lookups[i]} with {replacement}")
+
+                    self.lookups[i] = replacement
+
+        for i in range(len(self.counts)):
+            if self.counts[i] in VN:
+                replacement = VN[VN[self.counts[i]]]
+
+                if self.counts[i] != replacement:
+                    debug_print(f"replace count {self.counts[i]} with {replacement}")
+
+                    self.counts[i] = replacement
+        
+        for i in range(len(self.strides)):
+            if self.strides[i] in VN:
+                replacement = VN[VN[self.strides[i]]]
+
+                if self.strides[i] != replacement:
+                    debug_print(f"replace stride {self.strides[i]} with {replacement}")
+
+                    self.strides[i] = replacement
+        
+
+    def get_input_vars(self):
+        inputs = [self.ref]
+        inputs.extend(self.lookups)
+        inputs.extend(self.counts)
+        inputs.extend(self.strides)
+        return inputs
+        
+    def get_output_vars(self):
+        return [self.result]
+
+    def generate(self):
+        indexes = [i.generate() for i in self.lookups]
+        counts = [i.generate() for i in self.counts]
+        strides = [i.generate() for i in self.strides]
+
+        if len(indexes) == 0:
+            raise CompilerFatal('Lookup with 0 indexes.')
+            return insLookup0(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
+
+        elif len(indexes) == 1:
+            return insLookup1(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
+
+        elif len(indexes) == 2:
+            return insLookup2(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
+
+        elif len(indexes) == 3:
+            return insLookup3(self.result.generate(), self.ref.generate(), indexes, counts, strides, lineno=self.lineno)
+        
+        else:
+            raise CompilerFatal(f'VM does not have an instruction coded for {len(indexes)} indexes')
+
+
+class irAttribute(IR):
+    def __init__(self, name, data_type=None, **kwargs):
+        super().__init__(**kwargs)    
+        self.name = name
+        self.data_type = data_type
+
+    def __str__(self):    
+        if self.data_type is not None:
+            return f'Attr({self.name}:{self.data_type})'
+
+        return f'Attr({self.name})'
+
+
+class irPrint(IR):
+    def __init__(self, value, **kwargs):
+        super().__init__(**kwargs)        
+        self.value = value
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace print {self.value} with {replacement}")
+
+                self.value = replacement
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def __str__(self):
+        s = 'PRINT %s' % (self.value)
+
+        return s   
+
+    def generate(self):
+        if isinstance(self.value.var, varStringRef):
+            return insPrintStr(self.value.generate(), lineno=self.lineno)
+
+        elif isinstance(self.value.var, varRef):
+            return insPrintRef(self.value.generate(), lineno=self.lineno)
+
+        else:
+            return insPrint(self.value.generate(), lineno=self.lineno)
+
+class irAssert(IR):
+    def __init__(self, value, **kwargs):
+        super().__init__(**kwargs)        
+        self.value = value
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.value in VN:
+            replacement = VN[VN[self.value]]
+
+            if self.value != replacement:
+                debug_print(f"replace assert {self.value} with {replacement}")
+
+                self.value = replacement
+
+    def get_input_vars(self):
+        return [self.value]
+
+    def __str__(self):
+        s = 'ASSERT %s' % (self.value)
+
+        return s   
+
+    def generate(self):
+        return insAssert(self.value.generate(), lineno=self.lineno)
+
+class irLoadRetVal(IR):
+    def __init__(self, target, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+
+    def __str__(self):
+        s = 'LOAD RET_VAL -> %s' % (self.target)
+
+        return s   
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace load ret val {self.target} with {replacement}")
+
+                self.target = replacement
+
+    def get_output_vars(self):
+        return [self.target]
+
+    def generate(self):
+        return insLoadRetVal(self.target.generate(), lineno=self.lineno)
+
+class irSuspend(irControlFlow):
+    def __init__(self, delay, **kwargs):
+        super().__init__(**kwargs)
+
+        self.delay = delay
+    
+    def __str__(self):
+        if len(self.context) == 0:
+            s = f'SUSPEND {self.delay}'
+
+        else:
+            context_registers = [v.ssa_name for v in self.context]
+            s = f'SUSPEND {self.delay}: {context_registers}'
+
+        return s   
+
+    @property
+    def context(self):
+        return self.live_out
+
+    def get_input_vars(self):
+        return [self.delay]
+
+    def generate(self):
+        if len(self.context) > 48:
+            raise CompilerFatal(f"SUSPEND only supports the first 48 registers.  Count: {len(self.context)}")
+
+        return insSuspend(self.delay.generate(), context=[v.generate() for v in self.context], lineno=self.lineno)
+
+class irResume(irControlFlow):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __str__(self):
+        s = f'RESUME'
+
+        return s   
+
+    def generate(self):
+        return insResume(lineno=self.lineno)
+
+class irCallType(IR):
+    pass
+
+class irCall(irCallType):
+    def __init__(self, target, params, **kwargs):
+        super().__init__(**kwargs)
+
+        self.target = target
+        self.params = params
+
+    def __str__(self):
+        params = params_to_string(self.params)
+        s = f'CALL {self.target.name}({params})'
+
+        return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        for i in range(len(self.params)):
+            if self.params[i] in VN:
+                replacement = VN[VN[self.params[i]]]
+
+                if self.params[i] != replacement:
+                    debug_print(f"replace call param {self.params[i]} with {replacement}")
+
+                    self.params[i] = replacement
+
+    def get_input_vars(self):
+        return self.params
+
+    def generate(self, stack=[]):        
+        params = []
+
+        for i in range(len(self.params)):
+            params.append(self.params[i].generate())
+
+        if self.target in stack:
+            raise SyntaxError(f'Recursive call of {self.target}', lineno=self.lineno)
+
+        stack.insert(0, self.target)
+
+        target = self.target.name
+
+        # call func
+        if len(params) == 0:
+            call_ins = insCall0(target, params, lineno=self.lineno)
+
+        elif len(params) == 1:
+            call_ins = insCall1(target, params, lineno=self.lineno)
+
+        elif len(params) == 2:
+            call_ins = insCall2(target, params, lineno=self.lineno)
+
+        elif len(params) == 3:
+            call_ins = insCall3(target, params, lineno=self.lineno)
+
+        elif len(params) == 4:
+            call_ins = insCall4(target, params, lineno=self.lineno)
+
+        else:
+            raise CompilerFatal(f'VM does not have an instruction encoded for this many params! {len(params)}')
+
+        stack.pop(0)
+
+        return call_ins
+
+
+class irIndirectCall(irCallType):
+    def __init__(self, ref, params, **kwargs):
+        super().__init__(**kwargs)
+        self.ref = ref
+        self.params = params
+
+    def __str__(self):
+        params = params_to_string(self.params)
+        s = f'ICALL {self.ref.name}({params})'
+
+        return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        for i in range(len(self.params)):
+            if self.params[i] in VN:
+                replacement = VN[VN[self.params[i]]]
+
+                if self.params[i] != replacement:
+                    debug_print(f"replace icall param {self.params[i]} with {replacement}")
+
+                    self.params[i] = replacement
+
+        if self.ref in VN:
+            replacement = VN[VN[self.ref]]
+
+            if self.ref != replacement:
+                debug_print(f"replace icall ref {self.ref} with {replacement}")
+
+                self.ref = replacement
+
+    def get_input_vars(self):
+        inputs = [self.ref]
+        inputs.extend(self.params)
+        return inputs
+
+    def generate(self):        
+        # return insNop(lineno=self.lineno)
+        params = [a.generate() for a in self.params]
+        # args = [a.generate() for a in self.args]
+
+        # call func
+        if len(params) == 0:
+            call_ins = insIndirectCall0(self.ref.generate(), params, lineno=self.lineno)
+
+        elif len(params) == 1:
+            call_ins = insIndirectCall1(self.ref.generate(), params, lineno=self.lineno)
+
+        elif len(params) == 2:
+            call_ins = insIndirectCall2(self.ref.generate(), params, lineno=self.lineno)
+
+        elif len(params) == 3:
+            call_ins = insIndirectCall3(self.ref.generate(), params, lineno=self.lineno)
+
+        elif len(params) == 4:
+            call_ins = insIndirectCall4(self.ref.generate(), params, lineno=self.lineno)
+
+        else:
+            raise CompilerFatal(f'VM does not have an instruction encoded for this many params! {len(params)}')
+
+        return call_ins
+
+class irLibCall(irCallType):
+    def __init__(self, target, params, func_name, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.params = params
+        self.func_name = func_name
+
+    def __str__(self):
+        params = params_to_string(self.params)
+        s = f'LCALL {self.func_name}:{self.target}({params})'
+
+        return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        for i in range(len(self.params)):
+            if self.params[i] in VN:
+                replacement = VN[VN[self.params[i]]]
+
+                if self.params[i] != replacement:
+                    debug_print(f"replace lcall param {self.params[i]} with {replacement}")
+
+                    self.params[i] = replacement
+
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace lcall target {self.target} with {replacement}")
+
+                self.target = replacement
+
+    def get_input_vars(self):
+        inputs = [self.target]
+        inputs.extend(self.params)
+        return inputs
+
+    def generate(self):        
+        params = [a.generate() for a in self.params]
+
+        if self.func_name == 'halt':
+            return insHalt(lineno=self.lineno)
+
+        else:
+            # call func
+            if len(params) == 0:
+                call_ins = insLibCall0(self.target.generate(), params, self.func_name, lineno=self.lineno)
+
+            elif len(params) == 1:
+                call_ins = insLibCall1(self.target.generate(), params, self.func_name, lineno=self.lineno)
+
+            elif len(params) == 2:
+                call_ins = insLibCall2(self.target.generate(), params, self.func_name, lineno=self.lineno)
+
+            elif len(params) == 3:
+                call_ins = insLibCall3(self.target.generate(), params, self.func_name, lineno=self.lineno)
+
+            elif len(params) == 4:
+                call_ins = insLibCall4(self.target.generate(), params, self.func_name, lineno=self.lineno)
+
+            else:
+                raise CompilerFatal(f'VM does not have an instruction encoded for this many params! {len(params)}')
+
+            return call_ins
+
+class irDBCall(irCallType):
+    def __init__(self, target, key, params, func_name, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.key = key
+        self.params = params
+        self.func_name = func_name
+
+    def __str__(self):
+        params = params_to_string(self.params)
+        s = f'DBCALL {self.func_name}:{self.target}.{self.key}({params})'
+
+        return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        for i in range(len(self.params)):
+            if self.params[i] in VN:
+                replacement = VN[VN[self.params[i]]]
+
+                if self.params[i] != replacement:
+                    debug_print(f"replace dbcall param {self.params[i]} with {replacement}")
+
+                    self.params[i] = replacement
+
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace dbcall target {self.target} with {replacement}")
+
+                self.target = replacement
+
+        if self.key in VN:
+            replacement = VN[VN[self.key]]
+
+            if self.key != replacement:
+                debug_print(f"replace dbcall key {self.key} with {replacement}")
+
+                self.key = replacement
+
+    def get_input_vars(self):
+        inputs = [self.target, self.key]
+        inputs.extend(self.params)
+        return inputs
+
+    def generate(self):    
+        if len(self.params) > 0:
+            raise CompilerFatal
+
+        call_ins = insDBCall(self.target.generate(), self.key.generate(), [], self.func_name, lineno=self.lineno)
+
+        return call_ins
+
+
+class irPixCall(irCallType):
+    def __init__(self, target, pixel_ref, params, func_name, **kwargs):
+        super().__init__(**kwargs)
+        self.target = target
+        self.pixel_ref = pixel_ref
+        self.params = params
+        self.func_name = func_name
+
+    def __str__(self):
+        params = params_to_string(self.params)
+        s = f'PIXCALL {self.pixel_ref}.{self.func_name}:{self.target}({params})'
+
+        return s
+
+    def gvn_process(self, VN):
+        # replace inputs:
+        for i in range(len(self.params)):
+            if self.params[i] in VN:
+                replacement = VN[VN[self.params[i]]]
+
+                if self.params[i] != replacement:
+                    debug_print(f"replace pixcall param {self.params[i]} with {replacement}")
+
+                    self.params[i] = replacement
+
+        if self.target in VN:
+            replacement = VN[VN[self.target]]
+
+            if self.target != replacement:
+                debug_print(f"replace pixcall target {self.target} with {replacement}")
+
+                self.target = replacement
+
+        if self.pixel_ref in VN:
+            replacement = VN[VN[self.pixel_ref]]
+
+            if self.pixel_ref != replacement:
+                debug_print(f"replace pixcall pixel_ref {self.pixel_ref} with {replacement}")
+
+                self.pixel_ref = replacement
+
+    def get_input_vars(self):
+        inputs = [self.target, self.pixel_ref]
+        inputs.extend(self.params)
+        return inputs
+
+    def generate(self):        
+        params = [a.generate() for a in self.params]
+
+        return insPixCall(self.target.generate(), self.pixel_ref.generate(), params, self.func_name, lineno=self.lineno)
+

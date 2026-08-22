@@ -30,6 +30,7 @@
 #include "list.h"
 #include "sockets.h"
 #include "hal_io.h"
+#include "random.h"
 
 #include "hal_arp.h"
 
@@ -39,6 +40,8 @@
 
 #include "mem.h"
 #include "espconn.h"
+
+#include "lwipopts.h"
 
 #ifdef ENABLE_WIFI
 
@@ -71,6 +74,8 @@ static uint8_t scan_backoff;
 static uint8_t current_scan_backoff;
 
 static uint8_t tx_power = WIFI_MAX_HW_TX_POWER;
+
+static bool enable_modem_sleep = FALSE; // default to disable modem sleep, it can be unstable and lose traffic
 
 KV_SECTION_META kv_meta_t wifi_cfg_kv[] = {
     { CATBUS_TYPE_STRING32,      0, 0,                          0,                  cfg_i8_kv_handler,   "wifi_ssid" },
@@ -108,6 +113,8 @@ KV_SECTION_META kv_meta_t wifi_info_kv[] = {
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_misses,                  0,   "wifi_arp_misses" },
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_msg_recovered,           0,   "wifi_arp_msg_recovered" },
     { CATBUS_TYPE_UINT32,        0, 0,                    &wifi_arp_msg_fails,               0,   "wifi_arp_msg_fails" },
+
+    { CATBUS_TYPE_BOOL,          0, KV_FLAGS_PERSIST,     &enable_modem_sleep,               0,   "wifi_enable_modem_sleep" },
 };
 
 
@@ -119,7 +126,6 @@ PT_THREAD( wifi_rx_process_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_status_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_thread( pt_t *pt, void *state ) );
 PT_THREAD( wifi_arp_sender_thread( pt_t *pt, void *state ) );
-PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) );
 
 static struct espconn esp_conn[WIFI_MAX_PORTS];
 static esp_udp udp_conn[WIFI_MAX_PORTS];
@@ -129,6 +135,7 @@ static list_t rx_list;
 static list_t arp_q_list;
 
 static char hostname[32];
+static uint8_t disconnect_reason;
 
 void wifi_handle_event_cb(System_Event_t *evt)
 {
@@ -144,6 +151,7 @@ void wifi_handle_event_cb(System_Event_t *evt)
             evt->event_info.disconnected.ssid,
             evt->event_info.disconnected.reason);*/
 
+            disconnect_reason = evt->event_info.disconnected.reason;
             connected = FALSE;
             // log_v_debug_P( PSTR("wifi disconnected") );
             break;
@@ -219,12 +227,6 @@ void hal_wifi_v_init( void ){
                     0 );
     }
 
-    thread_t_create_critical( 
-                wifi_echo_thread,
-                PSTR("wifi_echo"),
-                0,
-                0 );
-
 	wifi_get_macaddr( 0, wifi_mac );
 
     uint64_t current_device_id = 0;
@@ -257,6 +259,7 @@ void hal_wifi_v_init( void ){
 
     // set sleep mode
     wifi_set_sleep_type( MODEM_SLEEP_T );
+    // wifi_set_sleep_type( NONE_SLEEP_T );
 
     // disable auto reconnect (we will manage this)
     wifi_station_set_auto_connect( FALSE );
@@ -288,6 +291,28 @@ void hal_wifi_v_init( void ){
  //    wifi_station_connect();
 }
 
+static uint16_t get_rx_buffer_usage( void ){
+
+    uint16_t count = 0;
+
+    list_node_t ln = rx_list.head;
+    
+    while( ln > 0 ){
+
+        count += list_u16_node_size( ln );
+
+        netmsg_state_t *state = netmsg_vp_get_state( ln );
+
+        if( state->data_handle > 0 ){
+
+            count += mem2_u16_get_size( state->data_handle );
+        }
+
+        ln = list_ln_next( ln );
+    }
+
+    return count;
+}
 
 void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
@@ -309,7 +334,9 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
  //    }
 
     // check rx size
-    if( list_u16_size( &rx_list ) > WIFI_MAX_RX_SIZE ){
+    if( get_rx_buffer_usage() > WIFI_MAX_RX_SIZE ){
+
+        log_v_debug_P( PSTR("rx udp buffer full") );     
 
         goto drop;
     }
@@ -318,8 +345,8 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
     if( rx_netmsg < 0 ){
 
-        log_v_debug_P( PSTR("rx udp alloc fail") );     
-
+        log_v_debug_P( PSTR("rx udp alloc fail") );
+        
         goto drop;
     }
     
@@ -395,7 +422,7 @@ void udp_recv_callback( void *arg, char *pdata, unsigned short len ){
 
     list_v_insert_head( &rx_list, rx_netmsg );
 
-    uint16_t q_size = list_u16_size( &rx_list );
+    uint16_t q_size = get_rx_buffer_usage();
     if( q_size > wifi_max_rx_size ){
 
         wifi_max_rx_size = q_size;
@@ -566,6 +593,37 @@ void open_close_port( uint8_t protocol, uint16_t port, bool open ){
     }
 }
 
+static bool is_low_power_mode( void ){
+
+    if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+
+        // safe mode, we're not going to do anything fancy
+
+        return FALSE;
+    }
+
+    if( enable_modem_sleep ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+static void apply_power_save_mode( void ){
+
+    // set power state
+    if( is_low_power_mode() ){
+
+        wifi_set_sleep_type( MODEM_SLEEP_T );
+    }
+    else{
+
+        wifi_set_sleep_type( NONE_SLEEP_T );
+    }
+}
+
+
 int8_t get_route( ip_addr4_t *subnet, ip_addr4_t *subnet_mask ){
 
     // check if interface is up
@@ -597,13 +655,6 @@ void wifi_v_shutdown( void ){
 void wifi_v_powerup( void ){
 
     wifi_shutdown = FALSE;
-}
-
-uint32_t wifi_u32_get_power( void ){
-
-    // not a real value....
-    
-    return 50000 *  3.3;
 }
 
 void wifi_v_reset_scan_timeout( void ){
@@ -954,10 +1005,22 @@ static bool is_ssid_configured( void ){
     
 // }
 
+static bool is_led_quiet_mode( void ){
+
+    if( ( cfg_b_get_boolean( CFG_PARAM_ENABLE_LED_QUIET_MODE ) ) &&
+        ( tmr_u64_get_system_time_us() > 10000000 ) ){
+
+        return TRUE;
+    }
+
+    return FALSE;
+}
 
 PT_THREAD( wifi_connection_manager_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
+
+log_v_debug_P( PSTR("ARP table size: %d queueing: %d queue len: %d"), ARP_TABLE_SIZE, ARP_QUEUEING, ARP_QUEUE_LEN );
 
     static uint8_t scan_timeout;
 
@@ -973,6 +1036,9 @@ PT_BEGIN( pt );
 
         wifi_rssi = -127;
 
+        // reset power save mode to off
+        // wifi_set_sleep_type( NONE_SLEEP_T );
+
         wifi_set_opmode_current( NULL_MODE );
 
         current_scan_backoff = scan_backoff;
@@ -981,7 +1047,7 @@ PT_BEGIN( pt );
         while( ( current_scan_backoff > 0 ) && !_wifi_b_ap_mode_enabled() ){
 
             current_scan_backoff--;
-            TMR_WAIT( pt, 1000 );
+            TMR_WAIT( pt, ( rnd_u16_get_int() >> 6 ) );
         }
 
         
@@ -1017,7 +1083,10 @@ PT_BEGIN( pt );
                 memset( &scan_config, 0, sizeof(scan_config) );
                 
                 // light LED while scanning since the CPU will freeze
-                io_v_set_esp_led( 1 );
+                if( !is_led_quiet_mode() ){
+                    
+                    io_v_set_esp_led( 1 );
+                }
 
                 wifi_station_disconnect();
                 if( wifi_station_scan( &scan_config, scan_cb ) != TRUE ){
@@ -1045,12 +1114,20 @@ PT_BEGIN( pt );
                     }
                     else if( scan_backoff < 64 ){
 
-                        scan_backoff *= 2;
-                    }
-                    else if( scan_backoff < 192 ){
+                        scan_backoff += 2;
 
-                        scan_backoff += 64;
+                        log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
+
+                        TMR_WAIT( pt, rnd_u16_get_int() >> 5 ); // add 2 seconds of random delay
                     }
+                    // else if( scan_backoff < 192 ){
+
+                    //     scan_backoff += 64;
+
+                    //     log_v_debug_P( PSTR("scan backoff: %d"), scan_backoff );
+
+                    //     TMR_WAIT( pt, rnd_u16_get_int() >> 4 ); // add 4 seconds of random delay
+                    // }
 
                     goto end;
                 }            
@@ -1131,7 +1208,7 @@ PT_BEGIN( pt );
                 snprintf_P( &mac[2], 3, PSTR("%02x"), wifi_mac[4] ); 
                 snprintf_P( &mac[4], 3, PSTR("%02x"), wifi_mac[5] );
 
-                strncat( ap_ssid, mac, sizeof(ap_ssid) );
+                strncat( ap_ssid, mac, sizeof(ap_ssid) - 1 );
 
                 strlcpy_P( ap_pass, PSTR("12345678"), sizeof(ap_pass) );
 
@@ -1203,7 +1280,9 @@ end:
 
     THREAD_WAIT_WHILE( pt, wifi_b_connected()  && !wifi_shutdown );
     
-    log_v_debug_P( PSTR("Wifi disconnected. Last RSSI: %d ch: %d"), wifi_rssi, wifi_channel );
+    log_v_debug_P( PSTR("Wifi disconnected: %d Last RSSI: %d ch: %d"), disconnect_reason, wifi_rssi, wifi_channel );
+
+    wifi_v_reset_scan_timeout();
 
     THREAD_RESTART( pt );
 
@@ -1241,6 +1320,8 @@ PT_BEGIN( pt );
         if( connected ){
 
             wifi_rssi = wifi_station_get_rssi();
+
+            apply_power_save_mode();
         }
     }
 
@@ -1258,7 +1339,7 @@ PT_BEGIN( pt );
         THREAD_WAIT_WHILE( pt, !wifi_b_connected() );
 
         hal_arp_v_gratuitous_arp();
-        TMR_WAIT( pt, 2000 );
+        TMR_WAIT( pt, ( rnd_u16_get_int() >> 5 ) + 1000 );
 
         hal_arp_v_gratuitous_arp();
         TMR_WAIT( pt, 4000 );
@@ -1267,7 +1348,7 @@ PT_BEGIN( pt );
 
         while( wifi_b_connected() ){
 
-            TMR_WAIT( pt, ARP_GRATUITOUS_INTERVAL * 1000 );
+            TMR_WAIT( pt, ARP_GRATUITOUS_INTERVAL * 1000 + ( rnd_u16_get_int() >> 5 ) );
 
             hal_arp_v_gratuitous_arp();
         }
@@ -1351,26 +1432,112 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-PT_THREAD( wifi_echo_thread( pt_t *pt, void *state ) )
-{
-PT_BEGIN( pt );
+#if 0
+void custom_crash_callback( struct rst_info * rst_info, uint32_t stack, uint32_t stack_end ){
 
-    static socket_t sock;
+    // if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-    sock = sock_s_create( SOS_SOCK_DGRAM );
-    sock_v_bind( sock, 7 );
+    //     return;
+    // }
 
-    while(1){
+    cfg_error_log_t error_log = {0};
 
-        THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
+    snprintf_P(
+        error_log.log,
+        sizeof(error_log.log), 
+        PSTR("Exception: Reason: %d exccause: %d EPC1: %d EPC2: %d EPC3: %d EXCVADDR: %d DEPC: %d stack: 0x%08x -> 0x%08x"),
+        rst_info->reason,
+        rst_info->exccause,
+        rst_info->epc1,
+        rst_info->epc2,
+        rst_info->epc3,
+        rst_info->excvaddr,
+        rst_info->depc,
+        stack,
+        stack_end
+    );
 
-        if( sock_i16_sendto( sock, sock_vp_get_data( sock ), sock_i16_get_bytes_read( sock ), 0 ) >= 0 ){
-            
-        }
-    }
+    cfg_v_write_error_log( &error_log );
 
-PT_END( pt );
+    ee_v_commit();
+
+    // log_v_critical_P( PSTR("Exception: Reason: %d exccause: %d EPC1: %d EPC2: %d EPC3: %d EXCVADDR: %d DEPC: %d stack: 0x%08x -> 0x%08x"),
+    //     rst_info->reason,
+    //     rst_info->exccause,
+    //     rst_info->epc1,
+    //     rst_info->epc2,
+    //     rst_info->epc3,
+    //     rst_info->excvaddr,
+    //     rst_info->depc,
+    //     stack,
+    //     stack_end
+    // );
+
+  // Note that 'EEPROM.begin' method is reserving a RAM buffer
+  // The buffer size is SAVE_CRASH_EEPROM_OFFSET + SAVE_CRASH_SPACE_SIZE
+  // EEPROM.begin(EspSaveCrash::_offset + EspSaveCrash::_size);
+
+  // byte crashCounter = EEPROM.read(EspSaveCrash::_offset + SAVE_CRASH_COUNTER);
+  // int16_t writeFrom;
+  // if(crashCounter == 0)
+  // {
+  //   writeFrom = SAVE_CRASH_DATA_SETS;
+  // }
+  // else
+  // {
+  //   EEPROM.get(EspSaveCrash::_offset + SAVE_CRASH_WRITE_FROM, writeFrom);
+  // }
+
+  // // is there free EEPROM space available to save data for this crash?
+  // if (writeFrom + SAVE_CRASH_STACK_TRACE > EspSaveCrash::_size)
+  // {
+  //   return;
+  // }
+
+  // // increment crash counter and write it to EEPROM
+  // EEPROM.write(EspSaveCrash::_offset + SAVE_CRASH_COUNTER, ++crashCounter);
+
+  // // now address EEPROM contents including _offset
+  // writeFrom += EspSaveCrash::_offset;
+
+  // // write crash time to EEPROM
+  // uint32_t crashTime = millis();
+  // EEPROM.put(writeFrom + SAVE_CRASH_CRASH_TIME, crashTime);
+
+  // // write reset info to EEPROM
+  // EEPROM.write(writeFrom + SAVE_CRASH_RESTART_REASON, rst_info->reason);
+  // EEPROM.write(writeFrom + SAVE_CRASH_EXCEPTION_CAUSE, rst_info->exccause);
+
+  // // write epc1, epc2, epc3, excvaddr and depc to EEPROM
+  // EEPROM.put(writeFrom + SAVE_CRASH_EPC1, rst_info->epc1);
+  // EEPROM.put(writeFrom + SAVE_CRASH_EPC2, rst_info->epc2);
+  // EEPROM.put(writeFrom + SAVE_CRASH_EPC3, rst_info->epc3);
+  // EEPROM.put(writeFrom + SAVE_CRASH_EXCVADDR, rst_info->excvaddr);
+  // EEPROM.put(writeFrom + SAVE_CRASH_DEPC, rst_info->depc);
+
+  // // write stack start and end address to EEPROM
+  // EEPROM.put(writeFrom + SAVE_CRASH_STACK_START, stack);
+  // EEPROM.put(writeFrom + SAVE_CRASH_STACK_END, stack_end);
+
+  // // write stack trace to EEPROM
+  // int16_t currentAddress = writeFrom + SAVE_CRASH_STACK_TRACE;
+  // for (uint32_t iAddress = stack; iAddress < stack_end; iAddress++)
+  // {
+  //   byte* byteValue = (byte*) iAddress;
+  //   EEPROM.write(currentAddresss++, *byteValue);
+  //   if (currentAddress - EspSaveCrash::_offset > EspSaveCrash::_size)
+  //   {
+  //     // ToDo: flag an incomplete stack trace written to EEPROM!
+  //     break;
+  //   }
+  // }
+  // // now exclude _offset from address written to EEPROM
+  // currentAddress -= EspSaveCrash::_offset;
+  // EEPROM.put(EspSaveCrash::_offset + SAVE_CRASH_WRITE_FROM, currentAddress);
+
+  // EEPROM.commit();
 }
+#endif
 
 #else
 

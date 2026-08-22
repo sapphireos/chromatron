@@ -363,11 +363,11 @@ int32_t ffs_page_i32_scan_file_size( ffs_file_t file_id ){
 
     ASSERT( file_id < FFS_MAX_FILES );
 
-    uint8_t block_count = ffs_block_u8_list_size( &files[file_id].start_block );
+    uint16_t block_count = ffs_block_u16_list_size( &files[file_id].start_block );
 
     ASSERT( block_count > 0 );
 
-    uint8_t file_block_number = block_count - 1;
+    uint16_t file_block_number = block_count - 1;
 
     ffs_index_info_t index_info;
 
@@ -571,7 +571,7 @@ int8_t ffs_page_i8_write( ffs_file_t file_id, uint16_t page, uint8_t offset, con
     uint8_t page_index = page % FFS_DATA_PAGES_PER_BLOCK;
 
     // get list size
-    uint8_t block_count = ffs_block_u8_list_size( &files[file_id].start_block );
+    uint16_t block_count = ffs_block_u16_list_size( &files[file_id].start_block );
 
     // set page count, if file has a size greater than 0
     uint16_t page_count = 0;
@@ -733,7 +733,7 @@ static int8_t ffs_page_i8_alloc_block( ffs_file_t file_id ){
     ASSERT( file_id < FFS_MAX_FILES );
 
     // get current block count for file
-    uint8_t block_count = ffs_block_u8_list_size( &files[file_id].start_block );
+    uint16_t block_count = ffs_block_u16_list_size( &files[file_id].start_block );
 
     // allocate a block to the file
     block_t block = ffs_block_fb_alloc();

@@ -25,8 +25,24 @@
 #ifndef _BQ25895_H_
 #define _BQ25895_H_
 
-#define BQ25895_MIN_BOOST_VOLTAGE   4550
-#define BQ25895_MAX_BOOST_VOLTAGE   5510
+#define BQ25895_VOLTS_FILTER        32
+#define BQ25895_CURRENT_FILTER      32
+#define BQ25895_THERM_FILTER        32
+
+
+
+#define BQ25895_MIN_BOOST_VOLTAGE       4550
+#define BQ25895_MAX_BOOST_VOLTAGE       5510
+
+#define BQ25895_MIN_VINDPM              3900
+#define BQ25895_MAX_VINDPM              15300
+
+#define BQ25895_MAX_FAST_CHARGE_CURRENT 5000
+
+#define BQ25895_TERM_CURRENT            ( 65 * 2 )
+
+#define BQ25895_CHARGE_TEMP_LIMIT		38
+#define BQ25895_CHARGE_TEMP_LIMIT_LOWER	36
 
 // NOTE! The datasheet lists the address as 0x6B in the serial Interface
 // overview, but then lists it as 0x6A in the register description.
@@ -206,15 +222,18 @@ uint16_t bq25895_u16_get_inlim( void );
 void bq25895_v_enable_adc_continuous( void );
 void bq25895_v_start_adc_oneshot( void );
 bool bq25895_b_adc_ready( void );
+bool bq25895_b_adc_ready_cached( void );
 void bq25895_v_set_boost_1500khz( void );
 bool bq25895_b_is_boost_1500khz( void );
 void bq25895_v_set_boost_mode( bool enable );
+bool bq25895_b_is_boost_enabled( void );
 void bq25895_v_force_dpdm( void );
 void bq25895_v_set_minsys( uint8_t sysmin );
 void bq25895_v_set_fast_charge_current( uint16_t current );
 void bq25895_v_set_pre_charge_current( uint16_t current );
 void bq25895_v_set_termination_current( uint16_t current );
 void bq25895_v_set_charge_voltage( uint16_t volts );
+void bq25895_v_set_batlowv( bool high );
 void bq25895_v_enable_ship_mode( bool delay );
 void bq25895_v_leave_ship_mode( void );
 void bq25895_v_set_system_reset( bool enable );
@@ -226,11 +245,12 @@ bool bq25895_b_is_charging( void );
 bool bq25895_b_power_good( void );
 uint8_t bq25895_u8_get_faults( void );
 uint16_t bq25895_u16_get_batt_voltage( void );
+uint16_t bq25895_u16_calc_batt_voltage( void );
 uint16_t bq25895_u16_get_vbus_voltage( void );
 uint16_t bq25895_u16_get_sys_voltage( void );
 uint16_t bq25895_u16_get_charge_current( void );
 int8_t bq25895_i8_calc_temp( uint8_t ratio );
-int8_t bq25895_8_get_therm( void );
+int8_t bq25895_i8_get_therm( void );
 int8_t bq25895_i8_get_temp( void );
 void bq25895_v_set_watchdog( uint8_t setting );
 void bq25895_v_kick_watchdog( void );
@@ -243,7 +263,7 @@ uint16_t bq25895_u16_get_iindpm( void );
 bool bq25895_b_get_vindpm( void );
 bool bq25895_b_get_iindpm( void );
 uint16_t bq25895_u16_read_vbus( void );
-int8_t bq25895_i8_get_case_temp( void );
-int8_t bq25895_i8_get_ambient_temp( void );
+void bq25895_v_enable_charger( void );
+void bq25895_v_disable_charger( void );
 
 #endif

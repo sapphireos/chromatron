@@ -20,7 +20,7 @@
  	"BUILD_TYPE": "lib",
 
     "_comment": "Additional libraries to include with the build",
-    "LIBRARIES": [],
+    "LIBRARIES": ["lib_chromatron","lib_gfx"],
 
     "_comment": "The following options are only used for libraries:",
     "_comment": "Init function for library",

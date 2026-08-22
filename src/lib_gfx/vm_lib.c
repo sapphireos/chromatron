@@ -30,14 +30,23 @@
 #include "vm_lib.h"
 #include "io.h"
 #include "gfx_lib.h"
+// #include "link.h"
 #include "pixel_mapper.h"
 #include "vm.h"
+#include "vm_core.h"
+
+#ifdef ENABLE_BATTERY
 #include "battery.h"
+#include "buttons.h"
+#include "fuel_gauge.h"
+#endif
+
 
 int8_t vm_lib_i8_libcall_built_in( 
 	catbus_hash_t32 func_hash, 
     vm_state_t *state, 
-	int32_t *data,
+    function_info_t *func_table,
+    int32_t *pools[],
 	int32_t *result, 
 	int32_t *params, 
 	uint16_t param_len ){
@@ -45,13 +54,27 @@ int8_t vm_lib_i8_libcall_built_in(
     // result is assumed to have been initialized to a default value
     // by the caller.
 
-	int32_t temp0, temp1, array_len, vm_id;
+	int32_t temp0, temp1, vm_id;
+    int32_t *ptr;
+    char *str;
+    char *str2;
+    vm_reference_t ref;
+    uint16_t func_addr;
 
     #ifdef ENABLE_PIXEL_MAPPER
     int32_t x, y, z, index, h, s, v, size;
     #endif
 
 	switch( func_hash ){
+        #ifdef ENABLE_CONTROLLER
+        case __KV__drop_h:
+
+            gfx_v_drop( params[0], -1, -1, params[1], params[2], params[3] );
+            
+            break;
+
+        #endif
+
         case __KV__rand:
 
             if( param_len == 0 ){
@@ -62,154 +85,42 @@ int8_t vm_lib_i8_libcall_built_in(
             }
             else if( param_len == 1 ){
 
-                temp0 = data[params[0]];
-                temp1 = 0;
-            }
-            else{
-
-                temp0 = data[params[1]] - data[params[0]];
-                temp1 = data[params[0]];
-            }
-
-            // check for divide by 0, or negative spread
-            if( temp0 <= 0 ){
-
-                // just return the offset
-                *result = temp1;
+                temp0 = params[0];
                 
+                *result = rnd_u16_range_with_seed( &state->rng_seed, temp0 );
             }
             else{
-            
-                *result = temp1 + ( rnd_u16_get_int_with_seed( &state->rng_seed ) % temp0 );
+
+                temp0 = params[1] - params[0];
+                temp1 = params[0];
+
+                *result = temp1 + rnd_u16_range_with_seed( &state->rng_seed, temp0 );
             }
 
             break;
 
 		case __KV__test_lib_call:
-            if( param_len != 2 ){
+            if( param_len == 0 ){
 
-                break;
+                *result = 1;
             }
+            else if( param_len == 1 ){
 
-            *result = data[params[0]] + data[params[1]];
-            break;
-
-      	case __KV__min:
-            if( param_len != 2 ){
-
-                break;
+                *result = params[0] + 1;
             }
+            else if( param_len == 2 ){
 
-            array_len = data[params[1]];
-
-            temp0 = data[params[0]];
-
-            // second param is array len
-            for( int32_t i = 1; i < array_len; i++ ){
-
-            	temp1 = data[params[0] + i];
-
-            	if( temp1 < temp0 ){
-
-            		temp0 = temp1;
-            	}
+                *result = params[0] + params[1];
             }
+            else if( param_len == 3 ){
 
-            *result = temp0;
-            break;
-
-        case __KV__max:
-            if( param_len != 2 ){
-
-                break;
+                *result = params[0] + params[1] + params[2];
             }
+            else if( param_len == 4 ){
 
-            array_len = data[params[1]];
-
-            temp0 = data[params[0]];
-
-            // second param is array len
-            for( int32_t i = 1; i < array_len; i++ ){
-
-                temp1 = data[params[0] + i];
-
-                if( temp1 > temp0 ){
-
-                    temp0 = temp1;
-                }
+                *result = params[0] + params[1] + params[2] + params[3];
             }
-
-            *result = temp0;
-            break;
-
-        case __KV__sum:
-            if( param_len != 2 ){
-
-                break;
-            }
-
-            array_len = data[params[1]];
-
-            // second param is array len
-            for( int32_t i = 0; i < array_len; i++ ){
-
-                *result += data[params[0] + i];
-            }
-
-            break;
-
-        case __KV__avg:
-            if( param_len != 2 ){
-
-                break;
-            }
-
-            // check for divide by zero
-            if( params[0] == 0 ){
-
-                break;
-            }
-
-            array_len = data[params[1]];
-
-            // second param is array len
-            for( int32_t i = 0; i < array_len; i++ ){
-
-                *result += data[params[0] + i];
-            }
-
-            *result /= array_len;
-
-            break;
-
-        case __KV__yield:
-
-            state->yield = 1;
-            break;
-
-        case __KV__delay:
-            // default to yield (no delay) if no parameters
-            if( param_len < 1 ){
-
-                temp0 = 0;
-            }
-            else{
-                // first parameter is delay time, all other params ignored
-                temp0 = data[params[0]];
-            }
-
-            // bounds check
-            if( temp0 < VM_MIN_DELAY ){
-
-                temp0 = VM_MIN_DELAY;
-            }
-
-            // set up delay
-            state->threads[state->current_thread].tick += temp0;
-
-            // delay also yields
-            state->yield = 1;
-
+            
             break;
 
         case __KV__start_thread:
@@ -218,17 +129,29 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            // params[0] - thread addr
+            // params[0] - function ref
+            // decode reference:
+            ref.n = params[0];
+
+            // verify storage pool:
+            if( ref.ref.pool != POOL_FUNCTIONS ){
+
+                break;
+            }
+
+            func_addr = func_table[ref.ref.addr].addr;
 
             // search for an empty slot
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
-                if( state->threads[i].func_addr == 0xffff ){
+                vm_thread_t *vm_thread = (vm_thread_t *)&state->threads[i];
 
-                    memset( &state->threads[i], 0, sizeof(state->threads[i]) );
+                if( vm_thread->func_addr == 0xffff ){
 
-                    state->threads[i].func_addr = params[0];
-                    state->threads[i].tick = state->tick;
+                    memset( vm_thread, 0, sizeof(vm_thread_t) );
+
+                    vm_thread->func_addr = func_addr;
+                    vm_thread->tick = state->tick;
 
                     break;
                 }
@@ -242,14 +165,26 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            // params[0] - thread addr
+            // params[0] - function ref
+            // decode reference:
+            ref.n = params[0];
+
+            // verify storage pool:
+            if( ref.ref.pool != POOL_FUNCTIONS ){
+
+                break;
+            }
+
+            func_addr = func_table[ref.ref.addr].addr;
 
             // search for matching threads
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
-                if( state->threads[i].func_addr == params[0] ){
+                vm_thread_t *vm_thread = (vm_thread_t *)&state->threads[i];
 
-                    state->threads[i].func_addr = 0xffff;
+                if( vm_thread->func_addr == func_addr ){
+
+                    vm_thread->func_addr = 0xffff;
 
                     break;
                 }
@@ -263,10 +198,24 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
+            // params[0] - function ref
+            // decode reference:
+            ref.n = params[0];
+
+            // verify storage pool:
+            if( ref.ref.pool != POOL_FUNCTIONS ){
+
+                break;
+            }
+
+            func_addr = func_table[ref.ref.addr].addr;
+
             // search for matching threads
             for( uint8_t i = 0; i < cnt_of_array(state->threads); i++ ){
 
-                if( state->threads[i].func_addr == params[0] ){
+                vm_thread_t *vm_thread = (vm_thread_t *)&state->threads[i];
+
+                if( vm_thread->func_addr == func_addr ){
 
                     *result = TRUE;
 
@@ -369,7 +318,7 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            *result = batt_b_is_button_pressed( temp0 );
+            *result = button_b_is_button_pressed( temp0 );
 
             break;
 
@@ -388,7 +337,7 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            *result = batt_b_is_button_hold( temp0 );
+            *result = button_b_is_button_hold( temp0 );
 
             break;
 
@@ -407,7 +356,7 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            *result = batt_b_is_button_released( temp0 );
+            *result = button_b_is_button_released( temp0 );
 
             break;
 
@@ -426,7 +375,37 @@ int8_t vm_lib_i8_libcall_built_in(
                 break;
             }
 
-            *result = batt_b_is_button_hold_released( temp0 );
+            *result = button_b_is_button_hold_released( temp0 );
+
+            break;
+
+        case __KV__batt_charge_full:
+
+            *result = fuel_b_threshold_full_charge();
+
+            break;
+
+        case __KV__batt_charge_top:
+
+            *result = fuel_b_threshold_top_charge();
+
+            break;
+
+        case __KV__batt_charge_mid:
+
+            *result = fuel_b_threshold_mid_charge();
+
+            break;
+
+        case __KV__batt_charge_low:
+
+            *result = fuel_b_threshold_low_charge();
+
+            break;
+
+        case __KV__batt_charge_critical:
+
+            *result = fuel_b_threshold_critical_charge();
 
             break;
 
@@ -559,10 +538,63 @@ int8_t vm_lib_i8_libcall_built_in(
 
         #endif
 
+        // case __KV__linked:
+        //     if( param_len != 1 ){
+
+        //         break;
+        //     }
+
+        //     // param0 is a string
+        //     ref.n = params[0];
+
+        //     // dereference to pool:
+        //     ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+
+        //     str = (char *)ptr;
+
+        //     *result = link_b_is_linked( hash_u32_string( str ) );
+
+        //     break;
+
         case __KV__clear:
             gfx_v_clear();
             break;
 
+        case __KV__strlen:
+            if( param_len != 1 ){
+
+                break;
+            }
+
+            ref.n = params[0];
+
+            // dereference to pool:
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+
+            str = (char *)ptr;
+
+            *result = strlen( str );
+
+            break;
+
+        case __KV__strcmp:
+            if( param_len != 2 ){
+
+                break;
+            }
+
+            // dereference to pool:
+            ref.n = params[0];
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+            str = (char *)ptr;
+
+            ref.n = params[1];
+            ptr = (int32_t *)( pools[ref.ref.pool] + ref.ref.addr );
+            str2 = (char *)ptr;
+
+            *result = strcmp( str, str2 ) == 0;
+
+            break;
 
 		default:
             // function not found

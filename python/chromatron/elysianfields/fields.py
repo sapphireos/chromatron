@@ -5,11 +5,19 @@ import uuid
 import json
 import binascii
 import inspect
+import logging
 
 from string import printable
 from collections import OrderedDict
 
 from copy import deepcopy
+
+# Define a custom encoder for the Person class
+class FieldEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Field):
+            return obj.toBasic()
+        return json.JSONEncoder.default(self, obj)
 
 
 class Field(object):
@@ -26,7 +34,7 @@ class Field(object):
         return self._internal_value
 
     def toJSON(self):
-        return json.dumps(self.toBasic())
+        return json.dumps(self.toBasic(), cls=FieldEncoder, indent=4)
 
     def __str__(self):
         return str(self._value)
@@ -315,6 +323,9 @@ class Ipv4Field(Uint32Field):
 class StringField(Field):
     def __init__(self, _value="", _length=None, **kwargs):
 
+        # this can be an oops
+        assert "_len" not in kwargs
+
         if _length == None:
             _length = len(_value)
             self._fixed_length = False
@@ -383,12 +394,18 @@ class StringField(Field):
             if len(buf) < unpack_len:
                 unpack_len = len(buf)
 
-            s = struct.unpack_from('<' + str(unpack_len) + 's', buf)[0].decode('ascii')
-            padding_len = self.size() - unpack_len
-            s += '\0' * padding_len
+            try:
+                s = struct.unpack_from('<' + str(unpack_len) + 's', buf)[0].decode('ascii')
+            
+                padding_len = self.size() - unpack_len
+                s += '\0' * padding_len
 
-            s = ''.join([c for c in s if c in printable])
+                s = ''.join([c for c in s if c in printable])
     
+            except UnicodeDecodeError as e:
+                logging.warning(e)
+                s = ''
+
         self._value = s
         
         return self
@@ -700,7 +717,7 @@ class ArrayField(Field):
         except AttributeError:
             return value
 
-        if temp.startswith('[') and temp.endswith(']'):
+        if isinstance(temp, str) and temp.startswith('[') and temp.endswith(']'):
             temp = temp[1:]
             temp = temp[:-1]
 

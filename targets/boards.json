@@ -37,7 +37,8 @@
 			"ENABLE_NETWORK",
 			"ENABLE_USB_UDP_TRANSPORT",
 			"SKIP_CMD_USART_INIT",
-			"ENABLE_COPROCESSOR"
+			"ENABLE_COPROCESSOR",
+			"DISABLE_STATUS_LED"
 		]
 	},
 	"chromatron_legacy":
@@ -82,11 +83,19 @@
 	},
 	"esp32_loader":
 	{
-		"target": "esp32_boot"
+		"target": "esp32_boot",
+		"defines":
+		[
+			"BOOTLOADER_BUILD"
+		]
 	},
 	"stm32h7":
 	{
 		"target": "stm32h7"
+	},
+	"stm32h7_boot":
+	{
+		"target": "stm32h7_boot"
 	},
 	"sapphire":
 	{

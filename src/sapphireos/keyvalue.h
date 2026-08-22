@@ -120,6 +120,7 @@ typedef struct  __attribute__((packed, aligned(4))){
 void kv_v_init( void );
 
 void kv_v_add_db_info( kv_meta_t *meta, uint16_t len );
+void kv_v_remove_db_info( kv_meta_t *meta );
 
 int16_t kv_i16_len( catbus_hash_t32 hash );
 catbus_type_t8 kv_i8_type( catbus_hash_t32 hash );
