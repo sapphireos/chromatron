@@ -247,6 +247,7 @@ PT_BEGIN( pt );
     }
     
     sock_v_release( sock );
+    sock = -1;
 
 PT_END( pt );
 }

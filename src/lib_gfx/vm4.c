@@ -650,12 +650,6 @@ PT_BEGIN( pt );
 end:
     vm_deinit( &state->vm );
 
-    // if stopping VM 0, stop superconductor
-    if( state->vm_id == 0 ){
-
-        sc_v_stop();        
-    }
-
     link4_v_delete_by_tag( state->vm_id );
     kvdb_v_clear_tag( 0, 1 << state->vm_id );
 
@@ -667,6 +661,15 @@ end:
     if( ( state->vm_id == 0 ) && ( !request_unfreeze ) ){
 
         sync4_v_reset();
+    }
+
+    // if stopping VM 0, stop superconductor
+    if( state->vm_id == 0 ){
+
+        sc_v_stop();        
+
+        // short delay to allow SC thread to stop
+        TMR_WAIT( pt, 100 );
     }
 
     if( vm_reset[state->vm_id] && vm_run[state->vm_id] ){
