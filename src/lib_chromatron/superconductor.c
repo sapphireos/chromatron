@@ -246,7 +246,7 @@ PT_BEGIN( pt );
         decimate( msg_data, audio_data, dec_offset, dec_count, dec_range );
     }
     
-
+    sock_v_release( sock );
 
 PT_END( pt );
 }
