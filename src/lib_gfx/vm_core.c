@@ -54,6 +54,7 @@
 #error "VM_OPTIMIZED_DECODE does not work on ESP8266!"
 #endif
 
+#if defined(ESP8266) || defined(ESP32)
 
 // keys that we really don't want the VM be to be able to write to.
 // generally, these are going to be things that would allow it to 
@@ -3777,3 +3778,5 @@ uint8_t vm_u8_current_id( void ){
 
     return current_vm_id;
 }
+
+#endif

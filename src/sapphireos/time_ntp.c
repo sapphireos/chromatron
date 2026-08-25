@@ -33,6 +33,7 @@
 
 #define NO_LOGGING
 
+#if defined(ESP8266) || defined(ESP32)
 
 /*
 
@@ -719,3 +720,5 @@ PT_END( pt );
 }
 
 
+
+#endif

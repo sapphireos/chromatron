@@ -100,7 +100,7 @@ uint32_t cpu_u32_get_clock_speed( void ){
 void cpu_reboot( void ){
 
     // enable watchdog timer:
-    wdg_v_enable( WATCHDOG_TIMEOUT_16MS, WATCHDOG_FLAGS_RESET );    
+    wdg_v_enable( WATCHDOG_TIMEOUT_16MS, 0 );    
 
     while(1);
 }

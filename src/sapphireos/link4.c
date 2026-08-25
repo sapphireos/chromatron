@@ -13,6 +13,8 @@
 #include "random.h"
 #include "device_db.h"
 
+#if defined(ESP8266) || defined(ESP32)
+
 #include "link4.h"
 
 // #define NO_LOGGING
@@ -1108,3 +1110,4 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+#endif

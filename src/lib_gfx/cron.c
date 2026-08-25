@@ -35,6 +35,8 @@
 
 #include "cron.h"
 
+#if defined(ESP8266) || defined(ESP32)
+
 #if 0
 
 Cron
@@ -408,7 +410,7 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
-
+#endif
 
 
 

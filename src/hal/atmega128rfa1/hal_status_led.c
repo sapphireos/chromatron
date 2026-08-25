@@ -48,13 +48,13 @@
 
 void reset_all( void ){
 
-    LED_GREEN_DDR |= ( 1 << LED_GREEN_PIN );
-    LED_YELLOW_DDR |= ( 1 << LED_YELLOW_PIN );
-    LED_RED_DDR |= ( 1 << LED_RED_PIN );
+    // LED_GREEN_DDR |= ( 1 << LED_GREEN_PIN );
+    // LED_YELLOW_DDR |= ( 1 << LED_YELLOW_PIN );
+    // LED_RED_DDR |= ( 1 << LED_RED_PIN );
 
-    LED_GREEN_PORT &= ~( 1 << LED_GREEN_PIN );
-    LED_YELLOW_PORT &= ~( 1 << LED_YELLOW_PIN );
-    LED_RED_PORT &= ~( 1 << LED_RED_PIN );
+    // LED_GREEN_PORT &= ~( 1 << LED_GREEN_PIN );
+    // LED_YELLOW_PORT &= ~( 1 << LED_YELLOW_PIN );
+    // LED_RED_PORT &= ~( 1 << LED_RED_PIN );
 }
 
 void hal_status_led_v_init( void ){
@@ -71,20 +71,20 @@ void status_led_v_set( uint8_t state, uint8_t led ){
         return;
     }
 
-    switch( led ){
-        case STATUS_LED_GREEN:
-            LED_GREEN_PORT |= ( 1 << LED_GREEN_PIN );
-            break;
+    // switch( led ){
+    //     case STATUS_LED_GREEN:
+    //         LED_GREEN_PORT |= ( 1 << LED_GREEN_PIN );
+    //         break;
 
-        case STATUS_LED_RED:
-            LED_RED_PORT |= ( 1 << LED_RED_PIN );
-            break;
+    //     case STATUS_LED_RED:
+    //         LED_RED_PORT |= ( 1 << LED_RED_PIN );
+    //         break;
 
-        case STATUS_LED_YELLOW:
-            LED_YELLOW_PORT |= ( 1 << LED_YELLOW_PIN );
-            break;
+    //     case STATUS_LED_YELLOW:
+    //         LED_YELLOW_PORT |= ( 1 << LED_YELLOW_PIN );
+    //         break;
 
-        default:
-            break;
-    }
+    //     default:
+    //         break;
+    // }
 }
