@@ -313,7 +313,9 @@ static void send_device_msg( void ){
 		// .gfx_sync_group = vm_sync_u32_get_sync_group_hash(),
 		.uptime = tmr_u64_get_system_time_ms(),
 		.mode = sys_u8_get_mode(),
+		#ifdef ENABLE_WIFI
 		.rssi = wifi_i8_rssi(),
+		#endif
 
 		.gfx = {0},
 		.batt = {0},

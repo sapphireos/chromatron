@@ -108,11 +108,13 @@ void button_v_init( void ){
 
     memset( registered_buttons, -1, cnt_of_array(registered_buttons) );
 
+    #ifdef ENABLE_BATTER
     if( batt_b_enabled() ){
 
         // optional controls for battery systems:
         kv_v_add_db_info( button_batt_opt_kv, sizeof(button_batt_opt_kv) );    
     }
+    #endif
 
     // normal button controls:
     kv_v_add_db_info( button_ui_opt_kv, sizeof(button_ui_opt_kv) );
@@ -575,14 +577,17 @@ PT_BEGIN( pt );
         // if button 0 was pressed:
         if( button_state & 1 ){
 
+            #ifdef ENABLE_WIFI
             // quick way to force a wifi scan if the device has the wifi powered down
             // if it couldn't find a router.
             wifi_v_reset_scan_timeout();
+            #endif
 
             // override quiet mode on status LED
             //status_led_v_override();
         }
 
+        #ifdef ENABLE_BATTERY
         if( batt_b_enabled() ){
 
             #ifdef ENABLE_VBUS_SHUTDOWN
@@ -648,6 +653,7 @@ PT_BEGIN( pt );
                 TMR_WAIT( pt, 120000 ); 
             }
         }
+        #endif
     }
     
 

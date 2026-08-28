@@ -43,7 +43,9 @@
 #include "ui.h"
 #endif
 
+#if defined(ESP32) || defined(ESP8266)
 #include "mpu9250.h"
+#endif
 
 #include "pixel_power.h"
 
@@ -86,7 +88,9 @@ void app_v_init( void ){
     batt_v_init();
     #endif
 
+    #if defined(ESP32) || defined(ESP8266)
     mpu9250_v_init();
+    #endif
 
     pixelpower_v_init();
 }

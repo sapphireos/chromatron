@@ -26,14 +26,14 @@
 #include "system.h"
 
 
-bool button_b_is_pressed( void ){
+// bool button_b_is_pressed( void ){
     
-    return FALSE;
-}
+//     return FALSE;
+// }
 
-void button_v_init( void ){
+// void button_v_init( void ){
 
-}
+// }
 
 
 

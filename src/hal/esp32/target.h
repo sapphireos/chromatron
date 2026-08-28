@@ -43,6 +43,7 @@
 #define ENABLE_SOLAR
 #define ENABLE_LED_DETECT
 #define ENABLE_EVENT_LOG
+#define ENABLE_WIFI
 
 // DEBUG!
 // Turn this off for normal operation!

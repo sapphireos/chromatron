@@ -78,6 +78,7 @@ static void disable_pixel_power_fet( void ){
 
 static bool is_vbus_valid( void ){
 
+    #ifdef ENABLE_BATTERY
     uint16_t vbus = batt_u16_get_vbus_volts();
 
     if( vbus >= PIXEL_POWER_MAX_VBUS ){
@@ -90,6 +91,7 @@ static bool is_vbus_valid( void ){
             return FALSE;
         }
     }
+    #endif
 
     return TRUE;
 }
@@ -98,7 +100,7 @@ static bool is_vbus_valid( void ){
 static void pixels_off( void ){
 
     // trace_printf("Pixel power DISABLE\r\n");
-
+    #ifdef ENABLE_BATTERY
     if( batt_b_has_charger2_board() ){
 
         charger2_v_set_boost( FALSE );
@@ -116,6 +118,7 @@ static void pixels_off( void ){
         disable_pixel_power_fet();
     }
     #endif
+    #endif
 
     pixels_enabled = FALSE;
     request_pixels_disabled = FALSE;
@@ -126,7 +129,9 @@ void pixelpower_v_init( void ){
 
     // pixel power system defaults to OFF if power control is enabled
     pixels_enabled = FALSE;
-    
+        
+    #ifdef ENABLE_BATTERY
+
     #if defined(ESP32)
     disable_pixel_power_fet();
 
@@ -165,6 +170,8 @@ void pixelpower_v_init( void ){
 
     #if defined(ESP32)
     disable_pixel_power_fet();
+    #endif
+
     #endif
 
     power_control_enabled = TRUE;
@@ -244,6 +251,7 @@ PT_BEGIN( pt );
 
             // trace_printf("Pixel power ENABLE\r\n");
 
+            #ifdef ENABLE_BATTERY
             if( batt_b_has_charger2_board() ){
 
                 // wait for boost to start up
@@ -272,6 +280,7 @@ PT_BEGIN( pt );
 
                 TMR_WAIT( pt, 10 );
             }
+            #endif
             #endif
 
             // log_v_debug_P( PSTR("pixel power enabled!") );

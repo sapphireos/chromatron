@@ -41,6 +41,7 @@
 #define ENABLE_BATTERY
 #define ENABLE_LINK4
 #define ENABLE_TIME_NTP
+#define ENABLE_WIFI
 // #define ENABLE_TIME_SYNC
 
 // #define ENABLE_CATBUS_LINK
