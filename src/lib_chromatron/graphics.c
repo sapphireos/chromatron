@@ -417,10 +417,6 @@ void gfx_v_init( void ){
 
     pixel_v_init();
 
-    #ifdef ENABLE_TIME_SYNC
-    // vm_sync_v_init();
-    #endif
-
     sc_v_init();
 
     fs_v_create_virtual( PSTR("_rainbow.fxb"), fx_rainbow_vfile_handler );

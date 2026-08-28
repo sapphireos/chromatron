@@ -30,7 +30,7 @@
 #include "telemetry.h"
 #include "rf_mac.h"
 
-#include "vm.h"
+#include "vm4.h"
 
 #ifdef ESP32
 
@@ -319,7 +319,7 @@ PT_BEGIN( pt );
 
         for( uint8_t i = 0; i < VM_MAX_VMS; i++ ){
 
-            if( vm_b_is_vm_running( i ) ){
+            if( vm4_b_is_vm_running( i ) ){
 
                 vm_status |= ( 1 << i );
             }

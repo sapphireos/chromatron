@@ -271,7 +271,10 @@ void vm4_v_init( void ){
         vm_status[i] = VM4_STATUS_NOT_RUNNING;
     }
 
+    #ifdef ENABLE_TIME_NTP
     cron_v_init();
+    #endif
+
     pixelarray_init();
 
     seq_v_init();
@@ -650,10 +653,15 @@ PT_BEGIN( pt );
 end:
     vm_deinit( &state->vm );
 
+    #ifdef ENABLE_LINK4
     link4_v_delete_by_tag( state->vm_id );
+    #endif
+
     kvdb_v_clear_tag( 0, 1 << state->vm_id );
 
+    #ifdef ENABLE_TIME_NTP
     cron_v_unload( state->vm_id );
+    #endif
 
     vm_run_time[state->vm_id]   = 0;
     vm_max_cycles[state->vm_id] = 0;

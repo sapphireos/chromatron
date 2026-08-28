@@ -33,6 +33,7 @@
 
 #define NO_LOGGING
 
+#ifdef ENABLE_TIME_NTP
 
 /*
 
@@ -719,3 +720,5 @@ PT_END( pt );
 }
 
 
+
+#endif

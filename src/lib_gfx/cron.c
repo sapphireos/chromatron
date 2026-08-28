@@ -35,6 +35,8 @@
 
 #include "cron.h"
 
+#ifdef ENABLE_TIME_NTP
+
 #if 0
 
 Cron
@@ -774,5 +776,7 @@ void vm_cron_v_start_jobs( uint8_t vm_id ){
 
     #endif
 }
+
+#endif
 
 #endif

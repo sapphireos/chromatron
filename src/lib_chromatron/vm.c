@@ -38,14 +38,13 @@
 
 #include "vm.h"
 #include "vm_core.h"
-#include "vm_cron.h"
 #include "vm_sequencer.h"
 
 // #ifdef ENABLE_CONTROLLER
 // #include "link.h"
 // #endif
 
-#ifdef ENABLE_GFX
+#if defined(ENABLE_GFX) && defined(ENABLE_LEGACY_VM)
 
 static thread_t vm_threads[VM_MAX_VMS];
 
@@ -493,9 +492,6 @@ static void kill_vm( uint8_t vm_id ){
     // reset VM data
     reset_published_data( state->vm_id );
 
-    // clear cron jobs:
-    vm_cron_v_unload( state->vm_id );
-    
     // clear thread handle
     vm_threads[state->vm_id] = -1;
 }
@@ -1080,11 +1076,7 @@ int8_t vm_cron_i8_run_func( uint8_t i, uint16_t func_addr ){
     return vm_i8_run( mem2_vp_get_ptr( thread_state->handle ), func_addr, 0, &thread_state->vm_state );
 }
 
-#endif
-
 void vm_v_init( void ){
-
-    #ifdef ENABLE_GFX
 
     if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
@@ -1106,15 +1098,12 @@ void vm_v_init( void ){
                      PSTR("vm_loader"),
                      0,
                      0 );
-
-    vm_cron_v_init();
     // vm_seq_v_init();
     scenes_v_init();
 
     #ifdef VM_DEBUG
     fs_v_create_virtual( PSTR("vm0_threads"), threads_vfile );
     #endif
-
-    #endif
 }
 
+#endif

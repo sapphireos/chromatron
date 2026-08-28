@@ -58,7 +58,10 @@ void app_v_init( void ){
 
     gfx_v_init();
 
+    #ifdef ENABLE_LEGACY_VM
     vm_v_init();
+    #endif
+    
     vm4_v_init();
 
     #ifdef ESP32

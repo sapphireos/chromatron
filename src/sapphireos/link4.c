@@ -18,7 +18,7 @@
 // #define NO_LOGGING
 #include "logging.h"
 
-
+#ifdef ENABLE_LINK4
 
 static socket_t sock;
 static list_t link_list;
@@ -1108,3 +1108,4 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+#endif

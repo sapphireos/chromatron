@@ -449,8 +449,10 @@ int8_t gfx_i8_kv_handler(
 
             param_error_check();   
 
+            #ifdef ENABLE_LEGACY_VM
             // signal new frame rate to VM
             gfx_vm_v_update_frame_rate( gfx_frame_rate );
+            #endif
         }
         else if( hash == __KV__gfx_hsfade ){
 
