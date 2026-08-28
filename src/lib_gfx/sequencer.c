@@ -21,6 +21,8 @@
 // </license>
 #include "sapphire.h"
 
+#ifdef ENABLE_GFX
+
 #include "vm4.h"
 // #include "vm_sync.h"
 
@@ -599,3 +601,5 @@ bool seq_b_running( void ){
 
 	return seq_running;	
 }
+
+#endif

@@ -64,7 +64,9 @@ void app_v_init( void ){
     vm_v_init();
     #endif
     
+    #ifdef ENABLE_GFX
     vm4_v_init();
+    #endif
 
     #ifdef ESP32
 

@@ -32,6 +32,8 @@
 #include "sync4.h"
 #include "superconductor.h"
 
+#ifdef ENABLE_GFX
+
 static bool vm_reset[VM4_MAX_VMS];
 static bool vm_run[VM4_MAX_VMS];
 
@@ -973,3 +975,6 @@ void vm4_v_sync( uint32_t net_time, uint64_t current_tick ){
     sync_time = net_time;
     sync_tick = current_tick;   
 }   
+
+
+#endif
