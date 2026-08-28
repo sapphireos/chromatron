@@ -67,9 +67,9 @@
 
 #ifdef ENABLE_TIME_SYNC
 #include "timesync.h"
-#include "time_ntp.h"
 #endif
 
+#include "time_ntp.h"
 #include "datalogger.h"
 #include "link4.h"
 

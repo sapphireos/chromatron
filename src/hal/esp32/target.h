@@ -28,7 +28,7 @@
 #include "esp_task.h"
 
 // modules
-#define ENABLE_TIME_SYNC
+// #define ENABLE_TIME_SYNC
 #define ENABLE_WIFI
 #define ENABLE_FFS
 #define ENABLE_NETWORK

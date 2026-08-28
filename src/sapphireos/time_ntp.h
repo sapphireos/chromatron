@@ -25,7 +25,7 @@
 
 #include "target.h"
 
-#ifdef ENABLE_TIME_SYNC
+#ifdef ENABLE_TIME_NTP
 
 #define NTP_PROTOCOL_MAGIC             0x50544e53 // 'SNTP' in ASCII
 #define NTP_PROTOCOL_VERSION           4
