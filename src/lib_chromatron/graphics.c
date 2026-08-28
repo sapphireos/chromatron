@@ -35,7 +35,6 @@
 #include "pixel_power.h"
 #include "led_detect.h"
 #include "vm4.h"
-#include "vm_sync.h"
 #include "superconductor.h"
 #include "util.h"
 #include "event_log.h"

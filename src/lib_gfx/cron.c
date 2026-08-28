@@ -415,7 +415,6 @@ PT_END( pt );
 
 
 
-// #ifdef ENABLE_TIME_SYNC
 #if 0
 
 static datetime_t cron_now;

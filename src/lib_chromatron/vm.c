@@ -32,7 +32,6 @@
 #include "kvdb.h"
 #include "config.h"
 #include "timesync.h"
-#include "vm_sync.h"
 #include "util.h"
 #include "scenes.h"
 
