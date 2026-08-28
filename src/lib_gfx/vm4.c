@@ -53,7 +53,6 @@ static uint64_t sync_tick;
 
 static int64_t _tick_delta;
 static int32_t _net_delta;
-static int16_t _timing_adjust;
 
 static int32_t debug_globals[4];
 
@@ -196,7 +195,6 @@ KV_SECTION_META kv_meta_t vm4_debug_kv[] = {
 
     { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_net_delta,         0,                      "vm4_sync_delta_net" },
     { CATBUS_TYPE_INT32,    0, KV_FLAGS_READ_ONLY, &_tick_delta,        0,                      "vm4_sync_delta_tick" },
-    // { CATBUS_TYPE_INT16,    0, KV_FLAGS_READ_ONLY, &_timing_adjust,     0,                      "vm4_sync_timing_adjust" },
 
     { CATBUS_TYPE_INT32,    3, KV_FLAGS_READ_ONLY, &debug_globals,      0,                      "vm4_debug_globals" },
 
@@ -273,7 +271,10 @@ void vm4_v_init( void ){
         vm_status[i] = VM4_STATUS_NOT_RUNNING;
     }
 
+    #ifdef ENABLE_TIME_NTP
     cron_v_init();
+    #endif
+
     pixelarray_init();
 
     seq_v_init();
@@ -572,7 +573,6 @@ PT_BEGIN( pt );
 
             _tick_delta = tick_delta;
             _net_delta = net_delta;
-            // _timing_adjust = get_timing_adjust( tick_delta );
 
             // positive delta server leads
                 // we are behind, insert frame to catch up
@@ -653,16 +653,15 @@ PT_BEGIN( pt );
 end:
     vm_deinit( &state->vm );
 
-    // if stopping VM 0, stop superconductor
-    if( state->vm_id == 0 ){
-
-        sc_v_stop();        
-    }
-
+    #ifdef ENABLE_LINK4
     link4_v_delete_by_tag( state->vm_id );
+    #endif
+
     kvdb_v_clear_tag( 0, 1 << state->vm_id );
 
+    #ifdef ENABLE_TIME_NTP
     cron_v_unload( state->vm_id );
+    #endif
 
     vm_run_time[state->vm_id]   = 0;
     vm_max_cycles[state->vm_id] = 0;
@@ -670,6 +669,15 @@ end:
     if( ( state->vm_id == 0 ) && ( !request_unfreeze ) ){
 
         sync4_v_reset();
+    }
+
+    // if stopping VM 0, stop superconductor
+    if( state->vm_id == 0 ){
+
+        sc_v_stop();        
+
+        // short delay to allow SC thread to stop
+        TMR_WAIT( pt, 100 );
     }
 
     if( vm_reset[state->vm_id] && vm_run[state->vm_id] ){

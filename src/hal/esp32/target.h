@@ -28,23 +28,20 @@
 #include "esp_task.h"
 
 // modules
-// #define ENABLE_CATBUS_LINK
-#define ENABLE_TIME_SYNC
+// #define ENABLE_TIME_SYNC
 #define ENABLE_WIFI
 #define ENABLE_FFS
 #define ENABLE_NETWORK
-// #define ENABLE_IP
 #define ENABLE_POWER
 #define ENABLE_USB_UDP_TRANSPORT
-// #define ENABLE_USB
 #define ENABLE_GFX
-// #define ENABLE_MSGFLOW
-// #define ENABLE_SERVICES
+#define ENABLE_LINK4
+#define ENABLE_TIME_NTP
+#define ENABLE_LEGACY_VM
 #define ENABLE_BATTERY
 #define ENABLE_AUX_BATTERY
 #define ENABLE_SOLAR
 #define ENABLE_LED_DETECT
-// #define ENABLE_CONTROLLER
 #define ENABLE_EVENT_LOG
 
 // DEBUG!

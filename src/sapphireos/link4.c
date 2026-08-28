@@ -13,14 +13,12 @@
 #include "random.h"
 #include "device_db.h"
 
-#if defined(ESP8266) || defined(ESP32)
-
 #include "link4.h"
 
 // #define NO_LOGGING
 #include "logging.h"
 
-
+#ifdef ENABLE_LINK4
 
 static socket_t sock;
 static list_t link_list;

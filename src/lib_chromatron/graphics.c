@@ -35,7 +35,6 @@
 #include "pixel_power.h"
 #include "led_detect.h"
 #include "vm4.h"
-#include "vm_sync.h"
 #include "superconductor.h"
 #include "util.h"
 #include "event_log.h"
@@ -416,10 +415,6 @@ void gfx_v_init( void ){
             0 );
 
     pixel_v_init();
-
-    #ifdef ENABLE_TIME_SYNC
-    // vm_sync_v_init();
-    #endif
 
     sc_v_init();
 

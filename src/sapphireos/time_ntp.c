@@ -33,7 +33,7 @@
 
 #define NO_LOGGING
 
-#if defined(ESP8266) || defined(ESP32)
+#ifdef ENABLE_TIME_NTP
 
 /*
 

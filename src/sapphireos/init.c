@@ -67,9 +67,9 @@
 
 #ifdef ENABLE_TIME_SYNC
 #include "timesync.h"
-#include "time_ntp.h"
 #endif
 
+#include "time_ntp.h"
 #include "datalogger.h"
 #include "link4.h"
 
@@ -203,16 +203,21 @@ int8_t sapphire_i8_init( void ){
     wifi_v_init();
     #endif
 
-
     catbus_v_init();
 
     // datalog_v_init();
     
     device_db_v_init();
+
+    #ifdef ENABLE_LINK4
     link4_v_init();
+    #endif
 
     #ifdef ENABLE_TIME_SYNC
     time_v_init();
+    #endif
+
+    #ifdef ENABLE_TIME_NTP
     ntp_v_init();
     sntp_v_init();
     #endif

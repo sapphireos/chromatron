@@ -35,8 +35,9 @@
 #include "timers.h"
 #include "fs.h"
 #include "config.h"
-#include "vm_cron.h"
 #include "vm.h"
+
+#if defined(ENABLE_GFX) && defined(ENABLE_LEGACY_VM)
 
 #ifdef VM_ENABLE_KV
 #include "keyvalue.h"
@@ -46,15 +47,10 @@
 #endif
 #endif
 
-// #ifdef ENABLE_CONTROLLER
-// #include "link.h"
-// #endif
-
 #if defined(ESP8266) && defined(VM_OPTIMIZED_DECODE)
 #error "VM_OPTIMIZED_DECODE does not work on ESP8266!"
 #endif
 
-#if defined(ESP8266) || defined(ESP32)
 
 // keys that we really don't want the VM be to be able to write to.
 // generally, these are going to be things that would allow it to 
@@ -3552,34 +3548,6 @@ int8_t vm_i8_load_program(
             obj_ptr += sizeof(meta);
         }   
     }
-
-
-    // ******************
-    // load Cron:
-    // ******************
-
-    // make sure this vm's cron jobs are unloaded first
-    vm_cron_v_unload( vm_id );
-
-    for( uint8_t i = 0; i < state->cron_count; i++ ){
-
-        cron_t cron;
-
-        if( fs_i16_read( f, (uint8_t *)&cron, sizeof(cron) ) != sizeof(cron) ){
-
-            status = VM_STATUS_ERR_BAD_FILE_READ;
-            goto error;
-        }
-
-        vm_cron_v_load_job( vm_id, &cron );
-    }
-
-    // note that cron handles its own state, so we don't allocate space for cron entries
-    // in the VM stream and we don't need to bump the object pointer.
-
-    // start cron:
-    vm_cron_v_start_jobs( vm_id );
-
 
     // ******************
     // load constant pool:

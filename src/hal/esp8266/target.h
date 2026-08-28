@@ -30,24 +30,30 @@
 #define ENABLE_WIFI
 #define ENABLE_FFS
 #define ENABLE_NETWORK
-// #define ENABLE_IP
 #define ENABLE_POWER
-// #define ENABLE_USB
-// #define ENABLE_WIFI_USB_LOADER
 #define ENABLE_EVENT_LOG
 
 #define ENABLE_COPROCESSOR 
 
 #if !defined(ESP8266_UPGRADE) && !defined(BOOTLOADER)
 #define ENABLE_GFX
+#define ENABLE_LEGACY_VM
 #define ENABLE_BATTERY
+#define ENABLE_LINK4
+#define ENABLE_TIME_NTP
+// #define ENABLE_TIME_SYNC
+
 // #define ENABLE_CATBUS_LINK
-#define ENABLE_TIME_SYNC
 // #define ENABLE_MSGFLOW
 // #define ENABLE_SERVICES
 // #define ENABLE_CONTROLLER
 // #define ENABLE_BROKER
+
 #endif
+
+// #define ENABLE_USB
+// #define ENABLE_WIFI_USB_LOADER
+
 
 // DEBUG!
 // Turn this off for normal operation!

@@ -56,7 +56,7 @@
 // #define NO_LOGGING
 #include "logging.h"
 
-#ifdef ENABLE_TIME_SYNC
+#ifdef ENABLE_TIME_NTP
 
 // offset and delay in ms from last sync
 static int16_t last_offset;
