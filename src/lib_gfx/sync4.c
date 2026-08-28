@@ -8,6 +8,7 @@
 #include "gfx_lib.h"
 #include "device_db.h"
 
+#ifdef ENABLE_WIFI
 
 static socket_t server_sock;
 static uint32_t sync_group_hash;
@@ -1044,7 +1045,7 @@ restart:
 PT_END( pt );
 }
 
-
+#endif
 
 
 

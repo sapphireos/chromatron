@@ -278,7 +278,10 @@ void vm4_v_init( void ){
     pixelarray_init();
 
     seq_v_init();
+
+    #ifdef ENABLE_WIFI
     sync4_v_init();
+    #endif
 
     thread_t_create( vm4_loader,
                      PSTR("vm4_loader"),
@@ -562,6 +565,7 @@ PT_BEGIN( pt );
             frames++;
         }
 
+        #ifdef ENABLE_WIFI
         if( ( state->vm_id == 0 ) && sync4_b_is_sync() ){
 
             // compute delta for sync time
@@ -579,6 +583,7 @@ PT_BEGIN( pt );
             // negative delta server lags
                 // we are ahead, skip frame to slow down
         }
+        #endif
 
         if( tick_delta > FADER_RATE ){
 
@@ -667,8 +672,10 @@ end:
     vm_max_cycles[state->vm_id] = 0;
 
     if( ( state->vm_id == 0 ) && ( !request_unfreeze ) ){
-
+        
+        #ifdef ENABLE_WIFI
         sync4_v_reset();
+        #endif
     }
 
     // if stopping VM 0, stop superconductor
