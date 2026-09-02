@@ -580,8 +580,11 @@ PT_BEGIN( pt );
 			
         		sync_state = SYNC_STATE_SYNCED;
 
+        		// compensate from RTT milliseconds to GFX ticks (20 ms)
+        		uint32_t delay_ticks = rtt / FADER_RATE;
+
         		// sync
-        		vm4_v_sync( now, msg->current_tick + rtt );
+        		vm4_v_sync( now, msg->current_tick + delay_ticks );
         	}
         }
         else{
