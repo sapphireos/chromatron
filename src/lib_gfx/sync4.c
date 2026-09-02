@@ -78,7 +78,7 @@ static void serialize_pixels( void ){
 
 	uint16_t *h_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_HUE );
 	uint16_t *s_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_SAT );	
-	uint16_t *v_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_SAT );	
+	uint16_t *v_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_VAL );	
 	uint16_t *hsfade_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_HS_FADE );	
 	uint16_t *vfade_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_V_FADE );	
 	uint16_t *h_step_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_HUE_STEP );
@@ -117,7 +117,7 @@ static void deserialize_pixels( void ){
 
 	uint16_t *h_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_HUE );
 	uint16_t *s_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_SAT );	
-	uint16_t *v_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_SAT );	
+	uint16_t *v_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_VAL );	
 	uint16_t *hsfade_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_HS_FADE );	
 	uint16_t *vfade_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_V_FADE );	
 	uint16_t *h_step_ptr = _gfx_u16p_get_array_ptr( PIX_ARRAY_ATTR_HUE_STEP );
