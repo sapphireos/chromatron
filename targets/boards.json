@@ -100,5 +100,9 @@
 	"sapphire":
 	{
 		"target": "atmega128rfa1"
+	},
+	"sim":
+	{
+		"target": "sim"
 	}
 }
