@@ -46,8 +46,8 @@ typedef struct __attribute__((packed)){
 
 // header used for the UDP checksum algorithm for IPv4
 typedef struct{
-	ip_addr_t source_addr;
-	ip_addr_t dest_addr;
+	ip_addr4_t source_addr;
+	ip_addr4_t dest_addr;
 	uint8_t zeroes;
 	uint8_t protocol;
 	uint16_t udp_length;

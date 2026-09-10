@@ -62,7 +62,7 @@ typedef struct{
 
 
 netmsg_t icmp_nm_create( icmp_hdr_t *icmp_hdr,
-                         ip_addr_t dest_addr, 
+                         ip_addr4_t dest_addr, 
                          uint8_t *data, 
                          uint16_t size );
 

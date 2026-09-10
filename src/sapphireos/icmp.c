@@ -48,7 +48,7 @@ This is a minimal ping and tracert only implementation
 
 
 netmsg_t icmp_nm_create( icmp_hdr_t *icmp_hdr,
-                         ip_addr_t dest_addr,
+                         ip_addr4_t dest_addr,
                          uint8_t *data,
                          uint16_t size ){
 
@@ -135,7 +135,7 @@ void icmp_v_recv( netmsg_t netmsg ){
             // check creation, and send if created
             if( netmsg >= 0 ){
 
-                netmsg_v_send( netmsg );
+                netmsg_i8_send( netmsg );
             }
 		}
 	}
@@ -172,7 +172,7 @@ void icmp_v_send_ttl_exceeded( ip_hdr_t *ip_hdr ){
     // check netmsg creation and set to send if successful
     if( netmsg >= 0 ){
 
-        netmsg_v_send( netmsg );
+        netmsg_i8_send( netmsg );
     }
 }
 
@@ -207,7 +207,7 @@ void icmp_v_send_dest_unreachable( ip_hdr_t *ip_hdr ){
     // check netmsg creation and set to send if successful
     if( netmsg >= 0 ){
 
-        netmsg_v_send( netmsg );
+        netmsg_i8_send( netmsg );
     }
 }
 
