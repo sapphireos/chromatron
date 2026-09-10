@@ -1,2 +1,8 @@
-sapphiremake -p sapphire -p sim -p chromatron -c
-sapphiremake -p sapphire -p sim -p chromatron -t sim
+#!/usr/bin/env bash
+
+# sapphiremake -p sapphire -p sim -p chromatron -c
+# sapphiremake -p sapphire -p sim -p chromatron -t sim
+
+sapphiremake -p sapphire -p sim -p lib_battery -p lib_mpu9250 -p lib_amg8833 -p lib_hd44780 -p lib_pca9685 -p lib_rfm95w -p lib_veml7700 -p lib_hx711 -p lib_ssd1306 -p lib_gfx -p lib_chromatron -p chromatron -c
+sapphiremake -p sapphire -p sim -p lib_battery -p lib_mpu9250 -p lib_amg8833 -p lib_hd44780 -p lib_pca9685 -p lib_rfm95w -p lib_veml7700 -p lib_hx711 -p lib_ssd1306 -p lib_gfx -p lib_chromatron -p chromatron -t sim
+
