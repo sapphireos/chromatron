@@ -24,6 +24,7 @@ static uint8_t sync_state;
 #define SYNC_STATE_SYNCED 	5
 
 static bool enabled;
+static bool hold;
 
 
 int8_t sync4_i8_kv_handler(
@@ -59,12 +60,17 @@ static bool is_enabled(void){
 
 	if(sync_group_hash == 0){
 
-		return false;
+		return FALSE;
 	}
 
 	if(!vm4_b_is_vm_running( 0 )){
 
-		return false;
+		return FALSE;
+	}
+
+	if(hold){
+
+		return FALSE;
 	}
 
 	// return kv_b_get_boolean( __KV__sync_enable );
@@ -1047,7 +1053,16 @@ restart:
 PT_END( pt );
 }
 
+void sync4_v_hold( void ){
 
+	sync4_v_reset();
+	hold = true;
+}
+
+void sync4_v_unhold( void ){
+
+	hold = false;
+}
 
 
 
