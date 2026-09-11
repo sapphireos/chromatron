@@ -290,7 +290,7 @@ uint32_t vm4_u32_get_prog_hash( uint8_t vm_id ){
 
     ASSERT( vm_id < VM4_MAX_VMS );
 
-    if( vm_threads[vm_id] == 0 ){
+    if( vm_threads[vm_id] <= 0 ){
 
         return 0;
     }
@@ -321,7 +321,7 @@ void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_
         return;
     }
 
-    ASSERT( vm_threads[vm_id] != 0 );
+    ASSERT( vm_threads[vm_id] > 0 );
 
     vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[vm_id] );
 
@@ -901,7 +901,7 @@ int8_t vm4_i8_run_function( uint32_t func_meta, uint8_t vm_id ){
 
     ASSERT( vm_id < VM4_MAX_VMS );
 
-    if( vm_threads[vm_id] < 0 ){
+    if( vm_threads[vm_id] <= 0 ){
 
         return VM4_STATUS_NOT_RUNNING;
     }
