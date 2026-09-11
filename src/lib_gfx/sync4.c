@@ -287,6 +287,8 @@ static void send_ready( socket_t sock, sock_addr_t *raddr, uint8_t vm_pages, uin
 
 	msg.vm_pages 		= vm_pages;
 	msg.pixel_pages 	= pixel_pages;
+	msg.prog_hash       = vm4_u32_get_prog_hash( 0 );
+	msg.seq_step        = seq_u8_get_step();
 
 	sock_i16_sendto( sock, (uint8_t *)&msg, sizeof(msg), raddr );
 }
@@ -480,7 +482,10 @@ PT_BEGIN( pt );
         			.frame_number 		= vm.frame_number,
 
         			.net_time_client	= msg->net_time,
-        			.net_time_server    = tmr_u32_get_system_time_ms()
+        			.net_time_server    = tmr_u32_get_system_time_ms(),
+
+        			.prog_hash          = vm4_u32_get_prog_hash( 0 ),
+        			.seq_step           = seq_u8_get_step()
         		};
 
         		sock_i16_sendto( server_sock, (uint8_t *)&reply, sizeof(reply), &raddr );
@@ -564,33 +569,54 @@ PT_BEGIN( pt );
 
         		const sync4_msg_sync_t *msg = (sync4_msg_sync_t *)header;
 
-        		uint32_t now = tmr_u32_get_system_time_ms();
+        		// check sequencer
+        		if( seq_b_running() && ( msg->seq_step != seq_u8_get_step() ) ){
 
-        		int32_t time_delta = (int64_t)now - (int64_t)msg->net_time_client;
+        			// changing sequencer steps, need to resync after program loads
 
-        		// compute basic RTT
-        		int32_t rtt = time_delta / 2;
+        			log_v_debug_P( PSTR("changing seq step from %d to %d"), seq_u8_get_step(), msg->seq_step );
 
-    			vm_t vm = {0};
-    			vm4_v_get_vm_state( &vm, 0 );
+        			seq_v_set_step( msg->seq_step );
+        			sync4_v_reset();
+        		}
+        		// check program mismatch
+        		else if( msg->prog_hash != vm4_u32_get_prog_hash( 0 ) ){
 
-    			int32_t delta = (int64_t)msg->current_tick - (int64_t)vm.current_tick;
+        			log_v_debug_P( PSTR("prog mismatch") );
+        			sync4_v_reset();
+        		}
+        		else{
 
-    			log_v_debug_P( PSTR("sync: server tick: %12ld local tick: %12ld delta: %4ld time delta: %4ld"),
-			            (uint32_t)msg->current_tick,
-			            (uint32_t)vm.current_tick,
-			            delta,
-			            time_delta
-			        );
+        			// synchronize state
 
-			
-        		sync_state = SYNC_STATE_SYNCED;
+	        		uint32_t now = tmr_u32_get_system_time_ms();
 
-        		// compensate from RTT milliseconds to GFX ticks (20 ms)
-        		uint32_t delay_ticks = rtt / FADER_RATE;
+	        		int32_t time_delta = (int64_t)now - (int64_t)msg->net_time_client;
 
-        		// sync
-        		vm4_v_sync( now, msg->current_tick + delay_ticks );
+	        		// compute basic RTT
+	        		int32_t rtt = time_delta / 2;
+
+	    			vm_t vm = {0};
+	    			vm4_v_get_vm_state( &vm, 0 );
+
+	    			int32_t delta = (int64_t)msg->current_tick - (int64_t)vm.current_tick;
+
+	    			log_v_debug_P( PSTR("sync: server tick: %12ld local tick: %12ld delta: %4ld time delta: %4ld"),
+				            (uint32_t)msg->current_tick,
+				            (uint32_t)vm.current_tick,
+				            delta,
+				            time_delta
+				        );
+
+				
+	        		sync_state = SYNC_STATE_SYNCED;
+
+	        		// compensate from RTT milliseconds to GFX ticks (20 ms)
+	        		uint32_t delay_ticks = rtt / FADER_RATE;
+
+	        		// sync
+	        		vm4_v_sync( now, msg->current_tick + delay_ticks );
+      			}
         	}
         }
         else{
@@ -724,6 +750,21 @@ PT_BEGIN( pt );
 		const sync4_msg_ready_t *msg = (sync4_msg_ready_t *)header;
 
 		log_v_debug_P( PSTR("received ready") );
+
+		// check sequencer
+		if( seq_b_running() && ( msg->seq_step != seq_u8_get_step() ) ){
+
+			// changing sequencer steps, need to resync after program loads
+
+			log_v_debug_P( PSTR("changing seq step from %d to %d"), seq_u8_get_step(), msg->seq_step );
+
+			seq_v_set_step( msg->seq_step );
+			sync4_v_reset();
+		}
+		if( msg->prog_hash != vm4_u32_get_prog_hash( 0 ) ){
+
+			log_v_debug_P( PSTR("prog mismatch, cannot sync") );
+		}
 
 		state->vm_pages 	= msg->vm_pages;
 		state->pixel_pages  = msg->pixel_pages;

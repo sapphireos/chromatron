@@ -286,6 +286,20 @@ void vm4_v_init( void ){
                      0 );
 }
 
+uint32_t vm4_u32_get_prog_hash( uint8_t vm_id ){
+
+    ASSERT( vm_id < VM4_MAX_VMS );
+
+    if( vm_threads[vm_id] == 0 ){
+
+        return 0;
+    }
+
+    vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[vm_id] );
+
+    return thread_state->vm.program_name_hash;
+}
+
 void vm4_v_reset( uint8_t vm_id ){
 
     ASSERT( vm_id < VM4_MAX_VMS );
@@ -298,12 +312,16 @@ void vm4_v_reset( uint8_t vm_id ){
 
 void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_t8 type, uint16_t count, uint8_t flags, uint8_t vm_id ){
 
+    ASSERT( vm_id < VM4_MAX_VMS );
+
     if( ( count == 0 ) || ( count > 256 ) ){
 
         log_v_error_P( PSTR("invalid array count") );
 
         return;
     }
+
+    ASSERT( vm_threads[vm_id] != 0 );
 
     vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[vm_id] );
 

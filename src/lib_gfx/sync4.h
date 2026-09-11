@@ -33,6 +33,8 @@ typedef struct __attribute__((packed)){
 	sync4_msg_header_t header;
 	uint8_t vm_pages;
 	uint8_t pixel_pages;
+	uint32_t prog_hash;
+	uint8_t seq_step;
 } sync4_msg_ready_t;
 #define SYNC4_MSG_TYPE_READY		2
 
@@ -67,6 +69,7 @@ typedef struct __attribute__((packed)){
 	uint32_t net_time_client;
 	uint32_t net_time_server;
 	uint32_t prog_hash;
+	uint8_t seq_step;
 } sync4_msg_sync_t;
 #define SYNC4_MSG_TYPE_SYNC			6
 
