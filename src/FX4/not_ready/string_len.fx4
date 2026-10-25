@@ -1,0 +1,8 @@
+
+string s1 = "test";
+
+number a;
+
+a = len(s1);
+
+assert a == 4;

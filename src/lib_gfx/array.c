@@ -1,1 +1,1 @@
-../../../playground/FX4/array.c
+../FX4/array.c

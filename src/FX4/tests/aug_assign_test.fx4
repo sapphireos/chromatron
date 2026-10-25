@@ -1,0 +1,23 @@
+number a;
+number b;
+number c;
+number d;
+number e;
+
+a += 1;
+b -=1;
+
+c = 3;
+c *= 3;
+
+d = 16;
+d /= 4;
+
+e = 10;
+e %= 4;
+
+assert a == 1;
+assert b == -1;
+assert c == 9;
+assert d == 4;
+assert e == 2;

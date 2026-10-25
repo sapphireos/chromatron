@@ -1,0 +1,20 @@
+number a;
+number b;
+
+fn init(){
+
+	for i in 4{
+
+		a += 1;
+	}
+
+	for i in 3{
+
+		b += 1;
+	}
+}
+
+init();
+
+assert a == 4;
+assert b == 3;

@@ -1,0 +1,40 @@
+number ary[2, 2, 2];
+
+number a;
+number b;
+number c;
+number d;
+number e;
+number f;
+number g;
+number h;
+number i;
+
+ary[0, 0, 0] += 1;
+ary[0, 0, 1] += 2;
+ary[0, 1, 0] += 3;
+ary[0, 1, 1] += 4;
+ary[1, 0, 0] += 5;
+ary[1, 0, 1] += 6;
+ary[1, 1, 0] += 7;
+ary[1, 1, 1] += 8;
+
+a = ary[0, 0, 0];
+b = ary[0, 0, 1];
+c = ary[0, 1, 0];
+d = ary[0, 1, 1];
+e = ary[1, 0, 0];
+f = ary[1, 0, 1];
+g = ary[1, 1, 0];
+h = ary[1, 1, 1];
+i = ary[3, 0, 1];
+
+assert a == 1;
+assert b == 2;
+assert c == 3;
+assert d == 4;
+assert e == 5;
+assert f == 6;
+assert g == 7;
+assert h == 8;
+assert i == 6;

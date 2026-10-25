@@ -1,0 +1,9 @@
+number a;
+number b;
+
+a = 1 + 2 + 3 + 4;
+b = 1 + 2 + a + 3 + 4;
+
+assert a == 10;
+assert b == 20;
+

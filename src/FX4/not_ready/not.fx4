@@ -1,0 +1,11 @@
+number a;
+number b;
+number c;
+number d;
+
+a = !1;
+b = !0;
+
+c = ! 1 > 2;
+
+d = ! (a == 0 or ! a > 2);

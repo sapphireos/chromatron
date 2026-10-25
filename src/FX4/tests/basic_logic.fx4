@@ -1,0 +1,20 @@
+number a;
+number b;
+number c;
+number d;
+number e;
+number f;
+
+a = 0 and 0;
+b = 0 and 1;
+c = 1 and 1;
+d = 0 or 0;
+e = 0 or 1;
+f = 1 or 1;
+
+assert a == 0;
+assert b == 0;
+assert c == 1;
+assert d == 0;
+assert e == 1;
+assert f == 1;

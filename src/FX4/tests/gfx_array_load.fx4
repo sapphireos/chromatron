@@ -1,0 +1,23 @@
+fixed16 a;
+fixed16 b;
+fixed16 c;
+fixed16 d;
+number i;
+
+
+pixels[0].val = 0.1;
+pixels[1].val = 0.2;
+pixels[2].val = 0.3;
+pixels[3].val = 0.4;
+
+a = pixels[0].val;
+b = pixels[1].val;
+i = 2;
+c = pixels[2].val;
+d = pixels[i + 1].val;
+
+
+assert a == 0.1;
+assert b == 0.2;
+assert c == 0.3;
+assert d == 0.4;

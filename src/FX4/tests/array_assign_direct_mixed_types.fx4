@@ -1,0 +1,27 @@
+number ary[4, 4];
+fixed16 ary2[4, 4];
+
+number a;
+number b;
+number c;
+number d;
+
+ary[0, 1] = 1;
+ary[1, 1] = 2;
+ary[2, 3] = 3;
+ary[5, 3] = 4;
+
+ary2[2, 5] = ary[0, 1];
+ary2[0, 2] = ary[1, 1];
+ary2[5, 3] = ary[2, 3];
+ary2[1, 1] = ary[5, 3];
+
+a = ary2[2, 5];
+b = ary2[0, 2];
+c = ary2[5, 3];
+d = ary2[1, 1];
+
+assert a == 1;
+assert b == 2;
+assert c == 3;
+assert d == 4;

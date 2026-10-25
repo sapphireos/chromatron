@@ -1,0 +1,13 @@
+number i;
+
+while i < 10{
+
+	if i > 5{
+
+		break;
+	}
+
+	i += 1;
+}
+
+assert i == 6;

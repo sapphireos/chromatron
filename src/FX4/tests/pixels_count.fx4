@@ -1,0 +1,17 @@
+number a;
+number b;
+
+fn init(){
+
+	a = pixels.count;
+
+	for i in pixels.count{
+
+		b += i;
+	}
+}
+
+init();
+
+assert a == 8;
+assert b == 28;

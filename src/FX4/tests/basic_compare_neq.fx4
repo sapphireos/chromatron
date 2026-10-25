@@ -1,0 +1,8 @@
+number a;
+number b;
+
+a = 0 != 1;
+b = 1 != 1;
+
+assert a == 1;
+assert b == 0;

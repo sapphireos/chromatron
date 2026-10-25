@@ -1,0 +1,9 @@
+number a;
+
+fn test() number{
+
+	return 8;
+}
+
+a = test();
+assert a == 8;

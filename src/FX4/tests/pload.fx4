@@ -1,0 +1,24 @@
+fixed16 a;
+fixed16 b;
+fixed16 c;
+number d;
+number e;
+
+pixels.hue = 0.1;
+pixels.sat = 0.2;
+pixels.val = 0.3;
+
+pixels.hsfade = 123;
+pixels.vfade = 456;
+
+a = pixels[1].hue;
+b = pixels[1].sat;
+c = pixels[1].val;
+d = pixels[1].hsfade;
+e = pixels[1].vfade;
+
+assert a == 0.1;
+assert b == 0.2;
+assert c == 0.3;
+assert d == 123;
+assert e == 456;

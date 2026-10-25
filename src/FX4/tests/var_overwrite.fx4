@@ -1,0 +1,18 @@
+number a;
+
+number temp = 90;
+
+if temp < 10{
+
+	a = 0;
+}
+else if(temp >= 95){
+
+	a = 1;
+}
+else{
+
+	a = temp + 1;
+}
+
+assert a == 91;

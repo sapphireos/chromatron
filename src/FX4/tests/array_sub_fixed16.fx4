@@ -1,0 +1,28 @@
+fixed16 ary[4];
+
+fixed16 a;
+fixed16 b;
+fixed16 c;
+fixed16 d;
+fixed16 e; 
+
+ary[0] = 1.1;
+ary[1] = 2.1;
+ary[2] = 3.1;
+ary[3] = 4.1;
+ary[4] = 5.1;
+
+ary -= 123.123;
+
+a = ary[0];
+b = ary[1];
+c = ary[2];
+d = ary[3];
+e = ary[4];
+
+assert a == -118.023;
+assert b == -121.023;
+assert c == -120.023;
+assert d == -119.023;
+assert e == -118.023;
+

@@ -1,0 +1,29 @@
+number global_a;
+number global_i;
+number b;
+
+fn init(){
+
+	for a in 4{
+
+		for i in 10{
+
+			if i > 5{
+
+				break;
+			}
+
+			b += 1;
+		}
+
+		global_i = i;
+	}
+
+	global_a = a;
+}
+
+init();
+
+assert global_i == 6;
+assert global_a == 4;
+assert b == 24;

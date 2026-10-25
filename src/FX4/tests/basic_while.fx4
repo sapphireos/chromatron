@@ -1,0 +1,10 @@
+number a;
+number i;
+
+while i < 10{
+
+	a += 1;
+	i += 1;
+}
+
+assert a == 10;

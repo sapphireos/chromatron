@@ -22,10 +22,10 @@
 #include "sapphire.h"
 
 #include "vm4.h"
-// #include "vm_sync.h"
 
 #include "sequencer.h"
 #include "buttons.h"
+#include "sync4.h"
 
 #ifdef ENABLE_BATTERY
 #include "battery.h"
@@ -121,17 +121,6 @@ KV_SECTION_META kv_meta_t seq_info_kv[] = {
 	{ CATBUS_TYPE_BOOL,     0, 0, 					&vm_sync,         	   0,                  "seq_vm_sync" },
 };
 
-
-
-static bool is_vm_sync_follower( void ){
-
-	return FALSE;
-
-	// vm_sync = vm_sync_b_is_follower();
-
-	// return vm_sync;
-}
-
 static int8_t get_program_for_slot( uint8_t slot, char progname[FFS_FILENAME_LEN] ){
 
 	ASSERT( progname != 0 );
@@ -192,34 +181,35 @@ static int8_t get_program_for_slot( uint8_t slot, char progname[FFS_FILENAME_LEN
 	return 0;
 }
 
+
 static bool vm_sync_b_is_leader( void ){
 
-	return FALSE;
+	return sync4_b_is_leader();
 }
 
 static bool vm_sync_b_is_follower( void ){
 
-	return FALSE;
+	return sync4_b_is_follower();
 }
 
 static bool vm_sync_b_is_synced( void ){
 
-	return FALSE;
+	return sync4_b_is_sync();
 }
 
 static void vm_sync_v_reset( void ){
 
-
+	sync4_v_reset();	
 }
 
 static void vm_sync_v_hold( void ){
 
-
+	sync4_v_hold();
 }
 
 static void vm_sync_v_unhold( void ){
 
-
+	sync4_v_unhold();
 }
 
 static int8_t _run_program( char progname[FFS_FILENAME_LEN] ){
@@ -296,7 +286,7 @@ static int8_t _run_shutdown( void ){
 static int8_t _run_step( bool select_current_step ){
 
 	// in VM sync mode, the step will be selected externally
-	if( is_vm_sync_follower() || select_current_step ){
+	if( vm_sync_b_is_follower() || select_current_step ){
 
 		// this is a no-op on the step
 	}
@@ -417,7 +407,7 @@ PT_BEGIN( pt );
 
 		THREAD_WAIT_WHILE( pt, 
 			( seq_time_mode == SEQ_TIME_MODE_STOPPED ) &&
-			( !is_vm_sync_follower() ) &&
+			( !vm_sync_b_is_follower() ) &&
 			!sys_b_is_shutting_down() );
 
        	if( sys_b_is_shutting_down() ){
@@ -443,9 +433,9 @@ PT_BEGIN( pt );
 		}
 
 
-		if( is_vm_sync_follower() ){
+		if( vm_sync_b_is_follower() ){
 	    	THREAD_WAIT_WHILE( pt, 
-	    		( is_vm_sync_follower() ) &&
+	    		( vm_sync_b_is_follower() ) &&
 	    		( seq_time_mode != SEQ_TIME_MODE_STOPPED ) &&
 	    		!is_charging() &&
 	    		!sys_b_is_shutting_down() &&
@@ -518,7 +508,7 @@ PT_BEGIN( pt );
 
 	    while( ( ( seq_time_mode == SEQ_TIME_MODE_INTERVAL ) ||
 	    	     ( seq_time_mode == SEQ_TIME_MODE_RANDOM ) ) && 
-	    	   ( !is_vm_sync_follower() ) &&
+	    	   ( !vm_sync_b_is_follower() ) &&
 			   ( seq_time_remaining > 0 ) ){
 
 			thread_v_set_alarm( thread_u32_get_alarm() + 1000 );
@@ -526,7 +516,7 @@ PT_BEGIN( pt );
 	        	thread_b_alarm_set() && 
 	        	!is_charging() &&
 	        	!sys_b_is_shutting_down() &&
-	        	!is_vm_sync_follower() &&
+	        	!vm_sync_b_is_follower() &&
 	        	process_trigger_input() );
 
 	       	if( sys_b_is_shutting_down() ){

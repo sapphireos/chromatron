@@ -1,0 +1,13 @@
+fixed16 a;
+number b;
+number c;
+
+number zero = 0;
+
+a = 123.0 / zero;
+b = 123 / zero;
+c = 123 % zero;
+
+assert a == 0;
+assert b == 0;
+assert c == 0;

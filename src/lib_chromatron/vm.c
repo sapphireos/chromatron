@@ -37,7 +37,6 @@
 
 #include "vm.h"
 #include "vm_core.h"
-#include "vm_sequencer.h"
 
 // #ifdef ENABLE_CONTROLLER
 // #include "link.h"

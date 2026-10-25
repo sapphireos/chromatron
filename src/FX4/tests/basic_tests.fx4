@@ -1,0 +1,1190 @@
+
+fn var_init(){
+	number a;
+	assert a == 0;
+}
+var_init();
+
+fn arith(){
+	assert 1 + 2 == 3;
+	assert 3 - 2 == 1;
+	assert 3 * 2 == 6;
+	assert 8 / 4 == 2;
+	assert 8 % 5 == 3;
+}
+arith();
+
+fn arith2(){
+	assert 1 + 2 - 3 * 10 / 5 == -3;
+}
+arith2();
+
+fn simple_ifelse(){
+    number a;
+    number b;
+
+    if a > 0{
+        b = 1;
+    }
+
+    else{
+        b = 2;
+    }
+
+    assert b == 2;
+    assert a == 0;
+}
+simple_ifelse();
+
+
+fn simple_ifelse2(){
+    number a;
+    number b;
+
+    a = 1;
+
+    if a > 0{
+        b = 1;
+    }
+
+    else{
+        b = 2;
+    }
+
+    assert b == 1;
+    assert a == 1;
+}
+simple_ifelse2();
+
+
+fn simple_if(){
+    number a;
+    number b;
+
+    b = 2;
+
+    if a > 0{
+        b = 1;
+    }
+
+    assert b == 2;
+    assert a == 0;
+}
+simple_if();
+
+fn simple_if2(){
+    number a;
+    number b;
+
+    b = 2;
+
+    if a == 0{
+        b = 1;
+    }
+
+    assert b == 1;
+    assert a == 0;
+}
+simple_if2();
+
+fn if_expr(){
+    if 1 + 2 == 3{
+        assert true;
+    }
+
+    else{
+        assert false;
+    }
+}
+if_expr();
+
+fn multi_if_1(){
+    number a;
+    number b;
+
+    a = 0;
+
+    if a > 0{
+        b = 1;
+    }
+    else if b == 0{
+        a = 1;
+    }
+
+    else{
+        b = 2;
+    }
+
+    assert b == 0;
+    assert a == 1;
+}
+multi_if_1();
+
+fn multi_if_2(){
+    number a;
+    number b;
+
+    a = 1;
+
+    if a > 0{
+        b = 1;
+    }
+    else if b == 0{
+        a = 1;
+    }
+    else{
+        b = 2;
+    }
+
+    assert b == 1;
+    assert a == 1;
+}
+multi_if_2();
+
+fn multi_if_3(){
+    number a;
+    number b;
+
+    a = -1;
+    b = 1;
+
+    if a > 0{
+        b = 1;
+    }
+    else if b == 0{
+        a = 1;
+    }
+    else{
+        b = 2;
+    }
+
+    assert b == 2;
+    assert a == -1;
+}
+multi_if_3();
+
+fn nested_ifelse_0(){
+    number a;
+    number b;
+    number c;
+
+    a = 0;
+    b = 0;
+
+    if a <= 0{
+        if b == 0{
+            c = 1;
+        }
+        else{
+            c = 2;
+        }
+    }
+    else{
+        if b == 0{
+            c = 3;
+        }
+        else{
+            c = 4;
+        }
+    }
+
+    assert c == 1;
+}
+nested_ifelse_0();
+
+fn nested_ifelse_1(){
+    number a;
+    number b;
+    number c;
+
+    a = 0;
+    b = 1;
+
+    if a <= 0{
+        if b == 0{
+            c = 1;
+        }
+        else{
+            c = 2;
+        }
+    }
+    else{
+        if b == 0{
+            c = 3;
+        }
+        else{
+            c = 4;
+        }
+    }
+
+    assert c == 2;
+}
+nested_ifelse_1();
+
+fn nested_ifelse_2(){
+    number a;
+    number b;
+    number c;
+
+    a = 1;
+    b = 0;
+
+    if a <= 0{
+        if b == 0{
+            c = 1;
+        }
+        else{
+            c = 2;
+        }
+    }
+    else{
+        if b == 0{
+            c = 3;
+        }
+        else{
+            c = 4;
+        }
+    }
+
+    assert c == 3;
+}
+nested_ifelse_2();
+
+fn nested_ifelse_3(){
+    number a;
+    number b;
+    number c;
+
+    a = 1;
+    b = 1;
+
+    if a <= 0{
+        if b == 0{
+            c = 1;
+        }
+        else{
+            c = 2;
+        }
+    }
+    else{
+        if b == 0{
+            c = 3;
+        }
+        else{
+            c = 4;
+        }
+    }
+    assert c == 4;
+}
+nested_ifelse_3();
+
+fn for_loop(){
+    number a;
+
+    for i in 4{
+        a += 1;
+    }
+
+    assert a == 4;
+}
+for_loop();
+
+fn double_for_loop(){
+    number a;
+
+    for i in 4{
+        for j in 3{
+            a += 1;
+        }
+    }
+
+    assert a == 12;
+}
+
+fn for_loop_break(){
+    number a;
+
+    for i in 4{
+        if i == 2{
+            break;
+        }
+
+        a += 1;
+    }
+
+    assert a == 2;
+}
+for_loop_break();
+
+fn for_loop_continue(){
+    number a;
+
+    for i in 4{
+        if i >= 2{
+            continue;
+        }
+
+        a += 1;
+    }
+
+    assert a == 2;
+}
+for_loop_continue();
+
+fn while_loop(){
+    number a;
+
+    while a < 4{
+        a += 1;
+    }
+
+    assert a == 4;
+}
+while_loop();
+
+fn while_loop2(){
+    number i;
+    i = 4;
+
+    number a;
+    a = 1;
+
+    while i > 0{
+        i -= 1;
+
+        a += 1;
+    }
+
+    assert a == 5;
+    assert i == 0;
+}
+while_loop2();
+
+fn double_while_loop(){
+    number i;
+    i = 4;
+
+    number a;
+
+    while i > 0{
+        i -= 1;
+        number j;
+
+        j = 5;
+
+        while j > 0{
+            j -= 1;
+
+            a += 1;
+        }
+    }
+
+    assert a == 20;
+}
+double_while_loop();
+
+fn while_loop_break(){
+    number a;
+
+    while a < 4{
+        if a == 2{
+            break;
+        }
+
+        a += 1;
+    }
+
+    assert a == 2;
+}
+while_loop_break();
+
+fn while_loop_continue(){
+    number a;
+    number b;
+
+    while a < 4{
+        a += 1;
+
+        if a >= 2{
+            continue;
+        }
+
+        b += 1;
+    }
+
+    assert a == 4;
+    assert b == 1;
+}
+while_loop_continue();
+
+number global_a;
+fn global_var(){
+  global_a += 1;
+
+  assert global_a == 1;
+}
+global_var();
+
+number global_b;
+fn global_readonly(){
+  assert global_b == 0;
+}
+global_readonly();
+
+number ary[4];
+
+fn array_lookup(){
+    number b;
+    ary = 0;
+    ary[b] = 1;
+    b = 1;
+    ary[b] = 2;
+
+    assert ary[0] == 1;
+    assert ary[1] == 2;
+    assert ary[2] == 0;
+    assert ary[3] == 0;
+}
+array_lookup();
+
+fn array_lookup_op(){
+    number b;
+    ary = 3;
+    ary[b] = 1;
+    b = 1;
+    ary[b] += 2;
+
+    assert ary[0] == 1;
+    assert ary[1] == 5;
+    assert ary[2] == 3;
+    assert ary[3] == 3;
+}
+array_lookup_op();
+
+fn array_lookup_op2(){
+    number b;
+    ary = 3;
+    ary[b] = 1;
+    b = 1;
+    ary[b] = ary[b] + 2;
+
+    assert ary[0] == 1;
+    assert ary[1] == 5;
+    assert ary[2] == 3;
+    assert ary[3] == 3;
+}
+array_lookup_op2();
+
+fn array_store(){
+    ary = 0;
+    ary[0] = 1;
+    ary[1] = ary[0];
+
+    assert ary[0] == 1;
+    assert ary[1] == 1;
+    assert ary[2] == 0;
+    assert ary[3] == 0;
+}
+array_store();
+
+fn array_store2(){
+    ary = 0;
+    number b;
+
+    ary[b] = 1;
+    ary[b + 1] = ary[0];
+
+    assert ary[0] == 1;
+    assert ary[1] == 1;
+    assert ary[2] == 0;
+    assert ary[3] == 0;
+}
+array_store2();
+
+fn array_assign(){
+    ary = 0;
+    ary = 1;
+    assert ary[0] == 1;
+    assert ary[1] == 1;
+    assert ary[2] == 1;
+    assert ary[3] == 1;
+}
+array_assign();
+
+fn array_vector(){
+    ary = 1;
+    ary += 1;
+    assert ary[0] == 2;
+    assert ary[1] == 2;
+    assert ary[2] == 2;
+    assert ary[3] == 2;
+}
+array_vector();
+
+number ary2[2, 3];
+
+fn array2_lookup(){
+    number b;
+    ary2[b, 0] = 1;
+    ary2[b, 1] = 2;
+    ary2[b, 2] = 3;
+    b = 1;
+    ary2[b] = 2;
+    ary2[b, 0] = 4;
+    ary2[b, 1] = 5;
+    ary2[b, 2] = 6;
+
+    assert ary2[0, 0] == 1;
+    assert ary2[0, 1] == 2;
+    assert ary2[0, 2] == 3;
+    assert ary2[1, 0] == 4;
+    assert ary2[1, 1] == 5;
+    assert ary2[1, 2] == 6;
+}
+array2_lookup();
+
+fn array2_vector(){
+    ary2 = 3;
+
+    assert ary2[0, 0] == 3;
+    assert ary2[0, 1] == 3;
+    assert ary2[0, 2] == 3;
+    assert ary2[1, 0] == 3;
+    assert ary2[1, 1] == 3;
+    assert ary2[1, 2] == 3;
+
+    ary2 += 1;
+
+    assert ary2[0, 0] == 4;
+    assert ary2[0, 1] == 4;
+    assert ary2[0, 2] == 4;
+    assert ary2[1, 0] == 4;
+    assert ary2[1, 1] == 4;
+    assert ary2[1, 2] == 4;
+
+    ary2[0] = 5;
+
+    assert ary2[0, 0] == 5;
+    assert ary2[0, 1] == 4;
+    assert ary2[0, 2] == 4;
+    assert ary2[1, 0] == 4;
+    assert ary2[1, 1] == 4;
+    assert ary2[1, 2] == 4;
+
+    ary2[0] += 1;
+
+    assert ary2[0, 0] == 6;
+    assert ary2[0, 1] == 4;
+    assert ary2[0, 2] == 4;
+    assert ary2[1, 0] == 4;
+    assert ary2[1, 1] == 4;
+    assert ary2[1, 2] == 4;
+}
+array2_vector();
+
+fn func_param(number a){
+    a += 1;
+    
+    assert a == 2;
+}
+func_param(1);
+
+fn sub(number a, number b) number{
+    return a - b;
+}
+    
+fn add(number a, number b) number{
+    return a + b;
+}
+     
+fn func_call(){
+    assert sub(1, 2) == -1;
+    assert add(1, 2) == 3;
+} 
+func_call();
+
+fn type_conversions(){
+    number a;
+    fixed16 b;
+    fixed16 c;
+    number d;
+    
+    a = 123.456;
+    b = 32;
+
+    c = 123;
+    c += 123;
+
+    d = 123.123;
+    d += 123.123;
+
+    assert a == 123;
+    assert b == 32;
+    assert c == 246.0;
+    assert d == 246;
+}
+type_conversions();
+
+
+fixed16 ary_f16[4];
+
+fn type_conversions_array(){
+    number a;
+    fixed16 b;
+    fixed16 c;
+    number d;
+
+    ary_f16 = 3.123;
+
+    a = ary_f16[1];
+    b = ary_f16[1];
+
+    ary = 3.123;
+    c = ary[1];
+
+    ary += 3.123;
+    d = ary[1];
+
+    assert a == 3;
+    assert b == 3.123;
+    assert c == 3.0;
+    assert d == 6;
+}
+type_conversions_array();
+
+fn type_conversions_binop(){
+    number a;
+    fixed16 b;
+
+    a = 123;
+    b = a * 0.333;
+
+    assert a == 123;
+    assert b == 40.95809;
+}
+type_conversions_binop();
+
+// fn local_array_lookup(){
+//     number local_ary[4];
+//     number b;
+//     local_ary[b] = 1;
+//     b = 1;
+//     local_ary[b] = 2;
+
+//     assert local_ary[0] == 1;
+//     assert local_ary[1] == 2;
+//     assert local_ary[2] == 0;
+//     assert local_ary[3] == 0;
+
+//     local_ary[0] = 1;
+//     local_ary[1] = local_ary[0];
+
+//     assert local_ary[0] == 1;
+//     assert local_ary[1] == 1;
+//     assert local_ary[2] == 0;
+//     assert local_ary[3] == 0;
+// }
+// local_array_lookup();
+
+// fn local_array_assign(){
+//     number local_ary[4];
+//     local_ary = 0;
+//     assert local_ary[0] == 0;
+//     assert local_ary[1] == 0;
+//     assert local_ary[2] == 0;
+//     assert local_ary[3] == 0;
+
+//     local_ary = 1;
+//     assert local_ary[0] == 1;
+//     assert local_ary[1] == 1;
+//     assert local_ary[2] == 1;
+//     assert local_ary[3] == 1;
+// }
+// local_array_assign();
+
+// fn local_array_vector(){
+//     number local_ary[4];
+//     local_ary = 1;
+
+//     assert local_ary[0] == 1;
+//     assert local_ary[1] == 1;
+//     assert local_ary[2] == 1;
+//     assert local_ary[3] == 1;
+
+//     local_ary += 1;
+//     assert local_ary[0] == 2;
+//     assert local_ary[1] == 2;
+//     assert local_ary[2] == 2;
+//     assert local_ary[3] == 2;
+// }
+// local_array_vector();
+
+
+// fn func_indirect_call(){
+//     function f;
+//     f = sub;
+
+//     assert f(1, 2) == -1;
+
+//     f = add;
+
+//     assert f(1, 2) == 3;
+// }
+// func_indirect_call();
+
+// fn func_indirect_call_array():
+//     f = Function(sub)[2]
+//     f[0] = sub
+//     f[1] = add
+
+//     assert f[0](1, 2) == -1
+//     assert f[1](1, 2) == 3
+
+// fn func_call_throwaway_return():
+//     add(1, 2)
+//     # passes if it compiles and runs
+
+// fn unused(a: Number, b: Number, c: Number) -> Number:
+//     return a + c
+
+// fn func_unused_params():
+//     assert unused(1, 2, 3) == 4
+
+// fn local_value_init():
+//     a = Number(5)
+
+//     assert a == 5
+
+
+// 2 pixels starting at index 3 (4th pixel in array)
+pixelarray p1;
+p1.index = 3;
+p1.count = 2;
+
+fn obj_store_direct(){
+    pixels.hue = 0.0;
+
+    assert p1[0].hue == 0.0;
+    assert p1[1].hue == 0.0;
+    assert p1[2].hue == 0.0;
+    
+    p1.hue = 0.5;
+
+    assert p1[0].hue == 0.5;
+    assert p1[1].hue == 0.5;
+    assert p1[2].hue == 0.5;
+}
+obj_store_direct();
+
+// fn obj_store_lookup(){
+//     pixels.hue = 0.0;
+
+//     pixelarray pa[2];
+//     pa[1] = p1;
+
+//     pixelarray p;
+//     p = pa[1];
+    
+//     p.hue = 0.5;
+
+//     assert p1[0].hue == 0.5;
+//     assert p1[1].hue == 0.5;
+//     assert p1[2].hue == 0.5;
+// }
+// obj_store_lookup();    
+
+// fn obj_store_lookup2(){
+//     pixels.hue = 0.0;
+
+//     pixelarray pa[2];
+//     pa[1] = p1;
+//     pa[1].hue = 0.5;
+
+//     assert p1[0].hue == 0.5;
+//     assert p1[1].hue == 0.5;
+//     assert p1[2].hue == 0.5;    
+// }
+// obj_store_lookup2();
+
+// fn obj_store_lookup3(){
+//     pixels.hue = 0.0;
+
+//     pixelarray pa[2];
+//     pa[1] = p1;
+//     pa[1, 2].hue = 0.5;
+
+//     assert p1[0].hue == 0.5; // there are 2 pixels so the assign should wrap around
+//     assert p1[1].hue == 0.0;
+//     assert p1[2].hue == 0.5;
+// }
+// obj_store_lookup3();
+
+// fn obj_store_lookup4(){
+//     pixels.hue = 0.0;
+
+//     pixelarray pa[2];
+//     pa[1] = p1;
+
+//     pixelarray p;
+//     p = pa[1];
+    
+//     p[2].hue = 1.0;
+// }
+// obj_store_lookup4();
+
+fn obj_load_direct(){
+    pixels.hue = 0.5;
+
+    fixed16 a;
+
+    a = p1[0].hue;
+
+    assert a == 0.5;
+}
+obj_load_direct();
+
+// fn obj_load_indirect():
+//     pixels.hue = 0.0
+
+//     a = Fixed16()
+//     p = PixelArray()    
+
+//     p = p1
+//     a = p[0].hue
+
+//     return a
+
+// fn obj_load_lookup():
+//     pixels.hue = 0.0
+
+//     pa = PixelArray()[2]
+//     pa[1] = p1
+
+//     p = PixelArray()
+//     p = pa[1]
+    
+//     a = Fixed16()
+
+//     a = p[1].hue
+
+//     return a
+
+// # fn obj_load_lookup2():
+// #     pixels.hue = 0.0
+
+// #     a = Fixed16()
+// #     pa = PixelArray()[2]
+// #     pa[1] = p1
+// #     a = pa[1].hue # load from entire array, this will fail to compile (which is correct behavior)
+
+// #     return a
+
+// fn obj_load_lookup3():
+//     pixels.hue = 0.0
+
+//     a = Fixed16()
+//     pa = PixelArray()[2]
+//     pa[1] = p1
+//     a = pa[1][2].hue
+
+//     return a
+
+// fn obj_load_lookup4():
+//     pixels.hue = 0.0
+
+//     a = Fixed16()
+//     pa = PixelArray()[2]
+//     pa[1] = p1
+
+//     p = PixelArray()
+//     p = pa[1]
+
+//     a = p[2].hue
+
+//     return a
+
+fn pix_hue_store(){
+    pixels.hue = 0.0;
+
+    pixels[0].hue = 0.5;
+    pixels[1].hue = 1.0; // hue will shortcut to 65535, instead of wrapping 1.0 to 0.0.  Anything above 1.0 will wrap.
+    pixels[2].hue = 1.5;
+
+    assert pixels[0].hue == 0.5;
+    assert pixels[1].hue == 1.0;
+    assert pixels[2].hue == 0.5;
+    assert pixels[3].hue == 0.0;
+}
+pix_hue_store();
+
+fn pix_hue_store2(){
+    pixels.hue = 1.0; // see note above about hue shortcut
+    assert pixels[0].hue == 1.0;
+
+    pixels.hue = 1.5;
+    assert pixels[0].hue == 0.5;
+
+    pixels.hue = -1.0;
+    assert pixels[0].hue == 0.0;
+}
+pix_hue_store2();
+
+fn pix_val_store(){
+    pixels.val = 0.0;
+
+    pixels[0].val = 0.5;
+    pixels[1].val = 1.0;
+    pixels[2].val = 1.5;
+
+    assert pixels[0].val == 0.5;
+    assert pixels[1].val == 1.0;
+    assert pixels[2].val == 1.0;
+    assert pixels[3].val == 0.0;
+}
+pix_val_store();
+
+fn pix_val_store2(){
+    pixels.val = 1.0;
+    assert pixels[0].val == 1.0;
+
+    pixels.val = 1.5;
+    assert pixels[0].val == 1.0;
+
+    pixels.val = -1.0;
+    assert pixels[0].val == 0.0;
+}
+pix_val_store2();
+
+fn pix_sat_store(){
+    pixels.sat = 0.0;
+
+    pixels[0].sat = 0.5;
+    pixels[1].sat = 1.0;
+    pixels[2].sat = 1.5;
+
+    assert pixels[0].sat == 0.5;
+    assert pixels[1].sat == 1.0;
+    assert pixels[2].sat == 1.0;
+    assert pixels[3].sat == 0.0;
+}
+pix_sat_store();
+
+fn pix_sat_store2(){
+    pixels.sat = 1.0;
+    assert pixels[0].sat == 1.0;
+
+    pixels.sat = 1.5;
+    assert pixels[0].sat == 1.0;
+
+    pixels.sat = -1.0;
+    assert pixels[0].sat == 0.0;
+}
+pix_sat_store2();
+
+fn pix_count(){
+    assert pixels.count == 8;
+}
+pix_count();
+
+fn pix_add_hue(){
+    pixels.hue = 0.0;
+
+    pixels.hue += 0.1;
+    pixels[1].hue += 0.1;
+
+    assert pixels[0].hue == 0.1;
+    assert pixels[1].hue == 0.19999; // round off error, this is ok
+}
+pix_add_hue();
+
+fn pix_hue_store_2d(){
+    
+    pixels[2, 1].hue = 0.1;
+
+    assert pixels[2, 1].hue == 0.1;
+}
+pix_hue_store_2d();
+
+fn pix_sat_store_2d(){
+    
+    pixels[2, 1].sat = 0.1;
+
+    assert pixels[2, 1].sat == 0.1;
+}
+pix_sat_store_2d();
+
+fn pix_val_store_2d(){
+    
+    pixels[2, 1].val = 0.1;
+
+    assert pixels[2, 1].val == 0.1;
+}
+pix_val_store_2d();
+
+fn pix_hsfade_store_2d(){
+    
+    pixels[2, 1].hsfade = 123;
+
+    assert pixels[2, 1].hsfade == 123;
+}
+pix_hsfade_store_2d();
+
+fn pix_vfade_store_2d(){
+    
+    pixels[2, 1].vfade = 123;
+
+    assert pixels[2, 1].vfade == 123;
+}
+pix_vfade_store_2d();
+
+
+// // fn use_ref_array(b: Number[4]):
+// //     return b[0] + b[1] + b[2] + b[3]
+
+// // fn ref_array_func_call():
+// //     l = Number()[4]
+
+// //     l[0] = 1
+// //     l[1] = 2
+// //     l[2] = 3
+// //     l[3] = 4
+
+// //     assert use_ref_array(l) == 10
+
+
+
+// // test our hello world!
+// fixed16 current_hue;
+// fn rainbow_loop(){
+//     current_hue += 0.005;
+
+//     fixed16 a;
+//     a = current_hue;
+
+//     for i in pixels.count{
+//         pixels[i].hue = a;
+        
+//         a += 1.0 / pixels.count;
+//     }
+// }
+// rainbow_loop();
+
+// // optimizer tests
+// fn opt_constant_fold(){
+//     number a;
+//     number b;
+
+//     b = 3;
+
+//     a = b + 1 + 2 + 7 + b;
+
+//     assert a == 16;
+
+//     a = a + 2 + 3;
+    
+//     assert a == 21;
+// }
+// opt_constant_fold();
+
+// fn redundant_assign(){
+//     number a;    
+//     number b;
+
+//     a = 4;
+//     b = a;
+//     a = b;
+
+//     assert a == 4;
+// }
+// redundant_assign();
+
+// // sbuf1 = StringBuf('test_string')
+// // sbuf2 = StringBuf(32)
+// // ref = String("meow")
+
+// // fn stringbuf_init():
+// //     assert sbuf1 == 'test_string'
+
+// // fn stringbuf_assign():
+// //     sbuf2 = 'test_string2'
+
+// //     assert sbuf2 == 'test_string2'    
+// //     assert sbuf1 != sbuf2
+
+// //     sbuf2 = 'test_string'
+// //     assert sbuf2 == 'test_string'    
+// //     assert sbuf1 == sbuf2
+
+// // fn stringref():
+// //     assert ref == 'meow'
+
+// //     ref = sbuf1
+// //     assert ref == sbuf1
+// //     assert ref == 'test_string'
+
+// // fn stringlen():
+// //     assert len('meow') == 4
+// //     assert len(sbuf1) == 11
+// //     ref = 'stuff'
+// //     assert len(ref) == 5
+
+
+
+fn array_move(){
+    ary = {99, 98, 97, 96};
+
+    assert ary[0] == 99;
+    assert ary[1] == 98;
+    assert ary[2] == 97;
+    assert ary[3] == 96;
+
+}
+array_move();
+
+fn pixelarray_ref(){
+    
+    pixelarray &p;
+    p = pixels;
+    assert p.count == 8;
+
+    pixels.count = 123;
+    assert p.count == 123;
+}
+pixelarray_ref();
+
+number ary_init[4] = 123;
+fn array_declare_assign(){
+    
+    assert ary_init[0] == 123;
+    assert ary_init[1] == 123;
+    assert ary_init[2] == 123;
+    assert ary_init[3] == 123;
+}
+array_declare_assign();
+
+number ary_init2[4] = {99, 98, 97, 96};
+fn array_declare_assign2(){
+    
+    assert ary_init2[0] == 99;
+    assert ary_init2[1] == 98;
+    assert ary_init2[2] == 97;
+    assert ary_init2[3] == 96;
+}
+array_declare_assign2();
+
+number ary_auto[] = {6, 7, 8};
+fn array_auto_size(){
+    
+    assert ary_auto[0] == 6;
+    assert ary_auto[1] == 7;
+    assert ary_auto[2] == 8;
+}
+array_auto_size();
+
+fn declare_assign_from_function(){
+
+    // passes if this compiles
+    fixed16 temp = rand();
+}
+declare_assign_from_function();
+

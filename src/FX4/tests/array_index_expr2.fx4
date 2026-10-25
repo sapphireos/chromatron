@@ -1,0 +1,18 @@
+number ary[4];
+
+number a;
+
+fn init(){
+
+	for x in 2{
+
+		ary[x + 2] = 1;
+		ary[x + 2 + 1] = 2;
+	}
+
+	a = ary[0];
+}
+
+init();
+
+assert a == 2;

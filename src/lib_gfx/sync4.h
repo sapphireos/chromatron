@@ -4,7 +4,7 @@
 #include "target.h"
 
 #define SYNC4_PROTOCOL_MAGIC        0x434e5953 // 'SYNC' in ASCII
-#define SYNC4_PROTOCOL_VERSION      12
+#define SYNC4_PROTOCOL_VERSION      13
 #define SYNC4_SERVER_PORT           32039
 
 #define SYNC4_MAX_DATA				512
@@ -33,6 +33,8 @@ typedef struct __attribute__((packed)){
 	sync4_msg_header_t header;
 	uint8_t vm_pages;
 	uint8_t pixel_pages;
+	uint32_t prog_hash;
+	uint8_t seq_step;
 } sync4_msg_ready_t;
 #define SYNC4_MSG_TYPE_READY		2
 
@@ -66,6 +68,8 @@ typedef struct __attribute__((packed)){
 	uint64_t frame_number;
 	uint32_t net_time_client;
 	uint32_t net_time_server;
+	uint32_t prog_hash;
+	uint8_t seq_step;
 } sync4_msg_sync_t;
 #define SYNC4_MSG_TYPE_SYNC			6
 
@@ -74,5 +78,11 @@ typedef struct __attribute__((packed)){
 void sync4_v_init( void );
 void sync4_v_reset( void );
 bool sync4_b_is_sync( void );
+
+bool sync4_b_is_leader( void );
+bool sync4_b_is_follower( void );
+
+void sync4_v_hold( void );
+void sync4_v_unhold( void );
 
 #endif

@@ -1,0 +1,27 @@
+number ary[4];
+
+number a;
+number b;
+number c;
+number d;
+number e;
+
+ary[0] = 101;
+ary[1] = 102;
+ary[2] = 103;
+ary[3] = 104;
+ary[4] = 105;
+
+ary %= 100;
+
+a = ary[0];
+b = ary[1];
+c = ary[2];
+d = ary[3];
+e = ary[4];
+
+assert a == 5;
+assert b == 2;
+assert c == 3;
+assert d == 4;
+assert e == 5;

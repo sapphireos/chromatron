@@ -1,0 +1,15 @@
+number ary[4];
+
+number a;
+number b;
+
+ary[0] = 0;
+ary[1] = 1;
+ary[2] = 2;
+ary[3] = 3;
+
+a = ary[2] + 1;
+b = ary[3] + ary[1];
+
+assert a == 3;
+assert b == 4;

@@ -1,0 +1,21 @@
+number ary[4];
+
+number a;
+number b;
+number c;
+number d;
+number e;
+
+ary = 123;
+
+a = ary[0];
+b = ary[1];
+c = ary[2];
+d = ary[3];
+e = ary[4];
+
+assert a == 123;
+assert b == 123;
+assert c == 123;
+assert d == 123;
+assert e == 123;

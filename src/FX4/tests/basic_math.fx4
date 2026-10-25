@@ -1,0 +1,23 @@
+number a;
+number b;
+number c;
+number d;
+number e;
+number f;
+number g;
+
+a = 1 + 2;
+b = 3 + a;
+c = b + a;
+d = 3 - 2;
+e = 2 * 5;
+f = 6 / 3;
+g = 7 % 3;
+
+assert a == 3;
+assert b == 6;
+assert c == 9;
+assert d == 1;
+assert e == 10;
+assert f == 2;
+assert g == 1;

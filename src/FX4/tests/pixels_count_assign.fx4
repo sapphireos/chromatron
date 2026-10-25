@@ -1,0 +1,16 @@
+number a;
+number b;
+number c;
+
+pixels.count = 1;
+a = pixels.count;
+
+pixels.count = pixels.count + 1;
+b = pixels.count;
+
+// pixels.count += 1; // NOTE!!!! not implemented yet
+// c = pixels.count;
+
+assert a == 1;
+assert b == 2;
+// assert c == 3;

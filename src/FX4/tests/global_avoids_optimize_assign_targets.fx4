@@ -1,0 +1,11 @@
+fixed16 a;
+fixed16 b;
+fixed16 c;
+
+a += 0.1;
+b = a;
+c = b;
+
+assert a == 0.1;
+assert b == 0.1;
+assert c == 0.1;

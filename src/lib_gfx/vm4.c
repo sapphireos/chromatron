@@ -65,6 +65,7 @@ typedef struct __attribute__((packed)){
 
 typedef struct __attribute__((packed)){
     vm_t vm;
+    int32_t status;
     published_var_t published_vars[8];
     uint8_t vm_id;
 } vm4_thread_state_t;
@@ -286,6 +287,20 @@ void vm4_v_init( void ){
                      0 );
 }
 
+uint32_t vm4_u32_get_prog_hash( uint8_t vm_id ){
+
+    ASSERT( vm_id < VM4_MAX_VMS );
+
+    if( vm_threads[vm_id] <= 0 ){
+
+        return 0;
+    }
+
+    vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[vm_id] );
+
+    return thread_state->vm.program_name_hash;
+}
+
 void vm4_v_reset( uint8_t vm_id ){
 
     ASSERT( vm_id < VM4_MAX_VMS );
@@ -298,12 +313,16 @@ void vm4_v_reset( uint8_t vm_id ){
 
 void vm4_v_add_published_var( uint16_t index, catbus_hash_t32 hash, catbus_type_t8 type, uint16_t count, uint8_t flags, uint8_t vm_id ){
 
+    ASSERT( vm_id < VM4_MAX_VMS );
+
     if( ( count == 0 ) || ( count > 256 ) ){
 
         log_v_error_P( PSTR("invalid array count") );
 
         return;
     }
+
+    ASSERT( vm_threads[vm_id] > 0 );
 
     vm4_thread_state_t *thread_state = thread_vp_get_data( vm_threads[vm_id] );
 
@@ -463,8 +482,6 @@ PT_BEGIN( pt );
     get_program_fname( state->vm_id, fname );
     state->vm.program_name_hash = hash_u32_string( fname );
 
-    int status = 0;
-
     bool frozen = FALSE;
 
     // load VM
@@ -475,7 +492,7 @@ PT_BEGIN( pt );
 
         log_v_debug_P( PSTR("unfreeze") );
 
-        status = vm_deserialize( &state->vm, "_sync.f4b" );
+        state->status = vm_deserialize( &state->vm, "_sync.f4b" );
 
         log_v_debug_P( PSTR("now: %ld current_tick: %ld frame_number: %ld rng: %ld"),
             tmr_u64_get_system_time_ms(),
@@ -494,14 +511,14 @@ PT_BEGIN( pt );
     }
     else{
 
-        status = vm_deserialize( &state->vm, fname );    
+        state->status = vm_deserialize( &state->vm, fname );    
     }
 
     // log_v_debug_P( PSTR("rng %llx"), state->vm.rng_seed );
 
-    if( status < 0 ){
+    if( state->status < 0 ){
 
-        log_v_error_P( PSTR("VM %d load failed: %d"), state->vm_id, status );
+        log_v_error_P( PSTR("VM %d load failed: %d"), state->vm_id, state->status );
 
         request_unfreeze = FALSE;
         goto end;
@@ -511,11 +528,11 @@ PT_BEGIN( pt );
     if( !frozen ){
 
         // run top level VM script:    
-        status = vm_run_instructions( &state->vm, -1, 0 );
+        state->status = vm_run_instructions( &state->vm, -1, 0 );
 
-        if( status < 0 ){
+        if( state->status < 0 ){
 
-            log_v_error_P( PSTR("VM %d init failed: %d"), state->vm_id, status );
+            log_v_error_P( PSTR("VM %d init failed: %d"), state->vm_id, state->status );
 
             goto end;
         }
@@ -555,7 +572,7 @@ PT_BEGIN( pt );
 
         int64_t tick_delta = 0;
 
-        status = 0;
+        state->status = 0;
 
         if( state-> vm_id == 0 ){
 
@@ -584,7 +601,7 @@ PT_BEGIN( pt );
 
             // we are behind, add a frame to catch up
             state->vm.current_tick += FADER_RATE;
-            status = vm_run_tick( &state->vm, state->vm.current_tick );
+            state->status = vm_run_tick( &state->vm, state->vm.current_tick );
             state->vm.frame_number++;
 
             added_frames++;
@@ -601,7 +618,7 @@ PT_BEGIN( pt );
 
             // NOT skipping - this is the NORMAL path
             state->vm.current_tick += FADER_RATE;
-            status = vm_run_tick( &state->vm, state->vm.current_tick );
+            state->status = vm_run_tick( &state->vm, state->vm.current_tick );
             state->vm.frame_number++;
         }
 
@@ -620,18 +637,18 @@ PT_BEGIN( pt );
         }
 
 
-        if( status < 0 ){
+        if( state->status < 0 ){
 
-            log_v_error_P( PSTR("VM %d error: %d"), state->vm_id, status );
+            log_v_error_P( PSTR("VM %d error: %d"), state->vm_id, state->status );
             goto end;
         }
-        else if( status == VM4_STATUS_NO_COROUTINE ){
+        else if( state->status == VM4_STATUS_NO_COROUTINE ){
 
             log_v_info_P( PSTR("VM %d finished, no coroutines"), state->vm_id );
 
             goto end;
         }
-        else if( status == VM4_STATUS_NO_READY_COROUTINE ){
+        else if( state->status == VM4_STATUS_NO_READY_COROUTINE ){
 
         }
         else{
@@ -666,6 +683,12 @@ end:
     vm_run_time[state->vm_id]   = 0;
     vm_max_cycles[state->vm_id] = 0;
 
+    // set VM status
+    if( state->status < 0 ){
+
+        vm_status[state->vm_id] = state->status;      
+    }
+
     if( ( state->vm_id == 0 ) && ( !request_unfreeze ) ){
 
         sync4_v_reset();
@@ -680,9 +703,12 @@ end:
         TMR_WAIT( pt, 100 );
     }
 
+    // resetting VM (and still in run mode):
     if( vm_reset[state->vm_id] && vm_run[state->vm_id] ){
 
         vm_reset[state->vm_id] = FALSE;
+
+        // immediate restart
 
         THREAD_RESTART( pt );
     }
@@ -691,7 +717,14 @@ end:
     if( vm_status[state->vm_id] != VM4_STATUS_HALT ){
 
         vm_status[state->vm_id] = VM4_STATUS_NOT_RUNNING;    
-    }    
+    }
+
+    // check for error
+    if( vm_status[state->vm_id] < 0 ){
+
+        // delay so we don't run up CPU trying to load bad programs
+        TMR_WAIT( pt, 1000 );
+    }
 
     vm_reset[state->vm_id]      = FALSE;
     vm_run[state->vm_id]        = FALSE;
@@ -883,7 +916,7 @@ int8_t vm4_i8_run_function( uint32_t func_meta, uint8_t vm_id ){
 
     ASSERT( vm_id < VM4_MAX_VMS );
 
-    if( vm_threads[vm_id] < 0 ){
+    if( vm_threads[vm_id] <= 0 ){
 
         return VM4_STATUS_NOT_RUNNING;
     }

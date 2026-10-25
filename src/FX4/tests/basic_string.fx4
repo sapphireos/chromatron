@@ -1,0 +1,17 @@
+string a;
+string b;
+string c;
+string d = "test3";
+string e;
+
+a = "test";
+string s = "test2";
+b = s;
+c = a;
+e = d;
+
+assert a == "test";
+assert b == "test2";
+assert c == "test";
+assert d == "test3";
+assert e == "test3";

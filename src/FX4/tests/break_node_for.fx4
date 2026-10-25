@@ -1,0 +1,18 @@
+number global_i;
+
+fn init(){
+
+	for i in 10{
+
+		if i > 5{
+
+			break;
+		}
+	}
+
+	global_i = i;
+}
+
+init();
+
+assert global_i == 6;

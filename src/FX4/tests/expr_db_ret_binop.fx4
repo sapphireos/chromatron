@@ -1,0 +1,12 @@
+number a;
+
+fn get_db() number{
+
+	return kv.kv_test_key + 1;
+}
+
+kv.kv_test_key = 123;
+
+a = get_db();
+
+assert a == 124;
