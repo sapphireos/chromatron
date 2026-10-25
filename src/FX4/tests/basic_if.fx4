@@ -1,0 +1,19 @@
+number a;
+number b;
+
+if 0{
+    a = 2;
+}
+else{
+    a = 1;
+}
+
+if 1{
+    b = 2;
+}
+else{
+    b = 1;
+}
+
+assert a == 1;
+assert b == 2;

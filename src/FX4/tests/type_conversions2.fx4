@@ -1,0 +1,23 @@
+number a;
+fixed16 b;
+fixed16 c;
+number d;
+
+fixed16 ary[4];
+number ary2[4];
+
+ary = 3.123;
+
+a = ary[1];
+b = ary[1];
+
+ary2 = 3.123;
+c = ary2[1];
+
+ary2 += 3.123;
+d = ary2[1];
+
+assert a == 3;
+assert b == 3.123;
+assert c == 3.0;
+assert d == 6;

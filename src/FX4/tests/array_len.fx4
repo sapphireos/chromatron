@@ -1,0 +1,7 @@
+number ary[4];
+
+number a;
+
+a = len(ary);
+
+assert a == 4;

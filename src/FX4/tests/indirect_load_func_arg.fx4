@@ -1,0 +1,16 @@
+number ary[4];
+
+number a;
+number b;
+
+fn test(number _a) number{
+
+	return _a + 1;
+}
+
+ary[2] = 123;
+a = test(ary[2]);
+b = ary[2];
+
+assert a == 124;
+assert b == 123;

@@ -1,0 +1,17 @@
+number ary[4];
+
+number a;
+
+fn init(){
+
+	for i in len(ary){
+
+		ary[i] = i + 1;
+	}
+	
+	a = max(ary);	
+}
+
+init();
+
+assert a == 4;

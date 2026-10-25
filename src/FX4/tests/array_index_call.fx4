@@ -1,0 +1,16 @@
+number a;
+number b;
+number ary[4];
+
+fn add(number _a, number _b) number{
+
+	return _a + _b;
+}
+
+ary[add(1, 2)] = 4;
+
+a = ary[3];
+b = ary[2];
+
+assert a == 4;
+assert b == 0;

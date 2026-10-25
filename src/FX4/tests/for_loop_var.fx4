@@ -1,0 +1,16 @@
+number a;
+
+fn init(){
+
+	number y;
+	y = 1;
+
+	for i in y{
+
+		a += 1;
+	}
+}
+
+init();
+
+assert a == 1;

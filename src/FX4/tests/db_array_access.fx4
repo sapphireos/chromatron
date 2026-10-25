@@ -1,0 +1,31 @@
+number db_len;
+number db_len2;
+
+number a;
+number b;
+number c;
+number d;
+number e;
+
+db_len = len(kv.kv_test_array);
+db_len2 = len(kv.kv_test_key);
+
+kv.kv_test_array[0] = 1;
+kv.kv_test_array[8] = 2;
+kv.kv_test_array[5] = 3;
+kv.kv_test_array[2] = 4;
+
+a = kv.kv_test_array[0];
+b = kv.kv_test_array[8];
+c = kv.kv_test_array[5];
+d = kv.kv_test_array[2];
+
+e = kv.kv_test_array[5] + kv.kv_test_array[2];
+
+assert db_len == 4;
+assert db_len2 == 1;
+assert a == 2;
+assert b == 2;
+assert c == 3;
+assert d == 4;
+assert e == 7;

@@ -1,0 +1,22 @@
+number a;
+number t;
+
+
+fn test(number _a, number _b) number{
+
+	return _a + _b;
+}
+
+fn init(){
+
+	t = 3;
+
+	for i in test(1, t) + 5{
+
+		a += 1;
+	}
+}
+
+init();
+
+assert a == 9;

@@ -1,0 +1,75 @@
+number a;
+fixed16 b;
+fixed16 c;
+fixed16 d;
+fixed16 e;
+fixed16 f;
+fixed16 g;
+fixed16 h;
+fixed16 i;
+
+number ary[4];
+fixed16 ary1[4];
+
+pixels.hue = 123;
+kv.kv_test_key = pixels[0].hue;
+a = kv.kv_test_key;
+
+pixels[0].val = kv.kv_test_key;
+b = pixels[0].val;
+
+ary[0] = kv.kv_test_key;
+c = ary[0];
+
+ary[1] = 456;
+kv.kv_test_key = ary[1];
+d = kv.kv_test_key;
+
+ary1[1] = pixels[0].val; // NOTE!!!! doesn't work
+e = ary1[1];
+
+ary1[2] = 0.123;
+pixels[0].val = ary1[2];
+f = pixels[0].val;
+
+pixels[1].val = pixels[0].val;
+g = pixels[1].val;
+
+pixels[0].val = 0.333;
+kv.kv_test_array[0] = pixels[0].val;
+h = kv.kv_test_array[0];
+
+kv.kv_test_array[0] = 456;
+pixels[0].val = kv.kv_test_array[0];
+i = pixels[0].val;
+
+assert a == 123;
+assert b == 0.00188;
+assert c == 123;
+assert d == 0.00696;
+assert e == 0.00188;
+assert f == 0.12299;
+assert g == 0.12299;
+assert h == 0.333;
+assert i == 0.00696;
+
+
+// FX3 test parameters below:
+// note FX4 is not quite as sophisticated
+// in data type conversions from the KV database.
+
+// # skip - DB needs to be able to understand gfx16 types to properly handle conversions
+//     # def test_complex_assignments(self, opt_passes):
+//     #     self.run_test(test_complex_assignments,
+//     #         opt_passes=opt_passes,
+//     #         expected={
+//     #             'a': 123,
+//     #             'b': 0.0018768310546875,
+//     #             'c': 123.0,
+//     #             'd': 456.0,
+//     #             'e': 0.0018768310546875,
+//     #             'f': 0.12298583984375,
+//     #             'g': 0.12298583984375,
+//     #             'h': 21823.0,
+//     #             'i': 0.0069580078125,
+//     #         })

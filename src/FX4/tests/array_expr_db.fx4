@@ -1,0 +1,12 @@
+number a;
+number b;
+
+kv.kv_test_array[0] = 1;
+kv.kv_test_array[1] = 2;
+kv.kv_test_array[2] = 3;
+
+a = kv.kv_test_array[0] + 1;
+b = kv.kv_test_array[1] + kv.kv_test_array[2];
+
+assert a == 2;
+assert b == 5;

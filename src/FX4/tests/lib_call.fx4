@@ -1,0 +1,17 @@
+number a;
+number b;
+number c;
+number d;
+number e;
+
+a = test_lib_call();
+b = test_lib_call(1);
+c = test_lib_call(1, 2);
+d = test_lib_call(1, 2, 3);
+e = test_lib_call(1, 2, 3, 4);
+
+assert a == 0;
+assert b == 1;
+assert c == 3;
+assert d == 6;
+assert e == 10;

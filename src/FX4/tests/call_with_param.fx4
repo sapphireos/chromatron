@@ -1,0 +1,13 @@
+number a;
+number b;
+
+fn test(number _a, number _b){
+
+	a = _a;
+	b = _b;
+}
+
+test(1, 2);
+
+assert a == 1;
+assert b == 2;

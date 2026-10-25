@@ -1,0 +1,35 @@
+number a;
+number b;
+number c;
+number d;
+number e;
+number f;
+number g;
+number h;
+
+a = 1;
+b = 2;
+c = 3;
+d = 4;
+
+if a > 0 or b > 0 or c > 0 or d > 0{
+    e = 1;
+}
+
+if a > 1 or b > 2 or c > 3 or d > 4{
+    f = 1;
+}
+
+if a > 1 or b > 2 or c > 3 or d > 3{
+    g = 1;
+}
+
+if a > 10 or b > 10 or c > 0{
+    h = 1;
+}
+
+assert e == 1;
+assert f == 0;
+assert g == 1;
+assert h == 1;
+

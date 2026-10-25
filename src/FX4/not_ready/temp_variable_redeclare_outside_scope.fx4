@@ -1,0 +1,10 @@
+
+// no numeric checks, this test passes if it compiles without error
+if 1 == 2{
+
+	number temp;
+}
+else{
+
+	number temp;
+}

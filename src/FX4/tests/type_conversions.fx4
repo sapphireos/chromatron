@@ -1,0 +1,18 @@
+number a;
+fixed16 b;
+fixed16 c;
+number d;
+
+a = 123.456;
+b = 32;
+
+c = 123;
+c += 123;
+
+d = 123.123;
+d += 123.123;
+
+assert a == 123;
+assert b == 32.0;
+assert c == 246.0;
+assert d == 246;

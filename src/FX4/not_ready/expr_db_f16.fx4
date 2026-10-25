@@ -1,0 +1,10 @@
+fixed16 a;
+fixed16 b;
+
+kv.kv_test_key = 123;
+    
+a = kv.kv_test_key + 1.0; // note that since we don't really do DB type conversion, kv.kv_test_key gets treated as an f16 here.  this is ok for now.
+b = kv.kv_test_key + kv.kv_test_key;
+
+assert a == 124.0;
+assert b == 246.0;

@@ -1,0 +1,14 @@
+number ary[4];
+
+number a;
+number b;
+
+ary[0] = 456;
+
+ary[0] += 123;
+
+a = ary[0];
+b = ary[1];
+
+assert a == 579;
+assert b == 0;

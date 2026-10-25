@@ -1,0 +1,11 @@
+number a;
+number b;
+number c;
+
+a = 0 <= 1;
+b = 1 <= 1;
+c = 2 <= 1;
+
+assert a == 1;
+assert b == 1;
+assert c == 0;

@@ -1,0 +1,10 @@
+number a;
+
+fn test(){
+
+	a = 5;
+}
+
+test();
+
+assert a == 5;

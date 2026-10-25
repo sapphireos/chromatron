@@ -1,0 +1,23 @@
+number a;
+number b;
+number c;
+number d;
+number e;
+
+fn test(number _a, number _b) number{
+
+	return _a + _b;
+}
+
+a += 1 + 1;
+b -= a - 4;
+
+c += test(1, 2);
+d += test(1, 2) + 5;
+e += test(1, 2) + test(3, 4);
+
+assert a == 2;
+assert b == 2;
+assert c == 3;
+assert d == 8;
+assert e == 10;

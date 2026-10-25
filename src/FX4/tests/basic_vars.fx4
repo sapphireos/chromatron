@@ -1,0 +1,8 @@
+number a;
+number b;
+number c;
+
+assert a == 0;
+assert b == 0;
+assert c == 0;
+

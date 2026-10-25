@@ -1,0 +1,17 @@
+number ary[4];
+
+number a;
+
+fn init(){
+
+	for i in len(ary){
+
+		ary[i] = i * 4;
+	}
+	
+	a = sum(ary);	
+}
+
+init();
+
+assert a == 24;

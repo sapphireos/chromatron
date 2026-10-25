@@ -1,0 +1,8 @@
+number a;
+
+kv.kv_test_key = 123;
+kv.kv_test_key = kv.kv_test_key + 1;
+
+a = kv.kv_test_key;
+
+assert a == 124;

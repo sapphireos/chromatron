@@ -1,0 +1,24 @@
+number a;
+number t;
+number i;
+
+
+fn test(number _a, number _b) number{
+
+	return _a + _b;
+}
+
+fn init(){
+
+	t = 3;
+
+	while i < test(1, t){
+
+		a += 1;
+		i += 1;
+	}
+}
+
+init();
+
+assert a == 4;

@@ -1,0 +1,19 @@
+number ary[4];
+
+number a;
+number b;
+
+fn init(){
+
+	for i in len(ary){
+
+		ary[i] = i + 1;
+	}
+
+	b = 1;
+	a = ary[b + 1];
+}
+
+init();
+
+assert a == 3;

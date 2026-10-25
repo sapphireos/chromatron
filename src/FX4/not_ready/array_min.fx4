@@ -1,0 +1,17 @@
+number ary[4];
+
+number a;
+
+fn init(){
+
+	for i in len(ary){
+
+		ary[len(ary) - 1 - i] = i + 1;
+	}
+	
+	a = min(ary);	
+}
+
+init();
+
+assert a == 1;

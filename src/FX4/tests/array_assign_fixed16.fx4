@@ -1,0 +1,21 @@
+fixed16 ary[4];
+
+fixed16 a;
+fixed16 b;
+fixed16 c;
+fixed16 d;
+fixed16 e; 
+
+ary = 123.123;
+
+a = ary[0];
+b = ary[1];
+c = ary[2];
+d = ary[3];
+e = ary[4];
+
+assert a == 123.123;
+assert b == 123.123;
+assert c == 123.123;
+assert d == 123.123;
+assert e == 123.123;

@@ -1,0 +1,26 @@
+number ary[4];
+
+number a;
+number b;
+number c;
+number d;
+
+fn init(){
+
+	for i in len(ary){
+
+		ary[i] = i + 1;
+	}
+
+	a = ary[0];
+	b = ary[1];
+	c = ary[2];
+	d = ary[3];
+}
+
+init();
+
+assert a == 1;
+assert b == 2;
+assert c == 3;
+assert d == 4;

@@ -1,0 +1,13 @@
+number a;
+
+fn init(){
+
+	for i in 10{
+
+		a += 1;
+	}
+}
+
+init();
+
+assert a == 10;

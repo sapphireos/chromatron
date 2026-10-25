@@ -1,0 +1,31 @@
+number global_a;
+number i;
+
+fn init(){
+
+	for a in 4{
+
+		while i < 10{
+
+			if i > 5{
+
+				break;
+			}
+
+			i += 1;
+		}
+
+		if a > 1{
+
+			break;
+		}
+	}
+
+	global_a = a;
+}
+
+init();
+
+assert i == 6;
+assert global_a == 2;
+

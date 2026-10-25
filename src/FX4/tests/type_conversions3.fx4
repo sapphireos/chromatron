@@ -1,0 +1,8 @@
+number a;
+fixed16 b;
+
+a = 123;
+b = a * 0.333;
+
+assert a == 123;
+assert b == 123 * 0.333;

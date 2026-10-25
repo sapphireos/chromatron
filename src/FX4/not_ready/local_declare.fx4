@@ -1,0 +1,29 @@
+number a;
+number b;
+number c;
+number d;
+
+fn test(){
+
+	number n;
+	a = n;
+
+	n += 1;
+}
+
+fn test2(){
+
+	number ary[3];
+	ary = 0;
+	b = ary[0];
+	c = ary[1];
+	d = ary[2];
+
+	ary += 1;
+}
+
+test();
+test();
+
+test2();
+test2();

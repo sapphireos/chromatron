@@ -1,0 +1,29 @@
+number ary[4];
+
+number a;
+number b;
+number c;
+number d;
+
+fn init(){
+
+	for x in 2{
+		for y in 2{
+
+			ary[x + 2] = 1;
+			ary[x + 2] = 2;
+		}
+	}
+
+	a = ary[0];
+	b = ary[1];
+    c = ary[2];
+    d = ary[3];
+}
+
+init();
+
+assert a == 0;
+assert b == 0;
+assert c == 2;
+assert d == 2;
