@@ -71,6 +71,9 @@ class SettingsParseException(Exception):
 class ProjectNotFoundException(Exception):
     pass
 
+class AmbiguousProjectName(ProjectNotFoundException):
+    pass
+
 class AppZipNotFound(Exception):
     pass
 
@@ -94,6 +97,12 @@ MASTER_HASH_DB_FILE         = os.path.join(DATA_DIR, 'kv_hashes.json')
 TOOLS_DIR                   = os.path.join(DATA_DIR, 'tools')
 LIB_INIT_FILENAME           = '__libs.c'
 FX_COMPILER_COMMAND         = 'chromatron compile'
+PROJECT_NAME_PLACEHOLDER    = '%(PROJ_NAME)'
+
+# directories that never hold a project manifest: build output, dependencies,
+# vendored tool trees and tool caches
+DISCOVERY_SKIP_DIRS         = ('build', 'obj', 'dep', 'dist', 'bin', 'htmlcov', 'node_modules')
+DISCOVERY_SKIP_PREFIXES     = ('esp-idf',)
 
 class WorkspacePaths(object):
     # Path layout of a workspace: the top level folder of a project tree, which
@@ -220,6 +229,9 @@ class Builder(object):
         # directories, so the root cannot be recovered from the cwd here
         self.paths = root if isinstance(root, WorkspacePaths) else WorkspacePaths(root)
         self.root = self.paths.root
+
+        # projects are resolved from the workspace itself
+        self.index = get_project_index(self.paths)
 
         self.build_loader = build_loader
 
@@ -573,13 +585,13 @@ class Builder(object):
 
         # process source in all included projects as well
         for include in self.includes:
-            b = get_project_builder(include, target=self.board_type, root=self.root)
+            b = get_project_builder(include, target=self.board_type, root=self.paths)
 
             files.extend(b.list_source())
             files.extend(b.list_headers())
 
         for lib in self.libraries:
-            b = get_project_builder(lib, target=self.board_type, root=self.root)
+            b = get_project_builder(lib, target=self.board_type, root=self.paths)
 
             files.extend(b.list_source())
             files.extend(b.list_headers())
@@ -661,8 +673,6 @@ class Builder(object):
         self.link()
         self.post_process()
 
-        save_project_info(self.proj_name, self.target_dir)
-
     def compile_fx(self):
         fx_files = self.list_fx_source()
 
@@ -706,7 +716,7 @@ class Builder(object):
             if lib in current_libs:
                 continue
 
-            libs[lib] = get_project_builder(lib, target=self.board_type, root=self.root)
+            libs[lib] = get_project_builder(lib, target=self.board_type, root=self.paths)
 
             libs.update(libs[lib].get_libraries(current_libs=libs))
 
@@ -782,12 +792,12 @@ class Builder(object):
             cmd += ' -c %s ' % (compile_path)
 
             for include in self.includes:
-                include_dir = get_project_builder(include, target=self.board_type, root=self.root).target_dir
+                include_dir = get_project_builder(include, target=self.board_type, root=self.paths).target_dir
 
                 cmd += '-I%s ' % (include_dir)
 
             for include in self.libraries:
-                lib_proj = get_project_builder(include, target=self.board_type, root=self.root)
+                lib_proj = get_project_builder(include, target=self.board_type, root=self.paths)
                 include_dirs = [lib_proj.target_dir]
                 include_dirs.extend(lib_proj.source_dirs)
 
@@ -859,12 +869,16 @@ class ConfigBuilder(Builder):
         self.build_config = kwargs['build_config']
         del kwargs['build_config']
 
-        super(ConfigBuilder, self).__init__(os.getcwd(), **kwargs)
+        root = kwargs.get('root')
+        paths = root if isinstance(root, WorkspacePaths) else WorkspacePaths(root)
+
+        # a build configuration is built in the workspace root
+        super(ConfigBuilder, self).__init__(paths.root, **kwargs)
 
         self.proj_name = self.build_config['PROJ_NAME']
         self.fwid = self.build_config['FWID']
 
-        self.app_builder = get_project_builder(self.build_config['BASE_PROJ'], target=self.board_type, root=self.root)
+        self.app_builder = get_project_builder(self.build_config['BASE_PROJ'], target=self.board_type, root=self.paths)
             
         # change app's FWID to the config FWID
         self.app_builder.settings['FWID'] = self.fwid
@@ -875,7 +889,7 @@ class ConfigBuilder(Builder):
 
         self.lib_builders = []
         for lib in self.build_config['LIBS']:
-            builder = get_project_builder(lib, target=self.board_type, root=self.root)
+            builder = get_project_builder(lib, target=self.board_type, root=self.paths)
 
             self.lib_builders.append(builder)
 
@@ -995,7 +1009,7 @@ class HexBuilder(Builder):
         libraries = self.get_libraries()
         # included libraries
         for lib in libraries:
-            lib_project = get_project_builder(lib, target=self.board_type, root=self.root)
+            lib_project = get_project_builder(lib, target=self.board_type, root=self.paths)
 
             # source object files
             for source in lib_project.list_source():
@@ -1253,7 +1267,7 @@ class AppBuilder(HexBuilder):
 
         # get os info
         try:
-            os_project = get_project_builder(self.settings["OS_PROJECT"], target=self.board_type, root=self.root)
+            os_project = get_project_builder(self.settings["OS_PROJECT"], target=self.board_type, root=self.paths)
         except KeyError:
             os_project = ""
 
@@ -1371,7 +1385,7 @@ class AppBuilder(HexBuilder):
 
         # get loader info
         try:
-            loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.board_type, root=self.root)
+            loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.board_type, root=self.paths)
 
             if self.settings["TOOLCHAIN"] == "XTENSA":
                 if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_4MB_FWID:
@@ -1583,7 +1597,7 @@ class ExeBuilder(Builder):
         source_files = []
 
         for lib in self.libraries:
-            lib_proj = get_project_builder(lib, target=self.board_type, root=self.root)
+            lib_proj = get_project_builder(lib, target=self.board_type, root=self.paths)
 
             source_files.extend(lib_proj.list_source())
 
@@ -1784,47 +1798,183 @@ def remove_project_info(project_name):
 
     logging.info("Removed %s from listing" % (project_name))
 
-def get_project_builder(proj_name=None, fwid=None, target=None, build_loader=False, root=None, **kwargs):
-    projects = get_project_list()
+def get_project_name(settings_data):
+    # a project manifest carries a name, a firmware ID and a build type.
+    # this also rejects the per-board defaults files in targets/, which are
+    # named settings.json but describe a target rather than a project, and the
+    # unrendered manifest in the project template.
+    if 'FWID' not in settings_data:
+        return None
 
-    if root is None:
-        root = WorkspacePaths()
+    if 'BUILD_TYPE' not in settings_data:
+        return None
 
     try:
-        if proj_name:
-            return get_builder(projects[proj_name], target, build_loader=build_loader, root=root, **kwargs)
-            # return Builder(projects[proj_name], board_type=target)
-
-        elif fwid:
-            for k, v in projects.items():
-                try:
-                    builder = get_project_builder(k, target=target, root=root)
-
-                except ProjectNotFoundException:
-                    pass
-
-                if builder.fwid == fwid:
-                    return builder
+        proj_name = settings_data['PROJ_NAME']
 
     except KeyError:
-        if proj_name:
-            # try to build from config
-            configs = get_build_configs(root)
+        return None
 
-            if proj_name not in configs:
-                raise ProjectNotFoundException(proj_name)
+    if proj_name == PROJECT_NAME_PLACEHOLDER:
+        return None
 
-            # build from config
-            return ConfigBuilder(build_config=configs[proj_name], board_type=target, root=root, **kwargs)
+    return str(proj_name)
 
-        else:
-            raise ProjectNotFoundException(fwid)
+def discover_projects(root):
+    # scan a workspace recursively for project manifests.
+    # returns (projects, conflicts): PROJ_NAME -> project dir, and the names
+    # that more than one manifest claims
+    projects = {}
+    conflicts = {}
 
-    except Exception:
-        raise
+    root = os.path.abspath(root)
 
+    for dirpath, dirnames, filenames in os.walk(root):
+        # prune before descending
+        dirnames[:] = [d for d in dirnames
+                       if not d.startswith('.')
+                       and d not in DISCOVERY_SKIP_DIRS
+                       and not d.startswith(DISCOVERY_SKIP_PREFIXES)]
 
-    raise ProjectNotFoundException
+        if SETTINGS_FILE not in filenames:
+            continue
+
+        try:
+            with open(os.path.join(dirpath, SETTINGS_FILE), 'r') as f:
+                settings_data = json.loads(f.read())
+
+        except (IOError, OSError, ValueError):
+            continue
+
+        proj_name = get_project_name(settings_data)
+
+        if proj_name is None:
+            continue
+
+        if proj_name in projects:
+            conflicts.setdefault(proj_name, [projects.pop(proj_name)]).append(dirpath)
+            continue
+
+        projects[proj_name] = dirpath
+
+    return projects, conflicts
+
+class ProjectIndex(object):
+    # the projects available in a workspace, discovered from its own folder
+    def __init__(self, paths):
+        self.paths = paths
+
+        self._projects = None
+        self._conflicts = dict()
+
+        # the global project registry is deprecated: it is consulted only for
+        # projects that live outside this workspace
+        self._registry = None
+
+    def _scan(self):
+        if self._projects is None:
+            self._projects, self._conflicts = discover_projects(self.paths.root)
+
+    @property
+    def projects(self):
+        self._scan()
+
+        return self._projects
+
+    @property
+    def conflicts(self):
+        self._scan()
+
+        return self._conflicts
+
+    @property
+    def registry(self):
+        if self._registry is None:
+            self._registry = get_project_list()
+
+        return self._registry
+
+    def registry_only(self):
+        # registry entries that are not projects of this workspace
+        return dict((name, path) for name, path in self.registry.items()
+                    if name not in self.projects and os.path.exists(path))
+
+    def get_project_dir(self, proj_name):
+        if proj_name in self.conflicts:
+            raise AmbiguousProjectName("%s is claimed by more than one project in %s: %s" % \
+                                       (proj_name, self.paths.root, ', '.join(self.conflicts[proj_name])))
+
+        project_dir = self.projects.get(proj_name)
+
+        if project_dir is None:
+            project_dir = self.registry.get(proj_name)
+
+            if project_dir is not None:
+                logging.warning("Project %s resolved from the global project registry, outside this workspace: %s" % \
+                                (proj_name, project_dir))
+
+        return project_dir
+
+_project_indexes = dict()
+
+def get_project_index(root=None):
+    # one scan per workspace per run: builders are created repeatedly while a
+    # project compiles
+    paths = root if isinstance(root, WorkspacePaths) else WorkspacePaths(root)
+
+    try:
+        return _project_indexes[paths.root]
+
+    except KeyError:
+        index = ProjectIndex(paths)
+        _project_indexes[paths.root] = index
+
+        return index
+
+def invalidate_project_index(root=None):
+    paths = root if isinstance(root, WorkspacePaths) else WorkspacePaths(root)
+
+    try:
+        del _project_indexes[paths.root]
+
+    except KeyError:
+        pass
+
+def get_project_builder(proj_name=None, target=None, build_loader=False, root=None, **kwargs):
+    paths = root if isinstance(root, WorkspacePaths) else WorkspacePaths(root)
+    index = get_project_index(paths)
+
+    if not proj_name:
+        raise ProjectNotFoundException("no project name given")
+
+    project_dir = index.get_project_dir(proj_name)
+
+    if project_dir is not None:
+        try:
+            return get_builder(project_dir, target, build_loader=build_loader, root=paths, **kwargs)
+
+        except KeyError:
+            pass # not a buildable project: try a build configuration below
+
+    # try to build from config
+    configs = get_build_configs(paths)
+
+    if proj_name not in configs:
+        raise ProjectNotFoundException(project_not_found_message(proj_name, paths, index))
+
+    # build from config
+    return ConfigBuilder(build_config=configs[proj_name], board_type=target, root=paths, **kwargs)
+
+def project_not_found_message(proj_name, paths, index):
+    message = "Project %s not found in workspace: %s" % (proj_name, paths.root)
+
+    suggestions = sorted([name for name in index.projects if proj_name.lower() in name.lower()])
+
+    if suggestions:
+        message += " (did you mean: %s?)" % (', '.join(suggestions))
+
+    return message
+
 
 # make a new project in the current working dir
 def make_project(proj_name):
@@ -1851,7 +2001,7 @@ def make_project(proj_name):
         s = f.read()
 
         # replace template strings
-        s = s.replace('%(PROJ_NAME)', proj_name)
+        s = s.replace(PROJECT_NAME_PLACEHOLDER, proj_name)
         s = s.replace('%(FWID)', fwid)
 
         f.truncate(0)
@@ -1861,6 +2011,9 @@ def make_project(proj_name):
     logging.info("New project: '%s' created with firmware ID: %s" % (proj_name, fwid))
 
     save_project_info(proj_name, os.path.abspath(project_dir))
+
+    # the new project is part of this workspace now
+    invalidate_project_index()
 
 def get_fwid():
     logging.info("Creating FWID")
@@ -1881,10 +2034,10 @@ def main():
     parser.add_argument("--def", "-D", action="append", help="pass define to compiler")
     parser.add_argument("--dir", "-d", action="append", help="directories to build")
     parser.add_argument("--loader",action="store_true", help="build bootloader")
-    parser.add_argument("--list", "-l", action="store_true", help="list projects")
+    parser.add_argument("--list", "-l", action="store_true", help="list projects in this workspace")
     parser.add_argument("--list_configs", action="store_true", help="list build configurations")
     parser.add_argument("--reset", action="store_true", help="reset project listing")
-    parser.add_argument("--discover", action="store_true", help="discover projects")
+    parser.add_argument("--discover", action="store_true", help="deprecated: refresh the global project registry (projects are discovered from this folder)")
     parser.add_argument("--create", help="create a new template project")
     parser.add_argument("--unlink", help="unlink a project")
     parser.add_argument("--fwid", action="store_true", help="create a firmware ID")
@@ -1961,10 +2114,23 @@ def main():
 
     # check if listing
     if args["list"]:
-        projects = get_project_list()
+        index = get_project_index(paths)
 
-        for key in projects:
-            print("%20s %s" % (key, projects[key]))
+        print("Workspace: %s" % (paths.root))
+
+        for name in sorted(index.projects):
+            print("%20s %s" % (name, os.path.relpath(index.projects[name], paths.root)))
+
+        for name in sorted(index.conflicts):
+            print("%20s AMBIGUOUS (%s)" % (name, ', '.join([os.path.relpath(p, paths.root) for p in index.conflicts[name]])))
+
+        outside = index.registry_only()
+
+        if outside:
+            print("\nOutside this workspace (from the global project registry):")
+
+            for name in sorted(outside):
+                print("%20s %s" % (name, outside[name]))
 
         return
 
@@ -1983,47 +2149,18 @@ def main():
 
     # check if discovering
     if args["discover"]:
-        # load old project listing
-        try:
-            with open(get_project_info_file(), 'r') as f:
-                projects = json.loads(f.read())
+        index = get_project_index(paths)
 
-        except IOError:
-            projects = {}
-
-        for root, dirs, files in os.walk(os.getcwd()):
-            if SETTINGS_FILE in files:
-                # load settings file                
-                with open(os.path.join(root, SETTINGS_FILE)) as f:
-                    try:
-                        proj_settings = json.loads(f.read())
-
-                    except json.decoder.JSONDecodeError:
-                        continue
-                        
-                    if 'FWID' not in proj_settings:
-                        continue
-
-                    if 'BUILD_TYPE' not in proj_settings:
-                        continue
-
-                    try:
-                        proj_name = proj_settings['PROJ_NAME']
-
-                        if proj_name == '%(PROJ_NAME)':
-                            continue
-
-                        projects[proj_name] = root
-
-                    except KeyError:
-                        pass
+        # the project file is deprecated: keep the entries that point outside
+        # this workspace so those projects stay resolvable
+        projects = index.registry
+        projects.update(index.projects)
 
         with open(PROJECTS_FILE, 'w+') as f:
             f.write(json.dumps(projects))
 
-        print("Found %d projects" % (len(projects)))
+        print("Found %d projects in %s" % (len(index.projects), paths.root))
         print("Saved project file: %s" % (PROJECTS_FILE))
-
 
         return
 
@@ -2154,7 +2291,6 @@ def main():
         for p in args["project"]:
             logging.info("Project: %s" % (p))
 
-            # check if project is in the projects list
             try:
                 builder = get_project_builder(p, build_loader=build_loader, target=board_type, defines=defines, root=paths)
             except Exception:
