@@ -57,11 +57,12 @@ Install compiler toolchain:
     $ sapphiremake --install_build_tools
 
 
-Scan for firmware projects.  This searchs the folder structure for all of the projects so the build tools can find everything.
+Firmware projects are found automatically: the build tools search this folder
+structure whenever they run. To see what was found:
 
 .. code:: bash
 
-    $ sapphiremake --discover
+    $ sapphiremake --list
 
 
 Build the bootloader project:

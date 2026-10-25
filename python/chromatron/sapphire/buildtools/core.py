@@ -89,10 +89,7 @@ KV_CHARS.extend(digits)
     
 SETTINGS_DIR                = os.path.dirname(os.path.abspath(settings.__file__))
 SETTINGS_FILE               = 'settings.json'
-PROJECTS_FILE_NAME          = 'projects.json'
 DATA_DIR                    = firmware_package.data_dir()
-PROJECTS_FILE_PATH          = DATA_DIR
-PROJECTS_FILE               = os.path.join(PROJECTS_FILE_PATH, PROJECTS_FILE_NAME)
 MASTER_HASH_DB_FILE         = os.path.join(DATA_DIR, 'kv_hashes.json')
 TOOLS_DIR                   = os.path.join(DATA_DIR, 'tools')
 LIB_INIT_FILENAME           = '__libs.c'
@@ -1659,12 +1656,6 @@ class ExeBuilder(Builder):
         os.chdir(cwd)
 
 
-def get_project_info_dir():
-    return settings.get_app_dir()
-
-def get_project_info_file():
-    return PROJECTS_FILE
-
 def get_build_configs(root=None):
     paths = root if isinstance(root, WorkspacePaths) else WorkspacePaths(root)
 
@@ -1750,54 +1741,6 @@ def get_build_configs(root=None):
 
     return build_configs
 
-def get_project_list():
-    try:
-        f = open(get_project_info_file(), 'r')
-        data = f.read()
-        f.close()
-
-        return json.loads(data)
-
-    except IOError:
-        return dict()
-
-    except ValueError:
-        return dict()
-
-def save_project_info(name, target_dir):
-    data = get_project_list()
-    data[name] = target_dir
-
-    # getdata dir
-    data_dir = get_project_info_dir()
-
-    # check if data dir exists
-    if not os.path.exists(data_dir):
-        os.makedirs(data_dir)
-
-    f = open(get_project_info_file(), 'w')
-    f.truncate(0)
-    f.write(json.dumps(data, indent=4, separators=(',', ': ')))
-    f.close()
-
-    logging.info("Saving project listing to: %s" % (data_dir))
-
-def remove_project_info(project_name):
-    data = get_project_list()
-
-    # check if project exists
-    if project_name not in data:
-        raise ProjectNotFoundException
-
-    del data[project_name]
-
-    f = open(get_project_info_file(), 'w')
-    f.truncate(0)
-    f.write(json.dumps(data, indent=4, separators=(',', ': ')))
-    f.close()
-
-    logging.info("Removed %s from listing" % (project_name))
-
 def get_project_name(settings_data):
     # a project manifest carries a name, a firmware ID and a build type.
     # this also rejects the per-board defaults files in targets/, which are
@@ -1867,10 +1810,6 @@ class ProjectIndex(object):
         self._projects = None
         self._conflicts = dict()
 
-        # the global project registry is deprecated: it is consulted only for
-        # projects that live outside this workspace
-        self._registry = None
-
     def _scan(self):
         if self._projects is None:
             self._projects, self._conflicts = discover_projects(self.paths.root)
@@ -1887,33 +1826,12 @@ class ProjectIndex(object):
 
         return self._conflicts
 
-    @property
-    def registry(self):
-        if self._registry is None:
-            self._registry = get_project_list()
-
-        return self._registry
-
-    def registry_only(self):
-        # registry entries that are not projects of this workspace
-        return dict((name, path) for name, path in self.registry.items()
-                    if name not in self.projects and os.path.exists(path))
-
     def get_project_dir(self, proj_name):
         if proj_name in self.conflicts:
             raise AmbiguousProjectName("%s is claimed by more than one project in %s: %s" % \
                                        (proj_name, self.paths.root, ', '.join(self.conflicts[proj_name])))
 
-        project_dir = self.projects.get(proj_name)
-
-        if project_dir is None:
-            project_dir = self.registry.get(proj_name)
-
-            if project_dir is not None:
-                logging.warning("Project %s resolved from the global project registry, outside this workspace: %s" % \
-                                (proj_name, project_dir))
-
-        return project_dir
+        return self.projects.get(proj_name)
 
 _project_indexes = dict()
 
@@ -2010,8 +1928,6 @@ def make_project(proj_name):
 
     logging.info("New project: '%s' created with firmware ID: %s" % (proj_name, fwid))
 
-    save_project_info(proj_name, os.path.abspath(project_dir))
-
     # the new project is part of this workspace now
     invalidate_project_index()
 
@@ -2036,10 +1952,7 @@ def main():
     parser.add_argument("--loader",action="store_true", help="build bootloader")
     parser.add_argument("--list", "-l", action="store_true", help="list projects in this workspace")
     parser.add_argument("--list_configs", action="store_true", help="list build configurations")
-    parser.add_argument("--reset", action="store_true", help="reset project listing")
-    parser.add_argument("--discover", action="store_true", help="deprecated: refresh the global project registry (projects are discovered from this folder)")
     parser.add_argument("--create", help="create a new template project")
-    parser.add_argument("--unlink", help="unlink a project")
     parser.add_argument("--fwid", action="store_true", help="create a firmware ID")
     parser.add_argument("--make_release", action="store_true", help="make current build a release package")
     parser.add_argument("--install_build_tools", action="store_true", help="install build tools")
@@ -2067,14 +1980,15 @@ def main():
 
     settings.set_app_dir(paths.root)
 
-    # make sure projects dir exists
+    # make sure the data dir exists
     try:
-        os.makedirs(PROJECTS_FILE_PATH)
+        os.makedirs(DATA_DIR)
 
     except OSError:
         pass
 
-    logging.info("Projects dir: %s" % (PROJECTS_FILE_PATH))
+    logging.info("Data dir: %s" % (DATA_DIR))
+
 
     # check if making a release
     if args["make_release"]:
@@ -2124,54 +2038,19 @@ def main():
         for name in sorted(index.conflicts):
             print("%20s AMBIGUOUS (%s)" % (name, ', '.join([os.path.relpath(p, paths.root) for p in index.conflicts[name]])))
 
-        outside = index.registry_only()
-
-        if outside:
-            print("\nOutside this workspace (from the global project registry):")
-
-            for name in sorted(outside):
-                print("%20s %s" % (name, outside[name]))
-
         return
 
     if args["list_configs"]:
         pprint(get_build_configs(paths))
         return
 
-    # check if reset
-    if args["reset"]:
-        os.remove(get_project_info_file())
-        return
-
     if args["fwid"]:
         print(get_fwid())
-        return
-
-    # check if discovering
-    if args["discover"]:
-        index = get_project_index(paths)
-
-        # the project file is deprecated: keep the entries that point outside
-        # this workspace so those projects stay resolvable
-        projects = index.registry
-        projects.update(index.projects)
-
-        with open(PROJECTS_FILE, 'w+') as f:
-            f.write(json.dumps(projects))
-
-        print("Found %d projects in %s" % (len(index.projects), paths.root))
-        print("Saved project file: %s" % (PROJECTS_FILE))
-
         return
 
     # check if creating a new project
     if args["create"]:
         make_project(args["create"])
-        return
-
-    # check if unlinking a new project
-    if args["unlink"]:
-        remove_project_info(args["unlink"])
         return
 
     # check if loading to an ESP32
