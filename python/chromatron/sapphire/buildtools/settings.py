@@ -27,10 +27,19 @@ import os
 import json
 import logging
 
-app_dir = os.getcwd()
+# the workspace root, set by the caller (see core.main()). left unset for tools
+# that have no workspace, in which case it resolves to the cwd on demand.
+app_dir = None
 
 def get_app_dir():
+    if app_dir is None:
+        return os.getcwd()
+
     return app_dir
+
+def set_app_dir(path):
+    global app_dir
+    app_dir = os.path.abspath(path)
 
 _log_levels = {"debug": logging.DEBUG,
                "info": logging.INFO,
@@ -42,7 +51,8 @@ _log_levels = {"debug": logging.DEBUG,
 # DEFAULT CONFIG #
 ##################
 LOG_FILENAME = os.path.splitext(os.path.split(sys.argv[0])[1])[0] + ".log"
-LOG_PATH = get_app_dir()
+# None means "the app dir", resolved when logging is set up rather than at import
+LOG_PATH = None
 LOG_LEVEL = "info"
 LOG_QUIET = False
 
@@ -103,7 +113,7 @@ def init_logging():
     dt_format = '%Y-%m-%dT%H:%M:%S'
 
     global _LOG_FILE_PATH
-    _LOG_FILE_PATH = os.path.join(LOG_PATH, LOG_FILENAME)
+    _LOG_FILE_PATH = os.path.join(LOG_PATH if LOG_PATH else get_app_dir(), LOG_FILENAME)
 
     global _LOG_LEVEL
     _LOG_LEVEL = _log_levels[LOG_LEVEL]

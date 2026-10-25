@@ -87,17 +87,30 @@ KV_CHARS.extend(digits)
 SETTINGS_DIR                = os.path.dirname(os.path.abspath(settings.__file__))
 SETTINGS_FILE               = 'settings.json'
 PROJECTS_FILE_NAME          = 'projects.json'
-PROJECTS_FILE_PATH          = firmware_package.data_dir()
+DATA_DIR                    = firmware_package.data_dir()
+PROJECTS_FILE_PATH          = DATA_DIR
 PROJECTS_FILE               = os.path.join(PROJECTS_FILE_PATH, PROJECTS_FILE_NAME)
-BUILD_CONFIGS_DIR           = os.path.join(os.getcwd(), 'configurations')
-BUILD_CONFIGS_FWID_FILE     = os.path.join(BUILD_CONFIGS_DIR, 'fwid.json')
-BASE_DIR                    = os.getcwd()
-TARGETS_DIR                 = os.path.join(BASE_DIR, 'targets')
-BOARDS_FILE                 = os.path.join(TARGETS_DIR, 'boards.json')
-MASTER_HASH_DB_FILE         = os.path.join(PROJECTS_FILE_PATH, 'kv_hashes.json')
-TOOLS_DIR                   = os.path.join(PROJECTS_FILE_PATH, 'tools')
+MASTER_HASH_DB_FILE         = os.path.join(DATA_DIR, 'kv_hashes.json')
+TOOLS_DIR                   = os.path.join(DATA_DIR, 'tools')
 LIB_INIT_FILENAME           = '__libs.c'
 FX_COMPILER_COMMAND         = 'chromatron compile'
+
+class WorkspacePaths(object):
+    # Path layout of a workspace: the top level folder of a project tree, which
+    # holds targets/, configurations/ and the build scripts.
+    #
+    # The root is resolved once, at the start of a build run, and carried with
+    # the builder that owns it. It is never derived from the process working
+    # directory at the point of use: builders chdir into project directories
+    # while they work (see Builder.compile()).
+    def __init__(self, root=None):
+        self.root = os.path.abspath(root or os.getcwd())
+
+        self.base_dir           = self.root
+        self.targets_dir        = os.path.join(self.root, 'targets')
+        self.boards_file        = os.path.join(self.targets_dir, 'boards.json')
+        self.build_configs_dir  = os.path.join(self.root, 'configurations')
+        self.build_configs_fwid_file = os.path.join(self.build_configs_dir, 'fwid.json')
 
 
 tools_linux = [
@@ -180,10 +193,10 @@ def runcmd(cmd, tofile=False, tolog=True):
     return output
 
 
-def get_builder(target_dir, board_type, build_loader=False, fnv_hash=True, **kwargs):
-    builder = Builder(target_dir, board_type, fnv_hash=fnv_hash, **kwargs)
+def get_builder(target_dir, board_type, build_loader=False, fnv_hash=True, root=None, **kwargs):
+    builder = Builder(target_dir, board_type, fnv_hash=fnv_hash, root=root, **kwargs)
 
-    modes = {"os": OSBuilder, 
+    modes = {"os": OSBuilder,
              "loader": LoaderBuilder, 
              "arm_loader": ARMLoaderBuilder, 
              "esp8266_loader": ESP8266LoaderBuilder,
@@ -196,17 +209,22 @@ def get_builder(target_dir, board_type, build_loader=False, fnv_hash=True, **kwa
         raise Exception("Unknown build type: %s" % (builder.settings["BUILD_TYPE"]))
 
 
-    return modes[builder.settings["BUILD_TYPE"]](target_dir, board_type, build_loader=build_loader, fnv_hash=fnv_hash)
+    return modes[builder.settings["BUILD_TYPE"]](target_dir, board_type, build_loader=build_loader, fnv_hash=fnv_hash, root=root)
 
 class Builder(object):
-    def __init__(self, target_dir, board_type=None, build_loader=False, fnv_hash=True, defines=[]):
+    def __init__(self, target_dir, board_type=None, build_loader=False, fnv_hash=True, defines=[], root=None):
         self.target_dir = target_dir
         self.board_type = board_type
+
+        # inherit the caller's workspace root: builders run inside project
+        # directories, so the root cannot be recovered from the cwd here
+        self.paths = root if isinstance(root, WorkspacePaths) else WorkspacePaths(root)
+        self.root = self.paths.root
 
         self.build_loader = build_loader
 
         try:
-            with open(BOARDS_FILE, 'r') as f:
+            with open(self.paths.boards_file, 'r') as f:
                 boards = json.loads(f.read())
 
         except FileNotFoundError:
@@ -315,7 +333,7 @@ class Builder(object):
             self.board_type = app_settings["TARGET"]
 
         try:
-            self.settings_dir = os.path.join(TARGETS_DIR, self.board["target"])
+            self.settings_dir = os.path.join(self.paths.targets_dir, self.board["target"])
 
         except KeyError:
             self.settings_dir = self.target_dir
@@ -555,13 +573,13 @@ class Builder(object):
 
         # process source in all included projects as well
         for include in self.includes:
-            b = get_project_builder(include, target=self.board_type)
+            b = get_project_builder(include, target=self.board_type, root=self.root)
 
             files.extend(b.list_source())
             files.extend(b.list_headers())
 
         for lib in self.libraries:
-            b = get_project_builder(lib, target=self.board_type)
+            b = get_project_builder(lib, target=self.board_type, root=self.root)
 
             files.extend(b.list_source())
             files.extend(b.list_headers())
@@ -688,7 +706,7 @@ class Builder(object):
             if lib in current_libs:
                 continue
 
-            libs[lib] = get_project_builder(lib, target=self.board_type)
+            libs[lib] = get_project_builder(lib, target=self.board_type, root=self.root)
 
             libs.update(libs[lib].get_libraries(current_libs=libs))
 
@@ -764,12 +782,12 @@ class Builder(object):
             cmd += ' -c %s ' % (compile_path)
 
             for include in self.includes:
-                include_dir = get_project_builder(include, target=self.board_type).target_dir
+                include_dir = get_project_builder(include, target=self.board_type, root=self.root).target_dir
 
                 cmd += '-I%s ' % (include_dir)
 
             for include in self.libraries:
-                lib_proj = get_project_builder(include, target=self.board_type)
+                lib_proj = get_project_builder(include, target=self.board_type, root=self.root)
                 include_dirs = [lib_proj.target_dir]
                 include_dirs.extend(lib_proj.source_dirs)
 
@@ -805,7 +823,7 @@ class Builder(object):
 
             cmd = cmd.replace('%(OBJ_DIR)', self.settings["OBJ_DIR"])
             cmd = cmd.replace('%(SOURCE_FNAME)', source_fname)
-            cmd = cmd.replace('%(BASE_DIR)', BASE_DIR)
+            cmd = cmd.replace('%(BASE_DIR)', self.paths.base_dir)
 
             if self.settings["TOOLCHAIN"] not in  ["XTENSA", "ESP32", "ESP32_bootloader"]:
                 cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
@@ -846,7 +864,7 @@ class ConfigBuilder(Builder):
         self.proj_name = self.build_config['PROJ_NAME']
         self.fwid = self.build_config['FWID']
 
-        self.app_builder = get_project_builder(self.build_config['BASE_PROJ'], target=self.board_type)
+        self.app_builder = get_project_builder(self.build_config['BASE_PROJ'], target=self.board_type, root=self.root)
             
         # change app's FWID to the config FWID
         self.app_builder.settings['FWID'] = self.fwid
@@ -857,7 +875,7 @@ class ConfigBuilder(Builder):
 
         self.lib_builders = []
         for lib in self.build_config['LIBS']:
-            builder = get_project_builder(lib, target=self.board_type)
+            builder = get_project_builder(lib, target=self.board_type, root=self.root)
 
             self.lib_builders.append(builder)
 
@@ -977,7 +995,7 @@ class HexBuilder(Builder):
         libraries = self.get_libraries()
         # included libraries
         for lib in libraries:
-            lib_project = get_project_builder(lib, target=self.board_type)
+            lib_project = get_project_builder(lib, target=self.board_type, root=self.root)
 
             # source object files
             for source in lib_project.list_source():
@@ -998,7 +1016,7 @@ class HexBuilder(Builder):
         cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
         cmd = cmd.replace("%(TARGET_DIR)", self.target_dir)
-        cmd = cmd.replace('%(BASE_DIR)', BASE_DIR)
+        cmd = cmd.replace('%(BASE_DIR)', self.paths.base_dir)
 
         # replace windows path separators with unix
         cmd = cmd.replace('\\', '/')
@@ -1235,7 +1253,7 @@ class AppBuilder(HexBuilder):
 
         # get os info
         try:
-            os_project = get_project_builder(self.settings["OS_PROJECT"], target=self.board_type)
+            os_project = get_project_builder(self.settings["OS_PROJECT"], target=self.board_type, root=self.root)
         except KeyError:
             os_project = ""
 
@@ -1353,7 +1371,7 @@ class AppBuilder(HexBuilder):
 
         # get loader info
         try:
-            loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.board_type)
+            loader_project = get_project_builder(self.settings["LOADER_PROJECT"], target=self.board_type, root=self.root)
 
             if self.settings["TOOLCHAIN"] == "XTENSA":
                 if package.FWID.replace('-', '') == CHROMATRON_ESP_UPGRADE_4MB_FWID:
@@ -1565,7 +1583,7 @@ class ExeBuilder(Builder):
         source_files = []
 
         for lib in self.libraries:
-            lib_proj = get_project_builder(lib, target=self.board_type)
+            lib_proj = get_project_builder(lib, target=self.board_type, root=self.root)
 
             source_files.extend(lib_proj.list_source())
 
@@ -1616,7 +1634,7 @@ class ExeBuilder(Builder):
         cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
         cmd = cmd.replace("%(TARGET_DIR)", self.target_dir)
-        cmd = cmd.replace('%(BASE_DIR)', BASE_DIR)
+        cmd = cmd.replace('%(BASE_DIR)', self.paths.base_dir)
 
         # replace windows path separators with unix
         cmd = cmd.replace('\\', '/')
@@ -1633,16 +1651,18 @@ def get_project_info_dir():
 def get_project_info_file():
     return PROJECTS_FILE
 
-def get_build_configs():
+def get_build_configs(root=None):
+    paths = root if isinstance(root, WorkspacePaths) else WorkspacePaths(root)
+
     build_configs = {}
 
     # open/create firmware ID file
     try:
-        fwid_f = open(BUILD_CONFIGS_FWID_FILE, 'r')
+        fwid_f = open(paths.build_configs_fwid_file, 'r')
 
     except IOError:
         # create file
-        fwid_f = open(BUILD_CONFIGS_FWID_FILE, 'w+')
+        fwid_f = open(paths.build_configs_fwid_file, 'w+')
     
     try:
         fwids = json.loads(fwid_f.read())
@@ -1653,12 +1673,12 @@ def get_build_configs():
     fwid_f.close()
 
 
-    for filename in os.listdir(BUILD_CONFIGS_DIR):
+    for filename in os.listdir(paths.build_configs_dir):
         # skip hidden files
         if filename.startswith('.'):
             continue
 
-        filepath = os.path.join(BUILD_CONFIGS_DIR, filename)
+        filepath = os.path.join(paths.build_configs_dir, filename)
         
         parser = configparser.ConfigParser()
 
@@ -1700,7 +1720,7 @@ def get_build_configs():
                     print("Created FWID %s for project: %s" % (fwids[proj_name], proj_name))
                     
                     # save to file
-                    with open(BUILD_CONFIGS_FWID_FILE, 'w+') as f:
+                    with open(paths.build_configs_fwid_file, 'w+') as f:
                         f.write(json.dumps(fwids))
 
                 build_configs[proj_name] = {'PROJ_NAME': proj_name,
@@ -1764,18 +1784,21 @@ def remove_project_info(project_name):
 
     logging.info("Removed %s from listing" % (project_name))
 
-def get_project_builder(proj_name=None, fwid=None, target=None, build_loader=False, **kwargs):
+def get_project_builder(proj_name=None, fwid=None, target=None, build_loader=False, root=None, **kwargs):
     projects = get_project_list()
+
+    if root is None:
+        root = WorkspacePaths()
 
     try:
         if proj_name:
-            return get_builder(projects[proj_name], target, build_loader=build_loader, **kwargs)
+            return get_builder(projects[proj_name], target, build_loader=build_loader, root=root, **kwargs)
             # return Builder(projects[proj_name], board_type=target)
 
         elif fwid:
             for k, v in projects.items():
                 try:
-                    builder = get_project_builder(k, target=target)
+                    builder = get_project_builder(k, target=target, root=root)
 
                 except ProjectNotFoundException:
                     pass
@@ -1786,13 +1809,13 @@ def get_project_builder(proj_name=None, fwid=None, target=None, build_loader=Fal
     except KeyError:
         if proj_name:
             # try to build from config
-            configs = get_build_configs()
+            configs = get_build_configs(root)
 
             if proj_name not in configs:
                 raise ProjectNotFoundException(proj_name)
 
             # build from config
-            return ConfigBuilder(build_config=configs[proj_name], board_type=target, **kwargs)
+            return ConfigBuilder(build_config=configs[proj_name], board_type=target, root=root, **kwargs)
 
         else:
             raise ProjectNotFoundException(fwid)
@@ -1878,10 +1901,18 @@ def main():
 
     logging.info("SapphireMake")
 
+    # the workspace root is the top level folder of the project tree: it holds
+    # targets/, configurations/ and the build scripts. it is resolved once here
+    # and carried by every builder created below.
+    paths = WorkspacePaths(os.getcwd())
+
     # set target dir to cwd
-    target_dir = os.getcwd()
+    target_dir = paths.root
 
     logging.info("Target dir: %s" % (target_dir))
+    logging.info("Workspace root: %s" % (paths.root))
+
+    settings.set_app_dir(paths.root)
 
     # make sure projects dir exists
     try:
@@ -1938,7 +1969,7 @@ def main():
         return
 
     if args["list_configs"]:
-        pprint(get_build_configs())
+        pprint(get_build_configs(paths))
         return
 
     # check if reset
@@ -2080,7 +2111,7 @@ def main():
     elif args["load_esp32_loader"]:
         proj = 'loader_esp32'
 
-        builder = get_project_builder(proj, build_loader=True, target='esp32_loader')
+        builder = get_project_builder(proj, build_loader=True, target='esp32_loader', root=paths)
 
         os.chdir(builder.target_dir)
 
@@ -2109,7 +2140,7 @@ def main():
 
 
     if args["build_all"]:
-        configs = get_build_configs()
+        configs = get_build_configs(paths)
         
         args["project"] = list(configs.keys())
 
@@ -2125,7 +2156,7 @@ def main():
 
             # check if project is in the projects list
             try:
-                builder = get_project_builder(p, build_loader=build_loader, target=board_type, defines=defines)
+                builder = get_project_builder(p, build_loader=build_loader, target=board_type, defines=defines, root=paths)
             except Exception:
                 raise
 
@@ -2144,7 +2175,7 @@ def main():
         for d in args["dir"]:
             target_dir = os.path.abspath(d)
 
-            builder = get_builder(target_dir, board_type, build_loader=build_loader, defines=defines)
+            builder = get_builder(target_dir, board_type, build_loader=build_loader, defines=defines, root=paths)
 
             # init logging
             builder.init_logging()
@@ -2157,7 +2188,7 @@ def main():
 
     # build in current directory
     else:
-        builder = get_builder(target_dir, board_type, build_loader=build_loader, defines=defines)
+        builder = get_builder(target_dir, board_type, build_loader=build_loader, defines=defines, root=paths)
 
         # init logging
         builder.init_logging()
