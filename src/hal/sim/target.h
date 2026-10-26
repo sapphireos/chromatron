@@ -39,6 +39,8 @@
 // #define ENABLE_KV_NOTIFICATIONS // note this requires the network
 // #define ENABLE_POWER
 
+#define ENABLE_LOG_TO_TRACE_PRINT // sim: trace is stdout, mirror log records to the console
+
 #define ALLOW_ASSERT_DISABLE
 
 // pixel config
