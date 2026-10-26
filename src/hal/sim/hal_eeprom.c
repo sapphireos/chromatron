@@ -36,6 +36,8 @@ static uint8_t array[EE_ARRAY_SIZE];
 
 void ee_v_init( void ){
 
+    // fresh eeprom reads as erased (0xFF) like real hardware
+    memset( array, 0xff, sizeof(array) );
 }
 
 bool ee_b_busy( void ){
