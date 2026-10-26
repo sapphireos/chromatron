@@ -28,10 +28,12 @@
 #include "timers.h"
 #include "power.h"
 #include "hal_timers.h"
+#include "hal_sim.h"
 
 void hal_timer_v_init( void ){
 
-
+    // sim platform init; runs before the scheduler starts
+    hal_sim_v_init();
 }
 
 // Return TRUE if any timers on the IO clock are running.
