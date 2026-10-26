@@ -41,6 +41,9 @@
 
 #define ENABLE_LOG_TO_TRACE_PRINT // sim: trace is stdout, mirror log records to the console
 
+// init the system timer early (before flash fs) so flash fs timing works
+#define FLASH_FS_TIMING
+
 #define ALLOW_ASSERT_DISABLE
 
 // pixel config

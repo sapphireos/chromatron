@@ -30,7 +30,23 @@
 #include "hal_timers.h"
 #include "hal_sim.h"
 
+static uint64_t host_start_us;
+
+// raw host clock, in microseconds
+static uint64_t host_time_us( void ){
+
+    struct timespec ts;
+
+    clock_gettime( CLOCK_MONOTONIC, &ts );
+
+    return ( (uint64_t)ts.tv_sec * 1000000ull ) + ( (uint64_t)ts.tv_nsec / 1000ull );
+}
+
 void hal_timer_v_init( void ){
+
+    // system time starts at tick 0 on process start;
+    // later reads are offset from this baseline
+    host_start_us = host_time_us();
 
     // sim platform init; runs before the scheduler starts
     hal_sim_v_init();
@@ -40,19 +56,17 @@ void hal_timer_v_init( void ){
 // The async timer is a different clock domain, so it does not count.
 bool tmr_b_io_timers_running( void ){
 
-    return FALSE;
+    // the host clock is always running
+    return TRUE;
 }
 
 uint64_t tmr_u64_get_ticks( void ){
 
-    return 0;
+    // 1 tick = 1 us (see TIMER_TICKS_TO_MICROSECONDS)
+    return tmr_u64_get_system_time_us();
 }
 
 uint64_t tmr_u64_get_system_time_us( void ){
 
-    struct timespec ts;
-
-    clock_gettime( CLOCK_MONOTONIC, &ts );
-
-    return ( (uint64_t)ts.tv_sec * 1000000ull ) + ( (uint64_t)ts.tv_nsec / 1000ull );
+    return host_time_us() - host_start_us;
 }
