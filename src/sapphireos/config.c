@@ -754,6 +754,7 @@ bool cfg_b_manual_ip( void ){
 
     bool manual_ip = FALSE;
 
+    #ifdef CFG_INCLUDE_MANUAL_IP
     ATOMIC;
 
     // read manual IP config
@@ -773,6 +774,7 @@ bool cfg_b_manual_ip( void ){
     }
 
     END_ATOMIC;
+    #endif
 
     return manual_ip;
 }
@@ -894,10 +896,12 @@ void cfg_v_default_all( void ){
     uint8_t zeroes[CFG_STR_LEN];
     memset( zeroes, 0, sizeof(zeroes) );
 
+    #ifdef CFG_INCLUDE_MANUAL_IP
     cfg_v_set_ipv4( CFG_PARAM_MANUAL_IP_ADDRESS, ip_a_addr(0,0,0,0) );
     cfg_v_set_ipv4( CFG_PARAM_MANUAL_SUBNET_MASK, ip_a_addr(0,0,0,0) );
     cfg_v_set_ipv4( CFG_PARAM_MANUAL_DNS_SERVER, ip_a_addr(0,0,0,0) );
     cfg_v_set_ipv4( CFG_PARAM_MANUAL_INTERNET_GATEWAY, ip_a_addr(0,0,0,0) );
+    #endif
 
     cfg_v_set_mac64( CFG_PARAM_DEVICE_ID, zeroes );
 
