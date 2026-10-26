@@ -975,7 +975,7 @@ int32_t thread_core( void ){
     #endif
 
     #ifdef __SIM__
-    break;
+    return 0;
     #endif
 
     return 0;

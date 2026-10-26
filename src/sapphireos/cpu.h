@@ -57,6 +57,7 @@
     #define strcmp_P strcmp
     #define strlen_P strlen
     #define memcpy_P memcpy
+    #define memcpy_PF memcpy
     #define strnlen(s, n) strlen(s) // NOT SAFE!!!
     #define strstr_P strstr
 
@@ -73,8 +74,12 @@
 
     #define wdt_reset()
     #define _delay_us(x)
+    #define _delay_ms(x)
 
     #define cli()
+
+    #define strlcpy_P strlcpy
+    #define trace_printf printf
 
     char *itoa(long i, char* s, int dummy_radix);
 

@@ -23,6 +23,8 @@
 #ifndef _AES_H
 #define _AES_H
 
+#include <stdint.h>
+
 #define AES_BLOCK_SIZE 16
 
 void aes_v_set_key( const uint8_t key[AES_BLOCK_SIZE] );

@@ -51,3 +51,13 @@ float adc_f_read_supply_voltage( void ){
     
     return 0;
 }
+
+uint16_t adc_u16_read_supply_voltage( void ){
+
+    return 0;
+}
+
+uint16_t adc_u16_convert_to_millivolts( uint16_t raw_value ){
+
+    return 0;
+}

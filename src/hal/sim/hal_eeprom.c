@@ -81,6 +81,10 @@ uint8_t ee_u8_read_byte( uint16_t address ){
     return array[address];
 }
 
+void ee_v_commit( void ){
+
+}
+
 void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t length ){
 
     // busy wait

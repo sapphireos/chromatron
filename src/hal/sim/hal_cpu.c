@@ -22,7 +22,11 @@
 
 
 
+#include <stdint.h>
+#include <stdio.h>
+
 #include "hal_cpu.h"
+#include "cpu.h"
 
 void cpu_v_init( void ){
 
@@ -44,4 +48,13 @@ void cpu_v_sleep( void ){
 char *itoa(long i, char* s, int dummy_radix) {
     sprintf(s, "%ld", i);
     return s;
+}
+
+bool cpu_b_osc_fail( void ){
+
+    return FALSE;
+}
+
+void cpu_reboot( void ){
+
 }

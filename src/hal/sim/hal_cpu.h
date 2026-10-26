@@ -32,6 +32,8 @@
 #define FLASH_STRING(x) x
 #define FLASH_STRING_T const char*
 
+#define MEMORY_HEAP
+
 #define ENABLE_INTERRUPTS
 #define DISABLE_INTERRUPTS
 

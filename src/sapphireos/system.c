@@ -434,7 +434,7 @@ void sys_v_get_fw_id( uint8_t id[FW_ID_LENGTH] ){
 void sys_v_get_os_version( char ver[OS_VER_LEN] ){
 
     #ifdef __SIM__
-        memset( id, 2, OS_VER_LEN );
+        memset( ver, 2, OS_VER_LEN );
     #else
         memcpy_P( ver, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, os_version), OS_VER_LEN );
     #endif
@@ -443,7 +443,7 @@ void sys_v_get_os_version( char ver[OS_VER_LEN] ){
 void sys_v_get_fw_version( char ver[FW_VER_LEN] ){
 
     #ifdef __SIM__
-        memset( id, 2, FW_VER_LEN );
+        memset( ver, 2, FW_VER_LEN );
     #else
         memcpy_P( ver, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, firmware_version), FW_VER_LEN );
     #endif

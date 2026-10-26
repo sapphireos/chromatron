@@ -28,8 +28,6 @@
 
 #include <stdlib.h>
 
-char* itoa(int value, char* result, int base);
-
 static const uint8_t PROGMEM days_per_month_table[MONTHS_PER_YEAR] = {
 	31, // january
 	28, // february - non-leap years

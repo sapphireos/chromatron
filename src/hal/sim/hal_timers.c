@@ -22,6 +22,8 @@
 
 #include "system.h"
 
+#include <time.h>
+
 #include "os_irq.h"
 #include "timers.h"
 #include "power.h"
@@ -42,4 +44,13 @@ bool tmr_b_io_timers_running( void ){
 uint64_t tmr_u64_get_ticks( void ){
 
     return 0;
+}
+
+uint64_t tmr_u64_get_system_time_us( void ){
+
+    struct timespec ts;
+
+    clock_gettime( CLOCK_MONOTONIC, &ts );
+
+    return ( (uint64_t)ts.tv_sec * 1000000ull ) + ( (uint64_t)ts.tv_nsec / 1000ull );
 }
