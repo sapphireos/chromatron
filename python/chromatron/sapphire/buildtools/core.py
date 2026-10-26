@@ -77,6 +77,38 @@ class AmbiguousProjectName(ProjectNotFoundException):
 class AppZipNotFound(Exception):
     pass
 
+class BuildFailedException(Exception):
+    pass
+
+
+# toolchain that builds a host binary with the system compiler: no flash image,
+# no firmware package
+SIM_TOOLCHAIN = 'SIM'
+
+DEPFILE_TOOLCHAINS_EXCLUDED = ('XTENSA', 'ESP32', 'ESP32_bootloader')
+
+
+def uses_dep_files(settings):
+    # the xtensa toolchains drive the preprocessor differently: dep files are
+    # passed on the compiler command line by the esp settings instead
+    return settings["TOOLCHAIN"] not in DEPFILE_TOOLCHAINS_EXCLUDED
+
+
+def uses_flash_image(settings):
+    # objcopy/ihex, the firmware info structure, the kv meta index and the
+    # firmware package all describe a flash image: a host binary has none
+    return settings["TOOLCHAIN"] != SIM_TOOLCHAIN
+
+
+def binutil(settings, tool):
+    # Path to a binutils tool, quoted for runcmd(). An empty BINTOOLS means the
+    # tool is resolved from PATH, which is the case for the host toolchain.
+    # The quoting has to wrap the whole path: quoting the directory and then
+    # joining to it produces '""/tool', which shlex reads as '/tool'.
+    path = os.path.join(settings["BINTOOLS"], tool) if settings["BINTOOLS"] else tool
+
+    return '"' + path + '"'
+
 
 KV_PREFIX = '__KV__'
 lowercase = list('abcdefghijklmnopqrstuvwxyz')
@@ -170,7 +202,8 @@ def get_tools():
 
     os.chdir(cwd)
 
-def runcmd(cmd, tofile=False, tolog=True):
+def run_command(cmd, tofile=False, tolog=True, log_status=True):
+    # run a command and return (exit status, output)
     logging.debug(cmd)
 
     try:
@@ -185,18 +218,38 @@ def runcmd(cmd, tofile=False, tolog=True):
     for line in p.stdout.readlines():
         output += line.decode('utf-8')
 
-    if output != '':
-        if not tofile and tolog:
-            logging.warn("\n" + output)
+    status = p.wait()
 
-        elif tofile:
+    if status != 0 and log_status:
+        logging.error("Command failed (%d): %s" % (status, cmd))
+
+    if output != '':
+        if tofile:
            f = open(tofile, 'w')
            f.write(output)
            f.close()
 
-    p.wait()
+        elif tolog:
+            logging.warning("\n" + output)
+
+    return status, output
+
+
+def runcmd(cmd, tofile=False, tolog=True):
+    status, output = run_command(cmd, tofile=tofile, tolog=tolog)
 
     return output
+
+
+def compile_file(job):
+    # Worker for Builder.compile(): runs one compiler invocation and hands the
+    # output back to the parent instead of logging it, so that parallel
+    # diagnostics don't interleave in the log.
+    source, cmd = job
+
+    status, output = run_command(cmd, tolog=False, log_status=False)
+
+    return source, status, output
 
 
 def get_builder(target_dir, board_type, build_loader=False, fnv_hash=True, root=None, **kwargs):
@@ -210,6 +263,10 @@ def get_builder(target_dir, board_type, build_loader=False, fnv_hash=True, root=
              "app": AppBuilder, 
              "lib": LibBuilder, 
              "exe": ExeBuilder}
+
+    if builder.settings.get("TOOLCHAIN") == SIM_TOOLCHAIN:
+        # a host target has no flash image: build applications as executables
+        modes = dict(modes, app=ExeBuilder)
 
     if builder.settings["BUILD_TYPE"] not in modes:
         raise Exception("Unknown build type: %s" % (builder.settings["BUILD_TYPE"]))
@@ -295,7 +352,11 @@ class Builder(object):
             self.defines.append("BOOTLOADER")
 
         try:
-            self.source_dirs = self.settings["EXTRA_SOURCE_DIRS"]
+            # anchor to the project dir: builders compile inside project
+            # directories, and these dirs are also read from elsewhere (see
+            # ExeBuilder.list_source())
+            self.source_dirs = [os.path.abspath(os.path.join(self.target_dir, d))
+                                for d in self.settings["EXTRA_SOURCE_DIRS"]]
         except KeyError:
             self.source_dirs = list()
 
@@ -343,9 +404,11 @@ class Builder(object):
 
         try:
             self.settings_dir = os.path.join(self.paths.targets_dir, self.board["target"])
+            target_settings = True
 
         except KeyError:
             self.settings_dir = self.target_dir
+            target_settings = False
 
         settings = self._get_default_settings()
 
@@ -361,6 +424,16 @@ class Builder(object):
             settings["LINKER_SCRIPT"] = "linker.x"
 
         if "TOOLCHAIN" not in settings:
+            # a target settings file must say what toolchain it wants: the old
+            # silent AVR default is what made the sim target compile with avr
+            # binutils
+            if target_settings:
+                raise SettingsParseException("TOOLCHAIN is not set in %s" % \
+                                             (os.path.join(self.settings_dir, SETTINGS_FILE)))
+
+            # building a directory with no target: no target file to fix
+            logging.warning("TOOLCHAIN is not set for %s: assuming AVR" % (self.target_dir))
+
             settings["TOOLCHAIN"] = "AVR"
 
         if settings["TOOLCHAIN"] == "AVR":
@@ -398,6 +471,15 @@ class Builder(object):
             if "BINTOOLS" not in settings:
                 settings["BINTOOLS"] = os.path.join(TOOLS_DIR, 'xtensa-esp32-elf_bootloader', 'bin')
 
+        elif settings["TOOLCHAIN"] == "SIM":
+            # host toolchain: the system compiler, resolved from PATH. There is
+            # nothing to install under TOOLS_DIR for it.
+            if "CC" not in settings:
+                settings["CC"] = "gcc"
+
+            if "BINTOOLS" not in settings:
+                settings["BINTOOLS"] = ""
+
         else:
             raise SettingsParseException("Unknown toolchain")
 
@@ -407,6 +489,11 @@ class Builder(object):
 
             except KeyError:
                 settings['FULL_NAME'] = 'unknown'
+
+        # fail here rather than once per source file if the compiler isn't
+        # installed: the host toolchain isn't covered by --install_build_tools
+        if not shutil.which(settings["CC"]):
+            raise SettingsParseException("compiler not found: %s (is it installed and on PATH?)" % (settings["CC"]))
 
         return settings
 
@@ -496,10 +583,17 @@ class Builder(object):
 
         return hashed_files
 
-    def update_source_hash_file(self):
+    def update_source_hash_file(self, exclude=()):
+        hashes = self.create_source_hash()
+
+        # files that failed to compile are not up to date: leave them out so
+        # they get retried on the next build
+        for fname in exclude:
+            hashes.pop(fname, None)
+
         hash_file = open("source_hash.json", 'w+')
 
-        hash_file.write(json.dumps(self.create_source_hash()))
+        hash_file.write(json.dumps(hashes))
         hash_file.close()
 
     def get_source_hash_file(self):
@@ -755,15 +849,60 @@ class Builder(object):
 
         multicore = True
 
-        if multicore:
-            pool = multiprocessing.Pool()
-
         current_hash = self.create_source_hash()
         last_hash = self.get_source_hash_file()
 
         source_files = self.list_source()
 
         filtered_source_files = [f for f in source_files if f not in last_hash or last_hash[f] != current_hash[f]]
+
+        # include paths and library defines don't depend on the source file:
+        # resolve the projects once
+        # tokens are collected in a list and joined so that every option stays
+        # space separated: the compiler command is split by shlex, so a missing
+        # space here produces 'gcc-DSOMETHING' rather than two arguments
+        cmd_tokens = ['"' + self.settings["CC"] + '"']
+
+        for include in self.includes:
+            include_dir = get_project_builder(include, target=self.board_type, root=self.paths).target_dir
+
+            cmd_tokens.append('-I%s' % (include_dir))
+
+        for include in self.libraries:
+            lib_proj = get_project_builder(include, target=self.board_type, root=self.paths)
+            include_dirs = [lib_proj.target_dir]
+            include_dirs.extend(lib_proj.source_dirs)
+
+            # process directories to skip
+            skips = []
+            for d in include_dirs:
+                for skip in self.skip_dirs:
+                    if skip in d:
+                        skips.append(d)
+
+            include_dirs = [a for a in include_dirs if a not in skips]
+
+            cmd_tokens.append('-D%s' % (include.upper()))
+
+            for i in include_dirs:
+                cmd_tokens.append('-I%s' % (i))
+
+        # add extra source dirs to include
+        for source_dir in self.source_dirs:
+            cmd_tokens.append('-I%s' % (source_dir))
+
+        for define in self.defines:
+            cmd_tokens.append('-D%s' % (define))
+
+        for flag in self.settings["C_FLAGS"]:
+            cmd_tokens.append(flag)
+
+        if uses_dep_files(self.settings):
+            cmd_tokens.append('%(DEP_DIR)/%(SOURCE_FNAME).o.d')
+
+        cmd_prefix = ' '.join(cmd_tokens) + ' '
+
+        jobs = []
 
         for source_file in filtered_source_files:
 
@@ -778,53 +917,12 @@ class Builder(object):
             if source_path == os.getcwd():
                 compile_path = source_fname
 
-            logging.info("Compiling file %s" % (compile_path))
-
-            # build command string
-            cmd = '"' + self.settings["CC"] + '"'
+            cmd = cmd_prefix
                         
             if source_file.endswith('.s'):
                 cmd += " -x assembler-with-cpp"
 
             cmd += ' -c %s ' % (compile_path)
-
-            for include in self.includes:
-                include_dir = get_project_builder(include, target=self.board_type, root=self.paths).target_dir
-
-                cmd += '-I%s ' % (include_dir)
-
-            for include in self.libraries:
-                lib_proj = get_project_builder(include, target=self.board_type, root=self.paths)
-                include_dirs = [lib_proj.target_dir]
-                include_dirs.extend(lib_proj.source_dirs)
-
-                # process directories to skip
-                skips = []
-                for d in include_dirs:
-                    for skip in self.skip_dirs:
-                        if skip in d:
-                            skips.append(d)
-
-                include_dirs = [a for a in include_dirs if a not in skips]
-
-                cmd += '-D%s ' % (include.upper())
-
-                for i in include_dirs:
-                    cmd += '-I%s ' % (i)
-
-            # add extra source dirs to include
-            for source_dir in self.source_dirs:
-                cmd += '-I%s ' % (source_dir)
-
-            for define in self.defines:
-
-                cmd += '-D%s ' % (define)
-
-            for flag in self.settings["C_FLAGS"]:
-                cmd += flag + ' '
-
-            if self.settings["TOOLCHAIN"] not in  ["XTENSA", "ESP32", "ESP32_bootloader"]:
-                cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
 
             cmd += '-o ' + '%(OBJ_DIR)/%(SOURCE_FNAME).o' + ' '
 
@@ -832,27 +930,47 @@ class Builder(object):
             cmd = cmd.replace('%(SOURCE_FNAME)', source_fname)
             cmd = cmd.replace('%(BASE_DIR)', self.paths.base_dir)
 
-            if self.settings["TOOLCHAIN"] not in  ["XTENSA", "ESP32", "ESP32_bootloader"]:
+            if uses_dep_files(self.settings):
                 cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
 
-            # replace windows path separators with unix
-            # cmd = cmd.replace('\\', '/')
+            jobs.append((source_file, cmd))
 
-            if multicore:
-                pool.apply_async(runcmd, args = (cmd, ))
+        logging.info("Compiling %d source file(s)" % (len(jobs)))
 
-            else:
-                runcmd(cmd)
-
-        if multicore:
+        if multicore and len(jobs) > 1:
+            # fork inside the target dir: the commands use relative paths
+            pool = multiprocessing.Pool()
+            results = pool.map(compile_file, jobs)
             pool.close()
             pool.join()
 
-        # update hash
-        self.update_source_hash_file()
+        else:
+            results = [compile_file(job) for job in jobs]
+
+        # report results in source order, not in the order the workers
+        # finished, so diagnostics stay readable
+        failed = []
+
+        for source_file, status, output in sorted(results):
+            logging.info("Compiling file %s" % (source_file))
+
+            if output != '':
+                logging.warning("\n" + output)
+
+            if status != 0:
+                logging.error("Compilation failed (%d): %s" % (status, source_file))
+                failed.append(source_file)
+
+        # update hash: files that didn't compile are not up to date, so they are
+        # left out and retried on the next run
+        self.update_source_hash_file(exclude=failed)
 
         # change back to working dir
         os.chdir(cwd)
+
+        if failed:
+            raise BuildFailedException("%d source file(s) failed to compile in %s:\n%s" % \
+                                       (len(failed), self.proj_name, '\n'.join(failed)))
 
     def link(self):
         pass
@@ -893,7 +1011,11 @@ class ConfigBuilder(Builder):
     def clean(self):
         for builder in self.lib_builders:
             builder.clean()
-        
+
+        # the app project holds the objects and output of a config build (all of
+        # them, when it is built as a host executable: see ExeBuilder)
+        self.app_builder.clean()
+
         super(ConfigBuilder, self).clean()
 
     def build(self):
@@ -945,6 +1067,11 @@ void libs_v_init( void ){
         except AppZipNotFound: # not a problem in config-driven builds
             pass
 
+        if not uses_flash_image(self.app_builder.settings):
+            # a host executable isn't a firmware image: nothing was packaged
+            logging.info("Configuration %s: no firmware package (host target)" % (self.proj_name))
+            return
+
         # make sure we have the firmware package dir
         try:
             os.makedirs(get_build_package_dir())
@@ -985,7 +1112,7 @@ class HexBuilder(Builder):
         for flag in self.settings["C_FLAGS"]:
             cmd += flag + ' '
 
-        if self.settings["TOOLCHAIN"] not in ["XTENSA", "ESP32", "ESP32_bootloader"]:
+        if uses_dep_files(self.settings):
             cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
 
         # save working dir
@@ -1021,7 +1148,7 @@ class HexBuilder(Builder):
             cmd += flag + ' '
 
         cmd = cmd.replace('%(OBJ_DIR)', obj_dir)
-        if self.settings["TOOLCHAIN"] not in ["XTENSA", "ESP32", "ESP32_bootloader"]:
+        if uses_dep_files(self.settings):
             cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
         # cmd = cmd.replace('%(SOURCE_FNAME)', self.proj_name)
         cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
@@ -1032,35 +1159,37 @@ class HexBuilder(Builder):
         # replace windows path separators with unix
         cmd = cmd.replace('\\', '/')
 
-        runcmd(cmd)
+        status, output = run_command(cmd)
+
+        if status != 0:
+            # change back to working dir before bailing out
+            os.chdir(cwd)
+
+            raise BuildFailedException("link failed (%d): %s" % (status, self.proj_name))
 
         logging.info("Generating output files")
 
-
-        # enclose in quotes so we can handle spaces in the command filepath
-        bintools = '"' + self.settings["BINTOOLS"] + '"'
-
         if self.settings["TOOLCHAIN"] == "AVR":
-            runcmd(os.path.join(bintools, 'avr-objcopy -O ihex -R .eeprom main.elf main.hex'))
-            runcmd(os.path.join(bintools, 'avr-size -B main.elf'))
-            runcmd(os.path.join(bintools, 'avr-objdump -h -S -l main.elf'), tofile='main.lss')
-            runcmd(os.path.join(bintools, 'avr-nm -n main.elf'), tofile='main.sym')
+            runcmd(binutil(self.settings, 'avr-objcopy') + ' -O ihex -R .eeprom main.elf main.hex')
+            runcmd(binutil(self.settings, 'avr-size') + ' -B main.elf')
+            runcmd(binutil(self.settings, 'avr-objdump') + ' -h -S -l main.elf', tofile='main.lss')
+            runcmd(binutil(self.settings, 'avr-nm') + ' -n main.elf', tofile='main.sym')
 
         elif self.settings["TOOLCHAIN"] == "ARM":
-            runcmd(os.path.join(bintools, 'arm-none-eabi-objcopy -O ihex -R .eeprom main.elf main.hex'))
-            runcmd(os.path.join(bintools, 'arm-none-eabi-size -B main.elf'))
-            runcmd(os.path.join(bintools, 'arm-none-eabi-objdump -h -S -l main.elf'), tofile='main.lss')
-            runcmd(os.path.join(bintools, 'arm-none-eabi-nm -n main.elf'), tofile='main.sym')
+            runcmd(binutil(self.settings, 'arm-none-eabi-objcopy') + ' -O ihex -R .eeprom main.elf main.hex')
+            runcmd(binutil(self.settings, 'arm-none-eabi-size') + ' -B main.elf')
+            runcmd(binutil(self.settings, 'arm-none-eabi-objdump') + ' -h -S -l main.elf', tofile='main.lss')
+            runcmd(binutil(self.settings, 'arm-none-eabi-nm') + ' -n main.elf', tofile='main.sym')
 
         elif self.settings["TOOLCHAIN"] == "XTENSA":
-            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-size -B main.elf'))
-            runcmd(os.path.join(bintools, 'xtensa-lx106-elf-nm -n main.elf'), tofile='main.sym')            
-            # runcmd(os.path.join(bintools, 'xtensa-lx106-elf-objdump -h -S -l main.elf'), tofile='main.lss')
+            runcmd(binutil(self.settings, 'xtensa-lx106-elf-size') + ' -B main.elf')
+            runcmd(binutil(self.settings, 'xtensa-lx106-elf-nm') + ' -n main.elf', tofile='main.sym')
+            # runcmd(binutil(self.settings, 'xtensa-lx106-elf-objdump') + ' -h -S -l main.elf', tofile='main.lss')
 
         elif self.settings["TOOLCHAIN"] in ["ESP32", "ESP32_bootloader"]:
-            runcmd(os.path.join(bintools, 'xtensa-esp32-elf-size -B main.elf'))
-            runcmd(os.path.join(bintools, 'xtensa-esp32-elf-nm -n main.elf'), tofile='main.sym')            
-            # runcmd(os.path.join(bintools, 'xtensa-esp32-elf-objdump -h -S -l main.elf'), tofile='main.lss')
+            runcmd(binutil(self.settings, 'xtensa-esp32-elf-size') + ' -B main.elf')
+            runcmd(binutil(self.settings, 'xtensa-esp32-elf-nm') + ' -n main.elf', tofile='main.sym')
+            # runcmd(binutil(self.settings, 'xtensa-esp32-elf-objdump') + ' -h -S -l main.elf', tofile='main.lss')
             
         else:
             raise Exception("Unsupported toolchain")
@@ -1581,32 +1710,88 @@ class ESP32LoaderBuilder(ARMLoaderBuilder):
         super(ESP32LoaderBuilder, self).__init__(*args, **kwargs)
 
 class ExeBuilder(Builder):
+    # Builds a host executable: every library is compiled from source into this
+    # project's object directory and linked into one binary. There is no flash
+    # image, so none of the HexBuilder post processing (ihex, firmware info, kv
+    # meta index, firmware package) applies.
     def __init__(self, *args, **kwargs):
         super(ExeBuilder, self).__init__(*args, **kwargs)
 
+        # don't mutate the settings lists: they are the ones we parsed
+        self.libraries = list(self.libraries)
+        self.includes = list(self.includes)
+
         # insert OS first
         try:
-            self.libraries.insert(0, self.settings["OS_PROJECT"])
+            os_project = self.settings["OS_PROJECT"]
+
+            if os_project not in self.libraries:
+                self.libraries.insert(0, os_project)
+
         except KeyError:
             pass
 
+        # we compile the libraries ourselves, so the whole dependency closure
+        # has to be here, not just the libraries this project names
+        self.libs = dict()
+
+        for name, builder in sorted(self.get_libraries().items()):
+            self.lib_project(name, builder)
+
+    def lib_project(self, name, builder=None):
+        # cache the library builders: listing sources, headers and fx files walks
+        # the closure repeatedly
+        if name not in self.libs:
+            if builder is None:
+                builder = get_project_builder(name, target=self.board_type, root=self.paths)
+
+            self.libs[name] = builder
+
+            if name not in self.libraries:
+                self.libraries.append(name)
+
+        return self.libs[name]
+
     def list_source(self):
         source_files = []
+        objects = dict()
 
-        for lib in self.libraries:
-            lib_proj = get_project_builder(lib, target=self.board_type, root=self.paths)
+        def add_source(fname):
+            # every source is compiled to obj/<basename>.o: two libraries can't
+            # use the same file name
+            obj = os.path.basename(fname) + '.o'
 
-            source_files.extend(lib_proj.list_source())
+            if obj in objects and objects[obj] != fname:
+                raise BuildFailedException("source file name collision in %s: %s and %s both build %s" % \
+                                           (self.proj_name, objects[obj], fname, obj))
+
+            objects[obj] = fname
+
+            if fname not in source_files:
+                source_files.append(fname)
+
+        for lib in sorted(self.libraries):
+            for fname in self.lib_project(lib).list_source():
+                add_source(fname)
 
         for d in self.source_dirs:
-            for f in os.listdir(d):
-                if f.endswith('.c'):
-                    fpath = os.path.join(d, f)
-                    # prevent duplicates
-                    if fpath not in source_files:
-                        source_files.append(fpath)
+            for f in self.listdir(d):
+                if f.endswith('.c') or f.endswith('.cpp') or f.endswith('.s') or f.endswith('.S'):
+                    add_source(os.path.join(d, f))
 
         return source_files
+
+    def list_fx_source(self):
+        # FX files live in the libraries too: lib_chromatron/graphics.c includes
+        # rainbow.fx.carray, which is generated from rainbow.fx
+        fx_files = super(ExeBuilder, self).list_fx_source()
+
+        for lib in sorted(self.libraries):
+            for fname in self.lib_project(lib).list_fx_source():
+                if fname not in fx_files:
+                    fx_files.append(fname)
+
+        return fx_files
 
     def link(self):
         logging.info("Linking %s" % (self.proj_name))
@@ -1618,7 +1803,10 @@ class ExeBuilder(Builder):
         for flag in self.settings["C_FLAGS"]:
             cmd += flag + ' '
 
-        cmd += '%(DEP_DIR)/%(SOURCE_FNAME).o.d' + ' '
+        if uses_dep_files(self.settings):
+            # the compiler flags end with -MF: it needs an argument, and
+            # without one it would swallow the first object file
+            cmd += '%(DEP_DIR)/%(APP_NAME).d' + ' '
 
         # save working dir
         cwd = os.getcwd()
@@ -1640,8 +1828,10 @@ class ExeBuilder(Builder):
             cmd += flag + ' '
 
         cmd = cmd.replace('%(OBJ_DIR)', obj_dir)
-        cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
-        # cmd = cmd.replace('%(SOURCE_FNAME)', self.proj_name)
+
+        if uses_dep_files(self.settings):
+            cmd = cmd.replace('%(DEP_DIR)', self.settings["DEP_DIR"])
+
         cmd = cmd.replace("%(LINKER_SCRIPT)", os.path.join(self.settings_dir, self.settings["LINKER_SCRIPT"]))
         cmd = cmd.replace("%(APP_NAME)", self.settings["PROJ_NAME"])
         cmd = cmd.replace("%(TARGET_DIR)", self.target_dir)
@@ -1650,10 +1840,38 @@ class ExeBuilder(Builder):
         # replace windows path separators with unix
         cmd = cmd.replace('\\', '/')
 
-        runcmd(cmd)
+        status, output = run_command(cmd)
 
         # change back to working dir
         os.chdir(cwd)
+
+        if status != 0:
+            raise BuildFailedException("link failed (%d): %s" % (status, self.proj_name))
+
+    def post_process(self):
+        if self.settings["TOOLCHAIN"] != SIM_TOOLCHAIN:
+            return
+
+        elf = os.path.join(self.target_dir, 'main.elf')
+
+        if not os.path.exists(elf):
+            logging.warning("no main.elf was produced")
+            return
+
+        logging.info("Generating output files")
+
+        # save working dir: the binutils below are run on relative paths, in the
+        # project dir, like the other builders do
+        cwd = os.getcwd()
+
+        os.chdir(self.target_dir)
+
+        try:
+            runcmd(binutil(self.settings, 'size') + ' -B main.elf')
+            runcmd(binutil(self.settings, 'nm') + ' -n main.elf', tofile='main.sym')
+
+        finally:
+            os.chdir(cwd)
 
 
 def get_build_configs(root=None):
@@ -2183,7 +2401,12 @@ def main():
                 builder.clean()
 
             else:
-                builder.build()
+                try:
+                    builder.build()
+
+                except BuildFailedException as e:
+                    logging.error("%s" % (e))
+                    sys.exit(1)
 
     # check if directory is given
     elif args["dir"]:

@@ -1,6 +1,8 @@
 
 {
     "LOG_FILENAME": "build.log",
+
+    "TOOLCHAIN": "AVR",
         
     "C_FLAGS": [
         "-mmcu=atmega128rfa1",

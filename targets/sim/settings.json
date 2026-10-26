@@ -2,8 +2,11 @@
 {
     "LOG_FILENAME": "build.log",
 
+    "TOOLCHAIN": "SIM",
+
+    "BINTOOLS": "",
+
     "CC": "gcc",
-    "AR": "llvm-ar",
 
     "C_FLAGS": [
         "-fprofile-arcs",
@@ -40,7 +43,9 @@
     ],
 
     "LINK_FLAGS": [
-        "-lm"
+        "-lm",
+        "-o",
+        "main.elf"
     ],
 
     "OBJ_DIR": "obj",
