@@ -42,20 +42,26 @@
     #undef ENABLE_KV_NOTIFICATIONS
 #endif
 
-#if defined(__SIM__) || defined(BOOTLOADER)
+#if defined(BOOTLOADER)
     #define KV_SECTION_META
+#elif defined(__SIM__)
+    #define KV_SECTION_META              __attribute__ ((section (".kv_meta"), aligned (4), used))
 #else
     #define KV_SECTION_META              __attribute__ ((section (".kv_meta"), used))
 #endif
 
-#if defined(__SIM__) || defined(BOOTLOADER)
+#if defined(BOOTLOADER)
     #define KV_SECTION_OPT
+#elif defined(__SIM__)
+    #define KV_SECTION_OPT               __attribute__ ((section (".kv_opt"), aligned (4), used))
 #else
     #define KV_SECTION_OPT               __attribute__ ((section (".kv_opt"), used))
 #endif
 
-#if defined(__SIM__) || defined(BOOTLOADER)
+#if defined(BOOTLOADER)
     #define SERVICE_SECTION
+#elif defined(__SIM__)
+    #define SERVICE_SECTION              __attribute__ ((section (".service"), aligned (4), used))
 #else
     #define SERVICE_SECTION              __attribute__ ((section (".service"), used))
 #endif

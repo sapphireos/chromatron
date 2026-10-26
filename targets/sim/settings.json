@@ -44,10 +44,14 @@
 
     "LINK_FLAGS": [
         "-lm",
+        "-Wl,-Map=main.map",
         "-Wl,--gc-sections",
+        "-T %(LINKER_SCRIPT)",
         "-o",
         "main.elf"
     ],
+
+    "LINKER_SCRIPT": "sim.project.ld",
 
     "OBJ_DIR": "obj",
     "DEP_DIR": "dep",

@@ -40,9 +40,6 @@
 
 #include "keyvalue.h"
 
-
-
-
 typedef struct  __attribute__((packed)){
     catbus_hash_t32 hash;
     uint16_t index;
@@ -50,9 +47,14 @@ typedef struct  __attribute__((packed)){
 
 #ifdef ESP32
 #include "esp_spi_flash.h"
+#endif
 
+#if defined(__SIM__)
+#include <stdlib.h>
+#endif
+
+#if defined(ESP32) || defined(__SIM__)
 static kv_hash_index_t *ram_index;
-
 #endif
 
 typedef struct{
@@ -76,14 +78,18 @@ static kv_hash_index_t kv_cache[KV_CACHE_SIZE];
 static const PROGMEM char kv_data_fname[] = "kv_data";
 static file_t kv_data_file_handle = -1;
 
-#if defined(__SIM__) || defined(BOOTLOADER)
+#if defined(BOOTLOADER)
     #define KV_SECTION_META_START
+#elif defined(__SIM__)
+    #define KV_SECTION_META_START       __attribute__ ((section (".kv_meta_start"), aligned (4), used))
 #else
     #define KV_SECTION_META_START       __attribute__ ((section (".kv_meta_start"), used))
 #endif
 
-#if defined(__SIM__) || defined(BOOTLOADER)
+#if defined(BOOTLOADER)
     #define KV_SECTION_META_END
+#elif defined(__SIM__)
+    #define KV_SECTION_META_END         __attribute__ ((section (".kv_meta_end"), aligned (4), used))
 #else
     #define KV_SECTION_META_END         __attribute__ ((section (".kv_meta_end"), used))
 #endif
@@ -96,14 +102,18 @@ KV_SECTION_META_END kv_meta_t kv_end[] = {
     { CATBUS_TYPE_NONE, 0, 0, 0, 0, "kvend" }
 };
 
-#if defined(__SIM__) || defined(BOOTLOADER)
+#if defined(BOOTLOADER)
     #define KV_SECTION_OPT_START
+#elif defined(__SIM__)
+    #define KV_SECTION_OPT_START       __attribute__ ((section (".kv_opt_start"), aligned (4), used))
 #else
     #define KV_SECTION_OPT_START       __attribute__ ((section (".kv_opt_start"), used))
 #endif
 
-#if defined(__SIM__) || defined(BOOTLOADER)
+#if defined(BOOTLOADER)
     #define KV_SECTION_OPT_END
+#elif defined(__SIM__)
+    #define KV_SECTION_OPT_END         __attribute__ ((section (".kv_opt_end"), aligned (4), used))
 #else
     #define KV_SECTION_OPT_END         __attribute__ ((section (".kv_opt_end"), used))
 #endif
@@ -177,16 +187,14 @@ KV_SECTION_META kv_meta_t kv_cfg[] = {
     { CATBUS_TYPE_UINT64,  0, KV_FLAGS_READ_ONLY,  &kv_cache_misses,    0,           "kv_cache_misses" },
 };
 
-#ifdef __SIM__
-    #define SERVICE_SECTION_START
-#else
-    #define SERVICE_SECTION_START       __attribute__ ((section (".service_start"), used))
-#endif
+#if defined(__SIM__)
+#define SERVICE_SECTION_START       __attribute__ ((section (".service_start"), aligned (4), used))
 
-#ifdef __SIM__
-    #define SERVICE_SECTION_END
+#define SERVICE_SECTION_END         __attribute__ ((section (".service_end"), aligned (4), used))
 #else
-    #define SERVICE_SECTION_END         __attribute__ ((section (".service_end"), used))
+#define SERVICE_SECTION_START       __attribute__ ((section (".service_start"), used))
+
+#define SERVICE_SECTION_END         __attribute__ ((section (".service_end"), used))
 #endif
 
 SERVICE_SECTION_START kv_svc_name_t svc_start = {"sapphire.device"};
@@ -275,6 +283,27 @@ void _kv_v_add_to_cache( catbus_hash_t32 hash, int16_t index ){
     }
 }
 
+#if defined(__SIM__)
+// qsort comparator for the hash index built in kv_v_init
+static int kv_i32_index_cmp( const void *a, const void *b ){
+
+    const kv_hash_index_t *ea = (const kv_hash_index_t *)a;
+    const kv_hash_index_t *eb = (const kv_hash_index_t *)b;
+
+    if( ea->hash < eb->hash ){
+
+        return -1;
+    }
+
+    if( ea->hash > eb->hash ){
+
+        return 1;
+    }
+
+    return 0;
+}
+#endif
+
 int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
 
     // check if hash exists
@@ -307,17 +336,19 @@ int16_t kv_i16_search_hash( catbus_hash_t32 hash ){
         #ifdef AVR
         memcpy_PF( &index_entry, addr, sizeof(index_entry) );
 
-        #elif defined(ESP32)
+        #elif defined(ESP32) || defined(__SIM__)
 
         // use RAM index if available
         if( ram_index != 0 ){
 
             index_entry = ram_index[middle];
         }
+        #ifdef ESP32
         else{
 
-            spi_flash_read( addr, &index_entry, sizeof(index_entry) ); 
+            spi_flash_read( addr, &index_entry, sizeof(index_entry) );
         }
+        #endif
         #else
 
         memcpy_PF( &index_entry, (void *)addr, sizeof(index_entry) );
@@ -417,7 +448,9 @@ int8_t lookup_index( uint16_t index, kv_meta_t *meta )
         // GCC is getting a bit *too* smart about looking for array bounds issues.
         // so we will workaround that here, since this is not actually out of bounds, GCC
         // just doesn't understand this is a prefilled array in .text from the linker.
-        volatile uint32_t start_addr = (uint32_t)&kv_start;
+        // 64-bit safe: kv_start lives in a linker-placed section, the address
+        // can be wider than 32 bits (e.g. the x86-64 sim target)
+        volatile uint64_t start_addr = (uint64_t)&kv_start;
         kv_meta_t *start = (kv_meta_t *)start_addr;
         kv_meta_t *ptr = (kv_meta_t *)( start + 1 ) + index;
 
@@ -682,6 +715,8 @@ void kv_v_init( void ){
 
     list_v_init( &kv_opt_list );
 
+
+
     // check if safe mode
     if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
@@ -697,6 +732,26 @@ void kv_v_init( void ){
 
 
             spi_flash_read( kv_index_start, ram_index, len );
+        }
+        #elif defined(__SIM__)
+
+        // the sim has no flash image, so build the hash index from
+        // the kv meta region directly: same packed 6 byte entries,
+        // no header, exactly like the index baked into the firmware
+        // image by the HexBuilder post processing.
+        uint16_t len = _kv_u16_fixed_count() * sizeof(kv_hash_index_t);
+
+        ram_index = malloc( len );
+
+        if( ram_index != 0 ){
+
+            for( uint16_t i = 0; i < len / sizeof(kv_hash_index_t); i++ ){
+
+                ram_index[i].hash = hash_u32_string( kv_start[ i + 1 ].name );
+                ram_index[i].index = i;
+            }
+
+            qsort( ram_index, len / sizeof(kv_hash_index_t), sizeof(kv_hash_index_t), kv_i32_index_cmp );
         }
         #endif
 
