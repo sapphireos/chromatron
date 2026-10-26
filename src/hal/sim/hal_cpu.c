@@ -24,6 +24,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "hal_cpu.h"
 #include "cpu.h"
@@ -57,4 +58,6 @@ bool cpu_b_osc_fail( void ){
 
 void cpu_reboot( void ){
 
+    // there is no hardware reset in the simulator; end the process.
+    exit( 0 );
 }

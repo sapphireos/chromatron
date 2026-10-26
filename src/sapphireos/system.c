@@ -475,7 +475,15 @@ uint32_t sys_u32_get_kv_index_addr( void ){
 
     uint32_t addr;
 
-    memcpy_P( &addr, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, kv_index_addr), sizeof(addr) );
+    #ifdef __SIM__
+
+    // the simulated flash has no embedded kv index table; return the
+    // in-flash offset (0) so raw reads land in the mapped flash region.
+    addr = 0;
+
+    #else
+        memcpy_P( &addr, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, kv_index_addr), sizeof(addr) );
+    #endif
 
     return addr;
 }

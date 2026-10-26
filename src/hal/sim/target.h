@@ -94,7 +94,9 @@
 
 #define FW_INFO_ADDRESS 0x120 // this must match the offset in the makefile!
 #define FW_LENGTH_ADDRESS FW_INFO_ADDRESS
-#define FLASH_START 0x00
+// the simulated flash is memory-mapped at this address (see
+// hal_flash25.c), mirroring how real hardware exposes flash to raw reads.
+#define FLASH_START 0x40000000
 #define KV_CACHE_SIZE 1
 
 #define MAX_PROGRAM_LENGTH ( (uint32_t)( (uint32_t)PAGE_SIZE * (uint32_t)N_APP_PAGES ) )

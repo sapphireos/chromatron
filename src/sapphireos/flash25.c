@@ -34,6 +34,7 @@ void flash25_v_init( void ){
 
     #ifdef __SIM__
 
+    hal_flash25_v_init();
     flash25_v_erase_chip();
 
     #else

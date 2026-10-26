@@ -27,28 +27,44 @@
 #include "flash25.h"
 #include "hal_flash25.h"
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 
 /*
 
 25 Series SPI Flash Memory Driver (sim)
 
-RAM-backed implementation of the 25 series flash API: the flash is a
-plain memory array, so the file system works normally in the simulator.
+RAM-backed implementation of the 25 series flash API: the flash is
+mapped at FLASH_START the way real hardware exposes its flash as
+memory-mapped, so the file system works normally in the simulator.
 
 */
 
 extern uint16_t block0_unlock;
 
-static uint8_t array[FLASH_LENGTH];
+static uint8_t *array;
 
 static uint32_t max_address;
 
 void hal_flash25_v_init( void ){
 
-    memset( array, 0xff, sizeof(array) );
+    array = ( uint8_t *)mmap( ( void *)FLASH_START, FLASH_LENGTH,
+                             PROT_READ | PROT_WRITE,
+                             MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0 );
 
-    max_address = sizeof(array);
+    if( array == MAP_FAILED ){
+
+        // the OS reads flash through raw pointers at FLASH_START, so
+        // there is no fallback; fail loudly instead of diverging.
+        fprintf( stderr, "sim: failed to map flash at 0x%lx\n", ( unsigned long )FLASH_START );
+        exit( 1 );
+    }
+
+    memset( array, 0xff, FLASH_LENGTH );
+
+    max_address = FLASH_LENGTH;
 }
 
 uint8_t flash25_u8_read_status( void ){
@@ -167,7 +183,7 @@ void flash25_v_erase_4k( uint32_t address ){
 void flash25_v_erase_chip( void ){
 
     // block 0 is skipped, as with the hardware chip erase path
-    memset( &array[FLASH_FS_ERASE_BLOCK_SIZE], 0xff, ( sizeof(array) - FLASH_FS_ERASE_BLOCK_SIZE ) );
+    memset( &array[FLASH_FS_ERASE_BLOCK_SIZE], 0xff, ( FLASH_LENGTH - FLASH_FS_ERASE_BLOCK_SIZE ) );
 }
 
 void flash25_v_read_device_info( flash25_device_info_t *info ){
