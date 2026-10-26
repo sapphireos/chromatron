@@ -72,8 +72,12 @@ typedef struct __attribute__((packed)){
 } netmsg_port_monitor_t;
 
 
-#if defined(__SIM__) || defined(BOOTLOADER)
+#ifdef BOOTLOADER
     #define ROUTING_TABLE
+#elif defined(__SIM__)
+    // one shared section, alignment 1: the table walk advances by
+    // sizeof(entry), so entries must pack exactly like they do on AVR
+    #define ROUTING_TABLE              __attribute__ ((section (".routing"), aligned(1), used))
 #else
     #define ROUTING_TABLE              __attribute__ ((section (".routing"), used))
 #endif

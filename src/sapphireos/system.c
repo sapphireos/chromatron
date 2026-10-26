@@ -205,6 +205,11 @@ void sys_v_init( void ){
 
     cpu_v_init();
 
+    #ifdef __SIM__
+	// restore boot data that survived the "reset" (re-exec)
+	boot_data_v_load();
+    #endif
+
     #ifdef AVR
 	// check that boot_data is the right size
 	COMPILER_ASSERT( sizeof( boot_data ) <= 8 );
@@ -215,8 +220,6 @@ void sys_v_init( void ){
 
     // initialize loader command
     boot_data.loader_command = LDR_CMD_NONE;
-
-    #ifndef __SIM__
 
 	// check reset source
 	reset_source = cpu_u8_get_reset_source();
@@ -271,8 +274,6 @@ void sys_v_init( void ){
     boot_data.boot_mode = BOOT_MODE_NORMAL;
 
     cpu_v_remap_isrs();
-
-	#endif
 }
 
 void sys_v_check_io_for_safe_mode( void ){
@@ -588,7 +589,13 @@ void reboot( bool commit ){
 
         ee_v_commit();    
     }
-    
+
+    #ifdef __SIM__
+    // persist boot data across the re-exec, like the no-init section
+    // does on hardware
+    boot_data_v_save();
+    #endif
+
     cpu_reboot();
 
 	// infinite loop, wait for reset

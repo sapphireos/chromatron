@@ -34,8 +34,10 @@ void flash25_v_init( void ){
 
     #ifdef __SIM__
 
+    // a power on does not erase the chip; a brand new sim flash file
+    // is pre-erased in hal_flash25_v_init, and existing content must
+    // survive reboots.
     hal_flash25_v_init();
-    flash25_v_erase_chip();
 
     #else
 

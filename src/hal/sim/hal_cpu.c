@@ -35,7 +35,14 @@ void cpu_v_init( void ){
 
 uint8_t cpu_u8_get_reset_source( void ){
 
-    return RESET_SOURCE_POWER_ON;
+    // a re-exec'd process came up from a commanded reboot, which on
+    // hardware is a watchdog reset; a fresh start is power on.
+    return ( getenv( "SIM_RESET" ) != 0 ) ? RESET_SOURCE_WATCHDOG : RESET_SOURCE_POWER_ON;
+}
+
+void cpu_v_clear_reset_source( void ){
+
+    unsetenv( "SIM_RESET" );
 }
 
 void cpu_v_remap_isrs( void ){
@@ -58,6 +65,15 @@ bool cpu_b_osc_fail( void ){
 
 void cpu_reboot( void ){
 
-    // there is no hardware reset in the simulator; end the process.
-    exit( 0 );
+    // there is no hardware reset in the simulator; the effect of a
+    // reset is that main() starts over, so re-execute the same image.
+    // mark it as a warm reset for the restarted process (the
+    // environment survives execve).
+    setenv( "SIM_RESET", "1", 1 );
+
+    if( execl( "/proc/self/exe", "sim", ( char *)0 ) < 0 ){
+
+        // if the re-exec fails there is nothing left to do
+        exit( 1 );
+    }
 }

@@ -45,14 +45,20 @@ static uint32_t netmsg_udp_recv;
 static uint32_t netmsg_udp_dropped;
 static uint8_t max_rx_q_size;
 
-#if defined(__SIM__) || defined(BOOTLOADER)
+#ifdef BOOTLOADER
     #define ROUTING_TABLE_START
+#elif defined(__SIM__)
+    // one shared section, alignment 1: the table walk advances by
+    // sizeof(entry), so entries must pack exactly like they do on AVR
+    #define ROUTING_TABLE_START       __attribute__ ((section (".routing"), aligned(1), used))
 #else
     #define ROUTING_TABLE_START       __attribute__ ((section (".routing_start"), used))
 #endif
 
-#if defined(__SIM__) || defined(BOOTLOADER)
+#ifdef BOOTLOADER
     #define ROUTING_TABLE_END
+#elif defined(__SIM__)
+    #define ROUTING_TABLE_END         __attribute__ ((section (".routing"), aligned(1), used))
 #else
     #define ROUTING_TABLE_END         __attribute__ ((section (".routing_end"), used))
 #endif
@@ -208,6 +214,16 @@ ROUTING_TABLE routing_table_entry_t route_local = {
 };
 
 ROUTING_TABLE_END routing_table_entry_t route_end[] = {};
+
+#ifdef __SIM__
+// the firmware linker scripts keep the routing table with KEEP(); the
+// host linker has no script, so anchor it with a constructor reference
+// instead of letting --gc-sections discard the entries.
+__attribute__((constructor)) static void _routing_table_anchor( void ){
+
+    ( void )&route_local;
+}
+#endif
 
 #ifndef ENABLE_COPROCESSOR
 static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){

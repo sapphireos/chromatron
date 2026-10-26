@@ -66,5 +66,10 @@ typedef struct __attribute__((packed)){
     loader_status_t8 loader_status;
 } boot_data_t;
 
+#ifdef __SIM__
+// persist boot data across a simulator reboot (re-exec)
+void boot_data_v_save( void );
+void boot_data_v_load( void );
+#endif
 
 #endif

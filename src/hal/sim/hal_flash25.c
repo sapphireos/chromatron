@@ -31,16 +31,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 /*
 
 25 Series SPI Flash Memory Driver (sim)
 
-RAM-backed implementation of the 25 series flash API: the flash is
+File-backed implementation of the 25 series flash API: the flash is
 mapped at FLASH_START the way real hardware exposes its flash as
 memory-mapped, so the file system works normally in the simulator.
+The backing file (sim_flash.bin, in the current directory) persists
+across reboots, the same way real flash does.
 
 */
+
+#define SIM_FLASH_FILE "sim_flash.bin"
 
 extern uint16_t block0_unlock;
 
@@ -50,9 +57,30 @@ static uint32_t max_address;
 
 void hal_flash25_v_init( void ){
 
+    int fd = open( SIM_FLASH_FILE, O_RDWR | O_CREAT, 0644 );
+
+    if( fd < 0 ){
+
+        fprintf( stderr, "sim: failed to open %s\n", SIM_FLASH_FILE );
+        exit( 1 );
+    }
+
+    // a brand new file is all zeros; remember so we can pre-erase it
+    // like a fresh chip. an existing file keeps its contents.
+    struct stat st;
+    int fresh = ( fstat( fd, &st ) == 0 && st.st_size == 0 );
+
+    if( ftruncate( fd, FLASH_LENGTH ) < 0 ){
+
+        fprintf( stderr, "sim: failed to size %s\n", SIM_FLASH_FILE );
+        exit( 1 );
+    }
+
     array = ( uint8_t *)mmap( ( void *)FLASH_START, FLASH_LENGTH,
                              PROT_READ | PROT_WRITE,
-                             MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0 );
+                             MAP_SHARED | MAP_FIXED, fd, 0 );
+
+    close( fd );
 
     if( array == MAP_FAILED ){
 
@@ -62,7 +90,10 @@ void hal_flash25_v_init( void ){
         exit( 1 );
     }
 
-    memset( array, 0xff, FLASH_LENGTH );
+    if( fresh ){
+
+        memset( array, 0xff, FLASH_LENGTH );
+    }
 
     max_address = FLASH_LENGTH;
 }
