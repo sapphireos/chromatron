@@ -157,7 +157,8 @@ int8_t sys_kv_fw_info_handler(
 
         if( hash == __KV__firmware_id ){
 
-            memcpy( data, fw_info.fwid, len );
+            // fwid is only FW_ID_LENGTH bytes; the rest stays 0
+            memcpy( data, fw_info.fwid, ( len > FW_ID_LENGTH ) ? FW_ID_LENGTH : len );
         }
         else if( hash == __KV__firmware_name ){
 
@@ -425,49 +426,29 @@ sys_warnings_t sys_u32_get_warnings( void ){
 
 void sys_v_get_fw_id( uint8_t id[FW_ID_LENGTH] ){
 
-    #ifdef __SIM__
-        memset( id, 2, FW_ID_LENGTH );
-    #else
-        memcpy_P( id, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, fwid), FW_ID_LENGTH );
-    #endif
+    memcpy_P( id, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, fwid), FW_ID_LENGTH );
 }
 
 void sys_v_get_os_version( char ver[OS_VER_LEN] ){
 
-    #ifdef __SIM__
-        memset( ver, 2, OS_VER_LEN );
-    #else
-        memcpy_P( ver, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, os_version), OS_VER_LEN );
-    #endif
+    memcpy_P( ver, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, os_version), OS_VER_LEN );
 }
 
 void sys_v_get_fw_version( char ver[FW_VER_LEN] ){
 
-    #ifdef __SIM__
-        memset( ver, 2, FW_VER_LEN );
-    #else
-        memcpy_P( ver, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, firmware_version), FW_VER_LEN );
-    #endif
+    memcpy_P( ver, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, firmware_version), FW_VER_LEN );
 }
 
 void sys_v_get_fw_info( fw_info_t *fw_info ){
 
-    #ifdef __SIM__
-
-    #else
-        memcpy_P( fw_info, (void *)FW_INFO_ADDRESS + FLASH_START, sizeof(fw_info_t) );
-    #endif
+    memcpy_P( fw_info, (void *)FW_INFO_ADDRESS + FLASH_START, sizeof(fw_info_t) );
 }
 
 uint32_t sys_u32_get_fw_length( void ){
 
     uint32_t length;
 
-    #ifdef __SIM__
-        length = 100;
-    #else
-        memcpy_P( &length, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, fw_length), sizeof(length) );
-    #endif
+    memcpy_P( &length, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, fw_length), sizeof(length) );
 
     return length;
 }
