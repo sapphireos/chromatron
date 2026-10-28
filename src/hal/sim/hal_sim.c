@@ -20,27 +20,35 @@
 // 
 // </license>
 
+#include "sapphire.h"
+#include "init.h"
 #include "threading.h"
 #include "timers.h"
 
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
 
 /*
 
 Simulator platform support.
 
-The simulator has no device to serve, so the process ends after a
-fixed run time.
+The simulator has no device to serve, so the process ends after a run
+time.  The run time, in seconds, is the first command-line argument
+(eg. main.elf 10); if it is blank, the process runs until killed.
 
 */
 
-#define SIM_RUN_TIME_MS 10000
+void app_v_init( void ) __attribute__((weak));
+void libs_v_init( void ) __attribute__((weak));
+
+static uint32_t sim_run_time_ms = 0; // 0 = run until killed
 
 PT_THREAD( sim_terminate_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
 
-    TMR_WAIT( pt, SIM_RUN_TIME_MS );
+    TMR_WAIT( pt, sim_run_time_ms );
 
     exit( 0 );
 
@@ -49,5 +57,45 @@ PT_END( pt );
 
 void hal_sim_v_init( void ){
 
-    thread_t_create( THREAD_CAST(sim_terminate_thread), PSTR("sim_exit"), 0, 0 );
+    if( sim_run_time_ms != 0 ){
+
+        thread_t_create( THREAD_CAST(sim_terminate_thread), PSTR("sim_exit"), 0, 0 );
+    }
+}
+
+int main( int argc, char **argv ){
+
+    char *str = ( argc > 1 ) ? argv[1] : getenv( "SIM_RUN_TIME" );
+
+    double secs = ( str != 0 ) ? atof( str ) : 0;
+
+    if( secs > 0 ){
+
+        // a simulated reboot re-execs without the command line, but
+        // the environment survives: keep the run time for the restart
+        char buf[32];
+
+        sprintf( buf, "%g", secs );
+        setenv( "SIM_RUN_TIME", buf, 1 );
+
+        sim_run_time_ms = (uint32_t)( secs * 1000 );
+    }
+
+    if( sapphire_i8_init() == 0 ){
+
+        if( app_v_init != 0 ){
+
+            app_v_init();
+        }
+
+        if( libs_v_init != 0 ){
+
+            libs_v_init();
+        }
+    }
+
+    sapphire_run();
+
+    // should never get here:
+    for(;;);
 }
