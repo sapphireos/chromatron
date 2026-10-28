@@ -80,9 +80,9 @@ int8_t sim_wifi_i8_get_route( ip_addr4_t *subnet, ip_addr4_t *subnet_mask );
 void sim_wifi_v_open_close_port( uint8_t protocol, uint16_t port, bool open );
 
 // sim network route: host UDP sockets.
-// NOTE: the netmsg table walk is bounded by route_start/route_end, which
-// are both defined in netmsg.c; an entry in a separate object file lands
-// outside that range and is not visited until the walk is updated.
+// The linker script keeps and orders the .routing sections (same
+// scheme as the firmware builds), so this entry is visited by the
+// netmsg table walk even though it lives in a separate object file.
 ROUTING_TABLE routing_table_entry_t route_sim = {
     sim_wifi_i8_get_route,
     wifi_i8_send_udp,

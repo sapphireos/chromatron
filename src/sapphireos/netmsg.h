@@ -75,8 +75,8 @@ typedef struct __attribute__((packed)){
 #ifdef BOOTLOADER
     #define ROUTING_TABLE
 #elif defined(__SIM__)
-    // one shared section, alignment 1: the table walk advances by
-    // sizeof(entry), so entries must pack exactly like they do on AVR
+    // host is 64-bit: sizeof(entry) does not match the section's natural
+    // alignment, so force alignment 1 and pack entries tightly like on AVR
     #define ROUTING_TABLE              __attribute__ ((section (".routing"), aligned(1), used))
 #else
     #define ROUTING_TABLE              __attribute__ ((section (".routing"), used))

@@ -48,9 +48,9 @@ static uint8_t max_rx_q_size;
 #ifdef BOOTLOADER
     #define ROUTING_TABLE_START
 #elif defined(__SIM__)
-    // one shared section, alignment 1: the table walk advances by
-    // sizeof(entry), so entries must pack exactly like they do on AVR
-    #define ROUTING_TABLE_START       __attribute__ ((section (".routing"), aligned(1), used))
+    // host is 64-bit: sizeof(entry) does not match the section's natural
+    // alignment, so force alignment 1 and pack entries tightly like on AVR
+    #define ROUTING_TABLE_START       __attribute__ ((section (".routing_start"), aligned(1), used))
 #else
     #define ROUTING_TABLE_START       __attribute__ ((section (".routing_start"), used))
 #endif
@@ -58,7 +58,7 @@ static uint8_t max_rx_q_size;
 #ifdef BOOTLOADER
     #define ROUTING_TABLE_END
 #elif defined(__SIM__)
-    #define ROUTING_TABLE_END         __attribute__ ((section (".routing"), aligned(1), used))
+    #define ROUTING_TABLE_END         __attribute__ ((section (".routing_end"), aligned(1), used))
 #else
     #define ROUTING_TABLE_END         __attribute__ ((section (".routing_end"), used))
 #endif
@@ -213,17 +213,10 @@ ROUTING_TABLE routing_table_entry_t route_local = {
     0
 };
 
-ROUTING_TABLE_END routing_table_entry_t route_end[] = {};
-
-#ifdef __SIM__
-// the firmware linker scripts keep the routing table with KEEP(); the
-// host linker has no script, so anchor it with a constructor reference
-// instead of letting --gc-sections discard the entries.
-__attribute__((constructor)) static void _routing_table_anchor( void ){
-
-    ( void )&route_local;
-}
-#endif
+// one empty entry, not zero size: a zero-length array still carries the
+// struct's alignment, so on aligned hosts the linker pads it to a wider
+// boundary and the walk sees a phantom partial entry before it.
+ROUTING_TABLE_END routing_table_entry_t route_end[1] = {};
 
 #ifndef ENABLE_COPROCESSOR
 static uint32_t vfile( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){

@@ -187,6 +187,17 @@ SECTIONS
     *(.service_end)
     KEEP(*(.service_end))
 
+    /* Routing table entry sections: same placement as the firmware
+       builds.  All route entries from any object file must land
+       between .routing_start and .routing_end so the netmsg table
+       walk sees them.  */
+    *(.routing_start)
+    KEEP(*(.routing_start))
+    *(.routing)
+    KEEP(*(.routing))
+    *(.routing_end)
+    KEEP(*(.routing_end))
+
     *(.data .data.* .gnu.linkonce.d.*)
     SORT(CONSTRUCTORS)
   }
