@@ -90,7 +90,9 @@ void ee_v_commit( void ){
 void ee_v_read_block( uint16_t address, uint8_t *data, uint16_t length ){
 
     // busy wait
-    while( ee_b_busy() );
+    while( ee_b_busy() )
+    {
+    }
 
 	for( uint16_t i = 0; i < length; i++ ){
 
