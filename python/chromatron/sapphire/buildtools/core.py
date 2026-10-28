@@ -1873,6 +1873,112 @@ class ExeBuilder(Builder):
         finally:
             os.chdir(cwd)
 
+        # the firmware build stamps each KV meta entry's hash into the image
+        # (HexBuilder.post_process); the host build never runs that, so do it
+        # here.  Fixed lookups survive without it (the sim builds its hash
+        # index from the entry names at runtime), but optional
+        # (KV_SECTION_OPT) entries are matched by their stored hash field,
+        # which is still zero in the linked ELF, so they are never found by
+        # hash (catbus get_keys fails with KEY_NOT_FOUND for them).
+        self.stamp_kv_hashes(elf)
+
+    def stamp_kv_hashes(self, elf):
+        # kv_meta_t on a 64-bit host, __attribute__((packed, aligned(4))):
+        #   type(1) array_len(1) flags(1) ptr(8) handler(8) name(32) hash(4) padding(1)
+        kv_meta_size = 56
+        off_name = 19
+        off_hash = 51
+
+        with open(elf, 'rb') as f:
+            data = bytearray(f.read())
+
+        if data[:4] != b'\x7fELF' or data[4] != 2:
+            raise BuildFailedException("not an ELF64 file: %s" % (elf))
+
+        shoff, = struct.unpack_from('<Q', data, 0x28)
+        shentsize, shnum, shstrndx = struct.unpack_from('<HHH', data, 0x3A)
+
+        def shdr(i):
+            return shoff + i * shentsize
+
+        str_off, str_size = struct.unpack_from('<IQ', data, shdr(shstrndx) + 0x18)
+
+        # the sim linker script places the KV regions inside .data
+        sec = None
+        for i in range(shnum):
+            off = shdr(i)
+            name_off, = struct.unpack_from('<I', data, off)
+            sec_name = data[str_off + name_off:str_off + name_off + 32].split(b'\0')[0]
+
+            if sec_name == b'.data':
+                sec = struct.unpack_from('<QQ', data, off + 0x18)
+
+        if sec is None:
+            raise BuildFailedException(".data section not found in %s" % (elf))
+
+        sec_off, sec_size = sec
+
+        def entry_name(entry):
+            raw = entry[off_name:off_name + 32]
+
+            nul = raw.find(b'\0')
+
+            if nul <= 0:
+                return None
+
+            name = raw[:nul]
+
+            if not all(0x20 <= b < 0x7f for b in name):
+                return None
+
+            return name.decode('ascii')
+
+        # walk the same region HexBuilder.post_process does, from the
+        # "kvstart" marker to the "kvoptend" marker
+        pos = data.find(b'kvstart\0', sec_off, sec_off + sec_size)
+
+        if pos < 0:
+            raise BuildFailedException("kvstart marker not found in %s" % (elf))
+
+        start = pos - off_name
+
+        if start < sec_off or entry_name(bytes(data[start:start + kv_meta_size])) != 'kvstart':
+            raise BuildFailedException("kvstart entry does not parse as a kv_meta_t in %s" % (elf))
+
+        stamped = 0
+        changed = 0
+
+        for i in range(4096):
+            off = start + i * kv_meta_size
+
+            if off + kv_meta_size > sec_off + sec_size:
+                raise BuildFailedException("ran past end of .data before the kvoptend marker in %s" % (elf))
+
+            name = entry_name(bytes(data[off:off + kv_meta_size]))
+
+            if name is None:
+                raise BuildFailedException("invalid kv meta entry name at offset %d in %s" % (off - sec_off, elf))
+
+            hash32 = catbus_string_hash(name)
+            old_hash, = struct.unpack_from('<I', data, off + off_hash)
+
+            if old_hash != hash32:
+                struct.pack_into('<I', data, off + off_hash, hash32)
+                changed += 1
+
+            stamped += 1
+
+            if name == 'kvoptend':
+                break
+        else:
+            raise BuildFailedException("kvoptend marker not found in %s" % (elf))
+
+        if changed > 0:
+            with open(elf, 'wb') as f:
+                f.write(data)
+
+        logging.info("kv hashes stamped: %d entries, %d updated in %s" % (stamped, changed, elf))
+
 
 def get_build_configs(root=None):
     paths = root if isinstance(root, WorkspacePaths) else WorkspacePaths(root)
