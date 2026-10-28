@@ -41,6 +41,12 @@
 
 #define ENABLE_LOG_TO_TRACE_PRINT // sim: trace is stdout, mirror log records to the console
 
+// network: host UDP sockets stand in for the wifi radio (see hal_wifi.c)
+#define ENABLE_WIFI
+
+// network: the "wifi" interface is host UDP sockets (hal_wifi.c)
+#define ENABLE_WIFI
+
 // init the system timer early (before flash fs) so flash fs timing works
 #define FLASH_FS_TIMING
 
