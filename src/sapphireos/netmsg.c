@@ -139,10 +139,16 @@ void default_open_close_port( uint8_t protocol, uint16_t port, bool open ){
 
 int8_t loopback_i8_get_route( ip_addr4_t *subnet, ip_addr4_t *subnet_mask ){
 
+#ifdef __SIM__
+    // the host kernel owns loopback: let 127/8 go out the host socket
+    // via the sim route instead of being looped back internally
+    return NETMSG_ROUTE_NOT_AVAILABLE;
+#else
     *subnet = ip_a_addr(127,0,0,0);
     *subnet_mask = ip_a_addr(255,0,0,0);
 
     return NETMSG_ROUTE_AVAILABLE;
+#endif
 }
 
 int8_t loopback_i8_transmit( netmsg_t msg ){

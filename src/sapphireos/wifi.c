@@ -52,11 +52,12 @@ void wifi_v_init( void ){
     //                  0,
     //                  0 );
     
-    thread_t_create( 
-                wifi_echo_thread,
-                PSTR("wifi_echo"),
-                0,
-                0 );  
+    // echo server not needed
+    // thread_t_create(
+    //             wifi_echo_thread,
+    //             PSTR("wifi_echo"),
+    //             0,
+    //             0 );
 }
 
 
