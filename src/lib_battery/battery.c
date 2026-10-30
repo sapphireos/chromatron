@@ -387,4 +387,30 @@ PT_BEGIN( pt );
 PT_END( pt );
 }
 
+#else
+// battery subsystem disabled (eg. sim): provide no-op definitions so
+// the unguarded call sites in the button and power libraries link
+bool batt_b_enabled( void ){
+
+    return FALSE;
+}
+
+bool batt_b_has_charger2_board( void ){
+
+    return FALSE;
+}
+
+bool batt_b_is_external_power( void ){
+
+    return FALSE;
+}
+
+uint16_t batt_u16_get_vbus_volts( void ){
+
+    return 0;
+}
+
+void batt_v_shutdown_power( void ){
+}
+
 #endif

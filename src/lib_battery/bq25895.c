@@ -1508,4 +1508,11 @@ PT_END( pt );
 
 
 
+#else
+// charger disabled (eg. sim): no VBUS present
+uint8_t bq25895_u8_get_vbus_status( void ){
+
+    return 0;
+}
+
 #endif

@@ -30,14 +30,67 @@
 
 #include "hal_eeprom.h"
 
-#ifdef __SIM__
-static uint8_t array[EE_ARRAY_SIZE];
-#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+/*
+
+EEPROM (sim)
+
+File-backed implementation: the eeprom is mapped from sim_eeprom.bin
+(in the current directory) and persists across reboots, the same way
+real eeprom does. A brand new file is pre-erased to 0xFF like a fresh
+chip; an existing file keeps its contents.
+
+*/
+
+#define SIM_EEPROM_FILE "sim_eeprom.bin"
+
+static uint8_t *array;
 
 void ee_v_init( void ){
 
+    int fd = open( SIM_EEPROM_FILE, O_RDWR | O_CREAT, 0644 );
+
+    if( fd < 0 ){
+
+        fprintf( stderr, "sim: failed to open %s\n", SIM_EEPROM_FILE );
+        exit( 1 );
+    }
+
+    // a brand new file is all zeros; remember so we can pre-erase it
+    // like a fresh chip. an existing file keeps its contents.
+    struct stat st;
+    int fresh = ( fstat( fd, &st ) == 0 && st.st_size == 0 );
+
+    if( ftruncate( fd, EE_ARRAY_SIZE ) < 0 ){
+
+        fprintf( stderr, "sim: failed to size %s\n", SIM_EEPROM_FILE );
+        exit( 1 );
+    }
+
+    array = ( uint8_t *)mmap( 0, EE_ARRAY_SIZE,
+                             PROT_READ | PROT_WRITE,
+                             MAP_SHARED, fd, 0 );
+
+    close( fd );
+
+    if( array == MAP_FAILED ){
+
+        fprintf( stderr, "sim: failed to map %s\n", SIM_EEPROM_FILE );
+        exit( 1 );
+    }
+
     // fresh eeprom reads as erased (0xFF) like real hardware
-    memset( array, 0xff, sizeof(array) );
+    if( fresh ){
+
+        memset( array, 0xff, EE_ARRAY_SIZE );
+    }
 }
 
 bool ee_b_busy( void ){

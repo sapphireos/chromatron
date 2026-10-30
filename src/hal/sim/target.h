@@ -35,7 +35,7 @@
 #define ENABLE_IP
 #define ENABLE_GFX
 #define ENABLE_LEGACY_VM
-#define ENABLE_BATTERY
+// #define ENABLE_BATTERY
 // #define ENABLE_KV_NOTIFICATIONS // note this requires the network
 // #define ENABLE_POWER
 
