@@ -1882,6 +1882,109 @@ class ExeBuilder(Builder):
         # hash (catbus get_keys fails with KEY_NOT_FOUND for them).
         self.stamp_kv_hashes(elf)
 
+        # the firmware build stamps a packed fw_info_t into the image at
+        # FW_INFO_ADDRESS (AppBuilder.post_process); the sim has no image,
+        # so embed it in the ELF and the sim HAL copies it into the
+        # simulated flash at boot (hal_flash25.c)
+        self.stamp_fwinfo(elf)
+
+    def stamp_fwinfo(self, elf):
+        fw_info_fmt = '<I16s128s16s128s16s32sII'
+
+        # same version strings the firmware build stamps
+        try:
+            os_project = get_project_builder(self.settings["OS_PROJECT"], target=self.board_type, root=self.paths)
+
+            os_name = os_project.proj_name
+            os_version = os_project.version
+
+        except KeyError:
+            os_name = ''
+            os_version = ''
+
+        # the sim has no flash image; the ELF is the executable image,
+        # so use its size as the firmware length
+        fw_info = struct.pack(
+            fw_info_fmt,
+            os.path.getsize(elf),
+            uuid.UUID('{' + self.settings["FWID"] + '}').bytes,
+            os_name.encode('utf-8'),
+            os_version.encode('utf-8'),
+            self.settings['PROJ_NAME'].encode('utf-8'),
+            self.version.encode('utf-8'),
+            self.board_type.encode('utf-8'),
+            0,  # kv_index_addr: the sim builds the KV hash index from the
+            0)  # kv_index_len:  .kv_meta section at runtime (kv_v_init)
+
+        with open(elf, 'rb') as f:
+            data = bytearray(f.read())
+
+        if data[:4] != b'\x7fELF' or data[4] != 2:
+            raise BuildFailedException("not an ELF64 file: %s" % (elf))
+
+        loc = self._elf_symbol_offset(data, 'sim_fwinfo_storage')
+
+        if loc is None:
+            raise BuildFailedException("sim_fwinfo_storage symbol not found in %s" % (elf))
+
+        off, size = loc
+
+        if size < len(fw_info):
+            raise BuildFailedException("sim_fwinfo_storage is too small in %s: %d < %d bytes" % (elf, size, len(fw_info)))
+
+        data[off:off + len(fw_info)] = fw_info
+
+        with open(elf, 'wb') as f:
+            f.write(data)
+
+        logging.info("fw info stamped: %s (%s %s, %s %s)" % (elf, self.settings['PROJ_NAME'], self.version, os_name, os_version))
+
+    @staticmethod
+    def _elf_symbol_offset(data, name):
+        # file offset and size of a symbol in a file-backed (PROGBITS)
+        # section of an ELF64 file, or None
+
+        shoff, = struct.unpack_from('<Q', data, 0x28)
+        shentsize, shnum, shstrndx = struct.unpack_from('<HHH', data, 0x3A)
+
+        sections = []
+
+        for i in range(shnum):
+            off = shoff + i * shentsize
+            name_off, sh_type = struct.unpack_from('<II', data, off)
+            sh_addr, sh_fileoff, sh_size = struct.unpack_from('<QQQ', data, off + 0x10)
+            sh_link, _sh_info = struct.unpack_from('<II', data, off + 0x28)
+            sh_entsize, = struct.unpack_from('<Q', data, off + 0x38)
+            sections.append([name_off, sh_type, sh_addr, sh_fileoff, sh_size, sh_link, sh_entsize])
+
+        str_off, = struct.unpack_from('<I', data, shoff + shstrndx * shentsize)
+
+        # SHT_PROGBITS = 1, SHT_SYMTAB = 2
+        for sec in sections:
+            if sec[1] != 2:
+                continue
+
+            sym_str_off = sections[sec[5]][3]
+            entsize = sec[6] or 24
+
+            for j in range(sec[4] // entsize):
+                off = sec[3] + j * entsize
+                st_name, = struct.unpack_from('<I', data, off)
+                st_shndx, = struct.unpack_from('<H', data, off + 6)
+                st_value, st_size = struct.unpack_from('<QQ', data, off + 8)
+
+                if data[sym_str_off + st_name:sym_str_off + st_name + 64].split(b'\0')[0] != name.encode('ascii'):
+                    continue
+
+                if st_shndx == 0 or st_shndx >= len(sections) or sections[st_shndx][1] != 1:
+                    return None
+
+                target = sections[st_shndx]
+
+                return target[3] + (st_value - target[2]), st_size
+
+        return None
+
     def stamp_kv_hashes(self, elf):
         # kv_meta_t on a 64-bit host, __attribute__((packed, aligned(4))):
         #   type(1) array_len(1) flags(1) ptr(8) handler(8) name(32) hash(4) padding(1)
@@ -1901,14 +2004,15 @@ class ExeBuilder(Builder):
         def shdr(i):
             return shoff + i * shentsize
 
-        str_off, str_size = struct.unpack_from('<IQ', data, shdr(shstrndx) + 0x18)
+        # sh_offset is 64 bits in ELF64
+        str_off, = struct.unpack_from('<Q', data, shdr(shstrndx) + 0x18)
 
         # the sim linker script places the KV regions inside .data
         sec = None
         for i in range(shnum):
             off = shdr(i)
             name_off, = struct.unpack_from('<I', data, off)
-            sec_name = data[str_off + name_off:str_off + name_off + 32].split(b'\0')[0]
+            sec_name = data[str_off + name_off:str_off + name_off + 64].split(b'\0')[0]
 
             if sec_name == b'.data':
                 sec = struct.unpack_from('<QQ', data, off + 0x18)

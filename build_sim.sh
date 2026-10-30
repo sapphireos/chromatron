@@ -6,8 +6,4 @@
 sapphiremake -p chromatron -t sim -c
 sapphiremake -p chromatron -t sim
 
-# generate the firmware info blob that the sim HAL programs into the
-# simulated flash at boot (same fields as the firmware builds)
-python3 "$(dirname "$0")/tools/sim_fwinfo.py"
-
 
