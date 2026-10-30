@@ -76,11 +76,12 @@
 #define MEM_HEAP_SIZE           10000
 
 // flash fs
-#define FFS_BLOCK_MAX_BLOCKS    16
+#define FFS_BLOCK_MAX_BLOCKS    128
 #define FLASH_FS_MAX_USER_FILES 16
 
 // flash fs partitions (in KB, must be multiples of the 4KB erase block)
-#define FLASH_FS_FIRMWARE_0_SIZE_KB     64
+// firmware 0 partition: used for simulated firmware downloads
+#define FLASH_FS_FIRMWARE_0_SIZE_KB     128
 #define FLASH_FS_FIRMWARE_1_SIZE_KB     0
 #define FLASH_FS_FIRMWARE_2_SIZE_KB     0
 #define FLASH_FS_EEPROM_SIZE_KB         0

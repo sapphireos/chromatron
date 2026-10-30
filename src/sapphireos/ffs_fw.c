@@ -184,7 +184,38 @@ int8_t ffs_fw_i8_init( void ){
     #else
     ext_fw_length += sizeof(uint16_t); // adjust for CRC
     #endif
-    
+
+    #ifdef __SIM__
+    // the simulator has no internal firmware image to copy; seed the
+    // partition with full-size dummy data when it is erased or cleared,
+    // so it reads as a valid, download-ready firmware file from the
+    // first boot. a valid length is left untouched across reboots.
+    // note: erased flash reads as 0xFFFFFFFF, which wraps to 1 after
+    // the CRC adjustment below (a cleared length reads as 2)
+    if( ( ext_fw_length <= 2 ) || ( ext_fw_length > FLASH_FS_FIRMWARE_0_PARTITION_SIZE ) ){
+
+        trace_printf("FFS FW: seeding dummy firmware, len: %d\r\n", FLASH_FS_FIRMWARE_0_PARTITION_SIZE );
+
+        uint8_t buf[256];
+
+        memset( buf, 0xa5, sizeof(buf) );
+
+        for( uint32_t i = 0; i < FLASH_FS_FIRMWARE_0_PARTITION_SIZE; i += sizeof(buf) ){
+
+            flash25_v_write( i + FLASH_FS_FIRMWARE_0_PARTITION_START, buf, sizeof(buf) );
+
+            sys_v_wdt_reset();
+        }
+
+        // full partition size (the length field excludes the trailing CRC)
+        ext_fw_length = FLASH_FS_FIRMWARE_0_PARTITION_SIZE - sizeof(uint16_t);
+
+        flash25_v_write( FLASH_FS_FIRMWARE_0_PARTITION_START + FW_LENGTH_ADDRESS,
+                         &ext_fw_length,
+                         sizeof(ext_fw_length) );
+    }
+    #endif
+
     // check for invalid ext firmware length
     if( ext_fw_length > FLASH_FS_FIRMWARE_0_PARTITION_SIZE ){
 

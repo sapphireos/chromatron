@@ -121,6 +121,11 @@ static void _v_program_fwinfo( void ){
 
 void hal_flash25_v_init( void ){
 
+    // size the backing file from the capacity of the emulated chip (the
+    // same value the OS derives from the device id), so the file system
+    // can use the whole part
+    max_address = flash25_u32_read_capacity_from_info();
+
     int fd = open( SIM_FLASH_FILE, O_RDWR | O_CREAT, 0644 );
 
     if( fd < 0 ){
@@ -134,13 +139,13 @@ void hal_flash25_v_init( void ){
     struct stat st;
     int fresh = ( fstat( fd, &st ) == 0 && st.st_size == 0 );
 
-    if( ftruncate( fd, FLASH_LENGTH ) < 0 ){
+    if( ftruncate( fd, max_address ) < 0 ){
 
         fprintf( stderr, "sim: failed to size %s\n", SIM_FLASH_FILE );
         exit( 1 );
     }
 
-    array = ( uint8_t *)mmap( ( void *)FLASH_START, FLASH_LENGTH,
+    array = ( uint8_t *)mmap( ( void *)FLASH_START, max_address,
                              PROT_READ | PROT_WRITE,
                              MAP_SHARED | MAP_FIXED, fd, 0 );
 
@@ -156,10 +161,8 @@ void hal_flash25_v_init( void ){
 
     if( fresh ){
 
-        memset( array, 0xff, FLASH_LENGTH );
+        memset( array, 0xff, max_address );
     }
-
-    max_address = FLASH_LENGTH;
 
     // program the firmware info (block 0) before anything reads it
     _v_program_fwinfo();
@@ -281,7 +284,7 @@ void flash25_v_erase_4k( uint32_t address ){
 void flash25_v_erase_chip( void ){
 
     // block 0 is skipped, as with the hardware chip erase path
-    memset( &array[FLASH_FS_ERASE_BLOCK_SIZE], 0xff, ( FLASH_LENGTH - FLASH_FS_ERASE_BLOCK_SIZE ) );
+    memset( &array[FLASH_FS_ERASE_BLOCK_SIZE], 0xff, ( max_address - FLASH_FS_ERASE_BLOCK_SIZE ) );
 }
 
 void flash25_v_read_device_info( flash25_device_info_t *info ){
