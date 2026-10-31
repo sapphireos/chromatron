@@ -172,7 +172,7 @@ static uint32_t fw_info_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, 
             #if defined(ESP32)
             spi_flash_read( FW_START_OFFSET + pos, ptr, len );
             #else
-            memcpy_P( ptr, (void *)FW_INFO_ADDRESS + pos + FLASH_START, len );
+            memcpy_P( ptr, FW_INFO_BASE + pos, len );
             #endif
             break;
 

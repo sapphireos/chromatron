@@ -104,10 +104,15 @@
 // #define JMP_LDR asm("jmp 0xf800") // word address, not byte address
 // #define JMP_APP asm("jmp 0x0000") // word address, not byte address
 
-#define FW_INFO_ADDRESS 0x120 // this must match the offset in the makefile!
-#define FW_LENGTH_ADDRESS FW_INFO_ADDRESS
-// the simulated flash is memory-mapped at this address (see
-// hal_flash25.c), mirroring how real hardware exposes flash to raw reads.
+// offset of the length field of a firmware image stored in the file
+// system's firmware partition (ffs_fw.c); matches the offset the
+// firmware builds stamp it at within the image
+#define FW_LENGTH_ADDRESS 0x120
+// the simulated flash (the file system chip) is memory-mapped at this
+// address (see hal_flash25.c), mirroring how real hardware exposes
+// flash to raw reads.  The firmware info does not live here: in the
+// sim, as on the hardware targets, it is part of the program image
+// (sim_fwinfo_storage, read through FW_INFO_BASE in fwinfo.h).
 #define FLASH_START 0x40000000
 #define KV_CACHE_SIZE 1
 

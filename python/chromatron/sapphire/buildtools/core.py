@@ -1882,10 +1882,10 @@ class ExeBuilder(Builder):
         # hash (catbus get_keys fails with KEY_NOT_FOUND for them).
         self.stamp_kv_hashes(elf)
 
-        # the firmware build stamps a packed fw_info_t into the image at
-        # FW_INFO_ADDRESS (AppBuilder.post_process); the sim has no image,
-        # so embed it in the ELF and the sim HAL copies it into the
-        # simulated flash at boot (hal_flash25.c)
+        # the firmware build stamps a packed fw_info_t into the program
+        # image at FW_INFO_ADDRESS (AppBuilder.post_process); the sim's
+        # program image is the host ELF itself, so embed it there and the
+        # OS reads it from program rodata via FW_INFO_BASE (fwinfo.h)
         self.stamp_fwinfo(elf)
 
     def stamp_fwinfo(self, elf):

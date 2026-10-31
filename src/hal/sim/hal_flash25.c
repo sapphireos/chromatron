@@ -48,10 +48,12 @@ across reboots, the same way real flash does.
 
 #define SIM_FLASH_FILE "sim_flash.bin"
 
-// firmware info embedded in the binary: the build stamps a packed
-// fw_info_t into this symbol (ExeBuilder.stamp_fwinfo) with the same
-// fields the firmware builds stamp into the image.  The HAL copies it
-// into the simulated flash at boot, mirroring the bootloader.
+// firmware info embedded in the program image: the build stamps a
+// packed fw_info_t into this symbol (ExeBuilder.stamp_fwinfo) with the
+// same fields the firmware builds stamp into the image.  This is the
+// program-image counterpart of FW_INFO_BASE (fwinfo.h); the OS reads
+// it directly.  The simulated flash file is the file system chip and
+// never contains it.
 const fw_info_t sim_fwinfo_storage;
 
 extern uint16_t block0_unlock;
@@ -59,39 +61,6 @@ extern uint16_t block0_unlock;
 static uint8_t *array;
 
 static uint32_t max_address;
-
-// Program the firmware info into the flash, mirroring what the
-// bootloader does in firmware builds: the build embeds a packed
-// fw_info_t in the binary (sim_fwinfo_storage, see
-// ExeBuilder.stamp_fwinfo) and it is copied into the location the OS
-// reads it from.  Stamped on every boot so a rebuilt version is
-// picked up without touching the persistent flash file.
-static void _v_program_fwinfo( void ){
-
-    // an unstamped binary (e.g. linked without the build's post
-    // processing) has an all-zero fwid: leave the flash content as-is
-    int stamped = 0;
-
-    for( uint8_t i = 0; i < FW_ID_LENGTH; i++ ){
-
-        if( sim_fwinfo_storage.fwid[i] != 0 ){
-
-            stamped = 1;
-            break;
-        }
-    }
-
-    if( !stamped ){
-
-        return;
-    }
-
-    // the fw info lives in block 0, which is write protected by default
-    flash25_v_unlock_block0();
-
-    flash25_v_write( FW_INFO_ADDRESS, &sim_fwinfo_storage, sizeof(fw_info_t) );
-}
-
 
 void hal_flash25_v_init( void ){
 
@@ -137,9 +106,6 @@ void hal_flash25_v_init( void ){
 
         memset( array, 0xff, max_address );
     }
-
-    // program the firmware info (block 0) before anything reads it
-    _v_program_fwinfo();
 }
 
 uint8_t flash25_u8_read_status( void ){

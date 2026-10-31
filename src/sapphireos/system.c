@@ -426,29 +426,29 @@ sys_warnings_t sys_u32_get_warnings( void ){
 
 void sys_v_get_fw_id( uint8_t id[FW_ID_LENGTH] ){
 
-    memcpy_P( id, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, fwid), FW_ID_LENGTH );
+    memcpy_P( id, FW_INFO_BASE + offsetof(fw_info_t, fwid), FW_ID_LENGTH );
 }
 
 void sys_v_get_os_version( char ver[OS_VER_LEN] ){
 
-    memcpy_P( ver, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, os_version), OS_VER_LEN );
+    memcpy_P( ver, FW_INFO_BASE + offsetof(fw_info_t, os_version), OS_VER_LEN );
 }
 
 void sys_v_get_fw_version( char ver[FW_VER_LEN] ){
 
-    memcpy_P( ver, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, firmware_version), FW_VER_LEN );
+    memcpy_P( ver, FW_INFO_BASE + offsetof(fw_info_t, firmware_version), FW_VER_LEN );
 }
 
 void sys_v_get_fw_info( fw_info_t *fw_info ){
 
-    memcpy_P( fw_info, (void *)FW_INFO_ADDRESS + FLASH_START, sizeof(fw_info_t) );
+    memcpy_P( fw_info, FW_INFO_BASE, sizeof(fw_info_t) );
 }
 
 uint32_t sys_u32_get_fw_length( void ){
 
     uint32_t length;
 
-    memcpy_P( &length, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, fw_length), sizeof(length) );
+    memcpy_P( &length, FW_INFO_BASE + offsetof(fw_info_t, fw_length), sizeof(length) );
 
     return length;
 }
@@ -464,7 +464,7 @@ uint32_t sys_u32_get_kv_index_addr( void ){
     addr = 0;
 
     #else
-        memcpy_P( &addr, (void *)FW_INFO_ADDRESS + FLASH_START + offsetof(fw_info_t, kv_index_addr), sizeof(addr) );
+        memcpy_P( &addr, FW_INFO_BASE + offsetof(fw_info_t, kv_index_addr), sizeof(addr) );
     #endif
 
     return addr;

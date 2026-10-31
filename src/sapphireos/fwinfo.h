@@ -49,5 +49,20 @@ typedef struct __attribute__((packed)){
     uint32_t kv_index_len;
 } fw_info_t;
 
+// The fw_info_t lives in the program image, not the flash file system:
+// the build stamps it into the binary at FW_INFO_ADDRESS and the OS
+// reads it from the mapped program flash.  The file system block space
+// is a separate address space and never sees it.
+//
+// In the sim the program image is the host ELF itself, so the build
+// stamps the struct into program rodata (sim_fwinfo_storage, see
+// ExeBuilder.stamp_fwinfo) and it is read from there.
+#ifdef __SIM__
+    extern const fw_info_t sim_fwinfo_storage;
+    #define FW_INFO_BASE ( (const uint8_t *)&sim_fwinfo_storage )
+#else
+    #define FW_INFO_BASE ( (const uint8_t *)( FW_INFO_ADDRESS + FLASH_START ) )
+#endif
+
 
 #endif
