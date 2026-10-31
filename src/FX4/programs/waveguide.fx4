@@ -1,0 +1,49 @@
+
+pixels.val = 0.0;
+pixels.sat = 1.0;
+pixels.hue = rand();
+pixels.hue = 0.5;
+pixels.hsfade = 500;
+pixels.vfade = 100;
+
+co hue_shift(){
+	
+	while true{
+
+		delay 30000;
+
+		fixed16 temp = rand();
+
+		for i in pixels.count * 4{
+
+			pixels[rand()].hue = temp;
+
+			delay 250;
+		}
+
+		pixels.hue = temp;
+	}
+}
+
+
+number frame;
+
+co loop(){
+
+	while true{
+
+		delay 100;
+
+		for i in pixels.count{
+
+			pixels[i].val = noise(i * 16 + frame * 32);
+		}
+
+		frame += 1;
+	}
+}
+
+hue_shift();
+loop();
+
+

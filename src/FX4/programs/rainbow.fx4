@@ -1,0 +1,28 @@
+
+pixels.val = 1.0;
+pixels.sat = 1.0;
+pixels.hue = 0.0;
+
+
+fixed16 current_hue;
+
+co loop(){
+
+	while(1){
+
+		current_hue += 0.015;
+
+		fixed16 a = current_hue;
+
+		for i in pixels.count{
+
+			pixels[i].hue = a;
+
+			a += 1.0 / pixels.count;
+		}
+
+		delay 20;
+	}
+}
+
+loop();

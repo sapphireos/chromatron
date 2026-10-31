@@ -1,0 +1,19 @@
+
+fixed16 fx_hue = 0.0; publish fx_hue;
+fixed16 fx_sat = 1.0; publish fx_sat;
+fixed16 fx_val = 1.0; publish fx_val;
+
+
+co loop(){
+
+	while(1){
+
+		pixels.val = fx_val;
+		pixels.sat = fx_sat;
+		pixels.hue = fx_hue;
+
+		delay 20;
+	}
+}
+
+loop();
