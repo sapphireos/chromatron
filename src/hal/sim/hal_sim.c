@@ -99,8 +99,17 @@ static void sim_v_setup( void ){
     catbus_i8_set( __KV__pix_size_x, CATBUS_TYPE_UINT16, &u16, sizeof(u16) );
     catbus_i8_set( __KV__pix_size_y, CATBUS_TYPE_UINT16, &u16, sizeof(u16) );
 
+    // SK6812 RGB: speaks the WS2811/WS2812 protocol, so use mode 3
+    u8 = PIX_MODE_WS2811;
+    catbus_i8_set( __KV__pix_mode, CATBUS_TYPE_UINT8, &u8, sizeof(u8) );
+
     u8 = 0;
     catbus_i8_set( __KV__pix_rgb_order, CATBUS_TYPE_UINT8, &u8, sizeof(u8) );
+
+    // full brightness: master and sub dimmers wide open
+    u16 = 65535;
+    catbus_i8_set( __KV__gfx_master_dimmer, CATBUS_TYPE_UINT16, &u16, sizeof(u16) );
+    catbus_i8_set( __KV__gfx_sub_dimmer, CATBUS_TYPE_UINT16, &u16, sizeof(u16) );
 
     // preload the built-in rainbow program: sets vm4_prog and raises
     // VM0's reset flag; the vm4_loader thread starts it
