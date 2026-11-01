@@ -57,11 +57,11 @@ locking is needed.
 */
 
 // target longest window side, in host pixels
-#define SDL_TARGET_SIZE 480
+#define SDL_TARGET_SIZE 1920
 
 // biggest upscaling factor: keeps a single pixel array from opening a
 // window the size of the display when the geometry is 1x1
-#define SDL_MAX_SCALE 32
+#define SDL_MAX_SCALE 128
 
 static bool sdl_requested = FALSE;
 static bool sdl_dead = FALSE; // init failed, or the window was closed
