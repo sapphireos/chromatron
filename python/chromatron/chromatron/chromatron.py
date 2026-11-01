@@ -607,9 +607,16 @@ class Chromatron(object):
 
         elif filename and should_compile:
             cmd = f'fx4 {filename}'
-            os.system(cmd)
+
+            status = os.system(cmd)
+
+            if status != 0:
+                raise IOError(f"fx4 compile failed ({status}) for {filename}")
 
         bin_filename = os.path.splitext(filename)[0] + '.f4b'
+
+        if not os.path.exists(bin_filename):
+            raise IOError(f"compile output not found: {bin_filename}")
 
         try:
             self.delete_file(bin_filename)
@@ -664,7 +671,7 @@ class Chromatron(object):
         self.set_key(s, False)
 
     def clean_vm4_files(self):
-        """Deletes all .fxb files from device"""
+        """Deletes all .f4b files from device"""
         for fname in self.list_files():
             try:
                 name, ext = fname.split('.')
@@ -1731,6 +1738,15 @@ def compile(ctx, filename, debug):
     """Compile an FX script"""
 
     click.echo('Compiling: %s' % (filename))
+
+    if filename.endswith('.fx4'):
+        # FX4 scripts are compiled by the native fx4 binary, which writes <name>.f4b itself
+        status = os.system(f'fx4 {filename}')
+
+        if status != 0:
+            click.secho(f"fx4 compile failed ({status})", fg=ERROR_COLOR)
+
+        return
 
     try:
         code = code_gen.build_script(filename, debug_print=debug)
