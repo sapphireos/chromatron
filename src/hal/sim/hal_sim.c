@@ -35,6 +35,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <poll.h>
+#include <limits.h>
+
+#include "fs.h"
 
 #include "hal_sim.h"
 #include "hal_sim_sdl.h"
@@ -127,6 +130,137 @@ static void sim_v_setup( void ){
     printf( "sim: configured 16x16 pixel grid, preloaded VM4 program: _rainbow.f4b\n" );
 }
 
+// --prog: a .f4b bytecode file on the host runs in VM0 as a virtual file
+// backed by the host file system, so no FFS space is consumed and the
+// state files stay untouched.  Same shape as the _rainbow.f4b handler in
+// graphics.c: the FS driver bounds-checks pos/len before calling us.
+#define SIM_PROG_FNAME "_host.f4b"
+
+static char sim_prog_path[ PATH_MAX ];
+static uint32_t sim_prog_size;
+
+static uint32_t sim_prog_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    uint32_t ret_val = len;
+
+    switch( op ){
+        case FS_VFILE_OP_READ: {
+
+            FILE *f = fopen( sim_prog_path, "rb" );
+
+            if( f == 0 ){
+
+                return 0;
+            }
+
+            fseek( f, pos, SEEK_SET );
+            ret_val = fread( ptr, 1, len, f );
+            fclose( f );
+            break;
+        }
+
+        case FS_VFILE_OP_SIZE:
+            ret_val = sim_prog_size;
+            break;
+
+        default:
+            ret_val = 0;
+            break;
+    }
+
+    return ret_val;
+}
+
+// --prog <file.fx4|file.f4b>: run the program in VM0.  .fx4 sources are
+// compiled first with the host fx4 CLI, which writes <file>.f4b next to
+// the source (the same convention sapphiremake uses).
+static void sim_v_run_prog_file( void ){
+
+    const char *path = getenv( "SIM_PROG" );
+
+    if( path == 0 ){
+
+        // a --prog run leaves vm4_prog pointing at the virtual file:
+        // with no --prog on this boot, the handler would not exist and
+        // the loader would fail on a missing file, so restore the
+        // built-in demo program
+        char prog[ FFS_FILENAME_LEN ];
+
+        if( ( kv_i8_get( __KV__vm4_prog, prog, sizeof(prog) ) == 0 ) &&
+            ( strcmp( prog, SIM_PROG_FNAME ) == 0 ) ){
+
+            char name[ FFS_FILENAME_LEN ];
+            memset( name, 0, sizeof(name) );
+            strcpy( name, "_rainbow.f4b" );
+            vm4_v_run_prog( name, 0 );
+
+            printf( "sim: no --prog: restored default VM4 program: _rainbow.f4b\n" );
+        }
+
+        return;
+    }
+
+    FILE *f = fopen( path, "rb" );
+
+    if( f == 0 ){
+
+        // parse checked existence, so this means the file vanished
+        fprintf( stderr, "sim: cannot open program: %s\n", path );
+        exit( 1 );
+    }
+
+    fseek( f, 0, SEEK_END );
+    sim_prog_size = ftell( f );
+    fclose( f );
+
+    if( sim_prog_size == 0 ){
+
+        fprintf( stderr, "sim: program file is empty: %s\n", path );
+        exit( 1 );
+    }
+
+    snprintf( sim_prog_path, sizeof(sim_prog_path), "%s", path );
+
+    fs_v_create_virtual( PSTR(SIM_PROG_FNAME), sim_prog_vfile_handler );
+
+    char name[ FFS_FILENAME_LEN ];
+    memset( name, 0, sizeof(name) );
+    strcpy( name, SIM_PROG_FNAME );
+    vm4_v_run_prog( name, 0 );
+
+    printf( "sim: running VM4 program: %s (%d bytes)\n", path, (int)sim_prog_size );
+}
+
+// --pix-count / --pix-size-x / --pix-size-y: override the pixel array
+// configuration.  These write the same KVs as sim_v_setup's seeding, so
+// the values flow through the normal KV bindings (pixel.c reconfigure,
+// gfx_lib geometry) and persist like any KV change; --clean resets them.
+static void sim_v_apply_pix_args( void ){
+
+    static const struct {
+        const char *env;
+        catbus_hash_t32 hash;
+    } pix_args[] = {
+        { "SIM_PIX_COUNT", __KV__pix_count  },
+        { "SIM_PIX_X",     __KV__pix_size_x },
+        { "SIM_PIX_Y",     __KV__pix_size_y },
+    };
+
+    for( unsigned i = 0; i < cnt_of_array(pix_args); i++ ){
+
+        const char *str = getenv( pix_args[i].env );
+
+        if( str == 0 ){
+
+            continue;
+        }
+
+        uint16_t value = (uint16_t)atoi( str );
+
+        catbus_i8_set( pix_args[i].hash, CATBUS_TYPE_UINT16, &value, sizeof(value) );
+    }
+}
+
 PT_THREAD( sim_terminate_thread( pt_t *pt, void *state ) )
 {
 PT_BEGIN( pt );
@@ -181,10 +315,45 @@ static void _v_print_usage( const char *prog ){
             "            works too)\n" );
     printf( "  --sdl     draw the pixel array in an SDL window on the host\n"
             "            screen\n" );
+    printf( "  --prog    .fx4 or .f4b program file to load and run in VM0;\n"
+            "            .fx4 sources are compiled first with the host fx4\n"
+            "            tool, overriding the program set by a previous run\n" );
+    printf( "  --pix-count N, --pix-size-x N, --pix-size-y N\n"
+            "            override the pixel array configuration (defaults\n"
+            "            from a fresh --clean state: 256, 16, 16); values\n"
+            "            persist in the simulator eeprom like any KV\n" );
     printf( "  --clean   remove the simulator state files (sim_flash.bin,\n"
             "            sim_eeprom.bin, sim_bootdata.bin) so the next boot\n"
             "            starts from a clean slate, like a fresh device\n" );
     printf( "  --help    show this help and exit\n" );
+}
+
+// fetch the value that follows a flag on the command line
+static const char *_vp_next_arg( int argc, char **argv, int *i, const char *flag ){
+
+    if( ( *i + 1 ) >= argc ){
+
+        fprintf( stderr, "sim: %s requires a value\n", flag );
+        exit( 1 );
+    }
+
+    ( *i )++;
+
+    return argv[ *i ];
+}
+
+static uint16_t _u16_arg( const char *str, const char *flag ){
+
+    char *end;
+    long value = strtol( str, &end, 10 );
+
+    if( ( *end != 0 ) || ( value < 0 ) || ( value > UINT16_MAX ) ){
+
+        fprintf( stderr, "sim: %s: bad value: %s\n", flag, str );
+        exit( 1 );
+    }
+
+    return (uint16_t)value;
 }
 
 static void _v_clean_state_files( void ){
@@ -220,6 +389,85 @@ int main( int argc, char **argv ){
             sim_sdl_v_enable();
             fflush( stdout );
             continue;
+        }
+
+        if( strcmp( argv[i], "--prog" ) == 0 ){
+
+            // run a host program file in VM0 (see sim_v_run_prog_file);
+            // carry the path in the environment across a simulated reboot
+            const char *value = _vp_next_arg( argc, argv, &i, "--prog" );
+
+            char path[ PATH_MAX ];
+
+            if( realpath( value, path ) == 0 ){
+
+                fprintf( stderr, "sim: --prog: cannot open: %s\n", value );
+                return 1;
+            }
+
+            char *dot = strrchr( path, '.' );
+
+            if( ( dot == 0 ) ||
+                ( ( strcmp( dot, ".f4b" ) != 0 ) && ( strcmp( dot, ".fx4" ) != 0 ) ) ){
+
+                fprintf( stderr, "sim: --prog: not a .fx4 or .f4b file: %s\n", value );
+                return 1;
+            }
+
+            if( strcmp( dot, ".fx4" ) == 0 ){
+
+                // compile in place: fx4 writes <file>.f4b next to the
+                // source, the same convention sapphiremake uses
+                char cmd[ PATH_MAX + 8 ];
+                snprintf( cmd, sizeof(cmd), "fx4 '%s'", path );
+
+                if( system( cmd ) != 0 ){
+
+                    fprintf( stderr, "sim: --prog: fx4 compile failed: %s\n", path );
+                    return 1;
+                }
+
+                strcpy( dot, ".f4b" );
+
+                if( access( path, R_OK ) != 0 ){
+
+                    fprintf( stderr, "sim: --prog: fx4 produced no output: %s\n", path );
+                    return 1;
+                }
+            }
+
+            setenv( "SIM_PROG", path, 1 );
+            continue;
+        }
+
+        static const struct {
+            const char *flag;
+            const char *env;
+        } pix_flags[] = {
+            { "--pix-count",   "SIM_PIX_COUNT" },
+            { "--pix-size-x",  "SIM_PIX_X"     },
+            { "--pix-size-y",  "SIM_PIX_Y"     },
+        };
+
+        {
+            bool pix_matched = FALSE;
+
+            for( unsigned p = 0; p < cnt_of_array(pix_flags); p++ ){
+
+                if( strcmp( argv[i], pix_flags[p].flag ) == 0 ){
+
+                    char buf[ 8 ];
+                    sprintf( buf, "%d", _u16_arg( _vp_next_arg( argc, argv, &i, pix_flags[p].flag ), pix_flags[p].flag ) );
+                    setenv( pix_flags[p].env, buf, 1 );
+                    pix_matched = TRUE;
+                    break;
+                }
+            }
+
+            if( pix_matched ){
+
+                continue;
+            }
         }
 
         if( strcmp( argv[i], "--clean" ) == 0 ){
@@ -286,6 +534,11 @@ int main( int argc, char **argv ){
         // writes every transfer to stdout as a pixel/color tuple, so both
         // the VM4 programs and the pixel hardware abstraction are running.
         sim_v_setup();
+
+        // user-specified pixel geometry and program file, which override
+        // the seeded / persisted state when given
+        sim_v_apply_pix_args();
+        sim_v_run_prog_file();
     }
 
     sapphire_run();
