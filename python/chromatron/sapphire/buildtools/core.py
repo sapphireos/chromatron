@@ -126,6 +126,7 @@ MASTER_HASH_DB_FILE         = os.path.join(DATA_DIR, 'kv_hashes.json')
 TOOLS_DIR                   = os.path.join(DATA_DIR, 'tools')
 LIB_INIT_FILENAME           = '__libs.c'
 FX_COMPILER_COMMAND         = 'chromatron compile'
+FX4_COMPILER_COMMAND        = 'fx4'
 PROJECT_NAME_PLACEHOLDER    = '%(PROJ_NAME)'
 
 # directories that never hold a project manifest: build output, dependencies,
@@ -537,7 +538,7 @@ class Builder(object):
 
         for d in self.source_dirs:
             for f in self.listdir(d):
-                if f.endswith('.fx'):
+                if f.endswith('.fx') or f.endswith('.fx4'):
                     fpath = os.path.join(d, f)
                     # prevent duplicates
                     if fpath not in fx_files:
@@ -764,27 +765,61 @@ class Builder(object):
         self.link()
         self.post_process()
 
+    def _get_fx4_compiler(self):
+        # fx4 is a native host binary (built separately from src/FX4): resolve
+        # it from PATH. the result is cached: the compiler is resolved once
+        # per builder, not per script
+        if not hasattr(self, '_fx4_compiler'):
+            fx4 = shutil.which(FX4_COMPILER_COMMAND)
+
+            if fx4 is None:
+                raise BuildFailedException("fx4 not found on PATH: build and install fx4 before running the build")
+
+            self._fx4_compiler = fx4
+
+        return self._fx4_compiler
+
     def compile_fx(self):
         fx_files = self.list_fx_source()
+
+        if not fx_files:
+            return
 
         current_dir = os.getcwd()
 
         for fx in fx_files:
             d, f = os.path.split(fx)
-            output_file = f + 'b'
 
             os.chdir(d)
 
-            logging.info("Compiling FX: %s" % (f))            
+            if f.endswith('.fx4'):
+                # fx4 rewrites the extension in place: rainbow.fx4 -> rainbow.f4b
+                logging.info("Compiling FX4: %s" % (f))
 
-            cmd = f'{FX_COMPILER_COMMAND} {f}'
-            os.system(cmd)
+                status, output = run_command('"%s" %s' % (self._get_fx4_compiler(), f))
+
+                if status != 0:
+                    raise BuildFailedException("fx4 compile failed (%d) for %s: %s" % (status, f, output))
+
+                output_file = f[:-len('.fx4')] + '.f4b'
+                carray_file = output_file + '.carray'
+
+            else:
+                logging.info("Compiling FX: %s" % (f))
+
+                status, output = run_command('%s %s' % (FX_COMPILER_COMMAND, f))
+
+                if status != 0:
+                    raise BuildFailedException("fx compile failed (%d) for %s: %s" % (status, f, output))
+
+                output_file = f + 'b'
+                carray_file = f + '.carray'
 
             # convert to C array
             with open(output_file, 'rb') as fxb:
                 data = fxb.read()
 
-            with open(f'{f}.carray', 'w') as fxb:
+            with open(carray_file, 'w') as fxb:
                 for b in data:
                     fxb.write(f'{hex(b)},\n')
 

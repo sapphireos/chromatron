@@ -102,6 +102,10 @@ static const uint8_t fx_rainbow[] __attribute__((aligned(4))) = {
     #include "rainbow.fx.carray"
 };
 
+static const uint8_t fx4_rainbow[] __attribute__((aligned(4))) = {
+    #include "rainbow.f4b.carray"
+};
+
 
 static uint32_t fx_rainbow_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
 
@@ -115,6 +119,28 @@ static uint32_t fx_rainbow_vfile_handler( vfile_op_t8 op, uint32_t pos, void *pt
 
         case FS_VFILE_OP_SIZE:
             ret_val = sizeof(fx_rainbow);
+            break;
+
+        default:
+            ret_val = 0;
+            break;
+    }
+
+    return ret_val;
+}
+
+static uint32_t fx4_rainbow_vfile_handler( vfile_op_t8 op, uint32_t pos, void *ptr, uint32_t len ){
+
+    uint32_t ret_val = len;
+
+    // the pos and len values are already bounds checked by the FS driver
+    switch( op ){
+        case FS_VFILE_OP_READ:
+            memcpy( ptr, &fx4_rainbow[pos], len );
+            break;
+
+        case FS_VFILE_OP_SIZE:
+            ret_val = sizeof(fx4_rainbow);
             break;
 
         default:
@@ -419,6 +445,7 @@ void gfx_v_init( void ){
     sc_v_init();
 
     fs_v_create_virtual( PSTR("_rainbow.fxb"), fx_rainbow_vfile_handler );
+    fs_v_create_virtual( PSTR("_rainbow.f4b"), fx4_rainbow_vfile_handler );
 
     #endif
 }
