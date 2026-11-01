@@ -28,6 +28,8 @@
 #include <unistd.h>
 
 #include "hal_cpu.h"
+#include "hal_sim.h"
+#include "threading.h"
 #include "cpu.h"
 
 void cpu_v_init( void ){
@@ -51,6 +53,32 @@ void cpu_v_remap_isrs( void ){
 }
 
 void cpu_v_sleep( void ){
+
+    // the simulator has no CPU sleep state: it is a host process.  Block
+    // until the next scheduler alarm (or until a simulator socket has
+    // traffic) so an idle simulator costs the host no CPU.
+    // pwr_v_sleep() only calls this when every thread is waiting and no
+    // signals are pending.
+    uint32_t ms = thread_u32_get_next_alarm_delta();
+
+    // no alarm pending, or it is already due: idle for a slice so
+    // anything the scheduler is not tracking with an alarm (timed
+    // signals, simulated peripherals) still gets serviced
+    if( ( ms == 0 ) || ( ms > SIM_IDLE_MAX_MS ) ){
+
+        ms = SIM_IDLE_MAX_MS;
+    }
+
+    hal_sim_v_idle( ms );
+}
+
+// the simulator has no clock switching: these are called by pwr_v_init()
+// when ENABLE_POWER is set
+void cpu_v_set_clock_speed_low( void ){
+
+}
+
+void cpu_v_set_clock_speed_high( void ){
 
 }
 

@@ -26,10 +26,34 @@
 #include "system.h"
 #include "timers.h"
 #include "logging.h"
+#include "threading.h"
 #include "hal_pixel.h"
+#include "pixel.h"
+
+// graphics.c kicks the pixel driver with PIX_SIGNAL_0 when the array comes
+// up (pixel_v_signal()), and on hardware a driver thread consumes that
+// signal (see hal_pixel.c for esp32/esp8266).  Nothing consumed it here, so
+// the signal bit stayed raised forever: the scheduler's signalled-thread
+// pass never settled, and the sleep condition in thread_core() - no
+// signals pending - was never true.
+PT_THREAD( sim_pixel_thread( pt_t *pt, void *state ) )
+{
+PT_BEGIN( pt );
+
+    while( 1 ){
+
+        THREAD_WAIT_SIGNAL( pt, PIX_SIGNAL_0 );
+
+        // there is no pixel hardware to start: transfers are synchronous,
+        // in hal_pixel_v_start_transfer()
+    }
+
+PT_END( pt );
+}
 
 void hal_pixel_v_init( void ){
 
+    thread_t_create( THREAD_CAST(sim_pixel_thread), PSTR("sim_pixel"), 0, 0 );
 }
 
 void hal_pixel_v_configure( void ){

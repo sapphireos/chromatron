@@ -37,7 +37,7 @@
 #define ENABLE_LEGACY_VM
 // #define ENABLE_BATTERY
 // #define ENABLE_KV_NOTIFICATIONS // note this requires the network
-// #define ENABLE_POWER
+#define ENABLE_POWER // sim: allows the scheduler to idle the process (see hal_cpu.c)
 
 #define ENABLE_LOG_TO_TRACE_PRINT // sim: trace is stdout, mirror log records to the console
 

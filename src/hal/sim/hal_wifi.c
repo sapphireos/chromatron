@@ -31,6 +31,7 @@
 #include "sockets.h"
 #include "cnt_of_array.h"
 #include "logging.h"
+#include "hal_sim.h"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -38,6 +39,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <poll.h>
 
 /*
 
@@ -170,6 +172,34 @@ PT_BEGIN( pt );
     }
 
 PT_END( pt );
+}
+
+int8_t hal_wifi_i8_poll_fds( struct pollfd *pfds, int8_t max_fds ){
+
+    // hand the open sockets to the idle wait (hal_sim_v_idle) so network
+    // traffic wakes the simulator immediately instead of at the next poll
+    int8_t count = 0;
+
+    for( uint8_t i = 0; i < cnt_of_array(sim_conn); i++ ){
+
+        if( sim_conn[i].lport == 0 ){
+
+            continue;
+        }
+
+        if( count >= max_fds ){
+
+            break;
+        }
+
+        pfds[count].fd = sim_conn[i].sock;
+        pfds[count].events = POLLIN;
+        pfds[count].revents = 0;
+
+        count++;
+    }
+
+    return count;
 }
 
 // default route: anything that is not loopback or the local IP

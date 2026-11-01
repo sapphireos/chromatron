@@ -34,6 +34,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <poll.h>
+
+#include "hal_sim.h"
 
 /*
 
@@ -140,6 +143,30 @@ void hal_sim_v_init( void ){
 
         thread_t_create( THREAD_CAST(sim_terminate_thread), PSTR("sim_exit"), 0, 0 );
     }
+}
+
+// sockets an idle wait can watch: at least the size of the simulator
+// socket table (SIM_WIFI_MAX_PORTS in hal_wifi.c)
+#define SIM_IDLE_MAX_FDS 16
+
+void hal_sim_v_idle( uint32_t ms ){
+
+    struct pollfd pfds[SIM_IDLE_MAX_FDS];
+
+    nfds_t nfds = (nfds_t)hal_wifi_i8_poll_fds( pfds, SIM_IDLE_MAX_FDS );
+
+    if( ms > 1000 ){
+
+        ms = 1000; // poll() takes a signed ms timeout
+    }
+
+    // zero descriptors is valid: poll() then simply waits for the
+    // timeout.  The wait length is re-derived from the scheduler's
+    // absolute alarms on every call (see cpu_v_sleep), so the relative
+    // timeout here does not accumulate drift.  Waking on data, on the
+    // timeout or on a signal all mean the same thing: the scheduler
+    // re-checks its threads.
+    poll( pfds, nfds, (int)ms );
 }
 
 static void _v_print_usage( const char *prog ){
