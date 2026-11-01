@@ -47,6 +47,7 @@
 
     "LINK_FLAGS": [
         "-lm",
+        "-lSDL2",
         "-Wl,-Map=main.map",
         "-Wl,--gc-sections",
         "-T %(LINKER_SCRIPT)",

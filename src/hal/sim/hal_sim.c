@@ -37,6 +37,7 @@
 #include <poll.h>
 
 #include "hal_sim.h"
+#include "hal_sim_sdl.h"
 
 /*
 
@@ -167,6 +168,9 @@ void hal_sim_v_idle( uint32_t ms ){
     // timeout or on a signal all mean the same thing: the scheduler
     // re-checks its threads.
     poll( pfds, nfds, (int)ms );
+
+    // keep the SDL window responsive while the simulator waits
+    sim_sdl_v_pump();
 }
 
 static void _v_print_usage( const char *prog ){
@@ -175,6 +179,8 @@ static void _v_print_usage( const char *prog ){
     printf( "  run_time  (optional) seconds to run before the process exits;\n"
             "            blank or omitted runs until killed ($SIM_RUN_TIME\n"
             "            works too)\n" );
+    printf( "  --sdl     draw the pixel array in an SDL window on the host\n"
+            "            screen\n" );
     printf( "  --clean   remove the simulator state files (sim_flash.bin,\n"
             "            sim_eeprom.bin, sim_bootdata.bin) so the next boot\n"
             "            starts from a clean slate, like a fresh device\n" );
@@ -204,6 +210,18 @@ int main( int argc, char **argv ){
             return 0;
         }
 
+        if( strcmp( argv[i], "--sdl" ) == 0 ){
+
+            // draw the pixel array in an SDL window on the host screen.
+            // like the run time above, a simulated reboot re-execs
+            // without the command line, so carry the flag in the
+            // environment, which survives execve
+            setenv( "SIM_SDL", "1", 1 );
+            sim_sdl_v_enable();
+            fflush( stdout );
+            continue;
+        }
+
         if( strcmp( argv[i], "--clean" ) == 0 ){
 
             _v_clean_state_files();
@@ -228,6 +246,12 @@ int main( int argc, char **argv ){
     if( str == 0 ){
 
         str = getenv( "SIM_RUN_TIME" );
+    }
+
+    // the flag survives a simulated reboot (see the --sdl handler above)
+    if( getenv( "SIM_SDL" ) != 0 ){
+
+        sim_sdl_v_enable();
     }
 
     double secs = ( str != 0 ) ? atof( str ) : 0;

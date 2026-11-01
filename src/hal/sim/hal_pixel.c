@@ -29,6 +29,7 @@
 #include "threading.h"
 #include "hal_pixel.h"
 #include "pixel.h"
+#include "hal_sim_sdl.h"
 
 // graphics.c kicks the pixel driver with PIX_SIGNAL_0 when the array comes
 // up (pixel_v_signal()), and on hardware a driver thread consumes that
@@ -46,6 +47,9 @@ PT_BEGIN( pt );
 
         // there is no pixel hardware to start: transfers are synchronous,
         // in hal_pixel_v_start_transfer()
+
+        // --sdl: draw the frame that just went out to the strips
+        sim_sdl_v_frame();
     }
 
 PT_END( pt );
