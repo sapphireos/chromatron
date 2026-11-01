@@ -24,6 +24,8 @@
 
 #include "cpu.h"
 #include "system.h"
+#include "timers.h"
+#include "logging.h"
 #include "hal_pixel.h"
 
 void hal_pixel_v_init( void ){
@@ -34,6 +36,21 @@ void hal_pixel_v_configure( void ){
 
 }
 
+
+static uint32_t sim_transfer_count = 0;
+static uint32_t sim_last_log_ms = 0;
+
 void hal_pixel_v_start_transfer( uint8_t driver, uint8_t *data, uint16_t len ){
 
+    // the simulator has no pixel hardware: count the transfers and emit
+    // a status line about once a second so the VM -> framebuffer ->
+    // pixel output path is visibly running
+    sim_transfer_count++;
+
+    uint32_t now = tmr_u32_get_system_time_ms();
+    if( now - sim_last_log_ms > 1000 ){
+
+        sim_last_log_ms = now;
+        log_v_info_P( PSTR( "sim pixel: %d bytes transferred (%d transfers)" ), len, sim_transfer_count );
+    }
 }

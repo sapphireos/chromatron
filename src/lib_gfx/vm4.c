@@ -540,6 +540,8 @@ PT_BEGIN( pt );
         // apply published vars
         fini_published( state );
     }
+
+    log_v_info_P( PSTR("VM %d started: %s"), state->vm_id, fname );
     
     // log_v_debug_P( PSTR("VM %d init OK"), state->vm_id );
 

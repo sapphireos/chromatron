@@ -24,6 +24,10 @@
 #include "init.h"
 #include "threading.h"
 #include "timers.h"
+#include "catbus.h"
+#include "keyvalue.h"
+#include "pix_modes.h"
+#include "vm4.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -59,6 +63,56 @@ static const char *sim_state_files[] = {
 };
 
 static uint32_t sim_run_time_ms = 0; // 0 = run until killed
+
+// initial pixel and VM4 configuration for the simulator. on real hardware
+// this is exactly what led_detect's load_profile() does after detecting the
+// attached LED board (battery detection is disabled on the sim, so that
+// never runs): it preconfigures the pixel array through the KV system and
+// selects a VM program.
+//
+// the rainbow demo is the copy embedded in the firmware image: vm4_v_run_prog
+// points vm4_prog at the _rainbow.f4b virtual file, so no upload is needed.
+//
+// seeding only runs when the pixel config is empty (erased or --cleaned
+// eeprom): KV changes made at runtime persist in sim_eeprom.bin and survive
+// simulator restarts; run with --clean to restore these defaults.
+static void sim_v_setup( void ){
+
+    uint16_t pix_count = 0;
+    kv_i8_get( __KV__pix_count, &pix_count, sizeof(pix_count) );
+
+    if( pix_count != 0 ){
+
+        // already configured by a previous boot
+        return;
+    }
+
+    uint16_t u16;
+    uint8_t u8;
+    bool run = TRUE;
+
+    // 16 x 16 pixel grid
+    u16 = 256;
+    catbus_i8_set( __KV__pix_count,  CATBUS_TYPE_UINT16, &u16, sizeof(u16) );
+
+    u16 = 16;
+    catbus_i8_set( __KV__pix_size_x, CATBUS_TYPE_UINT16, &u16, sizeof(u16) );
+    catbus_i8_set( __KV__pix_size_y, CATBUS_TYPE_UINT16, &u16, sizeof(u16) );
+
+    u8 = 0;
+    catbus_i8_set( __KV__pix_rgb_order, CATBUS_TYPE_UINT8, &u8, sizeof(u8) );
+
+    // preload the built-in rainbow program: sets vm4_prog and raises
+    // VM0's reset flag; the vm4_loader thread starts it
+    char prog[FFS_FILENAME_LEN] = "_rainbow.f4b";
+    vm4_v_run_prog( prog, 0 );
+
+    // persist run so the program also autostarts on later boots
+    // (vm4_v_run_prog only sets the in-memory flag)
+    catbus_i8_set( __KV__vm4_run, CATBUS_TYPE_BOOL, &run, sizeof(run) );
+
+    printf( "sim: configured 16x16 pixel grid, preloaded VM4 program: _rainbow.f4b\n" );
+}
 
 PT_THREAD( sim_terminate_thread( pt_t *pt, void *state ) )
 {
@@ -165,6 +219,13 @@ int main( int argc, char **argv ){
 
             libs_v_init();
         }
+
+        // after the OS and app are initialized: preconfigure the pixel
+        // array and the VM program before the scheduler starts.
+        // the pixel array runs in sim_pixel mode (see hal_pixel.c): it
+        // writes every transfer to stdout as a pixel/color tuple, so both
+        // the VM4 programs and the pixel hardware abstraction are running.
+        sim_v_setup();
     }
 
     sapphire_run();
