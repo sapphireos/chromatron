@@ -44,7 +44,14 @@ void hal_sim_v_idle( uint32_t ms );
 int8_t hal_wifi_i8_poll_fds( struct pollfd *pfds, int8_t max_fds );
 
 // longest single idle sleep, in ms: bounds the worst case wakeup latency
-// for anything the scheduler is not tracking with an alarm
-#define SIM_IDLE_MAX_MS 100
+// for anything the scheduler is not tracking with an alarm.
+//
+// This has to stay small: the frame/fader clock is a timed signal
+// (graphics.c: thread_v_create_timed_signal( GFX_SIGNAL_0, FADER_RATE )),
+// not a thread alarm, so thread_u32_get_next_alarm_delta() cannot see it.
+// A longer sleep does not drop frames - process_timed_signals() re-arms
+// from the due time and the owed frames are drained in a burst - but it
+// paces them in bursts instead of at FADER_RATE.
+#define SIM_IDLE_MAX_MS 1
 
 #endif
