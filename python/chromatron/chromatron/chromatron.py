@@ -1935,7 +1935,7 @@ def fx4(ctx, filename, debug):
 @vm4.command()
 @click.pass_context
 def clean(ctx):
-    """Erase all VM script files (.fxb)"""
+    """Erase all VM script files (.f4b)"""
 
     group = ctx.obj['GROUP']()
     group.clean_vm4_files()
