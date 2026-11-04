@@ -331,6 +331,13 @@ sys_mode_t8 sys_u8_get_mode( void ){
     return sys_mode;
 }
 
+#ifdef __SIM__
+void sys_v_set_mode( sys_mode_t8 mode ){
+
+    sys_mode = mode;
+}
+#endif
+
 loader_status_t8 sys_u8_get_loader_status( void ){
 
     return boot_data.loader_status;

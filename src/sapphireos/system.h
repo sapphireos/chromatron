@@ -142,6 +142,13 @@ bool sys_b_brownout( void );
 uint8_t sys_u8_get_reset_source( void );
 
 sys_mode_t8 sys_u8_get_mode( void );
+
+#ifdef __SIM__
+// simulator-only mode override, used by the --safe / --reset-safe
+// command-line flags in hal_sim.c
+void sys_v_set_mode( sys_mode_t8 mode );
+#endif
+
 loader_status_t8 sys_u8_get_loader_status( void );
 
 void sys_v_get_fw_id( uint8_t id[FW_ID_LENGTH] );

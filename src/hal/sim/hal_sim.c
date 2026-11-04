@@ -38,6 +38,8 @@
 #include <limits.h>
 
 #include "fs.h"
+#include "config.h"
+#include "eeprom.h"
 
 #include "hal_sim.h"
 #include "hal_sim_sdl.h"
@@ -325,6 +327,10 @@ static void _v_print_usage( const char *prog ){
     printf( "  --clean   remove the simulator state files (sim_flash.bin,\n"
             "            sim_eeprom.bin, sim_bootdata.bin) so the next boot\n"
             "            starts from a clean slate, like a fresh device\n" );
+    printf( "  --safe    force entry into safe mode for this boot (one-shot:\n"
+            "            it does not repeat across a simulated reboot)\n" );
+    printf( "  --reset-safe  clear the safe mode recovery boot counter and\n"
+            "            force this boot to start in normal mode\n" );
     printf( "  --help    show this help and exit\n" );
 }
 
@@ -470,6 +476,35 @@ int main( int argc, char **argv ){
             }
         }
 
+        if( strcmp( argv[i], "--safe" ) == 0 ){
+
+            // force this boot into safe mode (applied after init, below);
+            // the flag is consumed at boot so it does not repeat across
+            // a simulated reboot
+            if( getenv( "SIM_RESET_SAFE" ) != 0 ){
+
+                fprintf( stderr, "sim: --safe and --reset-safe conflict\n" );
+                return 1;
+            }
+
+            setenv( "SIM_SAFE", "1", 1 );
+            continue;
+        }
+
+        if( strcmp( argv[i], "--reset-safe" ) == 0 ){
+
+            // clear the recovery boot counter and boot normal (applied
+            // after init, below)
+            if( getenv( "SIM_SAFE" ) != 0 ){
+
+                fprintf( stderr, "sim: --safe and --reset-safe conflict\n" );
+                return 1;
+            }
+
+            setenv( "SIM_RESET_SAFE", "1", 1 );
+            continue;
+        }
+
         if( strcmp( argv[i], "--clean" ) == 0 ){
 
             _v_clean_state_files();
@@ -516,7 +551,42 @@ int main( int argc, char **argv ){
         sim_run_time_ms = (uint32_t)( secs * 1000 );
     }
 
-    if( sapphire_i8_init() == 0 ){
+    int8_t status = sapphire_i8_init();
+
+    // --safe / --reset-safe: apply after init so both the reset-source
+    // decision and the recovery boot counter check have already run.
+    // each flag is one-shot: the environment variable is consumed here,
+    // so a simulated reboot re-execs without it
+    if( getenv( "SIM_SAFE" ) != 0 ){
+
+        unsetenv( "SIM_SAFE" );
+
+        sys_v_set_mode( SYS_MODE_SAFE );
+        status = -1;
+
+        printf( "sim: forcing safe mode\n" );
+        fflush( stdout );
+    }
+
+    if( getenv( "SIM_RESET_SAFE" ) != 0 ){
+
+        unsetenv( "SIM_RESET_SAFE" );
+
+        // clear the recovery boot counter (the one that holds the
+        // system in safe mode) and force this boot to normal
+        uint8_t count = 0;
+
+        cfg_v_set( CFG_PARAM_RECOVERY_MODE_BOOTS, &count );
+        ee_v_commit();
+
+        sys_v_set_mode( SYS_MODE_NORMAL );
+        status = 0;
+
+        printf( "sim: cleared recovery boot counter, forcing normal mode\n" );
+        fflush( stdout );
+    }
+
+    if( status == 0 ){
 
         if( app_v_init != 0 ){
 
