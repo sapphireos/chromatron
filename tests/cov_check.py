@@ -21,7 +21,10 @@
 # Coverage regression gate. Compares a summary.json (produced by
 # coverage_report.py) against the committed baseline.json and fails when
 # overall line coverage, or any single file's line coverage, dropped by
-# more than the tolerance (default 0.005 = 0.5pp).
+# more than the tolerance (default 0.005 = 0.5pp). Files with fewer
+# instrumented lines than MIN_LINES are exempt from the per-file check:
+# on a 2-line header one uncovered line is 50pp, which is noise, not a
+# regression (they still appear in the diff table, marked).
 #
 # This runs on every `make`, independent of whether the report itself was
 # regenerated, so the gate cannot be skipped by an up-to-date build.
@@ -38,6 +41,9 @@ def main():
     ap.add_argument('summary')
     ap.add_argument('baseline')
     ap.add_argument('--tolerance', type=float, default=0.005)
+    ap.add_argument('--min-lines', type=int, default=20,
+                    help='per-file check is skipped for files with fewer '
+                         'instrumented lines than this (default 20)')
     args = ap.parse_args()
 
     try:
@@ -50,6 +56,7 @@ def main():
 
     cur = json.load(open(args.summary))
     tol = args.tolerance
+    min_lines = args.min_lines
 
     b_all = baseline['overall']
     c_all = cur['overall']
@@ -69,22 +76,25 @@ def main():
             continue
 
         delta = c['line_rate'] - b['line_rate']
-        if delta < -tol:
+        small = c['lines_total'] < min_lines
+        if delta < -tol and not small:
             regressed = True
-        rows.append((path, b['line_rate'], c['line_rate'],
-                     '%+.2fpp' % (delta * 100)))
+        note = '%+.2fpp' % (delta * 100)
+        if small:
+            note += ' (small, exempt)'
+        rows.append((path, b['line_rate'], c['line_rate'], note))
 
     d_all = c_all['line_rate'] - b_all['line_rate']
     if d_all < -tol:
         regressed = True
 
     print('coverage vs baseline (tolerance %.1fpp):' % (tol * 100))
-    print('  %-40s %10s %10s %10s' % ('file', 'baseline', 'current', 'delta'))
+    print('  %-40s %10s %10s %18s' % ('file', 'baseline', 'current', 'delta'))
     for path, b, c, note in rows:
         bs = '%.1f%%' % (b * 100) if b is not None else '    -'
         cs = '%.1f%%' % (c * 100) if c is not None else '    -'
-        print('  %-40s %10s %10s %10s' % (path, bs, cs, note))
-    print('  %-40s %10.1f%% %10.1f%% %9.2fpp' % (
+        print('  %-40s %10s %10s %18s' % (path, bs, cs, note))
+    print('  %-40s %10.1f%% %10.1f%% %17.2fpp' % (
         'OVERALL', b_all['line_rate'] * 100, c_all['line_rate'] * 100,
         d_all * 100))
 

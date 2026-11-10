@@ -13,6 +13,8 @@
 
 CC      ?= gcc
 PYTHON  ?= python3
+# gcov must match the compiler that produced the instrumentation
+GCVR    ?= $(shell $(CC) -print-prog-name=gcov)
 
 .DEFAULT_GOAL := test
 
@@ -43,7 +45,6 @@ INC      := -I$(REPO)/src/sapphireos -I$(REPO)/src/lib_gfx \
 COVFLAGS := -fprofile-arcs -ftest-coverage
 
 CFLAGS     := $(SIMFLAGS) $(DEFS) $(INC) $(SANFLAGS) -MMD -MP
-COVFLAGS   := -fprofile-arcs -ftest-coverage
 # SUTs also need sapphiremake's generated keyvalue defines (gen_kv_defs.py)
 
 # --- suites ---------------------------------------------------------------
@@ -149,7 +150,7 @@ $(BUILD)/vectors.h: $(TESTS)/gen_vectors.py $(REPO)/kv_hashes.json $(REPO)/catbu
 $(COVDIR)/summary.json: $(RUNSTAMPS) $(BUILD)/fx4/run/fx4.stamp $(TESTS)/coverage_report.py
 	$(PYTHON) $(TESTS)/coverage_report.py \
 	    $(addprefix --objdir=,$(OBJDIRS) $(REPO)/src/FX4) \
-	    --root $(REPO) --out $(COVDIR)
+	    --gcov $(GCVR) --root $(REPO) --out $(COVDIR)
 
 # regression gate: runs on every make (phony), even when the report is
 # up to date, so an unchanged build cannot skip the check
