@@ -390,6 +390,40 @@ static void sim_v_assign_ip( void ){
 
     if( getenv( "SIM_IP" ) != 0 ){
 
+        // a re-execed process (first-boot reformat reboots during init):
+        // the probe socket survived the execve (which does not close
+        // non-CLOEXEC fds), so adopt it by the fd number recorded in the
+        // environment.  validate it: the fd must be a datagram socket
+        // bound to this sim's IP on the probe port
+        const char *fd_str = getenv( "SIM_IP_RESERVED_FD" );
+
+        if( fd_str != 0 ){
+
+            int fd = (int)strtol( fd_str, 0, 10 );
+
+            int type = -1;
+            socklen_t len = sizeof(type);
+
+            if( ( fd > 0 ) && ( getsockopt( fd, SOL_SOCKET, SO_TYPE, &type, &len ) == 0 ) ){
+
+                if( type == SOCK_DGRAM ){
+
+                    struct sockaddr_in bound;
+                    socklen_t blen = sizeof(bound);
+
+                    if( ( getsockname( fd, (struct sockaddr *)&bound, &blen ) == 0 ) &&
+                        ( bound.sin_port == htons( SIM_IP_PROBE_PORT ) ) &&
+                        ( bound.sin_addr.s_addr == inet_addr( getenv( "SIM_IP" ) ) ) ){
+
+                        sim_ip_reserved_sock = fd;
+                        return;
+                    }
+                }
+            }
+        }
+
+        // no adoptable reservation: keep $SIM_IP as-is, unreserved
+        unsetenv( "SIM_IP_RESERVED_FD" );
         return;
     }
 
@@ -421,6 +455,13 @@ static void sim_v_assign_ip( void ){
             // until the wifi HAL adopts it (see hal_sim_i8_take_reserved_sock)
             sim_ip_reserved_sock = s;
 
+            // record the fd number so a re-execed process (first-boot
+            // reformat reboots during init) can adopt the inherited
+            // socket instead of losing the reservation
+            char fd_buf[8];
+            snprintf( fd_buf, sizeof(fd_buf), "%d", s );
+            setenv( "SIM_IP_RESERVED_FD", fd_buf, 1 );
+
             setenv( "SIM_IP", ip, 1 );
             return;
         }
@@ -435,14 +476,17 @@ static void sim_v_assign_ip( void ){
 
 // the socket reserved by sim_v_assign_ip(): it holds the sim IP on
 // SIM_IP_PROBE_PORT, which is what made that IP claimable.  The wifi HAL
-// adopts it for the firmware socket on that port (one-shot).
+// may only take it for the firmware socket on that port (one-shot); the
+// reservation survives until that port opens
 int hal_sim_i8_take_reserved_sock( void ){
 
     int s = sim_ip_reserved_sock;
     sim_ip_reserved_sock = -1;
 
+
     return s;
 }
+
 
 int main( int argc, char **argv ){
 
@@ -655,6 +699,16 @@ int main( int argc, char **argv ){
 
         cfg_v_set( CFG_PARAM_IP_ADDRESS, &ip );
         cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &subnet );
+
+        // give each sim a unique catbus origin id, derived from its IP.
+        // without this every fresh sim defaults to origin id 1, and a
+        // client that keys nodes by origin id (client.py discover)
+        // collapses several sims into a single node.  in-memory only: it
+        // is re-derived from $SIM_IP on every boot, before the scheduler
+        // starts (catbus_server_thread reads it on its first step)
+        uint64_t device_id = (uint64_t)(uint32_t)inet_addr( getenv( "SIM_IP" ) );
+
+        cfg_v_set( CFG_PARAM_DEVICE_ID, &device_id );
     }
 
     // --safe / --reset-safe: apply after init so both the reset-source

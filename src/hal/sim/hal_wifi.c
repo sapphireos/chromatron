@@ -340,15 +340,20 @@ void sim_wifi_v_open_close_port( uint8_t protocol, uint16_t port, bool open ){
         // adopt the socket reserved by sim_v_assign_ip: it already holds
         // the sim IP on SIM_IP_PROBE_PORT, and holding it across process
         // startup is what keeps a concurrently-launched sim from claiming
-        // the same IP
-        int sock = hal_sim_i8_take_reserved_sock();
+        // the same IP.  Only that port may take it: any earlier port in the
+        // table must not consume it, and a socket the HAL opens for the
+        // probe port itself must be bound (an unbound socket would send
+        // from the host's default loopback IP, not the sim IP)
+        int sock = -1;
+        bool adopted = FALSE;
 
-        if( ( sock < 0 ) || ( port != SIM_IP_PROBE_PORT ) ){
+        if( port == SIM_IP_PROBE_PORT ){
 
-            if( sock >= 0 ){
+            sock = hal_sim_i8_take_reserved_sock();
+            adopted = ( sock >= 0 );
+        }
 
-                close( sock );
-            }
+        if( sock < 0 ){
 
             sock = socket( AF_INET, SOCK_DGRAM, IPPROTO_IP );
         }
@@ -367,9 +372,8 @@ void sim_wifi_v_open_close_port( uint8_t protocol, uint16_t port, bool open ){
         int val = 1;
         setsockopt( sim_conn[index].sock, SOL_SOCKET, SO_BROADCAST | SO_REUSEADDR, &val, sizeof(val) );
 
-        if( port != SIM_IP_PROBE_PORT ){
+        if( !adopted ){
 
-            // the adopted socket is already bound
             struct sockaddr_in bindAddr;
             bindAddr.sin_addr.s_addr = sim_bind_ip;
             bindAddr.sin_family = AF_INET;

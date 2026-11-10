@@ -98,6 +98,9 @@ void cpu_reboot( void ){
     // reset is that main() starts over, so re-execute the same image.
     // mark it as a warm reset for the restarted process (the
     // environment survives execve).
+
+
+
     setenv( "SIM_RESET", "1", 1 );
 
     if( execl( "/proc/self/exe", "sim", ( char *)0 ) < 0 ){
