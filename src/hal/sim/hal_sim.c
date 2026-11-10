@@ -422,9 +422,35 @@ static void sim_v_assign_ip( void ){
             }
         }
 
-        // no adoptable reservation: keep $SIM_IP as-is, unreserved
-        unsetenv( "SIM_IP_RESERVED_FD" );
-        return;
+        // no adoptable reservation: try to (re)claim the configured IP.
+        // a successful bind also re-establishes the reservation; a
+        // failure means another process owns the IP, which for an
+        // explicit choice is a configuration error
+        int s = socket( AF_INET, SOCK_DGRAM, IPPROTO_IP );
+
+        if( s >= 0 ){
+
+            struct sockaddr_in addr;
+            addr.sin_family = AF_INET;
+            addr.sin_port = htons( SIM_IP_PROBE_PORT );
+            addr.sin_addr.s_addr = inet_addr( getenv( "SIM_IP" ) );
+
+            if( bind( s, (struct sockaddr *)&addr, sizeof(addr) ) == 0 ){
+
+                sim_ip_reserved_sock = s;
+
+                char fd_buf[8];
+                snprintf( fd_buf, sizeof(fd_buf), "%d", s );
+                setenv( "SIM_IP_RESERVED_FD", fd_buf, 1 );
+                return;
+            }
+
+            close( s );
+        }
+
+        fprintf( stderr, "sim: IP %s is already in use (give a different --ip)\n",
+                 getenv( "SIM_IP" ) );
+        exit( 1 );
     }
 
     // probe by binding the catbus data port: an IP whose catbus port is
