@@ -38,6 +38,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <poll.h>
 
@@ -55,13 +56,23 @@ functions.
 #define SIM_WIFI_MAX_PORTS      16
 #define SIM_RX_BUF_LEN          1024
 #define SIM_RX_IDLE_WAIT_MS     10
+// loopback broadcast: firmware broadcasts (DISCOVER/ANNOUNCE/SHUTDOWN) are
+// sent here, and every listening port also gets a "tap" socket bound here,
+// so sim traffic stays on this host
+#define SIM_BROADCAST_ADDR      "127.255.255.255"
 
 typedef struct {
     uint16_t lport;
     int sock;
+    int tap; // broadcast tap socket on SIM_BROADCAST_ADDR:lport; -1 if none
 } sim_conn_t;
 
 static sim_conn_t sim_conn[SIM_WIFI_MAX_PORTS];
+
+// per-sim local IP ($SIM_IP, see hal_sim.c): sockets bind here instead of
+// INADDR_ANY, so several sim processes on one host don't collide on the
+// fixed firmware ports and each presents a distinct source IP
+static uint32_t sim_bind_ip; // network byte order
 
 static sim_conn_t *get_conn( uint16_t lport ){
 
@@ -96,10 +107,64 @@ void hal_wifi_v_init( void ){
 
     memset( sim_conn, 0, sizeof(sim_conn) );
 
+    const char *str = getenv( "SIM_IP" );
+    sim_bind_ip = ( str != 0 ) ? inet_addr( str ) : htonl( INADDR_LOOPBACK );
+
     thread_t_create( sim_wifi_rx_thread, PSTR("sim_wifi_rx"), 0, 0 );
 }
 
-// poll open sockets and feed received datagrams into the netmsg layer
+// pull one pending datagram from fd into the netmsg layer; lport is the
+// firmware local port to attribute it to (the tap socket receives for the
+// connection's data port)
+static bool sim_b_rx_datagram( int fd, uint16_t lport ){
+
+    uint8_t buf[SIM_RX_BUF_LEN];
+    struct sockaddr_in sourceAddr;
+    socklen_t socklen = sizeof(sourceAddr);
+
+    int s = recvfrom( fd, buf, sizeof(buf), MSG_DONTWAIT,
+                      (struct sockaddr *)&sourceAddr, &socklen );
+
+    if( s <= 0 ){
+
+        return FALSE;
+    }
+
+    netmsg_t rx_netmsg = netmsg_nm_create( NETMSG_TYPE_UDP );
+
+    if( rx_netmsg < 0 ){
+
+        return TRUE;
+    }
+
+    netmsg_state_t *nm_state = netmsg_vp_get_state( rx_netmsg );
+
+    // set up addressing info
+    nm_state->laddr.port       = lport;
+    nm_state->raddr.port       = ntohs(sourceAddr.sin_port);
+    nm_state->raddr.ipaddr.ip3 = sourceAddr.sin_addr.s_addr >> 0;
+    nm_state->raddr.ipaddr.ip2 = sourceAddr.sin_addr.s_addr >> 8;
+    nm_state->raddr.ipaddr.ip1 = sourceAddr.sin_addr.s_addr >> 16;
+    nm_state->raddr.ipaddr.ip0 = sourceAddr.sin_addr.s_addr >> 24;
+
+    // allocate data buffer
+    nm_state->data_handle = mem2_h_alloc2( s, MEM_TYPE_SOCKET_BUFFER );
+
+    if( nm_state->data_handle < 0 ){
+
+        netmsg_v_release( rx_netmsg );
+        return TRUE;
+    }
+
+    memcpy( mem2_vp_get_ptr( nm_state->data_handle ), buf, s );
+
+    netmsg_v_receive( rx_netmsg );
+
+    return TRUE;
+}
+
+// poll open sockets (and their broadcast taps) and feed received datagrams
+// into the netmsg layer
 PT_THREAD( sim_wifi_rx_thread( pt_t *pt, void *state ) ){
 
 PT_BEGIN( pt );
@@ -115,51 +180,16 @@ PT_BEGIN( pt );
                 continue;
             }
 
-            uint8_t buf[SIM_RX_BUF_LEN];
-            struct sockaddr_in sourceAddr;
-            socklen_t socklen = sizeof(sourceAddr);
+            if( sim_b_rx_datagram( sim_conn[i].sock, sim_conn[i].lport ) ){
 
-            int s = recvfrom( sim_conn[i].sock,
-                              buf, sizeof(buf), MSG_DONTWAIT,
-                              (struct sockaddr *)&sourceAddr, &socklen );
-
-            if( s <= 0 ){
-
-                continue;
+                got_data = TRUE;
             }
 
-            got_data = TRUE;
+            if( ( sim_conn[i].tap >= 0 ) &&
+                sim_b_rx_datagram( sim_conn[i].tap, sim_conn[i].lport ) ){
 
-            netmsg_t rx_netmsg = netmsg_nm_create( NETMSG_TYPE_UDP );
-
-            if( rx_netmsg < 0 ){
-
-                continue;
+                got_data = TRUE;
             }
-
-            netmsg_state_t *nm_state = netmsg_vp_get_state( rx_netmsg );
-
-            // set up addressing info
-            nm_state->laddr.port       = sim_conn[i].lport;
-            nm_state->raddr.port       = ntohs(sourceAddr.sin_port);
-            nm_state->raddr.ipaddr.ip3 = sourceAddr.sin_addr.s_addr >> 0;
-            nm_state->raddr.ipaddr.ip2 = sourceAddr.sin_addr.s_addr >> 8;
-            nm_state->raddr.ipaddr.ip1 = sourceAddr.sin_addr.s_addr >> 16;
-            nm_state->raddr.ipaddr.ip0 = sourceAddr.sin_addr.s_addr >> 24;
-
-            // allocate data buffer
-            nm_state->data_handle = mem2_h_alloc2( s, MEM_TYPE_SOCKET_BUFFER );
-
-            if( nm_state->data_handle < 0 ){
-
-                netmsg_v_release( rx_netmsg );
-
-                continue;
-            }
-
-            memcpy( mem2_vp_get_ptr( nm_state->data_handle ), buf, s );
-
-            netmsg_v_receive( rx_netmsg );
         }
 
         // no traffic: back off so we don't busy spin
@@ -176,8 +206,9 @@ PT_END( pt );
 
 int8_t hal_wifi_i8_poll_fds( struct pollfd *pfds, int8_t max_fds ){
 
-    // hand the open sockets to the idle wait (hal_sim_v_idle) so network
-    // traffic wakes the simulator immediately instead of at the next poll
+    // hand the open sockets (data sockets and their broadcast taps) to the
+    // idle wait (hal_sim_v_idle) so network traffic wakes the simulator
+    // immediately instead of at the next poll
     int8_t count = 0;
 
     for( uint8_t i = 0; i < cnt_of_array(sim_conn); i++ ){
@@ -187,16 +218,23 @@ int8_t hal_wifi_i8_poll_fds( struct pollfd *pfds, int8_t max_fds ){
             continue;
         }
 
-        if( count >= max_fds ){
+        if( count < max_fds ){
 
-            break;
+            pfds[count].fd = sim_conn[i].sock;
+            pfds[count].events = POLLIN;
+            pfds[count].revents = 0;
+
+            count++;
         }
 
-        pfds[count].fd = sim_conn[i].sock;
-        pfds[count].events = POLLIN;
-        pfds[count].revents = 0;
+        if( ( sim_conn[i].tap >= 0 ) && ( count < max_fds ) ){
 
-        count++;
+            pfds[count].fd = sim_conn[i].tap;
+            pfds[count].events = POLLIN;
+            pfds[count].revents = 0;
+
+            count++;
+        }
     }
 
     return count;
@@ -234,6 +272,14 @@ int8_t wifi_i8_send_udp( netmsg_t netmsg ){
 
     uint32_t dest_ip = 0;
     memcpy( &dest_ip, &netmsg_state->raddr.ipaddr, sizeof(dest_ip) );
+
+    // keep sim-originated global broadcasts on the loopback, so
+    // announce/shutdown streams don't leak to the LAN (the sim is not
+    // reachable from there anyway)
+    if( dest_ip == (uint32_t)0xFFFFFFFF ){
+
+        dest_ip = inet_addr( SIM_BROADCAST_ADDR );
+    }
 
     struct sockaddr_in destAddr;
     destAddr.sin_addr.s_addr = dest_ip; // 0xFFFFFFFF is INADDR_BROADCAST
@@ -289,7 +335,25 @@ void sim_wifi_v_open_close_port( uint8_t protocol, uint16_t port, bool open ){
         }
 
         sim_conn[index].lport = port;
-        sim_conn[index].sock  = socket( AF_INET, SOCK_DGRAM, IPPROTO_IP );
+        sim_conn[index].tap   = -1;
+
+        // adopt the socket reserved by sim_v_assign_ip: it already holds
+        // the sim IP on SIM_IP_PROBE_PORT, and holding it across process
+        // startup is what keeps a concurrently-launched sim from claiming
+        // the same IP
+        int sock = hal_sim_i8_take_reserved_sock();
+
+        if( ( sock < 0 ) || ( port != SIM_IP_PROBE_PORT ) ){
+
+            if( sock >= 0 ){
+
+                close( sock );
+            }
+
+            sock = socket( AF_INET, SOCK_DGRAM, IPPROTO_IP );
+        }
+
+        sim_conn[index].sock = sock;
 
         if( sim_conn[index].sock < 0 ){
 
@@ -303,16 +367,45 @@ void sim_wifi_v_open_close_port( uint8_t protocol, uint16_t port, bool open ){
         int val = 1;
         setsockopt( sim_conn[index].sock, SOL_SOCKET, SO_BROADCAST | SO_REUSEADDR, &val, sizeof(val) );
 
-        struct sockaddr_in bindAddr;
-        bindAddr.sin_addr.s_addr = htonl( INADDR_ANY );
-        bindAddr.sin_family = AF_INET;
-        bindAddr.sin_port = htons( port );
+        if( port != SIM_IP_PROBE_PORT ){
 
-        if( bind( sim_conn[index].sock, (struct sockaddr *)&bindAddr, sizeof(bindAddr) ) < 0 ){
+            // the adopted socket is already bound
+            struct sockaddr_in bindAddr;
+            bindAddr.sin_addr.s_addr = sim_bind_ip;
+            bindAddr.sin_family = AF_INET;
+            bindAddr.sin_port = htons( port );
 
-            // low ports (like the wifi echo port 7) may not be bindable
-            // without privileges; keep the socket, the service just won't work
-            log_v_debug_P( PSTR("sim udp bind failed: port %u err: %d"), port, errno );
+            if( bind( sim_conn[index].sock, (struct sockaddr *)&bindAddr, sizeof(bindAddr) ) < 0 ){
+
+                // low ports (like the wifi echo port 7) may not be bindable
+                // without privileges; keep the socket, the service just won't work
+                log_v_debug_P( PSTR("sim udp bind failed: port %u err: %d"), port, errno );
+            }
+        }
+
+        // broadcast tap: a socket bound to a specific IP never receives
+        // broadcasts, so listen on the loopback broadcast address for this
+        // port too.  All sim processes may share the tuple (SO_REUSEADDR
+        // fans out to every binder), which is how each sim hears discovery
+        // traffic without fighting over the fixed firmware ports
+        sim_conn[index].tap = socket( AF_INET, SOCK_DGRAM, IPPROTO_IP );
+
+        if( sim_conn[index].tap >= 0 ){
+
+            setsockopt( sim_conn[index].tap, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val) );
+
+            struct sockaddr_in tapAddr;
+            tapAddr.sin_addr.s_addr = inet_addr( SIM_BROADCAST_ADDR );
+            tapAddr.sin_family = AF_INET;
+            tapAddr.sin_port = htons( port );
+
+            if( bind( sim_conn[index].tap, (struct sockaddr *)&tapAddr, sizeof(tapAddr) ) < 0 ){
+
+                log_v_debug_P( PSTR("sim udp tap bind failed: port %u err: %d"), port, errno );
+
+                close( sim_conn[index].tap );
+                sim_conn[index].tap = -1;
+            }
         }
     }
     else{
@@ -322,6 +415,11 @@ void sim_wifi_v_open_close_port( uint8_t protocol, uint16_t port, bool open ){
         if( conn != 0 ){
 
             close( conn->sock );
+
+            if( conn->tap >= 0 ){
+
+                close( conn->tap );
+            }
 
             memset( conn, 0, sizeof(*conn) );
         }

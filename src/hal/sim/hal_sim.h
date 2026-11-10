@@ -43,6 +43,16 @@ void hal_sim_v_idle( uint32_t ms );
 // the number of descriptors filled in (implemented in hal_wifi.c)
 int8_t hal_wifi_i8_poll_fds( struct pollfd *pfds, int8_t max_fds );
 
+// the port sim_v_assign_ip() probes to claim a sim IP (the catbus data
+// port): while the probe socket is held, the IP is taken for this process
+#define SIM_IP_PROBE_PORT   44632
+
+// the socket reserved by sim_v_assign_ip() (sim IP:SIM_IP_PROBE_PORT): the
+// wifi HAL adopts it when the firmware opens that port, so the IP cannot be
+// claimed by a concurrently-launched sim in the probe-to-bind window.
+// returns -1 if there is no reservation
+int hal_sim_i8_take_reserved_sock( void );
+
 // longest single idle sleep, in ms: bounds the worst case wakeup latency
 // for anything the scheduler is not tracking with an alarm.
 //

@@ -36,6 +36,9 @@
 #include <unistd.h>
 #include <poll.h>
 #include <limits.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "fs.h"
 #include "config.h"
@@ -282,9 +285,10 @@ void hal_sim_v_init( void ){
     }
 }
 
-// sockets an idle wait can watch: at least the size of the simulator
-// socket table (SIM_WIFI_MAX_PORTS in hal_wifi.c)
-#define SIM_IDLE_MAX_FDS 16
+// sockets an idle wait can watch: at least twice the simulator socket table
+// (SIM_WIFI_MAX_PORTS in hal_wifi.c), since each firmware socket owns a data
+// socket and a broadcast tap socket
+#define SIM_IDLE_MAX_FDS 32
 
 void hal_sim_v_idle( uint32_t ms ){
 
@@ -315,6 +319,8 @@ static void _v_print_usage( const char *prog ){
     printf( "  run_time  (optional) seconds to run before the process exits;\n"
             "            blank or omitted runs until killed ($SIM_RUN_TIME\n"
             "            works too)\n" );
+    printf( "  --ip      local IP for this sim (default: first free 127.0.0.N,\n"
+            "            N = 2..32, so several sims can run on the same host)\n" );
     printf( "  --sdl     draw the pixel array in an SDL window on the host\n"
             "            screen\n" );
     printf( "  --prog    .fx4 or .f4b program file to load and run in VM0;\n"
@@ -371,6 +377,71 @@ static void _v_clean_state_files( void ){
             printf( "sim: removed %s\n", sim_state_files[i] );
         }
     }
+}
+
+// per-sim loopback IP: each sim process on the host binds all of its sockets
+// to its own 127.0.0.N, so several sims can run on one host without
+// colliding on the fixed firmware ports or presenting the same source IP.
+// $SIM_IP carries the choice across a simulated reboot (re-exec without the
+// command line).
+static int sim_ip_reserved_sock = -1;
+
+static void sim_v_assign_ip( void ){
+
+    if( getenv( "SIM_IP" ) != 0 ){
+
+        return;
+    }
+
+    // probe by binding the catbus data port: an IP whose catbus port is
+    // taken cannot serve this sim
+    #define SIM_IP_FIRST        2
+    #define SIM_IP_LAST         32
+
+    for( uint8_t n = SIM_IP_FIRST; n <= SIM_IP_LAST; n++ ){
+
+        char ip[16];
+        snprintf( ip, sizeof(ip), "127.0.0.%u", n );
+
+        int s = socket( AF_INET, SOCK_DGRAM, IPPROTO_IP );
+
+        if( s < 0 ){
+
+            break;
+        }
+
+        struct sockaddr_in addr;
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons( SIM_IP_PROBE_PORT );
+        addr.sin_addr.s_addr = inet_addr( ip );
+
+        if( bind( s, (struct sockaddr *)&addr, sizeof(addr) ) == 0 ){
+
+            // keep the socket open: it reserves the IP for this process
+            // until the wifi HAL adopts it (see hal_sim_i8_take_reserved_sock)
+            sim_ip_reserved_sock = s;
+
+            setenv( "SIM_IP", ip, 1 );
+            return;
+        }
+
+        close( s );
+    }
+
+    fprintf( stderr, "sim: no free loopback IP in 127.0.0.%d-%d (give one with --ip)\n",
+             SIM_IP_FIRST, SIM_IP_LAST );
+    exit( 1 );
+}
+
+// the socket reserved by sim_v_assign_ip(): it holds the sim IP on
+// SIM_IP_PROBE_PORT, which is what made that IP claimable.  The wifi HAL
+// adopts it for the firmware socket on that port (one-shot).
+int hal_sim_i8_take_reserved_sock( void ){
+
+    int s = sim_ip_reserved_sock;
+    sim_ip_reserved_sock = -1;
+
+    return s;
 }
 
 int main( int argc, char **argv ){
@@ -476,6 +547,22 @@ int main( int argc, char **argv ){
             }
         }
 
+        if( strcmp( argv[i], "--ip" ) == 0 ){
+
+            // local IP for this sim (default: auto-assigned 127.0.0.N,
+            // see sim_v_assign_ip)
+            const char *value = _vp_next_arg( argc, argv, &i, "--ip" );
+
+            if( inet_addr( value ) == INADDR_NONE ){
+
+                fprintf( stderr, "sim: --ip: bad address: %s\n", value );
+                return 1;
+            }
+
+            setenv( "SIM_IP", value, 1 );
+            continue;
+        }
+
         if( strcmp( argv[i], "--safe" ) == 0 ){
 
             // force this boot into safe mode (applied after init, below);
@@ -551,7 +638,24 @@ int main( int argc, char **argv ){
         sim_run_time_ms = (uint32_t)( secs * 1000 );
     }
 
+    // pick this sim's local IP (kept in the environment across reboots)
+    sim_v_assign_ip();
+
+    printf( "sim: IP address: %s\n", getenv( "SIM_IP" ) );
+    fflush( stdout );
+
     int8_t status = sapphire_i8_init();
+
+    // tell the firmware the sim's local IP (in-memory only, like the manual
+    // IP parameters in config.c)
+    if( inet_addr( getenv( "SIM_IP" ) ) != INADDR_NONE ){
+
+        ip_addr4_t ip = ip_a_from_int( (uint32_t)inet_addr( getenv( "SIM_IP" ) ) );
+        ip_addr4_t subnet = ip_a_addr( 255, 0, 0, 0 );
+
+        cfg_v_set( CFG_PARAM_IP_ADDRESS, &ip );
+        cfg_v_set( CFG_PARAM_IP_SUBNET_MASK, &subnet );
+    }
 
     // --safe / --reset-safe: apply after init so both the reset-source
     // decision and the recovery boot counter check have already run.
