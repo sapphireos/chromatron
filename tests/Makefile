@@ -1,8 +1,10 @@
 # Chromatron host unit tests (Phase 1)
 #
-#   make                build + run all suites + coverage report + baseline check
+#   make                build + run all suites (incl. FX4) + coverage + gate
 #   make test           same as above
-#   make ASAN=1         build & run with ASan/UBSan (separate build dir)
+#   make fx4            build & run just the FX4 language test suite
+#   make ASAN=1         build & run unit suites with ASan/UBSan (separate
+#                       build dir; FX4 runs with its own default flags)
 #   make cov-baseline   refresh baseline.json (run deliberately, after review)
 #   make clean          remove build/ and coverage/
 #
@@ -107,6 +109,7 @@ $(BUILD)/$(1)/obj/test_$(1).o: $(TESTS)/test_$(1).c $(TESTDEP_$(1)) | $(BUILD)/$
 $(BUILD)/$(1)/run/$(1).stamp: $(BUILD)/$(1)/bin/$(1) | $(BUILD)/$(1)/run
 	cd $$(@D) && { ../bin/$(1) > stdout.log 2>&1 || { \
 	    echo "==== SUITE $(1) FAILED ===="; cat stdout.log; exit 1; }; }
+	@awk '/Tests/ && /Failures/ {print "-- $(1): " $$$$0}' $$(@D)/stdout.log
 	@touch $$@
 
 endef
@@ -115,14 +118,37 @@ $(foreach s,$(SUITES),$(eval $(call suite_rules,$(s))))
 RUNSTAMPS := $(foreach s,$(SUITES),$(BUILD)/$(s)/run/$(s).stamp)
 OBJDIRS   := $(foreach s,$(SUITES),$(BUILD)/$(s)/obj)
 
+# --- FX4 language test suite (delegated) ----------------------------------
+# src/FX4 has its own Makefile and 80+ .fx4 regression tests, run with
+# `./fx4 tests -r` (compiles every test and executes the VM; non-zero exit
+# on failure). SCAN=1 skips their -fanalyzer pass (very slow). COV=1 adds
+# the gcov flags so the suite is part of the coverage report (unity, the
+# harness, is excluded by the report). It is cleaned and rebuilt on every
+# run: their Makefile does not track flag changes, so a stale mix of
+# instrumented/uninstrumented objects would corrupt the gcda data.
+
+FX4_SRCS := $(wildcard $(REPO)/src/FX4/*.c $(REPO)/src/FX4/*.h \
+                  $(REPO)/src/FX4/tests/*.fx4)
+
+$(BUILD)/fx4/run/fx4.stamp: $(FX4_SRCS) | $(BUILD)/fx4/run
+	$(MAKE) -C $(REPO)/src/FX4 clean
+	$(MAKE) -C $(REPO)/src/FX4 fx4 SCAN=1 COV=1
+	cd $(REPO)/src/FX4 && { ./fx4 tests -r > $(BUILD)/fx4/run/stdout.log 2>&1 || { \
+	    echo "==== FX4 SUITE FAILED ===="; cat $(BUILD)/fx4/run/stdout.log; exit 1; }; }
+	@awk '/Compiled [0-9]+ files/ {print "-- fx4: " $$0}' $(BUILD)/fx4/run/stdout.log
+	@touch $@
+
+fx4: $(BUILD)/fx4/run/fx4.stamp
+
 # generated hash test vectors from the repo-root JSON files
 $(BUILD)/vectors.h: $(TESTS)/gen_vectors.py $(REPO)/kv_hashes.json $(REPO)/catbus_hashes.json | $(BUILD)
 	$(PYTHON) $(TESTS)/gen_vectors.py $(REPO) $@
 
-# coverage: aggregate gcov JSON over every suite's object dir
-$(COVDIR)/summary.json: $(RUNSTAMPS) $(TESTS)/coverage_report.py
+# coverage: aggregate gcov JSON over every suite's object dir (FX4's
+# objects live in src/FX4 itself)
+$(COVDIR)/summary.json: $(RUNSTAMPS) $(BUILD)/fx4/run/fx4.stamp $(TESTS)/coverage_report.py
 	$(PYTHON) $(TESTS)/coverage_report.py \
-	    $(addprefix --objdir=,$(OBJDIRS)) \
+	    $(addprefix --objdir=,$(OBJDIRS) $(REPO)/src/FX4) \
 	    --root $(REPO) --out $(COVDIR)
 
 # regression gate: runs on every make (phony), even when the report is
@@ -130,8 +156,8 @@ $(COVDIR)/summary.json: $(RUNSTAMPS) $(TESTS)/coverage_report.py
 check: $(COVDIR)/summary.json
 	$(PYTHON) $(TESTS)/cov_check.py $(COVDIR)/summary.json $(BASELINE)
 
-# default: everything
-test: check
+# default: unit suites + FX4 suite + coverage report + baseline gate
+test: fx4 check
 all: test
 
 # deliberate action: record the current coverage as the new baseline
@@ -154,7 +180,8 @@ $(BUILD)/%/bin:
 
 clean:
 	rm -rf $(TESTS)/build $(TESTS)/build_asan $(COVDIR)
+	rm -f $(REPO)/src/FX4/*.gcno $(REPO)/src/FX4/*.gcda
 
-.PHONY: test all clean cov-baseline check
+.PHONY: test all clean cov-baseline check fx4
 
 -include $(wildcard $(addprefix $(BUILD)/,test_*/obj/*.d test_*/obj/*/*.d test_*/obj/*/*/*.d))

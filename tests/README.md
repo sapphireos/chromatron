@@ -5,13 +5,22 @@ with plain `gcc` - no cross toolchain, no sapphiremake, no hardware.
 
 ## Usage
 
-    make                  # build + run all suites + coverage report
-    make ASAN=1           # same under ASan/UBSan (separate build dir)
+    make                  # build + run all suites (incl. FX4) + coverage report
+    make fx4              # just the FX4 language suite (80+ .fx4 tests)
+    make ASAN=1           # unit suites under ASan/UBSan (separate build dir)
     make cov-baseline     # record current coverage as the new baseline
     make clean
 
 No Python dependencies are required: the coverage pipeline is stdlib-only
 and drives `gcov --json-format` from your GCC (>= 9).
+
+The FX4 suite is delegated to `src/FX4`'s own Makefile (`make fx4
+SCAN=1 COV=1`) and runner (`./fx4 tests -r`); it is cleaned and rebuilt
+on every run because that Makefile does not track flag changes. Its
+sources (compiler/VM) are part of the coverage report - unity.c, the
+test harness, is excluded. Each suite prints a one-line summary
+(`-- hash: 8 Tests 0 Failures`, `-- fx4: Compiled 86 files`); full
+output is in `build/<suite>/run/stdout.log` and dumped on failure.
 
 ## Layout
 

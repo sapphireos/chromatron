@@ -5,6 +5,7 @@ CC = gcc
 
 SCAN = 0
 ASAN = 0
+COV  = 0
 
 # Compiler flags
 CFLAGS = -fno-strict-aliasing -Wall -Wextra -std=gnu99 -Og -g -Wno-unused-parameter -Wno-unused-result
@@ -15,6 +16,11 @@ endif
 
 ifeq ($(ASAN), 1)
 CFLAGS += -fsanitize=address -fsanitize=undefined
+endif
+
+ifeq ($(COV), 1)
+# coverage instrumentation for the host unit test harness (tests/Makefile)
+CFLAGS += -fprofile-arcs -ftest-coverage
 endif
 
 # Preprocessor definitions

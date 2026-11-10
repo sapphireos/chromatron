@@ -43,8 +43,35 @@ import tempfile
 import time
 from xml.sax.saxutils import escape
 
-# report only these top-level paths (the Phase 1 scope)
-REPORT_PREFIXES = ('src/sapphireos/', 'src/lib_gfx/')
+# report these top-level paths (the Phase 1 scope, incl. the FX4
+# compiler/VM exercised by its own test suite)
+REPORT_PREFIXES = ('src/sapphireos/', 'src/lib_gfx/', 'src/FX4/')
+
+# harness code, not sources under test (even when it lives in a reported dir)
+EXCLUDE_BASENAMES = ('unity.c', 'unity.h')
+
+
+def to_report_rel(src, *bases):
+    """Map a compile-time source path to its repo-relative report form.
+
+    The .gcno files embed the path the source was compiled under, which
+    differs between machines and checkouts (this repo has been built
+    under several roots), and can be relative when the build ran from
+    the source dir (FX4). Try the path as-is, then resolved against the
+    given bases (object dir, repo root), anchoring on the reported
+    prefix rather than assuming any particular root.
+    """
+    cands = [src]
+    if not os.path.isabs(src):
+        cands += [os.path.normpath(os.path.join(b, src)) for b in bases if b]
+
+    for cand in cands:
+        for p in REPORT_PREFIXES:
+            i = cand.find('/' + p)
+            if i >= 0 and cand[i + 1:].startswith(p):
+                return cand[i + 1:]
+
+    return None
 
 
 def collect_lines(gcov, objdir):
@@ -161,9 +188,8 @@ def main():
     merged = {}
     for objdir in objdirs:
         for src, lines in collect_lines(args.gcov, objdir).items():
-            rel = os.path.relpath(src, root)
-            if rel.startswith(('.git', 'tests/')) or not \
-                    any(rel.startswith(p) for p in REPORT_PREFIXES):
+            rel = to_report_rel(src, objdir, root)
+            if rel is None or os.path.basename(src) in EXCLUDE_BASENAMES:
                 continue
             agg = merged.setdefault(rel, {})
             for ln, c in lines.items():

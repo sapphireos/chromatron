@@ -1,12 +1,62 @@
 {
   "tool": "coverage_report.py (gcov)",
-  "generated": "2026-11-09 22:11:39",
+  "generated": "2026-11-10 08:44:44",
   "overall": {
-    "lines_total": 947,
-    "lines_covered": 263,
-    "line_rate": 0.27771911298838436
+    "lines_total": 6898,
+    "lines_covered": 4155,
+    "line_rate": 0.6023485068135691
   },
   "files": {
+    "src/FX4/array.c": {
+      "lines_total": 65,
+      "lines_covered": 58,
+      "line_rate": 0.8923076923076924
+    },
+    "src/FX4/bytecode.c": {
+      "lines_total": 1492,
+      "lines_covered": 973,
+      "line_rate": 0.6521447721179625
+    },
+    "src/FX4/debug_printf.c": {
+      "lines_total": 21,
+      "lines_covered": 3,
+      "line_rate": 0.14285714285714285
+    },
+    "src/FX4/hash32.c": {
+      "lines_total": 43,
+      "lines_covered": 36,
+      "line_rate": 0.8372093023255814
+    },
+    "src/FX4/ir.c": {
+      "lines_total": 1603,
+      "lines_covered": 1200,
+      "line_rate": 0.7485963817841547
+    },
+    "src/FX4/lexer.c": {
+      "lines_total": 444,
+      "lines_covered": 387,
+      "line_rate": 0.8716216216216216
+    },
+    "src/FX4/main.c": {
+      "lines_total": 158,
+      "lines_covered": 98,
+      "line_rate": 0.620253164556962
+    },
+    "src/FX4/parser.c": {
+      "lines_total": 1278,
+      "lines_covered": 781,
+      "line_rate": 0.6111111111111112
+    },
+    "src/FX4/pixelarray.c": {
+      "lines_total": 617,
+      "lines_covered": 267,
+      "line_rate": 0.4327390599675851
+    },
+    "src/FX4/syslib.c": {
+      "lines_total": 230,
+      "lines_covered": 89,
+      "line_rate": 0.3869565217391304
+    },
     "src/sapphireos/ffs_block.c": {
       "lines_total": 306,
       "lines_covered": 91,

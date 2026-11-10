@@ -357,6 +357,8 @@ int main(int argc, char **argv){
         }
     }
 
-
-    return status;
+    // success: compile and VM errors exit/return above, so reaching here
+    // means every test passed. (Returning the final VM status here made
+    // the runner exit non-zero even when all tests were OK.)
+    return 0;
 }
