@@ -1,0 +1,51 @@
+{
+  "tool": "coverage_report.py (gcov)",
+  "generated": "2026-11-09 22:11:39",
+  "overall": {
+    "lines_total": 947,
+    "lines_covered": 263,
+    "line_rate": 0.27771911298838436
+  },
+  "files": {
+    "src/sapphireos/ffs_block.c": {
+      "lines_total": 306,
+      "lines_covered": 91,
+      "line_rate": 0.2973856209150327
+    },
+    "src/sapphireos/ffs_block.h": {
+      "lines_total": 2,
+      "lines_covered": 2,
+      "line_rate": 1.0
+    },
+    "src/sapphireos/ffs_page.c": {
+      "lines_total": 298,
+      "lines_covered": 42,
+      "line_rate": 0.14093959731543623
+    },
+    "src/sapphireos/ffs_page.h": {
+      "lines_total": 2,
+      "lines_covered": 0,
+      "line_rate": 0.0
+    },
+    "src/sapphireos/flash25.c": {
+      "lines_total": 42,
+      "lines_covered": 14,
+      "line_rate": 0.3333333333333333
+    },
+    "src/sapphireos/flash25.h": {
+      "lines_total": 2,
+      "lines_covered": 0,
+      "line_rate": 0.0
+    },
+    "src/sapphireos/hash.c": {
+      "lines_total": 46,
+      "lines_covered": 46,
+      "line_rate": 1.0
+    },
+    "src/sapphireos/memory.c": {
+      "lines_total": 249,
+      "lines_covered": 68,
+      "line_rate": 0.27309236947791166
+    }
+  }
+}
