@@ -10,9 +10,17 @@
 #define DEVICE_DB_PORT    44638
 
 #define DEVICE_DB_MAGIC	  0x8127159A
-#define DEVICE_DB_VERSION 1
+#define DEVICE_DB_VERSION 2
 
 #define DEVICE_DB_TICK    2 // seconds
+
+// optional message section flags.
+// flagged sections always follow the base message, in this order.
+#define DEVICE_MSG_FLAG_GFX     0x0001
+#define DEVICE_MSG_FLAG_BATT    0x0002
+#define DEVICE_MSG_FLAG_SOLAR   0x0004
+
+#define DEVICE_MSG_FLAGS_ALL    ( DEVICE_MSG_FLAG_GFX | DEVICE_MSG_FLAG_BATT | DEVICE_MSG_FLAG_SOLAR )
 
 typedef struct __attribute__((packed)){
 	// gfx info
@@ -44,6 +52,7 @@ typedef struct __attribute__((packed)){
 typedef struct __attribute__((packed)){
 	uint32_t magic;
 	uint16_t version;
+	uint16_t flags;    // DEVICE_MSG_FLAG_*, which optional sections follow
 
 	// basic info
 	catbus_query_t query;
@@ -51,13 +60,20 @@ typedef struct __attribute__((packed)){
 	uint8_t mode;
 	int8_t rssi;
 
+	// optional sections (only present if flagged)
 	device_gfx_t gfx;
 	device_batt_t batt;
 	device_solar_t solar;
 } device_msg_t;
 
 
+// size of the message with no optional sections
+#define DEVICE_MSG_BASE_SIZE ( sizeof(device_msg_t) - sizeof(device_gfx_t) - sizeof(device_batt_t) - sizeof(device_solar_t) )
+
+
 // internal database structure
+// only the fields consumers actually read are kept; the wire message
+// carries the full optional sections (see device_msg_t)
 typedef struct __attribute__((packed)){
 	catbus_query_t tags;
     ip_addr4_t ip;

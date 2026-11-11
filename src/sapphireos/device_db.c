@@ -230,10 +230,10 @@ void device_db_v_init( void ){
 
 	list_v_init( &device_list );
 
-	// if( sys_u8_get_mode() == SYS_MODE_SAFE ){
+	if( sys_u8_get_mode() == SYS_MODE_SAFE ){
 
-	// 	return;
-	// }
+		return;
+	}
 
 	fs_v_create_virtual( PSTR("device_db"), device_db_vfile );
 
@@ -309,6 +309,7 @@ static void send_device_msg( void ){
 	device_msg_t msg = {
 		.magic = DEVICE_DB_MAGIC,
 		.version = DEVICE_DB_VERSION,
+		.flags = 0,
 		// .tags -> see below
 		// .gfx_sync_group = vm_sync_u32_get_sync_group_hash(),
 		.uptime = tmr_u64_get_system_time_ms(),
@@ -322,6 +323,9 @@ static void send_device_msg( void ){
 
 	// attach query tags
 	memcpy( msg.query.tags, tag_hashes_ptr, sizeof(msg.query) );
+
+	// only transmit the optional sections that are enabled
+	uint16_t len = DEVICE_MSG_BASE_SIZE;
 
 	if( sys_u8_get_mode() != SYS_MODE_SAFE ){
 
@@ -339,6 +343,9 @@ static void send_device_msg( void ){
 		kv_i8_get( __KV__superconductor_enabled,&msg.gfx.superconductor,		sizeof(msg.gfx.superconductor) );
 		kv_i8_get( __KV__pixel_power, 			&msg.gfx.pixel_power, 			sizeof(msg.gfx.pixel_power) );
 
+		msg.flags |= DEVICE_MSG_FLAG_GFX;
+		len += sizeof(device_gfx_t);
+
 		if( kv_b_get_boolean( __KV__batt_enable ) ){
 
 			kv_i8_get( __KV__batt_volts, 			&msg.batt.batt_volts, 			sizeof(msg.batt.batt_volts) );
@@ -346,6 +353,9 @@ static void send_device_msg( void ){
 			kv_i8_get( __KV__batt_temp,   			&msg.batt.batt_temp,  			sizeof(msg.batt.batt_temp) );
 			kv_i8_get( __KV__batt_charging,			&msg.batt.batt_status,  		sizeof(msg.batt.batt_status) );
 			kv_i8_get( __KV__light_level,  			&msg.batt.light_level,  		sizeof(msg.batt.light_level) );
+
+			msg.flags |= DEVICE_MSG_FLAG_BATT;
+			len += sizeof(device_batt_t);
 		}
 
 		if( kv_b_get_boolean( __KV__solar_enable ) ){
@@ -355,6 +365,9 @@ static void send_device_msg( void ){
 
 			kv_i8_get( __KV__batt_case_temp,			&msg.solar.ambient_temp, 			sizeof(msg.solar.ambient_temp) );
 			kv_i8_get( __KV__batt_ambient_temp,			&msg.solar.case_temp, 				sizeof(msg.solar.case_temp) );
+
+			msg.flags |= DEVICE_MSG_FLAG_SOLAR;
+			len += sizeof(device_solar_t);
 		}
 	}
 
@@ -363,7 +376,7 @@ static void send_device_msg( void ){
         .port = DEVICE_DB_PORT
     };
 
-    sock_i16_sendto( sock, &msg, sizeof(msg), &raddr );
+    sock_i16_sendto( sock, &msg, len, &raddr );
 }
 
 PT_THREAD( device_server_thread( pt_t *pt, void *state ) )
@@ -376,7 +389,9 @@ PT_BEGIN( pt );
 
 		THREAD_WAIT_WHILE( pt, sock_i8_recvfrom( sock ) < 0 );
 
-        if( sock_i16_get_bytes_read( sock ) <= 0 ){
+        uint16_t bytes_read = sock_i16_get_bytes_read( sock );
+
+        if( bytes_read < DEVICE_MSG_BASE_SIZE ){
 
             continue;
         }
@@ -393,24 +408,70 @@ PT_BEGIN( pt );
         	continue;
         }
 
+        // only the fields the database keeps are extracted;
+        // unadvertised sections leave their fields zeroed
+        device_data_t device = {0};
+
+        // reject unknown flag bits
+        if( msg->flags & ~DEVICE_MSG_FLAGS_ALL ){
+
+            continue;
+        }
+
+        // validate the datagram length against the declared sections
+        uint16_t expected = DEVICE_MSG_BASE_SIZE;
+
+        if( msg->flags & DEVICE_MSG_FLAG_GFX ){
+
+            expected += sizeof(device_gfx_t);
+        }
+
+        if( msg->flags & DEVICE_MSG_FLAG_BATT ){
+
+            expected += sizeof(device_batt_t);
+        }
+
+        if( msg->flags & DEVICE_MSG_FLAG_SOLAR ){
+
+            expected += sizeof(device_solar_t);
+        }
+
+        if( bytes_read != expected ){
+
+            continue;
+        }
+
+        device.tags   = msg->query;
+        device.uptime = msg->uptime;
+        device.mode   = msg->mode;
+
+        if( msg->flags & DEVICE_MSG_FLAG_GFX ){
+
+            device.gfx_sync_group = msg->gfx.gfx_sync_group;
+            device.superconductor = msg->gfx.superconductor;
+        }
+
+   
         sock_addr_t raddr;
         sock_v_get_raddr( sock, &raddr );
+
+        device.ip = raddr.ipaddr;
 
         list_node_t ln = device_list.head;
 
 	    while( ln >= 0 ){
 
-	        device_data_t *device = list_vp_get_data( ln );
+	        device_data_t *data = list_vp_get_data( ln );
 
-	        if( ip_b_addr_compare( raddr.ipaddr, device->ip ) ){
+	        if( ip_b_addr_compare( raddr.ipaddr, data->ip ) ){
 
 	        	// update
-	        	device->tags 			= msg->query;
-	        	device->gfx_sync_group 	= msg->gfx.gfx_sync_group;
-	        	device->superconductor 	= msg->gfx.superconductor;
-	        	device->uptime          = msg->uptime;
-	        	device->mode          	= msg->mode;
-	        	device->timeout 		= DEVICE_DB_TIMEOUT;
+	        	data->tags   			= device.tags;
+	        	data->gfx_sync_group 	= device.gfx_sync_group;
+	        	data->superconductor 	= device.superconductor;
+	        	data->uptime          	= device.uptime;
+	        	data->mode            	= device.mode;
+	        	data->timeout 			= DEVICE_DB_TIMEOUT;
 
 	        	goto done;
 	        }
@@ -420,15 +481,7 @@ PT_BEGIN( pt );
 
 	    // device not found
 
-	    device_data_t device = {
-	    	msg->query,
-	    	raddr.ipaddr,
-	    	msg->gfx.gfx_sync_group,
-	    	msg->gfx.superconductor,
-	    	msg->uptime,
-	    	msg->mode,
-	    	DEVICE_DB_TIMEOUT
-	    };
+	    device.timeout = DEVICE_DB_TIMEOUT;
 
 	    ln = list_ln_create_node2( &device, sizeof(device), MEM_TYPE_DEVICEDB );
 

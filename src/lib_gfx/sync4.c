@@ -230,6 +230,8 @@ bool _query_leader( ip_addr4_t *ip ){
     while( device != 0 ){
 
         // check for sync group match
+        // (devices that don't advertise a gfx section store group 0,
+        // which never matches: we only run this with a non-zero group)
         if( device->gfx_sync_group != sync_group_hash ){
 
             goto next;
