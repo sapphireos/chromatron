@@ -1,10 +1,10 @@
 {
   "tool": "coverage_report.py (gcov)",
-  "generated": "2026-11-10 08:44:44",
+  "generated": "2026-11-10 13:52:42",
   "overall": {
-    "lines_total": 6898,
-    "lines_covered": 4155,
-    "line_rate": 0.6023485068135691
+    "lines_total": 9263,
+    "lines_covered": 5310,
+    "line_rate": 0.5732484076433121
   },
   "files": {
     "src/FX4/array.c": {
@@ -57,6 +57,41 @@
       "lines_covered": 89,
       "line_rate": 0.3869565217391304
     },
+    "src/lib_gfx/array.c": {
+      "lines_total": 63,
+      "lines_covered": 43,
+      "line_rate": 0.6825396825396826
+    },
+    "src/lib_gfx/hsv_to_rgb.c": {
+      "lines_total": 62,
+      "lines_covered": 34,
+      "line_rate": 0.5483870967741935
+    },
+    "src/lib_gfx/pixelarray.c": {
+      "lines_total": 821,
+      "lines_covered": 142,
+      "line_rate": 0.17295980511571254
+    },
+    "src/lib_gfx/trig.c": {
+      "lines_total": 22,
+      "lines_covered": 22,
+      "line_rate": 1.0
+    },
+    "src/sapphireos/catbus_common.c": {
+      "lines_total": 182,
+      "lines_covered": 118,
+      "line_rate": 0.6483516483516484
+    },
+    "src/sapphireos/catbus_types.c": {
+      "lines_total": 45,
+      "lines_covered": 45,
+      "line_rate": 1.0
+    },
+    "src/sapphireos/datetime.c": {
+      "lines_total": 147,
+      "lines_covered": 116,
+      "line_rate": 0.7891156462585034
+    },
     "src/sapphireos/ffs_block.c": {
       "lines_total": 306,
       "lines_covered": 91,
@@ -92,10 +127,30 @@
       "lines_covered": 46,
       "line_rate": 1.0
     },
+    "src/sapphireos/keyvalue.c": {
+      "lines_total": 464,
+      "lines_covered": 258,
+      "line_rate": 0.5560344827586207
+    },
+    "src/sapphireos/kvdb.c": {
+      "lines_total": 280,
+      "lines_covered": 175,
+      "line_rate": 0.625
+    },
+    "src/sapphireos/list.c": {
+      "lines_total": 148,
+      "lines_covered": 123,
+      "line_rate": 0.831081081081081
+    },
     "src/sapphireos/memory.c": {
       "lines_total": 249,
       "lines_covered": 68,
       "line_rate": 0.27309236947791166
+    },
+    "src/sapphireos/util.c": {
+      "lines_total": 131,
+      "lines_covered": 79,
+      "line_rate": 0.6030534351145038
     }
   }
 }
